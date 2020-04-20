@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "_assets": ["app/assets/*"],
+        "_components": ["app/components/*"],
+        "_features": ["app/features/*"],
+        "_navigations": ["app/navigations/*"],
+        "_languages": ["./app/languages/*"],
+        "_services": ["app/services/*"],
+        "_styles": ["app/styles/*"],
+        "_utils": ["app/utils/*"]
+      }
+    }
+  }
