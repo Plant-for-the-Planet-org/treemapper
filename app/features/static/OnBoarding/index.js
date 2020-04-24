@@ -51,19 +51,19 @@ const OnBoarding = ({ navigation }) => {
         paginationStyle={{ bottom: -5 }}
       >
         <View style={styles.container}>
-          <WelcomeScreen1 />
+          {/* <WelcomeScreen1 /> */}
         </View>
         <View style={styles.container}>
-          <WelcomeScreen2 />
+          {/* <WelcomeScreen2 /> */}
         </View>
         <View style={styles.container}>
-          <WelcomeScreen3 />
+          {/* <WelcomeScreen3 /> */}
         </View>
         <View style={styles.container}>
-          <WelcomeScreen4 />
+          {/* <WelcomeScreen4 /> */}
         </View>
         <View style={styles.container}>
-          <WelcomeScreen5 />
+          {/* <WelcomeScreen5 /> */}
         </View>
       </Swiper>
       <Footer />
