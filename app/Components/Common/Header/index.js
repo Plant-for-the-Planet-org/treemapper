@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { back_icon } from '../../../assets'
+import { back_icon, close } from '../../../assets'
 
 
-const Header = ({ leftIcon, headingText, subHeadingText }) => {
+const Header = ({ closeIcon, headingText, subHeadingText }) => {
     return (
         <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15 }}>
                 <TouchableOpacity>
-                    <Image source={back_icon} />
+                    <Image source={closeIcon ? close : back_icon} />
                 </TouchableOpacity>
                 <View />
             </View>

@@ -1,34 +1,37 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
- 
-const DateInput = ({ label, date }) => {
+
+const Input = ({ label, value }) => {
     return (
-        <View>
+        <View style={styles.container}>
             <Text style={styles.label}>{label}</Text>
-            <View style={styles.dateContainer}>
-                <Text style={styles.date}>{date}</Text>
+            <View style={styles.valueContainer}>
+                <Text style={styles.value}>{value}</Text>
             </View>
         </View>
     )
 }
-export default DateInput
+export default Input
 
 const styles = StyleSheet.create({
+    container: {
+        marginVertical: 10
+    },
     label: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_18,
-        lineHeight: Typography.LINE_HEIGHT_40,
+        lineHeight: Typography.LINE_HEIGHT_30,
         color: Colors.TEXT_COLOR,
     },
-    date: {
+    value: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_20,
         lineHeight: Typography.LINE_HEIGHT_40,
         color: Colors.TEXT_COLOR,
         fontWeight: Typography.FONT_WEIGHT_MEDIUM
     },
-    dateContainer: {
+    valueContainer: {
         borderBottomWidth: 2,
         borderBottomColor: Colors.TEXT_COLOR,
     }

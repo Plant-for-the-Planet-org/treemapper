@@ -22,6 +22,7 @@ export const FONT_SIZE_12 = scaleFont(12);
 
 // LINE HEIGHT
 export const LINE_HEIGHT_40 = scaleFont(40);
+export const LINE_HEIGHT_30 = scaleFont(30);
 export const LINE_HEIGHT_24 = scaleFont(24);
 export const LINE_HEIGHT_20 = scaleFont(20);
 export const LINE_HEIGHT_16 = scaleFont(16);

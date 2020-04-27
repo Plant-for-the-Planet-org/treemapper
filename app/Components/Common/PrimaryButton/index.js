@@ -21,6 +21,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 100,
+        // marginHorizontal : 10,
+        // flex : 1,    
     },
     whiteTheme: {
         backgroundColor: Colors.WHITE,
@@ -36,6 +38,6 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
     },
     halfWidth :{
-        width : '50%'
+        width : '47%'
     }
 })

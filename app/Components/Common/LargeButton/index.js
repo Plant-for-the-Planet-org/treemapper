@@ -3,15 +3,16 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const LargeButton = ({ heading, subHeading, active }) => {
+const LargeButton = ({ heading, subHeading, active, medium }) => {
     return (
-        <View style={[styles.container, active && styles.activeContainer]}>
+        <View style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
             <View style={styles.subContainer}>
                 <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
+                {medium && <Text>Upload</Text>}
             </View>
-            <View style={styles.subContainer}>
+            {!medium && <View style={styles.subContainer}>
                 <Text style={[styles.subHeading, active && styles.activeText]}>{subHeading}</Text>
-            </View>
+            </View>}
         </View>
     )
 }
@@ -26,16 +27,22 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 25
     },
+    mediumCont: {
+        paddingVertical: 5
+    },
     activeContainer: {
         borderColor: Colors.PRIMARY
     },
     subContainer: {
+        flexDirection: 'row',
         marginHorizontal: 25,
-        marginVertical: 5
+        marginVertical: 5,
+        alignItems: 'center',
+        justifyContent: 'space-between'
     },
     heading: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: Typography.FONT_SIZE_22,
+        fontSize: Typography.FONT_SIZE_20,
         lineHeight: Typography.LINE_HEIGHT_40,
         color: Colors.BLACK,
     },
@@ -44,7 +51,7 @@ const styles = StyleSheet.create({
     },
     subHeading: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: Typography.FONT_SIZE_18,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.BLACK,
     },
 })
