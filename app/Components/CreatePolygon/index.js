@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
@@ -8,9 +8,14 @@ import MapMarking from './MapMarking';
 import Test from './Test'
 
 const CreatePolygon = () => {
+
+    const [isMapMarkingState, setIsMapMarkingState] = useState(true)
+
+    const toggleState = () => setIsMapMarkingState(!isMapMarkingState)
+
     return (
         <SafeAreaView style={styles.container}>
-            <Test />
+            {isMapMarkingState ? <MapMarking toggleState={toggleState} /> : <ImageCapturing />}
         </SafeAreaView>
     )
 }
