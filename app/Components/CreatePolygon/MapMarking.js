@@ -7,13 +7,13 @@ import { camera, marker, marker_png, active_marker } from '../../assets/index'
 
 MapboxGL.setAccessToken('pk.eyJ1IjoiaGFpZGVyYWxpc2hhaCIsImEiOiJjazlqa3FrM28wM3VhM2RwaXdjdzg0a2s4In0.0xQfxFEfdvAqghrNgO8o9g');
 
-let l = console.log
+const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 class MapMarking extends React.Component {
     state = {
         centerCoordinates: [0, 0],
         activePolygonIndex: 0,
         loader: false,
-        polygon: {
+        geoJSON: {
             "type": "FeatureCollection",
             "features": [
                 {
@@ -45,10 +45,14 @@ class MapMarking extends React.Component {
         }
     }
 
-    addMarker = () => {
-        let polygon = this.state.polygon;
-        polygon.features[this.state.activePolygonIndex].geometry.coordinates.push(this.state.centerCoordinates);
-        this.setState({ polygon })
+    addMarker = (complete) => {
+        let { geoJSON } = this.state;
+        geoJSON.features[this.state.activePolygonIndex].geometry.coordinates.push(this.state.centerCoordinates);
+        console.log(complete, 'complete')
+        if (complete) {
+             geoJSON.features[this.state.activePolygonIndex].geometry.coordinates.push(geoJSON.features[this.state.activePolygonIndex].geometry.coordinates[0])
+        }
+        this.setState({ geoJSON })
     }
 
     onChangeRegiionStart = () => this.setState({ loader: true })
@@ -58,36 +62,36 @@ class MapMarking extends React.Component {
         this.setState({ centerCoordinates: center, loader: false })
     }
 
-    renderFakeMarker = () => {
+    renderFakeMarker = (location) => {
         return (<View style={styles.fakeMarkerCont} >
             <Image
                 source={active_marker}
                 style={styles.markerImage} />
-            {this.state.loader && <ActivityIndicator color={'#fff'} style={{ position: 'absolute', bottom: 67 }} />}
+            {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
         </View>)
     }
 
-    renderMapView = (polygon) => {
+    renderMapView = (geoJSON) => {
         return (<MapboxGL.MapView
             style={styles.container}
             ref={(ref) => this._map = ref}
             onRegionWillChange={this.onChangeRegiionStart}
             onRegionDidChange={this.onChangeRegiionComplete}>
             <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
-            <MapboxGL.ShapeSource id={'polygon'} shape={polygon}>
+            <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
                 <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             </MapboxGL.ShapeSource>
             <MapboxGL.UserLocation onUpdate={this.onUpdateUserLocation} />
-            {this.renderMarkers(polygon)}
+            {this.renderMarkers(geoJSON)}
         </MapboxGL.MapView>)
     }
 
     renderMarkers = () => {
-        const { polygon } = this.state;
+        const { geoJSON } = this.state;
         const markers = [];
 
-        for (let i = 0; i < polygon.features.length; i++) {
-            let onePolygon = polygon.features[i];
+        for (let i = 0; i < geoJSON.features.length; i++) {
+            let onePolygon = geoJSON.features[i];
             for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
                 markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker} />);
@@ -97,28 +101,27 @@ class MapMarking extends React.Component {
     }
 
     onPressCompletePolygon = async () => {
-        await this.addMarker()
-
+        await this.addMarker(true)
     }
 
     render() {
-        // console.log(this.state.polygon.features[this.state.activePolygonIndex].geometry.coordinates)
-        const { polygon, loader, activePolygonIndex } = this.state;
-        let isShowCompletePolygonBtn = polygon.features[activePolygonIndex].geometry.coordinates.length > 3
+        const { geoJSON, loader, activePolygonIndex } = this.state;
+        let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 2;
+        let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
         return (
             <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
                 <View style={styles.headerCont}>
-                    <Header headingText={'Location A'} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                    <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
                 </View>
                 <View style={styles.container}>
-                    {this.renderMapView(polygon)}
-                    {this.renderFakeMarker()}
+                    {this.renderMapView(geoJSON)}
+                    {this.renderFakeMarker(location)}
                 </View>
                 {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
                     <PrimaryButton theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
                 </View>}
                 <View style={styles.continueBtnCont}>
-                    <PrimaryButton disabled={loader} onPress={this.addMarker} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                    <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
                 </View>
 
             </SafeAreaView>)
@@ -147,6 +150,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         resizeMode: 'contain',
         bottom: 0
+    },
+    loader: {
+        position: 'absolute', bottom: 67
+    },
+    activeMarkerLocation: {
+        position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
     }
 
 })
