@@ -1,36 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from "../../../assets/";
-import { Input } from '../';
+import { Input, Label } from '../';
 
 
-const Accordian = ({ }) => {
+const LabelAccordian = ({ }) => {
 
-    const [isOpen, setIsOpen] = useState(false);
-
-    const onPressAccordian = () => setIsOpen(!isOpen)
+    const renderSubSpecie = () => (
+        <TouchableOpacity style={styles.oneSpecieCont}>
+            <Text style={styles.label}>Apples</Text>
+            <View style={styles.treeCountCont}>
+                <>
+                    <Text style={styles.treeCount}>50</Text>
+                    <Text style={styles.trees}>Trees</Text>
+                </>
+            </View>
+        </TouchableOpacity>
+    )
 
     return (
         <View style={{ marginVertical: 10 }}>
-            <TouchableOpacity onPress={onPressAccordian} style={styles.container}>
-                <Text style={styles.label}>Apples</Text>
-                <View style={styles.treeCountCont}>
-                    {!isOpen && <>
-                        <Text style={styles.treeCount}>50</Text>
-                        <Text style={styles.trees}>Trees</Text>
-                    </>}
-                    <Image source={isOpen ? arrow_up : arrow_down} style={styles.arrowIcon} />
-                </View>
-            </TouchableOpacity>
-            {isOpen && <>
-                <Input label={'Name of trees'} value={'Apples'} />
-                <Input label={'Tree Count'} value={'50'} />
-            </>}
+            <Label leftText={'Species'} rightText={'Edit'} />
+            {renderSubSpecie()}
+            {renderSubSpecie()}
+            {renderSubSpecie()}
+            {renderSubSpecie()}
         </View>
     )
 }
-export default Accordian;
+export default LabelAccordian;
 
 const styles = StyleSheet.create({
     container: {
@@ -45,8 +44,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     label: {
-        fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: Typography.FONT_SIZE_22,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_20,
         lineHeight: Typography.LINE_HEIGHT_40,
         color: Colors.TEXT_COLOR,
     },
@@ -65,6 +64,12 @@ const styles = StyleSheet.create({
     },
     arrowIcon: {
         width: 35, height: 35
+    },
+    oneSpecieCont: {
+        flexDirection: 'row',
+        paddingVertical: 5,
+        justifyContent: 'space-between',
+        marginLeft: 25
     }
 
 })

@@ -3,12 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const LargeButton = ({ heading, subHeading, active, medium }) => {
+const LargeButton = ({ heading, subHeading, active, medium, rightIcon }) => {
     return (
         <View style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
             <View style={styles.subContainer}>
                 <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
-                {medium && <Text>Upload</Text>}
+                {medium && <Text>{rightIcon}</Text>}
             </View>
             {!medium && <View style={styles.subContainer}>
                 <Text style={[styles.subHeading, active && styles.activeText]}>{subHeading}</Text>
