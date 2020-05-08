@@ -2,23 +2,26 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close } from '../../../assets'
+import { useNavigation } from '@react-navigation/native';
 
 
-const Header = ({ closeIcon, headingText, subHeadingText }) => {
+const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText }) => {
+    const navigation = useNavigation();
+    const onPressBack = () => navigation.goBack()
     return (
         <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15 }}>
-                <TouchableOpacity>
+                {!hideBackIcon && <TouchableOpacity onPress={onPressBack}>
                     <Image source={closeIcon ? close : back_icon} />
-                </TouchableOpacity>
+                </TouchableOpacity>}
                 <View />
             </View>
-            <View style={{ marginVertical: 0 }}>
+            {headingText ? <View style={{ marginVertical: 0 }}>
                 <Text style={styles.headerText}>{headingText}</Text>
-            </View>
-            <View style={{ marginVertical: 10, }}>
+            </View> : null}
+            {subHeadingText && <View style={{ marginVertical: 10, }}>
                 <Text style={styles.subHeadingText}>{subHeadingText}</Text>
-            </View>
+            </View>}
         </View>
     )
 }

@@ -1,44 +1,77 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { addSpeciesAction } from '../../Actions'
+import { store } from '../../Actions/store';
 
+const MultipleTrees = ({ navigation }) => {
 
-const MultipleTrees = () => {
+    const { state } = useContext(store);
 
     const [plantingDate, setPlantingDate] = useState(new Date());
     const [showDate, setShowDate] = useState(false);
+    const [species, setSpecies] = useState([{ nameOfTree: 'Species', treeCount: '0' }]);
 
-    const onChange = (event, selectedDate) => {
+    const onChangeDate = (event, selectedDate) => {
         setShowDate(false)
         setPlantingDate(selectedDate);
     };
 
-    const renderDatePicker = () => (
-        showDate && <DateTimePicker
-            testID="dateTimePicker"
-            timeZoneOffsetInMinutes={0}
-            value={plantingDate}
-            mode={'date'}
-            is24Hour={true}
-            display="default"
-            onChange={onChange}
-        />
-    )
+    const renderDatePicker = () => {
+        return (
+            showDate && <DateTimePicker
+                testID="dateTimePicker"
+                timeZoneOffsetInMinutes={0}
+                value={plantingDate}
+                mode={'date'}
+                is24Hour={true}
+                display="default"
+                onChange={onChangeDate}
+            />
+        )
+    }
+
+    const addSpecies = () => {
+        species.push({ nameOfTree: 'Species', treeCount: '0' })
+        setSpecies([...species])
+    }
+
+    const onChangeText = (text, dataKey, index) => {
+        console.log(text, dataKey, index, 'Tre ')
+        species[index][dataKey] = text;
+        setSpecies([...species])
+    }
+
+    const renderOneSpecies = (item, index) => {
+        return (<Accordian onChangeText={onChangeText} index={index} data={item} />)
+    }
+
+    const onPressContinue = () => {
+        let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
+        addSpeciesAction(data).then(() => {
+            navigation.navigate('LocateTree')
+        })
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                 <TouchableOpacity onPress={() => setShowDate(true)}>
-                    <Input value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
+                    <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
                 </TouchableOpacity>
-                <Accordian data={{ nameOfTree: 'Apple', treeCount: 2 }} />
-                <Text style={styles.addSpecies}>+ Add Species</Text>
+                <FlatList
+                    data={species}
+                    renderItem={({ item, index }) => renderOneSpecies(item, index)}
+                />
+                <TouchableOpacity onPress={addSpecies}>
+                    <Text style={styles.addSpecies}>+ Add Species</Text>
+                </TouchableOpacity>
                 <View style={{ flex: 1 }} />
-                <PrimaryButton btnText={'Save & Continue'} />
+                <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
                 {renderDatePicker()}
             </ScrollView>
         </SafeAreaView>

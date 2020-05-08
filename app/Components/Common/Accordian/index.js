@@ -5,11 +5,12 @@ import { arrow_down, arrow_up } from "../../../assets/";
 import { Input } from '../';
 
 
-const Accordian = ({ data }) => {
+const Accordian = ({ data, onChangeText, index }) => {
 
     const [isOpen, setIsOpen] = useState(false);
 
     const onPressAccordian = () => setIsOpen(!isOpen)
+
 
     return (
         <View style={{ marginVertical: 10 }}>
@@ -24,8 +25,8 @@ const Accordian = ({ data }) => {
                 </View>
             </TouchableOpacity>
             {isOpen && <>
-                <Input label={'Name of trees'} value={data.nameOfTree} />
-                <Input label={'Tree Count'} value={data.treeCount} />
+                <Input index={index} value={data.nameOfTree} dataKey={'nameOfTree'} onChangeText={onChangeText} label={'Name of trees'} value={data.nameOfTree} />
+                <Input index={index} value={data.treeCount} dataKey={'treeCount'} onChangeText={onChangeText} label={'Tree Count'} value={data.treeCount} />
             </>}
         </View>
     )

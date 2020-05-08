@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import Realm from 'realm'
+import Realm from 'realm';
+import { initiateInventory } from '../../Actions'
+import { store } from '../../Actions/store';
 
 const RegisterTree = ({ navigation }) => {
+    const globalState = useContext(store);
+    const { dispatch } = globalState;
 
     const [treeType, setTreeType] = useState('single')
 
@@ -12,59 +16,11 @@ const RegisterTree = ({ navigation }) => {
     const onPressMultipleTree = () => setTreeType('multiple');
 
     const onPressContinue = () => {
-        // schema and start object 1588846833895.
-        const Coordinates = {
-            name: 'Coordinates',
-            properties: {
-                latlong: 'string',
-                imageUrl: 'string',
-                locationTitle: 'string'
-            }
-        }
-        const Polygons = {
-            name: 'Polygons',
-            properties: {
-                isPolygonComplete: 'string',
-                coordinates: 'Coordinates[]',
-            }
-        }
-        const Species = {
-            name: 'Species',
-            properties: {
-                nameOfTree: 'string',
-                treeCount: 'string',
-            }
-        }
-        const Inventory = {
-            name: 'Inventory',
-            primaryKey: 'inventory_id',
-            properties: {
-                inventory_id: 'string',
-                plantation_date: 'string?',
-                tree_type: 'string',
-                status: 'string',
-                project_id: 'string?',
-                donation_type: 'string?',
-                locate_tree: 'string?',
-                last_screen: 'string?',
-                species: 'Species[]',
-                polygons: 'Polygons[]'
-            }
-        };
-
-        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
-            .then(realm => {
-                realm.write(() => {
-                    realm.create('Inventory', {
-                        inventory_id: `${new Date().getTime()}`,
-                        tree_type: treeType,
-                        status: 'incomplete',
-                    })
-                    navigation.navigate('MultipleTrees')
-                    // const Inventory = realm.objects('Inventory');
-                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
-                })
-            })
+        let data = { treeType };
+        initiateInventory(data).then((inventoryID) => {
+            navigation.navigate('MultipleTrees')
+            dispatch({ type: 'SET_INVENTORY_ID', inventoryID: inventoryID })
+        })
 
     }
 

@@ -1,13 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { Colors, Typography } from '_styles';
 
-const Input = ({ label, value }) => {
+const Input = ({ label, value, onChangeText, dataKey, index, editable }) => {
+
+    const onChange = (text) => {
+        onChangeText(text, dataKey, index)
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.label}>{label}</Text>
             <View style={styles.valueContainer}>
-                <Text style={styles.value}>{value}</Text>
+                <TextInput editable={editable} value={value} onChangeText={onChange} style={styles.value} />
             </View>
         </View>
     )

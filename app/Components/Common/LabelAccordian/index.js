@@ -1,31 +1,37 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from "../../../assets/";
 import { Input, Label } from '../';
 
 
-const LabelAccordian = ({ }) => {
+const LabelAccordian = ({ data }) => {
 
-    const renderSubSpecie = () => (
+    const renderSubSpecie = (item) => (
         <TouchableOpacity style={styles.oneSpecieCont}>
-            <Text style={styles.label}>Apples</Text>
+            <Text style={styles.label}>{item.nameOfTree}</Text>
             <View style={styles.treeCountCont}>
                 <>
-                    <Text style={styles.treeCount}>50</Text>
+                    <Text style={styles.treeCount}>{item.treeCount}</Text>
                     <Text style={styles.trees}>Trees</Text>
                 </>
             </View>
         </TouchableOpacity>
     )
 
+    const renderSpecieCont = ({ item, index }) => {
+        return (<View>
+            {renderSubSpecie(item)}
+        </View>)
+    }
+
     return (
         <View style={{ marginVertical: 10 }}>
             <Label leftText={'Species'} rightText={'Edit'} />
-            {renderSubSpecie()}
-            {renderSubSpecie()}
-            {renderSubSpecie()}
-            {renderSubSpecie()}
+            <FlatList
+                data={data}
+                renderItem={renderSpecieCont}
+            />
         </View>
     )
 }
