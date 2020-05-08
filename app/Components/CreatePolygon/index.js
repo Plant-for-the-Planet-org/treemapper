@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
-import Test from './Test'
+// import Test from './Test'
 
 const CreatePolygon = () => {
 
