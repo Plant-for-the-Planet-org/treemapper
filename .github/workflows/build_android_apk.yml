@@ -30,10 +30,9 @@ jobs:
         with:
           name: app-release.apk
           path: android/app/build/outputs/apk/release/
-
-    - name: Upload Android APK to Browserstack
-      run: |
-        upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
-        echo "::set-env name=upload_file::$upload_file"
-        mv android/app/build/outputs/apk/develop/release/app-release.apk release/$upload_file
-        curl -u "planetit1:${{ secrets.BROWSERSTACK_ACCESS_KEY }}" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
+      - name: Upload Android APK to Browserstack
+        run: |
+          upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
+          echo "::set-env name=upload_file::$upload_file"
+          mv android/app/build/outputs/apk/develop/release/app-release.apk release/$upload_file
+          curl -u "planetit1:${{ secrets.BROWSERSTACK_ACCESS_KEY }}" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
