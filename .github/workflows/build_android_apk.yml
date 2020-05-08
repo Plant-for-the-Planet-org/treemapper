@@ -1,6 +1,9 @@
-name: react-native-android-build-apk
+name:  Android build on Ubuntu
 on:
   push:
+    branches:
+      - develop
+  pull_request:
     branches:
       - develop
 jobs:
