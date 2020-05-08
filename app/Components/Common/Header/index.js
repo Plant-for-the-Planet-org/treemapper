@@ -13,7 +13,7 @@ const Header = ({ closeIcon, headingText, subHeadingText }) => {
                 </TouchableOpacity>
                 <View />
             </View>
-            <View style={{ marginVertical: 10 }}>
+            <View style={{ marginVertical: 0 }}>
                 <Text style={styles.headerText}>{headingText}</Text>
             </View>
             <View style={{ marginVertical: 10, }}>

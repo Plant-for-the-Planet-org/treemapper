@@ -1,19 +1,46 @@
-import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 
 const MultipleTrees = () => {
+
+    const [plantingDate, setPlantingDate] = useState(new Date());
+    const [showDate, setShowDate] = useState(false);
+
+    const onChange = (event, selectedDate) => {
+        setShowDate(false)
+        setPlantingDate(selectedDate);
+    };
+
+    const renderDatePicker = () => (
+        showDate && <DateTimePicker
+            testID="dateTimePicker"
+            timeZoneOffsetInMinutes={0}
+            value={plantingDate}
+            mode={'date'}
+            is24Hour={true}
+            display="default"
+            onChange={onChange}
+        />
+    )
+
     return (
         <SafeAreaView style={styles.container}>
             <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
-            <Input value={'June 28. 19'} label={'Planting Date'} />
-            <Accordian />
-            <Text style={styles.addSpecies}>+ Add Species</Text>
-            <View style={{ flex: 1 }} />
-            <PrimaryButton btnText={'Save & Continue'} />
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <TouchableOpacity onPress={() => setShowDate(true)}>
+                    <Input value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
+                </TouchableOpacity>
+                <Accordian data={{ nameOfTree: 'Apple', treeCount: 2 }} />
+                <Text style={styles.addSpecies}>+ Add Species</Text>
+                <View style={{ flex: 1 }} />
+                <PrimaryButton btnText={'Save & Continue'} />
+                {renderDatePicker()}
+            </ScrollView>
         </SafeAreaView>
     )
 }

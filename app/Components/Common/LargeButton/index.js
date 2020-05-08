@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const LargeButton = ({ heading, subHeading, active, medium, rightIcon }) => {
+const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress }) => {
     return (
-        <View style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
+        <TouchableOpacity onPress={onPress} style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
             <View style={styles.subContainer}>
                 <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
                 {medium && <Text>{rightIcon}</Text>}
@@ -13,7 +13,7 @@ const LargeButton = ({ heading, subHeading, active, medium, rightIcon }) => {
             {!medium && <View style={styles.subContainer}>
                 <Text style={[styles.subHeading, active && styles.activeText]}>{subHeading}</Text>
             </View>}
-        </View>
+        </TouchableOpacity>
     )
 }
 export default LargeButton;

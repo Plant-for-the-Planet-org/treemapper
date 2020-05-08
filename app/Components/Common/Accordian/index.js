@@ -5,7 +5,7 @@ import { arrow_down, arrow_up } from "../../../assets/";
 import { Input } from '../';
 
 
-const Accordian = ({ }) => {
+const Accordian = ({ data }) => {
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -14,18 +14,18 @@ const Accordian = ({ }) => {
     return (
         <View style={{ marginVertical: 10 }}>
             <TouchableOpacity onPress={onPressAccordian} style={styles.container}>
-                <Text style={styles.label}>Apples</Text>
+                <Text style={styles.label}>{data.nameOfTree}</Text>
                 <View style={styles.treeCountCont}>
                     {!isOpen && <>
-                        <Text style={styles.treeCount}>50</Text>
+                        <Text style={styles.treeCount}>{data.treeCount}</Text>
                         <Text style={styles.trees}>Trees</Text>
                     </>}
                     <Image source={isOpen ? arrow_up : arrow_down} style={styles.arrowIcon} />
                 </View>
             </TouchableOpacity>
             {isOpen && <>
-                <Input label={'Name of trees'} value={'Apples'} />
-                <Input label={'Tree Count'} value={'50'} />
+                <Input label={'Name of trees'} value={data.nameOfTree} />
+                <Input label={'Tree Count'} value={data.treeCount} />
             </>}
         </View>
     )

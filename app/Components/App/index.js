@@ -1,26 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Header, LargeButton, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native'
+import React from 'react'
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import 'react-native-gesture-handler';
+
+import { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview } from "../";
+
+const Stack = createStackNavigator();
 
 
 const App = () => {
+
     return (
-        <SafeAreaView style={styles.container}>
-            <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
-            <LargeButton heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={false} />
-            <LargeButton heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={true} />
-            <PrimaryButton btnText={'Continue'} theme={'primary'}/>
-            <PrimaryButton btnText={'Continue'} theme={'white'}/>
-            <PrimaryButton btnText={'Continue'} theme={'white'}/>
-        </SafeAreaView>
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="MultipleTrees" headerMode={'none'}>
+                <Stack.Screen name="RegisterTree" component={RegisterTree} />
+                <Stack.Screen name="MultipleTrees" component={MultipleTrees} />
+                <Stack.Screen name="SelectProject" component={SelectProject} />
+            </Stack.Navigator>
+        </NavigationContainer>
     )
 }
-export default App;
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginHorizontal : 25
-    }
-})
+export default App

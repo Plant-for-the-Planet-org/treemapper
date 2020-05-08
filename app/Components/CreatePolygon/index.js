@@ -15,7 +15,8 @@ const CreatePolygon = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {isMapMarkingState ? <MapMarking toggleState={toggleState} /> : <ImageCapturing />}
+            <Test />
+            {/* {isMapMarkingState ? <MapMarking toggleState={toggleState} /> : <ImageCapturing />} */}
         </SafeAreaView>
     )
 }
