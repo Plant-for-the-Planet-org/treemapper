@@ -6,12 +6,12 @@ import { getAllInventory } from "../../Actions";
 
 const TreeInventory = ({ navigation }) => {
 
-    const [allInventory, setAllInventory] = useState(null)
+    const [allInventory, setAllInventory] = useState([])
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             getAllInventory().then((allInventory) => {
-                // console.log('allInventory=',allInventory)
+                // console.log('allInventory=', Object.values(allInventory))
                 setAllInventory(Object.values(allInventory))
             })
         });
@@ -39,14 +39,14 @@ const TreeInventory = ({ navigation }) => {
             />
         )
     }
-
+    console.log(allInventory)
     return (
         <SafeAreaView style={styles.container}>
             <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
             {renderTempComp()}
             <SmallHeader leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
             {renderInventoryList(allInventory)}
-            {allInventory.lenght < 1 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text>No Inventory</Text>
             </View>}
         </SafeAreaView >

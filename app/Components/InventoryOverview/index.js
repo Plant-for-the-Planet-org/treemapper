@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
-import { getInventory } from '../../Actions'
+import { getInventory, statusToPending } from '../../Actions'
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const InventoryOverview = ({ navigation }) => {
@@ -12,15 +12,15 @@ const InventoryOverview = ({ navigation }) => {
     const [inventory, setInventory] = useState(null)
 
     useEffect(() => {
-       
-            // The screen is focused
-            // Call any action
-            getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-                inventory.species = Object.values(inventory.species);
-                inventory.polygons = Object.values(inventory.polygons);
-                setInventory(inventory)
-            })
-       
+
+        // The screen is focused
+        // Call any action
+        getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+            inventory.species = Object.values(inventory.species);
+            inventory.polygons = Object.values(inventory.polygons);
+            setInventory(inventory)
+        })
+
     }, [])
 
 
@@ -50,7 +50,10 @@ const InventoryOverview = ({ navigation }) => {
     }
 
     const onPressSave = () => {
-        navigation.navigate('TreeInventory')
+        let data = { inventory_id: state.inventoryID }
+         statusToPending(data).then(() => {
+            navigation.navigate('TreeInventory')
+        })
     }
     return (
         <SafeAreaView style={styles.container}>

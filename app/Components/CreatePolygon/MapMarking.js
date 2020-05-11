@@ -37,7 +37,9 @@ class MapMarking extends React.Component {
     }
 
     async  UNSAFE_componentWillMount() {
-        await MapboxGL.requestAndroidLocationPermissions();
+        await MapboxGL.requestAndroidLocationPermissions().then(()=>{
+            
+        });
     }
 
     componentDidMount() {

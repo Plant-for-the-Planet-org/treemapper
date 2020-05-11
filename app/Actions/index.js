@@ -97,7 +97,6 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                         locate_tree
                     }, 'modified')
                     const Inventory = realm.objects('Inventory');
-                    console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
                     resolve()
                 })
             })
@@ -129,8 +128,7 @@ export const addCoordinates = ({ inventory_id, geoJSON }) => {
                         inventory_id: `${inventory_id}`,
                         polygons: polygons
                     }, 'modified')
-                    // const Inventory = realm.objects('Inventory');
-                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
+
                     resolve()
                 })
             })
@@ -163,5 +161,18 @@ export const getInventory = ({ inventoryID }) => {
     })
 }
 
-
-
+export const statusToPending = ({ inventory_id }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    realm.create('Inventory', {
+                        inventory_id: `${inventory_id}`,
+                        status : 'pending'
+                    }, 'modified')
+                    const Inventory = realm.objects('Inventory');
+                    resolve()
+                })
+            })
+    })
+}
