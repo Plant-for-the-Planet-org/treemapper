@@ -11,7 +11,7 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight }) =>
             <Text style={styles.subHeadingText}>{leftText}</Text>
             <View>
                 <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }}>
-                    <Text style={[styles.uploadNowBtn, styles.activeText]}>{rightText}</Text>
+                    <Text style={[styles.uploadNowBtn, styles.activeText, rightTheme == 'red' && styles.redTheme]}>{rightText}</Text>
                     {icon && <Image source={upload_now} />}
                 </TouchableOpacity>
             </View>
@@ -44,6 +44,9 @@ const styles = StyleSheet.create({
         lineHeight: Typography.LINE_HEIGHT_24,
         fontWeight: Typography.FONT_WEIGHT_REGULAR,
         paddingHorizontal: 10
+    },
+    redTheme: {
+        color: 'red'
     }
 })
 

@@ -8,7 +8,7 @@ import { insertImageAtLastCoordinate } from '../../Actions'
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 
-const ImageCapturing = ({ toggleState, isCompletePolygon }) => {
+const ImageCapturing = ({ toggleState, isCompletePolygon ,locationText }) => {
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
@@ -37,7 +37,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon }) => {
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
-                <Header closeIcon headingText={'Location A'} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={{ flex: 1 }}>
                 <View style={{ flex: 1, backgroundColor: '#ccc' }}>

@@ -20,3 +20,4 @@ const StateProvider = ({ children }) => {
 };
 
 export { store, StateProvider }
+

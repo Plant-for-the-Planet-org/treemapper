@@ -37,7 +37,7 @@ const InventoryOverview = ({ navigation , }) => {
                 data={polygons}
                 renderItem={({ item, index }) => {
                     return (<View>
-                        <Label leftText={`Polygon ${APLHABETS[index]}`} rightText={'Edit'} />
+                        <Label leftText={`Polygon ${APLHABETS[index]}`} rightText={''} />
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
@@ -71,7 +71,7 @@ const InventoryOverview = ({ navigation , }) => {
             <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
             {inventory !== null ? <ScrollView style={{ flex: 1, }} showsVerticalScrollIndicator={false}>
                 <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
-                <Label leftText={'On Site Registration'} rightText={'Edit'} />
+                <Label leftText={`On Site Registration`} rightText={''} />
                 {/* <Label leftText={'Project (if tpo)'} rightText={'Yucatan Reforestation'} />
                 <Label leftText={'Type (if tpo)'} rightText={'External / Donated Trees'} /> */}
                 <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />

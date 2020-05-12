@@ -8,7 +8,7 @@ const Coordinates = {
     properties: {
         latitude: 'float',
         longitude: 'float',
-        imageUrl: 'string',
+        imageUrl: 'string?',
         locationTitle: 'string'
     }
 }
@@ -117,7 +117,6 @@ export const addCoordinates = ({ inventory_id, geoJSON }) => {
                             coordinates.push({
                                 longitude: oneLatlong[1],
                                 latitude: oneLatlong[0],
-                                imageUrl: '',
                                 locationTitle: 'A'
                             })
                         })
@@ -186,18 +185,41 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
                 realm.write(() => {
 
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
-                    inventory = JSON.parse(JSON.stringify(inventory));
-                    let polygons = Object.values(inventory.polygons)
-                    Object.values(polygons[polygons.length - 1].coordinates)[Object.values(polygons[polygons.length - 1].coordinates).length - 1].imageUrl = imageUrl
-                    polygons.map(x => {
-                        x.coordinates = Object.values(x.coordinates)
+                    // inventory = JSON.parse(JSON.stringify(inventory));
+                    let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
+                    let polygonsTemp = []
+                    let coordinatesTemp = []
+
+                    polygonsTemp = polygons.map((onePolygon, i) => {
+                        let coords = Object.values(onePolygon.coordinates)
+                        coords[coords.length - 1].imageUrl = imageUrl
+                        return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords }
                     })
-                    console.log(polygons, 'POLYGONS _______')
-                    realm.create('Inventory', {
-                        inventory_id: `${inventory_id}`,
-                        polygons: polygons
-                    }, 'modified')
-                    const Inventory = realm.objects('Inventory');
+                    inventory.polygons = polygonsTemp;
+                    console.log(polygonsTemp, 'TEMP')
+                    // polygons.map(onePolygon => {
+                    //     let coordinate = Object.values(onePolygon.coordinates)
+                    //     coordinate.map((oneCoordinate, i) => {
+                    //         if (i == coordinate.length - 1) {
+                    //             coordinate.pop();
+                    //             coordinate.push({ })
+                    //         } else {
+                    //             coordinatesTemp.push(oneCoordinate);
+                    //         }
+
+                    //     })
+                    // })
+
+
+                    // let coord = polygons[polygons.length - 1].coordinates[(polygons[polygons.length - 1].coordinates).length - 1]
+                    // coord.imageUrl = imageUrl
+                    // console.log(polygonsTemp, 'POLYGONS _______')
+
+                    // realm.create('Inventory', {
+                    //     inventory_id: `${inventory_id}`,
+                    //     polygons: polygonsTemp
+                    // }, 'modified')
+                    // const Inventory = realm.objects('Inventory');
                     resolve()
                 })
             })

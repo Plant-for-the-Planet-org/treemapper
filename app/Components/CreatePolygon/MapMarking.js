@@ -54,7 +54,6 @@ class MapMarking extends React.Component {
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
-            console.log(inventory, 'INVENRTO')
             if (inventory.polygons.length > 0) {
                 let featureList = inventory.polygons.map((onePolygon) => {
                     return {
@@ -107,7 +106,9 @@ class MapMarking extends React.Component {
             let data = { inventory_id: inventoryID, geoJSON: geoJSON };
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
-                    this.props.toggleState()
+                    let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
+                    console.log(location, 'locationlocationlocation')
+                    this.props.toggleState(location)
                 } else {
                     // For off site
                     if (complete) {
@@ -121,21 +122,36 @@ class MapMarking extends React.Component {
     onChangeRegionStart = () => this.setState({ loader: true })
 
     onChangeRegionComplete = async () => {
-        const center = await this._map.getCenter();
-        this.setState({ centerCoordinates: center, loader: false })
+        if (this.state.locateTree !== 'on-site') {
+            const center = await this._map.getCenter();
+            this.setState({ centerCoordinates: center, loader: false })
+        } else {
+            this.setState({ loader: false })
+
+        }
     }
 
     renderFakeMarker = (location) => {
-        return (<View style={styles.fakeMarkerCont} >
-            <Image
-                source={active_marker}
-                style={styles.markerImage} />
-            {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
-        </View>)
+        const { locateTree } = this.state
+        return (
+            (locateTree !== 'on-site') ?
+                <View style={styles.fakeMarkerCont} >
+                    <Image
+                        source={active_marker}
+                        style={styles.markerImage} />
+                    {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
+                </View> : null)
     }
 
+    currentLOCmarker = () => {
+        if (this.state.locateTree == 'on-site') {
+            return <MapboxGL.PointAnnotation key={`cuurentLOC`} id={`9`} coordinate={this.state.centerCoordinates} />
+        }
+
+    }
     renderMapView = (geoJSON) => {
         return (<MapboxGL.MapView
+            showUserLocation={true}
             style={styles.container}
             ref={(ref) => this._map = ref}
             onRegionWillChange={this.onChangeRegionStart}
@@ -146,6 +162,7 @@ class MapMarking extends React.Component {
             </MapboxGL.ShapeSource>
             <MapboxGL.UserLocation onUpdate={this.onUpdateUserLocation} />
             {this.renderMarkers(geoJSON)}
+            {this.currentLOCmarker()}
         </MapboxGL.MapView>)
     }
 
@@ -177,7 +194,6 @@ class MapMarking extends React.Component {
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
-        console.log(geoJSON.features[activePolygonIndex].properties.isPolygonComplete, 'geoJSON.features[activePolygonIndex].properties.isPolygonComplete')
         return (
             <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
                 <View style={styles.headerCont}>

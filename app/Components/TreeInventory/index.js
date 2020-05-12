@@ -26,7 +26,7 @@ const TreeInventory = ({ navigation }) => {
                 dispatch({ type: 'SET_INVENTORY_ID', inventoryID: item.inventory_id })
                 navigation.navigate(item.last_screen)
             }
-        },0)
+        }, 0)
     }
 
     const renderTempComp = () => (
@@ -44,7 +44,7 @@ const TreeInventory = ({ navigation }) => {
                 renderItem={({ item }) => {
                     let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
                     let data = { title: title, measurement: '10 cm', date: new Date(Number(item.plantation_date)).toLocaleDateString() }
-                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard data={data} /></TouchableOpacity>)
+                    return (<TouchableOpacity disabled={item.status == 'pending'} onPress={() => onPressInventory(item)}><InventoryCard data={data} /></TouchableOpacity>)
                 }}
             />
         )
@@ -67,7 +67,7 @@ const TreeInventory = ({ navigation }) => {
         <SafeAreaView style={styles.container}>
             <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
             {renderTempComp()}
-            {pendingInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} rightTheme={'red'} icon={'upload_now'} />
+            {pendingInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'upload_now'} />
                 {renderInventoryList(pendingInventory)}</View>}
             {inCompleteInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
                 {renderInventoryList(inCompleteInventory)}</View>}

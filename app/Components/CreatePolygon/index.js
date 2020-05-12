@@ -8,7 +8,6 @@ import MapMarking from './MapMarking';
 import { store } from '../../Actions/store';
 import { updateLastScreen } from '../../Actions/';
 
-// import Test from './Test'
 
 const CreatePolygon = () => {
 
@@ -20,10 +19,14 @@ const CreatePolygon = () => {
     }, [])
 
 
+    const [locationText, setLocationText] = useState('')
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
     const [isCompletePolygon, setIsCompletePolygon] = useState(false)
 
-    const toggleState = () => setIsMapMarkingState(!isMapMarkingState)
+    const toggleState = (locationText) => {
+        setLocationText(locationText)
+        setIsMapMarkingState(!isMapMarkingState)
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -34,6 +37,7 @@ const CreatePolygon = () => {
                 <ImageCapturing toggleState={toggleState}
                     isCompletePolygon={isCompletePolygon}
                     setIsCompletePolygon={setIsCompletePolygon}
+                    locationText={locationText}
                 />}
         </SafeAreaView>
     )
