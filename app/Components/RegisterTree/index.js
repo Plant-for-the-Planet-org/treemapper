@@ -10,7 +10,7 @@ const RegisterTree = ({ navigation }) => {
     const globalState = useContext(store);
     const { dispatch } = globalState;
 
-    const [treeType, setTreeType] = useState('single')
+    const [treeType, setTreeType] = useState('multiple')
 
     const onPressSingleTree = () => setTreeType('single');
     const onPressMultipleTree = () => setTreeType('multiple');
@@ -21,7 +21,6 @@ const RegisterTree = ({ navigation }) => {
             navigation.navigate('MultipleTrees')
             dispatch({ type: 'SET_INVENTORY_ID', inventoryID: inventoryID })
         })
-
     }
 
     return (

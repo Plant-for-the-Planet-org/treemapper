@@ -168,11 +168,52 @@ export const statusToPending = ({ inventory_id }) => {
                 realm.write(() => {
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
-                        status : 'pending'
+                        status: 'pending'
                     }, 'modified')
                     const Inventory = realm.objects('Inventory');
                     resolve()
                 })
             })
+    })
+}
+
+
+export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    inventory = JSON.parse(JSON.stringify(inventory));
+                    let polygons = Object.values(inventory.polygons)
+                    Object.values(polygons[polygons.length - 1].coordinates)[Object.values(polygons[polygons.length - 1].coordinates).length - 1].imageUrl = imageUrl
+                    polygons.map(x => {
+                        x.coordinates = Object.values(x.coordinates)
+                    })
+                    console.log(polygons,'POLYGONS _______')
+                    realm.create('Inventory', {
+                        inventory_id: `${inventory_id}`,
+                        polygons: polygons
+                    }, 'modified')
+                    const Inventory = realm.objects('Inventory');
+                    resolve()
+                })
+            })
+    })
+}
+
+
+export const clearAllInventory = () => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
+                    realm.delete(allInventory); // Deletes Inventory\
+                    resolve()
+                })
+            })
+
     })
 }

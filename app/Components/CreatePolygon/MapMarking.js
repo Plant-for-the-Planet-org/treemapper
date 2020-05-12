@@ -4,7 +4,7 @@ import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common'
 import { Colors, Typography } from '_styles';
 import MapboxGL from "@react-native-mapbox-gl/maps";
 import { camera, marker, marker_png, active_marker } from '../../assets/index'
-import { addCoordinates } from "../../Actions";
+import { addCoordinates, getInventory } from "../../Actions";
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 
@@ -19,6 +19,7 @@ class MapMarking extends React.Component {
         centerCoordinates: [0, 0],
         activePolygonIndex: 0,
         loader: false,
+        locateTree: '',
         geoJSON: {
             "type": "FeatureCollection",
             "features": [
@@ -36,15 +37,46 @@ class MapMarking extends React.Component {
         }
     }
 
+
     async  UNSAFE_componentWillMount() {
-        await MapboxGL.requestAndroidLocationPermissions().then(()=>{
-            
+        await MapboxGL.requestAndroidLocationPermissions().then(() => {
+
         });
     }
 
     componentDidMount() {
         MapboxGL.setTelemetryEnabled(false);
+        this.initialState()
+    }
 
+    initialState = () => {
+        const { inventoryID } = this.props;
+        getInventory({ inventoryID: inventoryID }).then((inventory) => {
+            inventory.species = Object.values(inventory.species);
+            inventory.polygons = Object.values(inventory.polygons);
+            console.log(inventory, 'INVENRTO')
+            if (inventory.polygons.length > 0) {
+                let featureList = inventory.polygons.map((onePolygon) => {
+                    return {
+                        "type": "Feature",
+                        "properties": {
+                            "isPolygonComplete": onePolygon.isPolygonComplete
+                        },
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.latitude), Number(oneCoordinate.longitude)]))
+                        }
+                    }
+                })
+                let geoJSON = {
+                    "type": "FeatureCollection",
+                    "features": featureList
+                }
+                this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree })
+            } else {
+                this.setState({ locateTree: inventory.locate_tree })
+            }
+        })
     }
 
     onUpdateUserLocation = (location) => {
@@ -62,13 +94,23 @@ class MapMarking extends React.Component {
     }
 
     addMarker = (complete) => {
-        let { geoJSON, activePolygonIndex, centerCoordinates } = this.state;
+        let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         geoJSON.features[activePolygonIndex].geometry.coordinates.push(centerCoordinates);
         if (complete) {
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
         }
-        this.setState({ geoJSON })
+        this.setState({ geoJSON }, () => {
+            // change the state
+            const { inventoryID } = this.props;
+            const { geoJSON } = this.state;
+            let data = { inventory_id: inventoryID, geoJSON: geoJSON };
+            addCoordinates(data).then(() => {
+                if (locateTree == 'on-site') {
+                    this.props.toggleState()
+                }
+            })
+        })
     }
 
     onChangeRegionStart = () => this.setState({ loader: true })
@@ -108,7 +150,7 @@ class MapMarking extends React.Component {
         for (let i = 0; i < geoJSON.features.length; i++) {
             let onePolygon = geoJSON.features[i];
             let coordinatesLenghtShouldBe = onePolygon.properties.isPolygonComplete ? onePolygon.geometry.coordinates.length - 1 : onePolygon.geometry.coordinates.length
-            for (let j = 0; j < coordinatesLenghtShouldBe; j++) {
+            for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
                 markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker} />);
             }
@@ -117,22 +159,20 @@ class MapMarking extends React.Component {
     }
 
     onPressCompletePolygon = async () => {
-        const { navigation, inventoryID } = this.props;
+        const { navigation, inventoryID, setIsCompletePolygon } = this.props;
         const { geoJSON } = this.state;
         await this.addMarker(true)
         // 
         let data = { inventory_id: inventoryID, geoJSON: geoJSON };
-        addCoordinates(data).then(() => {
-            navigation.navigate('InventoryOverview')
-        })
+        setIsCompletePolygon(true)
     }
 
     render() {
         const { geoJSON, loader, activePolygonIndex } = this.state;
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
-        let coordinatesLenghtShouldBe = geoJSON.features[activePolygonIndex].properties.isPolygonComplete ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
-        let location = ALPHABETS[coordinatesLenghtShouldBe]
-
+        let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
+        let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
+        console.log(geoJSON.features[activePolygonIndex].properties.isPolygonComplete,'geoJSON.features[activePolygonIndex].properties.isPolygonComplete')
         return (
             <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
                 <View style={styles.headerCont}>

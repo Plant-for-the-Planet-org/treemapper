@@ -12,9 +12,6 @@ const InventoryOverview = ({ navigation }) => {
     const [inventory, setInventory] = useState(null)
 
     useEffect(() => {
-
-        // The screen is focused
-        // Call any action
         getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
@@ -25,7 +22,7 @@ const InventoryOverview = ({ navigation }) => {
 
 
     const renderPolygon = (polygons) => {
-        let data = { title: 'Coordinate A', measurement: '34.25156,67.9879', date: 'View image' }
+        // let data = { title: 'Coordinate A', measurement: '34.25156,67.9879', date: 'View image' , imageURL : }
         return (
             <FlatList
                 data={polygons}
@@ -35,7 +32,7 @@ const InventoryOverview = ({ navigation }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View image' }
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View image', imageURL: oneCoordinate.imageUrl }
                                 return (
                                     <InventoryCard data={normalizeData} />
                                 )
@@ -51,7 +48,7 @@ const InventoryOverview = ({ navigation }) => {
 
     const onPressSave = () => {
         let data = { inventory_id: state.inventoryID }
-         statusToPending(data).then(() => {
+        statusToPending(data).then(() => {
             navigation.navigate('TreeInventory')
         })
     }

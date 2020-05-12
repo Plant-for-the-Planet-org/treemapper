@@ -1,19 +1,19 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacit } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close, upload_now, upload_check } from '../../../assets'
 
-const SmallHeader = ({ leftText, rightText, rightTheme, icon }) => {
+const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight }) => {
     icon == 'upload_now' ? upload_now : upload_check
     return (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={styles.subHeadingText}>{leftText}</Text>
             <View>
-                <View style={{ flexDirection: 'row' }}>
+                <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }}>
                     <Text style={[styles.uploadNowBtn, styles.activeText]}>{rightText}</Text>
-                    <Image source={icon} />
-                </View>
+                    {icon && <Image source={upload_now} />}
+                </TouchableOpacity>
             </View>
         </View>
     )

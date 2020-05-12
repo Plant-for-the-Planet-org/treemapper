@@ -10,12 +10,20 @@ import MapMarking from './MapMarking';
 const CreatePolygon = () => {
 
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
+    const [isCompletePolygon, setIsCompletePolygon] = useState(false)
 
     const toggleState = () => setIsMapMarkingState(!isMapMarkingState)
 
     return (
         <SafeAreaView style={styles.container}>
-            {isMapMarkingState ? <MapMarking toggleState={toggleState} /> : <ImageCapturing />}
+            {isMapMarkingState ?
+                <MapMarking toggleState={toggleState}
+                    isCompletePolygon={isCompletePolygon}
+                    setIsCompletePolygon={setIsCompletePolygon} /> :
+                <ImageCapturing toggleState={toggleState}
+                    isCompletePolygon={isCompletePolygon}
+                    setIsCompletePolygon={setIsCompletePolygon}
+                />}
         </SafeAreaView>
     )
 }

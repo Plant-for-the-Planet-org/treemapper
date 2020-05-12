@@ -1,10 +1,39 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import { View, StyleSheet, Text, ScrollView, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { Colors, Typography } from '_styles';
 import { close, camera } from '../../assets'
+import ImagePicker from 'react-native-image-crop-picker';
+import { insertImageAtLastCoordinate } from '../../Actions'
+import { store } from '../../Actions/store';
+import { useNavigation } from '@react-navigation/native';
 
-const ImageCapturing = () => {
+const ImageCapturing = ({ toggleState, isCompletePolygon }) => {
+    const navigation = useNavigation()
+    const { state } = useContext(store);
+    const [imagePath, setImagePath] = useState('')
+
+    const onPressCamera = () => {
+        ImagePicker.openCamera({
+            mediaType: 'photo',
+        }).then(image => {
+            setImagePath(image.path)
+            console.log(image);
+        });
+    }
+
+    const onPessContinue = () => {
+        // Save Image in local
+        let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
+        insertImageAtLastCoordinate(data).then(() => {
+            if (isCompletePolygon) {
+                navigation.navigate('InventoryOverview')
+            } else {
+                toggleState()
+            }
+        })
+    }
+
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
@@ -12,8 +41,9 @@ const ImageCapturing = () => {
             </View>
             <View style={{ flex: 1 }}>
                 <View style={{ flex: 1, backgroundColor: '#ccc' }}>
+                    {imagePath ? <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> : null}
                 </View>
-                <TouchableOpacity style={styles.cameraIconCont}>
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
                     <Image source={camera} />
                 </TouchableOpacity>
             </View>
@@ -21,8 +51,8 @@ const ImageCapturing = () => {
                 <Text style={styles.message}>{`For verification purposes, your location is \nrecorded when you take a picture.`}</Text>
             </View>
             <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
-                <PrimaryButton btnText={'Continue'} halfWidth theme={'white'} />
-                <PrimaryButton btnText={'Continue'} halfWidth />
+                <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
+                <PrimaryButton onPress={onPessContinue} btnText={'Continue'} halfWidth />
             </View>
         </SafeAreaView>
     )

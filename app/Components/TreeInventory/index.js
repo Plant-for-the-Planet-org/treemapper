@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Header, LargeButton, PrimaryButton, SmallHeader, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory } from "../../Actions";
+import { getAllInventory, clearAllInventory } from "../../Actions";
 
 const TreeInventory = ({ navigation }) => {
 
@@ -20,8 +20,8 @@ const TreeInventory = ({ navigation }) => {
     }, [navigation])
 
     const renderTempComp = () => (
-        <TouchableOpacity onPress={() => navigation.navigate('RegisterTree')} style={{ marginVertical: 10 }}>
-            <SmallHeader leftText={''} rightText={'Register Tree Screen'} />
+        <TouchableOpacity style={{ marginVertical: 10 }}>
+            <SmallHeader onPressRight={() => navigation.navigate('RegisterTree')} leftText={''} rightText={'Register Tree Screen'} />
         </TouchableOpacity>
     )
 
@@ -39,17 +39,30 @@ const TreeInventory = ({ navigation }) => {
             />
         )
     }
+
+    const onPressClearAll = () => {
+        console.log('onPressClearAll')
+        clearAllInventory().then(() => {
+            setAllInventory([])
+        })
+    }
+
     console.log(allInventory)
+    const pendingInventory = allInventory.filter(x => x.status == 'pending')
+    const inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+
     return (
         <SafeAreaView style={styles.container}>
             <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
             {renderTempComp()}
-            <SmallHeader leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
-            {renderInventoryList(allInventory)}
+            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Pending Upload'} rightText={'Upload now'} rightTheme={'red'} icon={'upload_now'} />
+                {renderInventoryList(pendingInventory)}</>}
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
+                {renderInventoryList(inCompleteInventory)}</>}
             {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text>No Inventory</Text>
             </View>}
-        </SafeAreaView >
+        </SafeAreaView>
     )
 }
 export default TreeInventory;
