@@ -1,19 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TouchableHighlight } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close } from '../../../assets'
 
 
-const Label = ({ leftText, rightText }) => {
+const Label = ({ leftText, rightText, onPressRightText }) => {
     return (
         <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15 }}>
                 <View>
                     <Text style={styles.leftText}>{leftText}</Text>
                 </View>
-                <View>
+                <TouchableOpacity onPress={onPressRightText}>
                     <Text style={styles.rightText}>{rightText}</Text>
-                </View>
+                </TouchableOpacity>
             </View>
         </View>
     )

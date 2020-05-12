@@ -1,13 +1,18 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { addLocateTree } from '../../Actions'
+import { addLocateTree , updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store'
 const LocateTree = ({ navigation }) => {
 
     const { state } = useContext(store);
+
+    useEffect(() => {
+        let data = { inventory_id: state.inventoryID, last_screen: 'LocateTree' }
+        updateLastScreen(data)
+    }, [])
 
     const [locateTree, setLocateTree] = useState('on-site');
 

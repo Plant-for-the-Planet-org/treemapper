@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
+import { store } from '../../Actions/store';
+import { updateLastScreen } from '../../Actions/';
+
 // import Test from './Test'
 
 const CreatePolygon = () => {
+
+    const { state } = useContext(store)
+
+    useEffect(() => {
+        let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' }
+        updateLastScreen(data)
+    }, [])
+
 
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
     const [isCompletePolygon, setIsCompletePolygon] = useState(false)

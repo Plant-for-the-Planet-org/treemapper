@@ -1,15 +1,32 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addSpeciesAction } from '../../Actions'
+import { addSpeciesAction, updateLastScreen, getInventory } from '../../Actions'
 import { store } from '../../Actions/store';
 
-const MultipleTrees = ({ navigation }) => {
+const MultipleTrees = ({ navigation, route }) => {
 
     const { state } = useContext(store);
+
+    useEffect(() => {
+        initialState()
+    }, [])
+
+    const initialState = () => {
+        // let isEditFlag = navigation.getPara
+        if (route.params?.isEdit) {
+            getInventory({ inventoryID: state.inventoryID }).then((data) => {
+                setPlantingDate(new Date(Number(data.plantation_date)))
+                setSpecies(Object.values(data.species))
+            })
+        } else {
+            let data = { inventory_id: state.inventoryID, last_screen: 'MultipleTrees' }
+            updateLastScreen(data)
+        }
+    }
 
     const [plantingDate, setPlantingDate] = useState(new Date());
     const [showDate, setShowDate] = useState(false);
@@ -52,7 +69,11 @@ const MultipleTrees = ({ navigation }) => {
     const onPressContinue = () => {
         let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
         addSpeciesAction(data).then(() => {
-            navigation.navigate('LocateTree')
+            if (route.params?.isEdit) {
+                navigation.navigate('InventoryOverview')
+            } else {
+                navigation.navigate('LocateTree')
+            }
         })
     }
 

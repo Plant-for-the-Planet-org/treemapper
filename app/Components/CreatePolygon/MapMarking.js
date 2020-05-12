@@ -108,6 +108,11 @@ class MapMarking extends React.Component {
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     this.props.toggleState()
+                } else {
+                    // For off site
+                    if (complete) {
+                        this.props.navigation.navigate('InventoryOverview')
+                    }
                 }
             })
         })
@@ -172,7 +177,7 @@ class MapMarking extends React.Component {
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
-        console.log(geoJSON.features[activePolygonIndex].properties.isPolygonComplete,'geoJSON.features[activePolygonIndex].properties.isPolygonComplete')
+        console.log(geoJSON.features[activePolygonIndex].properties.isPolygonComplete, 'geoJSON.features[activePolygonIndex].properties.isPolygonComplete')
         return (
             <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
                 <View style={styles.headerCont}>

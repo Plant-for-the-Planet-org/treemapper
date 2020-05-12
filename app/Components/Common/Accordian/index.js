@@ -26,7 +26,7 @@ const Accordian = ({ data, onChangeText, index }) => {
             </TouchableOpacity>
             {isOpen && <>
                 <Input index={index} value={data.nameOfTree} dataKey={'nameOfTree'} onChangeText={onChangeText} label={'Name of trees'} value={data.nameOfTree} />
-                <Input index={index} value={data.treeCount} dataKey={'treeCount'} onChangeText={onChangeText} label={'Tree Count'} value={data.treeCount} />
+                <Input keyboardType={'numeric'} index={index} value={data.treeCount} dataKey={'treeCount'} onChangeText={onChangeText} label={'Tree Count'} value={data.treeCount} />
             </>}
         </View>
     )

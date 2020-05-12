@@ -1,23 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Header, LargeButton, PrimaryButton, SmallHeader, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory } from "../../Actions";
+import { getAllInventory, clearAllInventory, updateLastScreen } from "../../Actions";
+import { store } from '../../Actions/store';
 
 const TreeInventory = ({ navigation }) => {
+    const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState([])
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             getAllInventory().then((allInventory) => {
-                // console.log('allInventory=', Object.values(allInventory))
                 setAllInventory(Object.values(allInventory))
             })
         });
 
         return unsubscribe
     }, [navigation])
+
+    const onPressInventory = (item) => {
+        setTimeout(() => {
+            if (item.status !== 'pending') {
+                dispatch({ type: 'SET_INVENTORY_ID', inventoryID: item.inventory_id })
+                navigation.navigate(item.last_screen)
+            }
+        },0)
+    }
 
     const renderTempComp = () => (
         <TouchableOpacity style={{ marginVertical: 10 }}>
@@ -26,15 +36,15 @@ const TreeInventory = ({ navigation }) => {
     )
 
 
-    const renderInventoryList = () => {
+    const renderInventoryList = (inventoryList) => {
         return (
             <FlatList
                 showsVerticalScrollIndicator={false}
-                data={allInventory}
+                data={inventoryList}
                 renderItem={({ item }) => {
-                    let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '' : ''
+                    let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
                     let data = { title: title, measurement: '10 cm', date: new Date(Number(item.plantation_date)).toLocaleDateString() }
-                    return (<InventoryCard data={data} />)
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard data={data} /></TouchableOpacity>)
                 }}
             />
         )
@@ -43,22 +53,24 @@ const TreeInventory = ({ navigation }) => {
     const onPressClearAll = () => {
         console.log('onPressClearAll')
         clearAllInventory().then(() => {
-            setAllInventory([])
+            getAllInventory().then((allInventory) => {
+                setAllInventory(Object.values(allInventory))
+            })
         })
     }
 
-    console.log(allInventory)
     const pendingInventory = allInventory.filter(x => x.status == 'pending')
     const inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+    console.log(inCompleteInventory, 'inCompleteInventory')
 
     return (
         <SafeAreaView style={styles.container}>
             <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
             {renderTempComp()}
-            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Pending Upload'} rightText={'Upload now'} rightTheme={'red'} icon={'upload_now'} />
-                {renderInventoryList(pendingInventory)}</>}
-            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
-                {renderInventoryList(inCompleteInventory)}</>}
+            {pendingInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} rightTheme={'red'} icon={'upload_now'} />
+                {renderInventoryList(pendingInventory)}</View>}
+            {inCompleteInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
+                {renderInventoryList(inCompleteInventory)}</View>}
             {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text>No Inventory</Text>
             </View>}

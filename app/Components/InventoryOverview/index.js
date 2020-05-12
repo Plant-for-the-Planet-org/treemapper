@@ -1,22 +1,31 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, NavigatorIOS } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
-import { getInventory, statusToPending } from '../../Actions'
+import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const InventoryOverview = ({ navigation }) => {
+
+const InventoryOverview = ({ navigation , }) => {
     const { state } = useContext(store);
 
     const [inventory, setInventory] = useState(null)
 
     useEffect(() => {
-        getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-            inventory.species = Object.values(inventory.species);
-            inventory.polygons = Object.values(inventory.polygons);
-            setInventory(inventory)
-        })
+
+        const unsubscribe = navigation.addListener('focus', () => {
+            getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+                inventory.species = Object.values(inventory.species);
+                inventory.polygons = Object.values(inventory.polygons);
+                setInventory(inventory)
+            })
+
+        });
+
+        let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
+        updateLastScreen(data)
+
 
     }, [])
 
@@ -52,6 +61,11 @@ const InventoryOverview = ({ navigation }) => {
             navigation.navigate('TreeInventory')
         })
     }
+
+    const onPressEdit = () => {
+        navigation.navigate('MultipleTrees', { isEdit: true })
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
@@ -60,7 +74,7 @@ const InventoryOverview = ({ navigation }) => {
                 <Label leftText={'On Site Registration'} rightText={'Edit'} />
                 {/* <Label leftText={'Project (if tpo)'} rightText={'Yucatan Reforestation'} />
                 <Label leftText={'Type (if tpo)'} rightText={'External / Donated Trees'} /> */}
-                <LabelAccordian data={inventory.species} />
+                <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
                 {renderPolygon(inventory.polygons)}
                 <LargeButton heading={'Export GeoJson'} active={false} medium />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

@@ -6,8 +6,8 @@ import Realm from 'realm';
 const Coordinates = {
     name: 'Coordinates',
     properties: {
-        latitude: 'string',
-        longitude: 'string',
+        latitude: 'float',
+        longitude: 'float',
         imageUrl: 'string',
         locationTitle: 'string'
     }
@@ -15,7 +15,7 @@ const Coordinates = {
 const Polygons = {
     name: 'Polygons',
     properties: {
-        isPolygonComplete: 'string',
+        isPolygonComplete: 'bool',
         coordinates: 'Coordinates[]',
     }
 }
@@ -111,12 +111,12 @@ export const addCoordinates = ({ inventory_id, geoJSON }) => {
                     let polygons = []
                     geoJSON.features.map(onePolygon => {
                         let onePolygonTemp = {}
-                        onePolygonTemp.isPolygonComplete = String(onePolygon.properties.isPolygonComplete)
+                        onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete
                         let coordinates = []
                         onePolygon.geometry.coordinates.map((oneLatlong) => {
                             coordinates.push({
-                                longitude: String(oneLatlong[1]),
-                                latitude: String(oneLatlong[0]),
+                                longitude: oneLatlong[1],
+                                latitude: oneLatlong[0],
                                 imageUrl: '',
                                 locationTitle: 'A'
                             })
@@ -143,6 +143,7 @@ export const getAllInventory = () => {
             .then(realm => {
                 realm.write(() => {
                     const Inventory = realm.objects('Inventory');
+                    console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.parse(JSON.stringify(Inventory))')
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
             })
@@ -191,7 +192,7 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
                     polygons.map(x => {
                         x.coordinates = Object.values(x.coordinates)
                     })
-                    console.log(polygons,'POLYGONS _______')
+                    console.log(polygons, 'POLYGONS _______')
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         polygons: polygons
@@ -217,3 +218,21 @@ export const clearAllInventory = () => {
 
     })
 }
+export const updateLastScreen = ({ last_screen, inventory_id }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+
+                    realm.create('Inventory', {
+                        inventory_id: `${inventory_id}`,
+                        last_screen: last_screen
+                    }, 'modified')
+                    resolve()
+                })
+            })
+
+    })
+}
+
+
