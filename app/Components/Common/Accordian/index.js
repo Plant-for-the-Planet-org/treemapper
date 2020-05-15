@@ -11,11 +11,11 @@ const Accordian = ({ data, onChangeText, index }) => {
 
     const onPressAccordian = () => setIsOpen(!isOpen)
 
-
+    const label = data.nameOfTree ? data.nameOfTree : 'Species'
     return (
         <View style={{ marginVertical: 10 }}>
             <TouchableOpacity onPress={onPressAccordian} style={styles.container}>
-                <Text style={styles.label}>{data.nameOfTree}</Text>
+                <Text style={styles.label}>{label}</Text>
                 <View style={styles.treeCountCont}>
                     {!isOpen && <>
                         <Text style={styles.treeCount}>{data.treeCount}</Text>
@@ -25,7 +25,7 @@ const Accordian = ({ data, onChangeText, index }) => {
                 </View>
             </TouchableOpacity>
             {isOpen && <>
-                <Input index={index} value={data.nameOfTree} dataKey={'nameOfTree'} onChangeText={onChangeText} label={'Name of trees'} value={data.nameOfTree} />
+                <Input placeholder={label} index={index} value={data.nameOfTree} dataKey={'nameOfTree'} onChangeText={onChangeText} label={'Name of trees'} value={data.nameOfTree} />
                 <Input keyboardType={'numeric'} index={index} value={data.treeCount} dataKey={'treeCount'} onChangeText={onChangeText} label={'Tree Count'} value={data.treeCount} />
             </>}
         </View>

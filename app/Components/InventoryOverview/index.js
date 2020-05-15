@@ -7,7 +7,7 @@ import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-const InventoryOverview = ({ navigation , }) => {
+const InventoryOverview = ({ navigation, }) => {
     const { state } = useContext(store);
 
     const [inventory, setInventory] = useState(null)
@@ -31,7 +31,6 @@ const InventoryOverview = ({ navigation , }) => {
 
 
     const renderPolygon = (polygons) => {
-        // let data = { title: 'Coordinate A', measurement: '34.25156,67.9879', date: 'View image' , imageURL : }
         return (
             <FlatList
                 data={polygons}
@@ -68,20 +67,18 @@ const InventoryOverview = ({ navigation , }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
             {inventory !== null ? <ScrollView style={{ flex: 1, }} showsVerticalScrollIndicator={false}>
+                <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                 <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
                 <Label leftText={`On Site Registration`} rightText={''} />
-                {/* <Label leftText={'Project (if tpo)'} rightText={'Yucatan Reforestation'} />
-                <Label leftText={'Type (if tpo)'} rightText={'External / Donated Trees'} /> */}
                 <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
                 {renderPolygon(inventory.polygons)}
                 <LargeButton heading={'Export GeoJson'} active={false} medium />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
-                    <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
-                </View>
             </ScrollView> : null}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
+                <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
+            </View>
         </SafeAreaView>
     )
 }

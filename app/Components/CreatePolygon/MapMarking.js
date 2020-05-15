@@ -160,7 +160,7 @@ class MapMarking extends React.Component {
             <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
                 <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             </MapboxGL.ShapeSource>
-            <MapboxGL.UserLocation onUpdate={this.onUpdateUserLocation} />
+            <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
             {this.renderMarkers(geoJSON)}
             {this.currentLOCmarker()}
         </MapboxGL.MapView>)

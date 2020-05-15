@@ -25,14 +25,14 @@ const RegisterTree = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
                 <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} />
                 <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} />
                 <View style={{ flex: 1, }}>
                 </View>
-                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} />
             </ScrollView>
+                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} />
         </SafeAreaView>
     )
 }

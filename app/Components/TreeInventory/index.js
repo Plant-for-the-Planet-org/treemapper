@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, FlatList , ScrollView} from 'react-native';
 import { Header, LargeButton, PrimaryButton, SmallHeader, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, updateLastScreen } from "../../Actions";
@@ -65,15 +65,17 @@ const TreeInventory = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
             <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
             {renderTempComp()}
-            {pendingInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'upload_now'} />
-                {renderInventoryList(pendingInventory)}</View>}
-            {inCompleteInventory.length > 0 && <View style={{ flex: 1 }}><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
-                {renderInventoryList(inCompleteInventory)}</View>}
+            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'upload_now'} />
+                {renderInventoryList(pendingInventory)}</>}
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} icon={'upload_now'} />
+                {renderInventoryList(inCompleteInventory)}</>}
             {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text>No Inventory</Text>
             </View>}
+            </ScrollView>
         </SafeAreaView>
     )
 }

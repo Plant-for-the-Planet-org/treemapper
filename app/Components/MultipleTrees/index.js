@@ -16,7 +16,6 @@ const MultipleTrees = ({ navigation, route }) => {
     }, [])
 
     const initialState = () => {
-        // let isEditFlag = navigation.getPara
         if (route.params?.isEdit) {
             getInventory({ inventoryID: state.inventoryID }).then((data) => {
                 setPlantingDate(new Date(Number(data.plantation_date)))
@@ -30,7 +29,7 @@ const MultipleTrees = ({ navigation, route }) => {
 
     const [plantingDate, setPlantingDate] = useState(new Date());
     const [showDate, setShowDate] = useState(false);
-    const [species, setSpecies] = useState([{ nameOfTree: 'Species', treeCount: '0' }]);
+    const [species, setSpecies] = useState([{ nameOfTree: '', treeCount: '0' }]);
 
     const onChangeDate = (event, selectedDate) => {
         setShowDate(false)
@@ -79,8 +78,8 @@ const MultipleTrees = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
                 <TouchableOpacity onPress={() => setShowDate(true)}>
                     <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
                 </TouchableOpacity>
@@ -92,9 +91,9 @@ const MultipleTrees = ({ navigation, route }) => {
                     <Text style={styles.addSpecies}>+ Add Species</Text>
                 </TouchableOpacity>
                 <View style={{ flex: 1 }} />
-                <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
                 {renderDatePicker()}
             </ScrollView>
+            <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
         </SafeAreaView>
     )
 }
