@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, NavigatorIOS } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, Modal } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
@@ -40,9 +40,9 @@ const InventoryOverview = ({ navigation, }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View image', imageURL: oneCoordinate.imageUrl }
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl }
                                 return (
-                                    <InventoryCard data={normalizeData} />
+                                    <InventoryCard data={normalizeData} activeBtn />
                                 )
                             }}
                         />

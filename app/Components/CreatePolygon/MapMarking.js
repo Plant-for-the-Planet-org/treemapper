@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, Text, Platform, ScrollView, SafeAreaView, Dimensions, Image, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, Platform, ScrollView, SafeAreaView, Dimensions, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { Colors, Typography } from '_styles';
 import MapboxGL from "@react-native-mapbox-gl/maps";
@@ -8,6 +8,7 @@ import { addCoordinates, getInventory } from "../../Actions";
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import Geolocation from '@react-native-community/geolocation';
 
 
 MapboxGL.setAccessToken('pk.eyJ1IjoiaGFpZGVyYWxpc2hhaCIsImEiOiJjazlqa3FrM28wM3VhM2RwaXdjdzg0a2s4In0.0xQfxFEfdvAqghrNgO8o9g');
@@ -191,9 +192,16 @@ class MapMarking extends React.Component {
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
-        return <View style={{ width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', bottom: isShowCompletePolygonBtn ? 160 : 90, borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR }}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon, { bottom: isShowCompletePolygonBtn ? 160 : 90, }]}>
             <Ionicons name={'md-locate'} size={22} />
-        </View>
+        </TouchableOpacity>
+    }
+
+    onPressMyLocationIcon = () => {
+        Geolocation.getCurrentPosition(position => {
+            this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position))
+        });
+
     }
 
     render() {
@@ -257,8 +265,10 @@ const styles = StyleSheet.create({
     },
     activeMarkerLocation: {
         position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
+    },
+    myLocationIcon: {
+        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR
     }
-
 })
 
 const polyline = { lineColor: 'red', lineWidth: 2, lineColor: '#000' }
