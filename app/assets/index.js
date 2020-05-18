@@ -9,6 +9,7 @@ import cloud from './images/cloud.png';
 import upload_check from './images/upload_check.png';
 import upload_now from './images/upload_now.png';
 import tree from './images/tree.png';
+import placeholder_image from './images/placeholder_img.png';
 
 export {
     back_icon,
@@ -21,5 +22,6 @@ export {
     cloud,
     upload_check,
     upload_now,
-    tree
+    tree,
+    placeholder_image
 }
