@@ -7,8 +7,10 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { insertImageAtLastCoordinate } from '../../Actions'
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
-const ImageCapturing = ({ toggleState, isCompletePolygon ,locationText }) => {
+
+const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
@@ -44,7 +46,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon ,locationText }) => {
                     {imagePath ? <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> : null}
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
-                    <Image source={camera} />
+                    <Ionicons name={'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
             <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>

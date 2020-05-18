@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from "../../../assets/";
 import { Input } from '../';
-
+import Ionicons from 'react-native-vector-icons/MaterialIcons'
 
 const Accordian = ({ data, onChangeText, index, onBlur }) => {
 
@@ -21,7 +21,7 @@ const Accordian = ({ data, onChangeText, index, onBlur }) => {
                         <Text style={styles.treeCount}>{data.treeCount}</Text>
                         <Text style={styles.trees}>Trees</Text>
                     </>}
-                    <Image source={isOpen ? arrow_up : arrow_down} style={styles.arrowIcon} />
+                    <Ionicons name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} style={styles.arrowIcon} />
                 </View>
             </TouchableOpacity>
             {isOpen && <>
@@ -65,7 +65,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 5
     },
     arrowIcon: {
-        width: 35, height: 35
+        // width: 35, height: 35
+        // position : 'absolute',
+        color: Colors.TEXT_COLOR,
+        marginTop: 5
     }
 
 })

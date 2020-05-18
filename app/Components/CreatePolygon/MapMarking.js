@@ -7,6 +7,7 @@ import { camera, marker, marker_png, active_marker } from '../../assets/index'
 import { addCoordinates, getInventory } from "../../Actions";
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 
 MapboxGL.setAccessToken('pk.eyJ1IjoiaGFpZGVyYWxpc2hhaCIsImEiOiJjazlqa3FrM28wM3VhM2RwaXdjdzg0a2s4In0.0xQfxFEfdvAqghrNgO8o9g');
@@ -189,6 +190,12 @@ class MapMarking extends React.Component {
         setIsCompletePolygon(true)
     }
 
+    renderMyLocationIcon = (isShowCompletePolygonBtn) => {
+        return <View style={{ width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', bottom: isShowCompletePolygonBtn ? 160 : 90, borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR }}>
+            <Ionicons name={'md-locate'} size={22} />
+        </View>
+    }
+
     render() {
         const { geoJSON, loader, activePolygonIndex } = this.state;
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
@@ -204,7 +211,7 @@ class MapMarking extends React.Component {
                     {this.renderFakeMarker(location)}
                 </View>
                 <View>
-                    <View style={{ width: 40, height: 40, backgroundColor: 'red', position: 'absolute', bottom: 160, borderRadius: 100, right: 0, marginHorizontal: 25 }}></View>
+                    {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
                     {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
                         <PrimaryButton theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
                     </View>}

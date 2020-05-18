@@ -3,8 +3,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacit } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close, upload_now, tree } from '../../../assets'
-
-const InventoryCard = ({ data }) => {
+import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+const InventoryCard = ({ data, icon }) => {
     return (
         <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 10 }}>
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -15,7 +15,7 @@ const InventoryCard = ({ data }) => {
                 <Text style={styles.subHeadingText}>{data.measurement}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={styles.subHeadingText}>{data.date}</Text>
-                    <Image source={upload_now} />
+                    {icon && <MCIcons name={'cloud-outline'} size={22} style={styles.activeText} />}
                 </View>
             </View>
         </View>

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close } from '../../../assets'
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 
 const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText }) => {
@@ -12,7 +13,7 @@ const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText }) => {
         <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15 }}>
                 {!hideBackIcon && <TouchableOpacity onPress={onPressBack}>
-                    <Image source={closeIcon ? close : back_icon} />
+                    <Ionicons name={'md-arrow-back'} size={30} color={Colors.TEXT_COLOR} />
                 </TouchableOpacity>}
                 <View />
             </View>
