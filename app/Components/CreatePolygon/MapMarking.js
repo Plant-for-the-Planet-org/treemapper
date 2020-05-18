@@ -203,11 +203,14 @@ class MapMarking extends React.Component {
                     {this.renderMapView(geoJSON)}
                     {this.renderFakeMarker(location)}
                 </View>
-                {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
-                    <PrimaryButton theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
-                </View>}
-                <View style={styles.continueBtnCont}>
-                    <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                <View>
+                    <View style={{ width: 40, height: 40, backgroundColor: 'red', position: 'absolute', bottom: 160, borderRadius: 100, right: 0, marginHorizontal: 25 }}></View>
+                    {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
+                        <PrimaryButton theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
+                    </View>}
+                    <View style={styles.continueBtnCont}>
+                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                    </View>
                 </View>
 
             </SafeAreaView>)
