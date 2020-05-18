@@ -11,25 +11,28 @@ const MultipleTrees = ({ navigation, route }) => {
 
     const { state } = useContext(store);
 
+    const [plantingDate, setPlantingDate] = useState(new Date());
+    const [showDate, setShowDate] = useState(false);
+    const [species, setSpecies] = useState([{ nameOfTree: '', treeCount: '' }]);
+
     useEffect(() => {
         initialState()
     }, [])
+    useEffect(() => onPressContinue(true), [plantingDate])
 
     const initialState = () => {
-        if (route.params?.isEdit) {
-            getInventory({ inventoryID: state.inventoryID }).then((data) => {
+        getInventory({ inventoryID: state.inventoryID }).then((data) => {
+            if (data.plantation_date) {
                 setPlantingDate(new Date(Number(data.plantation_date)))
                 setSpecies(Object.values(data.species))
-            })
+            }
+        })
+        if (route.params?.isEdit) {
         } else {
             let data = { inventory_id: state.inventoryID, last_screen: 'MultipleTrees' }
             updateLastScreen(data)
         }
     }
-
-    const [plantingDate, setPlantingDate] = useState(new Date());
-    const [showDate, setShowDate] = useState(false);
-    const [species, setSpecies] = useState([{ nameOfTree: '', treeCount: '0' }]);
 
     const onChangeDate = (event, selectedDate) => {
         setShowDate(false)
@@ -51,27 +54,39 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     const addSpecies = () => {
-        species.push({ nameOfTree: 'Species', treeCount: '0' })
+        species.push({ nameOfTree: '', treeCount: '' })
         setSpecies([...species])
     }
 
     const onChangeText = (text, dataKey, index) => {
-        console.log(text, dataKey, index, 'Tre ')
         species[index][dataKey] = text;
         setSpecies([...species])
     }
 
     const renderOneSpecies = (item, index) => {
-        return (<Accordian onChangeText={onChangeText} index={index} data={item} />)
+        return (<Accordian onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} />)
     }
 
-    const onPressContinue = () => {
+    const onPressContinue = (onBlur = false) => {
+        onBlur !== true ? onBlur = false : null
         let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
+        if (!onBlur) {
+            let totalTreeCount = 0
+            for (let i = 0; i < species.length; i++) {
+                totalTreeCount += Number(species[i].treeCount)
+            }
+            if (totalTreeCount < 2) {
+                alert('Tree COunt should be greater than 1')
+                return;
+            }
+        }
         addSpeciesAction(data).then(() => {
-            if (route.params?.isEdit) {
-                navigation.navigate('InventoryOverview')
-            } else {
-                navigation.navigate('LocateTree')
+            if (!onBlur) {
+                if (route.params?.isEdit) {
+                    navigation.navigate('InventoryOverview')
+                } else {
+                    navigation.navigate('LocateTree')
+                }
             }
         })
     }

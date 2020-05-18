@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { Colors, Typography } from '_styles';
 
-const Input = ({ label, value, onChangeText, dataKey, index, editable , keyboardType , placeholder}) => {
+const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardType, placeholder, onBlur }) => {
 
     const onChange = (text) => {
         onChangeText(text, dataKey, index)
@@ -12,7 +12,7 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable , keyboard
         <View style={styles.container}>
             <Text style={styles.label}>{label}</Text>
             <View style={styles.valueContainer}>
-                <TextInput placeholder={placeholder} keyboardType={keyboardType} editable={editable} value={value} onChangeText={onChange} style={styles.value} />
+                <TextInput onBlur={onBlur} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} editable={editable} value={value} onChangeText={onChange} style={styles.value} />
             </View>
         </View>
     )

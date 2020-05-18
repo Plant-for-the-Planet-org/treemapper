@@ -5,11 +5,11 @@ import { arrow_down, arrow_up } from "../../../assets/";
 import { Input, Label } from '../';
 
 
-const LabelAccordian = ({ data , onPressRightText}) => {
+const LabelAccordian = ({ data, onPressRightText }) => {
 
     const renderSubSpecie = (item) => (
         <TouchableOpacity style={styles.oneSpecieCont}>
-            <Text style={styles.label}>{item.nameOfTree}</Text>
+            <Text style={styles.label}>{item.nameOfTree ? item.nameOfTree : 'Species'}</Text>
             <View style={styles.treeCountCont}>
                 <>
                     <Text style={styles.treeCount}>{item.treeCount}</Text>
@@ -27,7 +27,7 @@ const LabelAccordian = ({ data , onPressRightText}) => {
 
     return (
         <View style={{ marginVertical: 10 }}>
-            <Label leftText={'Species'} rightText={'Edit'} onPressRightText={onPressRightText}/>
+            <Label leftText={'Species'} rightText={'Edit'} onPressRightText={onPressRightText} />
             <FlatList
                 data={data}
                 renderItem={renderSpecieCont}

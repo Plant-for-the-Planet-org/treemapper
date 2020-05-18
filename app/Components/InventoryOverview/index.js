@@ -67,18 +67,22 @@ const InventoryOverview = ({ navigation, }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {inventory !== null ? <ScrollView style={{ flex: 1, }} showsVerticalScrollIndicator={false}>
-                <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
-                <Label leftText={`On Site Registration`} rightText={''} />
-                <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
-                {renderPolygon(inventory.polygons)}
-                <LargeButton heading={'Export GeoJson'} active={false} medium />
-            </ScrollView> : null}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
-                <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
-            </View>
+            {inventory !== null ? <View style={{ flex: 1, }} >
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                    <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
+                    <Label leftText={`On Site Registration`} rightText={''} />
+                    <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
+                    {renderPolygon(inventory.polygons)}
+                    <LargeButton heading={'Export GeoJson'} active={false} medium />
+                </ScrollView>
+                <View style={{}}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
+                        <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
+                    </View>
+                </View>
+            </View> : null}
         </SafeAreaView>
     )
 }

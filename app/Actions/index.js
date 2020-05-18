@@ -43,13 +43,12 @@ const Inventory = {
     }
 };
 //  GET All Inventories
-Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
-    .then(realm => {
-        realm.write(() => {
-            const Inventory = realm.objects('Inventory');
-            console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
-        })
-    })
+// Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+//     .then(realm => {
+//         realm.write(() => {
+//             const Inventory = realm.objects('Inventory');
+//         })
+//     })
 
 export const initiateInventory = ({ treeType }) => {
     return new Promise((resolve, reject) => {
@@ -79,8 +78,8 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                         species,
                         plantation_date
                     }, 'modified')
-                    const Inventory = realm.objects('Inventory');
-                    console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
+                    // const Inventory = realm.objects('Inventory');
+                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
                     resolve()
                 })
             })
@@ -142,7 +141,7 @@ export const getAllInventory = () => {
             .then(realm => {
                 realm.write(() => {
                     const Inventory = realm.objects('Inventory');
-                    console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.parse(JSON.stringify(Inventory))')
+                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.parse(JSON.stringify(Inventory))')
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
             })
@@ -196,7 +195,7 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
                         return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords }
                     })
                     inventory.polygons = polygonsTemp;
-                    console.log(polygonsTemp, 'TEMP')
+                    // console.log(polygonsTemp, 'TEMP')
                     // polygons.map(onePolygon => {
                     //     let coordinate = Object.values(onePolygon.coordinates)
                     //     coordinate.map((oneCoordinate, i) => {
