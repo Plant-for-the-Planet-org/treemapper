@@ -65,6 +65,17 @@ const InventoryOverview = ({ navigation, }) => {
         navigation.navigate('MultipleTrees', { isEdit: true })
     }
 
+    renderMap = () => {
+        return (
+            <View style={{ flex: 1, backgroundColor: 'red' }}>
+                <Header headingText={'Location A'} subHeadingText={''} />
+                <View style={{ flex: 1, backgroundColor: 'yellow' }}>
+
+                </View>
+            </View>
+        )
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             {inventory !== null ? <View style={{ flex: 1, }} >

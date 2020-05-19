@@ -94,7 +94,27 @@ class MapMarking extends React.Component {
         }
     }
 
-    addMarker = (complete) => {
+    addMarker = async (complete) => {
+        let { centerCoordinates, } = this.state;
+        if (this.state.locateTree == 'on-site') {
+            // Check distance 
+            Geolocation.getCurrentPosition(position => {
+                let currentCoords = position.coords;
+                let markerCoords = centerCoordinates;
+                let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
+                let distanceInMeters = distance * 1000;
+                if (distanceInMeters < 100) {
+                    this.pushMaker(complete)
+                } else {
+                    alert(`${distanceInMeters.toFixed(3)}m away from current location`)
+                }
+            });
+        } else {
+            this.pushMaker(complete)
+        }
+    }
+
+    pushMaker = (complete) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         geoJSON.features[activePolygonIndex].geometry.coordinates.push(centerCoordinates);
         if (complete) {
@@ -109,7 +129,6 @@ class MapMarking extends React.Component {
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
-                    console.log(location, 'locationlocationlocation')
                     this.props.toggleState(location)
                 } else {
                     // For off site
@@ -121,36 +140,43 @@ class MapMarking extends React.Component {
         })
     }
 
+    distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
+        if ((lat1 == lat2) && (lon1 == lon2)) {
+            return 0;
+        }
+        else {
+            var radlat1 = Math.PI * lat1 / 180;
+            var radlat2 = Math.PI * lat2 / 180;
+            var theta = lon1 - lon2;
+            var radtheta = Math.PI * theta / 180;
+            var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+            if (dist > 1) {
+                dist = 1;
+            }
+            dist = Math.acos(dist);
+            dist = dist * 180 / Math.PI;
+            dist = dist * 60 * 1.1515;
+            if (unit == "K") { dist = dist * 1.609344 }
+            if (unit == "N") { dist = dist * 0.8684 }
+            return dist;
+        }
+    }
+
     onChangeRegionStart = () => this.setState({ loader: true })
 
     onChangeRegionComplete = async () => {
-        if (this.state.locateTree !== 'on-site') {
-            const center = await this._map.getCenter();
-            this.setState({ centerCoordinates: center, loader: false })
-        } else {
-            this.setState({ loader: false })
-
-        }
+        const center = await this._map.getCenter();
+        this.setState({ centerCoordinates: center, loader: false })
     }
 
     renderFakeMarker = (location) => {
-        const { locateTree } = this.state
         return (
-            (locateTree !== 'on-site') ?
-                <View style={styles.fakeMarkerCont} >
-                    <Image
-                        source={active_marker}
-                        style={styles.markerImage} />
-                    {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
-                </View> : null)
+            <View style={styles.fakeMarkerCont} >
+                <Image source={active_marker} style={styles.markerImage} />
+                {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
+            </View>)
     }
 
-    currentLOCmarker = () => {
-        if (this.state.locateTree == 'on-site') {
-            return <MapboxGL.PointAnnotation key={`cuurentLOC`} id={`9`} coordinate={this.state.centerCoordinates} />
-        }
-
-    }
     renderMapView = (geoJSON) => {
         return (<MapboxGL.MapView
             showUserLocation={true}
@@ -164,7 +190,6 @@ class MapMarking extends React.Component {
             </MapboxGL.ShapeSource>
             <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
             {this.renderMarkers(geoJSON)}
-            {this.currentLOCmarker()}
         </MapboxGL.MapView>)
     }
 

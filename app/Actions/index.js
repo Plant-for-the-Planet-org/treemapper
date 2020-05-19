@@ -195,30 +195,6 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
                         return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords }
                     })
                     inventory.polygons = polygonsTemp;
-                    // console.log(polygonsTemp, 'TEMP')
-                    // polygons.map(onePolygon => {
-                    //     let coordinate = Object.values(onePolygon.coordinates)
-                    //     coordinate.map((oneCoordinate, i) => {
-                    //         if (i == coordinate.length - 1) {
-                    //             coordinate.pop();
-                    //             coordinate.push({ })
-                    //         } else {
-                    //             coordinatesTemp.push(oneCoordinate);
-                    //         }
-
-                    //     })
-                    // })
-
-
-                    // let coord = polygons[polygons.length - 1].coordinates[(polygons[polygons.length - 1].coordinates).length - 1]
-                    // coord.imageUrl = imageUrl
-                    // console.log(polygonsTemp, 'POLYGONS _______')
-
-                    // realm.create('Inventory', {
-                    //     inventory_id: `${inventory_id}`,
-                    //     polygons: polygonsTemp
-                    // }, 'modified')
-                    // const Inventory = realm.objects('Inventory');
                     resolve()
                 })
             })
