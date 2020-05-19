@@ -7,7 +7,7 @@ import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
 import { store } from '../../Actions/store';
 import { updateLastScreen } from '../../Actions/';
-
+import Test from './Test'
 
 const CreatePolygon = () => {
 
@@ -47,7 +47,6 @@ export default CreatePolygon;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // marginHorizontal: 25
     },
     addSpecies: {
         color: Colors.ALERT,

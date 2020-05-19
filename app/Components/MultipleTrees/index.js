@@ -76,7 +76,7 @@ const MultipleTrees = ({ navigation, route }) => {
                 totalTreeCount += Number(species[i].treeCount)
             }
             if (totalTreeCount < 2) {
-                alert('Tree COunt should be greater than 1')
+                alert('Tree count should be grater than one.')
                 return;
             }
         }
@@ -117,7 +117,8 @@ export default MultipleTrees;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginHorizontal: 25
+        paddingHorizontal: 25,
+        backgroundColor : Colors.WHITE
     },
     addSpecies: {
         color: Colors.ALERT,

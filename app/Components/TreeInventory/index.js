@@ -4,6 +4,7 @@ import { Header, LargeButton, PrimaryButton, SmallHeader, InventoryCard } from '
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, updateLastScreen } from "../../Actions";
 import { store } from '../../Actions/store';
+import { Colors, Typography } from '_styles';
 
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
@@ -85,6 +86,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        backgroundColor: '#fff'
+        backgroundColor : Colors.WHITE
     }
 })

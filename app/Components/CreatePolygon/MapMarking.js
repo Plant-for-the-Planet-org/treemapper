@@ -95,18 +95,30 @@ class MapMarking extends React.Component {
     }
 
     addMarker = async (complete) => {
-        let { centerCoordinates, } = this.state;
+        let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
         if (this.state.locateTree == 'on-site') {
             // Check distance 
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
                 let markerCoords = centerCoordinates;
+
+                let isValidMarkers = true
+                geoJSON.features[activePolygonIndex].geometry.coordinates.map(oneMarker => {
+                    let distance = this.distanceCalculator(markerCoords[1], markerCoords[0], oneMarker[1], oneMarker[0], 'K')
+                    let distanceInMeters = distance * 1000;
+                    if (distanceInMeters < 2)
+                        isValidMarkers = false
+                })
+
                 let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
                 let distanceInMeters = distance * 1000;
-                if (distanceInMeters < 100) {
+
+                if (!isValidMarkers) {
+                    alert('Markers are too closed.')
+                } else if (distanceInMeters < 100) {
                     this.pushMaker(complete)
                 } else {
-                    alert(`${distanceInMeters.toFixed(3)}m away from current location`)
+                    alert(`You are very far from your current location.`)
                 }
             });
         } else {
@@ -246,7 +258,7 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
                     {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
-                        <PrimaryButton theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
+                        <PrimaryButton disabled={loader} theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
                     </View>}
                     <View style={styles.continueBtnCont}>
                         <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
@@ -267,6 +279,7 @@ export default function (props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: Colors.WHITE
     },
     continueBtnCont: {
         flexDirection: 'row', position: 'absolute', bottom: 10, backgroundColor: 'transparent', width: '100%', justifyContent: 'center',

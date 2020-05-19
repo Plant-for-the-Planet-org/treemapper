@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { addLocateTree , updateLastScreen } from '../../Actions'
+import { addLocateTree, updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store'
 const LocateTree = ({ navigation }) => {
 
@@ -42,7 +42,8 @@ export default LocateTree;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginHorizontal: 25
+        paddingHorizontal: 25,
+        backgroundColor: Colors.WHITE
     },
     addSpecies: {
         color: Colors.ALERT,
