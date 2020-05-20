@@ -3,6 +3,7 @@ export const PRIMARY = '#89B53A';
 export const WHITE = '#FFFFFF';
 export const BLACK = '#000000';
 export const TEXT_COLOR = '#4D5153';
+export const LIGHT_BORDER_COLOR = '#D5D5D5';
 
 // ACTIONS
 export const SUCCESS = '#2ecc71';

@@ -2,37 +2,63 @@ name:  Android build on Ubuntu
 on:
   push:
     branches:
+      - master
       - develop
   pull_request:
     branches:
+      - master
       - develop
 jobs:
   install-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Caching node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install npm dependencies
         run: |
           npm install
   build-android:
     needs: install-and-test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
+      - name: Caching node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install npm dependencies
         run: |
           npm install
+      - name: Caching Gradle dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-androidgradle-${{ hashFiles('android/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-androidgradle-
       - name: Build Android Release
         run: |
           cd android && ./gradlew assembleRelease
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: app-release.apk
-          path: android/app/build/outputs/apk/release/
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: app-release.apk
+#          path: android/app/build/outputs/apk/release/
       - name: Upload Android APK to Browserstack
+        env:
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
           upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
           echo "::set-env name=upload_file::$upload_file"
-          mv android/app/build/outputs/apk/release/app-release.apk release/$upload_file
-          curl -u "planetit1:${{ secrets.BROWSERSTACK_ACCESS_KEY }}" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
+          mv android/app/build/outputs/apk/release/app-release.apk $upload_file
+          curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$upload_file"

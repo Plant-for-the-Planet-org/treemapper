@@ -53,6 +53,10 @@ target 'treeinventory' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+  pod 'react-native-mapbox-gl', :path => '../node_modules/@react-native-mapbox-gl/maps'
+
+  # Mapbox
+  # pod 'react-native-mapbox-gl/DynamicLibrary', :path => '../node_modules/@react-native-mapbox-gl/maps'
 
   target 'treeinventoryTests' do
     inherit! :complete
@@ -60,7 +64,7 @@ target 'treeinventory' do
   end
 
   use_native_modules!
-
+  # use_frameworks!
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
