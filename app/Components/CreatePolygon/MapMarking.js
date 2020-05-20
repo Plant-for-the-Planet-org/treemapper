@@ -52,7 +52,7 @@ class MapMarking extends React.Component {
     }
 
     componentDidMount() {
-        // this.initialState()
+        this.initialState()
     }
 
     initialState = () => {
@@ -100,6 +100,7 @@ class MapMarking extends React.Component {
 
     addMarker = async (complete) => {
         let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
+        console.log('this.state.locateTree =', this.state.locateTree)
         if (this.state.locateTree == 'on-site') {
             // Check distance 
             Geolocation.getCurrentPosition(position => {
@@ -254,7 +255,7 @@ class MapMarking extends React.Component {
         let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
         return (
             <View style={styles.container} fourceInset={{ top: 'always' }}>
-                <SafeAreaView/>
+                <SafeAreaView />
                 <View style={styles.headerCont}>
                     <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
                 </View>
