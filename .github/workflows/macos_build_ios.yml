@@ -64,6 +64,12 @@ jobs:
       run: pod install
       working-directory: ./ios
 
+    - name: Preparing build
+      env:
+        PROVISIONING_PASSWORD: ${{ secrets.IOS_PROVISIONING_PASSWORD }}
+      run: |
+        ./release/prepare_macos_ios_signing.sh
+
     - name: Build archive
       run: |
         xcodebuild -sdk iphoneos -workspace treeinventory.xcworkspace \
