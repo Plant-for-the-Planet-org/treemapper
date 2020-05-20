@@ -9,9 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Geolocation from '@react-native-community/geolocation';
+import { mapbox_access_token } from  '../../Config/'
 
-
-MapboxGL.setAccessToken('pk.eyJ1IjoiaGFpZGVyYWxpc2hhaCIsImEiOiJjazlqa3FrM28wM3VhM2RwaXdjdzg0a2s4In0.0xQfxFEfdvAqghrNgO8o9g');
+MapboxGL.setAccessToken(mapbox_access_token);
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const IS_ANDROID = Platform.OS == 'android';
@@ -100,7 +100,6 @@ class MapMarking extends React.Component {
 
     addMarker = async (complete) => {
         let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
-        console.log('this.state.locateTree =', this.state.locateTree)
         if (this.state.locateTree == 'on-site') {
             // Check distance 
             Geolocation.getCurrentPosition(position => {

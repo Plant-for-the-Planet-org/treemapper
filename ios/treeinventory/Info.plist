@@ -37,18 +37,18 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSMicrophoneUsageDescription</key>
-	<string></string>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow access to your camera</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow access to your photo gallery</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Allow access to your camera</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Zocial.ttf</string>

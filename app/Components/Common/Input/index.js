@@ -13,7 +13,8 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
     }
 
     const onPressLabel = () => {
-        setIsOpen(!isOpen)
+        setTimeout(() => setIsOpen(!isOpen), 0)
+
     }
 
     const onSubmit = () => {
