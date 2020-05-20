@@ -66,16 +66,16 @@ jobs:
 
     - name: Build archive
       run: |
-        xcodebuild -sdk iphoneos -workspace TreeInventory.xcworkspace \
-        -configuration Release -scheme 'TreeInventory' \
+        xcodebuild -sdk iphoneos -workspace treeinventory.xcworkspace \
+        -configuration Release -scheme 'treeinventory' \
         -derivedDataPath DerivedData \
-        -archivePath DerivedData/Archive/TreecounterAppDevelop archive
+        -archivePath DerivedData/Archive/treeinventorydevelop archive
       working-directory: ./ios
 
     - name: Export Archive
       run: |
         xcodebuild -exportArchive \
-        -archivePath DerivedData/Archive/TreeInventory.xcarchive \
+        -archivePath DerivedData/Archive/treeinventory.xcarchive \
         -exportOptionsPlist ../release/Develop-Store.plist \
         -exportPath DerivedData/ipa
       working-directory: ./ios
@@ -91,7 +91,7 @@ jobs:
       env:
         BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       run: |
-        upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
+        upload_file=treeinventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
         echo "::set-env name=upload_file::$upload_file"
-        mv 'ios/DerivedData/ipa/TreeInventory(.env.develop).ipa' release/$upload_file
+        mv 'ios/DerivedData/ipa/treeinventory(.env.develop).ipa' release/$upload_file
         curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
