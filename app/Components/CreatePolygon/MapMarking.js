@@ -32,7 +32,8 @@ class MapMarking extends React.Component {
                     },
                     "geometry": {
                         "type": "LineString",
-                        "coordinates": []
+                        "coordinates": [
+                        ]
                     }
                 }
             ]
@@ -41,15 +42,17 @@ class MapMarking extends React.Component {
 
 
     async  UNSAFE_componentWillMount() {
+        if (Platform.OS == 'android') {
+            MapboxGL.setTelemetryEnabled(false);
+            await MapboxGL.requestAndroidLocationPermissions().then(() => {
+
+            });
+        }
 
     }
 
-    async  componentDidMount() {
-        // MapboxGL.setTelemetryEnabled(false);
-        // await MapboxGL.requestAndroidLocationPermissions().then(() => {
-
-        // });
-        this.initialState()
+    componentDidMount() {
+        // this.initialState()
     }
 
     initialState = () => {
@@ -191,6 +194,8 @@ class MapMarking extends React.Component {
     }
 
     renderMapView = (geoJSON) => {
+        const { activePolygonIndex } = this.state
+        let shouldRenderShap = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1
         return (<MapboxGL.MapView
             showUserLocation={true}
             style={styles.container}
@@ -198,9 +203,9 @@ class MapMarking extends React.Component {
             onRegionWillChange={this.onChangeRegionStart}
             onRegionDidChange={this.onChangeRegionComplete}>
             <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
-            <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            {shouldRenderShap && <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
                 <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            </MapboxGL.ShapeSource>
+            </MapboxGL.ShapeSource>}
             <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
             {this.renderMarkers(geoJSON)}
         </MapboxGL.MapView>)
@@ -248,7 +253,8 @@ class MapMarking extends React.Component {
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
         return (
-            <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
+            <View style={styles.container} fourceInset={{ top: 'always' }}>
+                <SafeAreaView/>
                 <View style={styles.headerCont}>
                     <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
                 </View>
@@ -266,7 +272,7 @@ class MapMarking extends React.Component {
                     </View>
                 </View>
 
-            </SafeAreaView>)
+            </View>)
     }
 }
 

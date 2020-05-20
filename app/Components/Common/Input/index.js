@@ -14,7 +14,6 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
 
     const onPressLabel = () => {
         setIsOpen(!isOpen)
-        // input.current.focus()
     }
 
     const onSubmit = () => {
@@ -36,7 +35,7 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
             </Modal>
             <Text style={styles.label}>{label}</Text>
             <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer}>
-                <Text onBlur={onBlur} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} editable={false} value={value} onChangeText={onChange} style={styles.value}>{value ? value : placeholder}</Text>
+                <Text style={styles.value}>{value ? value : placeholder}</Text>
             </TouchableOpacity>
         </View>
     )
@@ -56,10 +55,11 @@ const styles = StyleSheet.create({
     value: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_20,
-        lineHeight: Typography.LINE_HEIGHT_40,
         color: Colors.TEXT_COLOR,
         fontWeight: Typography.FONT_WEIGHT_MEDIUM,
         flex: 1,
+        paddingVertical: 10
+
     },
     valueContainer: {
         borderBottomWidth: 2,

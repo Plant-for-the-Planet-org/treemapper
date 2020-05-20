@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, SafeAreaView } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
-import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
@@ -29,7 +28,7 @@ const CreatePolygon = () => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: 'red', }} fourceInset={{ bottom: 'never', top: 'never' }}>
 
             <View style={styles.container}>
                 {isMapMarkingState ?
@@ -42,7 +41,7 @@ const CreatePolygon = () => {
                         locationText={locationText}
                     />}
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 export default CreatePolygon;

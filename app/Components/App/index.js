@@ -11,7 +11,6 @@ const Stack = createStackNavigator();
 
 
 const App = () => {
-
     return (
         <StateProvider>
             <NavigationContainer>
