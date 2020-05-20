@@ -37,8 +37,8 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Tree Inventory App want to use your camera</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string></string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -46,7 +46,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>tree inventory app want to use your camera ...</string>
+	<string>Allow access to your photo gallery</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow access to your camera</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Zocial.ttf</string>
