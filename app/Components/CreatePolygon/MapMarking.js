@@ -41,13 +41,14 @@ class MapMarking extends React.Component {
 
 
     async  UNSAFE_componentWillMount() {
-        await MapboxGL.requestAndroidLocationPermissions().then(() => {
 
-        });
     }
 
-    componentDidMount() {
-        MapboxGL.setTelemetryEnabled(false);
+    async  componentDidMount() {
+        // MapboxGL.setTelemetryEnabled(false);
+        // await MapboxGL.requestAndroidLocationPermissions().then(() => {
+
+        // });
         this.initialState()
     }
 

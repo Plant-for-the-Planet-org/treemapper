@@ -92,23 +92,25 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
-                <TouchableOpacity onPress={() => setShowDate(true)}>
-                    <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
-                </TouchableOpacity>
-                <FlatList
-                    data={species}
-                    renderItem={({ item, index }) => renderOneSpecies(item, index)}
-                />
-                <TouchableOpacity onPress={addSpecies}>
-                    <Text style={styles.addSpecies}>+ Add Species</Text>
-                </TouchableOpacity>
-                <View style={{ flex: 1 }} />
-                {renderDatePicker()}
-            </ScrollView>
-            <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
+        <SafeAreaView style={{ flex: 1 ,backgroundColor : '#fff'}}>
+            <View style={styles.container}>
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                    <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
+                    <TouchableOpacity onPress={() => setShowDate(true)}>
+                        <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
+                    </TouchableOpacity>
+                    <FlatList
+                        data={species}
+                        renderItem={({ item, index }) => renderOneSpecies(item, index)}
+                    />
+                    <TouchableOpacity onPress={addSpecies}>
+                        <Text style={styles.addSpecies}>+ Add Species</Text>
+                    </TouchableOpacity>
+                    <View style={{ flex: 1 }} />
+                    {renderDatePicker()}
+                </ScrollView>
+                <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
+            </View>
         </SafeAreaView>
     )
 }
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        backgroundColor : Colors.WHITE
+        backgroundColor: Colors.WHITE
     },
     addSpecies: {
         color: Colors.ALERT,

@@ -29,16 +29,19 @@ const CreatePolygon = () => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            {isMapMarkingState ?
-                <MapMarking toggleState={toggleState}
-                    isCompletePolygon={isCompletePolygon}
-                    setIsCompletePolygon={setIsCompletePolygon} /> :
-                <ImageCapturing toggleState={toggleState}
-                    isCompletePolygon={isCompletePolygon}
-                    setIsCompletePolygon={setIsCompletePolygon}
-                    locationText={locationText}
-                />}
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+
+            <View style={styles.container}>
+                {isMapMarkingState ?
+                    <MapMarking toggleState={toggleState}
+                        isCompletePolygon={isCompletePolygon}
+                        setIsCompletePolygon={setIsCompletePolygon} /> :
+                    <ImageCapturing toggleState={toggleState}
+                        isCompletePolygon={isCompletePolygon}
+                        setIsCompletePolygon={setIsCompletePolygon}
+                        locationText={locationText}
+                    />}
+            </View>
         </SafeAreaView>
     )
 }

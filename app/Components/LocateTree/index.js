@@ -26,14 +26,16 @@ const LocateTree = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Header headingText={'Locate Trees'} />
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <LargeButton onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
-                <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
-                <LargeButton heading={'Select Coordinates'} active={false} medium />
-            </ScrollView>
-            <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
+        <SafeAreaView style={{ flex: 1, backgroundColor : '#fff' }}>
+            <View style={styles.container}>
+                <Header headingText={'Locate Trees'} />
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <LargeButton onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
+                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
+                    <LargeButton heading={'Select Coordinates'} active={false} medium />
+                </ScrollView>
+                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
+            </View>
         </SafeAreaView>
     )
 }

@@ -65,27 +65,30 @@ const TreeInventory = ({ navigation }) => {
     console.log(inCompleteInventory, 'inCompleteInventory')
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
-                {renderTempComp()}
-                {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
-                    {renderInventoryList(pendingInventory)}</>}
-                {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} />
-                    {renderInventoryList(inCompleteInventory)}</>}
-                {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>No Inventory</Text>
-                </View>}
-            </ScrollView>
+        <SafeAreaView style={{ flex: 1  ,backgroundColor : '#fff' }}>
+            <View style={styles.container}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                    {renderTempComp()}
+                    {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
+                        {renderInventoryList(pendingInventory)}</>}
+                    {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} />
+                        {renderInventoryList(inCompleteInventory)}</>}
+                    {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text>No Inventory</Text>
+                    </View>}
+                </ScrollView>
+            </View>
         </SafeAreaView>
     )
 }
 export default TreeInventory;
 
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        backgroundColor : Colors.WHITE
+        backgroundColor: Colors.WHITE
     }
 })
