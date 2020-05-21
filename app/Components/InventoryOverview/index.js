@@ -61,7 +61,7 @@ const InventoryOverview = ({ navigation, }) => {
 
     const onPressActiveBtn = (index) => {
         let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index]
-        let normalCoords = [Number(selectedCoords.latitude), Number(selectedCoords.longitude)]
+        let normalCoords = [Number(selectedCoords.longitude), Number(selectedCoords.latitude)]
         setSelectedLOC(normalCoords)
         setlocationTitle(APLHABETS[index])
         setIsLOCModalOpen(!isLOCModalOpen)

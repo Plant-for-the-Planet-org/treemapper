@@ -70,7 +70,7 @@ class MapMarking extends React.Component {
                         },
                         'geometry': {
                             'type': 'LineString',
-                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.latitude), Number(oneCoordinate.longitude)]))
+                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.longitude), Number(oneCoordinate.latitude)]))
                         }
                     }
                 })

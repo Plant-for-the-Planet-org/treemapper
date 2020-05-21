@@ -43,12 +43,12 @@ const Inventory = {
     }
 };
 //  GET All Inventories
-// Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
-//     .then(realm => {
-//         realm.write(() => {
-//             const Inventory = realm.objects('Inventory');
-//         })
-//     })
+Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+    .then(realm => {
+        realm.write(() => {
+            const Inventory = realm.objects('Inventory');
+        })
+    })
 
 export const initiateInventory = ({ treeType }) => {
     return new Promise((resolve, reject) => {
@@ -79,7 +79,6 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                         plantation_date
                     }, 'modified')
                     // const Inventory = realm.objects('Inventory');
-                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.stringify(Inventory)')
                     resolve()
                 })
             })
@@ -114,8 +113,8 @@ export const addCoordinates = ({ inventory_id, geoJSON }) => {
                         let coordinates = []
                         onePolygon.geometry.coordinates.map((oneLatlong) => {
                             coordinates.push({
-                                longitude: oneLatlong[1],
-                                latitude: oneLatlong[0],
+                                longitude: oneLatlong[0],
+                                latitude: oneLatlong[1],
                                 locationTitle: 'A'
                             })
                         })
@@ -141,7 +140,6 @@ export const getAllInventory = () => {
             .then(realm => {
                 realm.write(() => {
                     const Inventory = realm.objects('Inventory');
-                    // console.log(JSON.parse(JSON.stringify(Inventory)), 'JSON.parse(JSON.stringify(Inventory))')
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
             })
@@ -202,13 +200,30 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
 }
 
 
+export const removeLastCoord = ({ inventory_id }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
+                    let coords = Object.values(polygons[polygons.length - 1].coordinates)
+                    coords = coords.slice(0, coords.length - 1)
+                    polygons[polygons.length - 1].coordinates = coords
+                    inventory.polygons = polygons;
+                    resolve()
+                })
+            })
+
+    })
+}
 export const clearAllInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
                     let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
-                    realm.delete(allInventory); // Deletes Inventory\
+                    realm.delete(allInventory); // Delete Inventory\
                     resolve()
                 })
             })
