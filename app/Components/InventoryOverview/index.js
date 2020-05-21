@@ -45,7 +45,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(3)},${oneCoordinate.longitude.toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
                                 return (
                                     <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressActiveBtn} />
                                 )
@@ -61,7 +61,7 @@ const InventoryOverview = ({ navigation, }) => {
 
     const onPressActiveBtn = (index) => {
         let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index]
-        let normalCoords = [Number(selectedCoords.longitude), Number(selectedCoords.latitude)]
+        let normalCoords = [selectedCoords.longitude, selectedCoords.latitude]
         setSelectedLOC(normalCoords)
         setlocationTitle(APLHABETS[index])
         setIsLOCModalOpen(!isLOCModalOpen)

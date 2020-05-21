@@ -52,8 +52,7 @@ const TreeInventory = ({ navigation }) => {
     }
 
     const onPressClearAll = () => {
-        console.log('onPressClearAll')
-        clearAllInventory().then(() => {
+         clearAllInventory().then(() => {
             getAllInventory().then((allInventory) => {
                 setAllInventory(Object.values(allInventory))
             })
@@ -62,7 +61,6 @@ const TreeInventory = ({ navigation }) => {
 
     const pendingInventory = allInventory.filter(x => x.status == 'pending')
     const inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
-    console.log(inCompleteInventory, 'inCompleteInventory')
 
     return (
         <SafeAreaView style={{ flex: 1  ,backgroundColor : '#fff' }}>

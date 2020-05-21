@@ -6,7 +6,7 @@ import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
 import { store } from '../../Actions/store';
 import { updateLastScreen } from '../../Actions/';
-import Test from './Test'
+
 
 const CreatePolygon = () => {
 

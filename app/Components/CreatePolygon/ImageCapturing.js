@@ -20,8 +20,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             mediaType: 'photo',
         }).then(image => {
             setImagePath(image.path)
-            console.log(image);
-        });
+         });
     }
 
     const onPessContinue = () => {

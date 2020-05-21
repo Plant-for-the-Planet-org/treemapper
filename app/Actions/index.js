@@ -68,6 +68,20 @@ export const initiateInventory = ({ treeType }) => {
     })
 }
 
+export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    realm.create('Inventory', {
+                        inventory_id: `${inventory_id}`,
+                        plantation_date
+                    }, 'modified')
+                    resolve()
+                })
+            })
+    })
+}
 export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -78,7 +92,6 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                         species,
                         plantation_date
                     }, 'modified')
-                    // const Inventory = realm.objects('Inventory');
                     resolve()
                 })
             })
@@ -94,7 +107,6 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                         inventory_id: `${inventory_id}`,
                         locate_tree
                     }, 'modified')
-                    const Inventory = realm.objects('Inventory');
                     resolve()
                 })
             })
@@ -180,7 +192,6 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
-
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
                     // inventory = JSON.parse(JSON.stringify(inventory));
                     let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));

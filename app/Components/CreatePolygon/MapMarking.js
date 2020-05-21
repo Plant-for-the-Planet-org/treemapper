@@ -61,7 +61,7 @@ class MapMarking extends React.Component {
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
-            if (inventory.polygons.length > 0) {
+             if (inventory.polygons.length > 0) {
                 let featureList = inventory.polygons.map((onePolygon) => {
                     return {
                         'type': 'Feature',
@@ -70,7 +70,7 @@ class MapMarking extends React.Component {
                         },
                         'geometry': {
                             'type': 'LineString',
-                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.longitude), Number(oneCoordinate.latitude)]))
+                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
                         }
                     }
                 })
