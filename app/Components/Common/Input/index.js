@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, SafeAreaView, KeyboardAvoidingView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
@@ -27,10 +27,16 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
                 <SafeAreaView style={{ flex: 1, }}>
                     <View style={{ flex: 1, }}>
                         <View style={{ flex: 1 }} />
-                        <View style={styles.externalInputContainer}>
-                            <TextInput ref={input} onBlur={onSubmit} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} value={value} onChangeText={onChange} style={styles.value} autoFocus onSubmitEditing={onSubmit} />
-                            <MCIcon onPress={onSubmit} name={'check'} size={30} color={Colors.PRIMARY} />
-                        </View>
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS == "ios" ? "padding" : "height"}
+                            style={{ backgroundColor: '#fff' }}
+                        >
+                            <View
+                                style={styles.externalInputContainer}>
+                                <TextInput ref={input} onBlur={onSubmit} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} value={value} onChangeText={onChange} style={styles.value} autoFocus onSubmitEditing={onSubmit} />
+                                <MCIcon onPress={onSubmit} name={'check'} size={30} color={Colors.PRIMARY} />
+                            </View>
+                        </KeyboardAvoidingView>
                     </View>
                 </SafeAreaView>
             </Modal>
