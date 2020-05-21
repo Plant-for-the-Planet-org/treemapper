@@ -2,26 +2,55 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StateProvider } from '../../Actions/store';
+import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 
 import 'react-native-gesture-handler';
 
-import { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview } from "../";
+import { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview } from '../';
 
 const Stack = createStackNavigator();
 
+const MyTransition = {
+    gestureDirection: 'vertical',
+    transitionSpec: {
+        open: TransitionSpecs.TransitionIOSSpec,
+        close: TransitionSpecs.TransitionIOSSpec,
+    },
+    headerStyleInterpolator: HeaderStyleInterpolators.forFade,
+    cardStyleInterpolator: ({ current, next, layouts }) => {
+        return {
+            cardStyle: {
+                transform: [
+                    {
+                        translateX: current.progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [layouts.screen.width, 0],
+                        }),
+                    },
+                ],
+            },
+            overlayStyle: {
+                opacity: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 0.5],
+                }),
+            },
+        };
+    },
+}
 
 const App = () => {
     return (
         <StateProvider>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName="TreeInventory" headerMode={'none'}>
-                    <Stack.Screen name="TreeInventory" component={TreeInventory} />
-                    <Stack.Screen name="RegisterTree" component={RegisterTree} />
-                    <Stack.Screen name="MultipleTrees" component={MultipleTrees} />
-                    <Stack.Screen name="SelectProject" component={SelectProject} />
-                    <Stack.Screen name="LocateTree" component={LocateTree} />
-                    <Stack.Screen name="CreatePolygon" component={CreatePolygon} />
-                    <Stack.Screen name="InventoryOverview" component={InventoryOverview} />
+                <Stack.Navigator initialRouteName='TreeInventory' headerMode={'none'} >
+                    <Stack.Screen name='TreeInventory' component={TreeInventory} options={{ ...MyTransition }} />
+                    <Stack.Screen name='RegisterTree' component={RegisterTree} options={{ ...MyTransition }} />
+                    <Stack.Screen name='MultipleTrees' component={MultipleTrees} options={{ ...MyTransition }} />
+                    <Stack.Screen name='SelectProject' component={SelectProject} options={{ ...MyTransition }} />
+                    <Stack.Screen name='LocateTree' component={LocateTree} options={{ ...MyTransition }} />
+                    <Stack.Screen name='CreatePolygon' component={CreatePolygon} options={{ ...MyTransition }} />
+                    <Stack.Screen name='InventoryOverview' component={InventoryOverview} options={{ ...MyTransition }} />
                 </Stack.Navigator>
             </NavigationContainer>
         </StateProvider>

@@ -4,7 +4,7 @@ import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common'
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addSpeciesAction, updateLastScreen, getInventory } from '../../Actions'
+import { addSpeciesAction, updateLastScreen, getInventory, updatePlantingDate } from '../../Actions'
 import { store } from '../../Actions/store';
 
 const MultipleTrees = ({ navigation, route }) => {
@@ -18,7 +18,7 @@ const MultipleTrees = ({ navigation, route }) => {
     useEffect(() => {
         initialState()
     }, [])
-    useEffect(() => onPressContinue(true), [plantingDate])
+    // useEffect(() => plantingDate ? onPressContinue(true) : '', [plantingDate])
 
     const initialState = () => {
         getInventory({ inventoryID: state.inventoryID }).then((data) => {
@@ -37,6 +37,7 @@ const MultipleTrees = ({ navigation, route }) => {
     const onChangeDate = (event, selectedDate) => {
         setShowDate(false)
         setPlantingDate(selectedDate);
+        updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
     };
 
     const renderDatePicker = () => {
@@ -68,7 +69,7 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     const onPressContinue = (onBlur = false) => {
-        onBlur !== true ? onBlur = false : null
+         onBlur !== true ? onBlur = false : null
         let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
         if (!onBlur) {
             let totalTreeCount = 0
@@ -92,7 +93,7 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1 ,backgroundColor : '#fff'}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />

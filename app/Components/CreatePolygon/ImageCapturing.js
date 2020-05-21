@@ -4,7 +4,7 @@ import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common'
 import { Colors, Typography } from '_styles';
 import { close, camera } from '../../assets'
 import ImagePicker from 'react-native-image-crop-picker';
-import { insertImageAtLastCoordinate } from '../../Actions'
+import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions'
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -20,8 +20,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             mediaType: 'photo',
         }).then(image => {
             setImagePath(image.path)
-            console.log(image);
-        });
+         });
     }
 
     const onPessContinue = () => {
@@ -36,10 +35,16 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
         })
     }
 
+    const onBackPress = () => {
+        removeLastCoord({ inventory_id: state.inventoryID, }).then(() => {
+            toggleState()
+        })
+    }
+
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
-                <Header closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={{ flex: 1 }}>
                 <View style={{ flex: 1, backgroundColor: '#ccc' }}>

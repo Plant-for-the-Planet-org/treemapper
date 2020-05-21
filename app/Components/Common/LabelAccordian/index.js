@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { arrow_down, arrow_up } from "../../../assets/";
+import { arrow_down, arrow_up } from '../../../assets/';
 import { Input, Label } from '../';
 
 

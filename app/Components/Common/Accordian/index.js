@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { arrow_down, arrow_up } from "../../../assets/";
+import { arrow_down, arrow_up } from '../../../assets/';
 import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 

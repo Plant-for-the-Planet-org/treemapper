@@ -58,5 +58,5 @@ buck-out/
 # CocoaPods
 /ios/Pods/
 
-#remove config file
-/app/Config/index.js
+#.env file
+.env

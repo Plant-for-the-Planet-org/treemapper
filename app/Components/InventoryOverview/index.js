@@ -1,16 +1,23 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef, useReducer } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, Modal } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
 import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
+import MapboxGL from '@react-native-mapbox-gl/maps';
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 const InventoryOverview = ({ navigation, }) => {
+
+    const cameraRef = useRef()
+
     const { state } = useContext(store);
 
     const [inventory, setInventory] = useState(null)
+    const [locationTitle, setlocationTitle] = useState('')
+    const [selectedLOC, setSelectedLOC] = useState(null)
+    const [isLOCModalOpen, setIsLOCModalOpen] = useState(false)
 
     useEffect(() => {
 
@@ -25,8 +32,6 @@ const InventoryOverview = ({ navigation, }) => {
 
         let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
         updateLastScreen(data)
-
-
     }, [])
 
 
@@ -40,9 +45,9 @@ const InventoryOverview = ({ navigation, }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${Number(oneCoordinate.latitude).toFixed(3)},${Number(oneCoordinate.longitude).toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl }
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(3)},${oneCoordinate.longitude.toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
                                 return (
-                                    <InventoryCard data={normalizeData} activeBtn />
+                                    <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressActiveBtn} />
                                 )
                             }}
                         />
@@ -52,6 +57,14 @@ const InventoryOverview = ({ navigation, }) => {
             />
 
         )
+    }
+
+    const onPressActiveBtn = (index) => {
+        let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index]
+        let normalCoords = [selectedCoords.longitude, selectedCoords.latitude]
+        setSelectedLOC(normalCoords)
+        setlocationTitle(APLHABETS[index])
+        setIsLOCModalOpen(!isLOCModalOpen)
     }
 
     const onPressSave = () => {
@@ -65,19 +78,41 @@ const InventoryOverview = ({ navigation, }) => {
         navigation.navigate('MultipleTrees', { isEdit: true })
     }
 
-    renderMap = () => {
-        return (
-            <View style={{ flex: 1, backgroundColor: 'red' }}>
-                <Header headingText={'Location A'} subHeadingText={''} />
-                <View style={{ flex: 1, backgroundColor: 'yellow' }}>
+    const focusMarker = () => {
+        cameraRef.current.setCamera({
+            centerCoordinate: selectedLOC,
+            zoomLevel: 18,
+            animationDuration: 2000,
+        })
+    }
 
+    const onBackPress = () => {
+        setIsLOCModalOpen(!isLOCModalOpen)
+        setSelectedLOC(null)
+    }
+
+    const renderViewLOCModal = () => {
+        return (
+            <Modal transparent visible={isLOCModalOpen}>
+                <SafeAreaView />
+                <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                    <View style={{ marginHorizontal: 25 }}>
+                        <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationTitle}`} />
+                    </View>
+                    <MapboxGL.MapView
+                        onDidFinishRenderingMapFully={focusMarker}
+                        style={{ flex: 1 }}>
+                        <MapboxGL.Camera ref={cameraRef} />
+                        {selectedLOC && <MapboxGL.PointAnnotation id={``} coordinate={selectedLOC}></MapboxGL.PointAnnotation>}
+                    </MapboxGL.MapView>
                 </View>
-            </View>
+            </Modal>
         )
     }
 
     return (
-        <SafeAreaView style={{ flex: 1,backgroundColor : '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+            {renderViewLOCModal()}
             <View style={styles.container}>
                 {inventory !== null ? <View style={{ flex: 1, }} >
                     <ScrollView showsVerticalScrollIndicator={false}>

@@ -4,7 +4,14 @@ import { View, Text, StyleSheet, Image, TouchableOpacit } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { back_icon, close, upload_now, tree, placeholder_image } from '../../../assets'
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-const InventoryCard = ({ data, icon, activeBtn }) => {
+
+
+const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
+
+    const onPressActiveButton = () => {
+        onPressActiveBtn(data.index)
+    }
+
     return (
         <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 10 }}>
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -14,7 +21,7 @@ const InventoryCard = ({ data, icon, activeBtn }) => {
                 <Text style={styles.subHeadingText}>{data.title}</Text>
                 <Text style={styles.subHeadingText}>{data.measurement}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={[styles.subHeadingText, activeBtn && styles.activeText]}>{data.date}</Text>
+                    <Text style={[styles.subHeadingText, activeBtn && styles.activeText]} onPress={onPressActiveButton}>{data.date}</Text>
                     {icon && <MCIcons name={'cloud-outline'} size={22} style={styles.activeText} />}
                 </View>
             </View>
