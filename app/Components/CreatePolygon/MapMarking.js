@@ -2,16 +2,17 @@ import React, { useContext } from 'react';
 import { View, StyleSheet, Text, Platform, ScrollView, SafeAreaView, Dimensions, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
 import { Colors, Typography } from '_styles';
-import MapboxGL from "@react-native-mapbox-gl/maps";
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import { camera, marker, marker_png, active_marker } from '../../assets/index'
-import { addCoordinates, getInventory } from "../../Actions";
+import { addCoordinates, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Geolocation from '@react-native-community/geolocation';
-import { mapbox_access_token } from  '../../Config/'
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv'
 
-MapboxGL.setAccessToken(mapbox_access_token);
+
+MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const IS_ANDROID = Platform.OS == 'android';
@@ -23,16 +24,16 @@ class MapMarking extends React.Component {
         loader: false,
         locateTree: '',
         geoJSON: {
-            "type": "FeatureCollection",
-            "features": [
+            'type': 'FeatureCollection',
+            'features': [
                 {
-                    "type": "Feature",
-                    "properties": {
-                        "isPolygonComplete": false
+                    'type': 'Feature',
+                    'properties': {
+                        'isPolygonComplete': false
                     },
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
                         ]
                     }
                 }
@@ -42,7 +43,7 @@ class MapMarking extends React.Component {
 
 
     async  UNSAFE_componentWillMount() {
-        if (Platform.OS == 'android') {
+        if (IS_ANDROID) {
             MapboxGL.setTelemetryEnabled(false);
             await MapboxGL.requestAndroidLocationPermissions().then(() => {
 
@@ -63,19 +64,19 @@ class MapMarking extends React.Component {
             if (inventory.polygons.length > 0) {
                 let featureList = inventory.polygons.map((onePolygon) => {
                     return {
-                        "type": "Feature",
-                        "properties": {
-                            "isPolygonComplete": onePolygon.isPolygonComplete
+                        'type': 'Feature',
+                        'properties': {
+                            'isPolygonComplete': onePolygon.isPolygonComplete
                         },
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.latitude), Number(oneCoordinate.longitude)]))
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([Number(oneCoordinate.latitude), Number(oneCoordinate.longitude)]))
                         }
                     }
                 })
                 let geoJSON = {
-                    "type": "FeatureCollection",
-                    "features": featureList
+                    'type': 'FeatureCollection',
+                    'features': featureList
                 }
                 this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree })
             } else {
@@ -172,8 +173,8 @@ class MapMarking extends React.Component {
             dist = Math.acos(dist);
             dist = dist * 180 / Math.PI;
             dist = dist * 60 * 1.1515;
-            if (unit == "K") { dist = dist * 1.609344 }
-            if (unit == "N") { dist = dist * 0.8684 }
+            if (unit == 'K') { dist = dist * 1.609344 }
+            if (unit == 'N') { dist = dist * 0.8684 }
             return dist;
         }
     }

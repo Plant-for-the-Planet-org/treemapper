@@ -94,7 +94,7 @@ const InventoryOverview = ({ navigation, }) => {
     const renderViewLOCModal = () => {
         return (
             <Modal transparent visible={isLOCModalOpen}>
-                <SafeAreaView/>
+                <SafeAreaView />
                 <View style={{ flex: 1, backgroundColor: '#fff' }}>
                     <View style={{ marginHorizontal: 25 }}>
                         <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationTitle}`} />
