@@ -53,6 +53,24 @@ jobs:
         run: |
           echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
 
+      - name: Preparing Android build
+        env:
+          android_release_password: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
+        run: |
+          # react-native-i18n has an incompatible manifest
+          search='<uses-sdk android:minSdkVersion="16" />'
+          sed -i "s|${search}||g" node_modules/react-native-i18n/android/src/main/AndroidManifest.xml
+          # prepare local.properties
+          echo "MYAPP_RELEASE_STORE_PASSWORD=$android_release_password" > android/local.properties
+          echo "MYAPP_RELEASE_KEY_PASSWORD=$android_release_password" >> android/local.properties
+
+      - name: Fixes for Android Build
+        run: |
+          # fix problems with 'Error: ENOSPC: System limit for number of file watchers reached'
+          echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+          # fix for task ':app:stripDevelopReleaseDebugSymbols'
+          (echo y; echo y; echo y;) | sudo $ANDROID_HOME/tools/bin/sdkmanager  'ndk;20.0.5594570'
+
       - name: Caching Gradle dependencies
         uses: actions/cache@v1
         with:
