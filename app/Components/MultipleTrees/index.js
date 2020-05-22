@@ -69,7 +69,7 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     const onPressContinue = (onBlur = false) => {
-         onBlur !== true ? onBlur = false : null
+        onBlur !== true ? onBlur = false : null
         let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
         if (!onBlur) {
             let totalTreeCount = 0
@@ -77,7 +77,7 @@ const MultipleTrees = ({ navigation, route }) => {
                 totalTreeCount += Number(species[i].treeCount)
             }
             if (totalTreeCount < 2) {
-                alert('Tree count should be grater than one.')
+                alert('Tree count should be greater than one.')
                 return;
             }
         }
@@ -91,7 +91,11 @@ const MultipleTrees = ({ navigation, route }) => {
             }
         })
     }
-
+    let totalTreeCount = 0
+    for (let i = 0; i < species.length; i++) {
+        totalTreeCount += Number(species[i].treeCount)
+    }
+    let shouldDisable = totalTreeCount < 2
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
@@ -100,6 +104,7 @@ const MultipleTrees = ({ navigation, route }) => {
                     <TouchableOpacity onPress={() => setShowDate(true)}>
                         <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
                     </TouchableOpacity>
+                    {renderDatePicker()}
                     <FlatList
                         data={species}
                         renderItem={({ item, index }) => renderOneSpecies(item, index)}
@@ -108,9 +113,8 @@ const MultipleTrees = ({ navigation, route }) => {
                         <Text style={styles.addSpecies}>+ Add Species</Text>
                     </TouchableOpacity>
                     <View style={{ flex: 1 }} />
-                    {renderDatePicker()}
                 </ScrollView>
-                <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
+                <PrimaryButton disabled={shouldDisable} onPress={onPressContinue} btnText={'Save & Continue'} />
             </View>
         </SafeAreaView>
     )
