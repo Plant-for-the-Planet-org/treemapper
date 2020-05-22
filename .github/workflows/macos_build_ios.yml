@@ -35,11 +35,6 @@ jobs:
         echo "PATH:"
         echo $PATH
 
-    - name: Installing Gettext for envsubst command
-      run: |
-        echo $PATH
-        brew reinstall gettext
-
     - name: Caching node modules
       uses: actions/cache@v1
       with:
@@ -51,6 +46,12 @@ jobs:
     - name: Install npm
       run : |
         npm install
+
+    - name: Setting Environment Variables
+      env:
+        MAPBOXGL_ACCCESS_TOKEN: ${{ secrets.MAPBOXGL_ACCCESS_TOKEN }}
+      run: |
+        echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
 
     - name: Caching Pods
       uses: actions/cache@v1
