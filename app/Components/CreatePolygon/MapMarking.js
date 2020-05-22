@@ -61,7 +61,7 @@ class MapMarking extends React.Component {
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
-             if (inventory.polygons.length > 0) {
+            if (inventory.polygons.length > 0) {
                 let featureList = inventory.polygons.map((onePolygon) => {
                     return {
                         'type': 'Feature',
@@ -86,6 +86,10 @@ class MapMarking extends React.Component {
     }
 
     onUpdateUserLocation = (location) => {
+        if (!location) {
+            alert('Unable to retrive location')
+            return;
+        }
         if (!this.state.isInitial) {
             const currentCoords = [location.coords.longitude, location.coords.latitude]
             this.setState({ centerCoordinates: currentCoords, isInitial: true }, () => {
@@ -103,29 +107,36 @@ class MapMarking extends React.Component {
         let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
         if (this.state.locateTree == 'on-site') {
             // Check distance 
-            Geolocation.getCurrentPosition(position => {
-                let currentCoords = position.coords;
-                let markerCoords = centerCoordinates;
+            try {
+                Geolocation.getCurrentPosition(position => {
+                    alert(JSON.stringify(position))
+                    let currentCoords = position.coords;
+                    let markerCoords = centerCoordinates;
 
-                let isValidMarkers = true
-                geoJSON.features[activePolygonIndex].geometry.coordinates.map(oneMarker => {
-                    let distance = this.distanceCalculator(markerCoords[1], markerCoords[0], oneMarker[1], oneMarker[0], 'K')
+                    let isValidMarkers = true
+                    geoJSON.features[activePolygonIndex].geometry.coordinates.map(oneMarker => {
+                        let distance = this.distanceCalculator(markerCoords[1], markerCoords[0], oneMarker[1], oneMarker[0], 'K')
+                        let distanceInMeters = distance * 1000;
+                        if (distanceInMeters < 2)
+                            isValidMarkers = false
+                    })
+
+                    let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
                     let distanceInMeters = distance * 1000;
-                    if (distanceInMeters < 2)
-                        isValidMarkers = false
-                })
 
-                let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
-                let distanceInMeters = distance * 1000;
+                    if (!isValidMarkers) {
+                        alert('Markers are too closed.')
+                    } else if (distanceInMeters < 100) {
+                        this.pushMaker(complete)
+                    } else {
+                        alert(`You are very far from your current location.`)
+                    }
+                }, (err) => alert(err.message));
+            } catch (err) {
+                alert('console 3')
 
-                if (!isValidMarkers) {
-                    alert('Markers are too closed.')
-                } else if (distanceInMeters < 100) {
-                    this.pushMaker(complete)
-                } else {
-                    alert(`You are very far from your current location.`)
-                }
-            });
+                alert(JSON.stringify(err))
+            }
         } else {
             this.pushMaker(complete)
         }
@@ -220,7 +231,7 @@ class MapMarking extends React.Component {
             let coordinatesLenghtShouldBe = onePolygon.properties.isPolygonComplete ? onePolygon.geometry.coordinates.length - 1 : onePolygon.geometry.coordinates.length
             for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
-                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker} />);
+                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}></MapboxGL.PointAnnotation>);
             }
         }
         return markers;
@@ -244,7 +255,7 @@ class MapMarking extends React.Component {
     onPressMyLocationIcon = () => {
         Geolocation.getCurrentPosition(position => {
             this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position))
-        });
+        }, (err) => alert(err.message));
 
     }
 
