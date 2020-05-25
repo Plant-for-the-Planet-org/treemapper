@@ -1,4 +1,4 @@
-package com.treeinventory;
+package org.pftp.treeinventory;
 
 import com.facebook.react.ReactActivity;
 

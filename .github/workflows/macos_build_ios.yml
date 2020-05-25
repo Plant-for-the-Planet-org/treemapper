@@ -1,0 +1,111 @@
+name: iOS build on MacOS
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    timeout-minutes: 60
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v2
+
+    - name: Select Xcode
+      run: |
+        echo "Default version:" `xcode-select -p`
+        sudo xcode-select -s /Applications/Xcode_11.4.1.app
+        echo "Selected version:" `xcode-select -p`
+
+    - name: Check versions
+      run: |
+        echo "Xcode version:"
+        xcodebuild -version
+        echo "Pod version:"
+        pod --version
+        echo "Brew version:"
+        brew --version
+        echo "Node version:"
+        npm --version
+        echo "PATH:"
+        echo $PATH
+
+    - name: Caching node modules
+      uses: actions/cache@v1
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install npm
+      run : |
+        npm install
+
+    - name: Setting Environment Variables
+      env:
+        MAPBOXGL_ACCCESS_TOKEN: ${{ secrets.MAPBOXGL_ACCCESS_TOKEN }}
+      run: |
+        echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
+
+    - name: Caching Pods
+      uses: actions/cache@v1
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile*') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
+
+    - name: Install Pods
+      run: pod install
+      working-directory: ./ios
+
+    - name: Preparing build
+      env:
+        PROVISIONING_PASSWORD: ${{ secrets.IOS_PROVISIONING_PASSWORD }}
+      run: |
+        ./release/prepare_macos_ios_signing.sh
+
+    - name: Build archive
+      run: |
+        xcodebuild -sdk iphoneos -workspace treeinventory.xcworkspace \
+        -configuration Release -scheme 'treeinventory' \
+        -derivedDataPath DerivedData \
+        -archivePath DerivedData/Archive/treeinventory archive
+      working-directory: ./ios
+
+    - name: Export Archive
+      run: |
+        xcodebuild -exportArchive \
+        -archivePath DerivedData/Archive/treeinventory.xcarchive \
+        -exportOptionsPlist ../release/Develop-Store.plist \
+        -exportPath DerivedData/ipa
+      working-directory: ./ios
+
+# We only have 0.5GB space to store artifacts for GitHub actions
+#    - name: Upload iOS IPA file
+#      uses: actions/upload-artifact@v1
+#      with:
+#        name: TreeInventory-develop-release.ipa
+#        path: ios/DerivedData/ipa/TreeInventory(.env.develop).ipa
+
+    - name: Upload iOS IPA to Browserstack
+      env:
+        BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      run: |
+        upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
+        echo "::set-env name=upload_file::$upload_file"
+        mv 'ios/DerivedData/ipa/treeinventory.ipa' release/$upload_file
+        curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
+
+    - name: Slack notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        payload="{\"channel\": \"#notifications-git\", \"username\": \"webhookbot\", \"text\": \"Finished GitHub action $GITHUB_WORKFLOW for $GITHUB_REF (TreeInventory)\"}"
+        curl -X POST --data-urlencode "payload=$payload" https://hooks.slack.com/services/$SLACK_WEBHOOK_URL
