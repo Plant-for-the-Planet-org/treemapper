@@ -18,7 +18,6 @@ const MultipleTrees = ({ navigation, route }) => {
     useEffect(() => {
         initialState()
     }, [])
-    // useEffect(() => plantingDate ? onPressContinue(true) : '', [plantingDate])
 
     const initialState = () => {
         getInventory({ inventoryID: state.inventoryID }).then((data) => {
@@ -64,8 +63,18 @@ const MultipleTrees = ({ navigation, route }) => {
         setSpecies([...species])
     }
 
+    const onPressDelete = (index) => {
+        species.splice(index, 1)
+        setSpecies([...species])
+    }
+
+    const onSubmitEditing = () => {
+        // alert('onSubmitEditing')
+        onPressContinue(true)
+    }
+
     const renderOneSpecies = (item, index) => {
-        return (<Accordian onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} />)
+        return (<Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} />)
     }
 
     const onPressContinue = (onBlur = false) => {
@@ -91,10 +100,12 @@ const MultipleTrees = ({ navigation, route }) => {
             }
         })
     }
+
     let totalTreeCount = 0
     for (let i = 0; i < species.length; i++) {
         totalTreeCount += Number(species[i].treeCount)
     }
+
     let shouldDisable = totalTreeCount < 2
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>

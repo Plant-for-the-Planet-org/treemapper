@@ -87,7 +87,7 @@ class MapMarking extends React.Component {
 
     onUpdateUserLocation = (location) => {
         if (!location) {
-            alert('Unable to retrive location')
+            // alert('Unable to retrive location')
             return;
         }
         if (!this.state.isInitial) {
@@ -109,7 +109,6 @@ class MapMarking extends React.Component {
             // Check distance 
             try {
                 Geolocation.getCurrentPosition(position => {
-                    alert(JSON.stringify(position))
                     let currentCoords = position.coords;
                     let markerCoords = centerCoordinates;
 
@@ -117,7 +116,7 @@ class MapMarking extends React.Component {
                     geoJSON.features[activePolygonIndex].geometry.coordinates.map(oneMarker => {
                         let distance = this.distanceCalculator(markerCoords[1], markerCoords[0], oneMarker[1], oneMarker[0], 'K')
                         let distanceInMeters = distance * 1000;
-                        if (distanceInMeters < 2)
+                        if (distanceInMeters < 10)
                             isValidMarkers = false
                     })
 
@@ -127,7 +126,7 @@ class MapMarking extends React.Component {
                     if (!isValidMarkers) {
                         alert('Markers are too closed.')
                     } else if (distanceInMeters < 100) {
-                        this.pushMaker(complete)
+                        this.pushMaker(complete, currentCoords)
                     } else {
                         alert(`You are very far from your current location.`)
                     }
@@ -142,7 +141,7 @@ class MapMarking extends React.Component {
         }
     }
 
-    pushMaker = (complete) => {
+    pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         geoJSON.features[activePolygonIndex].geometry.coordinates.push(centerCoordinates);
         if (complete) {
@@ -153,7 +152,8 @@ class MapMarking extends React.Component {
             // change the state
             const { inventoryID } = this.props;
             const { geoJSON } = this.state;
-            let data = { inventory_id: inventoryID, geoJSON: geoJSON };
+
+            let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
@@ -266,10 +266,6 @@ class MapMarking extends React.Component {
         let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
         return (
             <View style={styles.container} fourceInset={{ top: 'always' }}>
-                <SafeAreaView />
-                <View style={styles.headerCont}>
-                    <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
-                </View>
                 <View style={styles.container}>
                     {this.renderMapView(geoJSON)}
                     {this.renderFakeMarker(location)}
@@ -283,7 +279,10 @@ class MapMarking extends React.Component {
                         <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
                     </View>
                 </View>
-
+                <View style={styles.headerCont}>
+                    <SafeAreaView />
+                    <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                </View>
             </View>)
     }
 }
@@ -307,7 +306,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row', position: 'absolute', bottom: 80, backgroundColor: 'transparent', width: '100%', justifyContent: 'center',
     },
     headerCont: {
-        marginHorizontal: 25
+        paddingHorizontal: 25,
+        position: 'absolute',
+        top: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        width: '100%'
     },
     fakeMarkerCont: {
         position: 'absolute', left: '50%', top: '50%', justifyContent: 'center', alignItems: 'center'

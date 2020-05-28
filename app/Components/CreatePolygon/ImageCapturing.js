@@ -20,19 +20,23 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             mediaType: 'photo',
         }).then(image => {
             setImagePath(image.path)
-         });
+        });
     }
 
     const onPessContinue = () => {
         // Save Image in local
-        let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
-        insertImageAtLastCoordinate(data).then(() => {
-            if (isCompletePolygon) {
-                navigation.navigate('InventoryOverview')
-            } else {
-                toggleState()
-            }
-        })
+        if (imagePath) {
+            let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
+            insertImageAtLastCoordinate(data).then(() => {
+                if (isCompletePolygon) {
+                    navigation.navigate('InventoryOverview')
+                } else {
+                    toggleState()
+                }
+            })
+        } else {
+            alert('Image is required')
+        }
     }
 
     const onBackPress = () => {

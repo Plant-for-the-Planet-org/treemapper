@@ -34,7 +34,7 @@ const InventoryOverview = ({ navigation, }) => {
         updateLastScreen(data)
     }, [])
 
-
+    console.log(inventory, 'inventory')
     const renderPolygon = (polygons) => {
         return (
             <FlatList
@@ -109,7 +109,7 @@ const InventoryOverview = ({ navigation, }) => {
             </Modal>
         )
     }
-
+    let isEditShow = inventory?.status !== 'pending'
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             {renderViewLOCModal()}
@@ -119,7 +119,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
                         <Label leftText={`On Site Registration`} rightText={''} />
-                        <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
+                        <LabelAccordian data={inventory.species} isEditShow={isEditShow} onPressRightText={onPressEdit} />
                         {renderPolygon(inventory.polygons)}
                         <LargeButton heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>

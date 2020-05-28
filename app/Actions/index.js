@@ -9,7 +9,9 @@ const Coordinates = {
         latitude: 'float',
         longitude: 'float',
         imageUrl: 'string?',
-        locationTitle: 'string'
+        locationTitle: 'string',
+        currentloclat: 'float',
+        currentloclong: 'float',
     }
 }
 const Polygons = {
@@ -47,6 +49,7 @@ Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
     .then(realm => {
         realm.write(() => {
             const Inventory = realm.objects('Inventory');
+            
         })
     })
 
@@ -113,7 +116,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
     })
 }
 
-export const addCoordinates = ({ inventory_id, geoJSON }) => {
+export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
@@ -127,7 +130,9 @@ export const addCoordinates = ({ inventory_id, geoJSON }) => {
                             coordinates.push({
                                 longitude: oneLatlong[0],
                                 latitude: oneLatlong[1],
-                                locationTitle: 'A'
+                                locationTitle: 'A',
+                                currentloclat: currentCoords.latitude ? currentCoords.latitude : 0,
+                                currentloclong: currentCoords.longitude ? currentCoords.longitude : 0
                             })
                         })
                         onePolygonTemp.coordinates = coordinates;

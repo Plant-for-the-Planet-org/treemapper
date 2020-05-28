@@ -5,7 +5,7 @@ import { arrow_down, arrow_up } from '../../../assets/';
 import { Input, Label } from '../';
 
 
-const LabelAccordian = ({ data, onPressRightText }) => {
+const LabelAccordian = ({ data, onPressRightText, isEditShow }) => {
 
     const renderSubSpecie = (item) => (
         <TouchableOpacity style={styles.oneSpecieCont}>
@@ -27,7 +27,7 @@ const LabelAccordian = ({ data, onPressRightText }) => {
 
     return (
         <View style={{ marginVertical: 10 }}>
-            <Label leftText={'Species'} rightText={'Edit'} onPressRightText={onPressRightText} />
+            <Label leftText={'Species'} rightText={isEditShow && 'Edit'} onPressRightText={onPressRightText} />
             <FlatList
                 data={data}
                 renderItem={renderSpecieCont}

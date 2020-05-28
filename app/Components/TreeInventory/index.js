@@ -23,10 +23,8 @@ const TreeInventory = ({ navigation }) => {
 
     const onPressInventory = (item) => {
         setTimeout(() => {
-            if (item.status !== 'pending') {
-                dispatch({ type: 'SET_INVENTORY_ID', inventoryID: item.inventory_id })
-                navigation.navigate(item.last_screen)
-            }
+            dispatch({ type: 'SET_INVENTORY_ID', inventoryID: item.inventory_id })
+            navigation.navigate(item.last_screen)
         }, 0)
     }
 
@@ -45,14 +43,14 @@ const TreeInventory = ({ navigation }) => {
                 renderItem={({ item }) => {
                     let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
                     let data = { title: title, measurement: '10 cm', date: new Date(Number(item.plantation_date)).toLocaleDateString() }
-                    return (<TouchableOpacity disabled={item.status == 'pending'} onPress={() => onPressInventory(item)}><InventoryCard icon={item.status == 'pending'} data={data} /></TouchableOpacity>)
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={item.status == 'pending'} data={data} /></TouchableOpacity>)
                 }}
             />
         )
     }
 
     const onPressClearAll = () => {
-         clearAllInventory().then(() => {
+        clearAllInventory().then(() => {
             getAllInventory().then((allInventory) => {
                 setAllInventory(Object.values(allInventory))
             })
@@ -63,7 +61,7 @@ const TreeInventory = ({ navigation }) => {
     const inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
 
     return (
-        <SafeAreaView style={{ flex: 1  ,backgroundColor : '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />

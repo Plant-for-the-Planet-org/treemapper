@@ -1,12 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, SafeAreaView, KeyboardAvoidingView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardType, placeholder, onBlur }) => {
+const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardType, placeholder, onBlur, onSubmitEditing }) => {
 
     const input = useRef(null)
     const [isOpen, setIsOpen] = useState(false)
+
+    useEffect(() => {
+        // if (label == 'Tree Count') {
+        //     setIsOpen(true)
+        // }
+
+    }, [])
 
     const onChange = (text) => {
         onChangeText(text, dataKey, index)
@@ -18,27 +25,27 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
     }
 
     const onSubmit = () => {
-        onBlur()
+        onSubmitEditing()
+        // onBlur()
         setIsOpen(!isOpen)
     }
     return (
         <View style={styles.container}>
             <Modal transparent={true} visible={isOpen}>
-                <SafeAreaView style={{ flex: 1, }}>
+                <View style={{ flex: 1, }}>
                     <View style={{ flex: 1, }}>
                         <View style={{ flex: 1 }} />
                         <KeyboardAvoidingView
                             behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: '#fff' }}
-                        >
-                            <View
-                                style={styles.externalInputContainer}>
-                                <TextInput ref={input} onBlur={onSubmit} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} value={value} onChangeText={onChange} style={styles.value} autoFocus onSubmitEditing={onSubmit} />
-                                <MCIcon onPress={onSubmit} name={'check'} size={30} color={Colors.PRIMARY} />
+                            style={{ backgroundColor: '#fff' }}>
+                            <View style={styles.externalInputContainer}>
+                                <Text style={styles.labelModal}>{label}</Text>
+                                <TextInput ref={input} onBlur={onSubmit} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} value={value} onChangeText={onChange} style={styles.value} autoFocus onSubmitEditing={onSubmitEditing} />
+                                <MCIcon onPress={onSubmit} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
                         </KeyboardAvoidingView>
                     </View>
-                </SafeAreaView>
+                </View>
             </Modal>
             <Text style={styles.label}>{label}</Text>
             <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer}>
@@ -59,14 +66,20 @@ const styles = StyleSheet.create({
         lineHeight: Typography.LINE_HEIGHT_30,
         color: Colors.TEXT_COLOR,
     },
+    labelModal: {
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_18,
+        lineHeight: Typography.LINE_HEIGHT_30,
+        color: Colors.TEXT_COLOR,
+        marginRight: 10
+    },
     value: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_20,
         color: Colors.TEXT_COLOR,
         fontWeight: Typography.FONT_WEIGHT_MEDIUM,
         flex: 1,
-        paddingVertical: 10
-
+        paddingVertical: 10,
     },
     valueContainer: {
         borderBottomWidth: 2,
@@ -78,8 +91,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.WHITE,
-        paddingHorizontal: 5,
+        paddingHorizontal: 25,
         borderTopWidth: .5,
         borderColor: Colors.TEXT_COLOR
-    }
+    },
+
 })
