@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from '../../../assets/';
@@ -6,15 +6,21 @@ import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing }) => {
+const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing, shouldExpand }) => {
 
     const treeCountInput = useRef()
 
-    const [isOpen, setIsOpen] = useState(true);
+
+    const [isOpen, setIsOpen] = useState(false);
     const [isNameOfTreesShow, setIsNameOfTreesShow] = useState(true);
     const [nameOfTree, setNameOfTree] = useState('');
     const [treeCount, setTreeCount] = useState('');
 
+    useEffect(() => {
+        if (shouldExpand) {
+            setIsOpen(true)
+        }
+    }, [])
     const onPressAccordian = () => {
         setIsOpen(!isOpen)
         setIsNameOfTreesShow(true)
@@ -27,6 +33,7 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
             setIsOpen(false)
             onChangeText(nameOfTree, 'nameOfTree', index)
             onChangeText(treeCount, 'treeCount', index)
+            onSubmitEditing()
         } else {
             setIsNameOfTreesShow(false)
             setTimeout(() => treeCountInput.current.focus(), 100)

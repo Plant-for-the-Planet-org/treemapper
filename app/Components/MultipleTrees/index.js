@@ -20,17 +20,14 @@ const MultipleTrees = ({ navigation, route }) => {
     }, [])
 
     const initialState = () => {
+        let data = { inventory_id: state.inventoryID, last_screen: 'MultipleTrees' }
+        updateLastScreen(data)
         getInventory({ inventoryID: state.inventoryID }).then((data) => {
             if (data.plantation_date) {
                 setPlantingDate(new Date(Number(data.plantation_date)))
                 setSpecies(Object.values(data.species))
             }
         })
-        if (route.params?.isEdit) {
-        } else {
-            let data = { inventory_id: state.inventoryID, last_screen: 'MultipleTrees' }
-            updateLastScreen(data)
-        }
     }
 
     const onChangeDate = (event, selectedDate) => {
@@ -69,12 +66,11 @@ const MultipleTrees = ({ navigation, route }) => {
     }
 
     const onSubmitEditing = () => {
-        // alert('onSubmitEditing')
         onPressContinue(true)
     }
 
     const renderOneSpecies = (item, index) => {
-        return (<Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} />)
+        return (<Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} shouldExpand={species.length - 1 == index} />)
     }
 
     const onPressContinue = (onBlur = false) => {
@@ -90,6 +86,7 @@ const MultipleTrees = ({ navigation, route }) => {
                 return;
             }
         }
+        console.log('addSpeciesAction call', species)
         addSpeciesAction(data).then(() => {
             if (!onBlur) {
                 if (route.params?.isEdit) {

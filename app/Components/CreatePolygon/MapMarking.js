@@ -137,7 +137,14 @@ class MapMarking extends React.Component {
                 alert(JSON.stringify(err))
             }
         } else {
-            this.pushMaker(complete)
+            try {
+                Geolocation.getCurrentPosition(position => {
+                    let currentCoords = position.coords;
+                    this.pushMaker(complete, currentCoords)
+                })
+            } catch (err) {
+                alert('Unable to retrive location')
+            }
         }
     }
 
