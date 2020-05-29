@@ -7,7 +7,7 @@ import { Accordian } from '../'
 import { store } from '../../../Actions/store';
 import { addSpeciesAction, updateLastScreen, getInventory, updatePlantingDate } from '../../../Actions'
 
-const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, }) => {
+const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
     const { state } = useContext(store);
 
     const [species, setSpecies] = useState([])
@@ -17,7 +17,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, }) =
     }, [])
 
     const renderSubSpecie = (item, index) => (
-        <Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} shouldExpand={false} />
+        <Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} shouldExpand={false} status={status} />
     )
 
     const onChangeText = (text, dataKey, index) => {
@@ -81,9 +81,9 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, }) =
                 data={species}
                 renderItem={renderSpecieCont}
             />}
-            <TouchableOpacity onPress={addSpecies}>
+            {status !== 'pending' && <TouchableOpacity onPress={addSpecies}>
                 <Text style={styles.addSpecies}>+ Add Species</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
         </View>
     )
 }

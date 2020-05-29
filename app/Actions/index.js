@@ -251,7 +251,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
-
+                    console.log('updateLastScreen updateLastScreen')
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         last_screen: last_screen

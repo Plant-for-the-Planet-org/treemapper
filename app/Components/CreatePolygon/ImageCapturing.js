@@ -53,32 +53,34 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             <View style={{ marginHorizontal: 25 }}>
                 <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
-            <View style={{ flex: 1 }}>
-                <View style={{ flex: 1, backgroundColor: '#ccc', flex: 1 }}>
-                    {imagePath ? <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> : <RNCamera
-                        ref={camera}
-                        style={{
-                            borderColor: 'yellow', flex: 1,
-                            justifyContent: 'flex-end',
-                            alignItems: 'center',
-                        }}
-                        androidCameraPermissionOptions={{
-                            title: 'Permission to use camera',
-                            message: 'We need your permission to use your camera',
-                            buttonPositive: 'Ok',
-                            buttonNegative: 'Cancel',
-                        }}
-                    >
-                    </RNCamera>}
+            <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                <View style={{ flex: 1, backgroundColor: '#ccc' }}>
+                    {imagePath ?
+                        <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> :
+                        <View style={{ backgroundColor: '#eee', flex: 1 }}>
+                            <RNCamera
+                                ref={camera}
+                                style={{
+                                    flex: 1
+                                }}
+                                androidCameraPermissionOptions={{
+                                    title: 'Permission to use camera',
+                                    message: 'We need your permission to use your camera',
+                                    buttonPositive: 'Ok',
+                                    buttonNegative: 'Cancel',
+                                }}
+                            >
+                            </RNCamera>
+                        </View>}
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
                     <Ionicons name={'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, paddingBottom: 20, backgroundColor: '#fff' }}>
                 <Text style={styles.message}>{`For verification purposes, your location is \nrecorded when you take a picture.`}</Text>
             </View>
-            <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', paddingHorizontal: 25, justifyContent: 'space-between', backgroundColor: '#fff' }}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton onPress={onPessContinue} btnText={'Continue'} halfWidth />
             </View>
@@ -118,6 +120,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: -25,
         right: '45%',
-        left: '45%'
+        left: '45%',
     }
 })

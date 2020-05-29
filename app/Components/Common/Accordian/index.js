@@ -6,7 +6,7 @@ import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing, shouldExpand }) => {
+const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing, shouldExpand, status }) => {
 
     const treeCountInput = useRef()
 
@@ -75,13 +75,13 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
                         <Text style={styles.trees}>Trees</Text>
                     </View>}
                 </View>
-                <View style={styles.treeCountCont}>
+                {status !== 'pending' && <View style={styles.treeCountCont}>
                     {!isOpen ? <View style={{ flexDirection: 'row' }}>
                         <Text onPress={() => onPressDelete(index)} style={styles.simpleText}>Delete</Text>
                         <Text onPress={onPressAccordian} style={[styles.simpleText, styles.primary]}>Edit</Text>
                     </View> :
                         <Ionicons onPress={onPressAccordian} name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} style={styles.arrowIcon} />}
-                </View>
+                </View>}
             </View>
             {
                 isOpen && <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

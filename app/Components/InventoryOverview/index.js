@@ -121,7 +121,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
                         <Label leftText={`On Site Registration`} rightText={''} />
-                        <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} />
+                        <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
                         {renderPolygon(inventory.polygons)}
                         <LargeButton heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
