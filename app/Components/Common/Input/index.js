@@ -31,22 +31,6 @@ const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardT
     }
     return (
         <View style={styles.container}>
-            <Modal transparent={true} visible={isOpen}>
-                <View style={{ flex: 1, }}>
-                    <View style={{ flex: 1, }}>
-                        <View style={{ flex: 1 }} />
-                        <KeyboardAvoidingView
-                            behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: '#fff' }}>
-                            <View style={styles.externalInputContainer}>
-                                <Text style={styles.labelModal}>{label}</Text>
-                                <TextInput ref={input} onBlur={onSubmit} placeholderTextColor={Colors.TEXT_COLOR} placeholder={placeholder} keyboardType={keyboardType} value={value} onChangeText={onChange} style={styles.value} autoFocus onSubmitEditing={onSubmitEditing} />
-                                <MCIcon onPress={onSubmit} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
-                            </View>
-                        </KeyboardAvoidingView>
-                    </View>
-                </View>
-            </Modal>
             <Text style={styles.label}>{label}</Text>
             <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer}>
                 <Text style={styles.value}>{value ? value : placeholder}</Text>

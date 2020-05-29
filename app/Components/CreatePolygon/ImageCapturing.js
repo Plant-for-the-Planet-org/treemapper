@@ -1,26 +1,29 @@
-import React, { useState, useContext } from 'react';
-import { View, StyleSheet, Text, ScrollView, SafeAreaView, Image, TouchableOpacity } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
+import React, { useState, useContext, useRef } from 'react';
+import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
-import { close, camera } from '../../assets'
-import ImagePicker from 'react-native-image-crop-picker';
 import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions'
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import { RNCamera } from 'react-native-camera';
 
 
 const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
+    const camera = useRef()
+
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
 
-    const onPressCamera = () => {
-        ImagePicker.openCamera({
-            mediaType: 'photo',
-        }).then(image => {
-            setImagePath(image.path)
-        });
+    const onPressCamera = async () => {
+        if (imagePath) {
+            setImagePath('')
+            return
+        }
+        const options = { quality: 0.5, };
+        const data = await camera.current.takePictureAsync(options)
+        setImagePath(data.uri)
     }
 
     const onPessContinue = () => {
@@ -51,8 +54,22 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                 <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={{ flex: 1 }}>
-                <View style={{ flex: 1, backgroundColor: '#ccc' }}>
-                    {imagePath ? <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> : null}
+                <View style={{ flex: 1, backgroundColor: '#ccc', flex: 1 }}>
+                    {imagePath ? <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> : <RNCamera
+                        ref={camera}
+                        style={{
+                            borderColor: 'yellow', flex: 1,
+                            justifyContent: 'flex-end',
+                            alignItems: 'center',
+                        }}
+                        androidCameraPermissionOptions={{
+                            title: 'Permission to use camera',
+                            message: 'We need your permission to use your camera',
+                            buttonPositive: 'Ok',
+                            buttonNegative: 'Cancel',
+                        }}
+                    >
+                    </RNCamera>}
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
                     <Ionicons name={'md-camera'} size={25} />

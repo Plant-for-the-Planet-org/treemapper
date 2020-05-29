@@ -1,19 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from '../../../assets/';
 import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing }) => {
 
-    const [isOpen, setIsOpen] = useState(true);
+    const treeCountInput = useRef()
 
-    const onPressAccordian = () => setIsOpen(!isOpen)
+    const [isOpen, setIsOpen] = useState(true);
+    const [isNameOfTreesShow, setIsNameOfTreesShow] = useState(true);
+    const [nameOfTree, setNameOfTree] = useState('');
+    const [treeCount, setTreeCount] = useState('');
+
+    const onPressAccordian = () => {
+        setIsOpen(!isOpen)
+        setIsNameOfTreesShow(true)
+    }
 
     const label = data.nameOfTree ? data.nameOfTree : 'Species'
+
+    const onSubmit = (action) => {
+        if (action == 'treeCount') {
+            setIsOpen(false)
+            onChangeText(nameOfTree, 'nameOfTree', index)
+            onChangeText(treeCount, 'treeCount', index)
+        } else {
+            setIsNameOfTreesShow(false)
+            setTimeout(() => treeCountInput.current.focus(), 100)
+        }
+    }
+
+    const renderinputModal = () => {
+        return (
+            <Modal transparent={true} visible={isOpen}>
+                <View style={{ flex: 1, }}>
+                    <View style={{ flex: 1, }}>
+                        <View style={{ flex: 1 }} />
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS == "ios" ? "padding" : "height"}
+                            style={{ backgroundColor: '#fff' }}>
+                            <View style={styles.externalInputContainer}>
+                                <Text style={styles.labelModal}>{isNameOfTreesShow ? 'Name of trees' : 'Tree Count'}</Text>
+                                {isNameOfTreesShow ?
+                                    <TextInput value={nameOfTree} onChangeText={(txt => setNameOfTree(txt))} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onSubmitEditing={() => onSubmit('nameOfTrees')} />
+                                    : <TextInput value={treeCount} onChangeText={(txt => setTreeCount(txt))} ref={treeCountInput} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onSubmitEditing={() => onSubmit('treeCount')} keyboardType={'numeric'} />}
+                                <MCIcon onPress={() => onSubmit(isNameOfTreesShow ? 'nameOfTrees' : 'treeCount')} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
+                            </View>
+                        </KeyboardAvoidingView>
+                    </View>
+                </View>
+            </Modal>
+        )
+    }
+
+
     return (
         <View style={{ marginVertical: 10 }}>
+            {renderinputModal()}
             <View style={styles.container}>
                 <View style={{ flexDirection: 'row' }}>
                     <Text numberOfLines={1} style={[styles.label]}>{label}</Text>
@@ -91,5 +137,30 @@ const styles = StyleSheet.create({
     },
     primary: {
         color: Colors.PRIMARY
-    }
+    },
+    externalInputContainer: {
+        flexDirection: 'row',
+        height: 65,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: Colors.WHITE,
+        paddingHorizontal: 25,
+        borderTopWidth: .5,
+        borderColor: Colors.TEXT_COLOR
+    },
+    value: {
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_20,
+        color: Colors.TEXT_COLOR,
+        fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+        flex: 1,
+        paddingVertical: 10,
+    },
+    labelModal: {
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_18,
+        lineHeight: Typography.LINE_HEIGHT_30,
+        color: Colors.TEXT_COLOR,
+        marginRight: 10
+    },
 })
