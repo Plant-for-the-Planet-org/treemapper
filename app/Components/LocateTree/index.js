@@ -4,8 +4,13 @@ import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common'
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { addLocateTree, updateLastScreen } from '../../Actions'
-import { store } from '../../Actions/store'
+import { store } from '../../Actions/store';
+import JailMonkey from 'jail-monkey';
+
+
+
 const LocateTree = ({ navigation }) => {
+    const isRooted = JailMonkey.isJailBroken()
 
     const { state } = useContext(store);
 
@@ -26,15 +31,17 @@ const LocateTree = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor : '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <Header headingText={'Locate Trees'} />
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <LargeButton onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
+                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
                     <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
                     <LargeButton heading={'Select Coordinates'} active={false} medium />
                 </ScrollView>
+                {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
+
             </View>
         </SafeAreaView>
     )
@@ -52,5 +59,6 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_18,
         lineHeight: Typography.LINE_HEIGHT_30,
+        textAlign: 'center'
     }
 })

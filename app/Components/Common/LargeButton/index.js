@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress }) => {
+const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, disabled }) => {
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
+        <TouchableOpacity disabled={disabled} onPress={onPress} style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont]}>
             <View style={styles.subContainer}>
                 <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
                 {medium && <Text>{rightIcon}</Text>}
