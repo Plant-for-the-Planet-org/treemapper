@@ -1,15 +1,15 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, Text, Platform, ScrollView, SafeAreaView, Dimensions, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
-import { Colors, Typography } from '_styles';
+import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Header, PrimaryButton, } from '../Common';
+import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { camera, marker, marker_png, active_marker } from '../../assets/index'
+import { active_marker } from '../../assets/index';
 import { addCoordinates, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv'
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);

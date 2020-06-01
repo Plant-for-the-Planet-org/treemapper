@@ -2,10 +2,10 @@ import React, { useState, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions'
+import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 
 
@@ -53,34 +53,30 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             <View style={{ marginHorizontal: 25 }}>
                 <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
-            <View style={{ flex: 1, backgroundColor: '#fff' }}>
-                <View style={{ flex: 1, backgroundColor: '#ccc' }}>
-                    {imagePath ?
-                        <Image source={{ uri: imagePath }} style={{ flex: 1 }} /> :
-                        <View style={{ backgroundColor: '#eee', flex: 1 }}>
-                            <RNCamera
-                                ref={camera}
-                                style={{
-                                    flex: 1
-                                }}
-                                androidCameraPermissionOptions={{
-                                    title: 'Permission to use camera',
-                                    message: 'We need your permission to use your camera',
-                                    buttonPositive: 'Ok',
-                                    buttonNegative: 'Cancel',
-                                }}
-                            >
-                            </RNCamera>
-                        </View>}
+            <View style={styles.container}>
+                <View style={styles.container}>
+                    {imagePath ? <Image source={{ uri: imagePath }} style={styles.container} /> :
+                        <RNCamera
+                            ratio={'1:1'}
+                            ref={camera}
+                            style={styles.container}
+                            androidCameraPermissionOptions={{
+                                title: 'Permission to use camera',
+                                message: 'We need your permission to use your camera',
+                                buttonPositive: 'Ok',
+                                buttonNegative: 'Cancel',
+                            }}
+                        >
+                        </RNCamera>}
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
                     <Ionicons name={'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20, paddingBottom: 20, backgroundColor: '#fff' }}>
+            <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
                 <Text style={styles.message}>{`For verification purposes, your location is \nrecorded when you take a picture.`}</Text>
             </View>
-            <View style={{ flexDirection: 'row', paddingHorizontal: 25, justifyContent: 'space-between', backgroundColor: '#fff' }}>
+            <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton onPress={onPessContinue} btnText={'Continue'} halfWidth />
             </View>
@@ -118,7 +114,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         position: 'absolute',
-        bottom: -25,
+        bottom: '-7%',
         right: '45%',
         left: '45%',
     }
