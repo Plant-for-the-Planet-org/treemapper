@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { arrow_down, arrow_up } from '../../../assets/';
 import { Input } from '../';
@@ -43,7 +43,7 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
     const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpen}>
-                <View style={{ flex: 1, }}>
+                <View style={{ flex: 1 }}>
                     <View style={{ flex: 1, }}>
                         <View style={{ flex: 1 }} />
                         <KeyboardAvoidingView
@@ -56,6 +56,7 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
                                     : <TextInput value={treeCount} onChangeText={(txt => setTreeCount(txt))} ref={treeCountInput} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onSubmitEditing={() => onSubmit('treeCount')} keyboardType={'numeric'} />}
                                 <MCIcon onPress={() => onSubmit(isNameOfTreesShow ? 'nameOfTrees' : 'treeCount')} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
+                            <SafeAreaView />
                         </KeyboardAvoidingView>
                     </View>
                 </View>

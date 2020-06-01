@@ -2,7 +2,6 @@
 import Realm from 'realm';
 
 // SCHEMAS
-// schema and start object 1588846833895.
 const Coordinates = {
     name: 'Coordinates',
     properties: {
