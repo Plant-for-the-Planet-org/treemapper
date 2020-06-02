@@ -6,3 +6,5 @@ class LocalInventoryActions {
     })
 
 }
+
+export { LocalInventoryActions }

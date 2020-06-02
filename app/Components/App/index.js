@@ -1,12 +1,10 @@
-import React from 'react'
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StateProvider } from '../../Actions/store';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
-
 import 'react-native-gesture-handler';
-
-import { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview } from '../';
+import { RegisterTree, MultipleTrees, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview } from '../';
 
 const Stack = createStackNavigator();
 

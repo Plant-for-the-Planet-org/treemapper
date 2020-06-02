@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef, useReducer } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, Modal, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, Modal, Platform, PermissionsAndroid } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
@@ -110,33 +110,58 @@ const InventoryOverview = ({ navigation, }) => {
         )
     }
 
-    const onPressExportJSON = () => {
-        console.log('inventory', inventory)
-        inventory.species = Object.values(inventory.species);
-        inventory.polygons = Object.values(inventory.polygons);
-        if (inventory.polygons.length > 0) {
-            let featureList = inventory.polygons.map((onePolygon) => {
-                return {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
-                    }
-                }
-            })
-            let geoJSON = {
-                'type': 'FeatureCollection',
-                'features': featureList
-            }
-            let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
-            let path = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
-            RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf8')
-                .then((success) => {
-                    alert('GeoJSON file export in download directory')
+    const askPermission = () => {
+        new Promise((resolve, reject) => {
 
-                })
+        })
+    }
+
+    const onPressExportJSON = async () => {
+        try {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                {
+                    title: "Storage Permission",
+                    message: "App needs access to memory to download the file ",
+                    'buttonPositive': 'Ok'
+                }
+            );
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                inventory.species = Object.values(inventory.species);
+                inventory.polygons = Object.values(inventory.polygons);
+                if (inventory.polygons.length > 0) {
+                    let featureList = inventory.polygons.map((onePolygon) => {
+                        return {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
+                            }
+                        }
+                    })
+                    let geoJSON = {
+                        'type': 'FeatureCollection',
+                        'features': featureList
+                    }
+                    let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
+                    let path = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+                    RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf8')
+                        .then((success) => {
+                            alert('GeoJSON file export in download directory')
+
+                        })
+                }
+            } else {
+                Alert.alert(
+                    "Permission Denied!",
+                    "You need to give storage permission to save geoJSON the file"
+                );
+            }
+        } catch (err) {
+            console.warn(err);
         }
+
     }
 
     let isEditShow = inventory?.status !== 'pending'

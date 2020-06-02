@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
- import { Input } from '../';
+import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitEditing, shouldExpand, status }) => {
 
     const treeCountInput = useRef()
-
 
     const [isOpen, setIsOpen] = useState(false);
     const [isNameOfTreesShow, setIsNameOfTreesShow] = useState(true);
@@ -68,8 +67,8 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
         <View style={{ marginVertical: 10 }}>
             {renderinputModal()}
             <View style={styles.container}>
-                <View style={{ flexDirection: 'row' }}>
-                    <Text numberOfLines={1} style={[styles.label]}>{label}</Text>
+                <View style={{ flexDirection: 'row', flex :1 }}>
+                    <Text numberOfLines={1} style={[styles.label, { flex: 1 }]}>{label}</Text>
                     {!isOpen && <View style={{ flexDirection: 'row', paddingHorizontal: 5 }}>
                         <Text style={styles.treeCount}>{data.treeCount}</Text>
                         <Text style={styles.trees}>Trees</Text>

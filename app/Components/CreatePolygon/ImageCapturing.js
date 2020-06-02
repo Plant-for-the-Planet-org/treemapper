@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity , PermissionsAndroid} from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
 import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions';

@@ -86,7 +86,6 @@ const MultipleTrees = ({ navigation, route }) => {
                 return;
             }
         }
-        console.log('addSpeciesAction call', species)
         addSpeciesAction(data).then(() => {
             if (!onBlur) {
                 if (route.params?.isEdit) {

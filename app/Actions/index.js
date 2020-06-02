@@ -13,6 +13,7 @@ const Coordinates = {
         currentloclong: 'float',
     }
 }
+
 const Polygons = {
     name: 'Polygons',
     properties: {
@@ -20,6 +21,7 @@ const Polygons = {
         coordinates: 'Coordinates[]',
     }
 }
+
 const Species = {
     name: 'Species',
     properties: {
@@ -27,6 +29,7 @@ const Species = {
         treeCount: 'string',
     }
 }
+
 const Inventory = {
     name: 'Inventory',
     primaryKey: 'inventory_id',
@@ -43,14 +46,6 @@ const Inventory = {
         polygons: 'Polygons[]'
     }
 };
-//  GET All Inventories (Sample for get all objects)
-// Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
-//     .then(realm => {
-//         realm.write(() => {
-//             const Inventory = realm.objects('Inventory');
-
-//         })
-//     })
 
 export const initiateInventory = ({ treeType }) => {
     return new Promise((resolve, reject) => {
@@ -148,8 +143,6 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
     })
 }
 
-
-
 export const getAllInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -190,7 +183,6 @@ export const statusToPending = ({ inventory_id }) => {
     })
 }
 
-
 export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -214,7 +206,6 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
     })
 }
 
-
 export const removeLastCoord = ({ inventory_id }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -232,6 +223,7 @@ export const removeLastCoord = ({ inventory_id }) => {
 
     })
 }
+
 export const clearAllInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -245,13 +237,13 @@ export const clearAllInventory = () => {
 
     })
 }
+
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
-                    console.log('updateLastScreen updateLastScreen')
-                    realm.create('Inventory', {
+                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         last_screen: last_screen
                     }, 'modified')
