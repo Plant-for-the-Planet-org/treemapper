@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { arrow_down, arrow_up } from '../../../assets/';
-import { Input } from '../';
+ import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 

@@ -43,18 +43,17 @@ const Inventory = {
         polygons: 'Polygons[]'
     }
 };
-//  GET All Inventories
-Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
-    .then(realm => {
-        realm.write(() => {
-            const Inventory = realm.objects('Inventory');
-            
-        })
-    })
+//  GET All Inventories (Sample for get all objects)
+// Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+//     .then(realm => {
+//         realm.write(() => {
+//             const Inventory = realm.objects('Inventory');
+
+//         })
+//     })
 
 export const initiateInventory = ({ treeType }) => {
     return new Promise((resolve, reject) => {
-
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
@@ -84,6 +83,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
             })
     })
 }
+
 export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })

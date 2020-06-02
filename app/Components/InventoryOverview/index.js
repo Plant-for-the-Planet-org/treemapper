@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState, useRef, useReducer } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, Modal, Platform } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { store } from '../../Actions/store'
 import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import RNFetchBlob from 'rn-fetch-blob'
+import RNFS from 'react-native-fs';
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -108,7 +110,34 @@ const InventoryOverview = ({ navigation, }) => {
         )
     }
 
+    const onPressExportJSON = () => {
+        console.log('inventory', inventory)
+        inventory.species = Object.values(inventory.species);
+        inventory.polygons = Object.values(inventory.polygons);
+        if (inventory.polygons.length > 0) {
+            let featureList = inventory.polygons.map((onePolygon) => {
+                return {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
+                    }
+                }
+            })
+            let geoJSON = {
+                'type': 'FeatureCollection',
+                'features': featureList
+            }
+            let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
+            let path = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+            RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf8')
+                .then((success) => {
+                    alert('GeoJSON file export in download directory')
 
+                })
+        }
+    }
 
     let isEditShow = inventory?.status !== 'pending'
 
@@ -123,7 +152,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <Label leftText={`On Site Registration`} rightText={''} />
                         <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
                         {renderPolygon(inventory.polygons)}
-                        <LargeButton heading={'Export GeoJson'} active={false} medium />
+                        <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
                     <View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

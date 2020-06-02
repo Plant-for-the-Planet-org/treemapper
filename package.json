@@ -25,6 +25,7 @@
     "react-native-camera": "git+https://git@github.com/react-native-community/react-native-camera.git",
     "react-native-dotenv": "^0.2.0",
     "react-native-extended-stylesheet": "^0.12.0",
+    "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-i18n": "^2.0.15",
     "react-native-image-crop-picker": "^0.31.1",
@@ -35,7 +36,8 @@
     "react-native-swiper": "^1.5.14",
     "react-native-vector-icons": "^6.6.0",
     "react-redux": "^7.2.0",
-    "realm": "^5.0.4"
+    "realm": "^5.0.4",
+    "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",

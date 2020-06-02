@@ -56,18 +56,22 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             <View style={styles.container}>
                 <View style={styles.container}>
                     {imagePath ? <Image source={{ uri: imagePath }} style={styles.container} /> :
-                        <RNCamera
-                            ratio={'1:1'}
-                            ref={camera}
-                            style={styles.container}
-                            androidCameraPermissionOptions={{
-                                title: 'Permission to use camera',
-                                message: 'We need your permission to use your camera',
-                                buttonPositive: 'Ok',
-                                buttonNegative: 'Cancel',
-                            }}
-                        >
-                        </RNCamera>}
+                        <View style={{ flex: 1, backgroundColor: '#eee' }}>
+                            <RNCamera
+                                ratio={'1:1'}
+                                ref={camera}
+                                style={styles.container}
+                                androidCameraPermissionOptions={{
+                                    title: 'Permission to use camera',
+                                    message: 'We need your permission to use your camera',
+                                    buttonPositive: 'Ok',
+                                    buttonNegative: 'Cancel',
+                                }}
+                            >
+                            </RNCamera>
+                        </View>
+
+                    }
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
                     <Ionicons name={'md-camera'} size={25} />
