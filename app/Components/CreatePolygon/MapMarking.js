@@ -238,8 +238,8 @@ class MapMarking extends React.Component {
             for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
                 markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
-                    <ImageBackground source={marker_png} style={{ width: 30, height: 43, paddingBottom: 85 }} resizeMode={'cover'}>
-                        <Text style={{ position: 'absolute', left: 9, top: 4, color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{ALPHABETS[j]}</Text>
+                    <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+                        <Text style={styles.markerText}>{ALPHABETS[j]}</Text>
                     </ImageBackground>
                 </MapboxGL.PointAnnotation>);
             }
@@ -338,6 +338,12 @@ const styles = StyleSheet.create({
     },
     myLocationIcon: {
         width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR
+    },
+    markerContainer: {
+        width: 30, height: 43, paddingBottom: 85,
+    },
+    markerText: {
+        width: 30, height: 43, color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
     }
 })
 

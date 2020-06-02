@@ -1,12 +1,12 @@
-import React, { useContext, useEffect, useState, useRef, useReducer } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, Modal, Platform, PermissionsAndroid } from 'react-native';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { View, StyleSheet, ScrollView, FlatList, Modal, PermissionsAndroid, ImageBackground, Text } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
-import { SafeAreaView } from 'react-native'
-import { store } from '../../Actions/store'
+import { SafeAreaView } from 'react-native';
+import { store } from '../../Actions/store';
 import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import RNFetchBlob from 'rn-fetch-blob'
-import RNFS from 'react-native-fs';
+import RNFetchBlob from 'rn-fetch-blob';
+import { marker_png } from '../../assets';
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -48,7 +48,7 @@ const InventoryOverview = ({ navigation, }) => {
                             renderItem={({ item: oneCoordinate, index }) => {
                                 let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(3)},${oneCoordinate.longitude.toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
                                 return (
-                                    <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressActiveBtn} />
+                                    <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />
                                 )
                             }}
                         />
@@ -59,7 +59,7 @@ const InventoryOverview = ({ navigation, }) => {
         )
     }
 
-    const onPressActiveBtn = (index) => {
+    const onPressViewLOC = (index) => {
         let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index]
         let normalCoords = [selectedCoords.longitude, selectedCoords.latitude]
         setSelectedLOC(normalCoords)
@@ -103,17 +103,15 @@ const InventoryOverview = ({ navigation, }) => {
                         onDidFinishRenderingMapFully={focusMarker}
                         style={{ flex: 1 }}>
                         <MapboxGL.Camera ref={cameraRef} />
-                        {selectedLOC && <MapboxGL.PointAnnotation id={``} coordinate={selectedLOC}></MapboxGL.PointAnnotation>}
+                        {selectedLOC && <MapboxGL.PointAnnotation id={`markerContainer1`} coordinate={selectedLOC}>
+                            <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+                                <Text style={styles.markerText}>{locationTitle}</Text>
+                            </ImageBackground>
+                        </MapboxGL.PointAnnotation>}
                     </MapboxGL.MapView>
                 </View>
-            </Modal>
+            </Modal >
         )
-    }
-
-    const askPermission = () => {
-        new Promise((resolve, reject) => {
-
-        })
     }
 
     const onPressExportJSON = async () => {
@@ -164,8 +162,6 @@ const InventoryOverview = ({ navigation, }) => {
 
     }
 
-    let isEditShow = inventory?.status !== 'pending'
-
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             {renderViewLOCModal()}
@@ -197,5 +193,12 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: '#fff'
+    },
+    markerContainer: {
+        width: 30, height: 43, paddingBottom: 85,
+    },
+    markerText: {
+        width: 30, height: 43, color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
     }
+
 })
