@@ -7,8 +7,7 @@ import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png } from '../../assets';
-
-const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+import { APLHABETS } from '../../Utils'
 
 const InventoryOverview = ({ navigation, }) => {
 

@@ -6,7 +6,7 @@ import Realm from 'realm';
 import { initiateInventory } from '../../Actions'
 import { store } from '../../Actions/store';
 import { Colors, Typography } from '_styles';
-
+import { LocalInventoryActions } from '../../Actions/Action'
 const RegisterTree = ({ navigation }) => {
     const globalState = useContext(store);
     const { dispatch } = globalState;
@@ -20,12 +20,12 @@ const RegisterTree = ({ navigation }) => {
         let data = { treeType };
         initiateInventory(data).then((inventoryID) => {
             navigation.navigate('MultipleTrees')
-            dispatch({ type: 'SET_INVENTORY_ID', inventoryID: inventoryID })
+            dispatch(LocalInventoryActions.setInventoryId(inventoryID))
         })
     }
 
     return (
-        <SafeAreaView style={{ flex: 1 ,backgroundColor : '#fff'}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />

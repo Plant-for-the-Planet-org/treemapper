@@ -66,8 +66,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                                     message: 'We need your permission to use your camera',
                                     buttonPositive: 'Ok',
                                     buttonNegative: 'Cancel',
-                                }}
-                            >
+                                }}>
                             </RNCamera>
                         </View>
 

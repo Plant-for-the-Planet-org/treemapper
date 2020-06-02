@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import { Header, LargeButton, PrimaryButton, SmallHeader, InventoryCard } from '../Common';
+import { Header, SmallHeader, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory, updateLastScreen } from "../../Actions";
+import { getAllInventory, clearAllInventory, } from "../../Actions";
 import { store } from '../../Actions/store';
-import { Colors, Typography } from '_styles';
+import { Colors } from '_styles';
+import { LocalInventoryActions } from '../../Actions/Action'
 
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
@@ -23,7 +24,7 @@ const TreeInventory = ({ navigation }) => {
 
     const onPressInventory = (item) => {
         setTimeout(() => {
-            dispatch({ type: 'SET_INVENTORY_ID', inventoryID: item.inventory_id })
+            dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
         }, 0)
     }
