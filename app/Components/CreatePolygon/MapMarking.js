@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity, ImageBackground } from 'react-native';
 import { Header, PrimaryButton, } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { active_marker } from '../../assets/index';
+import { active_marker, marker_png } from '../../assets/index';
 import { addCoordinates, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -220,12 +220,12 @@ class MapMarking extends React.Component {
             ref={(ref) => this._map = ref}
             onRegionWillChange={this.onChangeRegionStart}
             onRegionDidChange={this.onChangeRegionComplete}>
+            {this.renderMarkers(geoJSON)}
             <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
             {shouldRenderShap && <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
                 <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             </MapboxGL.ShapeSource>}
             <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
-            {this.renderMarkers(geoJSON)}
         </MapboxGL.MapView>)
     }
 
@@ -237,7 +237,11 @@ class MapMarking extends React.Component {
             let coordinatesLenghtShouldBe = onePolygon.properties.isPolygonComplete ? onePolygon.geometry.coordinates.length - 1 : onePolygon.geometry.coordinates.length
             for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
-                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}></MapboxGL.PointAnnotation>);
+                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
+                    <ImageBackground source={marker_png} style={{ width: 30, height: 43, paddingBottom: 85 }} resizeMode={'cover'}>
+                        <Text style={{ position: 'absolute', left: 9, top: 4, color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{ALPHABETS[j]}</Text>
+                    </ImageBackground>
+                </MapboxGL.PointAnnotation>);
             }
         }
         return markers;

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity , PermissionsAndroid} from 'react-native';
+import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
 import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions';
@@ -60,7 +60,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                             <RNCamera
                                 ratio={'1:1'}
                                 ref={camera}
-                                style={styles.container}
+                                style={[styles.container]}
                                 androidCameraPermissionOptions={{
                                     title: 'Permission to use camera',
                                     message: 'We need your permission to use your camera',
