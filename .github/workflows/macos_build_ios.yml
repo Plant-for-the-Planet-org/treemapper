@@ -53,13 +53,13 @@ jobs:
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
 
-    - name: Caching Pods
-      uses: actions/cache@v1
-      with:
-        path: ios/Pods
-        key: ${{ runner.os }}-pods2-${{ hashFiles('ios/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods2-
+#    - name: Caching Pods
+#      uses: actions/cache@v1
+#      with:
+#        path: ios/Pods
+#        key: ${{ runner.os }}-pods2-${{ hashFiles('ios/Podfile.lock') }}
+#        restore-keys: |
+#          ${{ runner.os }}-pods2-
 
     - name: Install Pods
       run: pod install
