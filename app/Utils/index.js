@@ -1,9 +1,7 @@
 import { Client } from 'bugsnag-react-native';
+import { BUGSNAP_CLIENT_KEY } from 'react-native-dotenv'
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const bugsnag = new Client("e1b5d94f16186f8c6a2169882998ebda");
-bugsnag.notify(new Error("Test error"));
+const bugsnag = new Client(BUGSNAP_CLIENT_KEY);
 
-
-bugsnag.notify({ error: 'Custom error' });
 export { APLHABETS, bugsnag };
