@@ -8,6 +8,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png } from '../../assets';
 import { APLHABETS } from '../../Utils'
+import { bugsnag } from '../../Utils'
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -134,7 +135,7 @@ const InventoryOverview = ({ navigation, }) => {
                 }
             } catch (err) {
                 reject()
-                console.warn(err);
+                bugsnag.notify(err)
             }
         })
     }
