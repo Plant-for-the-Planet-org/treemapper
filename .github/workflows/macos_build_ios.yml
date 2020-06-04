@@ -50,8 +50,10 @@ jobs:
     - name: Setting Environment Variables
       env:
         MAPBOXGL_ACCCESS_TOKEN: ${{ secrets.MAPBOXGL_ACCCESS_TOKEN }}
+        BUGSNAP_CLIENT_KEY: ${{ secrets.BUGSNAP_CLIENT_KEY }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
+        echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
 
 #    - name: Caching Pods
 #      uses: actions/cache@v1
