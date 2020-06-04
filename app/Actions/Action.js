@@ -5,7 +5,6 @@ class LocalInventoryActions {
         type: LocalInventoryActions.SET_INVENTORY_ID,
         payload: payload
     })
-
 }
 
 export { LocalInventoryActions }

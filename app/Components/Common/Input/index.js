@@ -1,34 +1,17 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const Input = ({ label, value, onChangeText, dataKey, index, editable, keyboardType, placeholder, onBlur, onSubmitEditing }) => {
+const Input = ({ label, value, editable, placeholder }) => {
 
-    const input = useRef(null)
     const [isOpen, setIsOpen] = useState(false)
-
-    useEffect(() => {
-        // if (label == 'Tree Count') {
-        //     setIsOpen(true)
-        // }
-
-    }, [])
-
-    const onChange = (text) => {
-        onChangeText(text, dataKey, index)
-    }
 
     const onPressLabel = () => {
         setTimeout(() => setIsOpen(!isOpen), 0)
 
     }
 
-    const onSubmit = () => {
-        onSubmitEditing()
-        // onBlur()
-        setIsOpen(!isOpen)
-    }
     return (
         <View style={styles.container}>
             <Text style={styles.label}>{label}</Text>

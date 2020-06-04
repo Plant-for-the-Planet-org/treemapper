@@ -10,11 +10,7 @@ import { addSpeciesAction, updateLastScreen, getInventory, updatePlantingDate } 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
     const { state } = useContext(store);
 
-    const [species, setSpecies] = useState([])
-
-    useEffect(() => {
-        if (data) setSpecies(data)
-    }, [])
+    const [species, setSpecies] = useState(data ? data : [])
 
     const renderSubSpecie = (item, index) => (
         <Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} shouldExpand={false} status={status} />

@@ -92,7 +92,7 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
                     </View>
                 </View>
             }
-        </View >
+        </View>
     )
 }
 export default Accordian;
