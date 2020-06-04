@@ -164,7 +164,7 @@ const InventoryOverview = ({ navigation, }) => {
                 RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
                     .then((success) => {
                         alert(`GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`)
-                    }).catch((err) => alert('unable to save file')
+                    }).catch((err) => alert('unable to save file '))
             }
         }
         if (Platform.OS == 'android') {
