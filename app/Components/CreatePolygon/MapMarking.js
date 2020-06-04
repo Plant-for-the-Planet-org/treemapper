@@ -137,7 +137,7 @@ class MapMarking extends React.Component {
             }
         } else {
             try {
-                Geolocation.getCurrentPosition(position => {
+                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
                     this.pushMaker(complete, currentCoords)
                 }, (err) => alert(err.message))
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     },
     myLocationIconContainer: {
         top: 1.5, left: 0.8,
-     },
+    },
     markerContainer: {
         width: 30, height: 43, paddingBottom: 85,
     },

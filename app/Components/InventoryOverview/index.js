@@ -160,12 +160,11 @@ const InventoryOverview = ({ navigation, }) => {
                     'features': featureList
                 }
                 let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
-                let path = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
-                RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf8')
+                let path = `${Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+                RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
                     .then((success) => {
-                        alert('GeoJSON file export in download directory')
-
-                    })
+                        alert(`GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`)
+                    }).catch((err) => alert('unable to save file')
             }
         }
         if (Platform.OS == 'android') {
