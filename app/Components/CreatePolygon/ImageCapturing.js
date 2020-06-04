@@ -56,7 +56,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
             <View style={styles.container}>
                 <View style={styles.container}>
                     {imagePath ? <Image source={{ uri: imagePath }} style={styles.container} /> :
-                        <View style={{ flex: 1, backgroundColor: '#eee' }}>
+                        <View style={styles.cameraContainer}>
                             <RNCamera
                                 ratio={'1:1'}
                                 ref={camera}
@@ -69,7 +69,6 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                                 }}>
                             </RNCamera>
                         </View>
-
                     }
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
@@ -120,5 +119,8 @@ const styles = StyleSheet.create({
         bottom: '-7%',
         right: '45%',
         left: '45%',
+    },
+    cameraContainer: {
+        flex: 1, backgroundColor: '#eee', overflow: 'hidden'
     }
 })

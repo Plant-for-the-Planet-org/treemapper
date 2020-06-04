@@ -257,8 +257,10 @@ class MapMarking extends React.Component {
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon, { bottom: isShowCompletePolygonBtn ? 160 : 90, }]}>
-            <Ionicons name={'md-locate'} size={22} />
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon, { bottom: isShowCompletePolygonBtn ? 160 : 90 }]}>
+            <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
+                <Ionicons style={{}} name={'md-locate'} size={22} />
+            </View>
         </TouchableOpacity>
     }
 
@@ -339,6 +341,9 @@ const styles = StyleSheet.create({
     myLocationIcon: {
         width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR
     },
+    myLocationIconContainer: {
+        top: 1.5, left: 0.8,
+     },
     markerContainer: {
         width: 30, height: 43, paddingBottom: 85,
     },
