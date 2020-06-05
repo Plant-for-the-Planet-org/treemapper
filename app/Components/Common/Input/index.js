@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 const Input = ({ label, value, editable, placeholder }) => {
 
@@ -9,7 +8,6 @@ const Input = ({ label, value, editable, placeholder }) => {
 
     const onPressLabel = () => {
         setTimeout(() => setIsOpen(!isOpen), 0)
-
     }
 
     return (
@@ -33,13 +31,6 @@ const styles = StyleSheet.create({
         lineHeight: Typography.LINE_HEIGHT_30,
         color: Colors.TEXT_COLOR,
     },
-    labelModal: {
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: Typography.FONT_SIZE_18,
-        lineHeight: Typography.LINE_HEIGHT_30,
-        color: Colors.TEXT_COLOR,
-        marginRight: 10
-    },
     value: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_20,
@@ -51,16 +42,5 @@ const styles = StyleSheet.create({
     valueContainer: {
         borderBottomWidth: 2,
         borderBottomColor: Colors.TEXT_COLOR,
-    },
-    externalInputContainer: {
-        flexDirection: 'row',
-        height: 65,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.WHITE,
-        paddingHorizontal: 25,
-        borderTopWidth: .5,
-        borderColor: Colors.TEXT_COLOR
-    },
-
+    }
 })

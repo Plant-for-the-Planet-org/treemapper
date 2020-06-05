@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacit } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { back_icon, close, upload_now, tree, placeholder_image } from '../../../assets'
+import { tree, placeholder_image } from '../../../assets'
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
 
@@ -31,13 +31,6 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
 export default InventoryCard;
 
 const styles = StyleSheet.create({
-    headerText: {
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: Typography.FONT_SIZE_27,
-        lineHeight: Typography.LINE_HEIGHT_40,
-        color: Colors.TEXT_COLOR,
-        fontWeight: Typography.FONT_WEIGHT_BOLD
-    },
     subHeadingText: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_16,
@@ -48,13 +41,6 @@ const styles = StyleSheet.create({
     activeText: {
         color: Colors.PRIMARY,
     },
-    uploadNowBtn: {
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: Typography.FONT_SIZE_16,
-        lineHeight: Typography.LINE_HEIGHT_24,
-        fontWeight: Typography.FONT_WEIGHT_REGULAR,
-        paddingHorizontal: 10
-    }
 })
 
 
