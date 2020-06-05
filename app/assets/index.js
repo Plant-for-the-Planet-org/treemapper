@@ -10,6 +10,8 @@ import upload_check from './images/upload_check.png';
 import upload_now from './images/upload_now.png';
 import tree from './images/tree.png';
 import placeholder_image from './images/placeholder_img.png';
+import main_screen_banner from './images/main_screen_banner.png';
+import map_texture from './images/map_texture.png';
 
 export {
     back_icon,
@@ -23,5 +25,7 @@ export {
     upload_check,
     upload_now,
     tree,
-    placeholder_image
+    placeholder_image,
+    main_screen_banner,
+    map_texture
 }
