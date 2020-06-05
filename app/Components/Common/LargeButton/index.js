@@ -10,11 +10,11 @@ const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, 
                 <View style={styles.subContainer}>
                     <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
                 </View>
-                {<View style={styles.subContainer}>
+                {subHeading && <View style={styles.subContainer}>
                     <Text style={[styles.subHeading, active && styles.activeText]}>{subHeading}</Text>
                 </View>}
             </View>
-            {rightIcon && <View style={{ justifyContent: 'center', alignItems: 'center', marginRight: 20 }}>
+            {rightIcon && <View style={styles.rightIconCont}>
                 <Text>{rightIcon}</Text>
             </View>}
             {notification && <View style={styles.notificationContainer}>
@@ -68,4 +68,7 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_16,
         color: Colors.TEXT_COLOR,
     },
+    rightIconCont: {
+        justifyContent: 'center', alignItems: 'center', marginRight: 20
+    }
 })

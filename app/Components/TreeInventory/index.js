@@ -65,7 +65,7 @@ const TreeInventory = ({ navigation }) => {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <Header hideBackIcon headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                    <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
                     {renderTempComp()}
                     {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
                         {renderInventoryList(pendingInventory)}</>}

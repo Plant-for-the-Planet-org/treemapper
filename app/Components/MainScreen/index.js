@@ -7,9 +7,11 @@ import { MainScreenHeader } from '../Common/'
 import { main_screen_banner, map_texture } from '../../assets'
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const LocateTree = ({ }) => {
+const LocateTree = ({ navigation }) => {
 
     let rightIcon = <Icon size={40} name={'play-circle'} color={'#707070'} />
+
+    const onPressRegisterTree = () => navigation.navigate('TreeInventory')
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -30,7 +32,7 @@ const LocateTree = ({ }) => {
                         <LargeButton rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />
                     </ImageBackground>
                 </ScrollView>
-                <PrimaryButton btnText={'Continue'} />
+                <PrimaryButton onPress={onPressRegisterTree} btnText={'Continue'} />
             </View>
         </SafeAreaView>
     )
