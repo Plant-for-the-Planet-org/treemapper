@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Image, Text, ImageBackground } from 'react-native';
-import { PrimaryButton, LargeButton } from '../Common';
+import { PrimaryButton, LargeButton, Header } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { MainScreenHeader } from '../Common/'
@@ -14,14 +14,14 @@ const LocateTree = ({ navigation }) => {
     const onPressRegisterTree = () => navigation.navigate('TreeInventory')
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
-                <ScrollView style={{ flex: 1 }}>
+                <ScrollView style={styles.safeAreaViewCont}>
                     <MainScreenHeader />
                     <View style={styles.bannerImgContainer}>
                         <Image source={main_screen_banner} style={styles.bannerImage} />
                     </View>
-                    <Text style={styles.headerText}>Tree Mapper</Text>
+                    <Header headingText={'Tree Mapper'} hideBackIcon />
                     <ImageBackground source={map_texture} style={styles.bgImage}>
                         <LargeButton notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} />
                     </ImageBackground>
@@ -40,6 +40,9 @@ const LocateTree = ({ navigation }) => {
 export default LocateTree;
 
 const styles = StyleSheet.create({
+    safeAreaViewCont: {
+        flex: 1, backgroundColor: '#fff'
+    },
     container: {
         flex: 1,
         paddingHorizontal: 25,
@@ -51,14 +54,6 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_18,
         lineHeight: Typography.LINE_HEIGHT_30,
         textAlign: 'center'
-    },
-    headerText: {
-        fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-        fontSize: Typography.FONT_SIZE_30,
-        lineHeight: Typography.LINE_HEIGHT_40,
-        color: Colors.TEXT_COLOR,
-        textAlign: 'center',
-        marginVertical: 20
     },
     customStyleLargeBtn: {
         backgroundColor: 'transparent', paddingVertical: 10, marginVertical: 0, borderWidth: .1,
