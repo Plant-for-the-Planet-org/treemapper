@@ -37,8 +37,6 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Tree inventory would like to save photos from the app to your gallery</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow access to your camera</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -49,6 +47,8 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string></string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Tree inventory would like to save photos from the app to your gallery</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow access to your photo gallery</string>
 	<key>UIAppFonts</key>
