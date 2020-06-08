@@ -1,12 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
+import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
+import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { addLocateTree, updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store';
 import JailMonkey from 'jail-monkey';
-
 
 
 const LocateTree = ({ navigation }) => {
@@ -20,14 +19,37 @@ const LocateTree = ({ navigation }) => {
     }, [])
 
     const [locateTree, setLocateTree] = useState('on-site');
+    const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
     const onPressItem = (value) => setLocateTree(value);
 
     const onPressContinue = () => {
-        let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
-        addLocateTree(data).then(() => {
-            navigation.navigate('CreatePolygon')
-        })
+        if (isAlrightyModalShow) {
+            let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+            addLocateTree(data).then(() => {
+                navigation.navigate('CreatePolygon')
+                setIsAlrightyModalShow(false)
+            })
+        } else {
+            setIsAlrightyModalShow(true)
+        }
+    }
+
+    const onPressClose = () => {
+        setIsAlrightyModalShow(false)
+    }
+
+    const renderAlrightyModal = () => {
+        return (
+            <Modal
+                animationType={'slide'}
+                visible={isAlrightyModalShow}
+            >
+                <View style={{ flex: 1 }}>
+                    <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`Now, lets get to the next location\nClick the continue when ready`} />
+                </View>
+            </Modal>
+        )
     }
 
     return (
@@ -41,8 +63,8 @@ const LocateTree = ({ navigation }) => {
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
-
             </View>
+            {renderAlrightyModal()}
         </SafeAreaView>
     )
 }

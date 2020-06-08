@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
+import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
 import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions';
 import { store } from '../../Actions/store';
@@ -9,12 +9,19 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 
 
-const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
+const infographicText = [
+    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+]
+
+const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLength }) => {
     const camera = useRef()
 
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
+    const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
     const onPressCamera = async () => {
         if (imagePath) {
@@ -26,19 +33,28 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
         setImagePath(data.uri)
     }
 
-    const onPessContinue = () => {
-        // Save Image in local
-        if (imagePath) {
-            let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
-            insertImageAtLastCoordinate(data).then(() => {
-                if (isCompletePolygon) {
-                    navigation.navigate('InventoryOverview')
-                } else {
-                    toggleState()
-                }
-            })
+    const onPressClose = () => {
+        setIsAlrightyModalShow(false)
+    }
+
+    const onPressContinue = () => {
+        if (isAlrightyModalShow) {
+            // Save Image in local
+            if (imagePath) {
+                let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
+                insertImageAtLastCoordinate(data).then(() => {
+                    if (isCompletePolygon) {
+                        setIsAlrightyModalShow(false)
+                        navigation.navigate('InventoryOverview')
+                    } else {
+                        toggleState()
+                    }
+                })
+            } else {
+                alert('Image is required')
+            }
         } else {
-            alert('Image is required')
+            setIsAlrightyModalShow(true)
         }
     }
 
@@ -48,6 +64,21 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
         })
     }
 
+    const renderAlrightyModal = () => {
+        let infoIndex = coordsLength <= 1 ? 0 : coordsLength <= 2 ? 1 : 2
+        const { heading, subHeading } = infographicText[infoIndex]
+        return (
+            <Modal
+                animationType={'slide'}
+                visible={isAlrightyModalShow}>
+                <View style={{ flex: 1 }}>
+                    <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                </View>
+            </Modal>
+        )
+    }
+
+    console.log(coordsLength, 'coordsLength')
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
@@ -66,7 +97,8 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                                     message: 'We need your permission to use your camera',
                                     buttonPositive: 'Ok',
                                     buttonNegative: 'Cancel',
-                                }}>
+                                }}
+                            >
                             </RNCamera>
                         </View>
                     }
@@ -76,12 +108,13 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText }) => {
                 </TouchableOpacity>
             </View>
             <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
-                <Text style={styles.message}>{`For verification purposes, your location is \nrecorded when you take a picture.`}</Text>
+                <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
             </View>
             <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton onPress={onPessContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
+            {renderAlrightyModal()}
         </SafeAreaView>
     )
 }
@@ -124,3 +157,5 @@ const styles = StyleSheet.create({
         flex: 1, backgroundColor: '#eee', overflow: 'hidden'
     }
 })
+
+

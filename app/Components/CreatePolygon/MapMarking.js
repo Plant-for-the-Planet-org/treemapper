@@ -137,7 +137,7 @@ class MapMarking extends React.Component {
             }
         } else {
             try {
-                 Geolocation.getCurrentPosition(position => {
+                Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
                     this.pushMaker(complete, currentCoords)
                 }, (err) => alert(err.message))
@@ -163,7 +163,7 @@ class MapMarking extends React.Component {
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
-                    this.props.toggleState(location)
+                    this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
                 } else {
                     // For off site
                     if (complete) {

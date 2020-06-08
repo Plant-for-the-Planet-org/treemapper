@@ -6,19 +6,22 @@ import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets'
 
 
-const Alrighty = ({ }) => {
+const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue }) => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
-                <Header closeIcon />
+                <Header closeIcon onBackPress={onPressClose} />
                 <View style={{ flex: 1 }}>
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                         <Image source={alrighty_banner} />
-                        <Header hideBackIcon headingText={'Alrighty1'} subHeadingText={`Now, please walk to the next corner\nand tap continue when ready`} textAlignStyle={{ textAlign: 'center' }} />
+                        <Header hideBackIcon headingText={heading} subHeadingText={subHeading} textAlignStyle={{ textAlign: 'center' }} />
                     </View>
                 </View>
-                <PrimaryButton btnText={'Continue'} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <PrimaryButton onPress={onPressClose} btnText={'Back'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                </View>
             </View>
         </SafeAreaView>
     )

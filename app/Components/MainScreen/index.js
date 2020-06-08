@@ -16,7 +16,7 @@ const MainScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
-                <ScrollView style={styles.safeAreaViewCont}>
+                <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
                     <MainScreenHeader />
                     <View style={styles.bannerImgContainer}>
                         <Image source={main_screen_banner} style={styles.bannerImage} />

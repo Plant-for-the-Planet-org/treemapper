@@ -20,9 +20,11 @@ const CreatePolygon = () => {
     const [locationText, setLocationText] = useState('')
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
     const [isCompletePolygon, setIsCompletePolygon] = useState(false)
+    const [coordsLength, setCoordsLength] = useState(0)
 
-    const toggleState = (locationText) => {
+    const toggleState = (locationText, coordsLength) => {
         setLocationText(locationText)
+        setCoordsLength(coordsLength)
         setIsMapMarkingState(!isMapMarkingState)
     }
 
@@ -35,6 +37,7 @@ const CreatePolygon = () => {
                         isCompletePolygon={isCompletePolygon}
                         setIsCompletePolygon={setIsCompletePolygon} /> :
                     <ImageCapturing toggleState={toggleState}
+                        coordsLength={coordsLength}
                         isCompletePolygon={isCompletePolygon}
                         setIsCompletePolygon={setIsCompletePolygon}
                         locationText={locationText}
