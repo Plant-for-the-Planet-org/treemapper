@@ -45,8 +45,6 @@
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string></string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Tree inventory would like to save photos from the app to your gallery</string>
 	<key>NSPhotoLibraryUsageDescription</key>

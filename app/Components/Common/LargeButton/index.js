@@ -18,7 +18,7 @@ const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, 
                 <Text>{rightIcon}</Text>
             </View>}
             {notification && <View style={styles.notificationContainer}>
-                <Text style={styles.notificationText}>20</Text>
+                <Text style={styles.notificationText}>{notification}</Text>
             </View>}
         </TouchableOpacity>
     )

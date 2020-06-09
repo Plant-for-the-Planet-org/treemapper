@@ -72,7 +72,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                    <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
         )
@@ -104,7 +104,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
                     }
                 </View>
                 <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
-                    <Ionicons name={'md-camera'} size={25} />
+                    <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
             <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
@@ -112,7 +112,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
             </View>
             <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
             {renderAlrightyModal()}
         </SafeAreaView>

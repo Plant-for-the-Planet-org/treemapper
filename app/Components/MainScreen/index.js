@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image, Text, ImageBackground, Modal, Dimensions } from 'react-native';
 import { PrimaryButton, LargeButton, Header } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { MainScreenHeader } from '../Common/'
+import { MainScreenHeader } from '../Common/';
+import { getAllInventory } from '../../Actions'
 import { main_screen_banner, map_texture } from '../../assets'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,6 +14,14 @@ const { width, height } = Dimensions.get('window')
 const MainScreen = ({ navigation }) => {
 
     const [isModalVisible, setIsModalVisible] = useState(false)
+    const [numberOfInventory, setNumberOfInventory] = useState(0)
+
+    useEffect(() => {
+        getAllInventory().then((data) => {
+            setNumberOfInventory(Object.values(data).length)
+        })
+    }, [])
+
 
     let rightIcon = <Icon size={40} name={'play-circle'} color={'#707070'} />
 
@@ -46,7 +55,7 @@ const MainScreen = ({ navigation }) => {
                     </View>
                     <Header headingText={'Tree Mapper'} hideBackIcon />
                     <ImageBackground source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} />
+                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>
                     <ImageBackground source={map_texture} style={styles.bgImage}>
                         <LargeButton style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />

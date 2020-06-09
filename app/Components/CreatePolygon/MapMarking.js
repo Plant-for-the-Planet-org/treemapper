@@ -10,6 +10,7 @@ import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import LinearGradient from 'react-native-linear-gradient';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
@@ -124,7 +125,7 @@ class MapMarking extends React.Component {
                     let distanceInMeters = distance * 1000;
 
                     if (!isValidMarkers) {
-                        alert('Markers are too closed.')
+                        alert('You are at the same location. Please walk to the next location.')
                     } else if (distanceInMeters < 100) {
                         this.pushMaker(complete, currentCoords)
                     } else {
@@ -257,7 +258,7 @@ class MapMarking extends React.Component {
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon, { bottom: isShowCompletePolygonBtn ? 160 : 90 }]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons style={{}} name={'md-locate'} size={22} />
             </View>
@@ -284,16 +285,15 @@ class MapMarking extends React.Component {
                 </View>
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
-                    {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
-                        <PrimaryButton disabled={loader} theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
-                    </View>}
                     <View style={styles.continueBtnCont}>
                         <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
                     </View>
                 </View>
-                <View style={styles.headerCont}>
+                <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, .0)', 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
                     <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                </LinearGradient>
+                <View>
                 </View>
             </View>)
     }
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
         position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
     },
     myLocationIcon: {
-        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR
+        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
     },
     myLocationIconContainer: {
         top: 1.5, left: 0.8,
