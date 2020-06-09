@@ -60,7 +60,7 @@ export const initiateInventory = ({ treeType }) => {
                     })
                     resolve(inventoryID)
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -75,7 +75,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
                     }, 'modified')
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -91,7 +91,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                     }, 'modified')
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -106,7 +106,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -118,7 +118,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                     let polygons = []
                     geoJSON.features.map(onePolygon => {
                         let onePolygonTemp = {}
-                        onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete
+                        onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete || false
                         let coordinates = []
                         onePolygon.geometry.coordinates.map((oneLatlong) => {
                             coordinates.push({
@@ -139,7 +139,10 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
 
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch((err) => {
+                reject(err)
+                bugsnag.notify(err)
+            });
     })
 }
 
@@ -151,7 +154,7 @@ export const getAllInventory = () => {
                     const Inventory = realm.objects('Inventory');
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -163,7 +166,7 @@ export const getInventory = ({ inventoryID }) => {
                     let inventory = realm.objectForPrimaryKey('Inventory', inventoryID)
                     resolve(JSON.parse(JSON.stringify(inventory)))
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -179,7 +182,7 @@ export const statusToPending = ({ inventory_id }) => {
                     const Inventory = realm.objects('Inventory');
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -202,7 +205,7 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
                     inventory.polygons = polygonsTemp;
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
     })
 }
 
@@ -219,7 +222,7 @@ export const removeLastCoord = ({ inventory_id }) => {
                     inventory.polygons = polygons;
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
 
     })
 }
@@ -233,7 +236,7 @@ export const clearAllInventory = () => {
                     realm.delete(allInventory); // Delete Inventory\
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
 
     })
 }
@@ -243,13 +246,13 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
-                     realm.create('Inventory', {
+                    realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         last_screen: last_screen
                     }, 'modified')
                     resolve()
                 })
-            }).catch(bugsnag.notify); 
+            }).catch(bugsnag.notify);
 
     })
 }

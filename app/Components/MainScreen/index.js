@@ -16,7 +16,7 @@ const MainScreen = ({ navigation }) => {
 
     let rightIcon = <Icon size={40} name={'play-circle'} color={'#707070'} />
 
-    const onPressRegisterTree = () => navigation.navigate('TreeInventory')
+    const onPressLargeButtons = (screenName) => navigation.navigate(screenName)
 
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
@@ -46,7 +46,7 @@ const MainScreen = ({ navigation }) => {
                     </View>
                     <Header headingText={'Tree Mapper'} hideBackIcon />
                     <ImageBackground source={map_texture} style={styles.bgImage}>
-                        <LargeButton notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} />
+                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} />
                     </ImageBackground>
                     <ImageBackground source={map_texture} style={styles.bgImage}>
                         <LargeButton style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
@@ -55,7 +55,7 @@ const MainScreen = ({ navigation }) => {
                         <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />
                     </ImageBackground>
                 </ScrollView>
-                <PrimaryButton onPress={onPressRegisterTree} btnText={'Register Tree'} />
+                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
             </View>
             {renderVideoModal()}
         </SafeAreaView>
