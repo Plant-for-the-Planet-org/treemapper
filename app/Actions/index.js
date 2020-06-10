@@ -110,6 +110,21 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
     })
 }
 
+export const polygonUpdate = ({ inventory_id }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    inventory.polygons[0].isPolygonComplete = true;
+                    resolve()
+                })
+            }).catch((err) => {
+                reject(err)
+                bugsnag.notify(err)
+            });
+    })
+}
 export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })

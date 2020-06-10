@@ -2,7 +2,7 @@ import React, { useState, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtLastCoordinate, removeLastCoord } from '../../Actions';
+import { insertImageAtLastCoordinate, removeLastCoord, polygonUpdate } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -64,6 +64,13 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
         })
     }
 
+    const onPressCompletePolygon = () => {
+        polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
+            setIsAlrightyModalShow(false)
+            navigation.navigate('InventoryOverview')
+        })
+    }
+
     const renderAlrightyModal = () => {
         let infoIndex = coordsLength <= 1 ? 0 : coordsLength <= 2 ? 1 : 2
         const { heading, subHeading } = infographicText[infoIndex]
@@ -72,7 +79,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                    <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
         )

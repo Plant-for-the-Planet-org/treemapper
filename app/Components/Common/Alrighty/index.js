@@ -6,7 +6,7 @@ import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets'
 
 
-const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength }) => {
+const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton }) => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -19,7 +19,7 @@ const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLe
                     </View>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <PrimaryButton onPress={onPressClose} btnText={coordsLength >= 2 ? 'Complete' : 'Back'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressWhiteButton} btnText={coordsLength > 2 ? 'Complete' : 'Back'} halfWidth theme={'white'} />
                     <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth />
                 </View>
             </View>
