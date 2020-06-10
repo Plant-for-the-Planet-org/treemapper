@@ -7,7 +7,7 @@ import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
-
+import { APLHABETS } from '../../Utils/index'
 
 const infographicText = [
     { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
@@ -89,7 +89,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationText}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[coordsLength - 1]}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
