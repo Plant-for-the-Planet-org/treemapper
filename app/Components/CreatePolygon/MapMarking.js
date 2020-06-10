@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity, ImageBackground } from 'react-native';
-import { Header, PrimaryButton, } from '../Common';
+import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity, ImageBackground, Modal } from 'react-native';
+import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinates, getInventory } from '../../Actions';
+import { addCoordinates, getInventory, polygonUpdate } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,11 +15,17 @@ import LinearGradient from 'react-native-linear-gradient';
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
+const infographicText = [
+    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+]
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const IS_ANDROID = Platform.OS == 'android';
 
 class MapMarking extends React.Component {
     state = {
+        isAlrightyModalShow: false,
         centerCoordinates: [0, 0],
         activePolygonIndex: 0,
         loader: false,
@@ -137,6 +143,7 @@ class MapMarking extends React.Component {
                 alert(JSON.stringify(err))
             }
         } else {
+            this.setState({ isAlrightyModalShow: true })
             try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
@@ -272,6 +279,34 @@ class MapMarking extends React.Component {
 
     }
 
+    renderAlrightyModal = () => {
+        const { geoJSON, activePolygonIndex, isAlrightyModalShow } = this.state;
+        const { inventoryID } = this.props;
+
+        let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length
+        const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
+        const onPressCompletePolygon = () => {
+            polygonUpdate({ inventory_id: inventoryID }).then(() => {
+                onPressContinue()
+                this.props.navigation.navigate('InventoryOverview')
+            })
+        }
+        const onPressClose = () => this.setState({ isAlrightyModalShow: false })
+
+        let infoIndex = coordsLength <= 1 ? 0 : coordsLength <= 2 ? 1 : 2
+        const { heading, subHeading } = infographicText[infoIndex]
+
+        return (
+            <Modal
+                animationType={'slide'}
+                visible={isAlrightyModalShow}>
+                <View style={{ flex: 1 }}>
+                    <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                </View>
+            </Modal>
+        )
+    }
+
     render() {
         const { geoJSON, loader, activePolygonIndex } = this.state;
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
@@ -295,6 +330,7 @@ class MapMarking extends React.Component {
                 </LinearGradient>
                 <View>
                 </View>
+                {this.renderAlrightyModal()}
             </View>)
     }
 }
