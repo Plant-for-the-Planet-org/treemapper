@@ -69,6 +69,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
         <View style={{ marginVertical: 10 }}>
             <Label leftText={'Species'} rightText={isEditShow && 'Edit'} onPressRightText={onPressRightText} />
             {species && <FlatList
+            keyboardShouldPersistTaps={'always'}
                 data={species}
                 renderItem={renderSpecieCont}
             />}

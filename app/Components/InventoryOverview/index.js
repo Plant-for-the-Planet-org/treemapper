@@ -39,6 +39,7 @@ const InventoryOverview = ({ navigation, }) => {
     const renderPolygon = (polygons) => {
         return (
             <FlatList
+                keyboardShouldPersistTaps={'always'}
                 data={polygons}
                 renderItem={({ item, index }) => {
                     return (<View>
@@ -182,7 +183,7 @@ const InventoryOverview = ({ navigation, }) => {
             {renderViewLOCModal()}
             <View style={styles.container}>
                 {inventory !== null ? <View style={{ flex: 1, }} >
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
                         <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
                         <Label leftText={`On Site Registration`} rightText={''} />
