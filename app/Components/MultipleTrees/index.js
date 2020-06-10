@@ -106,13 +106,14 @@ const MultipleTrees = ({ navigation, route }) => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
-                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps={'always'} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
                     <TouchableOpacity onPress={() => setShowDate(true)}>
                         <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
                     </TouchableOpacity>
                     {renderDatePicker()}
                     <FlatList
+                        keyboardShouldPersistTaps={'always'}
                         data={species}
                         renderItem={({ item, index }) => renderOneSpecies(item, index)}
                     />
