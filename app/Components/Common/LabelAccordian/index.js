@@ -17,7 +17,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
     )
 
     const onChangeText = (text, dataKey, index) => {
-         species[index][dataKey] = text;
+        species[index][dataKey] = text;
         setSpecies([...species])
     }
 
@@ -26,7 +26,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
     }
 
     const onPressDelete = (index) => {
-         species.splice(index, 1)
+        species.splice(index, 1)
         setSpecies([...species])
     }
 
@@ -43,7 +43,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
                 return;
             }
         }
-         addSpeciesAction(data).then(() => {
+        addSpeciesAction(data).then(() => {
             if (!onBlur) {
                 if (route.params?.isEdit) {
                     navigation.navigate('InventoryOverview')
@@ -61,15 +61,15 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
     }
 
     const addSpecies = () => {
-         species.push({ nameOfTree: '', treeCount: '' })
+        species.push({ nameOfTree: '', treeCount: '' })
         setSpecies([...species])
     }
- 
+
     return (
         <View style={{ marginVertical: 10 }}>
             <Label leftText={'Species'} rightText={isEditShow && 'Edit'} onPressRightText={onPressRightText} />
             {species && <FlatList
-            keyboardShouldPersistTaps={'always'}
+                keyboardShouldPersistTaps={'always'}
                 data={species}
                 renderItem={renderSpecieCont}
             />}

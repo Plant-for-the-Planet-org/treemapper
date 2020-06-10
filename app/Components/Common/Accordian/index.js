@@ -82,15 +82,6 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
                         <Ionicons onPress={onPressAccordian} name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} style={styles.arrowIcon} />}
                 </View>}
             </View>
-            {isOpen && <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <View style={{ flex: .5, marginRight: 10 }}>
-                    <Input onSubmitEditing={onSubmitEditing} onBlur={onBlur} placeholder={label} index={index} value={data.nameOfTree} dataKey={'nameOfTree'} onChangeText={onChangeText} label={'Name of trees'} value={data.nameOfTree} />
-                </View>
-                <View style={{ flex: .5, marginLeft: 10 }}>
-                    <Input onSubmitEditing={onSubmitEditing} onBlur={onBlur} placeholder={'0'} keyboardType={'numeric'} index={index} value={data.treeCount} dataKey={'treeCount'} onChangeText={onChangeText} label={'Tree Count'} value={data.treeCount} />
-                </View>
-            </View>
-            }
         </View>
     )
 }
