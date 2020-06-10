@@ -3,12 +3,13 @@ import { View, StyleSheet, ScrollView, FlatList, Modal, PermissionsAndroid, Imag
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { store } from '../../Actions/store';
-import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
+import { getInventory, statusToPending, updateLastScreen, updatePlantingDate } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png } from '../../assets';
 import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -20,6 +21,7 @@ const InventoryOverview = ({ navigation, }) => {
     const [locationTitle, setlocationTitle] = useState('')
     const [selectedLOC, setSelectedLOC] = useState(null)
     const [isLOCModalOpen, setIsLOCModalOpen] = useState(false)
+    const [showDate, setShowDate] = useState(false);
 
     useEffect(() => {
 
@@ -178,6 +180,27 @@ const InventoryOverview = ({ navigation, }) => {
 
     }
 
+    const renderDatePicker = () => {
+        return (
+            showDate && <DateTimePicker
+                testID="dateTimssePicker"
+                timeZoneOffsetInMinutes={0}
+                value={new Date(Number(inventory.plantation_date))}
+                mode={'date'}
+                is24Hour={true}
+                display="default"
+                onChange={onChangeDate}
+            />
+        )
+    }
+    const onChangeDate = (event, selectedDate) => {
+        setShowDate(false)
+        setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
+        updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
+    };
+
+    const onPressDate = () => setShowDate(true)
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             {renderViewLOCModal()}
@@ -185,7 +208,7 @@ const InventoryOverview = ({ navigation, }) => {
                 {inventory !== null ? <View style={{ flex: 1, }} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
                         <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                        <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
+                        <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
                         <Label leftText={`On Site Registration`} rightText={''} />
                         <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
                         {renderPolygon(inventory.polygons)}
@@ -199,6 +222,8 @@ const InventoryOverview = ({ navigation, }) => {
                     </View>
                 </View> : null}
             </View>
+            {renderDatePicker()}
+
         </SafeAreaView>
     )
 }
