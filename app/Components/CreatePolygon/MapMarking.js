@@ -64,7 +64,7 @@ class MapMarking extends React.Component {
     }
 
     initialState = () => {
-        const { inventoryID } = this.props;
+        const { inventoryID, updateActiveMarkerIndex } = this.props;
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
@@ -85,7 +85,9 @@ class MapMarking extends React.Component {
                     'type': 'FeatureCollection',
                     'features': featureList
                 }
-                this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree })
+                updateActiveMarkerIndex(geoJSON.features[0].geometry.coordinates.length)
+                this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree, })
+
             } else {
                 this.setState({ locateTree: inventory.locate_tree })
             }
@@ -157,7 +159,9 @@ class MapMarking extends React.Component {
 
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
-        geoJSON.features[activePolygonIndex].geometry.coordinates.push(centerCoordinates);
+        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
+        console.log('activeMarkerIndex=====', activeMarkerIndex, geoJSON.features[activePolygonIndex].geometry.coordinates)
+        geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         if (complete) {
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
@@ -173,6 +177,7 @@ class MapMarking extends React.Component {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
                     this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
                 } else {
+                    updateActiveMarkerIndex(activeMarkerIndex + 1)
                     // For off site
                     if (complete) {
                         this.props.navigation.navigate('InventoryOverview')
@@ -281,7 +286,7 @@ class MapMarking extends React.Component {
 
     renderAlrightyModal = () => {
         const { geoJSON, activePolygonIndex, isAlrightyModalShow } = this.state;
-        const { inventoryID } = this.props;
+        const { inventoryID ,updateActiveMarkerIndex , activeMarkerIndex } = this.props;
 
         let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length
         const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
@@ -291,7 +296,10 @@ class MapMarking extends React.Component {
                 this.props.navigation.navigate('InventoryOverview')
             })
         }
-        const onPressClose = () => this.setState({ isAlrightyModalShow: false })
+        const onPressClose = () => {
+            updateActiveMarkerIndex(activeMarkerIndex - 1)
+            this.setState({ isAlrightyModalShow: false })
+        }
 
         let infoIndex = coordsLength <= 1 ? 0 : coordsLength <= 2 ? 1 : 2
         const { heading, subHeading } = infographicText[infoIndex]
@@ -307,11 +315,28 @@ class MapMarking extends React.Component {
         )
     }
 
+    onPressBack = () => {
+        const { locateTree } = this.state;
+        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
+        if (locateTree == 'off-site') {
+            if (activeMarkerIndex > 0) {
+                this.setState({ isAlrightyModalShow: true })
+            } else {
+                // goBack()
+            }
+        }
+    }
+
     render() {
+        const { activeMarkerIndex } = this.props
+        console.log(activeMarkerIndex, 'activeMarkerIndex')
+        // for Dugubibg --------- End -------
+
+
         const { geoJSON, loader, activePolygonIndex } = this.state;
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
-        let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
+        let location = ALPHABETS[activeMarkerIndex];
         return (
             <View style={styles.container} fourceInset={{ top: 'always' }}>
                 <View style={styles.container}>
@@ -326,7 +351,7 @@ class MapMarking extends React.Component {
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, .0)', 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
                 </LinearGradient>
                 <View>
                 </View>

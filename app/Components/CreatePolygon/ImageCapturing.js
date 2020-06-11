@@ -85,7 +85,6 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
         )
     }
 
-    console.log(coordsLength, 'coordsLength')
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
