@@ -21,7 +21,7 @@ const CreatePolygon = () => {
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
     const [isCompletePolygon, setIsCompletePolygon] = useState(false)
     const [coordsLength, setCoordsLength] = useState(0)
-    const [activeMarkerIndex, setActiveMarkerIndex] = useState(0)
+    const [activeMarkerIndex, setActiveMarkerIndex] = useState(null)
 
     const toggleState = (locationText, coordsLength) => {
         setLocationText(locationText)
@@ -31,6 +31,10 @@ const CreatePolygon = () => {
 
     const updateActiveMarkerIndex = (index) => {
         setActiveMarkerIndex(index)
+    }
+
+    const toogleState2 = () => {
+        setIsMapMarkingState(!isMapMarkingState)
     }
 
     return (
@@ -43,8 +47,11 @@ const CreatePolygon = () => {
                         setIsCompletePolygon={setIsCompletePolygon}
                         activeMarkerIndex={activeMarkerIndex}
                         updateActiveMarkerIndex={updateActiveMarkerIndex}
+                        toogleState2={toogleState2}
                     /> :
                     <ImageCapturing toggleState={toggleState}
+                        updateActiveMarkerIndex={updateActiveMarkerIndex}
+                        activeMarkerIndex={activeMarkerIndex}
                         coordsLength={coordsLength}
                         isCompletePolygon={isCompletePolygon}
                         setIsCompletePolygon={setIsCompletePolygon}

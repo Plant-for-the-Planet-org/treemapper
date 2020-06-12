@@ -1,8 +1,8 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtLastCoordinate, removeLastCoord, polygonUpdate } from '../../Actions';
+import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,13 +15,17 @@ const infographicText = [
     { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
 ]
 
-const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLength }) => {
+const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLength, activeMarkerIndex, updateActiveMarkerIndex }) => {
     const camera = useRef()
 
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
     const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+
+    useEffect(() => {
+        console.log('activeMarkerIndex', activeMarkerIndex)
+    }, [])
 
     const onPressCamera = async () => {
         if (imagePath) {
@@ -40,13 +44,16 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
     const onPressContinue = () => {
         if (isAlrightyModalShow) {
             // Save Image in local
+            console.log('', activeMarkerIndex)
             if (imagePath) {
-                let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
-                insertImageAtLastCoordinate(data).then(() => {
+                let data = { inventory_id: state.inventoryID, imageUrl: 'imagePath', index: activeMarkerIndex };
+                insertImageAtIndexCoordinate(data).then((coordLength) => {
                     if (isCompletePolygon) {
                         setIsAlrightyModalShow(false)
                         navigation.navigate('InventoryOverview')
                     } else {
+                        // if(activeMarkerIndex < coordLength)
+                        updateActiveMarkerIndex(activeMarkerIndex + 1)
                         toggleState()
                     }
                 })
@@ -59,9 +66,10 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
     }
 
     const onBackPress = () => {
-        removeLastCoord({ inventory_id: state.inventoryID, }).then(() => {
-            toggleState()
-        })
+        // alert('onBackPress')
+        // removeLastCoord({ inventory_id: state.inventoryID, }).then(() => {
+        toggleState()
+        // })
     }
 
     const onPressCompletePolygon = () => {
@@ -88,7 +96,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, coordsLe
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={{ marginHorizontal: 25 }}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[coordsLength - 1]}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>

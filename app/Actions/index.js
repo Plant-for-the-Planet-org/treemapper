@@ -201,7 +201,7 @@ export const statusToPending = ({ inventory_id }) => {
     })
 }
 
-export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
+export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
@@ -214,11 +214,13 @@ export const insertImageAtLastCoordinate = ({ inventory_id, imageUrl }) => {
 
                     polygonsTemp = polygons.map((onePolygon, i) => {
                         let coords = Object.values(onePolygon.coordinates)
-                        coords[coords.length - 1].imageUrl = imageUrl
+                        coords[index].imageUrl = imageUrl
                         return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords }
                     })
                     inventory.polygons = polygonsTemp;
-                    resolve()
+                    let coordLength = polygonsTemp[0].coordinates.length
+                    console.log('inventory', index, polygonsTemp)
+                    resolve(coordLength)
                 })
             }).catch(bugsnag.notify);
     })

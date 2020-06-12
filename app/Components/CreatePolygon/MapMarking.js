@@ -49,7 +49,7 @@ class MapMarking extends React.Component {
     }
 
 
-    async  UNSAFE_componentWillMount() {
+    async UNSAFE_componentWillMount() {
         if (IS_ANDROID) {
             MapboxGL.setTelemetryEnabled(false);
             await MapboxGL.requestAndroidLocationPermissions().then(() => {
@@ -64,7 +64,7 @@ class MapMarking extends React.Component {
     }
 
     initialState = () => {
-        const { inventoryID, updateActiveMarkerIndex } = this.props;
+        const { inventoryID, updateActiveMarkerIndex, activeMarkerIndex } = this.props;
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
@@ -85,7 +85,12 @@ class MapMarking extends React.Component {
                     'type': 'FeatureCollection',
                     'features': featureList
                 }
-                updateActiveMarkerIndex(geoJSON.features[0].geometry.coordinates.length)
+                console.log('activeMarkerIndex', activeMarkerIndex, 'GEOJOSN LENGTH=', geoJSON.features[0].geometry.coordinates.length)
+                if (activeMarkerIndex !== null && activeMarkerIndex < geoJSON.features[0].geometry.coordinates.length) {
+                    updateActiveMarkerIndex(activeMarkerIndex)
+                } else {
+                    updateActiveMarkerIndex(geoJSON.features[0].geometry.coordinates.length)
+                }
                 this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree, })
 
             } else {
@@ -286,7 +291,7 @@ class MapMarking extends React.Component {
 
     renderAlrightyModal = () => {
         const { geoJSON, activePolygonIndex, isAlrightyModalShow } = this.state;
-        const { inventoryID ,updateActiveMarkerIndex , activeMarkerIndex } = this.props;
+        const { inventoryID, updateActiveMarkerIndex, activeMarkerIndex } = this.props;
 
         let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length
         const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
@@ -317,13 +322,17 @@ class MapMarking extends React.Component {
 
     onPressBack = () => {
         const { locateTree } = this.state;
-        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
+        const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
         if (locateTree == 'off-site') {
             if (activeMarkerIndex > 0) {
                 this.setState({ isAlrightyModalShow: true })
             } else {
-                // goBack()
+                navigation.goBack()
             }
+        } else {
+            // on-site
+            updateActiveMarkerIndex(activeMarkerIndex - 1)
+            toogleState2()
         }
     }
 
