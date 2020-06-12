@@ -85,7 +85,6 @@ class MapMarking extends React.Component {
                     'type': 'FeatureCollection',
                     'features': featureList
                 }
-                console.log('activeMarkerIndex', activeMarkerIndex, 'GEOJOSN LENGTH=', geoJSON.features[0].geometry.coordinates.length)
                 if (activeMarkerIndex !== null && activeMarkerIndex < geoJSON.features[0].geometry.coordinates.length) {
                     updateActiveMarkerIndex(activeMarkerIndex)
                 } else {
@@ -94,6 +93,7 @@ class MapMarking extends React.Component {
                 this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree, })
 
             } else {
+                updateActiveMarkerIndex(0)
                 this.setState({ locateTree: inventory.locate_tree })
             }
         })
@@ -165,7 +165,6 @@ class MapMarking extends React.Component {
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
-        console.log('activeMarkerIndex=====', activeMarkerIndex, geoJSON.features[activePolygonIndex].geometry.coordinates)
         geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         if (complete) {
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
@@ -338,8 +337,6 @@ class MapMarking extends React.Component {
 
     render() {
         const { activeMarkerIndex } = this.props
-        console.log(activeMarkerIndex, 'activeMarkerIndex')
-        // for Dugubibg --------- End -------
 
 
         const { geoJSON, loader, activePolygonIndex } = this.state;

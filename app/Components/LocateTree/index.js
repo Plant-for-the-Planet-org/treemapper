@@ -48,17 +48,14 @@ const LocateTree = ({ navigation }) => {
             const res = await DocumentPicker.pick({
                 type: [DocumentPicker.types.allFiles],
             });
-            console.log(res.uri);
             RNFetchBlob.fs.readFile(res.uri, 'utf88')
                 .then((data) => {
                     let geoJSON = JSON.parse(data)
                     try {
                         Geolocation.getCurrentPosition(position => {
-                            console.log('ADd coord')
                             let { latitude, longitude } = position.coords;
                             let data = { inventory_id: state.inventoryID, geoJSON: geoJSON, currentCoords: { latitude, longitude } };
                             addCoordinates(data).then(() => {
-                                console.log('After ADd coord')
                                 addLocateTree({ inventory_id: state.inventoryID, locate_tree: locateTree }).then(() => {
                                     navigation.navigate('CreatePolygon')
                                 })
@@ -67,8 +64,6 @@ const LocateTree = ({ navigation }) => {
                     }
                     catch (err) {
                         alert(JSON.stringify(err))
-
-                        console.log(err)
                     }
                 })
 

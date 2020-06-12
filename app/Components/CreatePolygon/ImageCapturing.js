@@ -25,14 +25,14 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     useEffect(() => {
         getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(({ coordsLength, coord }) => {
-            if (coord) {
+            if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
-            if (activeMarkerIndex < coordsLength) {
-                setIsAlrightyModalShow(true)
-            }
-            console.log(coord, 'coordsLength', coordsLength, 'activeMarkerIndex', activeMarkerIndex)
-        })
+            // if (activeMarkerIndex < coordsLength) {
+            //     alert(activeMarkerIndex + 'naisir' + coordsLength)
+            //     setIsAlrightyModalShow(true)
+            // }
+         })
     }, [])
 
     const onPressCamera = async () => {
@@ -52,7 +52,6 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     const onPressContinue = () => {
         if (isAlrightyModalShow) {
             // Save Image in local
-            console.log('', activeMarkerIndex)
             if (imagePath) {
                 let data = { inventory_id: state.inventoryID, imageUrl: imagePath, index: activeMarkerIndex };
                 insertImageAtIndexCoordinate(data).then(() => {

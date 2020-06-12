@@ -6,7 +6,7 @@ import { Colors, Typography } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 
-MapboxGL.offlineManager.setTileCountLimit(10000);
+// MapboxGL.offlineManager.setTileCountLimit(10000);
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
 
@@ -30,8 +30,7 @@ const DownloadMap = ({ navigation }) => {
                 setIsLoaderShow(false)
                 alert(err.message)
             }
-            console.log(offlineRegion, err)
-        };
+         };
 
         await MapboxGL.offlineManager.createPack({
             name: `chicago ${Date.now()}`,
@@ -66,7 +65,7 @@ const DownloadMap = ({ navigation }) => {
                     <MapboxGL.MapView
                         ref={MapBoxGLRef}
                         style={{ flex: 1, marginVertical: 10 }}
-                        // styleURL={MapboxGL.StyleURL.Street}
+                        styleURL={MapboxGL.StyleURL.Street}
                         zoomLevel={15}
                         centerCoordinate={[11.256, 43.77]}
                     >

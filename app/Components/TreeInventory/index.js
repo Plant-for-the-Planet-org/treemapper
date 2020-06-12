@@ -76,7 +76,6 @@ const TreeInventory = ({ navigation }) => {
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>
     }
-    console.log('allInventory', allInventory)
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             {allInventory && allInventory.length > 0 ?
