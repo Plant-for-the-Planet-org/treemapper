@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StateProvider } from '../../Actions/store';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
-import { RegisterTree, MultipleTrees, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen } from '../';
+import { RegisterTree, MultipleTrees, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen , SavedAreas, DownloadMap} from '../';
 
 const Stack = createStackNavigator();
 
@@ -50,6 +50,8 @@ const App = () => {
                     <Stack.Screen name='LocateTree' component={LocateTree} options={{ ...MyTransition }} />
                     <Stack.Screen name='CreatePolygon' component={CreatePolygon} options={{ ...MyTransition }} />
                     <Stack.Screen name='InventoryOverview' component={InventoryOverview} options={{ ...MyTransition }} />
+                    <Stack.Screen name='SavedAreas' component={SavedAreas} options={{ ...MyTransition }} />
+                    <Stack.Screen name='DownloadMap' component={DownloadMap} options={{ ...MyTransition }} />
                 </Stack.Navigator>
             </NavigationContainer>
         </StateProvider>

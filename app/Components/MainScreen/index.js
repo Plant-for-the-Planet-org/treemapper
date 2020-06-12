@@ -29,6 +29,8 @@ const MainScreen = ({ navigation }) => {
 
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
+
+
     const renderVideoModal = () => {
         return (
             <Modal visible={isModalVisible} animationType={'slide'}>
@@ -58,7 +60,7 @@ const MainScreen = ({ navigation }) => {
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>
                     <ImageBackground source={map_texture} style={styles.bgImage}>
-                        <LargeButton style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
+                        <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
                     </ImageBackground>
                     <ImageBackground source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />

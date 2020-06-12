@@ -9,8 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import LinearGradient from 'react-native-linear-gradient';
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
