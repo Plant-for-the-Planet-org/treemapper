@@ -5,11 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 
-const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPress, textAlignStyle }) => {
+const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPress, textAlignStyle, style }) => {
     const navigation = useNavigation();
     const onPressBack = () => onBackPress ? onBackPress() : navigation.goBack()
     return (
-        <View>
+        <View style={{ ...style }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15, }}>
                 {!hideBackIcon && <TouchableOpacity onPress={onPressBack}>
                     <Ionicons name={closeIcon ? 'md-close' : 'md-arrow-back'} size={30} color={Colors.TEXT_COLOR} />
@@ -33,13 +33,13 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_27,
         lineHeight: Typography.LINE_HEIGHT_40,
         color: Colors.TEXT_COLOR,
-     },
+    },
     subHeadingText: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         fontSize: Typography.FONT_SIZE_20,
         lineHeight: Typography.LINE_HEIGHT_24,
         color: Colors.TEXT_COLOR,
-     },
+    },
     backArrow: {
 
     }

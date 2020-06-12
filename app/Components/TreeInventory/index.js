@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import { Header, SmallHeader, InventoryCard } from '../Common';
+import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
+import { empty_inventory_banner } from "../../assets";
+
+const { height, width } = Dimensions.get('window')
 
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
-    const [allInventory, setAllInventory] = useState([])
+    const [allInventory, setAllInventory] = useState(null)
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
@@ -36,7 +39,7 @@ const TreeInventory = ({ navigation }) => {
     )
 
 
-    const renderInventoryList = (inventoryList, ) => {
+    const renderInventoryList = (inventoryList,) => {
         return (
             <FlatList
                 showsVerticalScrollIndicator={false}
@@ -58,24 +61,43 @@ const TreeInventory = ({ navigation }) => {
         })
     }
 
-    const pendingInventory = allInventory.filter(x => x.status == 'pending')
-    const inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+    let pendingInventory = []
+    let inCompleteInventory = []
+    if (allInventory) {
+        pendingInventory = allInventory.filter(x => x.status == 'pending')
+        inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+    }
 
+    const renderInventory = () => {
+        return <View style={{ flex: 1 }}>
+            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
+                {renderInventoryList(pendingInventory)}</>}
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} />
+                {renderInventoryList(inCompleteInventory)}</>}
+        </View>
+    }
+    console.log('allInventory', allInventory)
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <View style={styles.container}>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
-                    {renderTempComp()}
-                    {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
-                        {renderInventoryList(pendingInventory)}</>}
-                    {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} />
-                        {renderInventoryList(inCompleteInventory)}</>}
-                    {allInventory.length == 0 && <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text>No Inventory</Text>
+            {allInventory && allInventory.length > 0 ?
+                <View style={styles.container}>
+                    <ScrollView showsVerticalScrollIndicator={false} >
+                        <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                        {renderTempComp()}
+                        {renderInventory()}
+                    </ScrollView>
+                </View>
+                :
+                allInventory == null ? <View style={{ flex: 1, }}>
+                    <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+                    <ActivityIndicator size={25} color={Colors.PRIMARY} />
+                </View> : <View style={{ flex: 1, borderWidth: 0, }}>
+                        <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+                        <Image source={empty_inventory_banner} resizeMode={'stretch'} style={{ width: '109%', height: '80%', marginHorizontal: -5 }} />
+                        <View style={{ position: 'absolute', width: '100%', justifyContent: 'center', bottom: 10, paddingHorizontal: 25 }}>
+                            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+                        </View>
                     </View>}
-                </ScrollView>
-            </View>
         </SafeAreaView>
     )
 }

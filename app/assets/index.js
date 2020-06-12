@@ -13,6 +13,7 @@ import placeholder_image from './images/placeholder_img.png';
 import main_screen_banner from './images/main_screen_banner.png';
 import map_texture from './images/map_texture.png';
 import alrighty_banner from './images/alrighty_banner.png';
+import empty_inventory_banner from './images/empty_inventory_banner.png';
 
 export {
     back_icon,
@@ -29,5 +30,6 @@ export {
     placeholder_image,
     main_screen_banner,
     alrighty_banner,
-    map_texture
+    map_texture,
+    empty_inventory_banner
 }
