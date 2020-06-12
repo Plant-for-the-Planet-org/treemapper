@@ -39,7 +39,6 @@ const CreatePolygon = () => {
 
     return (
         <View style={{ flex: 1, backgroundColor: 'red', }} fourceInset={{ bottom: 'never', top: 'never' }}>
-
             <View style={styles.container}>
                 {isMapMarkingState ?
                     <MapMarking toggleState={toggleState}

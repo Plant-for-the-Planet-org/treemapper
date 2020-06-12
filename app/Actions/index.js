@@ -218,9 +218,23 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
                         return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords }
                     })
                     inventory.polygons = polygonsTemp;
-                    let coordLength = polygonsTemp[0].coordinates.length
-                    console.log('inventory', index, polygonsTemp)
-                    resolve(coordLength)
+
+                    resolve()
+                })
+            }).catch(bugsnag.notify);
+    })
+}
+export const getCoordByIndex = ({ inventory_id, index, }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    // inventory = JSON.parse(JSON.stringify(inventory));
+                    let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
+                    let coords = Object.values(polygons[0].coordinates)
+                    let coordsLength = coords.length
+                    resolve({ coordsLength, coord: coords[index] })
                 })
             }).catch(bugsnag.notify);
     })
