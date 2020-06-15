@@ -6,7 +6,8 @@ import Realm from 'realm';
 import { initiateInventory } from '../../Actions'
 import { store } from '../../Actions/store';
 import { Colors, Typography } from '_styles';
-import { LocalInventoryActions } from '../../Actions/Action'
+import { LocalInventoryActions } from '../../Actions/Action';
+
 const RegisterTree = ({ navigation }) => {
     const globalState = useContext(store);
     const { dispatch } = globalState;

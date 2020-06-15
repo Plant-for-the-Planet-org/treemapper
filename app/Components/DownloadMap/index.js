@@ -3,42 +3,71 @@ import { View, StyleSheet, Text, ScrollView, Modal, ActivityIndicator } from 're
 import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
+import { getAreaName, createOfflineMap } from "../../Actions";
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Geolocation from '@react-native-community/geolocation';
 
-// MapboxGL.offlineManager.setTileCountLimit(10000);
+
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
-
-
-
-
 const DownloadMap = ({ navigation }) => {
     const [isLoaderShow, setIsLoaderShow] = useState(false)
+    const [areaName, setAreaName] = useState('')
+
     const MapBoxGLRef = useRef();
+    const MapBoxGLCameraRef = useRef();
+
+    useEffect(() => {
+
+    }, [])
+
+    const initialMapCamera = () => {
+        Geolocation.getCurrentPosition(position => {
+            MapBoxGLCameraRef.current.setCamera({
+                centerCoordinate: [position.coords.longitude, position.coords.latitude],
+                zoomLevel: 15,
+                animationDuration: 2000,
+            })
+        }, (err) => alert(err.message));
+
+    }
 
     const onPressDownloadArea = async () => {
-        setIsLoaderShow(true)
-        let bounds = await MapBoxGLRef.current.getVisibleBounds();
-        const progressListener = (offlineRegion, status) => {
-            if (status.percentage == 100) {
-                setIsLoaderShow(false)
-                alert('Map download complete')
-            }
-        };
-        const errorListener = (offlineRegion, err) => {
-            if (err.message !== "timeout") {
-                setIsLoaderShow(false)
-                alert(err.message)
-            }
-         };
 
-        await MapboxGL.offlineManager.createPack({
-            name: `chicago ${Date.now()}`,
-            styleURL: 'mapbox://styles/haideralishah/ck9nual3q0ejy1ilidwhjl3mz',
-            minZoom: 14,
-            maxZoom: 20,
-            bounds: bounds
-        }, progressListener, errorListener)
+        let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`
+
+        setIsLoaderShow(true)
+        let coords = await MapBoxGLRef.current.getCenter();
+        let bounds = await MapBoxGLRef.current.getVisibleBounds();
+        getAreaName({ coords }).then(async (areaName) => {
+            setAreaName(areaName)
+            const progressListener = (offlineRegion, status) => {
+                if (status.percentage == 100) {
+                    console.log('area Name', areaName)
+                    createOfflineMap({ name: offllineMapId, size: status.completedTileSize, areaName: areaName }).then(() => {
+                        setTimeout(() => alert('Map download complete'), 0)
+                        setIsLoaderShow(false)
+                        setAreaName('')
+                    })
+                }
+            };
+            const errorListener = (offlineRegion, err) => {
+                if (err.message !== "timeout") {
+                    setIsLoaderShow(false)
+                    setAreaName('')
+                    alert(err.message)
+                }
+            };
+            await MapboxGL.offlineManager.createPack({
+                name: offllineMapId,
+                styleURL: 'mapbox://styles/haideralishah/ck9nual3q0ejy1ilidwhjl3mz',
+                minZoom: 14,
+                maxZoom: 20,
+                bounds: bounds
+            }, progressListener, errorListener)
+        })
+
+
     }
 
     const renderLoaderModal = () => {
@@ -46,8 +75,11 @@ const DownloadMap = ({ navigation }) => {
             <Modal
                 transparent
                 visible={isLoaderShow}>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)' }}>
-                    <ActivityIndicator size={40} style={{ borderWidth: 1, padding: 50, backgroundColor: '#fff', borderRadius: 20 }} />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)', }}>
+                    <View style={{ backgroundColor: '#fff', width: 250, justifyContent: 'center', alignItems: 'center', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 20, }}>
+                        <ActivityIndicator size={40} style={{ backgroundColor: '#fff', borderRadius: 20, marginVertical: 20 }} />
+                        <Text style={{ fontSize: 16, textAlign: 'center' }}>{areaName}</Text>
+                    </View>
                 </View>
             </Modal>
         )
@@ -63,12 +95,15 @@ const DownloadMap = ({ navigation }) => {
                 <Header headingText={'Download this area?'} />
                 <View style={{ flex: 1, backgroundColor: '#fff', marginHorizontal: -25, overflow: 'hidden' }}>
                     <MapboxGL.MapView
+                        onDidFinishRenderingMapFully={initialMapCamera}
                         ref={MapBoxGLRef}
                         style={{ flex: 1, marginVertical: 10 }}
                         styleURL={MapboxGL.StyleURL.Street}
                         zoomLevel={15}
                         centerCoordinate={[11.256, 43.77]}
                     >
+                        <MapboxGL.UserLocation showsUserHeadingIndicator />
+                        <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
                     {/* <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.1)' }} /> */}
                 </View>

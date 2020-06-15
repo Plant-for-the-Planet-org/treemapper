@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getAllOfflineMaps } from '../../Actions'
 
 
 
@@ -17,24 +18,22 @@ const SavedAreas = ({ }) => {
     }, [])
 
     const loadAreas = async () => {
-        const offlinePack = await MapboxGL.offlineManager.getPacks();
-        let normalAreas = []
-        for (let oneArea in offlinePack) {
-            normalAreas.push(offlinePack[oneArea])
-        }
-        setAreas(normalAreas)
+        getAllOfflineMaps().then((offlineMaps) => {
+            setAreas(Object.values(offlineMaps))
+        })
     }
 
-    const renderSavedAreaItem = () => {
+    const renderSavedAreaItem = ({ item }) => {
+        const { areaName, size } = item;
         return (
             <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE }}>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Image source={placeholder_image} resizeMode={'stretch'} />
                 </View>
                 <View style={{ flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20 }}>
-                    <Text style={styles.subHeadingText}>{'Chicago, USA'}</Text>
+                    <Text style={styles.subHeadingText}>{areaName}</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={[styles.subHeadingText, styles.regularText]}>{'120 MB'}</Text>
+                        <Text style={[styles.subHeadingText, styles.regularText]}>{`${(size/1000)} MB`}</Text>
                         <Text style={[styles.subHeadingText, styles.redText]}>{'Delete'}</Text>
                     </View>
                 </View>

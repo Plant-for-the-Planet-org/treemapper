@@ -1,6 +1,8 @@
 
 import Realm from 'realm';
-import { bugsnag } from '../Utils/index'
+import { bugsnag } from '../Utils/index';
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+
 // SCHEMAS
 const Coordinates = {
     name: 'Coordinates',
@@ -29,6 +31,15 @@ const Species = {
         treeCount: 'string',
     }
 }
+const OfflineMaps = {
+    name: 'OfflineMaps',
+    primaryKey: 'name',
+    properties: {
+        areaName: 'string',
+        size: 'int',
+        name: 'string'
+    }
+}
 
 const Inventory = {
     name: 'Inventory',
@@ -47,6 +58,52 @@ const Inventory = {
     }
 };
 
+export const getAreaName = ({ coords }) => {
+    return new Promise((resolve, reject) => {
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${MAPBOXGL_ACCCESS_TOKEN}`).then((res) => res.json()).then((res) => {
+            if (res && res.features && res.features[0]) {
+                resolve(res.features[0].place_name)
+            } else {
+                reject()
+            }
+        })
+    })
+}
+
+
+
+export const getAllOfflineMaps = () => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [OfflineMaps] })
+            .then(realm => {
+                realm.write(() => {
+                    const offlineMaps = realm.objects('OfflineMaps');
+                    resolve(JSON.parse(JSON.stringify(offlineMaps)))
+                })
+                realm.close();
+            }).catch(bugsnag.notify);
+    })
+}
+export const createOfflineMap = ({ name, size, areaName }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [OfflineMaps] })
+            .then(realm => {
+                realm.write(() => {
+                    realm.create('OfflineMaps', {
+                        name: name,
+                        size: size,
+                        areaName: areaName
+                    })
+                    resolve(name)
+                })
+                realm.close();
+            }).catch((err) => {
+                reject(err)
+                bugsnag.notify(err)
+            });
+    })
+}
+
 export const initiateInventory = ({ treeType }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -60,6 +117,7 @@ export const initiateInventory = ({ treeType }) => {
                     })
                     resolve(inventoryID)
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -75,6 +133,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
                     }, 'modified')
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -91,6 +150,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                     }, 'modified')
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -106,6 +166,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -119,6 +180,7 @@ export const polygonUpdate = ({ inventory_id }) => {
                     inventory.polygons[0].isPolygonComplete = true;
                     resolve()
                 })
+                realm.close();
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -154,6 +216,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
 
                     resolve()
                 })
+                realm.close();
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -169,6 +232,7 @@ export const getAllInventory = () => {
                     const Inventory = realm.objects('Inventory');
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -197,6 +261,7 @@ export const statusToPending = ({ inventory_id }) => {
                     const Inventory = realm.objects('Inventory');
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -221,6 +286,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
 
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -236,6 +302,7 @@ export const getCoordByIndex = ({ inventory_id, index, }) => {
                     let coordsLength = coords.length
                     resolve({ coordsLength, coord: coords[index] })
                 })
+                realm.close();
             }).catch(bugsnag.notify);
     })
 }
@@ -253,6 +320,7 @@ export const removeLastCoord = ({ inventory_id }) => {
                     inventory.polygons = polygons;
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
 
     })
@@ -267,6 +335,7 @@ export const clearAllInventory = () => {
                     realm.delete(allInventory); // Delete Inventory\
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
 
     })
@@ -283,6 +352,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
+                realm.close();
             }).catch(bugsnag.notify);
 
     })

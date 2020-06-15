@@ -106,9 +106,7 @@ class MapMarking extends React.Component {
         }
         if (!this.state.isInitial) {
             const currentCoords = [location.coords.longitude, location.coords.latitude]
-            this.setState({ centerCoordinates: currentCoords, isInitial: true }, () => {
-                // this.addMarker()
-            })
+            this.setState({ centerCoordinates: currentCoords, isInitial: true })
             this._camera.setCamera({
                 centerCoordinate: currentCoords,
                 zoomLevel: 18,
