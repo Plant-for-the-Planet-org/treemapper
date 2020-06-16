@@ -6,7 +6,7 @@ import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getAllOfflineMaps } from '../../Actions'
+import { getAllOfflineMaps, deleteOfflineMap } from '../../Actions'
 
 
 
@@ -23,8 +23,16 @@ const SavedAreas = ({ }) => {
         })
     }
 
+    const deleteArea = async (name) => {
+        deleteOfflineMap({ name }).then(async () => {
+            setTimeout(async () => await MapboxGL.offlineManager.deletePack(name), 0)
+            loadAreas()
+            console.log('Deleteion Complete')
+        })
+    }
+
     const renderSavedAreaItem = ({ item }) => {
-        const { areaName, size } = item;
+        const { areaName, size, name } = item;
         return (
             <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE }}>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -33,8 +41,8 @@ const SavedAreas = ({ }) => {
                 <View style={{ flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20 }}>
                     <Text style={styles.subHeadingText}>{areaName}</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={[styles.subHeadingText, styles.regularText]}>{`${(size/1000)} MB`}</Text>
-                        <Text style={[styles.subHeadingText, styles.redText]}>{'Delete'}</Text>
+                        <Text style={[styles.subHeadingText, styles.regularText]}>{`${(size / 1000)} MB`}</Text>
+                        <Text style={[styles.subHeadingText, styles.redText]} onPress={() => deleteArea(name)}>{'Delete'}</Text>
                     </View>
                 </View>
             </View>
@@ -49,7 +57,7 @@ const SavedAreas = ({ }) => {
                     {areas && areas.length > 0 ? < FlatList
                         data={areas}
                         renderItem={renderSavedAreaItem}
-                    /> : <ActivityIndicator />}
+                    /> : areas && areas.length == 0 ? <Text style={{ alignSelf: 'center', textAlignVertical: 'center', margin: 20 }}>No offline area found</Text> : <ActivityIndicator />}
                 </ScrollView>
                 <PrimaryButton btnText={'Add Area'} />
             </View>

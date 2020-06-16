@@ -70,8 +70,6 @@ export const getAreaName = ({ coords }) => {
     })
 }
 
-
-
 export const getAllOfflineMaps = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [OfflineMaps] })
@@ -84,6 +82,21 @@ export const getAllOfflineMaps = () => {
             }).catch(bugsnag.notify);
     })
 }
+
+export const deleteOfflineMap = ({ name }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [OfflineMaps] })
+            .then(realm => {
+                realm.write(() => {
+                    const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`)
+                    realm.delete(offlineMaps)
+                    resolve()
+                })
+                realm.close();
+            }).catch(bugsnag.notify);
+    })
+}
+
 export const createOfflineMap = ({ name, size, areaName }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [OfflineMaps] })
