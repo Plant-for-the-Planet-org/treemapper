@@ -110,8 +110,9 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                         <View style={styles.cameraContainer}>
                             <RNCamera
                                 ratio={'1:1'}
+                                captureAudio={false}
                                 ref={camera}
-                                style={[styles.container]}
+                                style={styles.container}
                                 androidCameraPermissionOptions={{
                                     title: 'Permission to use camera',
                                     message: 'We need your permission to use your camera',
