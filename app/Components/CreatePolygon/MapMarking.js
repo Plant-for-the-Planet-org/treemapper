@@ -328,8 +328,12 @@ class MapMarking extends React.Component {
             }
         } else {
             // on-site
-            updateActiveMarkerIndex(activeMarkerIndex - 1)
-            toogleState2()
+            if (activeMarkerIndex > 0) {
+                updateActiveMarkerIndex(activeMarkerIndex - 1)
+                toogleState2()
+            } else {
+                navigation.goBack()
+            }
         }
     }
 
