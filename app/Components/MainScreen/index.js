@@ -56,13 +56,13 @@ const MainScreen = ({ navigation }) => {
                         <Image source={main_screen_banner} style={styles.bannerImage} />
                     </View>
                     <Header headingText={'Tree Mapper'} hideBackIcon />
-                    <ImageBackground source={map_texture} style={styles.bgImage}>
+                    <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>
-                    <ImageBackground source={map_texture} style={styles.bgImage}>
+                    <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
                     </ImageBackground>
-                    <ImageBackground source={map_texture} style={styles.bgImage}>
+                    <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />
                     </ImageBackground>
                 </ScrollView>
