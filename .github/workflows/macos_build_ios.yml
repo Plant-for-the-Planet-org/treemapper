@@ -104,6 +104,7 @@ jobs:
         echo "::set-env name=upload_file::$upload_file"
         mv 'ios/DerivedData/ipa/treeinventory.ipa' release/$upload_file
         curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@release/$upload_file"
+        curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@release/$upload_file"
 
     - name: Slack notification
       env:
