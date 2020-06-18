@@ -20,7 +20,11 @@ const RegisterTree = ({ navigation }) => {
     const onPressContinue = () => {
         let data = { treeType };
         initiateInventory(data).then((inventoryID) => {
-            navigation.navigate('MultipleTrees')
+            if (treeType === 'multiple') {
+                navigation.navigate('MultipleTrees')
+            } else {
+                navigation.navigate('RegisterSingleTree')
+            }
             dispatch(LocalInventoryActions.setInventoryId(inventoryID))
         })
     }

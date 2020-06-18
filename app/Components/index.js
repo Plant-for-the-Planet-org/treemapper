@@ -9,5 +9,7 @@ import InventoryOverview from './InventoryOverview';
 import MainScreen from './MainScreen';
 import SavedAreas from './SavedAreas';
 import DownloadMap from './DownloadMap';
+import RegisterSingleTree from './RegisterSingleTree';
+import SingleTreeOverview from './RegisterSingleTree/TreeOverview';
 
-export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap };
+export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, } from "../../Actions";
@@ -9,12 +9,12 @@ import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 
 const { height, width } = Dimensions.get('window')
-
+const IS_ANDROID = Platform.OS == 'android'
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
-
+    console.log('allInventory', allInventory)
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             getAllInventory().then((allInventory) => {
@@ -76,8 +76,10 @@ const TreeInventory = ({ navigation }) => {
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>
     }
+    console.log('allInventory', allInventory, 'allInventory')
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <SafeAreaView />
             {allInventory && allInventory.length > 0 ?
                 <View style={styles.container}>
                     <ScrollView showsVerticalScrollIndicator={false} >
@@ -92,12 +94,12 @@ const TreeInventory = ({ navigation }) => {
                     <ActivityIndicator size={25} color={Colors.PRIMARY} />
                 </View> : <View style={{ flex: 1, borderWidth: 0, }}>
                         <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
-                        <Image source={empty_inventory_banner} resizeMode={'stretch'} style={{ width: '109%', height: '80%', marginHorizontal: -5 }} />
-                        <View style={{ position: 'absolute', width: '100%', justifyContent: 'center', bottom: 10, paddingHorizontal: 25 }}>
+                        <Image source={empty_inventory_banner} resizeMode={'stretch'} style={styles.emptyInventoryBanner} />
+                        <View style={styles.parimaryBtnCont}>
                             <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
                         </View>
                     </View>}
-        </SafeAreaView>
+        </View>
     )
 }
 export default TreeInventory;
@@ -108,5 +110,11 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    emptyInventoryBanner: {
+        width: '109%', height: '80%', marginHorizontal: -5, bottom: -10
+    },
+    parimaryBtnCont: {
+        position: 'absolute', width: '100%', justifyContent: 'center', bottom: 10, paddingHorizontal: 25
     }
 })
