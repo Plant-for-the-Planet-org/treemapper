@@ -2,7 +2,7 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex } from '../../Actions';
+import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex, insertImageSingleRegisterTree } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,7 +15,7 @@ const infographicText = [
     { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
 ]
 
-const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMarkerIndex, updateActiveMarkerIndex }) => {
+const ImageCapturing = ({ updateScreenState }) => {
     const camera = useRef()
 
     const navigation = useNavigation()
@@ -38,13 +38,14 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onPressContinue = () => {
-        alert('232323')
         if (isAlrightyModalShow) {
             // Save Image in local
             if (imagePath) {
-                let data = { inventory_id: state.inventoryID, imageUrl: imagePath, index: activeMarkerIndex };
-                setIsAlrightyModalShow(false)
-                navigation.navigate('SingleTreeOverview')
+                let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
+                insertImageSingleRegisterTree(data).then(() => {
+                    setIsAlrightyModalShow(false)
+                    navigation.navigate('SingleTreeOverview')
+                })
             } else {
                 alert('Image is required')
             }
@@ -54,18 +55,17 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onBackPress = () => {
-        toggleState()
+        updateScreenState('MapMarking')
     }
 
 
     const renderAlrightyModal = () => {
-        let infoIndex = activeMarkerIndex <= 1 ? 0 : activeMarkerIndex <= 2 ? 1 : 2
-        return (
+         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty coordsLength={activeMarkerIndex} onPressContinue={onPressContinue} onPressClose={onPressClose} heading={'Alrighty!'} subHeading={'Now, please tap to see tree overview'} />
+                    <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={'Alrighty!'} subHeading={'Now, please tap to see tree overview'} />
                 </View>
             </Modal>
         )

@@ -43,7 +43,6 @@ const DownloadMap = ({ navigation }) => {
             setAreaName(areaName)
             const progressListener = (offlineRegion, status) => {
                 if (status.percentage == 100) {
-                    console.log('area Name', areaName)
                     createOfflineMap({ name: offllineMapId, size: status.completedTileSize, areaName: areaName }).then(() => {
                         setTimeout(() => alert('Map download complete'), 0)
                         setIsLoaderShow(false)

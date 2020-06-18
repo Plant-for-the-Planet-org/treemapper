@@ -24,7 +24,6 @@ const RegisterSingleTree = ({ navigation }) => {
                 updateScreenState={updateScreenState} />}
             {screenState == 'ImageCapturing' && <ImageCapturing
                 updateScreenState={updateScreenState} />}
-            {screenState == 'TreeOverview' && <TreeOverview />}
         </View>
     )
 }

@@ -4,7 +4,7 @@ import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinates, getInventory, polygonUpdate } from '../../Actions';
+import { addCoordinateSingleRegisterTree } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -134,7 +134,6 @@ class MapMarking extends React.Component {
 
     renderMarker = () => {
         const { markedCoords } = this.state;
-        console.log('markerCoords', markedCoords)
         return (markedCoords && <MapboxGL.PointAnnotation key={`markerCoordskey`} id={`markerCoordsid`} coordinate={markedCoords}>
             <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
                 <Text style={styles.markerText}>{'A'}</Text>
@@ -171,18 +170,31 @@ class MapMarking extends React.Component {
 
     }
 
+    onPressContinue = () => {
+        this.setState({ isAlrightyModalShow: false }, () => {
+            const { inventoryID, updateScreenState } = this.props;
+            const { markedCoords, } = this.state;
+            Geolocation.getCurrentPosition(position => {
+                let currentCoords = position.coords;
+                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                    updateScreenState('ImageCapturing')
+                })
+
+            }, (err) => alert(err.message));
+
+        })
+    }
     renderAlrightyModal = () => {
         const { isAlrightyModalShow } = this.state
         const { updateScreenState } = this.props
 
-        const onPressContinue = () => this.setState({ isAlrightyModalShow: false }, () => updateScreenState('ImageCapturing'))
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={onPressContinue} heading={'Alrighty!'} subHeading={'Now, please tap continue to take picture of tree'} />
+                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={'Now, please tap continue to take picture of tree'} />
                 </View>
             </Modal>
         )

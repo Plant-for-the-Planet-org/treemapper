@@ -27,7 +27,6 @@ const SavedAreas = ({ }) => {
         deleteOfflineMap({ name }).then(async () => {
             setTimeout(async () => await MapboxGL.offlineManager.deletePack(name), 0)
             loadAreas()
-            console.log('Deleteion Complete')
         })
     }
 

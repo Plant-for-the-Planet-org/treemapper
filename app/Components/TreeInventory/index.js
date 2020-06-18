@@ -14,7 +14,6 @@ const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
-    console.log('allInventory', allInventory)
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             getAllInventory().then((allInventory) => {
@@ -76,7 +75,6 @@ const TreeInventory = ({ navigation }) => {
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>
     }
-    console.log('allInventory', allInventory, 'allInventory')
     return (
         <View style={{ flex: 1, backgroundColor: '#fff' }}>
             <SafeAreaView />

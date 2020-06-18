@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { View, StyleSheet, ScrollView, Image, Text } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets'
 import LinearGradient from 'react-native-linear-gradient';
-import FIcon from 'react-native-vector-icons/Fontisto'
-const SingleTreeOverview = ({ }) => {
+import FIcon from 'react-native-vector-icons/Fontisto';
+import { updateLastScreen, getInventory, statusToPending } from '../../Actions'
+import { store } from '../../Actions/store';
 
-    const renderDetails = () => {
+const SingleTreeOverview = ({ navigation }) => {
+
+    const { state } = useContext(store);
+    const [inventory, setInventory] = useState(null)
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+                inventory.species = Object.values(inventory.species);
+                inventory.polygons = Object.values(inventory.polygons);
+                setInventory(inventory)
+            })
+
+        });
+
+        let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' }
+        updateLastScreen(data)
+    }, [])
+
+    const renderDetails = ({ polygons }) => {
+        let coords = polygons[0].coordinates[0]
         return (<View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
             <View>
                 <Text style={styles.detailHeader}>LOCATION</Text>
-                <Text style={styles.detailText}>31.41567,-7.32166</Text>
+                <Text style={styles.detailText}>{`${coords.latitude.toFixed(4)},${coords.longitude.toFixed(4)}`}</Text>
             </View>
             <View style={{ marginVertical: 5 }}>
                 <Text style={styles.detailHeader}>SPECEIS</Text>
@@ -36,21 +57,29 @@ const SingleTreeOverview = ({ }) => {
             </View>
         </View>)
     }
+
+    const onPressContinue = () => {
+        let data = { inventory_id: state.inventoryID }
+        statusToPending(data).then(() => {
+            navigation.navigate('TreeInventory')
+        })
+    }
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <View style={styles.container}>
                 <Header headingText={'Tree Details'} />
-                <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
+                {inventory && <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
                     <View style={{ width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden' }}>
-                        <Image source={placeholder_image} style={{ width: '100%', height: '100%', }} />
+                        <Image source={{ uri: inventory.polygons[0].coordinates[0].imageUrl }} style={{ width: '100%', height: '100%', }} />
                         <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={{ position: 'absolute', width: '100%', height: '100%' }}>
-                            {renderDetails()}
+                            {renderDetails(inventory)}
                         </LinearGradient>
                     </View>
-                </ScrollView>
+                </ScrollView>}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <PrimaryButton btnText={'Continue'} halfWidth theme={'white'} />
-                    <PrimaryButton btnText={'Continue'} halfWidth />
+                    <PrimaryButton onPress={onPressContinue} btnText={'Save'} halfWidth />
                 </View>
             </View>
 
