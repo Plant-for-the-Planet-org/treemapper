@@ -38,7 +38,7 @@ const TreeInventory = ({ navigation }) => {
     )
 
 
-    const renderInventoryList = (inventoryList,) => {
+    const renderInventoryList = (inventoryList) => {
         return (
             <FlatList
                 showsVerticalScrollIndicator={false}
@@ -46,6 +46,7 @@ const TreeInventory = ({ navigation }) => {
                 renderItem={({ item }) => {
                     let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
                     let data = { title: title, measurement: '10 cm', date: new Date(Number(item.plantation_date)).toLocaleDateString() }
+
                     return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={item.status == 'pending'} data={data} /></TouchableOpacity>)
                 }}
             />

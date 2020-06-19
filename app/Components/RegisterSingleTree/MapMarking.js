@@ -102,6 +102,7 @@ class MapMarking extends React.Component {
 
                 if (distanceInMeters < 100) {
                     this.pushMaker(currentCoords)
+                    this.setState({ locateTree: 'on-site', switchValue: true })
                 } else {
                     this.pushMaker(currentCoords)
                     this.setState({ locateTree: 'off-site', switchValue: false })
