@@ -4,7 +4,7 @@ import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinateSingleRegisterTree } from '../../Actions';
+import { addCoordinateSingleRegisterTree, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -30,6 +30,9 @@ class MapMarking extends React.Component {
         loader: false,
         locateTree: '',
         markedCoords: null,
+        locateTree: 'on-site',
+        switchValue: true,
+
     }
 
 
@@ -44,6 +47,13 @@ class MapMarking extends React.Component {
     }
 
     componentDidMount() {
+        const { inventoryID } = this.props;
+        getInventory({ inventoryID: inventoryID }).then((inventory) => {
+            if (inventory) {
+                const { latitude, longitude } = inventory.polygons[0].coordinates[0];
+                this.setState({ markedCoords: [longitude, latitude] })
+            }
+        })
     }
 
 
@@ -93,11 +103,11 @@ class MapMarking extends React.Component {
                 if (distanceInMeters < 100) {
                     this.pushMaker(currentCoords)
                 } else {
-                    alert(`You are very far from your current location.`)
+                    this.pushMaker(currentCoords)
+                    this.setState({ locateTree: 'off-site', switchValue: false })
                 }
             }, (err) => alert(err.message));
         } catch (err) {
-            alert('console 3')
             alert(JSON.stringify(err))
         }
 
@@ -172,29 +182,45 @@ class MapMarking extends React.Component {
 
     onPressContinue = () => {
         this.setState({ isAlrightyModalShow: false }, () => {
-            const { inventoryID, updateScreenState } = this.props;
-            const { markedCoords, } = this.state;
+            const { inventoryID, updateScreenState, navigation } = this.props;
+            const { markedCoords, switchValue } = this.state;
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
                 addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    updateScreenState('ImageCapturing')
+                    console.log('switchValue', switchValue)
+                    if (!switchValue) {
+                        navigation.navigate('SingleTreeOverview')
+                    } else {
+                        updateScreenState('ImageCapturing')
+                    }
                 })
 
             }, (err) => alert(err.message));
 
         })
     }
+
+
     renderAlrightyModal = () => {
-        const { isAlrightyModalShow } = this.state
+        const { isAlrightyModalShow, locateTree, switchValue, } = this.state
         const { updateScreenState } = this.props
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
+        const onChangeSwitch = () => {
+            this.setState({ switchValue: !switchValue })
+        }
+        let switchShouldDisable = false
+        if (locateTree == 'off-site') {
+            switchShouldDisable = true;
+        }
+
+        console.log('locateTree', switchShouldDisable, locateTree)
         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={'Now, please tap continue to take picture of tree'} />
+                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={'Now, please tap continue to take picture of tree'} switchShouldDisable={switchShouldDisable} isShowSwitch onChangeSwitch={onChangeSwitch} switchValue={switchValue} />
                 </View>
             </Modal>
         )
