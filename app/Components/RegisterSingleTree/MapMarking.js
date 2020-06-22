@@ -188,8 +188,7 @@ class MapMarking extends React.Component {
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
                 addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    console.log('switchValue', switchValue)
-                    if (!switchValue) {
+                     if (!switchValue) {
                         navigation.navigate('SingleTreeOverview')
                     } else {
                         updateScreenState('ImageCapturing')
@@ -214,8 +213,6 @@ class MapMarking extends React.Component {
         if (locateTree == 'off-site') {
             switchShouldDisable = true;
         }
-
-        console.log('locateTree', switchShouldDisable, locateTree)
         return (
             <Modal
                 animationType={'slide'}

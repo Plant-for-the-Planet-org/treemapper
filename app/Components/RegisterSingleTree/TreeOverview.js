@@ -7,7 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { updateLastScreen, getInventory, statusToPending } from '../../Actions'
+import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, updateSpeceiDiameter } from '../../Actions'
 import { store } from '../../Actions/store';
 
 const SingleTreeOverview = ({ navigation }) => {
@@ -17,13 +17,18 @@ const SingleTreeOverview = ({ navigation }) => {
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isSpeciesEnable, setIsSpeciesEnable] = useState(false)
 
+    const [specieText, setSpecieText] = useState('')
+    const [specieDiameter, setSpecieDiameter] = useState('')
+
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-                // console.log('inventory===', inventory)
                 inventory.species = Object.values(inventory.species);
                 inventory.polygons = Object.values(inventory.polygons);
                 setInventory(inventory)
+                setSpecieText(inventory.specei_name)
+                setSpecieDiameter(inventory.specei_diameter)
             })
 
         });
@@ -32,8 +37,25 @@ const SingleTreeOverview = ({ navigation }) => {
         updateLastScreen(data)
     }, [])
 
+
+    const onSubmitInputFeild = (action) => {
+        if (action === 'specieText') {
+            updateSpeceiName({ inventory_id: state.inventoryID, specieText: specieText })
+        } else {
+            updateSpeceiDiameter({ inventory_id: state.inventoryID, speceisDiameter: Number(specieDiameter) })
+        }
+    }
+
+    const onPressNextIcon = () => {
+        setIsOpenModal(false)
+        if (isSpeciesEnable) {
+            onSubmitInputFeild('specieText')
+        } else {
+            onSubmitInputFeild('specieDiameter')
+        }
+    }
+
     const renderinputModal = () => {
-        console.log(isOpenModal, 'isOpenModal')
         return (
             <Modal transparent={true} visible={isOpenModal}>
                 <View style={{ flex: 1 }}>
@@ -44,9 +66,9 @@ const SingleTreeOverview = ({ navigation }) => {
                             style={{ backgroundColor: '#fff' }}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
-                                {isSpeciesEnable && <TextInput style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} />}
-                                {!isSpeciesEnable && <TextInput style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} />}
-                                <MCIcon onPress={() => { setIsOpenModal(false) }} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
+                                {isSpeciesEnable && <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />}
+                                {!isSpeciesEnable && <TextInput value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
+                                <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
                             <SafeAreaView />
                         </KeyboardAvoidingView>
@@ -66,7 +88,10 @@ const SingleTreeOverview = ({ navigation }) => {
     }
 
     const renderDetails = ({ polygons }) => {
-        let coords = polygons[0].coordinates[0]
+        let coords = polygons[0].coordinates[0];
+        let shouldEdit = inventory.status !== 'pending'
+        console.log(shouldEdit, 'shouldEdit')
+
         return (<View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
             <View>
                 <Text style={styles.detailHeader}>LOCATION</Text>
@@ -74,15 +99,15 @@ const SingleTreeOverview = ({ navigation }) => {
             </View>
             <View style={{ marginVertical: 5 }}>
                 <Text style={styles.detailHeader}>SPECEIS</Text>
-                <TouchableOpacity onPress={() => onPressEditSpeceis('species')}>
-                    <Text style={styles.detailText}>Unable to identify <MIcon name={'edit'} size={20} /></Text>
+                <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpeceis('species')}>
+                    <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                 </TouchableOpacity>
             </View>
             <View style={{ marginVertical: 5 }}>
                 <Text style={styles.detailHeader}>DIAMETER</Text>
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpeceis('diameter')}>
+                <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpeceis('diameter')}>
                     <FIcon name={'arrow-h'} style={styles.detailText} />
-                    <Text style={styles.detailText}>unable to identify  <MIcon name={'edit'} size={20} /></Text>
+                    <Text style={styles.detailText}>{specieDiameter ? specieDiameter : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                 </TouchableOpacity>
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ alignItems: 'flex-end' }}>
@@ -116,7 +141,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
                     {inventory && <View style={{ width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden' }}>
                         <Image source={imageSource} style={{ width: '100%', height: '100%' }} />
-                        <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={{  position: 'absolute', width: '100%', height: '100%' }}>
+                        <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={{ position: 'absolute', width: '100%', height: '100%' }}>
                             {renderDetails(inventory)}
                         </LinearGradient>
                     </View>}

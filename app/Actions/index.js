@@ -53,7 +53,9 @@ const Inventory = {
         locate_tree: 'string?',
         last_screen: 'string?',
         species: 'Species[]',
-        polygons: 'Polygons[]'
+        polygons: 'Polygons[]',
+        specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+        specei_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
     }
 };
 
@@ -70,6 +72,36 @@ export const getAreaName = ({ coords }) => {
     })
 }
 
+export const updateSpeceiName = ({ inventory_id, specieText }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    inventory.specei_name = specieText
+                })
+                resolve()
+            }).catch((err) => {
+                console.log(err)
+                reject(err)
+                bugsnag.notify(err)
+            });
+    })
+}
+
+export const updateSpeceiDiameter = ({ inventory_id, speceisDiameter }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    inventory.specei_diameter = speceisDiameter
+                })
+                resolve()
+            }).catch(bugsnag.notify);
+    })
+}
+
 export const getAllOfflineMaps = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [OfflineMaps] })
@@ -78,7 +110,7 @@ export const getAllOfflineMaps = () => {
                     const offlineMaps = realm.objects('OfflineMaps');
                     resolve(JSON.parse(JSON.stringify(offlineMaps)))
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -92,7 +124,7 @@ export const deleteOfflineMap = ({ name }) => {
                     realm.delete(offlineMaps)
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -109,7 +141,7 @@ export const createOfflineMap = ({ name, size, areaName }) => {
                     })
                     resolve(name)
                 })
-                
+
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -130,7 +162,7 @@ export const initiateInventory = ({ treeType }) => {
                     })
                     resolve(inventoryID)
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -146,7 +178,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
                     }, 'modified')
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -163,7 +195,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
                     }, 'modified')
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -179,7 +211,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -193,7 +225,7 @@ export const polygonUpdate = ({ inventory_id }) => {
                     inventory.polygons[0].isPolygonComplete = true;
                     resolve()
                 })
-                
+
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -212,7 +244,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
                     inventory.polygons[0].coordinates[0].imageUrl = imageUrl
                     resolve()
                 })
-                
+
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -236,7 +268,7 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                     }]
                     resolve()
                 })
-                
+
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -273,7 +305,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
 
                     resolve()
                 })
-                
+
             }).catch((err) => {
                 reject(err)
                 bugsnag.notify(err)
@@ -289,7 +321,7 @@ export const getAllInventory = () => {
                     const Inventory = realm.objects('Inventory');
                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -302,7 +334,7 @@ export const getInventory = ({ inventoryID }) => {
                     let inventory = realm.objectForPrimaryKey('Inventory', inventoryID)
                     resolve(JSON.parse(JSON.stringify(inventory)))
                 })
-                
+
             }).catch((err) => {
                 console.log(err)
                 bugsnag.notify(err)
@@ -322,7 +354,7 @@ export const statusToPending = ({ inventory_id }) => {
                     const Inventory = realm.objects('Inventory');
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -347,7 +379,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
 
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -363,7 +395,7 @@ export const getCoordByIndex = ({ inventory_id, index, }) => {
                     let coordsLength = coords.length
                     resolve({ coordsLength, coord: coords[index] })
                 })
-                
+
             }).catch(bugsnag.notify);
     })
 }
@@ -381,7 +413,7 @@ export const removeLastCoord = ({ inventory_id }) => {
                     inventory.polygons = polygons;
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
 
     })
@@ -396,7 +428,7 @@ export const clearAllInventory = () => {
                     realm.delete(allInventory); // Delete Inventory\
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
 
     })
@@ -413,7 +445,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
-                
+
             }).catch(bugsnag.notify);
 
     })
