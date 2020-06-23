@@ -259,7 +259,7 @@ class MapMarking extends React.Component {
                         <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={{ width: '90%', }} />
                     </View>
                 </View>
-                <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, .0)', 'rgba(255, 255, 255, 0)']} >
+                <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
                     <Header onBackPress={this.onPressBack} headingText={`Tree Location`} />
                 </LinearGradient>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         position: 'absolute',
         top: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        backgroundColor: 'rgba(255, 255, 255, 0)',
         width: '100%'
     },
     fakeMarkerCont: {
