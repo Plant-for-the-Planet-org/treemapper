@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, ScrollView, Modal, ActivityIndicator } from 're
 import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { getAreaName, createOfflineMap } from "../../Actions";
+import { getAreaName, createOfflineMap, getAllOfflineMaps } from "../../Actions";
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Geolocation from '@react-native-community/geolocation';
@@ -13,13 +13,21 @@ MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 const DownloadMap = ({ navigation }) => {
     const [isLoaderShow, setIsLoaderShow] = useState(false)
     const [areaName, setAreaName] = useState('')
+    const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0)
 
     const MapBoxGLRef = useRef();
     const MapBoxGLCameraRef = useRef();
 
     useEffect(() => {
-
+        navigation.addListener('focus', () => {
+            getAllOfflineMaps()
+        })
     }, [])
+
+    const getAllOfflineMaps = async () => {
+        const packs = await MapboxGL.offlineManager.getPacks()
+        setNumberOfOfflineMaps(packs.length)
+    }
 
     const initialMapCamera = () => {
         Geolocation.getCurrentPosition(position => {
@@ -45,6 +53,7 @@ const DownloadMap = ({ navigation }) => {
                 if (status.percentage == 100) {
                     createOfflineMap({ name: offllineMapId, size: status.completedTileSize, areaName: areaName }).then(() => {
                         setTimeout(() => alert('Map download complete'), 0)
+                        getAllOfflineMaps()
                         setIsLoaderShow(false)
                         setAreaName('')
                     })
@@ -106,10 +115,11 @@ const DownloadMap = ({ navigation }) => {
                     </MapboxGL.MapView>
                     {/* <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.1)' }} /> */}
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <PrimaryButton onPress={onPressViewAll} btnText={'View all'} halfWidth theme={'white'} />
-                    <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
-                </View>
+                {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'DOWNLOAD'} /> :
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                        <PrimaryButton onPress={onPressViewAll} btnText={'View all'} halfWidth theme={'white'} />
+                        <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
+                    </View>}
             </View>
             {renderLoaderModal()}
         </SafeAreaView>
