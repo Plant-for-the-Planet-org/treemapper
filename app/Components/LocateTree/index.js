@@ -80,7 +80,7 @@ const LocateTree = ({ navigation }) => {
         return (
             <Modal animationType={'slide'} visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressContinue={onPressContinue} onPressWhiteButton={onPressClose} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`Now, lets get to the next location Click the continue when ready`} />
+                    <Alrighty onPressContinue={onPressContinue} onPressWhiteButton={onPressClose} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`lets go to the first location click the continue when ready`} />
                 </View>
             </Modal>
         )

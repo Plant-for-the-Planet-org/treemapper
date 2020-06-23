@@ -6,24 +6,7 @@ import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets'
 
 
-const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, switchValue, onChangeSwitch, isShowSwitch, switchShouldDisable }) => {
-
-
-    const renderSwitch = () => {
-        return (isShowSwitch && <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.switchLabel}>off-site</Text>
-            <Switch
-                disabled={switchShouldDisable}
-                trackColor={{ false: "#767577", true: Colors.PRIMARY }}
-                thumbColor={switchValue ? 'green' : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={onChangeSwitch}
-                value={switchValue}
-                style={{ marginHorizontal: 20 }}
-            />
-            <Text style={styles.switchLabel}>on-site</Text>
-        </View>)
-    }
+const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton,  }) => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -33,7 +16,6 @@ const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLe
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                         <Image source={alrighty_banner} />
                         <Header hideBackIcon headingText={heading} subHeadingText={subHeading} textAlignStyle={{ textAlign: 'center' }} />
-                        {renderSwitch()}
                     </View>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

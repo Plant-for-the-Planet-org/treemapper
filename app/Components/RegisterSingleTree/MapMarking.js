@@ -28,10 +28,8 @@ class MapMarking extends React.Component {
         centerCoordinates: [0, 0],
         activePolygonIndex: 0,
         loader: false,
-        locateTree: '',
         markedCoords: null,
         locateTree: 'on-site',
-        switchValue: true,
 
     }
 
@@ -102,10 +100,10 @@ class MapMarking extends React.Component {
 
                 if (distanceInMeters < 100) {
                     this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'on-site', switchValue: true })
+                    this.setState({ locateTree: 'on-site', })
                 } else {
                     this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'off-site', switchValue: false })
+                    this.setState({ locateTree: 'off-site', })
                 }
             }, (err) => alert(err.message));
         } catch (err) {
@@ -184,11 +182,11 @@ class MapMarking extends React.Component {
     onPressContinue = () => {
         this.setState({ isAlrightyModalShow: false }, () => {
             const { inventoryID, updateScreenState, navigation } = this.props;
-            const { markedCoords, switchValue } = this.state;
+            const { markedCoords, locateTree } = this.state;
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
                 addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                     if (!switchValue) {
+                    if (locateTree == 'off-site') {
                         navigation.navigate('SingleTreeOverview')
                     } else {
                         updateScreenState('ImageCapturing')
@@ -202,23 +200,20 @@ class MapMarking extends React.Component {
 
 
     renderAlrightyModal = () => {
-        const { isAlrightyModalShow, locateTree, switchValue, } = this.state
+        const { isAlrightyModalShow, locateTree, } = this.state
         const { updateScreenState } = this.props
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
-        const onChangeSwitch = () => {
-            this.setState({ switchValue: !switchValue })
-        }
-        let switchShouldDisable = false
+        let subHeading = `Now, please tap continue to take picture of tree`;
         if (locateTree == 'off-site') {
-            switchShouldDisable = true;
+            subHeading = `Now, please tap continue to see overview of tree`;
         }
         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={'Now, please tap continue to take picture of tree'} switchShouldDisable={switchShouldDisable} isShowSwitch onChangeSwitch={onChangeSwitch} switchValue={switchValue} />
+                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={''} />
                 </View>
             </Modal>
         )

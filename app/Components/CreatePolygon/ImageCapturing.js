@@ -28,10 +28,6 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
             if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
-            // if (activeMarkerIndex < coordsLength) {
-            //     alert(activeMarkerIndex + 'naisir' + coordsLength)
-            //     setIsAlrightyModalShow(true)
-            // }
          })
     }, [])
 
