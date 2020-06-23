@@ -137,7 +137,7 @@ const SingleTreeOverview = ({ navigation }) => {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             {renderinputModal()}
             <View style={styles.container}>
-                <Header headingText={'Tree Details'} />
+                <Header closeIcon headingText={'Tree Details'} />
                 <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
                     {inventory && <View style={{ width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden' }}>
                         <Image source={imageSource} style={{ width: '100%', height: '100%' }} />

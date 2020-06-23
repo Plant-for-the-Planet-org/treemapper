@@ -43,37 +43,7 @@ const LocateTree = ({ navigation }) => {
     }
 
     const onPressSelectCoordinates = async () => {
-        // Pick a single file
-        try {
-            const res = await DocumentPicker.pick({
-                type: [DocumentPicker.types.allFiles],
-            });
-            RNFetchBlob.fs.readFile(res.uri, 'utf88')
-                .then((data) => {
-                    let geoJSON = JSON.parse(data)
-                    try {
-                        Geolocation.getCurrentPosition(position => {
-                            let { latitude, longitude } = position.coords;
-                            let data = { inventory_id: state.inventoryID, geoJSON: geoJSON, currentCoords: { latitude, longitude } };
-                            addCoordinates(data).then(() => {
-                                addLocateTree({ inventory_id: state.inventoryID, locate_tree: locateTree }).then(() => {
-                                    navigation.navigate('CreatePolygon')
-                                })
-                            }).catch((err) => console.log(err))
-                        }, (err) => alert(err.message))
-                    }
-                    catch (err) {
-                        alert(JSON.stringify(err))
-                    }
-                })
-
-        } catch (err) {
-            if (DocumentPicker.isCancel(err)) {
-                // User cancelled the picker, exit any dialogs or menus and move on
-            } else {
-                throw err;
-            }
-        }
+        navigation.navigate('SelectCoordinates')
     }
 
     const renderAlrightyModal = () => {

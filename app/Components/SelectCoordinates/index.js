@@ -22,7 +22,7 @@ const infographicText = [
 ]
 const IS_ANDROID = Platform.OS == 'android';
 
-class MapMarking extends React.Component {
+class SelectCoordinates extends React.Component {
     state = {
         isAlrightyModalShow: false,
         centerCoordinates: [0, 0],
@@ -41,20 +41,7 @@ class MapMarking extends React.Component {
 
             });
         }
-
     }
-
-    componentDidMount() {
-        const { inventoryID } = this.props;
-        getInventory({ inventoryID: inventoryID }).then((inventory) => {
-            if (inventory) {
-                const { latitude, longitude } = inventory.polygons[0].coordinates[0];
-                this.setState({ markedCoords: [longitude, latitude] })
-            }
-        })
-    }
-
-
 
     renderFakeMarker = () => {
         return (
@@ -88,7 +75,7 @@ class MapMarking extends React.Component {
     }
 
     addMarker = async () => {
-        let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
+        let { centerCoordinates } = this.state;
         // Check distance 
         try {
             Geolocation.getCurrentPosition(position => {
@@ -186,13 +173,8 @@ class MapMarking extends React.Component {
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
                 addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    if (locateTree == 'off-site') {
-                        navigation.navigate('SingleTreeOverview')
-                    } else {
-                        updateScreenState('ImageCapturing')
-                    }
+                    navigation.navigate('InventoryOverview')
                 })
-
             }, (err) => alert(err.message));
 
         })
@@ -268,7 +250,7 @@ export default function (props) {
     const navigation = useNavigation();
     const globalState = useContext(store);
     const { state } = globalState;
-    return <MapMarking {...props} {...state} navigation={navigation} />;
+    return <SelectCoordinates {...props} {...state} navigation={navigation} />;
 };
 
 const styles = StyleSheet.create({

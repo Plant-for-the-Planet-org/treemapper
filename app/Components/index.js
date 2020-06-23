@@ -11,5 +11,6 @@ import SavedAreas from './SavedAreas';
 import DownloadMap from './DownloadMap';
 import RegisterSingleTree from './RegisterSingleTree';
 import SingleTreeOverview from './RegisterSingleTree/TreeOverview';
+import SelectCoordinates from './SelectCoordinates';
 
-export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview };
+export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates };
