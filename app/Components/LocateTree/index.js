@@ -23,12 +23,24 @@ const LocateTree = ({ navigation }) => {
 
     const [locateTree, setLocateTree] = useState('on-site');
     const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+    const [isSelectCoordinates, setIsSelectCoordinates] = useState(false);
 
-    const onPressItem = (value) => setLocateTree(value);
+    const onPressItem = (value) => {
+        setIsSelectCoordinates(false)
+        setLocateTree(value);
+    }
 
     const onPressContinue = () => {
         if (isAlrightyModalShow) {
             let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+            if (isSelectCoordinates) {
+                data.locate_tree = 'off-site';
+                addLocateTree(data).then(() => {
+                    navigation.navigate('SelectCoordinates')
+                    setIsAlrightyModalShow(false)
+                })
+                return;
+            }
             addLocateTree(data).then(() => {
                 navigation.navigate('CreatePolygon')
                 setIsAlrightyModalShow(false)
@@ -43,7 +55,8 @@ const LocateTree = ({ navigation }) => {
     }
 
     const onPressSelectCoordinates = async () => {
-        navigation.navigate('SelectCoordinates')
+        onPressItem('')
+        setIsSelectCoordinates(true)
     }
 
     const renderAlrightyModal = () => {
@@ -63,7 +76,7 @@ const LocateTree = ({ navigation }) => {
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
                     <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
-                    <LargeButton onPress={onPressSelectCoordinates} heading={'Select Coordinates'} active={false} medium />
+                    <LargeButton onPress={onPressSelectCoordinates} heading={'Select Coordinates'} active={isSelectCoordinates} medium />
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
