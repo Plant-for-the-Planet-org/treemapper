@@ -1,14 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
+import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { addLocateTree, updateLastScreen, addCoordinates } from '../../Actions'
+import { addLocateTree, updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store';
 import JailMonkey from 'jail-monkey';
-import DocumentPicker from 'react-native-document-picker';
-import RNFetchBlob from 'rn-fetch-blob';
-import Geolocation from '@react-native-community/geolocation';
 
 
 const LocateTree = ({ navigation }) => {
@@ -62,7 +59,7 @@ const LocateTree = ({ navigation }) => {
     const renderAlrightyModal = () => {
         return (
             <Modal animationType={'slide'} visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.cont}>
                     <Alrighty onPressContinue={onPressContinue} onPressWhiteButton={onPressClose} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`lets go to the first location click the continue when ready`} />
                 </View>
             </Modal>
@@ -70,7 +67,7 @@ const LocateTree = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
                 <Header headingText={'Locate Trees'} />
                 <ScrollView showsVerticalScrollIndicator={false}>
@@ -92,6 +89,12 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    mainContainer: {
+        flex: 1, backgroundColor: Colors.WHITE
+    },
+    cont: {
+        flex: 1,
     },
     addSpecies: {
         color: Colors.ALERT,

@@ -9,18 +9,19 @@ import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
 
     const onPressActiveButton = () => {
-        onPressActiveBtn(data.index)
+        if(onPressActiveBtn)
+            onPressActiveBtn(data.index)
     }
 
     return (
-        <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 10 }}>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={styles.container}>
+            <View style={styles.imageContainer}>
                 <Image source={activeBtn ? placeholder_image : tree} resizeMode={'stretch'} />
             </View>
-            <View style={{ flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20 }}>
+            <View style={styles.contentContainer}>
                 <Text style={styles.subHeadingText}>{data.title}</Text>
                 <Text style={styles.subHeadingText}>{data.measurement}</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <View style={styles.actionBtnContainer}>
                     <Text style={[styles.subHeadingText, activeBtn && styles.activeText]} onPress={onPressActiveButton}>{data.date}</Text>
                     {icon && <MCIcons name={'cloud-outline'} size={22} style={styles.activeText} />}
                 </View>
@@ -31,6 +32,18 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
 export default InventoryCard;
 
 const styles = StyleSheet.create({
+    container :{
+        height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 10
+    },
+    imageContainer :{
+        flex: 1, justifyContent: 'center', alignItems: 'center'
+    },
+    contentContainer:{
+        flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
+    },
+    actionBtnContainer :{
+        flexDirection: 'row', justifyContent: 'space-between'
+    },
     subHeadingText: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_16,

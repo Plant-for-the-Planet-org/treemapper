@@ -274,7 +274,7 @@ class MapMarking extends React.Component {
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
         return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
-                <Ionicons style={{}} name={'md-locate'} size={22} />
+                <Ionicons name={'md-locate'} size={22} />
             </View>
         </TouchableOpacity>
     }
@@ -310,7 +310,7 @@ class MapMarking extends React.Component {
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.mainContainer}>
                     <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
@@ -354,7 +354,7 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={styles.bottonBtnContainer} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'transparent']} >
@@ -376,6 +376,9 @@ export default function (props) {
 };
 
 const styles = StyleSheet.create({
+    mainContainer: {
+        flex: 1
+    },
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
@@ -385,6 +388,9 @@ const styles = StyleSheet.create({
     },
     completePolygonBtnCont: {
         flexDirection: 'row', position: 'absolute', bottom: 80, backgroundColor: 'transparent', width: '100%', justifyContent: 'center',
+    },
+    bottonBtnContainer: {
+        width: '90%',
     },
     headerCont: {
         paddingHorizontal: 25,
@@ -405,10 +411,10 @@ const styles = StyleSheet.create({
         position: 'absolute', bottom: 67
     },
     activeMarkerLocation: {
-        position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
+        position: 'absolute', bottom: 67, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16
     },
     myLocationIcon: {
-        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
+        width: 45, height: 45, backgroundColor: Colors.WHITE, position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
     },
     myLocationIconContainer: {
         top: 1.5, left: 0.8,
@@ -417,7 +423,7 @@ const styles = StyleSheet.create({
         width: 30, height: 43, paddingBottom: 85,
     },
     markerText: {
-        width: 30, height: 43, color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+        width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
     }
 })
 

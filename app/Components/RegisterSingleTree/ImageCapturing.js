@@ -60,11 +60,11 @@ const ImageCapturing = ({ updateScreenState }) => {
 
 
     const renderAlrightyModal = () => {
-         return (
+        return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.cont}>
                     <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={'Alrighty!'} subHeading={'Now, please tap to see tree overview'} />
                 </View>
             </Modal>
@@ -73,7 +73,7 @@ const ImageCapturing = ({ updateScreenState }) => {
 
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
-            <View style={{ marginHorizontal: 25 }}>
+            <View style={styles.screenMargin}>
                 <Header onBackPress={onBackPress} closeIcon headingText={`Location A`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={styles.container}>
@@ -100,10 +100,10 @@ const ImageCapturing = ({ updateScreenState }) => {
                     <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <View style={styles.imageBelowTextContainer}>
                 <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
             </View>
-            <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
+            <View style={styles.bottomBtnsContainer}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
@@ -117,7 +117,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
-
+    },
+    cont: {
+        flex: 1
+    },
+    imageBelowTextContainer: {
+        justifyContent: 'center', alignItems: 'center', marginVertical: 20
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between'
+    },
+    screenMargin: {
+        marginHorizontal: 25
     },
     addSpecies: {
         color: Colors.ALERT,

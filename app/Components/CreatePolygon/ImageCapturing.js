@@ -28,7 +28,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
             if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
-         })
+        })
     }, [])
 
     const onPressCamera = async () => {
@@ -68,10 +68,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onBackPress = () => {
-        // alert('onBackPress')
-        // removeLastCoord({ inventory_id: state.inventoryID, }).then(() => {
         toggleState()
-        // })
     }
 
     const onPressCompletePolygon = () => {
@@ -88,7 +85,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.mainContainer}>
                     <Alrighty coordsLength={activeMarkerIndex} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
@@ -97,7 +94,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
-            <View style={{ marginHorizontal: 25 }}>
+            <View style={styles.screenMargin}>
                 <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={styles.container}>
@@ -124,10 +121,10 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                     <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                 </TouchableOpacity>
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <View style={styles.cameraBelowTextContainer}>
                 <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
             </View>
-            <View style={{ flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between' }}>
+            <View style={styles.bottomBtnsContainer}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
@@ -138,10 +135,21 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 export default ImageCapturing;
 
 const styles = StyleSheet.create({
+    mainContainer: {
+        flex: 1
+    },
+    screenMargin: {
+        marginHorizontal: 25
+    },
+    cameraBelowTextContainer: {
+        justifyContent: 'center', alignItems: 'center', marginVertical: 20
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between'
+    },
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
-
     },
     addSpecies: {
         color: Colors.ALERT,

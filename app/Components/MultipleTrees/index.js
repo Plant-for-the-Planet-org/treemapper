@@ -104,9 +104,9 @@ const MultipleTrees = ({ navigation, route }) => {
 
     let shouldDisable = totalTreeCount < 2
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <ScrollView keyboardShouldPersistTaps={'always'} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps={'always'} style={styles.cont} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
                     <TouchableOpacity onPress={() => setShowDate(true)}>
                         <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
@@ -120,7 +120,7 @@ const MultipleTrees = ({ navigation, route }) => {
                     <TouchableOpacity onPress={addSpecies}>
                         <Text style={styles.addSpecies}>+ Add Species</Text>
                     </TouchableOpacity>
-                    <View style={{ flex: 1 }} />
+                    <View style={styles.cont} />
                 </ScrollView>
                 <PrimaryButton disabled={shouldDisable} onPress={onPressContinue} btnText={'Save & Continue'} />
             </View>
@@ -134,6 +134,10 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    cont: { flex: 1 },
+    mainContainer: {
+        flex: 1, backgroundColor: '#fff'
     },
     addSpecies: {
         color: Colors.ALERT,

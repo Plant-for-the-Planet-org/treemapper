@@ -41,7 +41,6 @@ const DownloadMap = ({ navigation }) => {
     }
 
     const onPressDownloadArea = async () => {
-
         let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`
 
         setIsLoaderShow(true)
@@ -83,9 +82,9 @@ const DownloadMap = ({ navigation }) => {
             <Modal
                 transparent
                 visible={isLoaderShow}>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)', }}>
-                    <View style={{ backgroundColor: '#fff', width: 250, justifyContent: 'center', alignItems: 'center', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 20, }}>
-                        <ActivityIndicator size={40} style={{ backgroundColor: '#fff', borderRadius: 20, marginVertical: 20 }} />
+                <View style={styles.dowloadModalContainer}>
+                    <View style={styles.contentContainer}>
+                        <ActivityIndicator size={40} style={styles.loader} />
                         <Text style={{ fontSize: 16, textAlign: 'center' }}>{areaName}</Text>
                     </View>
                 </View>
@@ -98,25 +97,23 @@ const DownloadMap = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
                 <Header headingText={'Download this area?'} />
-                <View style={{ flex: 1, backgroundColor: '#fff', marginHorizontal: -25, overflow: 'hidden' }}>
+                <View style={styles.mapViewContainer}>
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={initialMapCamera}
                         ref={MapBoxGLRef}
                         style={{ flex: 1, marginVertical: 10 }}
                         styleURL={MapboxGL.StyleURL.Street}
                         zoomLevel={15}
-                        centerCoordinate={[11.256, 43.77]}
-                    >
+                        centerCoordinate={[11.256, 43.77]}>
                         <MapboxGL.UserLocation showsUserHeadingIndicator />
                         <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
-                    {/* <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.1)' }} /> */}
                 </View>
                 {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'DOWNLOAD'} /> :
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                    <View style={styles.bottomBtnsContainer}>
                         <PrimaryButton onPress={onPressViewAll} btnText={'View all'} halfWidth theme={'white'} />
                         <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
                     </View>}
@@ -132,6 +129,24 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    mapViewContainer :{
+        flex: 1, backgroundColor: Colors.WHITE, marginHorizontal: -25, overflow: 'hidden'
+    },
+    mainContainer: {
+        flex: 1, backgroundColor: Colors.WHITE
+    },
+    dowloadModalContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    contentContainer: {
+        backgroundColor: Colors.WHITE, width: 250, justifyContent: 'center', alignItems: 'center', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 20,
+    },
+    loader: {
+        backgroundColor: Colors.WHITE, borderRadius: 20, marginVertical: 20
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', justifyContent: 'space-around'
     },
     addSpecies: {
         color: Colors.ALERT,

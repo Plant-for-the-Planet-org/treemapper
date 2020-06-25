@@ -10,6 +10,7 @@ import { marker_png } from '../../assets';
 import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Colors  } from '_styles';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -96,15 +97,15 @@ const InventoryOverview = ({ navigation, }) => {
 
     const renderViewLOCModal = () => {
         return (
-            <Modal transparent visible={isLOCModalOpen}>
+            <Modal transparent visible={isLOCModalOpen} animationType={'slide'}>
                 <SafeAreaView />
-                <View style={{ flex: 1, backgroundColor: '#fff' }}>
-                    <View style={{ marginHorizontal: 25 }}>
+                <View style={styles.mainContainer}>
+                    <View style={styles.screenMargin}>
                         <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationTitle}`} />
                     </View>
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={focusMarker}
-                        style={{ flex: 1 }}>
+                        style={styles.cont}>
                         <MapboxGL.Camera ref={cameraRef} />
                         {selectedLOC && <MapboxGL.PointAnnotation id={`markerContainer1`} coordinate={selectedLOC}>
                             <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
@@ -202,10 +203,10 @@ const InventoryOverview = ({ navigation, }) => {
     const onPressDate = () => setShowDate(true)
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             {renderViewLOCModal()}
             <View style={styles.container}>
-                {inventory !== null ? <View style={{ flex: 1, }} >
+                {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
                         <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
@@ -215,7 +216,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
                     <View>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={styles.bottomBtnsContainer}>
                             <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
                             <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                         </View>
@@ -233,13 +234,25 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        backgroundColor: '#fff'
+        backgroundColor: Colors.WHITE
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', justifyContent: 'space-between'
+    },
+    cont: {
+        flex: 1
+    },
+    mainContainer: {
+        flex: 1, backgroundColor: Colors.WHITE
     },
     markerContainer: {
         width: 30, height: 43, paddingBottom: 85,
     },
     markerText: {
-        width: 30, height: 43, color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+        width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+    },
+    screenMargin : {
+        marginHorizontal: 25 
     }
 
 })

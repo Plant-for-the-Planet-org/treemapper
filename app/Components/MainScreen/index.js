@@ -34,7 +34,7 @@ const MainScreen = ({ navigation }) => {
     const renderVideoModal = () => {
         return (
             <Modal visible={isModalVisible} animationType={'slide'}>
-                <View style={{ flex: 1, backgroundColor: '#000', padding: 30 }}>
+                <View style={styles.modalContainer}>
                     <Ionicons name={'md-close'} size={30} color={Colors.WHITE} onPress={onPressLearn} style={styles.closeIcon} />
                     {isModalVisible && <Video
                         repeat={true}
@@ -82,6 +82,9 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    modalContainer: {
+        flex: 1, backgroundColor: '#000', padding: 30
     },
     addSpecies: {
         color: Colors.ALERT,
