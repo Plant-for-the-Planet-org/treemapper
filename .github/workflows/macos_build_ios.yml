@@ -39,9 +39,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node2-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node2-
+          ${{ runner.os }}-node-treeinventory-
 
     - name: Install npm
       run : |
@@ -55,13 +55,13 @@ jobs:
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
         echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
 
-#    - name: Caching Pods
-#      uses: actions/cache@v1
-#      with:
-#        path: ios/Pods
-#        key: ${{ runner.os }}-pods2-${{ hashFiles('ios/Podfile.lock') }}
-#        restore-keys: |
-#          ${{ runner.os }}-pods2-
+    - name: Caching Pods
+      uses: actions/cache@v1
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-treeinventory-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-treeinventory-
 
     - name: Install Pods
       run: pod install

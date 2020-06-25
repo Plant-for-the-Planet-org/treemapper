@@ -19,9 +19,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node2-
+            ${{ runner.os }}-node-treeinventory-
 
       - name: Install npm dependencies
         run: |
@@ -39,9 +39,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node2-
+            ${{ runner.os }}-node-treeinventory-
 
       - name: Install npm dependencies
         run: |
@@ -77,9 +77,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle2-${{ hashFiles('android/*.gradle') }}
+          key: ${{ runner.os }}-gradle-treeinventory-${{ hashFiles('android/*.gradle') }}
           restore-keys: |
-            ${{ runner.os }}-gradle2-
+            ${{ runner.os }}-gradle-treeinventory-
 
       - name: Build Android Release
         run: |
