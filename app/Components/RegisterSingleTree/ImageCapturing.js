@@ -96,11 +96,13 @@ const ImageCapturing = ({ updateScreenState }) => {
                         </View>
                     }
                 </View>
-                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
-                    <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer}>
+                    <View style={styles.cameraIconCont}>
+                        <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+                    </View>
                 </TouchableOpacity>
             </View>
-            <View style={styles.imageBelowTextContainer}>
+            <View style={[styles.imageBelowTextContainer, { zIndex: -10 }]}>
                 <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
             </View>
             <View style={styles.bottomBtnsContainer}>
@@ -143,6 +145,13 @@ const styles = StyleSheet.create({
         lineHeight: Typography.LINE_HEIGHT_30,
         textAlign: 'center'
     },
+    cameraIconContainer: {
+        position: 'absolute',
+        bottom: -45,
+        alignSelf: 'center',
+        width: 100, height: 100,
+        justifyContent: 'center', alignItems: 'center',
+     },
     cameraIconCont: {
         width: 55,
         height: 55,
@@ -152,11 +161,8 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'absolute',
-        bottom: '-7%',
-        right: '45%',
-        left: '45%',
     },
+
     cameraContainer: {
         flex: 1, backgroundColor: '#eee', overflow: 'hidden'
     }
