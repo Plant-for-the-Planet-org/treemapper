@@ -117,8 +117,10 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                         </View>
                     }
                 </View>
-                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconCont}>
-                    <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer}>
+                    <View style={styles.cameraIconCont}>
+                        <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+                    </View>
                 </TouchableOpacity>
             </View>
             <View style={styles.cameraBelowTextContainer}>
@@ -164,6 +166,13 @@ const styles = StyleSheet.create({
         lineHeight: Typography.LINE_HEIGHT_30,
         textAlign: 'center'
     },
+    cameraIconContainer: {
+        position: 'absolute',
+        bottom: -45,
+        alignSelf: 'center',
+        width: 100, height: 100,
+        justifyContent: 'center', alignItems: 'center',
+     },
     cameraIconCont: {
         width: 55,
         height: 55,
@@ -173,10 +182,6 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'absolute',
-        bottom: '-7%',
-        right: '45%',
-        left: '45%',
     },
     cameraContainer: {
         flex: 1, backgroundColor: '#eee', overflow: 'hidden'
