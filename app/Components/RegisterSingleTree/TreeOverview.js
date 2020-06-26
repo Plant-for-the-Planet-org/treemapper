@@ -7,8 +7,9 @@ import LinearGradient from 'react-native-linear-gradient';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, updateSpeceiDiameter } from '../../Actions'
+import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, updateSpeceiDiameter, updatePlantingDate } from '../../Actions'
 import { store } from '../../Actions/store';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const SingleTreeOverview = ({ navigation }) => {
 
@@ -16,9 +17,11 @@ const SingleTreeOverview = ({ navigation }) => {
     const [inventory, setInventory] = useState(null)
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isSpeciesEnable, setIsSpeciesEnable] = useState(false)
+    const [isShowDate, setIsShowDate] = useState(false)
+    const [plantationDate, setPLantationDate] = useState(new Date())
 
     const [specieText, setSpecieText] = useState('')
-    const [specieDiameter, setSpecieDiameter] = useState('')
+    const [specieDiameter, setSpecieDiameter] = useState('10')
 
 
     useEffect(() => {
@@ -29,8 +32,8 @@ const SingleTreeOverview = ({ navigation }) => {
                 setInventory(inventory)
                 setSpecieText(inventory.specei_name)
                 setSpecieDiameter(inventory.specei_diameter)
+                setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString())
             })
-
         });
 
         let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' }
@@ -63,7 +66,7 @@ const SingleTreeOverview = ({ navigation }) => {
                         <View style={{ flex: 1 }} />
                         <KeyboardAvoidingView
                             behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: '#fff' }}>
+                            style={{ backgroundColor: Colors.WHITE }}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
                                 {isSpeciesEnable && <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />}
@@ -87,39 +90,66 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
+    const renderDateModal = () => {
+
+        const onChangeDate = (e, selectedDate) => {
+            updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
+            setIsShowDate(false)
+            setPLantationDate(selectedDate)
+        }
+
+
+        return isShowDate && <DateTimePicker
+            testID="dateTimePicker1"
+            timeZoneOffsetInMinutes={0}
+            value={new Date(plantationDate)}
+            mode={'date'}
+            is24Hour={true}
+            display="default"
+            onChange={onChangeDate}
+        />
+    }
+
     const renderDetails = ({ polygons }) => {
         let coords = polygons[0].coordinates[0];
         let shouldEdit = inventory.status !== 'pending'
-        console.log(shouldEdit, 'shouldEdit')
+        console.log(inventory, 'shouldEdit')
 
-        return (<View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
-            <View>
-                <Text style={styles.detailHeader}>LOCATION</Text>
-                <Text style={styles.detailText}>{`${coords.latitude.toFixed(4)},${coords.longitude.toFixed(4)}`}</Text>
-            </View>
-            <View style={{ marginVertical: 5 }}>
-                <Text style={styles.detailHeader}>SPECEIS</Text>
-                <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpeceis('species')}>
-                    <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={{ marginVertical: 5 }}>
-                <Text style={styles.detailHeader}>DIAMETER</Text>
-                <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpeceis('diameter')}>
-                    <FIcon name={'arrow-h'} style={styles.detailText} />
-                    <Text style={styles.detailText}>{specieDiameter ? specieDiameter : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
-                </TouchableOpacity>
-                <View style={{ flexDirection: 'row' }}>
-                    <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={[styles.detailHeader, {}]}>{'CAPTURED CO'}</Text>
-                    </View>
-                    <View style={{ justifyContent: 'flex-start' }}>
-                        <Text style={{ fontSize: 10, color: Colors.WHITE }}>{'2'}</Text>
-                    </View>
+        return (
+            <View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
+                <View>
+                    <Text style={styles.detailHeader}>Planting Date</Text>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
+                        <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                    </TouchableOpacity>
                 </View>
-                <Text style={[styles.detailText, { color: Colors.PRIMARY }]}>200 kg</Text>
-            </View>
-        </View>)
+                <View>
+                    <Text style={styles.detailHeader}>LOCATION</Text>
+                    <Text style={styles.detailText}>{`${coords.latitude.toFixed(4)},${coords.longitude.toFixed(4)}`} </Text>
+                </View>
+                <View style={{ marginVertical: 5 }}>
+                    <Text style={styles.detailHeader}>SPECEIS</Text>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpeceis('species')}>
+                        <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={{ marginVertical: 5 }}>
+                    <Text style={styles.detailHeader}>DIAMETER</Text>
+                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpeceis('diameter')}>
+                        <FIcon name={'arrow-h'} style={styles.detailText} />
+                        <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                        <View style={{ alignItems: 'flex-end' }}>
+                            <Text style={[styles.detailHeader, {}]}>{'CAPTURED CO'}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'flex-start' }}>
+                            <Text style={{ fontSize: 10, color: Colors.WHITE }}>{'2'}</Text>
+                        </View>
+                    </View>
+                    <Text style={[styles.detailText, { color: Colors.PRIMARY }]}>200 kg</Text>
+                </View>
+            </View>)
     }
 
     const onPressContinue = () => {
@@ -134,19 +164,20 @@ const SingleTreeOverview = ({ navigation }) => {
         imageSource = filePath ? { uri: filePath } : placeholder_image
     }
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
+            {renderDateModal()}
             <View style={styles.container}>
                 <Header closeIcon headingText={'Tree Details'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-                    {inventory && <View style={{ width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden' }}>
-                        <Image source={imageSource} style={{ width: '100%', height: '100%' }} />
-                        <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={{ position: 'absolute', width: '100%', height: '100%' }}>
+                    {inventory && <View style={styles.overViewContainer}>
+                        <Image source={imageSource} style={styles.bgImage} />
+                        <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={styles.detailContainer}>
                             {renderDetails(inventory)}
                         </LinearGradient>
                     </View>}
                 </ScrollView>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <View style={styles.bottomBtnsContainer}>
                     <PrimaryButton btnText={'Continue'} halfWidth theme={'white'} />
                     <PrimaryButton onPress={onPressContinue} btnText={'Save'} halfWidth />
                 </View>
@@ -163,8 +194,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
-    scrollViewContainer :{
-flex: 1, justifyContent: 'center'
+    overViewContainer: {
+        width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden'
+    },
+    mainContainer: {
+        flex: 1, backgroundColor: Colors.WHITE
+    },
+    bgImage: {
+        width: '100%', height: '100%'
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', justifyContent: 'space-between'
+    },
+    detailContainer: {
+        position: 'absolute', width: '100%', height: '100%'
+    },
+    scrollViewContainer: {
+        flex: 1, justifyContent: 'center'
     },
     detailHeader: {
         fontSize: Typography.FONT_SIZE_14,

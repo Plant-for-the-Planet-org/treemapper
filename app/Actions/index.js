@@ -233,8 +233,6 @@ export const polygonUpdate = ({ inventory_id }) => {
     })
 }
 
-
-
 export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
@@ -266,6 +264,8 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                             currentloclong: currentCoords.longitude,
                         }]
                     }]
+                    inventory.specei_diameter = 10
+                    inventory.plantation_date = `-18000000`
                     resolve()
                 })
 
@@ -275,7 +275,6 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
             });
     })
 }
-
 
 export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
     return new Promise((resolve, reject) => {
@@ -383,6 +382,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
             }).catch(bugsnag.notify);
     })
 }
+
 export const getCoordByIndex = ({ inventory_id, index, }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
