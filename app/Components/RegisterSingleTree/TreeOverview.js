@@ -81,7 +81,7 @@ const SingleTreeOverview = ({ navigation }) => {
         )
     }
 
-    const onPressEditSpeceis = (action) => {
+    const onPressEditSpecies = (action) => {
         setIsOpenModal(true)
         if (action == 'species') {
             setTimeout(() => setIsSpeciesEnable(true), 0)
@@ -125,29 +125,31 @@ const SingleTreeOverview = ({ navigation }) => {
                 </View>
                 <View>
                     <Text style={styles.detailHeader}>LOCATION</Text>
-                    <Text style={styles.detailText}>{`${coords.latitude.toFixed(4)},${coords.longitude.toFixed(4)}`} </Text>
+                    <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={styles.detailHeader}>SPECEIS</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpeceis('species')}>
+                    <Text style={styles.detailHeader}>SPECIES</Text>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')}>
                         <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
                     <Text style={styles.detailHeader}>DIAMETER</Text>
-                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpeceis('diameter')}>
+                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')}>
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
-                    <View style={{ flexDirection: 'row' }}>
-                        <View style={{ alignItems: 'flex-end' }}>
-                            <Text style={[styles.detailHeader, {}]}>{'CAPTURED CO'}</Text>
+                </View>
+                <View style={{ marginVertical: 5 }}>
+                    <View style={styles.flexRow}>
+                        <View>
+                            <Text style={styles.detailHeader}>{'CAPTURED CO'}</Text>
                         </View>
-                        <View style={{ justifyContent: 'flex-start' }}>
-                            <Text style={{ fontSize: 10, color: Colors.WHITE }}>{'2'}</Text>
+                        <View style={styles.flexEnd}>
+                            <Text style={styles.subScript}>{'2'}</Text>
                         </View>
                     </View>
-                    <Text style={[styles.detailText, { color: Colors.PRIMARY }]}>200 kg</Text>
+                    <Text style={styles.detailText}>200 kg</Text>
                 </View>
             </View>)
     }
@@ -194,6 +196,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
+    subScript: {
+        fontSize: 10, color: Colors.WHITE
+    },
     overViewContainer: {
         width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden'
     },
@@ -202,6 +207,12 @@ const styles = StyleSheet.create({
     },
     bgImage: {
         width: '100%', height: '100%'
+    },
+    flexRow: {
+        flexDirection: 'row'
+    },
+    flexEnd: {
+        justifyContent: 'flex-end'
     },
     bottomBtnsContainer: {
         flexDirection: 'row', justifyContent: 'space-between'
