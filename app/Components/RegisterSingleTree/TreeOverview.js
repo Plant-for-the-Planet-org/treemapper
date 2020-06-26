@@ -7,13 +7,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, updateSpeceiDiameter, updatePlantingDate } from '../../Actions'
+import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, updateSpeceiDiameter, updatePlantingDate, initiateInventory } from '../../Actions'
 import { store } from '../../Actions/store';
+import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const SingleTreeOverview = ({ navigation }) => {
 
-    const { state } = useContext(store);
+    const { state, dispatch } = useContext(store);
     const [inventory, setInventory] = useState(null)
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isSpeciesEnable, setIsSpeciesEnable] = useState(false)
@@ -98,8 +99,8 @@ const SingleTreeOverview = ({ navigation }) => {
             setPLantationDate(selectedDate)
         }
 
-
         return isShowDate && <DateTimePicker
+            maximumDate={new Date()}
             testID="dateTimePicker1"
             timeZoneOffsetInMinutes={0}
             value={new Date(plantationDate)}
@@ -154,12 +155,22 @@ const SingleTreeOverview = ({ navigation }) => {
             </View>)
     }
 
-    const onPressContinue = () => {
+    const onPressSave = () => {
         let data = { inventory_id: state.inventoryID }
         statusToPending(data).then(() => {
             navigation.navigate('TreeInventory')
         })
     }
+
+    const onPressContinue = () => {
+        statusToPending({ inventory_id: state.inventoryID }).then(() => {
+            initiateInventory({ treeType: 'single' }).then((inventoryID) => {
+                dispatch(LocalInventoryActions.setInventoryId(inventoryID))
+                navigation.push('RegisterSingleTree')
+            })
+        })
+    }
+
     let filePath, imageSource
     if (inventory) {
         filePath = inventory.polygons[0].coordinates[0].imageUrl
@@ -180,8 +191,8 @@ const SingleTreeOverview = ({ navigation }) => {
                     </View>}
                 </ScrollView>
                 <View style={styles.bottomBtnsContainer}>
-                    <PrimaryButton btnText={'Continue'} halfWidth theme={'white'} />
-                    <PrimaryButton onPress={onPressContinue} btnText={'Save'} halfWidth />
+                    <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                 </View>
             </View>
 

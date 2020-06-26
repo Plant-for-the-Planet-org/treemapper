@@ -39,6 +39,7 @@ const MultipleTrees = ({ navigation, route }) => {
     const renderDatePicker = () => {
         return (
             showDate && <DateTimePicker
+                maximumDate={new Date()}
                 testID="dateTimePicker"
                 timeZoneOffsetInMinutes={0}
                 value={plantingDate}

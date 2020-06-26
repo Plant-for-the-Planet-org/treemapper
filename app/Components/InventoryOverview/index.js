@@ -10,7 +10,7 @@ import { marker_png } from '../../assets';
 import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Colors  } from '_styles';
+import { Colors } from '_styles';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -184,6 +184,7 @@ const InventoryOverview = ({ navigation, }) => {
     const renderDatePicker = () => {
         return (
             showDate && <DateTimePicker
+                maximumDate={new Date()}
                 testID="dateTimssePicker"
                 timeZoneOffsetInMinutes={0}
                 value={new Date(Number(inventory.plantation_date))}
@@ -251,8 +252,8 @@ const styles = StyleSheet.create({
     markerText: {
         width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
     },
-    screenMargin : {
-        marginHorizontal: 25 
+    screenMargin: {
+        marginHorizontal: 25
     }
 
 })

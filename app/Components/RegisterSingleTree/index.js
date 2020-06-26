@@ -10,8 +10,10 @@ const RegisterSingleTree = ({ navigation }) => {
     const { state } = useContext(store);
 
     useEffect(() => {
-        let data = { inventory_id: state.inventoryID, last_screen: 'RegisterSingleTree' }
-        updateLastScreen(data)
+        navigation.addListener('focus', () => {
+            let data = { inventory_id: state.inventoryID, last_screen: 'RegisterSingleTree' }
+            updateLastScreen(data)
+        })
     }, [])
 
     const [screenState, setSCreenState] = useState('MapMarking');
