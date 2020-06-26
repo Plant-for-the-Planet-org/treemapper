@@ -138,7 +138,7 @@ const SingleTreeOverview = ({ navigation }) => {
             {renderinputModal()}
             <View style={styles.container}>
                 <Header closeIcon headingText={'Tree Details'} />
-                <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
+                <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={{ width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden' }}>
                         <Image source={imageSource} style={{ width: '100%', height: '100%' }} />
                         <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -162,6 +162,9 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    scrollViewContainer :{
+flex: 1, justifyContent: 'center'
     },
     detailHeader: {
         fontSize: Typography.FONT_SIZE_14,
