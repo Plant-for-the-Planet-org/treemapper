@@ -38,37 +38,20 @@ const ImageCapturing = ({ updateScreenState }) => {
     }
 
     const onPressContinue = () => {
-        if (isAlrightyModalShow) {
-            // Save Image in local
-            if (imagePath) {
-                let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
-                insertImageSingleRegisterTree(data).then(() => {
-                    setIsAlrightyModalShow(false)
-                    navigation.navigate('SingleTreeOverview')
-                })
-            } else {
-                alert('Image is required')
-            }
+        // Save Image in local
+        if (imagePath) {
+            let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
+            insertImageSingleRegisterTree(data).then(() => {
+                setIsAlrightyModalShow(false)
+                navigation.navigate('SingleTreeOverview')
+            })
         } else {
-            setIsAlrightyModalShow(true)
+            alert('Image is required')
         }
     }
 
     const onBackPress = () => {
         updateScreenState('MapMarking')
-    }
-
-
-    const renderAlrightyModal = () => {
-        return (
-            <Modal
-                animationType={'slide'}
-                visible={isAlrightyModalShow}>
-                <View style={styles.cont}>
-                    <Alrighty onPressContinue={onPressContinue} onPressClose={onPressClose} heading={'Alrighty!'} subHeading={'Now, please tap to see tree overview'} />
-                </View>
-            </Modal>
-        )
     }
 
     return (
@@ -109,7 +92,7 @@ const ImageCapturing = ({ updateScreenState }) => {
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
-            {renderAlrightyModal()}
+            {/* {renderAlrightyModal()} */}
         </SafeAreaView>
     )
 }
@@ -151,7 +134,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         width: 100, height: 100,
         justifyContent: 'center', alignItems: 'center',
-     },
+    },
     cameraIconCont: {
         width: 55,
         height: 55,
