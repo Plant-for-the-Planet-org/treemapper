@@ -33,7 +33,7 @@ export default InventoryCard;
 
 const styles = StyleSheet.create({
     container :{
-        height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 10
+         flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
     },
     imageContainer :{
         flex: 1, justifyContent: 'center', alignItems: 'center'

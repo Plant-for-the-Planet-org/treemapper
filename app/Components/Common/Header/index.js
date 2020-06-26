@@ -9,9 +9,9 @@ const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPr
     const navigation = useNavigation();
     const onPressBack = () => onBackPress ? onBackPress() : navigation.goBack()
     return (
-        <View style={{ ...style }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15, }}>
-                {!hideBackIcon && <TouchableOpacity onPress={onPressBack}>
+        <View style={style}>
+            <View style={styles.arrowContainer}>
+                {!hideBackIcon && <TouchableOpacity onPress={onPressBack} style={styles.paddingVertical}>
                     <Ionicons name={closeIcon ? 'md-close' : 'md-arrow-back'} size={30} color={Colors.TEXT_COLOR} />
                 </TouchableOpacity>}
                 <View />
@@ -42,6 +42,12 @@ const styles = StyleSheet.create({
     },
     backArrow: {
 
+    },
+    arrowContainer: {
+        flexDirection: 'row', justifyContent: 'space-between',
+    },
+    paddingVertical :{
+        paddingVertical :15
     }
 
 })

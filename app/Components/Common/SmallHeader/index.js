@@ -6,10 +6,10 @@ import { back_icon, close, upload_now, upload_check } from '../../../assets'
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
 
-const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight }) => {
+const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, style }) => {
     // icon == 'upload_now' ? upload_now : upload_check
     return (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
             <Text style={styles.subHeadingText}>{leftText}</Text>
             <View>
                 <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }}>

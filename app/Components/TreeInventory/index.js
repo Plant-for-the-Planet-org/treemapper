@@ -70,9 +70,9 @@ const TreeInventory = ({ navigation }) => {
 
     const renderInventory = () => {
         return <View style={{ flex: 1 }}>
-            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} />
+            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
-            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} />
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>
     }

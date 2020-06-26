@@ -173,7 +173,8 @@ const SingleTreeOverview = ({ navigation }) => {
 
     let filePath, imageSource
     if (inventory) {
-        filePath = inventory.polygons[0].coordinates[0].imageUrl
+        console.log(inventory.polygons[0])
+        filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
         imageSource = filePath ? { uri: filePath } : placeholder_image
     }
     return (

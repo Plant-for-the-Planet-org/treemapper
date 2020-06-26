@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Modal, ActivityIndicator, Image } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
@@ -7,6 +7,7 @@ import { getAreaName, createOfflineMap, getAllOfflineMaps } from "../../Actions"
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Geolocation from '@react-native-community/geolocation';
+import { active_marker } from '../../assets/index';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
@@ -96,6 +97,13 @@ const DownloadMap = ({ navigation }) => {
         navigation.navigate('SavedAreas')
     }
 
+    const renderFakeMarker = () => {
+        return (
+            <View style={styles.fakeMarkerCont} >
+                <Image source={active_marker} style={styles.markerImage} />
+            </View>)
+    }
+
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
@@ -118,6 +126,7 @@ const DownloadMap = ({ navigation }) => {
                         <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
                     </View>}
             </View>
+            {renderFakeMarker()}
             {renderLoaderModal()}
         </SafeAreaView>
     )
@@ -130,8 +139,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
-    mapViewContainer :{
+    mapViewContainer: {
         flex: 1, backgroundColor: Colors.WHITE, marginHorizontal: -25, overflow: 'hidden'
+    },
+    fakeMarkerCont: {
+        position: 'absolute', left: '50%', top: '50%', justifyContent: 'center', alignItems: 'center'
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
@@ -147,6 +159,11 @@ const styles = StyleSheet.create({
     },
     bottomBtnsContainer: {
         flexDirection: 'row', justifyContent: 'space-around'
+    },
+    markerImage: {
+        position: 'absolute',
+        resizeMode: 'contain',
+        bottom: 0
     },
     addSpecies: {
         color: Colors.ALERT,
