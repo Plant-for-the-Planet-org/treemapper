@@ -33,10 +33,10 @@ const InventoryOverview = ({ navigation, }) => {
                 setInventory(inventory)
             })
 
+            let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
+            updateLastScreen(data)
         });
 
-        let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
-        updateLastScreen(data)
     }, [])
 
     const renderPolygon = (polygons) => {
@@ -53,7 +53,6 @@ const InventoryOverview = ({ navigation, }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                console.log('oneCoordinate',oneCoordinate.imageUrl)
                                 let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
                                 return (<InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />)
                             }}
@@ -61,7 +60,6 @@ const InventoryOverview = ({ navigation, }) => {
                     </View>)
                 }}
             />
-
         )
     }
 
@@ -92,9 +90,14 @@ const InventoryOverview = ({ navigation, }) => {
         })
     }
 
-    const onBackPress = () => {
+    const onBackPress = () => { // * FOR LOCATION MODAL
         setIsLOCModalOpen(!isLOCModalOpen)
         setSelectedLOC(null)
+    }
+
+    const onPressBack = () => { // * FOR SCREEN HEADER
+        alert('2132342')
+        navigation.navigate('CreatePolygon', { isEdit: true })
     }
 
     const renderViewLOCModal = () => {
@@ -211,7 +214,7 @@ const InventoryOverview = ({ navigation, }) => {
             <View style={styles.container}>
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-                        <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                        <Header onBackPress={onPressBack} closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
                         <Label leftText={`On Site Registration`} rightText={''} />
                         <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />

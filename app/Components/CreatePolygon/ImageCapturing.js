@@ -25,6 +25,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     useEffect(() => {
         getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(({ coordsLength, coord }) => {
+            console.log(coord.imageUrl)
             if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
@@ -47,7 +48,6 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     const onPressContinue = () => {
         if (isAlrightyModalShow) {
-            // Save Image in local
             if (imagePath) {
                 let data = { inventory_id: state.inventoryID, imageUrl: imagePath, index: activeMarkerIndex };
                 insertImageAtIndexCoordinate(data).then(() => {

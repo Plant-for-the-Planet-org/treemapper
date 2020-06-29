@@ -4,24 +4,35 @@ import { Colors, Typography } from '_styles';
 import ImageCapturing from './ImageCapturing'
 import MapMarking from './MapMarking';
 import { store } from '../../Actions/store';
-import { updateLastScreen } from '../../Actions/';
+import { updateLastScreen, getInventory } from '../../Actions/';
 
 
-const CreatePolygon = () => {
+const CreatePolygon = ({ route, navigation }) => {
 
     const { state } = useContext(store)
-
-    useEffect(() => {
-        let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' }
-        updateLastScreen(data)
-    }, [])
-
 
     const [locationText, setLocationText] = useState('')
     const [isMapMarkingState, setIsMapMarkingState] = useState(true)
     const [isCompletePolygon, setIsCompletePolygon] = useState(false)
     const [coordsLength, setCoordsLength] = useState(0)
     const [activeMarkerIndex, setActiveMarkerIndex] = useState(null)
+
+    useEffect(() => {
+        checkIsEdit()
+        let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' }
+        updateLastScreen(data)
+    }, [])
+
+    const checkIsEdit = () => {
+        if (route.params?.isEdit) {
+            getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+                console.log(Object.keys(inventory.polygons[0].coordinates).length)
+                setIsMapMarkingState(false)
+                setActiveMarkerIndex(Object.keys(inventory.polygons[0].coordinates).length-1)
+            })
+
+        }
+    }
 
     const toggleState = (locationText, coordsLength) => {
         setLocationText(locationText)
