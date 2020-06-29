@@ -31,13 +31,6 @@ const TreeInventory = ({ navigation }) => {
         }, 0)
     }
 
-    const renderTempComp = () => (
-        <TouchableOpacity style={{ marginVertical: 10 }}>
-            <SmallHeader onPressRight={() => navigation.navigate('RegisterTree')} leftText={''} rightText={'Register Tree Screen'} />
-        </TouchableOpacity>
-    )
-
-
     const renderInventoryList = (inventoryList) => {
         return (
             <FlatList
@@ -91,9 +84,9 @@ const TreeInventory = ({ navigation }) => {
                 <View style={styles.container}>
                     <ScrollView showsVerticalScrollIndicator={false} >
                         <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
-                        {renderTempComp()}
                         {renderInventory()}
                     </ScrollView>
+                    <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
                 </View>
                 :
                 allInventory == null ? <View style={{ flex: 1, }}>
