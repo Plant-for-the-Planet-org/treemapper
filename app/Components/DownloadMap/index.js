@@ -121,7 +121,7 @@ const DownloadMap = ({ navigation }) => {
                     </MapboxGL.MapView>
                 {renderFakeMarker()}
                 </View>
-                {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'DOWNLOAD'} /> :
+                {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} /> :
                     <View style={styles.bottomBtnsContainer}>
                         <PrimaryButton onPress={onPressViewAll} btnText={'View all'} halfWidth theme={'white'} />
                         <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />

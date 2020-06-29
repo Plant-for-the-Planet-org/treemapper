@@ -435,7 +435,7 @@ export const clearAllInventory = () => {
 }
 
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
-    return new Promise((resolve, reject) => {
+     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates] })
             .then(realm => {
                 realm.write(() => {
@@ -445,7 +445,6 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
                     }, 'modified')
                     resolve()
                 })
-
             }).catch(bugsnag.notify);
 
     })

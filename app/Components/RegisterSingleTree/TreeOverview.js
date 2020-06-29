@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Image, Text, TouchableOpacity, Modal, KeyboardAvoidingView, SafeAreaView, Platform, TextInput } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { Colors, Typography } from '_styles';
@@ -14,6 +14,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 const SingleTreeOverview = ({ navigation }) => {
 
+    const specieDiameterRef = useRef()
+
     const { state, dispatch } = useContext(store);
     const [inventory, setInventory] = useState(null)
     const [isOpenModal, setIsOpenModal] = useState(false)
@@ -26,6 +28,8 @@ const SingleTreeOverview = ({ navigation }) => {
 
 
     useEffect(() => {
+        let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' }
+        updateLastScreen(data)
         const unsubscribe = navigation.addListener('focus', () => {
             getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
                 inventory.species = Object.values(inventory.species);
@@ -37,8 +41,6 @@ const SingleTreeOverview = ({ navigation }) => {
             })
         });
 
-        let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' }
-        updateLastScreen(data)
     }, [])
 
 
@@ -51,10 +53,16 @@ const SingleTreeOverview = ({ navigation }) => {
     }
 
     const onPressNextIcon = () => {
-        setIsOpenModal(false)
         if (isSpeciesEnable) {
             onSubmitInputFeild('specieText')
+            setTimeout(() => {
+                setIsSpeciesEnable(false)
+                setTimeout(() => {
+                    specieDiameterRef.current.focus()
+                }, 0);
+            }, 0)
         } else {
+            setIsOpenModal(false)
             onSubmitInputFeild('specieDiameter')
         }
     }
@@ -70,8 +78,8 @@ const SingleTreeOverview = ({ navigation }) => {
                             style={{ backgroundColor: Colors.WHITE }}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
-                                {isSpeciesEnable && <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />}
-                                {!isSpeciesEnable && <TextInput value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
+                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} keyboardType={'default'} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />
+                                : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
                                 <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
                             <SafeAreaView />
