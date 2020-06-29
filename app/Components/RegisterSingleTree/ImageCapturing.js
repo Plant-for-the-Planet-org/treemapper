@@ -2,18 +2,12 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex, insertImageSingleRegisterTree } from '../../Actions';
+import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex, insertImageSingleRegisterTree, getInventory } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import { APLHABETS } from '../../Utils/index'
-
-const infographicText = [
-    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
-]
 
 const ImageCapturing = ({ updateScreenState }) => {
     const camera = useRef()
@@ -22,6 +16,14 @@ const ImageCapturing = ({ updateScreenState }) => {
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
     const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+
+    useEffect(() => {
+        getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+            if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
+                setImagePath(inventory.polygons[0].coordinates[0].imageUrl)
+            }
+        })
+    }, [])
 
     const onPressCamera = async () => {
         if (imagePath) {

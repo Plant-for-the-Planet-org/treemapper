@@ -79,7 +79,7 @@ const SingleTreeOverview = ({ navigation }) => {
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
                                 {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} keyboardType={'default'} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />
-                                : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
+                                    : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
                                 <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
                             <SafeAreaView />
@@ -120,12 +120,14 @@ const SingleTreeOverview = ({ navigation }) => {
     }
 
     const renderDetails = ({ polygons }) => {
-        let coords = polygons[0].coordinates[0];
-        let shouldEdit = inventory.status !== 'pending'
-        console.log(inventory, 'shouldEdit')
+        let coords;
+        if (polygons[0]) {
+            coords = polygons[0].coordinates[0];
+        }
+        let shouldEdit = inventory.status !== 'pending';
 
         return (
-            <View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
+            coords && <View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
                 <View>
                     <Text style={styles.detailHeader}>Planting Date</Text>
                     <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
@@ -179,6 +181,14 @@ const SingleTreeOverview = ({ navigation }) => {
         })
     }
 
+    const onBackPress = () => {
+        if (inventory.status !== 'pending') {
+            navigation.navigate('RegisterSingleTree', { isEdit: true })
+        }else{
+            navigation.goBack()
+        }
+    }
+
     let filePath, imageSource
     if (inventory) {
         console.log(inventory.polygons[0])
@@ -190,7 +200,7 @@ const SingleTreeOverview = ({ navigation }) => {
             {renderinputModal()}
             {renderDateModal()}
             <View style={styles.container}>
-                <Header closeIcon headingText={'Tree Details'} />
+                <Header onBackPress={onBackPress} closeIcon headingText={'Tree Details'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
                         <Image source={imageSource} style={styles.bgImage} />

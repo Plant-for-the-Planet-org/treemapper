@@ -6,17 +6,21 @@ import ImageCapturing from './ImageCapturing';
 import { store } from '../../Actions/store';
 import { updateLastScreen } from '../../Actions';
 
-const RegisterSingleTree = ({ navigation }) => {
+const RegisterSingleTree = ({ navigation, route }) => {
     const { state } = useContext(store);
 
+    const [screenState, setSCreenState] = useState('MapMarking');
     useEffect(() => {
+        if (route.params?.isEdit) {
+            setSCreenState('ImageCapturing')
+        }
+
         navigation.addListener('focus', () => {
             let data = { inventory_id: state.inventoryID, last_screen: 'RegisterSingleTree' }
             updateLastScreen(data)
         })
     }, [])
 
-    const [screenState, setSCreenState] = useState('MapMarking');
 
     const updateScreenState = (state) => setSCreenState(state)
     return (

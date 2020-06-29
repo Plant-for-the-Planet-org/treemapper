@@ -214,7 +214,7 @@ const InventoryOverview = ({ navigation, }) => {
             <View style={styles.container}>
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-                        <Header onBackPress={onPressBack} closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                        <Header  closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
                         <Label leftText={`On Site Registration`} rightText={''} />
                         <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
