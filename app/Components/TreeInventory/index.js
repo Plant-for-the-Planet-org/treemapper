@@ -44,8 +44,16 @@ const TreeInventory = ({ navigation }) => {
                 showsVerticalScrollIndicator={false}
                 data={inventoryList}
                 renderItem={({ item }) => {
+                    let imageURL;
+                    if (item.polygons[0] && item.polygons[0].coordinates) {
+                        imageURL = item.polygons[0].coordinates[0].imageUrl
+                    }
+                    let measurement = '10cm';
+                    if (item.specei_diameter) {
+                        measurement = `${item.specei_diameter}cm`
+                    }
                     let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
-                    let data = { title: title, measurement: '10 cm', date: new Date(Number(item.plantation_date)).toLocaleDateString() }
+                    let data = { title: title, measurement: `${measurement}`, date: new Date(Number(item.plantation_date)).toLocaleDateString(), imageURL: imageURL }
 
                     return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={item.status == 'pending'} data={data} /></TouchableOpacity>)
                 }}

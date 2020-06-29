@@ -40,21 +40,22 @@ const InventoryOverview = ({ navigation, }) => {
     }, [])
 
     const renderPolygon = (polygons) => {
-        console.log('polygons=',polygons)
+        console.log('polygons=', Object.keys(polygons[0].coordinates).length)
+        let isSingleCoordinate = Object.keys(polygons[0].coordinates).length == 1;
+        let locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
         return (
             <FlatList
                 keyboardShouldPersistTaps={'always'}
                 data={polygons}
                 renderItem={({ item, index }) => {
                     return (<View>
-                        <Label leftText={`Location Type: Polygon`} rightText={''} />
+                        <Label leftText={`Location Type: ${locationType}`} rightText={''} />
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
+                                console.log('oneCoordinate',oneCoordinate.imageUrl)
                                 let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
-                                return (
-                                    <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />
-                                )
+                                return (<InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />)
                             }}
                         />
                     </View>)

@@ -9,14 +9,17 @@ import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
 
     const onPressActiveButton = () => {
-        if(onPressActiveBtn)
+        if (onPressActiveBtn)
             onPressActiveBtn(data.index)
     }
-
-    return (
+    let imageSource = activeBtn ? placeholder_image : tree;
+    if (data.imageURL) {
+        imageSource = { uri: data.imageURL }
+    }
+     return (
         <View style={styles.container}>
             <View style={styles.imageContainer}>
-                <Image source={activeBtn ? placeholder_image : tree} resizeMode={'stretch'} />
+                <Image source={imageSource}  style={styles.image} resizeMode={'stretch'}/>
             </View>
             <View style={styles.contentContainer}>
                 <Text style={styles.subHeadingText}>{data.title}</Text>
@@ -32,16 +35,19 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
 export default InventoryCard;
 
 const styles = StyleSheet.create({
-    container :{
-         flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
-    },
-    imageContainer :{
+    container: {
+        flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
+     },
+    imageContainer: {
         flex: 1, justifyContent: 'center', alignItems: 'center'
     },
-    contentContainer:{
+    image :{
+        height:100, width:100, borderRadius:2
+    },
+    contentContainer: {
         flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
     },
-    actionBtnContainer :{
+    actionBtnContainer: {
         flexDirection: 'row', justifyContent: 'space-between'
     },
     subHeadingText: {
