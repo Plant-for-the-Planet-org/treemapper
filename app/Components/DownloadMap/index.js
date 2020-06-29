@@ -119,6 +119,7 @@ const DownloadMap = ({ navigation }) => {
                         <MapboxGL.UserLocation showsUserHeadingIndicator />
                         <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
+                {renderFakeMarker()}
                 </View>
                 {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'DOWNLOAD'} /> :
                     <View style={styles.bottomBtnsContainer}>
@@ -126,7 +127,6 @@ const DownloadMap = ({ navigation }) => {
                         <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
                     </View>}
             </View>
-            {renderFakeMarker()}
             {renderLoaderModal()}
         </SafeAreaView>
     )
