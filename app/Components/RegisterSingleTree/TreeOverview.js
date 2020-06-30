@@ -118,34 +118,40 @@ const SingleTreeOverview = ({ navigation }) => {
             onChange={onChangeDate}
         />
     }
-
+    let filePath, imageSource
+    if (inventory) {
+        filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
+        imageSource = filePath ? { uri: filePath } : false
+    }
+    console.log('imageSource', imageSource)
     const renderDetails = ({ polygons }) => {
         let coords;
         if (polygons[0]) {
             coords = polygons[0].coordinates[0];
         }
         let shouldEdit = inventory.status !== 'pending';
-
+        let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
+        let detailContainerStyle = imageSource ? [{}] : [{}]
         return (
-            coords && <View style={{ position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20 }}>
+            coords && <View style={styles.detailSubContainer}>
                 <View>
-                    <Text style={styles.detailHeader}>Planting Date</Text>
+                    <Text style={detailHeaderStyle}>Planting Date</Text>
                     <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
                         <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
                 <View>
-                    <Text style={styles.detailHeader}>LOCATION</Text>
+                    <Text style={detailHeaderStyle}>LOCATION</Text>
                     <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={styles.detailHeader}>SPECIES</Text>
+                    <Text style={detailHeaderStyle}>SPECIES</Text>
                     <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')}>
                         <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={styles.detailHeader}>DIAMETER</Text>
+                    <Text style={detailHeaderStyle}>DIAMETER</Text>
                     <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')}>
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
@@ -154,7 +160,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 <View style={{ marginVertical: 5 }}>
                     <View style={styles.flexRow}>
                         <View>
-                            <Text style={styles.detailHeader}>{'CAPTURED CO'}</Text>
+                            <Text style={detailHeaderStyle}>{'CAPTURED CO'}</Text>
                         </View>
                         <View style={styles.flexEnd}>
                             <Text style={styles.subScript}>{'2'}</Text>
@@ -184,17 +190,12 @@ const SingleTreeOverview = ({ navigation }) => {
     const onBackPress = () => {
         if (inventory.status !== 'pending') {
             navigation.navigate('RegisterSingleTree', { isEdit: true })
-        }else{
+        } else {
             navigation.goBack()
         }
     }
 
-    let filePath, imageSource
-    if (inventory) {
-        console.log(inventory.polygons[0])
-        filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
-        imageSource = filePath ? { uri: filePath } : placeholder_image
-    }
+
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
@@ -203,8 +204,8 @@ const SingleTreeOverview = ({ navigation }) => {
                 <Header onBackPress={onBackPress} closeIcon headingText={'Tree Details'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
-                        <Image source={imageSource} style={styles.bgImage} />
-                        <LinearGradient colors={['rgba(255,255,255,0)', '#707070']} style={styles.detailContainer}>
+                        {imageSource && <Image source={imageSource} style={styles.bgImage} />}
+                        <LinearGradient colors={['rgba(255,255,255,0)', imageSource ? '#707070' : 'rgba(255,255,255,0)']} style={styles.detailContainer}>
                             {renderDetails(inventory)}
                         </LinearGradient>
                     </View>}
@@ -230,11 +231,12 @@ const styles = StyleSheet.create({
         fontSize: 10, color: Colors.WHITE
     },
     overViewContainer: {
-        width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden'
+        width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden',
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
     },
+
     bgImage: {
         width: '100%', height: '100%'
     },
@@ -257,6 +259,7 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_14,
         color: Colors.WHITE,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
+        marginVertical: 5
     },
     detailText: {
         fontSize: Typography.FONT_SIZE_18,
@@ -289,4 +292,10 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
         marginRight: 10
     },
+    defaulFontColor: {
+        color: undefined
+    },
+    detailSubContainer: {
+        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20
+    }
 })
