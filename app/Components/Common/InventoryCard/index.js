@@ -39,10 +39,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
      },
     imageContainer: {
-        flex: 1, justifyContent: 'center', alignItems: 'center'
+        flex: 1, justifyContent: 'center', alignItems: 'center',
     },
     image :{
-        height:100, width:100, borderRadius:2
+        height:100, width:100, borderRadius:5
     },
     contentContainer: {
         flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20

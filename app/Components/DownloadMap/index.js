@@ -10,6 +10,7 @@ import Geolocation from '@react-native-community/geolocation';
 import { active_marker } from '../../assets/index';
 
 
+MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
 const DownloadMap = ({ navigation }) => {
     const [isLoaderShow, setIsLoaderShow] = useState(false)

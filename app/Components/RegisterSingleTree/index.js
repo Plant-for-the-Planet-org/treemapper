@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Modal, BackHandler } from 'react-native';
 import { Colors, Typography } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from './ImageCapturing';
@@ -9,20 +9,25 @@ import { updateLastScreen } from '../../Actions';
 const RegisterSingleTree = ({ navigation, route }) => {
     const { state } = useContext(store);
 
-    const [screenState, setSCreenState] = useState('MapMarking');
+    const [screenState, setScreenState] = useState('MapMarking');
     useEffect(() => {
-        if (route.params?.isEdit) {
-            setSCreenState('ImageCapturing')
-        }
 
+        BackHandler.addEventListener('hardwareBackPress', hardBackHandler)
+        if (route.params?.isEdit) {
+            setScreenState('ImageCapturing')
+        }
         navigation.addListener('focus', () => {
             let data = { inventory_id: state.inventoryID, last_screen: 'RegisterSingleTree' }
             updateLastScreen(data)
         })
     }, [])
 
+    const hardBackHandler = () => {
+        navigation.navigate('TreeInventory')
+        return true
+    }
 
-    const updateScreenState = (state) => setSCreenState(state)
+    const updateScreenState = (state) => setScreenState(state)
     return (
         <View style={styles.container}>
             {screenState == 'MapMarking' && <MapMarking
