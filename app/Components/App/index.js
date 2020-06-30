@@ -5,6 +5,10 @@ import { StateProvider } from '../../Actions/store';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import { RegisterTree, MultipleTrees, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview , SelectCoordinates} from '../';
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+
+MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
 const Stack = createStackNavigator();
 

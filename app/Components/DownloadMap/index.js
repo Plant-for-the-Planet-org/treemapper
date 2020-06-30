@@ -10,7 +10,7 @@ import Geolocation from '@react-native-community/geolocation';
 import { active_marker } from '../../assets/index';
 
 
-MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
+
 const DownloadMap = ({ navigation }) => {
     const [isLoaderShow, setIsLoaderShow] = useState(false)
     const [areaName, setAreaName] = useState('')
@@ -21,13 +21,14 @@ const DownloadMap = ({ navigation }) => {
 
     useEffect(() => {
         navigation.addListener('focus', () => {
-            getAllOfflineMaps()
+            getAllOfflineMapslocal()
         })
     }, [])
 
-    const getAllOfflineMaps = async () => {
-        const packs = await MapboxGL.offlineManager.getPacks()
-        setNumberOfOfflineMaps(packs.length)
+    const getAllOfflineMapslocal = async () => {
+        getAllOfflineMaps().then((offlineMaps) => {
+            setNumberOfOfflineMaps(Object.values(offlineMaps).length)
+        })
     }
 
     const initialMapCamera = () => {
@@ -53,7 +54,7 @@ const DownloadMap = ({ navigation }) => {
                 if (status.percentage == 100) {
                     createOfflineMap({ name: offllineMapId, size: status.completedTileSize, areaName: areaName }).then(() => {
                         setTimeout(() => alert('Map download complete'), 0)
-                        getAllOfflineMaps()
+                        getAllOfflineMapslocal()
                         setIsLoaderShow(false)
                         setAreaName('')
                     })
@@ -119,7 +120,7 @@ const DownloadMap = ({ navigation }) => {
                         <MapboxGL.UserLocation showsUserHeadingIndicator />
                         <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
-                {renderFakeMarker()}
+                    {renderFakeMarker()}
                 </View>
                 {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} /> :
                     <View style={styles.bottomBtnsContainer}>
