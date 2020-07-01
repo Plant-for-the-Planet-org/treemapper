@@ -123,9 +123,9 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                     </View>
                 </TouchableOpacity>
             </View>
-            <View style={styles.cameraBelowTextContainer}>
+            {/* <View style={styles.cameraBelowTextContainer}>
                 <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
-            </View>
+            </View> */}
             <View style={styles.bottomBtnsContainer}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', marginVertical: 20
     },
     bottomBtnsContainer: {
-        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between'
+        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between', marginVertical: 10
     },
     container: {
         flex: 1,
@@ -168,10 +168,11 @@ const styles = StyleSheet.create({
     },
     cameraIconContainer: {
         position: 'absolute',
-        bottom: -45,
+        bottom: 0,
         alignSelf: 'center',
         width: 100, height: 100,
         justifyContent: 'center', alignItems: 'center',
+        marginVertical: 30
      },
     cameraIconCont: {
         width: 55,

@@ -114,9 +114,7 @@ class MapMarking extends React.Component {
 
     pushMaker = (currentCoords) => {
         let { centerCoordinates } = this.state;
-        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true }, () => {
-
-        })
+        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true })
     }
 
     distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
@@ -205,15 +203,17 @@ class MapMarking extends React.Component {
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
         let subHeading = `Now, please tap continue to take picture of tree`;
+        let heading = `Picture Time!`
         if (locateTree == 'off-site') {
-            subHeading = `Now, please tap continue to see overview of tree`;
+            subHeading = `We see that you’re far away the tree. Please click continue to add details about the tree.`;
+            heading = `Off Site Enabled!`
         }
         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={subHeading} />
+                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
         )
