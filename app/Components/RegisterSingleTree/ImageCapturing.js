@@ -87,14 +87,10 @@ const ImageCapturing = ({ updateScreenState }) => {
                     </View>
                 </TouchableOpacity>
             </View>
-            {/* <View style={[styles.imageBelowTextContainer, { zIndex: -10 }]}>
-                <Text style={styles.message}>{`For verification purposes, your location is\nrecorded when you take a picture.`}</Text>
-            </View> */}
             <View style={styles.bottomBtnsContainer}>
                 <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
-            {/* {renderAlrightyModal()} */}
         </SafeAreaView>
     )
 }

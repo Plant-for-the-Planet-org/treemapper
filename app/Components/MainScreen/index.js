@@ -60,6 +60,9 @@ const MainScreen = ({ navigation }) => {
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>
+                    <ImageBackground id={'manageuserbtn'} source={map_texture} style={styles.bgImage}>
+                        <LargeButton onPress={() => onPressLargeButtons('ManageUsers')}  style={styles.customStyleLargeBtn} heading={'Manage Users '} active={false} subHeading={'invite and authorize users'}  />
+                    </ImageBackground>
                     <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
                     </ImageBackground>
