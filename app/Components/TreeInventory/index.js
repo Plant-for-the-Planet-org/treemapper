@@ -79,7 +79,7 @@ const TreeInventory = ({ navigation }) => {
         </View>
     }
     return (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ?
                 <View style={styles.container}>

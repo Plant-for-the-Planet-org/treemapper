@@ -33,7 +33,7 @@ const SavedAreas = ({ }) => {
     const renderSavedAreaItem = ({ item }) => {
         const { areaName, size, name } = item;
         return (
-            <View style={{ height: 130, flexDirection: 'row', backgroundColor: Colors.WHITE }}>
+            <View style={{ flexDirection: 'row', backgroundColor: Colors.WHITE, elevation: 2, borderWidth: 0, marginVertical: 10, marginHorizontal: 25, borderRadius: 10 }}>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Image source={placeholder_image} resizeMode={'stretch'} />
                 </View>
@@ -49,10 +49,10 @@ const SavedAreas = ({ }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
                 <Header headingText={'Saved Areas'} />
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} style={{ marginHorizontal: -25 }}>
                     {areas && areas.length > 0 ? < FlatList
                         data={areas}
                         renderItem={renderSavedAreaItem}
@@ -68,7 +68,7 @@ export default SavedAreas;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 25,
+        marginHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
     subHeadingText: {

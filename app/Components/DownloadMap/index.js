@@ -114,7 +114,7 @@ const DownloadMap = ({ navigation }) => {
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={initialMapCamera}
                         ref={MapBoxGLRef}
-                        style={{ flex: 1, marginVertical: 10 }}
+                        style={{ flex: 1 }}
                         styleURL={MapboxGL.StyleURL.Street}
                         zoomLevel={15}
                         centerCoordinate={[11.256, 43.77]}>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE
     },
     mapViewContainer: {
-        flex: 1, backgroundColor: Colors.WHITE, marginHorizontal: -25, overflow: 'hidden'
+        flex: 1, backgroundColor: Colors.WHITE, overflow: 'hidden', borderWidth: 2, marginVertical: 10, borderRadius: 10, borderColor: Colors.PRIMARY
     },
     fakeMarkerCont: {
         position: 'absolute', left: '50%', top: '50%', justifyContent: 'center', alignItems: 'center'
