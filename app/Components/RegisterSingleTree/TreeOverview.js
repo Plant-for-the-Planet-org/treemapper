@@ -70,12 +70,12 @@ const SingleTreeOverview = ({ navigation }) => {
     const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpenModal}>
-                <View style={{ flex: 1 }}>
-                    <View style={{ flex: 1, }}>
-                        <View style={{ flex: 1 }} />
+                <View style={styles.cont}>
+                    <View style={styles.cont}>
+                        <View style={styles.cont} />
                         <KeyboardAvoidingView
                             behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: Colors.WHITE }}>
+                            style={styles.bgWhite}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
                                 {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} keyboardType={'default'} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />
@@ -227,6 +227,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
+    cont: {
+        flex: 1
+    },
     subScript: {
         fontSize: 10, color: Colors.WHITE
     },
@@ -236,7 +239,9 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
     },
-
+    bgWhite :{
+        backgroundColor: Colors.WHITE 
+    },
     bgImage: {
         width: '100%', height: '100%'
     },

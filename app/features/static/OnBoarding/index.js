@@ -14,7 +14,7 @@ const OnBoarding = ({ navigation }) => {
   // const appHomePage = () => updateRoute('app_homepage', navigation);
   const Footer = () => {
     return (
-      <View style={{ backgroundColor: '#fff', marginTop: 16 }}>
+      <View style={{ backgroundColor: Colors.WHITE, marginTop: 16 }}>
         <View style={styless.bottomRow}>
           {/* <PrimaryButton
             // onClick={() => updateRoute('app_signup', navigation)}
@@ -44,7 +44,7 @@ const OnBoarding = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <Swiper
         showsButtons={false}
         activeDotColor={'#89b53a'}

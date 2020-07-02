@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     },
     cont: { flex: 1 },
     mainContainer: {
-        flex: 1, backgroundColor: '#fff'
+        flex: 1, backgroundColor: Colors.WHITE
     },
     addSpecies: {
         color: Colors.ALERT,

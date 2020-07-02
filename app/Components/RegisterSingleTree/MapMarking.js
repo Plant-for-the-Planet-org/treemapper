@@ -60,7 +60,7 @@ class MapMarking extends React.Component {
         return (
             <View style={styles.fakeMarkerCont} >
                 <Image source={active_marker} style={styles.markerImage} />
-                {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
+                {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
 
@@ -165,7 +165,7 @@ class MapMarking extends React.Component {
     renderMyLocationIcon = () => {
         return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
-                <Ionicons style={{}} name={'md-locate'} size={22} />
+                <Ionicons name={'md-locate'} size={22} />
             </View>
         </TouchableOpacity>
     }
@@ -212,7 +212,7 @@ class MapMarking extends React.Component {
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.cont}>
                     <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
@@ -250,7 +250,7 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon()}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={styles.bottomBtnWith} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
@@ -275,6 +275,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
+    },
+    cont: {
+        flex: 1
     },
     continueBtnCont: {
         flexDirection: 'row', position: 'absolute', bottom: 10, backgroundColor: 'transparent', width: '100%', justifyContent: 'center',
@@ -301,10 +304,10 @@ const styles = StyleSheet.create({
         position: 'absolute', bottom: 67
     },
     activeMarkerLocation: {
-        position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
+        position: 'absolute', bottom: 67, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16
     },
     myLocationIcon: {
-        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
+        width: 45, height: 45, backgroundColor: Colors.WHITE, position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
     },
     myLocationIconContainer: {
         top: 1.5, left: 0.8,
@@ -313,7 +316,10 @@ const styles = StyleSheet.create({
         width: 30, height: 43, paddingBottom: 85,
     },
     markerText: {
-        width: 30, height: 43, color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+        width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+    },
+    bottomBtnWith: {
+        width: '90%',
     }
 })
 

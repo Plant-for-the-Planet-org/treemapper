@@ -33,13 +33,13 @@ const SavedAreas = ({ }) => {
     const renderSavedAreaItem = ({ item }) => {
         const { areaName, size, name } = item;
         return (
-            <View style={{ flexDirection: 'row', backgroundColor: Colors.WHITE, elevation: 2, borderWidth: 0, marginVertical: 10, marginHorizontal: 25, borderRadius: 10 }}>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.areaContainer}>
+                <View style={styles.areaImageContainer}>
                     <Image source={placeholder_image} resizeMode={'stretch'} />
                 </View>
-                <View style={{ flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20 }}>
+                <View style={styles.areaContentContainer}>
                     <Text style={styles.subHeadingText}>{areaName}</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={styles.bottomContainer}>
                         <Text style={[styles.subHeadingText, styles.regularText]}>{`${(size / 1000)} MB`}</Text>
                         <Text style={[styles.subHeadingText, styles.redText]} onPress={() => deleteArea(name)}>{'Delete'}</Text>
                     </View>
@@ -52,7 +52,7 @@ const SavedAreas = ({ }) => {
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
                 <Header headingText={'Saved Areas'} />
-                <ScrollView showsVerticalScrollIndicator={false} style={{ marginHorizontal: -25 }}>
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.areaListContainer}>
                     {areas && areas.length > 0 ? < FlatList
                         data={areas}
                         renderItem={renderSavedAreaItem}
@@ -70,6 +70,21 @@ const styles = StyleSheet.create({
         flex: 1,
         marginHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    areaContainer: {
+        flexDirection: 'row', backgroundColor: Colors.WHITE, elevation: 2, borderWidth: 0, marginVertical: 10, marginHorizontal: 25, borderRadius: 10
+    },
+    areaImageContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center'
+    },
+    areaContentContainer: {
+        flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
+    },
+    bottomContainer:{
+        flexDirection: 'row', justifyContent: 'space-between'
+    },
+    areaListContainer :{
+        marginHorizontal: -25
     },
     subHeadingText: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

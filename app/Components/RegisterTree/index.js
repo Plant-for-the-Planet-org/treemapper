@@ -30,7 +30,7 @@ const RegisterTree = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />

@@ -80,7 +80,7 @@ export default MainScreen;
 
 const styles = StyleSheet.create({
     safeAreaViewCont: {
-        flex: 1, backgroundColor: '#fff'
+        flex: 1, backgroundColor: Colors.WHITE
     },
     container: {
         flex: 1,

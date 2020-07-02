@@ -222,7 +222,7 @@ class MapMarking extends React.Component {
         return (
             <View style={styles.fakeMarkerCont} >
                 <Image source={active_marker} style={styles.markerImage} />
-                {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
+                {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
             </View>)
     }
 

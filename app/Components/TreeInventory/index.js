@@ -25,7 +25,7 @@ const TreeInventory = ({ navigation }) => {
     }, [navigation])
 
     const onPressInventory = (item) => {
-        console.log(item.last_screen,'item.last_screen')
+        console.log(item.last_screen, 'item.last_screen')
         setTimeout(() => {
             dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
@@ -88,6 +88,7 @@ const TreeInventory = ({ navigation }) => {
                         {renderInventory()}
                     </ScrollView>
                     <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+                    <SafeAreaView />
                 </View>
                 :
                 allInventory == null ? <View style={{ flex: 1, }}>

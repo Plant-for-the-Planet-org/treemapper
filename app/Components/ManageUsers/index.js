@@ -10,7 +10,7 @@ const ManageUsers = ({ navigation }) => {
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
                 <Header headingText={'Manage Users'} subHeadingText={'List of all users you’ve invited to use tree inventory'} />
-                <View style={{flex:1}}>
+                <View style={styles.cont}>
 
                 </View>
             </View>
@@ -28,4 +28,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
     },
+    cont: {
+        flex: 1
+    }
 })

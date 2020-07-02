@@ -14,7 +14,8 @@ import { main_screen_banner } from './images/main_screen_banner.js';
 import map_texture from './images/map_texture.png';
 import alrighty_banner from './images/alrighty_banner.png';
 import empty_inventory_banner from './images/empty_inventory_banner.png';
-
+import { checkCircle } from "./images/check-circle";
+import { checkCircleFill } from "./images/check-circle-fill";
 export {
     back_icon,
     arrow_up,
@@ -31,5 +32,7 @@ export {
     alrighty_banner,
     map_texture,
     empty_inventory_banner,
-    main_screen_banner
+    main_screen_banner,
+    checkCircle,
+    checkCircleFill
 }

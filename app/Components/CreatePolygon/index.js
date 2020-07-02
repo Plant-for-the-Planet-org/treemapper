@@ -28,7 +28,7 @@ const CreatePolygon = ({ route, navigation }) => {
             getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
                 console.log(Object.keys(inventory.polygons[0].coordinates).length)
                 setIsMapMarkingState(false)
-                setActiveMarkerIndex(Object.keys(inventory.polygons[0].coordinates).length-1)
+                setActiveMarkerIndex(Object.keys(inventory.polygons[0].coordinates).length - 1)
             })
 
         }
@@ -49,7 +49,7 @@ const CreatePolygon = ({ route, navigation }) => {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'red', }} fourceInset={{ bottom: 'never', top: 'never' }}>
+        <View style={styles.container} fourceInset={{ bottom: 'never', top: 'never' }}>
             <View style={styles.container}>
                 {isMapMarkingState ?
                     <MapMarking toggleState={toggleState}

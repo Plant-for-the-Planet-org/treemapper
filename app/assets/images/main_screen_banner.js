@@ -1,4 +1,3 @@
-import React from "react";
 const main_screen_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="143.837" viewBox="0 0 317 143.837">
 <g id="Group_2241" data-name="Group 2241" transform="translate(-21 -217)">
   <rect id="Rectangle_1163" data-name="Rectangle 1163" width="307.193" height="0.637" transform="translate(21 359.967)" fill="#3f3d56"/>

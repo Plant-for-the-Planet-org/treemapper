@@ -89,7 +89,7 @@ const DownloadMap = ({ navigation }) => {
                 <View style={styles.dowloadModalContainer}>
                     <View style={styles.contentContainer}>
                         <ActivityIndicator size={40} style={styles.loader} />
-                        <Text style={{ fontSize: 16, textAlign: 'center' }}>{areaName}</Text>
+                        <Text style={styles.areaName}>{areaName}</Text>
                     </View>
                 </View>
             </Modal>
@@ -115,7 +115,7 @@ const DownloadMap = ({ navigation }) => {
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={initialMapCamera}
                         ref={MapBoxGLRef}
-                        style={{ flex: 1 }}
+                        style={styles.cont}
                         styleURL={MapboxGL.StyleURL.Street}
                         zoomLevel={15}
                         centerCoordinate={[11.256, 43.77]}>
@@ -142,11 +142,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
     },
+    cont: { flex: 1 },
     mapViewContainer: {
         flex: 1, backgroundColor: Colors.WHITE, overflow: 'hidden', borderWidth: 2, marginVertical: 10, borderRadius: 10, borderColor: Colors.PRIMARY
     },
     fakeMarkerCont: {
         position: 'absolute', left: '50%', top: '50%', justifyContent: 'center', alignItems: 'center'
+    },
+    areaName: {
+        fontSize: 16, textAlign: 'center'
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
