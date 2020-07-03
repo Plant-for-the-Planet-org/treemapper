@@ -1,5 +1,7 @@
 PODS:
   - "@react-native-mapbox-gl-mapbox-static (5.8.0)"
+  - A0Auth0 (2.5.0):
+    - React
   - boost-for-react-native (1.63.0)
   - BugsnagReactNative (2.23.8):
     - BugsnagReactNative/Core (= 2.23.8)
@@ -369,6 +371,7 @@ PODS:
     - Yoga (~> 1.14)
 
 DEPENDENCIES:
+  - A0Auth0 (from `../node_modules/react-native-auth0/ios`)
   - BugsnagReactNative (from `../node_modules/bugsnag-react-native`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -457,6 +460,8 @@ SPEC REPOS:
     - YogaKit
 
 EXTERNAL SOURCES:
+  A0Auth0:
+    :path: "../node_modules/react-native-auth0/ios"
   BugsnagReactNative:
     :path: "../node_modules/bugsnag-react-native"
   BVLinearGradient:
@@ -550,6 +555,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   "@react-native-mapbox-gl-mapbox-static": e247172bc43f47757f47d6cec1b325b1ab3e9287
+  A0Auth0: ee7810c19bbd3895d890e3bc1dce5d72b16d75eb
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   BugsnagReactNative: 0aacb961ccd13b4eb4ca44928b811d76b97d646d
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
