@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const MainScreenHeader = ({ }) => {
-
+const MainScreenHeader = ({ onPressLogin, isUserLogin }) => {
     return (
         <View style={styles.container}>
             <View />
-            <Text style={styles.loginText}>Login / Sign Up</Text>
+            <TouchableOpacity onPress={isUserLogin ? undefined : onPressLogin}>
+                {isUserLogin ? <Image style={{ width: 40, height: 40 }} source={{ uri: 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }} /> : <Text style={styles.loginText}>Login / Sign Up</Text>}
+            </TouchableOpacity>
         </View>
     )
 }
