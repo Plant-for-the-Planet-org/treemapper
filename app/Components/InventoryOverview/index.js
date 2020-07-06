@@ -39,10 +39,7 @@ const InventoryOverview = ({ navigation, }) => {
 
     }, [])
 
-    const renderPolygon = (polygons) => {
-        console.log('polygons=', Object.keys(polygons[0].coordinates).length)
-        let isSingleCoordinate = Object.keys(polygons[0].coordinates).length == 1;
-        let locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+    const renderPolygon = (polygons, locationType) => {
         return (
             <FlatList
                 keyboardShouldPersistTaps={'always'}
@@ -96,7 +93,6 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressBack = () => { // * FOR SCREEN HEADER
-        alert('2132342')
         navigation.navigate('CreatePolygon', { isEdit: true })
     }
 
@@ -208,17 +204,23 @@ const InventoryOverview = ({ navigation, }) => {
 
     const onPressDate = () => setShowDate(true)
 
+    let locationType;
+    let isSingleCoordinate
+    if (inventory) {
+        isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
+        locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+    }
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderViewLOCModal()}
             <View style={styles.container}>
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-                        <Header  closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                        <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
-                        <Label leftText={`On Site Registration`} rightText={''} />
+                        {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
                         <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
-                        {renderPolygon(inventory.polygons)}
+                        {renderPolygon(inventory.polygons, locationType)}
                         <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
                     <View>

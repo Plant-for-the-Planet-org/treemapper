@@ -124,7 +124,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
+                <PrimaryButton onPress={onBackPress} btnText={'Back'} halfWidth theme={'white'} />
                 <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
             </View>
             {renderAlrightyModal()}
