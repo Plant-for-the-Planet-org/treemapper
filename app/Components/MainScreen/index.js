@@ -38,7 +38,8 @@ const MainScreen = ({ navigation }) => {
 
     const checkIsLogin = () => {
         isLogin().then((data) => {
-            setIsUserLogin(true)
+            console.log('data=',data)
+            setIsUserLogin(data)
         }).catch((err) => {
             console.log(err)
         })
@@ -60,6 +61,7 @@ const MainScreen = ({ navigation }) => {
         )
     }
 
+    console.log('isUserLogin=',isUserLogin)
     return (
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
@@ -68,7 +70,7 @@ const MainScreen = ({ navigation }) => {
                     <View style={styles.bannerImgContainer}>
                         <SvgXml xml={main_screen_banner} />
                     </View>
-                    <Header headingText={'Tree Mapper'} hideBackIcon />
+                    <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign :'center'}}/>
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>

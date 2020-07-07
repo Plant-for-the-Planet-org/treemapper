@@ -78,7 +78,7 @@ const SingleTreeOverview = ({ navigation }) => {
                             style={styles.bgWhite}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
-                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} keyboardType={'default'} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} />
+                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} keyboardType={'default'} />
                                     : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
                                 <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
@@ -215,7 +215,6 @@ const SingleTreeOverview = ({ navigation }) => {
                     <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                 </View>
             </View>
-
         </SafeAreaView >
     )
 }
@@ -239,8 +238,8 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
     },
-    bgWhite :{
-        backgroundColor: Colors.WHITE 
+    bgWhite: {
+        backgroundColor: Colors.WHITE
     },
     bgImage: {
         width: '100%', height: '100%'

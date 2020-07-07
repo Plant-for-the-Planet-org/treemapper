@@ -7,10 +7,7 @@ import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
 
 
 // AUTH0 CONFIG
-const auth0 = new Auth0({
-    domain: AUTH0_DOMAIN,
-    clientId: AUTH0_CLIENT_ID,
-});
+const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
 
 
 // SCHEMAS
@@ -85,6 +82,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
+                console.log(credentials,'credentials')
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
@@ -108,7 +106,8 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                if (User) {
+                console.log('User=', Object.keys(User).length)
+                if (Object.keys(User).length > 0) {
                     resolve(true)
                 } else {
                     resolve(false)
@@ -118,7 +117,7 @@ export const isLogin = () => {
 }
 
 
-//  ---------------- AUTH0 ACTIONS START----------------
+//  ---------------- AUTH0 ACTIONS END----------------
 
 export const getAreaName = ({ coords }) => {
     return new Promise((resolve, reject) => {
