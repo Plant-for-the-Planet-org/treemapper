@@ -33,7 +33,9 @@ const MainScreen = ({ navigation }) => {
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
     const onPressLogin = () => {
-        auth0Login()
+        auth0Login().then((data)=>{
+            setIsUserLogin(data)
+        })
     }
 
     const checkIsLogin = () => {

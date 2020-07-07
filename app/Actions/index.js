@@ -4,75 +4,11 @@ import { bugsnag } from '../Utils/index';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Auth0 from 'react-native-auth0';
 import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
-
+import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
 
-
-// SCHEMAS
-const Coordinates = {
-    name: 'Coordinates',
-    properties: {
-        latitude: 'float',
-        longitude: 'float',
-        imageUrl: 'string?',
-        currentloclat: 'float',
-        currentloclong: 'float',
-    }
-}
-
-const Polygons = {
-    name: 'Polygons',
-    properties: {
-        isPolygonComplete: 'bool?',
-        coordinates: 'Coordinates[]',
-    }
-}
-
-const Species = {
-    name: 'Species',
-    properties: {
-        nameOfTree: 'string',
-        treeCount: 'string',
-    }
-}
-const OfflineMaps = {
-    name: 'OfflineMaps',
-    primaryKey: 'name',
-    properties: {
-        areaName: 'string',
-        size: 'int',
-        name: 'string'
-    }
-}
-
-const Inventory = {
-    name: 'Inventory',
-    primaryKey: 'inventory_id',
-    properties: {
-        inventory_id: 'string',
-        plantation_date: 'string?',
-        tree_type: 'string?',
-        status: 'string?',
-        project_id: 'string?',
-        donation_type: 'string?',
-        locate_tree: 'string?',
-        last_screen: 'string?',
-        species: 'Species[]',
-        polygons: 'Polygons[]',
-        specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-        specei_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    }
-};
-
-const User = {
-    name: 'User',
-    properties: {
-        accessToken: 'string?',
-        idToken: 'string?'
-    }
-}
 
 //  ---------------- AUTH0 ACTIONS START----------------
 
@@ -82,7 +18,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                console.log(credentials,'credentials')
+                console.log(credentials, 'credentials')
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
@@ -90,7 +26,7 @@ export const auth0Login = () => {
                                 accessToken: accessToken,
                                 idToken: idToken
                             })
-                            resolve(credentials)
+                            resolve(true)
                         })
                     })
             })
