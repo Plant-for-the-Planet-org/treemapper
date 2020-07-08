@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
+import { Header, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';

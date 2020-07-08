@@ -1,6 +1,6 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, ActivityIndicator, Image } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty } from '../Common';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Text, Modal, ActivityIndicator, Image } from 'react-native';
+import { Header, PrimaryButton, } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { getAreaName, createOfflineMap, getAllOfflineMaps } from "../../Actions";

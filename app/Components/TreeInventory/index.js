@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, } from "../../Actions";
@@ -8,8 +8,6 @@ import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 
-const { height, width } = Dimensions.get('window')
-const IS_ANDROID = Platform.OS == 'android'
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 

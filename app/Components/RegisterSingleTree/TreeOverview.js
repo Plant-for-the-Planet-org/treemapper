@@ -1,8 +1,7 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Image, Text, TouchableOpacity, Modal, KeyboardAvoidingView, SafeAreaView, Platform, TextInput } from 'react-native';
-import { Header, PrimaryButton, Input } from '../Common';
+import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
-import { placeholder_image } from '../../assets'
 import LinearGradient from 'react-native-linear-gradient';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';

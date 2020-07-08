@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Header } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { Colors, Typography } from '_styles';
+import { Colors } from '_styles';
 
 
-const ManageUsers = ({ navigation }) => {
+const ManageUsers = ({  }) => {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>

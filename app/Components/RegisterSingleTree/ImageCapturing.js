@@ -1,13 +1,12 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
-import { Header, PrimaryButton, Alrighty } from '../Common';
+import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex, insertImageSingleRegisterTree, getInventory } from '../../Actions';
+import { insertImageSingleRegisterTree, getInventory } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
-import { APLHABETS } from '../../Utils/index'
 
 const ImageCapturing = ({ updateScreenState }) => {
     const camera = useRef()

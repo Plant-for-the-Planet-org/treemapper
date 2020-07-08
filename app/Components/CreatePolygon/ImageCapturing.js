@@ -1,8 +1,8 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, removeLastCoord, polygonUpdate, getCoordByIndex } from '../../Actions';
+import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
         width: 100, height: 100,
         justifyContent: 'center', alignItems: 'center',
         marginVertical: 30
-     },
+    },
     cameraIconCont: {
         width: 55,
         height: 55,

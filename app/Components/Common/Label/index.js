@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { back_icon, close } from '../../../assets'
 
 
 const Label = ({ leftText, rightText, onPressRightText }) => {

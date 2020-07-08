@@ -1,11 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet,  TouchableOpacity,  FlatList } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { arrow_down, arrow_up } from '../../../assets/';
-import { Input, Label } from '../';
+import {  Label } from '../';
 import { Accordian } from '../'
 import { store } from '../../../Actions/store';
-import { addSpeciesAction, updateLastScreen, getInventory, updatePlantingDate } from '../../../Actions'
+import { addSpeciesAction } from '../../../Actions'
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
     const { state } = useContext(store);

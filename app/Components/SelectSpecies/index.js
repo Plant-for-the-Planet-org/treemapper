@@ -1,9 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, Image, FlatList } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
+import React from 'react';
+import { View, StyleSheet, Text, Image, FlatList } from 'react-native';
+import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle } from '../../assets'
+import { placeholder_image, checkCircleFill } from '../../assets'
 import { SvgXml } from 'react-native-svg';
 
 const SelectSpecies = ({ }) => {

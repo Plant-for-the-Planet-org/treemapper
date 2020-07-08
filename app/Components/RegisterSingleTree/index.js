@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, BackHandler } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { View, StyleSheet, BackHandler } from 'react-native';
+import { Colors } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from './ImageCapturing';
 import { store } from '../../Actions/store';

@@ -2,10 +2,9 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import Realm from 'realm';
 import { initiateInventory } from '../../Actions'
 import { store } from '../../Actions/store';
-import { Colors, Typography } from '_styles';
+import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
 
 const RegisterTree = ({ navigation }) => {

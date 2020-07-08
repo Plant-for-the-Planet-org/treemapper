@@ -1,11 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, Image, FlatList, ActivityIndicator } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian, Alrighty, InventoryCard } from '../Common';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, ScrollView, Image, FlatList, ActivityIndicator } from 'react-native';
+import { Header, PrimaryButton, } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getAllOfflineMaps, deleteOfflineMap } from '../../Actions'
 
 
@@ -80,10 +79,10 @@ const styles = StyleSheet.create({
     areaContentContainer: {
         flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
     },
-    bottomContainer:{
+    bottomContainer: {
         flexDirection: 'row', justifyContent: 'space-between'
     },
-    areaListContainer :{
+    areaListContainer: {
         marginHorizontal: -25
     },
     subHeadingText: {
