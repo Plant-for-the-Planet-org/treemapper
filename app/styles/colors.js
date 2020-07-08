@@ -6,7 +6,6 @@ let BLACK = '#000000';
 let TEXT_COLOR = '#4D5153';
 let LIGHT_BORDER_COLOR = '#D5D5D5';
 let DISABLE = '#CCCCCC';
-let BLACK = '#000000'
 // ACTIONS
 let SUCCESS = '#2ecc71';
 let WARNING = '#e67e22';

@@ -96,7 +96,7 @@ const TreeInventory = ({ navigation }) => {
         </View>)
     }
 
-    const renderInventoryList = () => {
+    const renderInventoryListContainer = () => {
         return (<View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} >
                 <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
@@ -110,7 +110,7 @@ const TreeInventory = ({ navigation }) => {
     return (
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
-            {allInventory && allInventory.length > 0 ? renderInventoryList() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
+            {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
         </View>
     )
 }

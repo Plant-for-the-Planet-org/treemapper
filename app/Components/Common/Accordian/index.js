@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { Input } from '../';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
@@ -41,12 +40,12 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
     const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpen}>
-                <View style={{ flex: 1 }}>
-                    <View style={{ flex: 1, }}>
-                        <View style={{ flex: 1 }} />
+                <View style={styles.cont}>
+                    <View style={styles.cont}>
+                        <View style={styles.cont} />
                         <KeyboardAvoidingView
                             behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: Colors.WHITE }}>
+                            style={styles.bgWhite}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isNameOfTreesShow ? 'Name of trees' : 'Tree Count'}</Text>
                                 {isNameOfTreesShow ?
@@ -97,6 +96,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
 
     },
+    cont: {
+        flex: 1
+    },
+    bgWhite: {
+        backgroundColor: Colors.WHITE
+    },
     treeCountCont: {
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -123,8 +128,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 5
     },
     arrowIcon: {
-        // width: 35, height: 35
-        // position : 'absolute',
         color: Colors.TEXT_COLOR,
         marginTop: 5
     },
