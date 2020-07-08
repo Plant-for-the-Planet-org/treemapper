@@ -46,7 +46,7 @@ const Accordian = ({ data, onChangeText, index, onBlur, onPressDelete, onSubmitE
                         <View style={{ flex: 1 }} />
                         <KeyboardAvoidingView
                             behavior={Platform.OS == "ios" ? "padding" : "height"}
-                            style={{ backgroundColor: '#fff' }}>
+                            style={{ backgroundColor: Colors.WHITE }}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isNameOfTreesShow ? 'Name of trees' : 'Tree Count'}</Text>
                                 {isNameOfTreesShow ?

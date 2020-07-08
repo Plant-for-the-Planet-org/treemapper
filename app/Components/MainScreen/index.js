@@ -26,7 +26,7 @@ const MainScreen = ({ navigation }) => {
     }, [])
 
 
-    let rightIcon = <Icon size={40} name={'play-circle'} color={'#707070'} />
+    let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />
 
     const onPressLargeButtons = (screenName) => navigation.navigate(screenName)
 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE
     },
     modalContainer: {
-        flex: 1, backgroundColor: '#000', padding: 30
+        flex: 1, backgroundColor: Colors.BLACK, padding: 30
     },
     addSpecies: {
         color: Colors.ALERT,

@@ -29,7 +29,7 @@ export default Alrighty;
 
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1, backgroundColor: '#fff'
+        flex: 1, backgroundColor: Colors.WHITE
     },
     bannerContainer: {
         flex: 1, justifyContent: 'center', alignItems: 'center'

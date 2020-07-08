@@ -71,36 +71,46 @@ const TreeInventory = ({ navigation }) => {
     }
 
     const renderInventory = () => {
-        return <View style={{ flex: 1 }}>
+        return <View style={styles.cont}>
             {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
             {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>
     }
+
+    const renderLoadingInventoryList = () => {
+        return (<View style={styles.cont}>
+            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        </View>)
+    }
+
+    const renderEmptyInventoryList = () => {
+        return (<View style={styles.cont}>
+            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <Image source={empty_inventory_banner} resizeMode={'stretch'} style={styles.emptyInventoryBanner} />
+            <View style={styles.parimaryBtnCont}>
+                <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+            </View>
+        </View>)
+    }
+
+    const renderInventoryList = () => {
+        return (<View style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false} >
+                <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                {renderInventory()}
+            </ScrollView>
+            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+            <SafeAreaView />
+        </View>)
+    }
+
     return (
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
-            {allInventory && allInventory.length > 0 ?
-                <View style={styles.container}>
-                    <ScrollView showsVerticalScrollIndicator={false} >
-                        <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
-                        {renderInventory()}
-                    </ScrollView>
-                    <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
-                    <SafeAreaView />
-                </View>
-                :
-                allInventory == null ? <View style={{ flex: 1, }}>
-                    <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
-                    <ActivityIndicator size={25} color={Colors.PRIMARY} />
-                </View> : <View style={{ flex: 1, borderWidth: 0, }}>
-                        <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
-                        <Image source={empty_inventory_banner} resizeMode={'stretch'} style={styles.emptyInventoryBanner} />
-                        <View style={styles.parimaryBtnCont}>
-                            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
-                        </View>
-                    </View>}
+            {allInventory && allInventory.length > 0 ? renderInventoryList() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
         </View>
     )
 }
@@ -112,6 +122,9 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    cont: {
+        flex: 1
     },
     emptyInventoryBanner: {
         width: '109%', height: '80%', marginHorizontal: -5, bottom: -10

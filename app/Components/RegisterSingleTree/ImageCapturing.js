@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     },
 
     cameraContainer: {
-        flex: 1, backgroundColor: '#eee', overflow: 'hidden'
+        flex: 1, overflow: 'hidden'
     }
 })
 

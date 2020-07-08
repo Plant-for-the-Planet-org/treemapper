@@ -323,4 +323,4 @@ const styles = StyleSheet.create({
     }
 })
 
-const polyline = { lineColor: 'red', lineWidth: 2, lineColor: '#000' }
+const polyline = { lineColor: 'red', lineWidth: 2, lineColor: Colors.BLACK }

@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     cameraContainer: {
-        flex: 1, backgroundColor: '#eee', overflow: 'hidden'
+        flex: 1, overflow: 'hidden'
     }
 })
 

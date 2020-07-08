@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
         width: '47%'
     },
     disabledCont: {
-        backgroundColor :'#cccccc'
+        backgroundColor :Colors.DISABLE
     }
 })

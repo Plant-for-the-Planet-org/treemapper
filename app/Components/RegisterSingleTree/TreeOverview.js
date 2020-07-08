@@ -205,7 +205,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
                         {imageSource && <Image source={imageSource} style={styles.bgImage} />}
-                        <LinearGradient colors={['rgba(255,255,255,0)', imageSource ? '#707070' : 'rgba(255,255,255,0)']} style={styles.detailContainer}>
+                        <LinearGradient colors={['rgba(255,255,255,0)', imageSource ? Colors.GRAY_LIGHTEST : 'rgba(255,255,255,0)']} style={styles.detailContainer}>
                             {renderDetails(inventory)}
                         </LinearGradient>
                     </View>}
