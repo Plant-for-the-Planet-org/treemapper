@@ -11,6 +11,7 @@ import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from '_styles';
+import { SelectSpecies } from '../../Components';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -23,9 +24,9 @@ const InventoryOverview = ({ navigation, }) => {
     const [selectedLOC, setSelectedLOC] = useState(null)
     const [isLOCModalOpen, setIsLOCModalOpen] = useState(false)
     const [showDate, setShowDate] = useState(false);
+    const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
 
     useEffect(() => {
-
         const unsubscribe = navigation.addListener('focus', () => {
             getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
                 inventory.species = Object.values(inventory.species);
@@ -196,6 +197,7 @@ const InventoryOverview = ({ navigation, }) => {
             />
         )
     }
+
     const onChangeDate = (event, selectedDate) => {
         setShowDate(false)
         setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
@@ -203,6 +205,14 @@ const InventoryOverview = ({ navigation, }) => {
     };
 
     const onPressDate = () => setShowDate(true)
+
+    const renderSelectSpeciesModal = () => {
+
+        const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false)
+
+        return (<SelectSpecies visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal}/>)
+    }
+
 
     let locationType;
     let isSingleCoordinate
@@ -225,14 +235,14 @@ const InventoryOverview = ({ navigation, }) => {
                     </ScrollView>
                     <View>
                         <View style={styles.bottomBtnsContainer}>
-                            <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
+                            <PrimaryButton onPress={() => setIsShowSpeciesListModal(true)} btnText={'Next Tree'} halfWidth theme={'white'} />
                             <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                         </View>
                     </View>
                 </View> : null}
             </View>
             {renderDatePicker()}
-
+            {renderSelectSpeciesModal()}
         </SafeAreaView>
     )
 }

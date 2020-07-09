@@ -49,7 +49,7 @@ const App = () => {
                     <Stack.Screen name='MainScreen' component={MainScreen} options={{ ...MyTransition }} />
                     <Stack.Screen name='TreeInventory' component={TreeInventory} options={{ ...MyTransition }} />
                     <Stack.Screen name='RegisterTree' component={RegisterTree} options={{ ...MyTransition }} />
-                    <Stack.Screen name='MultipleTrees' component={MultipleTrees} options={{ ...MyTransition }} />
+                    {/* <Stack.Screen name='MultipleTrees' component={MultipleTrees} options={{ ...MyTransition }} /> */}
                     <Stack.Screen name='SelectProject' component={SelectProject} options={{ ...MyTransition }} />
                     <Stack.Screen name='LocateTree' component={LocateTree} options={{ ...MyTransition }} />
                     <Stack.Screen name='CreatePolygon' component={CreatePolygon} options={{ ...MyTransition }} />

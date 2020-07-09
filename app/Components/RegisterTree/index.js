@@ -21,7 +21,7 @@ const RegisterTree = ({ navigation }) => {
         initiateInventory(data).then((inventoryID) => {
             dispatch(LocalInventoryActions.setInventoryId(inventoryID))
             if (treeType === 'multiple') {
-                navigation.navigate('MultipleTrees')
+                navigation.navigate('LocateTree')
             } else {
                 navigation.navigate('RegisterSingleTree')
             }
@@ -35,7 +35,7 @@ const RegisterTree = ({ navigation }) => {
                     <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
                     <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} />
                     <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} />
-                    <View style={{ flex: 1, }}>
+                    <View style={{ flex: 1 }}>
                     </View>
                 </ScrollView>
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} />
