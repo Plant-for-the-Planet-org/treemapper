@@ -36,9 +36,11 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal }) => {
                 visible={isShowTreeCountModal}
                 transparent={true}>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <View style={{ backgroundColor: Colors.WHITE, marginVertical: 30, marginHorizontal: 20, borderRadius: 20, padding: 20 }}>
+                    <View style={{ backgroundColor: Colors.WHITE, marginVertical: 30, marginHorizontal: 20, borderRadius: 20, padding: 20, width: '80%' }}>
                         <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
-                        <Header hideBackIcon subHeadingText={'How many Robina Pechumach did you plant?'} textAlignStyle={{ textAlign: 'center' }} />
+                        <Header hideBackIcon subHeadingText={'How many'} textAlignStyle={{ textAlign: 'center' }} />
+                        <Header hideBackIcon subHeadingText={'Robina Pechumach'} textAlignStyle={{ textAlign: 'center', fontStyle: 'italic', }} />
+                        <Header hideBackIcon subHeadingText={'did you plant?'} textAlignStyle={{ textAlign: 'center', }} />
                     </View>
                 </View>
                 <KeyboardAvoidingView

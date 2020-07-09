@@ -6,12 +6,14 @@ import { store } from '../../Actions/store';
 import { getInventory, statusToPending, updateLastScreen, updatePlantingDate } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
-import { marker_png } from '../../assets';
+import { marker_png, plus_icon, two_trees } from '../../assets';
 import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 import { SelectSpecies } from '../../Components';
+import { SvgXml } from 'react-native-svg';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -204,13 +206,25 @@ const InventoryOverview = ({ navigation, }) => {
         updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
     };
 
+    const renderAddSpeciesButton = () => {
+        return (<TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }}>
+            <Text style={styles.plantSpeciesText}>{`Planted\nSpecies`}</Text>
+            <View style={styles.bannerImgContainer}>
+                <SvgXml xml={plus_icon} />
+            </View>
+            <View style={styles.bannerImgContainer}>
+                <SvgXml xml={two_trees} />
+            </View>
+        </TouchableOpacity>)
+    }
+
     const onPressDate = () => setShowDate(true)
 
     const renderSelectSpeciesModal = () => {
 
         const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false)
 
-        return (<SelectSpecies visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal}/>)
+        return (<SelectSpecies visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal} />)
     }
 
 
@@ -229,13 +243,13 @@ const InventoryOverview = ({ navigation, }) => {
                         <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
                         {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
-                        <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} plantingDate={new Date(Number(inventory.plantation_date))} status={inventory.status} />
+                        {renderAddSpeciesButton()}
                         {renderPolygon(inventory.polygons, locationType)}
                         <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
                     <View>
                         <View style={styles.bottomBtnsContainer}>
-                            <PrimaryButton onPress={() => setIsShowSpeciesListModal(true)} btnText={'Next Tree'} halfWidth theme={'white'} />
+                            <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
                             <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                         </View>
                     </View>
@@ -271,6 +285,13 @@ const styles = StyleSheet.create({
     },
     screenMargin: {
         marginHorizontal: 25
+    },
+    plantSpeciesText: {
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_20,
+        lineHeight: Typography.LINE_HEIGHT_24,
+        color: Colors.TEXT_COLOR,
+        fontWeight: Typography.FONT_WEIGHT_BOLD,
     }
 
 })
