@@ -23,8 +23,7 @@ const TreeInventory = ({ navigation }) => {
     }, [navigation])
 
     const onPressInventory = (item) => {
-        console.log(item.last_screen, 'item.last_screen')
-        setTimeout(() => {
+         setTimeout(() => {
             dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
         }, 0)

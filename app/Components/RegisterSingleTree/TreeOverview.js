@@ -122,8 +122,7 @@ const SingleTreeOverview = ({ navigation }) => {
         filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
         imageSource = filePath ? { uri: filePath } : false
     }
-    console.log('imageSource', imageSource)
-    const renderDetails = ({ polygons }) => {
+     const renderDetails = ({ polygons }) => {
         let coords;
         if (polygons[0]) {
             coords = polygons[0].coordinates[0];

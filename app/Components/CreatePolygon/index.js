@@ -26,8 +26,7 @@ const CreatePolygon = ({ route, navigation }) => {
     const checkIsEdit = () => {
         if (route.params?.isEdit) {
             getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-                console.log(Object.keys(inventory.polygons[0].coordinates).length)
-                setIsMapMarkingState(false)
+                 setIsMapMarkingState(false)
                 setActiveMarkerIndex(Object.keys(inventory.polygons[0].coordinates).length - 1)
             })
 

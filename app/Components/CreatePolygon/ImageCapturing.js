@@ -25,8 +25,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     useEffect(() => {
         getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(({ coordsLength, coord }) => {
-            console.log(coord.imageUrl)
-            if (coord.imageUrl) {
+             if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
         })

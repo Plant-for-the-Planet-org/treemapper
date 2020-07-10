@@ -40,7 +40,6 @@ const MainScreen = ({ navigation }) => {
 
     const checkIsLogin = () => {
         isLogin().then((data) => {
-            console.log('data=',data)
             setIsUserLogin(data)
         }).catch((err) => {
             console.log(err)
@@ -63,8 +62,7 @@ const MainScreen = ({ navigation }) => {
         )
     }
 
-    console.log('isUserLogin=',isUserLogin)
-    return (
+     return (
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
                 <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>

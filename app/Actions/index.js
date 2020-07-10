@@ -18,8 +18,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                console.log(credentials, 'credentials')
-                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
                             realm.create('User', {
@@ -42,8 +41,7 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                console.log('User=', Object.keys(User).length)
-                if (Object.keys(User).length > 0) {
+                 if (Object.keys(User).length > 0) {
                     resolve(true)
                 } else {
                     resolve(false)
