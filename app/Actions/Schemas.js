@@ -23,6 +23,7 @@ const Species = {
     properties: {
         nameOfTree: 'string',
         treeCount: 'string',
+        id: 'string?'
     }
 }
 const OfflineMaps = {
@@ -62,4 +63,4 @@ const User = {
     }
 }
 
-export { Coordinates, Polygons, User, OfflineMaps ,Species, Inventory}
+export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory }

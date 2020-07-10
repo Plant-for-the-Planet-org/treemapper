@@ -220,16 +220,16 @@ const InventoryOverview = ({ navigation, }) => {
         addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
             initiatState()
         })
-        console.log('SelectSpeciesList=', SelectSpeciesList)
     }
 
     const renderSelectSpeciesModal = () => {
-
         const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false)
-
-        return (<SelectSpecies visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal} onPressSaveAndContinue={onPressSaveAndContinue} />)
+        if (inventory) {
+            return (<SelectSpecies species={inventory.species} visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal} onPressSaveAndContinue={onPressSaveAndContinue} />)
+        } else {
+            return;
+        }
     }
-
 
     let locationType;
     let isSingleCoordinate
@@ -238,7 +238,7 @@ const InventoryOverview = ({ navigation, }) => {
         locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
     }
 
-    console.log('inventory=', inventory)
+    let status = inventory ? inventory.status : 'pending';
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderViewLOCModal()}
@@ -248,9 +248,9 @@ const InventoryOverview = ({ navigation, }) => {
                         <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
                         {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
-                        <Label leftText={`Planted Species`} rightText={'Edit'} onPressRightText={() => setIsShowSpeciesListModal(true)} />
+                        <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
                         <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
-                        {inventory.species && inventory.species.length < 0 ? renderAddSpeciesButton() : null}
+                        {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton() : null}
                         {renderPolygon(inventory.polygons, locationType)}
                         <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>

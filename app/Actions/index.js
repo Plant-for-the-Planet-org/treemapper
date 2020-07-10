@@ -18,7 +18,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
                             realm.create('User', {
@@ -41,7 +41,7 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                 if (Object.keys(User).length > 0) {
+                if (Object.keys(User).length > 0) {
                     resolve(true)
                 } else {
                     resolve(false)
@@ -49,7 +49,6 @@ export const isLogin = () => {
             })
     })
 }
-
 
 //  ---------------- AUTH0 ACTIONS END----------------
 
@@ -152,6 +151,7 @@ export const initiateInventory = ({ treeType }) => {
                         inventory_id: inventoryID,
                         tree_type: treeType,
                         status: 'incomplete',
+                        plantation_date: `${new Date().getTime()}`
                     })
                     resolve(inventoryID)
                 })

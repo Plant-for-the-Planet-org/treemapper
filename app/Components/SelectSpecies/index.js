@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, Image, FlatList, Modal, TouchableOpacity, KeyboardAvoidingView, TextInput } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native'
@@ -7,12 +7,20 @@ import { placeholder_image, checkCircleFill, checkCircle } from '../../assets'
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue }) => {
+const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue, species }) => {
 
     const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
     const [treeCount, setTreeCount] = useState('');
     const [activeSpeice, setActiveSpecie] = useState(undefined);
     const [speciesList, setSpeciesList] = useState(speciesJSON)
+
+    useEffect(() => {
+        for (let i = 0; i < species.length; i++) {
+            const oneSpecie = species[i];
+            speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount
+        }
+        setSpeciesList(speciesList)
+    }, [])
 
     const onPressSpecie = (index) => {
         setActiveSpecie(index)
@@ -38,11 +46,10 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     const onPressTreeCountNextBtn = () => {
         let speciesListClone = speciesList;
         let specie = speciesListClone[activeSpeice]
-        specie.treeCount = Number(treeCount) ? treeCount : undefined
+        specie.treeCount = Number(treeCount) ? treeCount : undefined;
         speciesListClone.splice(activeSpeice, 1, specie)
         setIsShowTreeCountModal(false)
         setTreeCount(0)
-
     }
 
     const renderTreeCountModal = () => {
@@ -76,6 +83,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         for (let i = 0; i < speciesList.length; i++) {
             const oneSpecie = speciesList[i];
             if (oneSpecie.treeCount) {
+                oneSpecie.id = i.toString()
                 selectedspeciesList.push(oneSpecie)
             }
         }
