@@ -8,6 +8,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Geolocation from '@react-native-community/geolocation';
 import { active_marker } from '../../assets/index';
+import { SvgXml } from 'react-native-svg';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
@@ -103,7 +104,7 @@ const DownloadMap = ({ navigation }) => {
     const renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <Image source={active_marker} style={styles.markerImage} />
+                <SvgXml xml={active_marker}style={styles.markerImage}/>
             </View>)
     }
 

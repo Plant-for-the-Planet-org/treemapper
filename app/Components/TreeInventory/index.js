@@ -7,7 +7,7 @@ import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
-
+import { SvgXml } from "react-native-svg";
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
@@ -23,7 +23,7 @@ const TreeInventory = ({ navigation }) => {
     }, [navigation])
 
     const onPressInventory = (item) => {
-         setTimeout(() => {
+        setTimeout(() => {
             dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
         }, 0)
@@ -86,7 +86,7 @@ const TreeInventory = ({ navigation }) => {
     const renderEmptyInventoryList = () => {
         return (<View style={styles.cont}>
             <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
-            <Image source={empty_inventory_banner} resizeMode={'stretch'} style={styles.emptyInventoryBanner} />
+            <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
                 <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
             </View>

@@ -1,23 +1,27 @@
+// * PNGs
 import back_icon from './images/back_icon.png';
 import arrow_up from './images/arrow_up.png';
 import arrow_down from './images/arrow_down.png';
 import close from './images/close.png';
 import camera from './images/camera.png';
 import marker_png from './images/marker.png';
-import active_marker from './images/active_marker.png';
 import cloud from './images/cloud.png';
 import upload_check from './images/upload_check.png';
 import upload_now from './images/upload_now.png';
 import tree from './images/tree.png';
-import placeholder_image from './images/placeholder_img.png';
-import { main_screen_banner } from './images/main_screen_banner.js';
-import { two_trees } from './images/two_trees.js';
-import { plus_icon } from './images/plus_icon.js';
 import map_texture from './images/map_texture.png';
-import alrighty_banner from './images/alrighty_banner.png';
-import empty_inventory_banner from './images/empty_inventory_banner.png';
+import placeholder_image from './images/placeholder_img.png';
+
+// * SVGs *
+import { main_screen_banner } from './images/main_screen_banner';
+import { two_trees } from './images/two_trees';
+import { plus_icon } from './images/plus_icon';
+import { alrighty_banner } from './images/alrighty_banner';
+import { empty_inventory_banner } from './images/empty_inventory_banner';
 import { checkCircle } from "./images/check-circle";
 import { checkCircleFill } from "./images/check-circle-fill";
+import { active_marker } from './images/active_marker';
+
 export {
     back_icon,
     arrow_up,

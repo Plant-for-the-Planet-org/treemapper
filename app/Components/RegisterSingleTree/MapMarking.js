@@ -11,6 +11,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import { SvgXml } from 'react-native-svg';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
@@ -59,7 +60,7 @@ class MapMarking extends React.Component {
     renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <Image source={active_marker} style={styles.markerImage} />
+                <SvgXml xml={active_marker} style={styles.markerImage}/>
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
