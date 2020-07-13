@@ -6,5 +6,13 @@ import LocateTree from './LocateTree';
 import CreatePolygon from './CreatePolygon';
 import TreeInventory from './TreeInventory';
 import InventoryOverview from './InventoryOverview';
+import MainScreen from './MainScreen';
+import SavedAreas from './SavedAreas';
+import DownloadMap from './DownloadMap';
+import RegisterSingleTree from './RegisterSingleTree';
+import SingleTreeOverview from './RegisterSingleTree/TreeOverview';
+import SelectCoordinates from './SelectCoordinates';
+import ManageUsers from './ManageUsers';
+import SelectSpecies from './SelectSpecies';
 
-export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview };
+export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates , ManageUsers, SelectSpecies};

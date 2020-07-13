@@ -1,24 +1,32 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, Text, Platform, ScrollView, SafeAreaView, Dimensions, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
-import { Colors, Typography } from '_styles';
+import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicator, TouchableOpacity, ImageBackground, Modal } from 'react-native';
+import { Header, PrimaryButton, Alrighty } from '../Common';
+import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { camera, marker, marker_png, active_marker } from '../../assets/index'
-import { addCoordinates, getInventory } from '../../Actions';
+import { active_marker, marker_png } from '../../assets/index';
+import { addCoordinates, getInventory, polygonUpdate } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv'
+import LinearGradient from 'react-native-linear-gradient';
+import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import { SvgXml } from 'react-native-svg';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
 
+const infographicText = [
+    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
+    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+]
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const IS_ANDROID = Platform.OS == 'android';
 
 class MapMarking extends React.Component {
     state = {
+        isAlrightyModalShow: false,
         centerCoordinates: [0, 0],
         activePolygonIndex: 0,
         loader: false,
@@ -42,7 +50,7 @@ class MapMarking extends React.Component {
     }
 
 
-    async  UNSAFE_componentWillMount() {
+    async UNSAFE_componentWillMount() {
         if (IS_ANDROID) {
             MapboxGL.setTelemetryEnabled(false);
             await MapboxGL.requestAndroidLocationPermissions().then(() => {
@@ -57,7 +65,7 @@ class MapMarking extends React.Component {
     }
 
     initialState = () => {
-        const { inventoryID } = this.props;
+        const { inventoryID, updateActiveMarkerIndex, activeMarkerIndex } = this.props;
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
             inventory.species = Object.values(inventory.species);
             inventory.polygons = Object.values(inventory.polygons);
@@ -78,8 +86,15 @@ class MapMarking extends React.Component {
                     'type': 'FeatureCollection',
                     'features': featureList
                 }
-                this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree })
+                if (activeMarkerIndex !== null && activeMarkerIndex < geoJSON.features[0].geometry.coordinates.length) {
+                    updateActiveMarkerIndex(activeMarkerIndex)
+                } else {
+                    updateActiveMarkerIndex(geoJSON.features[0].geometry.coordinates.length)
+                }
+                this.setState({ geoJSON: geoJSON, locateTree: inventory.locate_tree, })
+
             } else {
+                updateActiveMarkerIndex(0)
                 this.setState({ locateTree: inventory.locate_tree })
             }
         })
@@ -87,14 +102,12 @@ class MapMarking extends React.Component {
 
     onUpdateUserLocation = (location) => {
         if (!location) {
-            alert('Unable to retrive location')
+            // alert('Unable to retrive location')
             return;
         }
         if (!this.state.isInitial) {
             const currentCoords = [location.coords.longitude, location.coords.latitude]
-            this.setState({ centerCoordinates: currentCoords, isInitial: true }, () => {
-                // this.addMarker()
-            })
+            this.setState({ centerCoordinates: currentCoords, isInitial: true })
             this._camera.setCamera({
                 centerCoordinate: currentCoords,
                 zoomLevel: 18,
@@ -109,7 +122,6 @@ class MapMarking extends React.Component {
             // Check distance 
             try {
                 Geolocation.getCurrentPosition(position => {
-                    alert(JSON.stringify(position))
                     let currentCoords = position.coords;
                     let markerCoords = centerCoordinates;
 
@@ -117,7 +129,7 @@ class MapMarking extends React.Component {
                     geoJSON.features[activePolygonIndex].geometry.coordinates.map(oneMarker => {
                         let distance = this.distanceCalculator(markerCoords[1], markerCoords[0], oneMarker[1], oneMarker[0], 'K')
                         let distanceInMeters = distance * 1000;
-                        if (distanceInMeters < 2)
+                        if (distanceInMeters < 10)
                             isValidMarkers = false
                     })
 
@@ -125,26 +137,34 @@ class MapMarking extends React.Component {
                     let distanceInMeters = distance * 1000;
 
                     if (!isValidMarkers) {
-                        alert('Markers are too closed.')
+                        alert('You are at the same location. Please walk to the next location.')
                     } else if (distanceInMeters < 100) {
-                        this.pushMaker(complete)
+                        this.pushMaker(complete, currentCoords)
                     } else {
                         alert(`You are very far from your current location.`)
                     }
                 }, (err) => alert(err.message));
             } catch (err) {
                 alert('console 3')
-
                 alert(JSON.stringify(err))
             }
         } else {
-            this.pushMaker(complete)
+            this.setState({ isAlrightyModalShow: true })
+            try {
+                Geolocation.getCurrentPosition(position => {
+                    let currentCoords = position.coords;
+                    this.pushMaker(complete, currentCoords)
+                }, (err) => alert(err.message))
+            } catch (err) {
+                alert('Unable to retrive location')
+            }
         }
     }
 
-    pushMaker = (complete) => {
+    pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
-        geoJSON.features[activePolygonIndex].geometry.coordinates.push(centerCoordinates);
+        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
+        geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         if (complete) {
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
@@ -153,12 +173,14 @@ class MapMarking extends React.Component {
             // change the state
             const { inventoryID } = this.props;
             const { geoJSON } = this.state;
-            let data = { inventory_id: inventoryID, geoJSON: geoJSON };
+
+            let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
-                    this.props.toggleState(location)
+                    this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
                 } else {
+                    updateActiveMarkerIndex(activeMarkerIndex + 1)
                     // For off site
                     if (complete) {
                         this.props.navigation.navigate('InventoryOverview')
@@ -200,8 +222,8 @@ class MapMarking extends React.Component {
     renderFakeMarker = (location) => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <Image source={active_marker} style={styles.markerImage} />
-                {this.state.loader ? <ActivityIndicator color={'#fff'} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
+                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
             </View>)
     }
 
@@ -214,12 +236,12 @@ class MapMarking extends React.Component {
             ref={(ref) => this._map = ref}
             onRegionWillChange={this.onChangeRegionStart}
             onRegionDidChange={this.onChangeRegionComplete}>
+            {this.renderMarkers(geoJSON)}
             <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
             {shouldRenderShap && <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
                 <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             </MapboxGL.ShapeSource>}
             <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
-            {this.renderMarkers(geoJSON)}
         </MapboxGL.MapView>)
     }
 
@@ -231,7 +253,11 @@ class MapMarking extends React.Component {
             let coordinatesLenghtShouldBe = onePolygon.properties.isPolygonComplete ? onePolygon.geometry.coordinates.length - 1 : onePolygon.geometry.coordinates.length
             for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
                 let oneMarker = onePolygon.geometry.coordinates[j]
-                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}></MapboxGL.PointAnnotation>);
+                markers.push(<MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
+                    <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+                        <Text style={styles.markerText}>{ALPHABETS[j]}</Text>
+                    </ImageBackground>
+                </MapboxGL.PointAnnotation>);
             }
         }
         return markers;
@@ -247,8 +273,10 @@ class MapMarking extends React.Component {
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon, { bottom: isShowCompletePolygonBtn ? 160 : 90, }]}>
-            <Ionicons name={'md-locate'} size={22} />
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+            <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
+                <Ionicons name={'md-locate'} size={22} />
+            </View>
         </TouchableOpacity>
     }
 
@@ -259,31 +287,84 @@ class MapMarking extends React.Component {
 
     }
 
+    renderAlrightyModal = () => {
+        const { geoJSON, activePolygonIndex, isAlrightyModalShow } = this.state;
+        const { inventoryID, updateActiveMarkerIndex, activeMarkerIndex } = this.props;
+
+        let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length
+        const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
+        const onPressCompletePolygon = () => {
+            polygonUpdate({ inventory_id: inventoryID }).then(() => {
+                onPressContinue()
+                this.props.navigation.navigate('InventoryOverview')
+            })
+        }
+        const onPressClose = () => {
+            updateActiveMarkerIndex(activeMarkerIndex - 1)
+            this.setState({ isAlrightyModalShow: false })
+        }
+
+        let infoIndex = coordsLength <= 1 ? 0 : coordsLength <= 2 ? 1 : 2
+        const { heading, subHeading } = infographicText[infoIndex]
+
+        return (
+            <Modal
+                animationType={'slide'}
+                visible={isAlrightyModalShow}>
+                <View style={styles.mainContainer}>
+                    <Alrighty coordsLength={coordsLength} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                </View>
+            </Modal>
+        )
+    }
+
+    onPressBack = () => {
+        const { locateTree } = this.state;
+        const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+        if (locateTree == 'off-site') {
+            if (activeMarkerIndex > 0) {
+                this.setState({ isAlrightyModalShow: true })
+            } else {
+                navigation.goBack()
+            }
+        } else {
+            // on-site
+            if (activeMarkerIndex > 0) {
+                updateActiveMarkerIndex(activeMarkerIndex - 1)
+                toogleState2()
+            } else {
+                navigation.goBack()
+            }
+        }
+    }
+
     render() {
+        const { activeMarkerIndex } = this.props
+
+
         const { geoJSON, loader, activePolygonIndex } = this.state;
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
-        let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length]
+        let location = ALPHABETS[activeMarkerIndex];
         return (
             <View style={styles.container} fourceInset={{ top: 'always' }}>
-                <SafeAreaView />
-                <View style={styles.headerCont}>
-                    <Header headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
-                </View>
                 <View style={styles.container}>
                     {this.renderMapView(geoJSON)}
                     {this.renderFakeMarker(location)}
                 </View>
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
-                    {isShowCompletePolygonBtn && <View style={styles.completePolygonBtnCont}>
-                        <PrimaryButton disabled={loader} theme={'white'} onPress={this.onPressCompletePolygon} btnText={'Select & Complete Polygon'} style={{ width: '90%', }} />
-                    </View>}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={styles.bottonBtnContainer} />
                     </View>
                 </View>
-
+                <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'transparent']} >
+                    <SafeAreaView />
+                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                </LinearGradient>
+                <View>
+                </View>
+                {this.renderAlrightyModal()}
             </View>)
     }
 }
@@ -296,6 +377,9 @@ export default function (props) {
 };
 
 const styles = StyleSheet.create({
+    mainContainer: {
+        flex: 1
+    },
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
@@ -306,8 +390,15 @@ const styles = StyleSheet.create({
     completePolygonBtnCont: {
         flexDirection: 'row', position: 'absolute', bottom: 80, backgroundColor: 'transparent', width: '100%', justifyContent: 'center',
     },
+    bottonBtnContainer: {
+        width: '90%',
+    },
     headerCont: {
-        marginHorizontal: 25
+        paddingHorizontal: 25,
+        position: 'absolute',
+        top: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        width: '100%'
     },
     fakeMarkerCont: {
         position: 'absolute', left: '50%', top: '50%', justifyContent: 'center', alignItems: 'center'
@@ -321,11 +412,20 @@ const styles = StyleSheet.create({
         position: 'absolute', bottom: 67
     },
     activeMarkerLocation: {
-        position: 'absolute', bottom: 67, color: '#fff', fontWeight: 'bold', fontSize: 16
+        position: 'absolute', bottom: 67, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16
     },
     myLocationIcon: {
-        width: 45, height: 45, backgroundColor: '#fff', position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR
+        width: 45, height: 45, backgroundColor: Colors.WHITE, position: 'absolute', borderRadius: 100, right: 0, marginHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderColor: Colors.TEXT_COLOR, bottom: 90
+    },
+    myLocationIconContainer: {
+        top: 1.5, left: 0.8,
+    },
+    markerContainer: {
+        width: 30, height: 43, paddingBottom: 85,
+    },
+    markerText: {
+        width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
     }
 })
 
-const polyline = { lineColor: 'red', lineWidth: 2, lineColor: '#000' }
+const polyline = { lineColor: 'red', lineWidth: 2, lineColor: Colors.BLACK }

@@ -59,7 +59,7 @@ jobs:
       run: |
         source ~/.bashrc
         echo $PATH
-        bash <(curl --compressed -s https://raw.githubusercontent.com/labbots/google-drive-upload/master/install.sh)
+        bash <(curl --compressed -s https://raw.githubusercontent.com/labbots/google-drive-upload/master/install.sh) -R v2.7
         #bash <(curl --compressed -# https://raw.githubusercontent.com/Akianonymus/google-drive-upload/fix/install.sh) -r Akianonymus/google-drive-upload -B fix
         echo "CLIENT_ID=\"$CLIENT_ID\"" >> ~/.googledrive.conf
         echo "CLIENT_SECRET=\"$CLIENT_SECRET\"" >> ~/.googledrive.conf
@@ -73,9 +73,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node2-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node2-
+          ${{ runner.os }}-node-treeinventory-
 
     - name: Install npm
       run : |
@@ -84,16 +84,22 @@ jobs:
     - name: Setting Environment Variables
       env:
         MAPBOXGL_ACCCESS_TOKEN: ${{ secrets.MAPBOXGL_ACCCESS_TOKEN }}
+        BUGSNAP_CLIENT_KEY: ${{ secrets.BUGSNAP_CLIENT_KEY }}
+        AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+        AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
+        echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
+        echo "AUTH0_DOMAIN=$AUTH0_DOMAIN" >> .env
+        echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
 
-    - name: Caching Pods
-      uses: actions/cache@v1
-      with:
-        path: ios/Pods
-        key: ${{ runner.os }}-pods2-${{ hashFiles('ios/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods2-
+    # - name: Caching Pods
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: ios/Pods
+    #     key: ${{ runner.os }}-pods-treeinventory-${{ hashFiles('ios/Podfile.lock') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pods-treeinventory-
 
     - name: Install Pods
       run: pod install

@@ -133,10 +133,11 @@ android {
         applicationId "org.pftp.treeinventory"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.0"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
+        missingDimensionStrategy 'react-native-camera', 'general'
     }
     splits {
         abi {
@@ -191,6 +192,14 @@ android {
 }
 
 dependencies {
+    compile (project(':react-native-camera')) {
+    exclude group: "com.google.android.gms"
+    }
+    compile ("com.google.android.gms:play-services-vision:10.2.0") {
+    force = true;
+    }
+
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules

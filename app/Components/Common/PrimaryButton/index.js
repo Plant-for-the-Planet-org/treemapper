@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {  Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
 const PrimaryButton = ({ btnText, theme, halfWidth, style, onPress, disabled }) => {
     const isWhiteTheme = theme == 'white';
     return (
-        <TouchableOpacity disabled={disabled} onPress={onPress} style={[styles.container, isWhiteTheme && styles.whiteTheme, halfWidth && styles.halfWidth, style]}>
+        <TouchableOpacity disabled={disabled} onPress={onPress} style={[styles.container, isWhiteTheme && styles.whiteTheme, halfWidth && styles.halfWidth, disabled && styles.disabledCont, style]}>
             <Text style={[styles.btnText, isWhiteTheme && styles.primaryText]}>{btnText}</Text>
         </TouchableOpacity>
     )
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 100,
-        marginBottom : 10
+        marginBottom: 10
     },
     whiteTheme: {
         backgroundColor: Colors.WHITE,
@@ -38,5 +38,8 @@ const styles = StyleSheet.create({
     },
     halfWidth: {
         width: '47%'
+    },
+    disabledCont: {
+        backgroundColor :Colors.DISABLE
     }
 })

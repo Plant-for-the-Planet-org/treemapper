@@ -2,14 +2,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { back_icon, close, upload_now, upload_check } from '../../../assets'
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
+const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, style }) => {
 
-const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight }) => {
-    // icon == 'upload_now' ? upload_now : upload_check
     return (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
             <Text style={styles.subHeadingText}>{leftText}</Text>
             <View>
                 <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }}>

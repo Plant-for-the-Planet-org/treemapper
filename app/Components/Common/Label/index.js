@@ -1,18 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { back_icon, close } from '../../../assets'
 
 
-const Label = ({ leftText, rightText, onPressRightText }) => {
+const Label = ({ leftText, rightText, onPressRightText, leftTextStyle, rightTextStyle, style }) => {
     return (
         <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15 }}>
+            <View style={[styles.container, style]}>
                 <View>
-                    <Text style={styles.leftText}>{leftText}</Text>
+                    <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
                 </View>
                 <TouchableOpacity onPress={onPressRightText}>
-                    <Text style={styles.rightText}>{rightText}</Text>
+                    <Text style={[styles.rightText, rightTextStyle]}>{rightText}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -21,6 +20,9 @@ const Label = ({ leftText, rightText, onPressRightText }) => {
 export default Label
 
 const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15
+    },
     headerText: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_27,

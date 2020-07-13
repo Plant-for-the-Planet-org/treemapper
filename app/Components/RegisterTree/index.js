@@ -2,10 +2,10 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import Realm from 'realm';
 import { initiateInventory } from '../../Actions'
 import { store } from '../../Actions/store';
-import { Colors, Typography } from '_styles';
+import { Colors } from '_styles';
+import { LocalInventoryActions } from '../../Actions/Action';
 
 const RegisterTree = ({ navigation }) => {
     const globalState = useContext(store);
@@ -19,19 +19,23 @@ const RegisterTree = ({ navigation }) => {
     const onPressContinue = () => {
         let data = { treeType };
         initiateInventory(data).then((inventoryID) => {
-            navigation.navigate('MultipleTrees')
-            dispatch({ type: 'SET_INVENTORY_ID', inventoryID: inventoryID })
+            dispatch(LocalInventoryActions.setInventoryId(inventoryID))
+            if (treeType === 'multiple') {
+                navigation.navigate('LocateTree')
+            } else {
+                navigation.navigate('RegisterSingleTree')
+            }
         })
     }
 
     return (
-        <SafeAreaView style={{ flex: 1 ,backgroundColor : '#fff'}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
                     <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} />
                     <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} />
-                    <View style={{ flex: 1, }}>
+                    <View style={{ flex: 1 }}>
                     </View>
                 </ScrollView>
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} />

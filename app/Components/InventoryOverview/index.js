@@ -1,12 +1,19 @@
-import React, { useContext, useEffect, useState, useRef, useReducer } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, Modal } from 'react-native';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { View, StyleSheet, ScrollView, FlatList, Modal, PermissionsAndroid, ImageBackground, Text, Platform, Alert } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
-import { SafeAreaView } from 'react-native'
-import { store } from '../../Actions/store'
-import { getInventory, statusToPending, updateLastScreen } from '../../Actions'
+import { SafeAreaView } from 'react-native';
+import { store } from '../../Actions/store';
+import { getInventory, statusToPending, updateLastScreen, updatePlantingDate, addSpeciesAction } from '../../Actions'
 import MapboxGL from '@react-native-mapbox-gl/maps';
-
-const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+import RNFetchBlob from 'rn-fetch-blob';
+import { marker_png, plus_icon, two_trees } from '../../assets';
+import { APLHABETS } from '../../Utils'
+import { bugsnag } from '../../Utils'
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Colors, Typography } from '_styles';
+import { SelectSpecies } from '../../Components';
+import { SvgXml } from 'react-native-svg';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -18,48 +25,48 @@ const InventoryOverview = ({ navigation, }) => {
     const [locationTitle, setlocationTitle] = useState('')
     const [selectedLOC, setSelectedLOC] = useState(null)
     const [isLOCModalOpen, setIsLOCModalOpen] = useState(false)
+    const [showDate, setShowDate] = useState(false);
+    const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
 
     useEffect(() => {
-
         const unsubscribe = navigation.addListener('focus', () => {
-            getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-                inventory.species = Object.values(inventory.species);
-                inventory.polygons = Object.values(inventory.polygons);
-                setInventory(inventory)
-            })
-
+            initiatState()
+            let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
+            updateLastScreen(data)
         });
 
-        let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' }
-        updateLastScreen(data)
     }, [])
 
+    const initiatState = () => {
+        getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+            inventory.species = Object.values(inventory.species);
+            inventory.polygons = Object.values(inventory.polygons);
+            setInventory(inventory)
+        })
+    }
 
-    const renderPolygon = (polygons) => {
+    const renderPolygon = (polygons, locationType) => {
         return (
             <FlatList
+                keyboardShouldPersistTaps={'always'}
                 data={polygons}
                 renderItem={({ item, index }) => {
                     return (<View>
-                        <Label leftText={`Polygon ${APLHABETS[index]}`} rightText={''} />
+                        <Label leftText={`Location Type: ${locationType}`} rightText={''} />
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(3)},${oneCoordinate.longitude.toFixed(3)}`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
-                                return (
-                                    <InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressActiveBtn} />
-                                )
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
+                                return (<InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />)
                             }}
                         />
-
                     </View>)
                 }}
             />
-
         )
     }
 
-    const onPressActiveBtn = (index) => {
+    const onPressViewLOC = (index) => {
         let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index]
         let normalCoords = [selectedCoords.longitude, selectedCoords.latitude]
         setSelectedLOC(normalCoords)
@@ -74,10 +81,6 @@ const InventoryOverview = ({ navigation, }) => {
         })
     }
 
-    const onPressEdit = () => {
-        navigation.navigate('MultipleTrees', { isEdit: true })
-    }
-
     const focusMarker = () => {
         cameraRef.current.setCamera({
             centerCoordinate: selectedLOC,
@@ -86,51 +89,181 @@ const InventoryOverview = ({ navigation, }) => {
         })
     }
 
-    const onBackPress = () => {
+    const onBackPress = () => { // * FOR LOCATION MODAL
         setIsLOCModalOpen(!isLOCModalOpen)
         setSelectedLOC(null)
     }
 
     const renderViewLOCModal = () => {
         return (
-            <Modal transparent visible={isLOCModalOpen}>
+            <Modal transparent visible={isLOCModalOpen} animationType={'slide'}>
                 <SafeAreaView />
-                <View style={{ flex: 1, backgroundColor: '#fff' }}>
-                    <View style={{ marginHorizontal: 25 }}>
+                <View style={styles.mainContainer}>
+                    <View style={styles.screenMargin}>
                         <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationTitle}`} />
                     </View>
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={focusMarker}
-                        style={{ flex: 1 }}>
+                        style={styles.cont}>
                         <MapboxGL.Camera ref={cameraRef} />
-                        {selectedLOC && <MapboxGL.PointAnnotation id={``} coordinate={selectedLOC}></MapboxGL.PointAnnotation>}
+                        {selectedLOC && <MapboxGL.PointAnnotation id={`markerContainer1`} coordinate={selectedLOC}>
+                            <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+                                <Text style={styles.markerText}>{locationTitle}</Text>
+                            </ImageBackground>
+                        </MapboxGL.PointAnnotation>}
                     </MapboxGL.MapView>
                 </View>
-            </Modal>
+            </Modal >
         )
     }
 
+    const askAndroidStoragePermission = async () => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                    {
+                        title: "Storage Permission",
+                        message: "App needs access to memory to download the file ",
+                        'buttonPositive': 'Ok'
+                    }
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    resolve()
+                } else {
+                    Alert.alert(
+                        "Permission Denied!",
+                        "You need to give storage permission to save geoJSON the file"
+                    );
+                }
+            } catch (err) {
+                reject()
+                bugsnag.notify(err)
+            }
+        })
+    }
+
+    const onPressExportJSON = async () => {
+        let exportgeoJSONFile = () => {
+            inventory.species = Object.values(inventory.species);
+            inventory.polygons = Object.values(inventory.polygons);
+            if (inventory.polygons.length > 0) {
+                let featureList = inventory.polygons.map((onePolygon) => {
+                    return {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
+                        }
+                    }
+                })
+                let geoJSON = {
+                    'type': 'FeatureCollection',
+                    'features': featureList
+                }
+                let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
+                let path = `${Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+                RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
+                    .then((success) => {
+                        alert(`GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`)
+                    }).catch((err) => alert('unable to save file '))
+            }
+        }
+        if (Platform.OS == 'android') {
+            askAndroidStoragePermission().then(() => {
+                exportgeoJSONFile()
+            })
+        } else {
+            exportgeoJSONFile()
+        }
+
+    }
+
+    const renderDatePicker = () => {
+        return (
+            showDate && <DateTimePicker
+                maximumDate={new Date()}
+                testID="dateTimssePicker"
+                timeZoneOffsetInMinutes={0}
+                value={new Date(Number(inventory.plantation_date))}
+                mode={'date'}
+                is24Hour={true}
+                display="default"
+                onChange={onChangeDate}
+            />
+        )
+    }
+
+    const onChangeDate = (event, selectedDate) => {
+        setShowDate(false)
+        setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
+        updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
+    };
+
+    const renderAddSpeciesButton = () => {
+        return (<TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }}>
+            <Text style={styles.plantSpeciesText}>{`Planted\nSpecies`}</Text>
+            <View style={styles.bannerImgContainer}>
+                <SvgXml xml={plus_icon} />
+            </View>
+            <View style={styles.bannerImgContainer}>
+                <SvgXml xml={two_trees} />
+            </View>
+        </TouchableOpacity>)
+    }
+
+    const onPressDate = () => setShowDate(true)
+
+    const onPressSaveAndContinue = (SelectSpeciesList) => {
+        //  Add it to local Db 
+        addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
+            initiatState()
+        })
+    }
+
+    const renderSelectSpeciesModal = () => {
+        const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false)
+        if (inventory) {
+            return (<SelectSpecies species={inventory.species} visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal} onPressSaveAndContinue={onPressSaveAndContinue} />)
+        } else {
+            return;
+        }
+    }
+
+    let locationType;
+    let isSingleCoordinate
+    if (inventory) {
+        isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
+        locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+    }
+
+    let status = inventory ? inventory.status : 'pending';
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={styles.mainContainer}>
             {renderViewLOCModal()}
             <View style={styles.container}>
-                {inventory !== null ? <View style={{ flex: 1, }} >
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <Header headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                        <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} />
-                        <Label leftText={`On Site Registration`} rightText={''} />
-                        <LabelAccordian data={inventory.species} onPressRightText={onPressEdit} />
-                        {renderPolygon(inventory.polygons)}
-                        <LargeButton heading={'Export GeoJson'} active={false} medium />
+                {inventory !== null ? <View style={styles.cont} >
+                    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
+                        <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                        <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
+                        {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
+                        <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
+                        <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
+                        {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton() : null}
+                        {renderPolygon(inventory.polygons, locationType)}
+                        <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>
-                    <View style={{}}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                        <View style={styles.bottomBtnsContainer}>
                             <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
                             <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                         </View>
                     </View>
                 </View> : null}
             </View>
+            {renderDatePicker()}
+            {renderSelectSpeciesModal()}
         </SafeAreaView>
     )
 }
@@ -140,6 +273,32 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        backgroundColor: '#fff'
+        backgroundColor: Colors.WHITE
+    },
+    bottomBtnsContainer: {
+        flexDirection: 'row', justifyContent: 'space-between'
+    },
+    cont: {
+        flex: 1
+    },
+    mainContainer: {
+        flex: 1, backgroundColor: Colors.WHITE
+    },
+    markerContainer: {
+        width: 30, height: 43, paddingBottom: 85,
+    },
+    markerText: {
+        width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+    },
+    screenMargin: {
+        marginHorizontal: 25
+    },
+    plantSpeciesText: {
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_20,
+        lineHeight: Typography.LINE_HEIGHT_24,
+        color: Colors.TEXT_COLOR,
+        fontWeight: Typography.FONT_WEIGHT_BOLD,
     }
+
 })

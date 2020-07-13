@@ -1,16 +1,34 @@
-export const PRIMARY = '#89B53A';
-// export const SECONDARY = '#767676';
-export const WHITE = '#FFFFFF';
-export const BLACK = '#000000';
-export const TEXT_COLOR = '#4D5153';
-export const LIGHT_BORDER_COLOR = '#D5D5D5';
 
+let PRIMARY = '#89B53A';
+// export let SECONDARY = '#767676';
+let WHITE = '#FFFFFF';
+let BLACK = '#000000';
+let TEXT_COLOR = '#4D5153';
+let LIGHT_BORDER_COLOR = '#D5D5D5';
+let DISABLE = '#CCCCCC';
 // ACTIONS
-export const SUCCESS = '#2ecc71';
-export const WARNING = '#e67e22';
-export const ALERT = '#e74c3c';
+let SUCCESS = '#2ecc71';
+let WARNING = '#e67e22';
+let ALERT = '#e74c3c';
 
 // GRAYSCALE
-export const GRAY_LIGHT = '#E6E9EC';
-export const GRAY_MEDIUM = '#E1E2E2';
-export const GRAY_DARK = '#D3D3D3';
+let GRAY_LIGHT = '#E6E9EC';
+let GRAY_MEDIUM = '#E1E2E2';
+let GRAY_DARK = '#D3D3D3';
+let GRAY_LIGHTEST = '#707070';
+
+
+export {
+    PRIMARY,
+    WHITE,
+    BLACK,
+    TEXT_COLOR,
+    LIGHT_BORDER_COLOR,
+    SUCCESS,
+    WARNING,
+    ALERT,
+    GRAY_LIGHT,
+    GRAY_MEDIUM,
+    GRAY_DARK,
+    DISABLE
+}

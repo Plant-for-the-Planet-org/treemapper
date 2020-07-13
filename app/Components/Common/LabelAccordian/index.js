@@ -1,37 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet,  TouchableOpacity,  FlatList } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { arrow_down, arrow_up } from '../../../assets/';
-import { Input, Label } from '../';
+import {  Label } from '../';
+import { Accordian } from '../'
+import { store } from '../../../Actions/store';
+import { addSpeciesAction } from '../../../Actions'
 
+const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
+    const { state } = useContext(store);
 
-const LabelAccordian = ({ data, onPressRightText }) => {
+    const [species, setSpecies] = useState(data ? data : [])
 
-    const renderSubSpecie = (item) => (
-        <TouchableOpacity style={styles.oneSpecieCont}>
-            <Text style={styles.label}>{item.nameOfTree ? item.nameOfTree : 'Species'}</Text>
-            <View style={styles.treeCountCont}>
-                <>
-                    <Text style={styles.treeCount}>{item.treeCount}</Text>
-                    <Text style={styles.trees}>Trees</Text>
-                </>
-            </View>
-        </TouchableOpacity>
+    const renderSubSpecie = (item, index) => (
+        <Accordian onSubmitEditing={onSubmitEditing} onPressDelete={onPressDelete} onBlur={() => onPressContinue(true)} onChangeText={onChangeText} index={index} data={item} shouldExpand={false} status={status} />
     )
+
+    const onChangeText = (text, dataKey, index) => {
+        species[index][dataKey] = text;
+        setSpecies([...species])
+    }
+
+    const onSubmitEditing = () => {
+        onPressContinue(true)
+    }
+
+    const onPressDelete = (index) => {
+        species.splice(index, 1)
+        setSpecies([...species])
+    }
+
+    const onPressContinue = (onBlur = false) => {
+        onBlur !== true ? onBlur = false : null
+        let data = { inventory_id: state.inventoryID, species, plantation_date: `${plantingDate.getTime()}` };
+        if (!onBlur) {
+            let totalTreeCount = 0
+            for (let i = 0; i < species.length; i++) {
+                totalTreeCount += Number(species[i].treeCount)
+            }
+            if (totalTreeCount < 2) {
+                alert('Tree count should be greater than one.')
+                return;
+            }
+        }
+        addSpeciesAction(data).then(() => {
+            if (!onBlur) {
+                if (route.params?.isEdit) {
+                    navigation.navigate('InventoryOverview')
+                } else {
+                    navigation.navigate('LocateTree')
+                }
+            }
+        })
+    }
 
     const renderSpecieCont = ({ item, index }) => {
         return (<View>
-            {renderSubSpecie(item)}
+            {renderSubSpecie(item, index)}
         </View>)
+    }
+
+    const addSpecies = () => {
+        species.push({ nameOfTree: '', treeCount: '' })
+        setSpecies([...species])
     }
 
     return (
         <View style={{ marginVertical: 10 }}>
-            <Label leftText={'Species'} rightText={'Edit'} onPressRightText={onPressRightText} />
-            <FlatList
-                data={data}
+            <Label leftText={'Species'} rightText={isEditShow && 'Edit'} onPressRightText={onPressRightText} />
+            {species && <FlatList
+                keyboardShouldPersistTaps={'always'}
+                data={species}
                 renderItem={renderSpecieCont}
-            />
+            />}
+            {status !== 'pending' && <TouchableOpacity onPress={addSpecies}>
+                <Text style={styles.addSpecies}>+ Add Species</Text>
+            </TouchableOpacity>}
         </View>
     )
 }
@@ -76,6 +119,12 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         justifyContent: 'space-between',
         marginLeft: 25
+    },
+    addSpecies: {
+        color: Colors.ALERT,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontSize: Typography.FONT_SIZE_18,
+        lineHeight: Typography.LINE_HEIGHT_30,
     }
 
 })

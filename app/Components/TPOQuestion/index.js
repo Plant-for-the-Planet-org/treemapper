@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Input, Accordian } from '../Common';
+import React from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 
