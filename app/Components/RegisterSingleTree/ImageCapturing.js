@@ -58,7 +58,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location A`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} closeIcon headingText={`Location A`} subHeadingText={'Please take a picture facing planted tree.'} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>

@@ -46,20 +46,20 @@ const App = () => {
         <StateProvider>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName='MainScreen' headerMode={'none'} >
-                    <Stack.Screen name='MainScreen' component={MainScreen} options={{ ...MyTransition }} />
-                    <Stack.Screen name='TreeInventory' component={TreeInventory} options={{ ...MyTransition }} />
-                    <Stack.Screen name='RegisterTree' component={RegisterTree} options={{ ...MyTransition }} />
-                    {/* <Stack.Screen name='MultipleTrees' component={MultipleTrees} options={{ ...MyTransition }} /> */}
-                    <Stack.Screen name='SelectProject' component={SelectProject} options={{ ...MyTransition }} />
-                    <Stack.Screen name='LocateTree' component={LocateTree} options={{ ...MyTransition }} />
-                    <Stack.Screen name='CreatePolygon' component={CreatePolygon} options={{ ...MyTransition }} />
-                    <Stack.Screen name='InventoryOverview' component={InventoryOverview} options={{ ...MyTransition }} />
-                    <Stack.Screen name='SavedAreas' component={SavedAreas} options={{ ...MyTransition }} />
-                    <Stack.Screen name='DownloadMap' component={DownloadMap} options={{ ...MyTransition }} />
-                    <Stack.Screen name='RegisterSingleTree' component={RegisterSingleTree} options={{ ...MyTransition }} />
-                    <Stack.Screen name='SingleTreeOverview' component={SingleTreeOverview} options={{ ...MyTransition }} />
-                    <Stack.Screen name='SelectCoordinates' component={SelectCoordinates} options={{ ...MyTransition }} />
-                    <Stack.Screen name='ManageUsers' component={ManageUsers} options={{ ...MyTransition }} />
+                    <Stack.Screen name='MainScreen' component={MainScreen} options={MyTransition} />
+                    <Stack.Screen name='TreeInventory' component={TreeInventory} options={MyTransition} />
+                    <Stack.Screen name='RegisterTree' component={RegisterTree} options={MyTransition} />
+                    {/* <Stack.Screen name='MultipleTrees' component={MultipleTrees} options={MyTransition} /> */}
+                    <Stack.Screen name='SelectProject' component={SelectProject} options={MyTransition} />
+                    <Stack.Screen name='LocateTree' component={LocateTree} options={MyTransition} />
+                    <Stack.Screen name='CreatePolygon' component={CreatePolygon} options={MyTransition} />
+                    <Stack.Screen name='InventoryOverview' component={InventoryOverview} options={MyTransition} />
+                    <Stack.Screen name='SavedAreas' component={SavedAreas} options={MyTransition} />
+                    <Stack.Screen name='DownloadMap' component={DownloadMap} options={MyTransition} />
+                    <Stack.Screen name='RegisterSingleTree' component={RegisterSingleTree} options={MyTransition} />
+                    <Stack.Screen name='SingleTreeOverview' component={SingleTreeOverview} options={MyTransition} />
+                    <Stack.Screen name='SelectCoordinates' component={SelectCoordinates} options={MyTransition} />
+                    <Stack.Screen name='ManageUsers' component={ManageUsers} options={MyTransition} />
                 </Stack.Navigator>
             </NavigationContainer>
         </StateProvider>

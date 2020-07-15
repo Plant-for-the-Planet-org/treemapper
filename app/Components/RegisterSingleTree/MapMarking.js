@@ -60,7 +60,7 @@ class MapMarking extends React.Component {
     renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
@@ -203,16 +203,14 @@ class MapMarking extends React.Component {
         const { updateScreenState } = this.props
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
-        let subHeading = `Now, please tap continue to take picture of tree`;
+        let subHeading = `As you’re near to the tree, you can take a picture in the next step. Please click continue when you’re ready.`;
         let heading = `Picture Time!`
         if (locateTree == 'off-site') {
             subHeading = `We see that you’re far away the tree. Please click continue to add details about the tree.`;
             heading = `Off Site Enabled!`
         }
         return (
-            <Modal
-                animationType={'slide'}
-                visible={isAlrightyModalShow}>
+            <Modal animationType={'slide'} visible={isAlrightyModalShow}>
                 <View style={styles.cont}>
                     <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} />
                 </View>

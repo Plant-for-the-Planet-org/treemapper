@@ -8,6 +8,7 @@ import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 import { SvgXml } from "react-native-svg";
+
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
