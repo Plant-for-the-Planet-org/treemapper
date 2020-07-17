@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
-const Input = ({ label, value, editable, placeholder }) => {
+const Input = ({ label, value, editable, placeholder, style }) => {
 
     const [isOpen, setIsOpen] = useState(false)
 
@@ -11,7 +11,7 @@ const Input = ({ label, value, editable, placeholder }) => {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, style]}>
             <Text style={styles.label}>{label}</Text>
             <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer}>
                 <Text style={styles.value}>{value ? value : placeholder}</Text>
@@ -23,11 +23,11 @@ export default Input
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 10
+        marginVertical: 10, flex: 1
     },
     label: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: Typography.FONT_SIZE_18,
+        fontSize: Typography.FONT_SIZE_14,
         lineHeight: Typography.LINE_HEIGHT_30,
         color: Colors.TEXT_COLOR,
     },
