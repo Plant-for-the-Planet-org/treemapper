@@ -33,7 +33,7 @@ const MainScreen = ({ navigation }) => {
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
     const onPressLogin = () => {
-        auth0Login().then((data)=>{
+        auth0Login().then((data) => {
             setIsUserLogin(data)
         })
     }
@@ -62,15 +62,15 @@ const MainScreen = ({ navigation }) => {
         )
     }
 
-     return (
+    return (
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
                 <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin}/>
+                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
                     <View style={styles.bannerImgContainer}>
                         <SvgXml xml={main_screen_banner} />
                     </View>
-                    <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign :'center'}}/>
+                    <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
                     </ImageBackground>

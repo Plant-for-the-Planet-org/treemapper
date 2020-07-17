@@ -5,6 +5,7 @@ import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Auth0 from 'react-native-auth0';
 import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
+import { uploadInventory } from "./UploadInventory";
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
@@ -18,6 +19,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
+                console.log(credentials)
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
@@ -305,6 +307,19 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
     })
 }
 
+export const getAllPendingInventory = () => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+            .then(realm => {
+                realm.write(() => {
+                    const Inventory = realm.objects('Inventory').filtered('status == "pending"');
+                    console.log('Inventory')
+                    resolve(JSON.parse(JSON.stringify(Inventory)))
+                })
+
+            }).catch(bugsnag.notify);
+    })
+}
 export const getAllInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
@@ -441,4 +456,4 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
     })
 }
 
-
+export { uploadInventory }

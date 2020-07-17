@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory, } from "../../Actions";
+import { getAllInventory, clearAllInventory, uploadInventory } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
@@ -68,9 +68,13 @@ const TreeInventory = ({ navigation }) => {
         inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
     }
 
+    const onPressUploadNow = () => {
+        uploadInventory()
+    }
+
     const renderInventory = () => {
         return <View style={styles.cont}>
-            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
+            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressUploadNow} leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
             {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
