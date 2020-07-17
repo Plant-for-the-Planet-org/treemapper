@@ -7,6 +7,7 @@ import { alrighty_banner } from '../../../assets'
 import { SvgXml } from "react-native-svg";
 
 const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, }) => {
+    console.log('coordsLength', coordsLength)
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
@@ -19,7 +20,7 @@ const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLe
                     </View>
                 </View>
                 <View style={styles.bottomBtnsContainer}>
-                    <PrimaryButton onPress={onPressWhiteButton} btnText={coordsLength > 1 ? 'Complete' : 'Back'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressWhiteButton} btnText={coordsLength > 2 ? 'Complete' : 'Back'} halfWidth theme={'white'} />
                     <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth />
                 </View>
             </View>

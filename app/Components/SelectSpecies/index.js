@@ -93,6 +93,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
             setIsShowTreeCountModal(false)
             setTreeCount('')
             closeSelectSpeciesModal()
+            setSpeciesList(speciesJSON)
         }, 0)
     }
 
