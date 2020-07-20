@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import {Colors, Typography} from '_styles';
 import Ionicons from 'react-native-vector-icons/MaterialIcons';

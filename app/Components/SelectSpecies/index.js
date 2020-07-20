@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   TextInput,
+  Platform,
 } from 'react-native';
 import {Header, PrimaryButton, Input} from '../Common';
 import {SafeAreaView} from 'react-native';
