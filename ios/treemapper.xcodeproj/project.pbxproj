@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* treeinventoryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* treeinventoryTests.m */; };
+		00E356F31AD99517003FC87E /* treemapperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* treemapperTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -15,10 +15,10 @@
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		2DCD954D1E0B4F2C00145EB5 /* treeinventoryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* treeinventoryTests.m */; };
-		728CD167362EB486EECC9CED /* libPods-treeinventory.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5394841ECBE65A3A4DF70CCC /* libPods-treeinventory.a */; };
-		877CFC43E8CB2810D71DE9E6 /* libPods-treeinventory-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DF8437F8DA9D20C7CBFC87AA /* libPods-treeinventory-tvOSTests.a */; };
-		B5D096C6D5860DE63363BE40 /* libPods-treeinventory-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 658D93F2F78401DC6DAC9005 /* libPods-treeinventory-tvOS.a */; };
+		2DCD954D1E0B4F2C00145EB5 /* treemapperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* treemapperTests.m */; };
+		728CD167362EB486EECC9CED /* libPods-treemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5394841ECBE65A3A4DF70CCC /* libPods-treemapper.a */; };
+		877CFC43E8CB2810D71DE9E6 /* libPods-treemapper-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DF8437F8DA9D20C7CBFC87AA /* libPods-treemapper-tvOSTests.a */; };
+		B5D096C6D5860DE63363BE40 /* libPods-treemapper-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 658D93F2F78401DC6DAC9005 /* libPods-treemapper-tvOS.a */; };
 		C46E965824740409003148A3 /* OpenSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */; };
 		C46E965924740411003148A3 /* OpenSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */; };
 		C46E965A24740414003148A3 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB729F9728FD4576B1C1A595 /* OpenSans-ExtraBold.ttf */; };
@@ -29,7 +29,7 @@
 		C46E965F24740421003148A3 /* OpenSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AF78F24F0F5D43E0AC9CF429 /* OpenSans-Regular.ttf */; };
 		C46E966024740423003148A3 /* OpenSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71CC7B10BB7A41429F9F70DF /* OpenSans-SemiBold.ttf */; };
 		C46E966124740425003148A3 /* OpenSans-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4A744DF6EAD84ED68E567CA0 /* OpenSans-SemiBoldItalic.ttf */; };
-		D071C175FA0CFE618EFD876F /* libPods-treeinventory-treeinventoryTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E69A61E9F7D78344892BE8A9 /* libPods-treeinventory-treeinventoryTests.a */; };
+		D071C175FA0CFE618EFD876F /* libPods-treemapper-treemapperTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E69A61E9F7D78344892BE8A9 /* libPods-treemapper-treemapperTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,43 +38,43 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = treeinventory;
+			remoteInfo = treemapper;
 		};
 		2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
-			remoteInfo = "treeinventory-tvOS";
+			remoteInfo = "treemapper-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* treeinventoryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = treeinventoryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* treemapperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = treemapperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* treeinventoryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = treeinventoryTests.m; sourceTree = "<group>"; };
-		0282C507984CCE5056C55375 /* Pods-treeinventory.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory.debug.xcconfig"; path = "Target Support Files/Pods-treeinventory/Pods-treeinventory.debug.xcconfig"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* treemapperTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = treemapperTests.m; sourceTree = "<group>"; };
+		0282C507984CCE5056C55375 /* Pods-treemapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.debug.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Tree Mapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tree Mapper.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = treeinventory/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = treeinventory/AppDelegate.m; sourceTree = "<group>"; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = treemapper/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = treemapper/AppDelegate.m; sourceTree = "<group>"; };
 		13B07FB21A68108700A75B9A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = treeinventory/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = treeinventory/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = treeinventory/main.m; sourceTree = "<group>"; };
-		27EF4A298F12813EA12F009A /* Pods-treeinventory-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-treeinventory-tvOSTests/Pods-treeinventory-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
-		2D02E47B1E0B4A5D006451C7 /* treeinventory-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "treeinventory-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D02E4901E0B4A5D006451C7 /* treeinventory-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "treeinventory-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		32D46884F68D8BEDE751DE58 /* Pods-treeinventory-treeinventoryTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-treeinventoryTests.debug.xcconfig"; path = "Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests.debug.xcconfig"; sourceTree = "<group>"; };
-		47E070420B66929332CD5375 /* Pods-treeinventory-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-tvOS.release.xcconfig"; path = "Target Support Files/Pods-treeinventory-tvOS/Pods-treeinventory-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = treemapper/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = treemapper/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = treemapper/main.m; sourceTree = "<group>"; };
+		27EF4A298F12813EA12F009A /* Pods-treemapper-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-treemapper-tvOSTests/Pods-treemapper-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		2D02E47B1E0B4A5D006451C7 /* treemapper-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "treemapper-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E4901E0B4A5D006451C7 /* treemapper-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "treemapper-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		32D46884F68D8BEDE751DE58 /* Pods-treemapper-treemapperTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.debug.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.debug.xcconfig"; sourceTree = "<group>"; };
+		47E070420B66929332CD5375 /* Pods-treemapper-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-tvOS.release.xcconfig"; path = "Target Support Files/Pods-treemapper-tvOS/Pods-treemapper-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		4A744DF6EAD84ED68E567CA0 /* OpenSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
-		5394841ECBE65A3A4DF70CCC /* libPods-treeinventory.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treeinventory.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		658D93F2F78401DC6DAC9005 /* libPods-treeinventory-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treeinventory-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5394841ECBE65A3A4DF70CCC /* libPods-treemapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		658D93F2F78401DC6DAC9005 /* libPods-treemapper-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		71CC7B10BB7A41429F9F70DF /* OpenSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBold.ttf"; path = "../app/assets/fonts/OpenSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		8F4953E65CFD4FE5A51D8596 /* OpenSans-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-ExtraBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
 		9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Bold.ttf"; path = "../app/assets/fonts/OpenSans-Bold.ttf"; sourceTree = "<group>"; };
 		A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-BoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-BoldItalic.ttf"; sourceTree = "<group>"; };
 		A5EFA044EE7C42C88DB9AF87 /* OpenSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Italic.ttf"; path = "../app/assets/fonts/OpenSans-Italic.ttf"; sourceTree = "<group>"; };
-		A62E4D04AE78C42DF76A287A /* Pods-treeinventory-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-treeinventory-tvOSTests/Pods-treeinventory-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		A62E4D04AE78C42DF76A287A /* Pods-treemapper-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-treemapper-tvOSTests/Pods-treemapper-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		AF78F24F0F5D43E0AC9CF429 /* OpenSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Regular.ttf"; path = "../app/assets/fonts/OpenSans-Regular.ttf"; sourceTree = "<group>"; };
 		C46E96382473FEBF003148A3 /* Ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		C46E96392473FEBF003148A3 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
@@ -94,11 +94,11 @@
 		C46E96472473FEC0003148A3 /* Zocial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		CB729F9728FD4576B1C1A595 /* OpenSans-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-ExtraBold.ttf"; path = "../app/assets/fonts/OpenSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		CFAC24B41EAE4792AAA2B481 /* OpenSans-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Light.ttf"; path = "../app/assets/fonts/OpenSans-Light.ttf"; sourceTree = "<group>"; };
-		CFBA1DF93755C2D0B072C8EB /* Pods-treeinventory-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-treeinventory-tvOS/Pods-treeinventory-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
-		D8B8D468EBD349E2358C5D03 /* Pods-treeinventory-treeinventoryTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory-treeinventoryTests.release.xcconfig"; path = "Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests.release.xcconfig"; sourceTree = "<group>"; };
-		DF8437F8DA9D20C7CBFC87AA /* libPods-treeinventory-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treeinventory-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E02029F520653154A03DDCC3 /* Pods-treeinventory.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treeinventory.release.xcconfig"; path = "Target Support Files/Pods-treeinventory/Pods-treeinventory.release.xcconfig"; sourceTree = "<group>"; };
-		E69A61E9F7D78344892BE8A9 /* libPods-treeinventory-treeinventoryTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treeinventory-treeinventoryTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CFBA1DF93755C2D0B072C8EB /* Pods-treemapper-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-treemapper-tvOS/Pods-treemapper-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		D8B8D468EBD349E2358C5D03 /* Pods-treemapper-treemapperTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.release.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.release.xcconfig"; sourceTree = "<group>"; };
+		DF8437F8DA9D20C7CBFC87AA /* libPods-treemapper-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E02029F520653154A03DDCC3 /* Pods-treemapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.release.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.release.xcconfig"; sourceTree = "<group>"; };
+		E69A61E9F7D78344892BE8A9 /* libPods-treemapper-treemapperTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-treemapperTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F77F8C3DB9C64EA89C73A716 /* OpenSans-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-LightItalic.ttf"; path = "../app/assets/fonts/OpenSans-LightItalic.ttf"; sourceTree = "<group>"; };
@@ -109,7 +109,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D071C175FA0CFE618EFD876F /* libPods-treeinventory-treeinventoryTests.a in Frameworks */,
+				D071C175FA0CFE618EFD876F /* libPods-treemapper-treemapperTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,7 +117,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				728CD167362EB486EECC9CED /* libPods-treeinventory.a in Frameworks */,
+				728CD167362EB486EECC9CED /* libPods-treemapper.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,7 +125,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5D096C6D5860DE63363BE40 /* libPods-treeinventory-tvOS.a in Frameworks */,
+				B5D096C6D5860DE63363BE40 /* libPods-treemapper-tvOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,20 +133,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				877CFC43E8CB2810D71DE9E6 /* libPods-treeinventory-tvOSTests.a in Frameworks */,
+				877CFC43E8CB2810D71DE9E6 /* libPods-treemapper-tvOSTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* treeinventoryTests */ = {
+		00E356EF1AD99517003FC87E /* treemapperTests */ = {
 			isa = PBXGroup;
 			children = (
-				00E356F21AD99517003FC87E /* treeinventoryTests.m */,
+				00E356F21AD99517003FC87E /* treemapperTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = treeinventoryTests;
+			path = treemapperTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -157,7 +157,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* treeinventory */ = {
+		13B07FAE1A68108700A75B9A /* treemapper */ = {
 			isa = PBXGroup;
 			children = (
 				C46E96372473FEAC003148A3 /* fonts */,
@@ -168,7 +168,7 @@
 				13B07FB11A68108700A75B9A /* LaunchScreen.xib */,
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
-			name = treeinventory;
+			name = treemapper;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -176,10 +176,10 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				5394841ECBE65A3A4DF70CCC /* libPods-treeinventory.a */,
-				E69A61E9F7D78344892BE8A9 /* libPods-treeinventory-treeinventoryTests.a */,
-				658D93F2F78401DC6DAC9005 /* libPods-treeinventory-tvOS.a */,
-				DF8437F8DA9D20C7CBFC87AA /* libPods-treeinventory-tvOSTests.a */,
+				5394841ECBE65A3A4DF70CCC /* libPods-treemapper.a */,
+				E69A61E9F7D78344892BE8A9 /* libPods-treemapper-treemapperTests.a */,
+				658D93F2F78401DC6DAC9005 /* libPods-treemapper-tvOS.a */,
+				DF8437F8DA9D20C7CBFC87AA /* libPods-treemapper-tvOSTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -187,14 +187,14 @@
 		3BFF86C06BC433403BAA7A08 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				0282C507984CCE5056C55375 /* Pods-treeinventory.debug.xcconfig */,
-				E02029F520653154A03DDCC3 /* Pods-treeinventory.release.xcconfig */,
-				32D46884F68D8BEDE751DE58 /* Pods-treeinventory-treeinventoryTests.debug.xcconfig */,
-				D8B8D468EBD349E2358C5D03 /* Pods-treeinventory-treeinventoryTests.release.xcconfig */,
-				CFBA1DF93755C2D0B072C8EB /* Pods-treeinventory-tvOS.debug.xcconfig */,
-				47E070420B66929332CD5375 /* Pods-treeinventory-tvOS.release.xcconfig */,
-				27EF4A298F12813EA12F009A /* Pods-treeinventory-tvOSTests.debug.xcconfig */,
-				A62E4D04AE78C42DF76A287A /* Pods-treeinventory-tvOSTests.release.xcconfig */,
+				0282C507984CCE5056C55375 /* Pods-treemapper.debug.xcconfig */,
+				E02029F520653154A03DDCC3 /* Pods-treemapper.release.xcconfig */,
+				32D46884F68D8BEDE751DE58 /* Pods-treemapper-treemapperTests.debug.xcconfig */,
+				D8B8D468EBD349E2358C5D03 /* Pods-treemapper-treemapperTests.release.xcconfig */,
+				CFBA1DF93755C2D0B072C8EB /* Pods-treemapper-tvOS.debug.xcconfig */,
+				47E070420B66929332CD5375 /* Pods-treemapper-tvOS.release.xcconfig */,
+				27EF4A298F12813EA12F009A /* Pods-treemapper-tvOSTests.debug.xcconfig */,
+				A62E4D04AE78C42DF76A287A /* Pods-treemapper-tvOSTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -226,9 +226,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* treeinventory */,
+				13B07FAE1A68108700A75B9A /* treemapper */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* treeinventoryTests */,
+				00E356EF1AD99517003FC87E /* treemapperTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				3BFF86C06BC433403BAA7A08 /* Pods */,
@@ -243,9 +243,9 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* Tree Mapper.app */,
-				00E356EE1AD99517003FC87E /* treeinventoryTests.xctest */,
-				2D02E47B1E0B4A5D006451C7 /* treeinventory-tvOS.app */,
-				2D02E4901E0B4A5D006451C7 /* treeinventory-tvOSTests.xctest */,
+				00E356EE1AD99517003FC87E /* treemapperTests.xctest */,
+				2D02E47B1E0B4A5D006451C7 /* treemapper-tvOS.app */,
+				2D02E4901E0B4A5D006451C7 /* treemapper-tvOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -276,9 +276,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* treeinventoryTests */ = {
+		00E356ED1AD99517003FC87E /* treemapperTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "treeinventoryTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "treemapperTests" */;
 			buildPhases = (
 				9ACADCBF5DD50ABD0BBA8D92 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -292,14 +292,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = treeinventoryTests;
-			productName = treeinventoryTests;
-			productReference = 00E356EE1AD99517003FC87E /* treeinventoryTests.xctest */;
+			name = treemapperTests;
+			productName = treemapperTests;
+			productReference = 00E356EE1AD99517003FC87E /* treemapperTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* treeinventory */ = {
+		13B07F861A680F5B00A75B9A /* treemapper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "treeinventory" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "treemapper" */;
 			buildPhases = (
 				BD0EDBF8825DB705C4297C9E /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -314,14 +314,14 @@
 			);
 			dependencies = (
 			);
-			name = treeinventory;
-			productName = treeinventory;
+			name = treemapper;
+			productName = treemapper;
 			productReference = 13B07F961A680F5B00A75B9A /* Tree Mapper.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E47A1E0B4A5D006451C7 /* treeinventory-tvOS */ = {
+		2D02E47A1E0B4A5D006451C7 /* treemapper-tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treeinventory-tvOS" */;
+			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treemapper-tvOS" */;
 			buildPhases = (
 				605EE39FF17D6F3886A7AD3B /* [CP] Check Pods Manifest.lock */,
 				FD10A7F122414F3F0027D42C /* Start Packager */,
@@ -334,14 +334,14 @@
 			);
 			dependencies = (
 			);
-			name = "treeinventory-tvOS";
-			productName = "treeinventory-tvOS";
-			productReference = 2D02E47B1E0B4A5D006451C7 /* treeinventory-tvOS.app */;
+			name = "treemapper-tvOS";
+			productName = "treemapper-tvOS";
+			productReference = 2D02E47B1E0B4A5D006451C7 /* treemapper-tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E48F1E0B4A5D006451C7 /* treeinventory-tvOSTests */ = {
+		2D02E48F1E0B4A5D006451C7 /* treemapper-tvOSTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treeinventory-tvOSTests" */;
+			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treemapper-tvOSTests" */;
 			buildPhases = (
 				6A7FAB96556E46B695E304D0 /* [CP] Check Pods Manifest.lock */,
 				2D02E48C1E0B4A5D006451C7 /* Sources */,
@@ -353,9 +353,9 @@
 			dependencies = (
 				2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */,
 			);
-			name = "treeinventory-tvOSTests";
-			productName = "treeinventory-tvOSTests";
-			productReference = 2D02E4901E0B4A5D006451C7 /* treeinventory-tvOSTests.xctest */;
+			name = "treemapper-tvOSTests";
+			productName = "treemapper-tvOSTests";
+			productReference = 2D02E4901E0B4A5D006451C7 /* treemapper-tvOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -388,7 +388,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "treeinventory" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "treemapper" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -401,10 +401,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* treeinventory */,
-				00E356ED1AD99517003FC87E /* treeinventoryTests */,
-				2D02E47A1E0B4A5D006451C7 /* treeinventory-tvOS */,
-				2D02E48F1E0B4A5D006451C7 /* treeinventory-tvOSTests */,
+				13B07F861A680F5B00A75B9A /* treemapper */,
+				00E356ED1AD99517003FC87E /* treemapperTests */,
+				2D02E47A1E0B4A5D006451C7 /* treemapper-tvOS */,
+				2D02E48F1E0B4A5D006451C7 /* treemapper-tvOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -474,7 +474,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-resources.sh",
 				"${PODS_ROOT}/MapboxMobileEvents/MapboxMobileEvents/Resources/logger.html",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
@@ -515,7 +515,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2D02E4CB1E0B4B27006451C7 /* Bundle React Native Code And Images */ = {
@@ -547,7 +547,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-treeinventory-tvOS-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-treemapper-tvOS-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -569,7 +569,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-treeinventory-tvOSTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-treemapper-tvOSTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -591,7 +591,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-treeinventory-treeinventoryTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-treemapper-treemapperTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -604,7 +604,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treeinventory/Pods-treeinventory-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources.sh",
 				"${PODS_ROOT}/MapboxMobileEvents/MapboxMobileEvents/Resources/logger.html",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
@@ -645,7 +645,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treeinventory/Pods-treeinventory-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		BD0EDBF8825DB705C4297C9E /* [CP] Check Pods Manifest.lock */ = {
@@ -663,7 +663,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-treeinventory-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-treemapper-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -676,7 +676,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks.sh",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/MapboxMobileEvents.framework",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/MapboxMobileEvents.framework.dSYM",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/BADC3E19-B154-39DA-BE9A-E7C52B45BD0C.bcsymbolmap",
@@ -707,7 +707,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treeinventory-treeinventoryTests/Pods-treeinventory-treeinventoryTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FBAB364D6E4D256A8F5D1701 /* [CP] Embed Pods Frameworks */ = {
@@ -716,7 +716,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treeinventory/Pods-treeinventory-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks.sh",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/MapboxMobileEvents.framework",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/MapboxMobileEvents.framework.dSYM",
 				"${PODS_ROOT}/@react-native-mapbox-gl-mapbox-static/dynamic/BADC3E19-B154-39DA-BE9A-E7C52B45BD0C.bcsymbolmap",
@@ -747,7 +747,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treeinventory/Pods-treeinventory-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -795,7 +795,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* treeinventoryTests.m in Sources */,
+				00E356F31AD99517003FC87E /* treemapperTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -821,7 +821,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DCD954D1E0B4F2C00145EB5 /* treeinventoryTests.m in Sources */,
+				2DCD954D1E0B4F2C00145EB5 /* treemapperTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -830,12 +830,12 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* treeinventory */;
+			target = 13B07F861A680F5B00A75B9A /* treemapper */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 		2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D02E47A1E0B4A5D006451C7 /* treeinventory-tvOS */;
+			target = 2D02E47A1E0B4A5D006451C7 /* treemapper-tvOS */;
 			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -847,7 +847,7 @@
 				13B07FB21A68108700A75B9A /* Base */,
 			);
 			name = LaunchScreen.xib;
-			path = treeinventory;
+			path = treemapper;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -855,7 +855,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 32D46884F68D8BEDE751DE58 /* Pods-treeinventory-treeinventoryTests.debug.xcconfig */;
+			baseConfigurationReference = 32D46884F68D8BEDE751DE58 /* Pods-treemapper-treemapperTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = UYRJ8SA699;
@@ -863,7 +863,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = treeinventoryTests/Info.plist;
+				INFOPLIST_FILE = treemapperTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -873,18 +873,18 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treeinventory.app/treeinventory";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D8B8D468EBD349E2358C5D03 /* Pods-treeinventory-treeinventoryTests.release.xcconfig */;
+			baseConfigurationReference = D8B8D468EBD349E2358C5D03 /* Pods-treemapper-treemapperTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = UYRJ8SA699;
-				INFOPLIST_FILE = treeinventoryTests/Info.plist;
+				INFOPLIST_FILE = treemapperTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -894,13 +894,13 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treeinventory.app/treeinventory";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0282C507984CCE5056C55375 /* Pods-treeinventory.debug.xcconfig */;
+			baseConfigurationReference = 0282C507984CCE5056C55375 /* Pods-treemapper.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -911,7 +911,7 @@
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = treeinventory/Info.plist;
+				INFOPLIST_FILE = treemapper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
@@ -919,7 +919,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treeinventory;
+				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treemapper;
 				PRODUCT_NAME = "Tree Mapper";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -930,13 +930,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E02029F520653154A03DDCC3 /* Pods-treeinventory.release.xcconfig */;
+			baseConfigurationReference = E02029F520653154A03DDCC3 /* Pods-treemapper.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = UYRJ8SA699;
-				INFOPLIST_FILE = treeinventory/Info.plist;
+				INFOPLIST_FILE = treemapper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
@@ -944,7 +944,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treeinventory;
+				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treemapper;
 				PRODUCT_NAME = "Tree Mapper";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -954,7 +954,7 @@
 		};
 		2D02E4971E0B4A5E006451C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CFBA1DF93755C2D0B072C8EB /* Pods-treeinventory-tvOS.debug.xcconfig */;
+			baseConfigurationReference = CFBA1DF93755C2D0B072C8EB /* Pods-treemapper-tvOS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -966,14 +966,14 @@
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "treeinventory-tvOS/Info.plist";
+				INFOPLIST_FILE = "treemapper-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.pftp.treeinventory-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.pftp.treemapper-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -983,7 +983,7 @@
 		};
 		2D02E4981E0B4A5E006451C7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 47E070420B66929332CD5375 /* Pods-treeinventory-tvOS.release.xcconfig */;
+			baseConfigurationReference = 47E070420B66929332CD5375 /* Pods-treemapper-tvOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -995,14 +995,14 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "treeinventory-tvOS/Info.plist";
+				INFOPLIST_FILE = "treemapper-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.pftp.treeinventory-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.pftp.treemapper-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -1012,7 +1012,7 @@
 		};
 		2D02E4991E0B4A5E006451C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 27EF4A298F12813EA12F009A /* Pods-treeinventory-tvOSTests.debug.xcconfig */;
+			baseConfigurationReference = 27EF4A298F12813EA12F009A /* Pods-treemapper-tvOSTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1023,24 +1023,24 @@
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "treeinventory-tvOSTests/Info.plist";
+				INFOPLIST_FILE = "treemapper-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.treeinventory-tvOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.treemapper-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treeinventory-tvOS.app/treeinventory-tvOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper-tvOS.app/treemapper-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 			};
 			name = Debug;
 		};
 		2D02E49A1E0B4A5E006451C7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A62E4D04AE78C42DF76A287A /* Pods-treeinventory-tvOSTests.release.xcconfig */;
+			baseConfigurationReference = A62E4D04AE78C42DF76A287A /* Pods-treemapper-tvOSTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1051,17 +1051,17 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "treeinventory-tvOSTests/Info.plist";
+				INFOPLIST_FILE = "treemapper-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.treeinventory-tvOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.treemapper-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treeinventory-tvOS.app/treeinventory-tvOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper-tvOS.app/treemapper-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 			};
 			name = Release;
@@ -1182,7 +1182,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "treeinventoryTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "treemapperTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -1191,7 +1191,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "treeinventory" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "treemapper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -1200,7 +1200,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treeinventory-tvOS" */ = {
+		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treemapper-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4971E0B4A5E006451C7 /* Debug */,
@@ -1209,7 +1209,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treeinventory-tvOSTests" */ = {
+		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "treemapper-tvOSTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4991E0B4A5E006451C7 /* Debug */,
@@ -1218,7 +1218,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "treeinventory" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "treemapper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

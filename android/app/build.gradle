@@ -130,7 +130,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "org.pftp.treeinventory"
+        applicationId "org.pftp.treemapper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2

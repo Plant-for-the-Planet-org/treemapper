@@ -42,8 +42,8 @@ def flipper_post_install(installer)
   end
 end
 
-target 'treeinventory' do
-  # Pods for treeinventory
+target 'treemapper' do
+  # Pods for treemapper
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
@@ -80,7 +80,7 @@ target 'treeinventory' do
 
   pod 'jail-monkey', :path => '../node_modules/jail-monkey'
 
-  target 'treeinventoryTests' do
+  target 'treemapperTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -97,10 +97,10 @@ target 'treeinventory' do
   end
 end
 
-target 'treeinventory-tvOS' do
-  # Pods for treeinventory-tvOS
+target 'treemapper-tvOS' do
+  # Pods for treemapper-tvOS
 
-  target 'treeinventory-tvOSTests' do
+  target 'treemapper-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end

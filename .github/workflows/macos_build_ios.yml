@@ -73,9 +73,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treeinventory-
+          ${{ runner.os }}-node-treemapper-
 
     - name: Install npm
       run : |
@@ -97,9 +97,9 @@ jobs:
     #   uses: actions/cache@v1
     #   with:
     #     path: ios/Pods
-    #     key: ${{ runner.os }}-pods-treeinventory-${{ hashFiles('ios/Podfile.lock') }}
+    #     key: ${{ runner.os }}-pods-treemapper-${{ hashFiles('ios/Podfile.lock') }}
     #     restore-keys: |
-    #       ${{ runner.os }}-pods-treeinventory-
+    #       ${{ runner.os }}-pods-treemapper-
 
     - name: Install Pods
       run: pod install
@@ -113,16 +113,16 @@ jobs:
 
     - name: Build archive
       run: |
-        xcodebuild -sdk iphoneos -workspace treeinventory.xcworkspace \
-        -configuration Release -scheme 'treeinventory' \
+        xcodebuild -sdk iphoneos -workspace treemapper.xcworkspace \
+        -configuration Release -scheme 'treemapper' \
         -derivedDataPath DerivedData \
-        -archivePath DerivedData/Archive/treeinventory archive
+        -archivePath DerivedData/Archive/treemapper archive
       working-directory: ./ios
 
     - name: Export Archive
       run: |
         xcodebuild -exportArchive \
-        -archivePath DerivedData/Archive/treeinventory.xcarchive \
+        -archivePath DerivedData/Archive/treemapper.xcarchive \
         -exportOptionsPlist ../release/Develop-Store.plist \
         -exportPath DerivedData/ipa
       working-directory: ./ios
@@ -131,15 +131,15 @@ jobs:
 #    - name: Upload iOS IPA file
 #      uses: actions/upload-artifact@v1
 #      with:
-#        name: TreeInventory-develop-release.ipa
-#        path: ios/DerivedData/ipa/TreeInventory(.env.develop).ipa
+#        name: TreeMapper-develop-release.ipa
+#        path: ios/DerivedData/ipa/TreeMapper(.env.develop).ipa
 
     - name: Prepare iOS IPA for upload
       run: |
-        upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
+        upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
         echo "::set-env name=upload_file::$upload_file"
         mkdir -p uploads
-        mv 'ios/DerivedData/ipa/treeinventory.ipa' uploads/$upload_file
+        mv 'ios/DerivedData/ipa/treemapper.ipa' uploads/$upload_file
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload iOS IPA to Browserstack
@@ -158,5 +158,5 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
-        payload="{\"channel\": \"#notifications-git\", \"username\": \"webhookbot\", \"text\": \"Finished GitHub action $GITHUB_WORKFLOW for $GITHUB_REF (TreeInventory)\"}"
+        payload="{\"channel\": \"#notifications-git\", \"username\": \"webhookbot\", \"text\": \"Finished GitHub action $GITHUB_WORKFLOW for $GITHUB_REF (TreeMapper)\"}"
         curl -X POST --data-urlencode "payload=$payload" https://hooks.slack.com/services/$SLACK_WEBHOOK_URL
