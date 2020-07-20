@@ -13,34 +13,34 @@ import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 
 // * SVGs *
-import { main_screen_banner } from './images/main_screen_banner';
-import { two_trees } from './images/two_trees';
-import { plus_icon } from './images/plus_icon';
-import { alrighty_banner } from './images/alrighty_banner';
-import { empty_inventory_banner } from './images/empty_inventory_banner';
-import { checkCircle } from "./images/check-circle";
-import { checkCircleFill } from "./images/check-circle-fill";
-import { active_marker } from './images/active_marker';
+import {main_screen_banner} from './images/main_screen_banner';
+import {two_trees} from './images/two_trees';
+import {plus_icon} from './images/plus_icon';
+import {alrighty_banner} from './images/alrighty_banner';
+import {empty_inventory_banner} from './images/empty_inventory_banner';
+import {checkCircle} from './images/check-circle';
+import {checkCircleFill} from './images/check-circle-fill';
+import {active_marker} from './images/active_marker';
 
 export {
-    back_icon,
-    arrow_up,
-    arrow_down,
-    close,
-    camera,
-    marker_png,
-    active_marker,
-    cloud,
-    upload_check,
-    upload_now,
-    tree,
-    placeholder_image,
-    alrighty_banner,
-    map_texture,
-    empty_inventory_banner,
-    main_screen_banner,
-    checkCircle,
-    checkCircleFill,
-    plus_icon,
-    two_trees
-}
+  back_icon,
+  arrow_up,
+  arrow_down,
+  close,
+  camera,
+  marker_png,
+  active_marker,
+  cloud,
+  upload_check,
+  upload_now,
+  tree,
+  placeholder_image,
+  alrighty_banner,
+  map_texture,
+  empty_inventory_banner,
+  main_screen_banner,
+  checkCircle,
+  checkCircleFill,
+  plus_icon,
+  two_trees,
+};

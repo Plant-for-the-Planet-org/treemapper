@@ -1,4 +1,4 @@
-import { scaleFont } from './mixins';
+import {scaleFont} from './mixins';
 
 // FONT FAMILY
 export const FONT_FAMILY_REGULAR = 'OpenSans-Regular';

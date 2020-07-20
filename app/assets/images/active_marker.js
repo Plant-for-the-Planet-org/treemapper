@@ -1,4 +1,4 @@
-const active_marker = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="91" viewBox="0 0 38 91">
+const active_marker = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="91" viewBox="0 0 38 91">
   <g id="Group_2286" data-name="Group 2286" transform="translate(-101 -368)">
     <g id="Group_1661" data-name="Group 1661" transform="translate(-38 -63.09)">
       <rect id="Rectangle_906" data-name="Rectangle 906" width="38" height="38" transform="translate(139 448.09)" fill="none"/>
@@ -14,6 +14,6 @@ const active_marker = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" heigh
     </g>
   </g>
 </svg>
-`)
+`;
 
-export { active_marker }
+export {active_marker};

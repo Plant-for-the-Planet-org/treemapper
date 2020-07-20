@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import { getLanguages } from 'react-native-i18n';
+import {getLanguages} from 'react-native-i18n';
 
 // Refer this for checking the codes and creating new folders https://developer.chrome.com/webstore/i18n
 // Step 1 - Create index.js files for each language we want to have, in this file you can import all the json files (Step 4) and export them
@@ -30,7 +30,7 @@ i18next.init({
       translation: {
         label: enlabels,
       },
-    }
+    },
   },
 });
 

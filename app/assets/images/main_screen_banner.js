@@ -1,4 +1,4 @@
-const main_screen_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="143.837" viewBox="0 0 317 143.837">
+const main_screen_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="143.837" viewBox="0 0 317 143.837">
 <g id="Group_2241" data-name="Group 2241" transform="translate(-21 -217)">
   <rect id="Rectangle_1163" data-name="Rectangle 1163" width="307.193" height="0.637" transform="translate(21 359.967)" fill="#3f3d56"/>
   <g id="Group_2238" data-name="Group 2238" transform="translate(0 -51)">
@@ -68,6 +68,6 @@ const main_screen_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="100%
   <rect id="Rectangle_1196" data-name="Rectangle 1196" width="1.974" height="13.816" transform="translate(154.528 314.244)" fill="#4d5153"/>
 </g>
 </svg>
-`)
+`;
 
-export { main_screen_banner }
+export {main_screen_banner};
