@@ -19,14 +19,15 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                console.log(credentials)
+                console.log('accessToken=,', accessToken)
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
                             realm.create('User', {
+                                id: 'id0001',
                                 accessToken: accessToken,
-                                idToken: idToken
-                            })
+                                idToken: 'NO NEED TO STORE',
+                            }, 'modified')
                             resolve(true)
                         })
                     })

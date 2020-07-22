@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions } from 'react-native';
-import { PrimaryButton, LargeButton, Header } from '../Common';
+import { PrimaryButton, LargeButton, Header, MainScreenHeader } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { MainScreenHeader } from '../Common/';
-import { getAllInventory, auth0Login, isLogin } from '../../Actions'
+import { ProfileModal } from '../';
+import { getAllInventory, auth0Login, isLogin, uploadInventory } from '../../Actions'
 import { map_texture, main_screen_banner } from '../../assets'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -14,11 +14,13 @@ import { SvgXml } from 'react-native-svg';
 const { width, height } = Dimensions.get('window')
 const MainScreen = ({ navigation }) => {
 
-    const [isModalVisible, setIsModalVisible] = useState(false)
+    const [isModalVisible, setIsModalVisible] = useState(false) // * FOR VIDEO MODAL
+    const [isProfileModalVisible, setIsProfileModalVisible] = useState(false)
     const [numberOfInventory, setNumberOfInventory] = useState(0);
     const [isUserLogin, setIsUserLogin] = useState(false)
 
     useEffect(() => {
+        uploadInventory()
         checkIsLogin()
         getAllInventory().then((data) => {
             setNumberOfInventory(Object.values(data).length)
@@ -32,10 +34,16 @@ const MainScreen = ({ navigation }) => {
 
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
+    const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible)
+
     const onPressLogin = () => {
-        auth0Login().then((data) => {
-            setIsUserLogin(data)
-        })
+        if (isUserLogin) {
+            setIsProfileModalVisible(true)
+        } else {
+            auth0Login().then((data) => {
+                setIsUserLogin(data)
+            })
+        }
     }
 
     const checkIsLogin = () => {
@@ -87,6 +95,7 @@ const MainScreen = ({ navigation }) => {
                 <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
             </View>
             {renderVideoModal()}
+            <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} />
         </SafeAreaView>
     )
 }
@@ -108,7 +117,7 @@ const styles = StyleSheet.create({
         color: Colors.ALERT,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_18,
-        lineHeight: Typography.LINE_HEIGHT_30,
+        lineHeight: Typography.LINE_HEIGHT_24,
         textAlign: 'center'
     },
     customStyleLargeBtn: {

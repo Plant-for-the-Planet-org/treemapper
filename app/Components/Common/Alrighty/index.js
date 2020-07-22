@@ -7,7 +7,7 @@ import { alrighty_banner } from '../../../assets'
 import { SvgXml } from "react-native-svg";
 
 const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, }) => {
-    console.log('coordsLength', coordsLength)
+
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
@@ -15,7 +15,6 @@ const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLe
                 <View style={{ flex: 1 }}>
                     <View style={styles.bannerContainer}>
                         <SvgXml xml={alrighty_banner} />
-                        {/* <Image source={alrighty_banner} /> */}
                         <Header hideBackIcon headingText={heading} subHeadingText={subHeading} textAlignStyle={styles.headercustomStyle} />
                     </View>
                 </View>

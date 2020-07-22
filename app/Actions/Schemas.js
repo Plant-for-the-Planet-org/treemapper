@@ -57,7 +57,9 @@ const Inventory = {
 
 const User = {
     name: 'User',
+    primaryKey: 'id',
     properties: {
+        id: 'string?',
         accessToken: 'string?',
         idToken: 'string?'
     }

@@ -45,7 +45,7 @@ const App = () => {
     return (
         <StateProvider>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName='SignUp' headerMode={'none'} >
+                <Stack.Navigator initialRouteName='MainScreen' headerMode={'none'} >
                     <Stack.Screen name='MainScreen' component={MainScreen} options={MyTransition} />
                     <Stack.Screen name='TreeInventory' component={TreeInventory} options={MyTransition} />
                     <Stack.Screen name='RegisterTree' component={RegisterTree} options={MyTransition} />

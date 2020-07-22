@@ -20,6 +20,7 @@ import { empty_inventory_banner } from './images/empty_inventory_banner';
 import { checkCircle } from "./images/check-circle";
 import { checkCircleFill } from "./images/check-circle-fill";
 import { active_marker } from './images/active_marker';
+import { logo } from './images/logo';
 
 export {
     arrow_up,
@@ -40,5 +41,6 @@ export {
     checkCircle,
     checkCircleFill,
     plus_icon,
-    two_trees
+    two_trees,
+    logo
 }

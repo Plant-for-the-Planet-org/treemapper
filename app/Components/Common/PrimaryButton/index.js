@@ -1,13 +1,13 @@
 import React from 'react';
-import {  Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const PrimaryButton = ({ btnText, theme, halfWidth, style, onPress, disabled }) => {
+const PrimaryButton = ({ btnText, theme, halfWidth, style, onPress, disabled, textStyle }) => {
     const isWhiteTheme = theme == 'white';
     return (
         <TouchableOpacity disabled={disabled} onPress={onPress} style={[styles.container, isWhiteTheme && styles.whiteTheme, halfWidth && styles.halfWidth, disabled && styles.disabledCont, style]}>
-            <Text style={[styles.btnText, isWhiteTheme && styles.primaryText]}>{btnText}</Text>
+            <Text style={[styles.btnText, isWhiteTheme && styles.primaryText, textStyle]}>{btnText}</Text>
         </TouchableOpacity>
     )
 }
@@ -15,7 +15,7 @@ export default PrimaryButton;
 
 const styles = StyleSheet.create({
     container: {
-        height: 60,
+        // height: 60,
         paddingVertical: 18,
         backgroundColor: Colors.PRIMARY,
         justifyContent: 'center',
@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
         width: '47%'
     },
     disabledCont: {
-        backgroundColor :Colors.DISABLE
+        backgroundColor: Colors.DISABLE
     }
 })
