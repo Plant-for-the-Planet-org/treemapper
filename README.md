@@ -1,7 +1,9 @@
 # Tree Mapper App
 ![iOS build on MacOS](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/iOS%20build%20on%20MacOS/badge.svg) ![Android build on Ubuntu](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/Android%20build%20on%20Ubuntu/badge.svg)
 
-Welcome to this repository which contains the code of the native iOS and Android apps of the Trillion Tree Campaign at https://www.trilliontreecampaign.org/ written with React-Native. For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CODE_OF_CONDUCT.md) and the following information:
+Tree Mapper is open source application based on react-native licensed under terms of GPL v3. It is managed by [Plant-for-the-Planet Foundation](https://www.plant-for-the-planet.org/) and open source contributors.
+
+For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CODE_OF_CONDUCT.md) and the following information:
 
 ## Directory Structure
 
@@ -120,7 +122,3 @@ The deployment and production of this app is also possible due to support from o
 <img src="https://global-uploads.webflow.com/5c741219fd0819540590e785/5c741219fd0819856890e790_asset%2039.svg" height="24"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="https://lingohub.com">
 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQqJ0vVrXzxzszvleoGhXuxpMFlGueY5UfBEP-HPtTVTH2j29hv" height="30"></a>
-
-## License
-
-Tree Mapper App is free software, and is released under the terms of the <abbr title="GNU General Public License">GPL</abbr> version 3 or (at your option) any later version. See <a href="license.txt">license.txt</a>.</p>
