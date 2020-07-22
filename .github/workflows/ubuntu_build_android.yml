@@ -33,9 +33,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treeinventory-
+          ${{ runner.os }}-node-treemapper-
 
     - name: Install npm
       run: npm install
@@ -74,9 +74,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-treeinventory-${{ hashFiles('android/*.gradle') }}
+        key: ${{ runner.os }}-gradle-treemapper-${{ hashFiles('android/*.gradle') }}
         restore-keys: |
-          ${{ runner.os }}-gradle-treeinventory-
+          ${{ runner.os }}-gradle-treemapper-
 
     - name: Android Build
       run: ./gradlew assembleRelease --stacktrace --no-daemon
@@ -91,7 +91,7 @@ jobs:
 
     - name: Prepare Android APK for upload
       run: |
-        upload_file=TreeInventory-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
+        upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
         echo "::set-env name=upload_file::$upload_file"
         mkdir -p uploads
         mv android/app/build/outputs/apk/release/app-release.apk uploads/$upload_file
@@ -117,5 +117,5 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
-        payload="{\"channel\": \"#notifications-git\", \"username\": \"webhookbot\", \"text\": \"Finished GitHub action $GITHUB_WORKFLOW for $GITHUB_REF (TreeInventory)\"}"
+        payload="{\"channel\": \"#notifications-git\", \"username\": \"webhookbot\", \"text\": \"Finished GitHub action $GITHUB_WORKFLOW for $GITHUB_REF (TreeMapper)\"}"
         curl -X POST --data-urlencode "payload=$payload" https://hooks.slack.com/services/$SLACK_WEBHOOK_URL

@@ -1,7 +1,7 @@
 # Tree Mapper App
-![iOS build on MacOS](https://github.com/Plant-for-the-Planet-org/treeinventory/workflows/iOS%20build%20on%20MacOS/badge.svg) ![Android build on Ubuntu](https://github.com/Plant-for-the-Planet-org/treeinventory/workflows/Android%20build%20on%20Ubuntu/badge.svg)
+![iOS build on MacOS](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/iOS%20build%20on%20MacOS/badge.svg) ![Android build on Ubuntu](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/Android%20build%20on%20Ubuntu/badge.svg)
 
-Welcome to this repository which contains the code of the native iOS and Android apps of the Trillion Tree Campaign at https://www.trilliontreecampaign.org/ written with React-Native. For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treeinventory/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treeinventory/blob/develop/CODE_OF_CONDUCT.md) and the following information:
+Welcome to this repository which contains the code of the native iOS and Android apps of the Trillion Tree Campaign at https://www.trilliontreecampaign.org/ written with React-Native. For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CODE_OF_CONDUCT.md) and the following information:
 
 ## Directory Structure
 
