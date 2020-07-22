@@ -1,4 +1,4 @@
-package org.pftp.treeinventory;
+package org.pftp.treemapper;
 
 import com.facebook.react.ReactActivity;
 
@@ -10,6 +10,6 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "treeinventory";
+    return "treemapper";
   }
 }

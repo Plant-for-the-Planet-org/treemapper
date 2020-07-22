@@ -20,9 +20,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treeinventory-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treeinventory-
+          ${{ runner.os }}-node-treemapper-
 
     - name: Install react-native CLI
       run: 'sudo npm install -g react-native-cli'
