@@ -1,4 +1,4 @@
-package org.pftp.treeinventory;
+package org.pftp.treemapper;
 
 import android.app.Application;
 import android.content.Context;
