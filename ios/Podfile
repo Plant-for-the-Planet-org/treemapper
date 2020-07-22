@@ -78,7 +78,6 @@ target 'treemapper' do
   # Mapbox
   # pod 'react-native-mapbox-gl/DynamicLibrary', :path => '../node_modules/@react-native-mapbox-gl/maps'
 
-  pod 'jail-monkey', :path => '../node_modules/jail-monkey'
 
   target 'treemapperTests' do
     inherit! :complete
