@@ -122,7 +122,7 @@ const SingleTreeOverview = ({ navigation }) => {
         filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
         imageSource = filePath ? { uri: filePath } : false
     }
-     const renderDetails = ({ polygons }) => {
+    const renderDetails = ({ polygons }) => {
         let coords;
         if (polygons[0]) {
             coords = polygons[0].coordinates[0];
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
         position: 'absolute', width: '100%', height: '100%'
     },
     scrollViewContainer: {
-        flex: 1, justifyContent: 'center'
+        flex: 1, marginTop: 20
     },
     detailHeader: {
         fontSize: Typography.FONT_SIZE_14,

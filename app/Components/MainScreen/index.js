@@ -4,7 +4,7 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader } from '../Common'
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
-import { getAllInventory, auth0Login, isLogin, uploadInventory } from '../../Actions'
+import { getAllInventory, auth0Login, isLogin, uploadInventory, auth0Logout } from '../../Actions'
 import { map_texture, main_screen_banner } from '../../assets'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,7 +20,6 @@ const MainScreen = ({ navigation }) => {
     const [isUserLogin, setIsUserLogin] = useState(false)
 
     useEffect(() => {
-        uploadInventory()
         checkIsLogin()
         getAllInventory().then((data) => {
             setNumberOfInventory(Object.values(data).length)
@@ -50,7 +49,14 @@ const MainScreen = ({ navigation }) => {
         isLogin().then((data) => {
             setIsUserLogin(data)
         }).catch((err) => {
-            console.log(err)
+            onPressCloseProfileModal()
+            setIsUserLogin(false)
+        })
+    }
+
+    const onPressLogout = () => {
+        auth0Logout().then(() => {
+            checkIsLogin()
         })
     }
 
@@ -95,7 +101,7 @@ const MainScreen = ({ navigation }) => {
                 <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
             </View>
             {renderVideoModal()}
-            <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} />
+            <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
         </SafeAreaView>
     )
 }

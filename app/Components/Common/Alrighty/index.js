@@ -2,11 +2,11 @@ import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Header, PrimaryButton } from '../../Common';
 import { SafeAreaView } from 'react-native'
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets'
 import { SvgXml } from "react-native-svg";
 
-const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, }) => {
+const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton }) => {
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -36,7 +36,8 @@ const styles = StyleSheet.create({
         flex: 1, justifyContent: 'center', alignItems: 'center',
     },
     headercustomStyle: {
-        textAlign: 'center'
+        textAlign: 'center',
+        lineHeight: Typography.FONT_SIZE_30
     },
     bottomBtnsContainer: {
         flexDirection: 'row', justifyContent: 'space-between'

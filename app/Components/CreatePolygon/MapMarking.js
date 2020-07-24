@@ -169,6 +169,8 @@ class MapMarking extends React.Component {
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
         }
+        console.log('GEOJSON=', complete, 'completeZ', geoJSON.features[activePolygonIndex].geometry.coordinates)
+        // return;
         this.setState({ geoJSON }, () => {
             // change the state
             const { inventoryID } = this.props;
@@ -183,7 +185,8 @@ class MapMarking extends React.Component {
                     updateActiveMarkerIndex(activeMarkerIndex + 1)
                     // For off site
                     if (complete) {
-                        this.props.navigation.navigate('InventoryOverview')
+                        alert('COMPLETE')
+                        // this.props.navigation.navigate('InventoryOverview')
                     }
                 }
             })
@@ -222,7 +225,7 @@ class MapMarking extends React.Component {
     renderFakeMarker = (location) => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
             </View>)
     }
@@ -295,8 +298,9 @@ class MapMarking extends React.Component {
         const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
         const onPressCompletePolygon = () => {
             polygonUpdate({ inventory_id: inventoryID }).then(() => {
+                this.onPressCompletePolygon()
                 onPressContinue()
-                this.props.navigation.navigate('InventoryOverview')
+                // this.props.navigation.navigate('InventoryOverview')
             })
         }
         const onPressClose = () => {
@@ -319,8 +323,11 @@ class MapMarking extends React.Component {
     }
 
     onPressBack = () => {
+        //  THIS IS MODIFICATION
         const { locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+        navigation.navigate('TreeInventory')
+        return;
         if (locateTree == 'off-site') {
             if (activeMarkerIndex > 0) {
                 this.setState({ isAlrightyModalShow: true })
@@ -360,7 +367,7 @@ class MapMarking extends React.Component {
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'transparent']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} closeIcon subHeadingText={'Please visit first corner of the plantation and select your location'} />
                 </LinearGradient>
                 <View>
                 </View>

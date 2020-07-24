@@ -184,7 +184,7 @@ class MapMarking extends React.Component {
             const { markedCoords, locateTree } = this.state;
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords,locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
                     if (locateTree == 'off-site') {
                         navigation.navigate('SingleTreeOverview')
                     } else {
@@ -221,6 +221,8 @@ class MapMarking extends React.Component {
     onPressBack = () => {
         const { locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+        navigation.navigate('TreeInventory')
+        return;
         if (locateTree == 'off-site') {
             if (activeMarkerIndex > 0) {
                 this.setState({ isAlrightyModalShow: true })
@@ -254,7 +256,7 @@ class MapMarking extends React.Component {
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Tree Location`} />
+                    <Header onBackPress={this.onPressBack} closeIcon headingText={`Tree Location`} />
                 </LinearGradient>
                 <View>
                 </View>

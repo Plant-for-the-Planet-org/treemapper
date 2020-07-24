@@ -38,12 +38,34 @@ export const auth0Login = () => {
             });
     })
 }
+export const auth0Logout = () => {
+    return new Promise((resolve, reject) => {
+        auth0.webAuth
+            .clearSession()
+            .then(() => {
+                alert('Logout success')
+                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                    .then(realm => {
+                        realm.write(() => {
+                            const User = realm.objectForPrimaryKey('User', 'id0001');
+                            realm.delete(User)
+                            resolve(true)
+                        })
+                    })
+            })
+            .catch(error => {
+                reject(error)
+                console.log("WEb AUTH error", error)
+            });
+    })
+}
 
 export const isLogin = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
+                console.log('User=', User)
                 if (Object.keys(User).length > 0) {
                     resolve(true)
                 } else {
@@ -246,7 +268,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
     })
 }
 
-export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords }) => {
+export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords, locateTree }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
@@ -260,8 +282,9 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                             currentloclong: currentCoords.longitude,
                         }]
                     }]
-                    inventory.specei_diameter = 10
-                    inventory.plantation_date = `-18000000`
+                    inventory.specei_diameter = 10;
+                    inventory.plantation_date = `-18000000`;
+                    inventory.locate_tree = locateTree
                     resolve()
                 })
 
@@ -293,11 +316,12 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                         onePolygonTemp.coordinates = coordinates;
                         polygons.push(onePolygonTemp)
                     })
+                    console.log('POLYGON= 319')
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         polygons: polygons
                     }, 'modified')
-
+                    console.log(realm.objectForPrimaryKey('Inventory', `${inventory_id}`))
                     resolve()
                 })
 

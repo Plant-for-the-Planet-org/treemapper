@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, Modal, SafeAreaView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { close, logo } from "../../assets";
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
 
 
-const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible }) => {
+const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPressLogout }) => {
 
     return (
         <Modal visible={isProfileModalVisible} transparent>
@@ -28,7 +28,7 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible }) => {
                     </View>
                     <View style={styles.bottomBtnsContainer}>
                         <PrimaryButton btnText={'Edit Profile'} halfWidth theme={'white'} style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
-                        <PrimaryButton btnText={'Logout'} theme={'white'} halfWidth style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
+                        <PrimaryButton onPress={onPressLogout} btnText={'Logout'} theme={'white'} halfWidth style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
                     </View>
                     <View style={styles.horizontalBar} />
                     <Text style={styles.textAlignCenter}>Privacy Policy     •     Terms of Service</Text>

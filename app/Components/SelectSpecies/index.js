@@ -20,12 +20,20 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
             speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount
         }
         setSpeciesList(speciesList)
+        return () => {
+            setSpeciesList([...speciesJSON])
+        }
     }, [])
 
     const onPressSpecie = (index) => {
-        setActiveSpecie(index)
-        setIsShowTreeCountModal(true)
-        setTimeout(() => { speciesList[index].treeCount ? setTreeCount(speciesList[index].treeCount) : null }, 0)
+        if (speciesList[index].treeCount) {
+            speciesList[index].treeCount = undefined;
+            setTimeout(() => setSpeciesList([...speciesList]), 0)
+        } else {
+            setActiveSpecie(index)
+            setIsShowTreeCountModal(true)
+            setTimeout(() => { speciesList[index].treeCount ? setTreeCount(speciesList[index].treeCount) : null }, 0)
+        }
     }
 
     const renderSpeciesCard = ({ item, index }) => {
@@ -50,6 +58,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         speciesListClone.splice(activeSpeice, 1, specie)
         setIsShowTreeCountModal(false)
         setTreeCount(0)
+        setSpeciesList([...speciesJSON])
     }
 
     const renderTreeCountModal = () => {
