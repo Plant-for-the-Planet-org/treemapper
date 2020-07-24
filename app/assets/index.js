@@ -21,6 +21,7 @@ import { checkCircle } from "./images/check-circle";
 import { checkCircleFill } from "./images/check-circle-fill";
 import { active_marker } from './images/active_marker';
 import { logo } from './images/logo';
+import { cloud_upload_gray } from './images/cloud_upload_gray';
 
 export {
     arrow_up,
@@ -42,5 +43,6 @@ export {
     checkCircleFill,
     plus_icon,
     two_trees,
-    logo
+    logo,
+    cloud_upload_gray
 }

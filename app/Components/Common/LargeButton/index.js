@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 
-const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, disabled, style, notification }) => {
+const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, disabled, style, notification, subHeadingStyle }) => {
     return (
         <TouchableOpacity disabled={disabled} onPress={onPress} style={[styles.container, active && styles.activeContainer, medium && styles.mediumCont, style]}>
             <View style={{ flex: 1, }}>
@@ -11,7 +11,7 @@ const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, 
                     <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
                 </View>
                 {subHeading && <View style={styles.subContainer}>
-                    <Text style={[styles.subHeading, active && styles.activeText]}>{subHeading}</Text>
+                    <Text style={[styles.subHeading, subHeadingStyle, active && styles.blackTextColor]}>{subHeading}</Text>
                 </View>}
             </View>
             {rightIcon && <View style={styles.rightIconCont}>
@@ -30,10 +30,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.TEXT_COLOR,
         borderRadius: 10,
-        marginVertical: 20,
+        marginVertical: 15,
         justifyContent: 'center',
-        paddingVertical: 25,
-        flexDirection: 'row'
+        paddingVertical: 10,
+        flexDirection: 'row',
+        borderColor: Colors.LIGHT_BORDER_COLOR
     },
     notificationContainer: {
         position: 'absolute', width: 35, height: 35, backgroundColor: Colors.PRIMARY, right: 0, top: 0, borderRadius: 150, justifyContent: 'center', alignItems: 'center'
@@ -57,16 +58,20 @@ const styles = StyleSheet.create({
     heading: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         fontSize: Typography.FONT_SIZE_20,
-        lineHeight: Typography.LINE_HEIGHT_40,
+        lineHeight: Typography.LINE_HEIGHT_30,
         color: Colors.TEXT_COLOR,
     },
     activeText: {
         color: Colors.PRIMARY,
     },
+    blackTextColor: {
+        color: Colors.BLACK,
+    },
     subHeading: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_16,
         color: Colors.TEXT_COLOR,
+        lineHeight: Typography.LINE_HEIGHT_24
     },
     rightIconCont: {
         justifyContent: 'center', alignItems: 'center', marginRight: 20

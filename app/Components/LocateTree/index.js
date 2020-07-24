@@ -1,11 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
-import { SafeAreaView } from 'react-native'
+import { SafeAreaView } from 'react-native';
+import { cloud_upload_gray } from '../../assets'
 import { Colors, Typography } from '_styles';
 import { addLocateTree, updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store';
 import JailMonkey from 'jail-monkey';
+import { SvgXml } from 'react-native-svg';
 
 
 const LocateTree = ({ navigation }) => {
@@ -71,9 +73,10 @@ const LocateTree = ({ navigation }) => {
             <View style={styles.container}>
                 <Header headingText={'Locate Trees'} />
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
-                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
-                    <LargeButton onPress={onPressSelectCoordinates} heading={'Select Coordinates'} active={isSelectCoordinates} medium />
+                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={`Collects Polygon and Images for high accuracy and verifiability`} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
+                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site – Polygon'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
+                    <LargeButton onPress={onPressSelectCoordinates} heading={'Off Site – Point'} subHeading={'Latitude & Longitude only'} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} />
+                    <LargeButton onPress={onPressSelectCoordinates} heading={'Upload GeoJson'} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} />
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
