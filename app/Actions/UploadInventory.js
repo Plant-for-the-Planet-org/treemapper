@@ -13,6 +13,24 @@ const uploadInventory = () => {
     });
 }
 
+const checkLogin = () => {
+    return new Promise((resolve, reject) => {
+        const API_URL = `https://app-development.plant-for-the-planet.org/api/login_check`
+        console.log(API_URL)
+
+        axios({
+            method: 'POST',
+            url: API_URL,
+            data: { _username: "info@plant-for-the-planet.org", _password: 's1mplePW' }
+        }).then((data) => {
+            console.log('RESPOSS=checkLogin', data)
+        })
+            .catch((err) => {
+                console.log("ERROR=checkLogin", err)
+            })
+    })
+}
+
 const testFoo = () => {
     console.log('TEST FOO CALL')
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
@@ -39,7 +57,6 @@ const testFoo = () => {
                         } else {
                             species = Object.values(oneInventory.species).map(x => ({ otherSpecies: x.nameOfTree, treeCount: Number(x.treeCount) }))
                         }
-                        console.log('coordinates=', [coordinates])
                         let bodyTemplate = {
                             "captureMode": oneInventory.locate_tree,
                             "deviceLocation": {
@@ -57,7 +74,25 @@ const testFoo = () => {
                             "plantProject": null,
                             "plantedSpecies": species
                         }
-                        
+                        // console.log('species=', species)
+
+                        // bodyTemplate = {
+                        //     "plantProject": null,
+                        //     "deviceLocation": {
+                        //         "type": "Point",
+                        //         "coordinates": [
+                        //             -90.66840648651123,
+                        //             18.682146549182555
+                        //         ]
+                        //     },
+                        //     "geometry": {
+                        //         "type": coordinates.length > 1 ? 'Polygon' : "Point",
+                        //         "coordinates": coordinates.length > 1 ? coordinates : coordinates[0]
+                        //     },
+                        //     "plantDate": new Date().toISOString(),
+                        //     "plantedSpecies": species,
+                        //     "captureMode": oneInventory.locate_tree
+                        // }
                         // console.log('Body=', bodyTemplate)
                         // console.log('coordinates=', coordinates)
 
