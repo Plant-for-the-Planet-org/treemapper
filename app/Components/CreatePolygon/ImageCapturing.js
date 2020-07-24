@@ -2,7 +2,7 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex } from '../../Actions';
+import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex, removeLastCoord } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -25,7 +25,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     useEffect(() => {
         getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(({ coordsLength, coord }) => {
-             if (coord.imageUrl) {
+            if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
         })
@@ -67,7 +67,9 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onBackPress = () => {
-        toggleState()
+        removeLastCoord({ inventory_id: state.inventoryID }).then(() => {
+            toggleState()
+        })
     }
 
     const onPressCompletePolygon = () => {
@@ -94,7 +96,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -123,8 +125,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton onPress={onBackPress} btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} style={styles.bottomBtnsWidth} />
             </View>
             {renderAlrightyModal()}
         </SafeAreaView>
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', marginVertical: 20
     },
     bottomBtnsContainer: {
-        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between', marginVertical: 10
+        flexDirection: 'row', marginHorizontal: 25, alignItems: 'center', justifyContent: 'center', marginVertical: 10
     },
     container: {
         flex: 1,
@@ -182,6 +183,9 @@ const styles = StyleSheet.create({
     },
     cameraContainer: {
         flex: 1, overflow: 'hidden'
+    },
+    bottomBtnsWidth: {
+        width: '100%'
     }
 })
 

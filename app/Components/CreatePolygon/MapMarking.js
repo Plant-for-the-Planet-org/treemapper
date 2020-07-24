@@ -166,10 +166,13 @@ class MapMarking extends React.Component {
         const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
         geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         if (complete) {
+            console.log('GEOJSON BEFORE COMPLETE=', geoJSON.features[activePolygonIndex].geometry.coordinates)
             geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
+            console.log('GEOJSON AFTER COMPLETE=', geoJSON.features[activePolygonIndex].geometry.coordinates)
+
         }
-        console.log('GEOJSON=', complete, 'completeZ', geoJSON.features[activePolygonIndex].geometry.coordinates)
+        // console.log('GEOJSON=', complete, 'completeZ', geoJSON.features[activePolygonIndex].geometry.coordinates)
         // return;
         this.setState({ geoJSON }, () => {
             // change the state
@@ -182,11 +185,13 @@ class MapMarking extends React.Component {
                     let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
                     this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
                 } else {
-                    updateActiveMarkerIndex(activeMarkerIndex + 1)
                     // For off site
                     if (complete) {
-                        alert('COMPLETE')
-                        // this.props.navigation.navigate('InventoryOverview')
+                        // alert('COMPLETE')
+                        this.props.navigation.navigate('InventoryOverview')
+                    }else{
+                        updateActiveMarkerIndex(activeMarkerIndex + 1)
+
                     }
                 }
             })

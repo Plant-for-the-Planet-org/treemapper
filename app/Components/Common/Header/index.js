@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 
-const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPress, textAlignStyle, style }) => {
+const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPress, textAlignStyle, style, subHeadingStyle }) => {
     const navigation = useNavigation();
     const onPressBack = () => onBackPress ? onBackPress() : navigation.goBack()
     return (
@@ -20,7 +20,7 @@ const Header = ({ hideBackIcon, closeIcon, headingText, subHeadingText, onBackPr
                 <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
             </View> : null}
             {subHeadingText && <View style={{ marginVertical: 10, }}>
-                <Text style={[styles.subHeadingText, textAlignStyle]}>{subHeadingText}</Text>
+                <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>{subHeadingText}</Text>
             </View>}
         </View>
     )
@@ -46,8 +46,8 @@ const styles = StyleSheet.create({
     arrowContainer: {
         flexDirection: 'row', justifyContent: 'space-between',
     },
-    paddingVertical :{
-        paddingVertical :15
+    paddingVertical: {
+        paddingVertical: 15
     }
 
 })

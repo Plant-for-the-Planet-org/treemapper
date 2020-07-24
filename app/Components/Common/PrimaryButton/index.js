@@ -15,13 +15,13 @@ export default PrimaryButton;
 
 const styles = StyleSheet.create({
     container: {
-        // height: 60,
         paddingVertical: 18,
         backgroundColor: Colors.PRIMARY,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 100,
-        marginBottom: 10
+        marginBottom: 10,
+        width: '100%'
     },
     whiteTheme: {
         backgroundColor: Colors.WHITE,

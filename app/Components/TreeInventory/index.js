@@ -37,7 +37,7 @@ const TreeInventory = ({ navigation }) => {
                 data={inventoryList}
                 renderItem={({ item }) => {
                     let imageURL;
-                    if (item.polygons[0] && item.polygons[0].coordinates) {
+                    if (item.polygons[0] && item.polygons[0].coordinates && Object.values(item.polygons[0].coordinates).length) {
                         imageURL = item.polygons[0].coordinates[0].imageUrl
                     }
                     let measurement = '10cm';
