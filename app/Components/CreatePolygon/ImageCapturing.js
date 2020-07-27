@@ -80,7 +80,8 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const renderAlrightyModal = () => {
-        let infoIndex = activeMarkerIndex <= 1 ? 0 : activeMarkerIndex <= 2 ? 1 : 2
+        // let infoIndex = activeMarkerIndex <= 1 ? 0 : activeMarkerIndex <= 2 ? 1 : 2;
+        let infoIndex = activeMarkerIndex > 2 ? 2 : activeMarkerIndex
         const { heading, subHeading } = infographicText[infoIndex]
         return (
             <Modal
