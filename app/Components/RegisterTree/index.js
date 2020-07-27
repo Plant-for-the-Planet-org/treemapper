@@ -33,8 +33,8 @@ const RegisterTree = ({ navigation }) => {
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
-                    <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} />
-                    <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} />
+                    <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} subHeadingStyle={treeType == 'single' && styles.activeTextColor} />
+                    <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} subHeadingStyle={treeType == 'multiple' && styles.activeTextColor}/>
                     <View style={{ flex: 1 }}>
                     </View>
                 </ScrollView>
@@ -50,5 +50,8 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 25,
         backgroundColor: Colors.WHITE
+    },
+    activeTextColor: {
+        color: Colors.PRIMARY
     }
 })

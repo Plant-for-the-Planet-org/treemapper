@@ -217,7 +217,7 @@ class MapMarking extends React.Component {
         return (
             <Modal animationType={'slide'} visible={isAlrightyModalShow}>
                 <View style={styles.cont}>
-                    <Alrighty bannerImage={bannerImage} onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} whiteBtnText={whiteBtnText} />
+                    <Alrighty closeIcon bannerImage={bannerImage} onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} whiteBtnText={whiteBtnText} />
                 </View>
             </Modal>
         )

@@ -11,7 +11,7 @@ const LargeButton = ({ heading, subHeading, active, medium, rightIcon, onPress, 
                     <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
                 </View>
                 {subHeading && <View style={styles.subContainer}>
-                    <Text style={[styles.subHeading, subHeadingStyle, active && styles.blackTextColor]}>{subHeading}</Text>
+                    <Text style={[styles.subHeading, active && styles.blackTextColor, subHeadingStyle]}>{subHeading}</Text>
                 </View>}
             </View>
             {rightIcon && <View style={styles.rightIconCont}>

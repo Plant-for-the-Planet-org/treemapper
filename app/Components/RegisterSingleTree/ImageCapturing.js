@@ -58,7 +58,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location A`} subHeadingText={'Please take a picture facing planted tree.'} />
+                <Header onBackPress={onBackPress}  headingText={`Picture`} subHeadingText={'Please take a picture facing planted tree.'} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -87,8 +87,8 @@ const ImageCapturing = ({ updateScreenState }) => {
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton  onPress={onBackPress} btnText={'Back'} theme={'white'} halfWidth/>
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth/>
             </View>
         </SafeAreaView>
     )

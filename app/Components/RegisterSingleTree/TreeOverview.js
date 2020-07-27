@@ -133,12 +133,6 @@ const SingleTreeOverview = ({ navigation }) => {
         return (
             coords && <View style={styles.detailSubContainer}>
                 <View>
-                    <Text style={detailHeaderStyle}>Planting Date</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
-                        <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
-                    </TouchableOpacity>
-                </View>
-                <View>
                     <Text style={detailHeaderStyle}>LOCATION</Text>
                     <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
                 </View>
@@ -166,6 +160,12 @@ const SingleTreeOverview = ({ navigation }) => {
                     </View>
                     <Text style={styles.detailText}>200 kg</Text>
                 </View>
+                {!imageSource && <View>
+                    <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
+                        <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                    </TouchableOpacity>
+                </View>}
             </View>)
     }
 
@@ -193,13 +193,16 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
+    const goBack = ()=>{
+        navigation.goBack()
+    }
 
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
             {renderDateModal()}
             <View style={styles.container}>
-                <Header onBackPress={onBackPress} closeIcon headingText={'Tree Details'} />
+                <Header closeIcon onBackPress={onBackPress} headingText={'Tree Details'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
                         {imageSource && <Image source={imageSource} style={styles.bgImage} />}
@@ -209,8 +212,8 @@ const SingleTreeOverview = ({ navigation }) => {
                     </View>}
                 </ScrollView>
                 <View style={styles.bottomBtnsContainer}>
-                    <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth theme={'white'} />
-                    <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
+                    <PrimaryButton onPress={goBack} btnText={'Back'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressSave} btnText={'Next Tree'} halfWidth />
                 </View>
             </View>
         </SafeAreaView >
@@ -231,7 +234,7 @@ const styles = StyleSheet.create({
         fontSize: 10, color: Colors.WHITE
     },
     overViewContainer: {
-        width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden',
+        width: '100%', alignSelf: 'center', borderRadius: 15, overflow: 'hidden', marginVertical: 10
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
