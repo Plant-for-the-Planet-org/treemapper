@@ -6,16 +6,17 @@ import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets'
 import { SvgXml } from "react-native-svg";
 
-const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, whiteBtnText }) => {
+const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, whiteBtnText, bannerImage }) => {
 
     const isShowBottomWhiteBtn = whiteBtnText || coordsLength >= 2
+    console.log('bannerImage=', bannerImage)
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
                 <Header onBackPress={onPressClose} />
                 <View style={{ flex: 1 }}>
                     <View style={styles.bannerContainer}>
-                        <SvgXml xml={alrighty_banner} />
+                        <SvgXml xml={bannerImage ? bannerImage : alrighty_banner} />
                         <Header hideBackIcon headingText={heading} subHeadingText={subHeading} textAlignStyle={styles.headercustomStyle} subHeadingStyle={styles.subHeadingStyle} />
                     </View>
                 </View>

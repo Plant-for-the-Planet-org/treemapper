@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicato
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { active_marker, marker_png } from '../../assets/index';
+import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -184,7 +184,7 @@ class MapMarking extends React.Component {
             const { markedCoords, locateTree } = this.state;
             Geolocation.getCurrentPosition(position => {
                 let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords,locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
                     if (locateTree == 'off-site') {
                         navigation.navigate('SingleTreeOverview')
                     } else {
@@ -204,15 +204,20 @@ class MapMarking extends React.Component {
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
         let subHeading = `As you’re near to the tree, you can take a picture in the next step. Please click continue when you’re ready.`;
-        let heading = `Picture Time!`
+        let heading = `Picture Time!`;
+        let bannerImage = undefined;
+        let whiteBtnText = 'Go Back';
         if (locateTree == 'off-site') {
             subHeading = `We see that you’re far away the tree. Please click continue to add details about the tree.`;
-            heading = `Off Site Enabled!`
+            heading = `Off Site Enabled!`;
+            bannerImage = off_site_enable_banner;
+            whiteBtnText = undefined;
+
         }
         return (
             <Modal animationType={'slide'} visible={isAlrightyModalShow}>
                 <View style={styles.cont}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} />
+                    <Alrighty bannerImage={bannerImage} onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} whiteBtnText={whiteBtnText} />
                 </View>
             </Modal>
         )

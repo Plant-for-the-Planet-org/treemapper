@@ -22,6 +22,7 @@ import { checkCircleFill } from "./images/check-circle-fill";
 import { active_marker } from './images/active_marker';
 import { logo } from './images/logo';
 import { cloud_upload_gray } from './images/cloud_upload_gray';
+import { off_site_enable_banner } from './images/off_site_enable_banner';
 
 export {
     arrow_up,
@@ -44,5 +45,6 @@ export {
     plus_icon,
     two_trees,
     logo,
-    cloud_upload_gray
+    cloud_upload_gray,
+    off_site_enable_banner
 }
