@@ -77,7 +77,7 @@ const SingleTreeOverview = ({ navigation }) => {
                             style={styles.bgWhite}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
-                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} keyboardType={'default'} />
+                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} keyboardType={'email-address'} />
                                     : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
                                 <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
