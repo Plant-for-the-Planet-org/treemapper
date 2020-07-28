@@ -254,13 +254,13 @@ PODS:
     - React-cxxreact (= 0.63.2)
     - React-jsi (= 0.63.2)
   - React-jsinspector (0.63.2)
-  - react-native-camera (3.33.0):
+  - react-native-camera (3.32.0):
     - React
-    - react-native-camera/RCT (= 3.33.0)
-    - react-native-camera/RN (= 3.33.0)
-  - react-native-camera/RCT (3.33.0):
+    - react-native-camera/RCT (= 3.32.0)
+    - react-native-camera/RN (= 3.32.0)
+  - react-native-camera/RCT (3.32.0):
     - React
-  - react-native-camera/RN (3.33.0):
+  - react-native-camera/RN (3.32.0):
     - React
   - react-native-document-picker (3.4.0):
     - React
@@ -594,7 +594,7 @@ SPEC CHECKSUMS:
   React-jsi: 54245e1d5f4b690dec614a73a3795964eeef13a8
   React-jsiexecutor: 8ca588cc921e70590820ce72b8789b02c67cce38
   React-jsinspector: b14e62ebe7a66e9231e9581279909f2fc3db6606
-  react-native-camera: b95731eb91691ae7c8acdd496a1ef051ae2e65ff
+  react-native-camera: 4e47bcac13263ef3cde5bbb4daa3c72703d6e256
   react-native-document-picker: d694111879537cec2c258a1dcd2243d9df746824
   react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
   react-native-mapbox-gl: 77b87a1dd2d7b41b6b77018c0f3bed5f8ee55c81
@@ -626,4 +626,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: b94ab7b8fc664da6a02eb282f6462153432fa548
 
-COCOAPODS: 1.9.3
+COCOAPODS: 1.8.4

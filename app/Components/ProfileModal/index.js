@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
         flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)'
     },
     subContainer: {
-        width: '90%', backgroundColor: Colors.WHITE, borderWidth: .1, borderRadius: 20, padding: 20
+        width: '90%', backgroundColor: Colors.WHITE, borderRadius: 20, padding: 20
     },
     headerContainer: {
         flexDirection: 'row', justifyContent: 'space-between'
@@ -57,16 +57,21 @@ const styles = StyleSheet.create({
         flex: 1, justifyContent: 'space-evenly', paddingVertical: 10
     },
     primaryBtnContainer: {
-        borderColor: Colors.LIGHT_BORDER_COLOR
+        borderColor: Colors.LIGHT_BORDER_COLOR,
+        height: 50
     },
     primaryBtnText: {
-        color: Colors.TEXT_COLOR
+        color: Colors.TEXT_COLOR,
+        fontFamily: Typography.FONT_FAMILY_REGULAR
     },
     textAlignCenter: {
-        textAlign: 'center'
+        color: Colors.TEXT_COLOR,
+        fontSize: Typography.FONT_SIZE_12,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        textAlign: 'center',
     },
     horizontalBar: {
-        borderWidth: 1, borderColor: Colors.LIGHT_BORDER_COLOR, marginHorizontal: -20, marginVertical: 20
+        borderWidth: .5, borderColor: Colors.LIGHT_BORDER_COLOR, marginHorizontal: -20, marginVertical: 20
     },
     userName: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -79,7 +84,6 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_16,
         lineHeight: Typography.LINE_HEIGHT_,
     },
-
     bottomBtnsContainer: {
         flexDirection: 'row', justifyContent: 'space-between',
     },
