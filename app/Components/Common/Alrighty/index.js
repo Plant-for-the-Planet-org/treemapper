@@ -9,7 +9,6 @@ import { SvgXml } from "react-native-svg";
 const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, whiteBtnText, bannerImage, closeIcon }) => {
 
     const isShowBottomWhiteBtn = whiteBtnText || coordsLength >= 2
-    console.log('bannerImage=', bannerImage)
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>

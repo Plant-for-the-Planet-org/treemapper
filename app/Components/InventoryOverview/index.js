@@ -162,7 +162,7 @@ const InventoryOverview = ({ navigation, }) => {
                     'type': 'FeatureCollection',
                     'features': featureList
                 }
-                let fileName = `Tree Inventory GeoJSON ${inventory.inventory_id}.json`
+                let fileName = `Tree Mapper GeoJSON ${inventory.inventory_id}.json`
                 let path = `${Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
                 RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
                     .then((success) => {

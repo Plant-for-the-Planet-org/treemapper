@@ -246,7 +246,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
     })
 }
 
-export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords }) => {
+export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords , locateTree}) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
@@ -261,7 +261,8 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                         }]
                     }]
                     inventory.specei_diameter = 10
-                    inventory.plantation_date = `-18000000`
+                    inventory.locate_tree = locateTree
+                    inventory.plantation_date = `${Date.now()}`
                     resolve()
                 })
 

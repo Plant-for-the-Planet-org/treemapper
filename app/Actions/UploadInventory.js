@@ -46,17 +46,15 @@ const testFoo = () => {
                     for (let i = 0; i < allPendingInventory.length; i++) {
                         const oneInventory = allPendingInventory[i];
                         let polygons = Object.values(oneInventory.polygons)
-                        for (let j = 0; j < polygons.length; j++) {
-                            const onePolygon = polygons[j];
-                            let coords = Object.values(onePolygon.coordinates);
-                            coordinates = coords.map(x => ([x.longitude, x.latitude]));
-                        }
-                        console.log('oneInventory=', oneInventory)
+                        const onePolygon = polygons[0]; // *  
+                        let coords = Object.values(onePolygon.coordinates);
+                        coordinates = coords.map(x => ([x.longitude, x.latitude]));
                         if (oneInventory.tree_type == 'single') {
                             species = [{ otherSpecies: String(oneInventory.specei_name), treeCount: 1 }]
                         } else {
                             species = Object.values(oneInventory.species).map(x => ({ otherSpecies: x.nameOfTree, treeCount: Number(x.treeCount) }))
                         }
+                        console.log('coordinates=', coordinates)
                         let bodyTemplate = {
                             "captureMode": oneInventory.locate_tree,
                             "deviceLocation": {
@@ -74,35 +72,16 @@ const testFoo = () => {
                             "plantProject": null,
                             "plantedSpecies": species
                         }
-                        // console.log('species=', species)
 
-                        // bodyTemplate = {
-                        //     "plantProject": null,
-                        //     "deviceLocation": {
-                        //         "type": "Point",
-                        //         "coordinates": [
-                        //             -90.66840648651123,
-                        //             18.682146549182555
-                        //         ]
-                        //     },
-                        //     "geometry": {
-                        //         "type": coordinates.length > 1 ? 'Polygon' : "Point",
-                        //         "coordinates": coordinates.length > 1 ? coordinates : coordinates[0]
-                        //     },
-                        //     "plantDate": new Date().toISOString(),
-                        //     "plantedSpecies": species,
-                        //     "captureMode": oneInventory.locate_tree
-                        // }
-                        // console.log('Body=', bodyTemplate)
-                        // console.log('coordinates=', coordinates)
-
+                        console.log('BODY [0]=', bodyTemplate)
+                        // return;
                         axios({
                             method: 'POST',
                             url: 'https://app-development.plant-for-the-planet.org/treemapper/plantLocations',
                             data: bodyTemplate,
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${userToken}`
+                                'Authorization': `OAuth ${userToken}`
                             },
                         }).then((data) => {
                             console.log('RESPOSS=', data.data)

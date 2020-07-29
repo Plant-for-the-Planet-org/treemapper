@@ -130,8 +130,10 @@ const SingleTreeOverview = ({ navigation }) => {
         let shouldEdit = inventory.status !== 'pending';
         let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
         let detailContainerStyle = imageSource ? [{}] : [{}]
+        console.log('coords=', filePath, coords, filePath)
+        alert(JSON.stringify(coords))
         return (
-            coords && <View style={styles.detailSubContainer}>
+            <View style={styles.detailSubContainer}>
                 <View>
                     <Text style={detailHeaderStyle}>LOCATION</Text>
                     <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
@@ -193,10 +195,11 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
-    const goBack = ()=>{
+    const goBack = () => {
         navigation.goBack()
     }
 
+    console.log('inventory=', inventory)
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
@@ -301,6 +304,6 @@ const styles = StyleSheet.create({
         color: undefined
     },
     detailSubContainer: {
-        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20
+        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20, 
     }
 })
