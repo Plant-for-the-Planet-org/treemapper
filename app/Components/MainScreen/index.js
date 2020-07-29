@@ -55,6 +55,7 @@ const MainScreen = ({ navigation }) => {
     }
 
     const onPressLogout = () => {
+        onPressCloseProfileModal()
         auth0Logout().then(() => {
             checkIsLogin()
         })

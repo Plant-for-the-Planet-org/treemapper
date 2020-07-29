@@ -42,15 +42,11 @@ export const auth0Logout = () => {
     return new Promise((resolve, reject) => {
         auth0.webAuth.clearSession()
             .then(() => {
-                alert(23232)
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
-                            realm.create('User', {
-                                id: 'id0001',
-                                accessToken: '',
-                                idToken: 'NO NEED TO STORE',
-                            }, 'modified')
+                            const user = realm.objectForPrimaryKey('User', 'id0001');
+                            realm.delete(user)
                             resolve(true)
                         })
                     })
