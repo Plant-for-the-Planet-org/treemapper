@@ -46,7 +46,7 @@ const testFoo = () => {
                     for (let i = 0; i < allPendingInventory.length; i++) {
                         const oneInventory = allPendingInventory[i];
                         let polygons = Object.values(oneInventory.polygons)
-                        const onePolygon = polygons[0]; // *  
+                        const onePolygon = polygons[0]; 
                         let coords = Object.values(onePolygon.coordinates);
                         coordinates = coords.map(x => ([x.longitude, x.latitude]));
                         if (oneInventory.tree_type == 'single') {

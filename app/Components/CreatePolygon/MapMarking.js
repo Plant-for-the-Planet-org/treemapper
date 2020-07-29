@@ -150,6 +150,7 @@ class MapMarking extends React.Component {
             }
         } else {
             this.setState({ isAlrightyModalShow: true })
+            // console.log('GEOJSON 153-=', geoJSON.features[0].geometry.coordinates)
             try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
@@ -163,16 +164,18 @@ class MapMarking extends React.Component {
 
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
-        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
-        geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
+        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
+        console.log('activeMarkerIndex=', activeMarkerIndex)
+        geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         if (complete) {
-            console.log('GEOJSON BEFORE COMPLETE=', geoJSON.features[activePolygonIndex].geometry.coordinates)
-            geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
-            geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
-            console.log('GEOJSON AFTER COMPLETE=', geoJSON.features[activePolygonIndex].geometry.coordinates)
+            // console.log('GEOJSON BEFORE COMPLETE=', geoJSON.features[0].geometry.coordinates)
+            geoJSON.features[0].properties.isPolygonComplete = true;
+            geoJSON.features[0].geometry.coordinates.push(geoJSON.features[0].geometry.coordinates[0])
+            // console.log('GEOJSON AFTER COMPLETE=', geoJSON.features[0].geometry.coordinates)
+        } else {
 
         }
-        // console.log('GEOJSON=', complete, 'completeZ', geoJSON.features[activePolygonIndex].geometry.coordinates)
+        // console.log('GEOJSON=', complete, 'completeZ', geoJSON.features[0].geometry.coordinates)
         // return;
         this.setState({ geoJSON }, () => {
             // change the state
@@ -180,16 +183,16 @@ class MapMarking extends React.Component {
             const { geoJSON } = this.state;
 
             let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
+            // console.log('geoJSON.features[0].geometry.coordinates=', geoJSON.features[0].geometry.coordinates)
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
-                    let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
-                    this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
+                    let location = ALPHABETS[geoJSON.features[0].geometry.coordinates.length - (complete) ? 2 : 1]
+                    this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length)
                 } else {
                     // For off site
                     if (complete) {
-                        // alert('COMPLETE')
                         this.props.navigation.navigate('InventoryOverview')
-                    }else{
+                    } else {
                         updateActiveMarkerIndex(activeMarkerIndex + 1)
 
                     }
@@ -273,11 +276,22 @@ class MapMarking extends React.Component {
 
     onPressCompletePolygon = async () => {
         const { navigation, inventoryID, setIsCompletePolygon } = this.props;
-        const { geoJSON } = this.state;
-        await this.addMarker(true)
-        // 
+        const { geoJSON, locateTree } = this.state;
         let data = { inventory_id: inventoryID, geoJSON: geoJSON };
         setIsCompletePolygon(true)
+
+        geoJSON.features[0].properties.isPolygonComplete = true;
+        geoJSON.features[0].geometry.coordinates.push(geoJSON.features[0].geometry.coordinates[0])
+        let lastCoords = geoJSON.features[0].geometry.coordinates[0]
+        addCoordinates({ inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: lastCoords.latitude, longitude: lastCoords.longitude } }).then(() => {
+            if (locateTree == 'on-site') {
+
+            } else {
+                // For off site
+                this.props.navigation.navigate('InventoryOverview')
+            }
+        })
+
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
@@ -305,7 +319,6 @@ class MapMarking extends React.Component {
             polygonUpdate({ inventory_id: inventoryID }).then(() => {
                 this.onPressCompletePolygon()
                 onPressContinue()
-                // this.props.navigation.navigate('InventoryOverview')
             })
         }
         const onPressClose = () => {
@@ -352,9 +365,9 @@ class MapMarking extends React.Component {
 
     render() {
         const { activeMarkerIndex } = this.props
-
-
         const { geoJSON, loader, activePolygonIndex } = this.state;
+        // console.log('geoJSON=', geoJSON.features[0].geometry.coordinates.length)
+        // console.log('activeMarkerIndex=', activeMarkerIndex)
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[activeMarkerIndex];

@@ -38,6 +38,30 @@ export const auth0Login = () => {
             });
     })
 }
+export const auth0Logout = () => {
+    return new Promise((resolve, reject) => {
+        auth0.webAuth.clearSession()
+            .then(() => {
+                alert(23232)
+                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                    .then(realm => {
+                        realm.write(() => {
+                            realm.create('User', {
+                                id: 'id0001',
+                                accessToken: '',
+                                idToken: 'NO NEED TO STORE',
+                            }, 'modified')
+                            resolve(true)
+                        })
+                    })
+            })
+            .catch(error => {
+                alert('error')
+                reject(error)
+                console.log(error)
+            });
+    })
+}
 
 export const isLogin = () => {
     return new Promise((resolve, reject) => {
@@ -246,7 +270,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
     })
 }
 
-export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords , locateTree}) => {
+export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, currentCoords, locateTree }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
@@ -294,11 +318,13 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                         onePolygonTemp.coordinates = coordinates;
                         polygons.push(onePolygonTemp)
                     })
+                    console.log("BEFORE  SAVE GEOJSON=", polygons)
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         polygons: polygons
                     }, 'modified')
-
+                    const oneInvent = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+                    console.log("AFTER SAVE GEOJSON=", oneInvent.polygons[0].coordinates)
                     resolve()
                 })
 
@@ -433,7 +459,7 @@ export const clearAllInventory = () => {
             .then(realm => {
                 realm.write(() => {
                     let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
-                    realm.delete(allInventory); // Delete Inventory\
+                    realm.delete(allInventory);
                     resolve()
                 })
 

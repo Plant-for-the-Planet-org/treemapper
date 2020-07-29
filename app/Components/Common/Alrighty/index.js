@@ -8,11 +8,12 @@ import { SvgXml } from "react-native-svg";
 
 const Alrighty = ({ heading, subHeading, onPressClose, onPressContinue, coordsLength, onPressWhiteButton, whiteBtnText, bannerImage, closeIcon }) => {
 
-    const isShowBottomWhiteBtn = whiteBtnText || coordsLength >= 2
+    const isShowBottomWhiteBtn = whiteBtnText || coordsLength > 2
+    console.log('coordsLength=', coordsLength)
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <Header onBackPress={onPressClose} closeIcon={closeIcon}/>
+                <Header onBackPress={onPressClose} closeIcon={closeIcon} />
                 <View style={{ flex: 1 }}>
                     <View style={styles.bannerContainer}>
                         <SvgXml xml={bannerImage ? bannerImage : alrighty_banner} />

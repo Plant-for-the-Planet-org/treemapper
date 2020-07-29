@@ -9,9 +9,10 @@ import upload_now from './images/upload_now.png';
 import tree from './images/tree.png';
 import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
+import marker_png from './images/marker.png';
 
 // * SVGs *
-import { marker_png } from './images/marker';
+// import { marker_png } from './images/marker';
 import { main_screen_banner } from './images/main_screen_banner';
 import { two_trees } from './images/two_trees';
 import { plus_icon } from './images/plus_icon';
