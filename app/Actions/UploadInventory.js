@@ -53,23 +53,20 @@ const uploadInventory = () => {
                                 },
                             }).then((data) => {
                                 alert('Inventory Upload Complete')
-                                console.log('RESPOSS=', data.data)
+                                resolve()
                             })
                                 .catch((err) => {
                                     alert('Error')
-                                    console.log("ERROR=", err)
-                                    console.log("ERROR=", JSON.parse(JSON.stringify(err)))
+                                    reject()
                                 })
 
                         }
 
                     }).catch((err) => {
-                        console.log('ERROR =', err)
                     })
                 })
             }).catch((err) => {
-                console.log(err)
-            });
+             });
 
     });
 }

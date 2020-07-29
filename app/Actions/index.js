@@ -19,8 +19,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                console.log('accessToken=,', accessToken)
-                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
                             realm.create('User', {
@@ -34,8 +33,7 @@ export const auth0Login = () => {
             })
             .catch(error => {
                 reject(error)
-                console.log(error)
-            });
+             });
     })
 }
 export const auth0Logout = () => {
@@ -54,8 +52,7 @@ export const auth0Logout = () => {
             .catch(error => {
                 alert('error')
                 reject(error)
-                console.log(error)
-            });
+             });
     })
 }
 
@@ -97,8 +94,7 @@ export const updateSpeceiName = ({ inventory_id, specieText }) => {
                 })
                 resolve()
             }).catch((err) => {
-                console.log(err)
-                reject(err)
+                 reject(err)
                 bugsnag.notify(err)
             });
     })
@@ -314,14 +310,11 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                         onePolygonTemp.coordinates = coordinates;
                         polygons.push(onePolygonTemp)
                     })
-                    console.log("BEFORE  SAVE GEOJSON=", polygons)
-                    realm.create('Inventory', {
+                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
                         polygons: polygons
                     }, 'modified')
-                    const oneInvent = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-                    console.log("AFTER SAVE GEOJSON=", oneInvent.polygons[0].coordinates)
-                    resolve()
+                      resolve()
                 })
 
             }).catch((err) => {
@@ -337,8 +330,7 @@ export const getAllPendingInventory = () => {
             .then(realm => {
                 realm.write(() => {
                     const Inventory = realm.objects('Inventory').filtered('status == "pending"');
-                    console.log('Inventory')
-                    resolve(JSON.parse(JSON.stringify(Inventory)))
+                     resolve(JSON.parse(JSON.stringify(Inventory)))
                 })
 
             }).catch(bugsnag.notify);
@@ -367,8 +359,7 @@ export const getInventory = ({ inventoryID }) => {
                 })
 
             }).catch((err) => {
-                console.log(err)
-                bugsnag.notify(err)
+                 bugsnag.notify(err)
             });
     })
 }

@@ -130,7 +130,6 @@ const SingleTreeOverview = ({ navigation }) => {
         let shouldEdit = inventory.status !== 'pending';
         let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
         let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}]
-        console.log('coords=', filePath, coords, filePath)
 
         return (
             <View style={detailContainerStyle}>
@@ -199,7 +198,6 @@ const SingleTreeOverview = ({ navigation }) => {
         navigation.goBack()
     }
 
-    console.log('imageSource=', imageSource)
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
