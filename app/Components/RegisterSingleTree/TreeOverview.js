@@ -129,11 +129,11 @@ const SingleTreeOverview = ({ navigation }) => {
         }
         let shouldEdit = inventory.status !== 'pending';
         let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
-        let detailContainerStyle = imageSource ? [{}] : [{}]
+        let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}]
         console.log('coords=', filePath, coords, filePath)
-        alert(JSON.stringify(coords))
+
         return (
-            <View style={styles.detailSubContainer}>
+            <View style={detailContainerStyle}>
                 <View>
                     <Text style={detailHeaderStyle}>LOCATION</Text>
                     <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
@@ -199,7 +199,7 @@ const SingleTreeOverview = ({ navigation }) => {
         navigation.goBack()
     }
 
-    console.log('inventory=', inventory)
+    console.log('imageSource=', imageSource)
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
         fontSize: 10, color: Colors.WHITE
     },
     overViewContainer: {
-        width: '100%', alignSelf: 'center', borderRadius: 15, overflow: 'hidden', marginVertical: 10
+        flex: 1, width: '100%', alignSelf: 'center', borderRadius: 15, overflow: 'hidden', marginVertical: 10
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
         position: 'absolute', width: '100%', height: '100%'
     },
     scrollViewContainer: {
-        flex: 1, marginTop: 20
+        flex: 1, marginTop: 20,
     },
     detailHeader: {
         fontSize: Typography.FONT_SIZE_14,
@@ -301,9 +301,9 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     defaulFontColor: {
-        color: undefined
+        color: Colors.TEXT_COLOR
     },
     detailSubContainer: {
-        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20, 
+        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20,
     }
 })
