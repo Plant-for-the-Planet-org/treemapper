@@ -101,13 +101,6 @@ const DownloadMap = ({ navigation }) => {
         navigation.navigate('SavedAreas')
     }
 
-    const renderFakeMarker = () => {
-        return (
-            <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker}style={styles.markerImage}/>
-            </View>)
-    }
-
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
@@ -123,7 +116,6 @@ const DownloadMap = ({ navigation }) => {
                         <MapboxGL.UserLocation showsUserHeadingIndicator />
                         <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
-                    {renderFakeMarker()}
                 </View>
                 {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} /> :
                     <View style={styles.bottomBtnsContainer}>
