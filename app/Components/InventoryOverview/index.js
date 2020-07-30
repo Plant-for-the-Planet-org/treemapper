@@ -76,10 +76,14 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressSave = () => {
-        let data = { inventory_id: state.inventoryID }
-        statusToPending(data).then(() => {
-            navigation.navigate('TreeInventory')
-        })
+        if (inventory.species.length > 0) {
+            let data = { inventory_id: state.inventoryID }
+            statusToPending(data).then(() => {
+                navigation.navigate('TreeInventory')
+            })
+        } else {
+            alert('Select atleast one species')
+        }
     }
 
     const focusMarker = () => {
@@ -202,8 +206,8 @@ const InventoryOverview = ({ navigation, }) => {
         updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` })
     };
 
-    const renderAddSpeciesButton = () => {
-        return (<TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }}>
+    const renderAddSpeciesButton = (status) => {
+        return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }}>
             <Text style={styles.plantSpeciesText}>{`Planted\nSpecies`}</Text>
             <View style={styles.bannerImgContainer}>
                 <SvgXml xml={plus_icon} />
@@ -251,7 +255,7 @@ const InventoryOverview = ({ navigation, }) => {
                         {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
                         <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
                         <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
-                        {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton() : null}
+                        {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
                         {renderPolygon(inventory.polygons, locationType)}
                         <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
                     </ScrollView>

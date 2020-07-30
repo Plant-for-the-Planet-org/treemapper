@@ -2,7 +2,7 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex, removeLastCoord } from '../../Actions';
+import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex, removeLastCoord, completePolygon } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,6 +16,8 @@ const infographicText = [
 ]
 
 const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMarkerIndex, updateActiveMarkerIndex }) => {
+    console.log('activeMarkerIndex=', activeMarkerIndex)
+
     const camera = useRef()
 
     const navigation = useNavigation()
@@ -74,13 +76,15 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
 
     const onPressCompletePolygon = () => {
         polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
-            setIsAlrightyModalShow(false)
-            navigation.navigate('InventoryOverview')
+            completePolygon({ inventory_id: state.inventoryID }).then(() => {
+                setIsAlrightyModalShow(false)
+                navigation.navigate('InventoryOverview')
+            })
         })
     }
 
     const renderAlrightyModal = () => {
-        // let infoIndex = activeMarkerIndex <= 1 ? 0 : activeMarkerIndex <= 2 ? 1 : 2;
+
         let infoIndex = activeMarkerIndex > 2 ? 2 : activeMarkerIndex
         const { heading, subHeading } = infographicText[infoIndex]
         return (
@@ -88,7 +92,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={styles.mainContainer}>
-                    <Alrighty coordsLength={activeMarkerIndex} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                    <Alrighty coordsLength={activeMarkerIndex + 1} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
         )

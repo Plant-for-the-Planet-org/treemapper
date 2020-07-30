@@ -235,6 +235,7 @@ export const polygonUpdate = ({ inventory_id }) => {
                 realm.write(() => {
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
                     inventory.polygons[0].isPolygonComplete = true;
+                    console.log('inventory.polygons=', inventory.polygons)
                     resolve()
                 })
 
@@ -244,6 +245,25 @@ export const polygonUpdate = ({ inventory_id }) => {
             });
     })
 }
+export const completePolygon = ({ inventory_id }) => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+            .then(realm => {
+                realm.write(() => {
+                    let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
+                    inventory.polygons[0].isPolygonComplete = true;
+                    inventory.polygons[0].coordinates.push(inventory.polygons[0].coordinates[0])
+                    resolve()
+                })
+
+            }).catch((err) => {
+                reject(err)
+                bugsnag.notify(err)
+            });
+    })
+}
+
+
 
 export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
     return new Promise((resolve, reject) => {

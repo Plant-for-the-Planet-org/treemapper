@@ -53,7 +53,14 @@ const TreeInventory = ({ navigation }) => {
                         title = `1 ${item.specei_name} Tree`
                         locateTreeAndType += ' - Point'
                     } else {
-                        title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
+                        let totalTreeCount = 0
+                        let species = Object.values(item.species)
+
+                        for (let i = 0; i < species.length; i++) {
+                            const oneSpecies = species[i];
+                            totalTreeCount += Number(oneSpecies.treeCount)
+                        }
+                        title = `${totalTreeCount} Trees`
                         locateTreeAndType += ' - Polygon'
                     }
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
