@@ -14,6 +14,7 @@ import { Colors, Typography } from '_styles';
 import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import moment from "moment";
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -56,7 +57,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
-                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, measurement: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
+                                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, subHeading: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index }
                                 return (<InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />)
                             }}
                         />
@@ -245,8 +246,8 @@ const InventoryOverview = ({ navigation, }) => {
             <View style={styles.container}>
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-                        <Header closeIcon headingText={''} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                        <Label leftText={'Plant Date'} rightText={new Date(Number(inventory.plantation_date)).toLocaleDateString()} onPressRightText={onPressDate} />
+                        <Header closeIcon headingText={'Review'} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
+                        <Label leftText={'Plant Date'} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={onPressDate} />
                         {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
                         <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
                         <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />

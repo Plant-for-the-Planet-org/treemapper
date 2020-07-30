@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StateProvider } from '../../Actions/store';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
-import { RegisterTree, MultipleTrees, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates, ManageUsers, SignUp } from '../';
+import { RegisterTree, SelectProject, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates, ManageUsers, SignUp, UploadedInventory } from '../';
 import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -60,6 +60,7 @@ const App = () => {
                     <Stack.Screen name='SelectCoordinates' component={SelectCoordinates} options={MyTransition} />
                     <Stack.Screen name='ManageUsers' component={ManageUsers} options={MyTransition} />
                     <Stack.Screen name='SignUp' component={SignUp} options={MyTransition} />
+                    <Stack.Screen name='UploadedInventory' component={UploadedInventory} options={MyTransition} />
                 </Stack.Navigator>
             </NavigationContainer>
         </StateProvider>

@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     },
     primaryBtnContainer: {
         borderColor: Colors.LIGHT_BORDER_COLOR,
-        height: 50
+        paddingVertical : 10
     },
     primaryBtnText: {
         color: Colors.TEXT_COLOR,

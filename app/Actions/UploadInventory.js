@@ -1,6 +1,6 @@
 import { Config } from './Config';
 import axios from 'axios';
-import { getAllPendingInventory } from './';
+import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
@@ -12,11 +12,11 @@ const uploadInventory = () => {
                 realm.write(() => {
                     const User = realm.objectForPrimaryKey('User', 'id0001');
                     let userToken = User.accessToken;
+                    console.log('userToken', userToken)
                     try {
                         Geolocation.getCurrentPosition(position => {
                             let currentCoords = position.coords;
-
-                            getAllPendingInventory().then((allPendingInventory) => {
+                            getAllPendingInventory().then(async (allPendingInventory) => {
                                 let coordinates = []
                                 let species = []
                                 allPendingInventory = Object.values(allPendingInventory);
@@ -50,7 +50,7 @@ const uploadInventory = () => {
                                         plantedSpecies: species
                                     }
                                     const { protocol, url } = Config
-                                    axios({
+                                    await axios({
                                         method: 'POST',
                                         url: `${protocol}://${url}/treemapper/plantLocations`,
                                         data: bodyTemplate,
@@ -59,6 +59,7 @@ const uploadInventory = () => {
                                             'Authorization': `OAuth ${userToken}`
                                         },
                                     }).then((data) => {
+                                        statusToComplete({ inventory_id: oneInventory.inventory_id })
                                         alert('Inventory Upload Complete')
                                         resolve()
                                     })
@@ -66,9 +67,7 @@ const uploadInventory = () => {
                                             alert('Error')
                                             reject()
                                         })
-
                                 }
-
                             }).catch((err) => {
                             })
                         }, (err) => alert(err.message))
