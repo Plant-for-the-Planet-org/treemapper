@@ -489,6 +489,20 @@ export const removeLastCoord = ({ inventory_id }) => {
     })
 }
 
+export const clearAllUploadedInventory = () => {
+    return new Promise((resolve, reject) => {
+        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+            .then(realm => {
+                realm.write(() => {
+                    let allInventory = realm.objects('Inventory').filtered('status == "complete"');
+                    realm.delete(allInventory);
+                    resolve()
+                })
+
+            }).catch(bugsnag.notify);
+
+    })
+}
 export const clearAllInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })

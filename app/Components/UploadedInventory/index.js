@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllUploadedInventory, clearAllInventory, uploadInventory, } from "../../Actions";
+import { getAllUploadedInventory, clearAllInventory, uploadInventory, clearAllUploadedInventory } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
@@ -16,19 +16,29 @@ const UploadedInventory = ({ navigation }) => {
     const [allInventory, setAllInventory] = useState(null)
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
-            getAllUploadedInventory().then((allInventory) => {
-                setAllInventory(Object.values(allInventory))
-            })
+            initialState()
         });
 
         return unsubscribe;
     }, [navigation])
+
+    const initialState = () => {
+        getAllUploadedInventory().then((allInventory) => {
+            setAllInventory(Object.values(allInventory))
+        })
+    }
 
     const onPressInventory = (item) => {
         setTimeout(() => {
             dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
         }, 0)
+    }
+
+    const freeUpSpace = () => {
+        clearAllUploadedInventory().then(() => {
+            initialState()
+        })
     }
 
     const renderInventoryList = (inventoryList) => {
@@ -81,7 +91,9 @@ const UploadedInventory = ({ navigation }) => {
     const renderInventory = () => {
         return <View style={styles.cont}>
             {allInventory.length > 0 && <>
-                <Text style={styles.freeUpSpace}>Free Up Space</Text>
+                <TouchableOpacity onPress={freeUpSpace}>
+                    <Text style={styles.freeUpSpace}>Free Up Space</Text>
+                </TouchableOpacity>
                 {renderInventoryList(allInventory)}
             </>}
         </View>
