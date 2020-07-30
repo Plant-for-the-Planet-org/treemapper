@@ -197,7 +197,7 @@ const SingleTreeOverview = ({ navigation }) => {
     }
 
     const onBackPress = () => {
-        if (inventory.status !== 'pending') {
+        if (inventory.status == 'incomplete') {
             navigation.navigate('RegisterSingleTree', { isEdit: true })
         } else {
             navigation.goBack()

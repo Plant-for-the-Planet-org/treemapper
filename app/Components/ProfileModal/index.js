@@ -33,13 +33,14 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
                     <View style={styles.horizontalBar} />
                     <Text style={styles.textAlignCenter}>Privacy Policy     •     Terms of Service</Text>
                 </View>
+                <View />
             </View>
         </Modal >)
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)'
+        flex: 1, justifyContent: 'space-evenly', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)'
     },
     subContainer: {
         width: '90%', backgroundColor: Colors.WHITE, borderRadius: 20, padding: 20
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     },
     primaryBtnContainer: {
         borderColor: Colors.LIGHT_BORDER_COLOR,
-        paddingVertical : 10
+        paddingVertical: 10
     },
     primaryBtnText: {
         color: Colors.TEXT_COLOR,
