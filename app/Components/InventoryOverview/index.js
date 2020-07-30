@@ -218,7 +218,7 @@ const InventoryOverview = ({ navigation, }) => {
         </TouchableOpacity>)
     }
 
-    const onPressDate = () => setShowDate(true)
+    const onPressDate = (status) => { status == 'incomplete' ? setShowDate(true) : null }
 
     const onPressSaveAndContinue = (SelectSpeciesList) => {
         //  Add it to local Db 
@@ -251,7 +251,7 @@ const InventoryOverview = ({ navigation, }) => {
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
                         <Header closeIcon headingText={'Review'} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                        <Label leftText={'Plant Date'} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={onPressDate} />
+                        <Label leftText={'Plant Date'} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={() => onPressDate(status)} />
                         {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
                         <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
                         <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
