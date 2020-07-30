@@ -60,8 +60,9 @@ const uploadInventory = () => {
                                         },
                                     }).then((data) => {
                                         statusToComplete({ inventory_id: oneInventory.inventory_id })
-                                        alert('Inventory Upload Complete')
-                                        resolve()
+                                        if (allPendingInventory.length - 1 == i) {
+                                            resolve()
+                                        }
                                     })
                                         .catch((err) => {
                                             console.log('ERRROR', err,)

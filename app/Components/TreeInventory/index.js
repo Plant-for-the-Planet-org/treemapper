@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Modal, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllInventory, clearAllInventory, uploadInventory } from "../../Actions";
@@ -14,12 +14,11 @@ const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
+    const [isLoaderShow, setIsLoaderShow] = useState(false)
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
-            getAllInventory().then((allInventory) => {
-                console.log('allInventory=', allInventory)
-                setAllInventory(Object.values(allInventory))
-            })
+            initialState()
         });
 
         return unsubscribe
@@ -30,6 +29,13 @@ const TreeInventory = ({ navigation }) => {
             dispatch(LocalInventoryActions.setInventoryId(item.inventory_id))
             navigation.navigate(item.last_screen)
         }, 0)
+    }
+
+    const initialState = () => {
+        getAllInventory().then((allInventory) => {
+            console.log('allInventory=', allInventory)
+            setAllInventory(Object.values(allInventory))
+        })
     }
 
     const renderInventoryList = (inventoryList) => {
@@ -86,7 +92,27 @@ const TreeInventory = ({ navigation }) => {
     }
 
     const onPressUploadNow = () => {
-        uploadInventory()
+        setIsLoaderShow(true)
+        uploadInventory().then((data) => {
+            initialState()
+            setIsLoaderShow(false)
+        }).catch((err) => {
+            setIsLoaderShow(false)
+        })
+    }
+
+    const renderLoaderModal = () => {
+        return (
+            <Modal
+                transparent
+                visible={isLoaderShow}>
+                <View style={styles.dowloadModalContainer}>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading .......</Text>
+                    </View>
+                </View>
+            </Modal>
+        )
     }
 
     const renderInventory = () => {
@@ -111,6 +137,7 @@ const TreeInventory = ({ navigation }) => {
             <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
             <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
+                <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />
                 <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
             </View>
         </View>)
@@ -131,6 +158,7 @@ const TreeInventory = ({ navigation }) => {
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
+            {renderLoaderModal()}
         </View>
     )
 }
@@ -151,5 +179,11 @@ const styles = StyleSheet.create({
     },
     parimaryBtnCont: {
         position: 'absolute', width: '100%', justifyContent: 'center', bottom: 10, paddingHorizontal: 25
-    }
+    },
+    dowloadModalContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    loader: {
+        backgroundColor: Colors.WHITE, borderRadius: 20, marginVertical: 20
+    },
 })

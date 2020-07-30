@@ -10,6 +10,7 @@ import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, upda
 import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from "moment";
 
 const SingleTreeOverview = ({ navigation }) => {
 
@@ -66,6 +67,7 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
+    console.log('SPecies=', specieText)
     const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpenModal}>
@@ -127,7 +129,7 @@ const SingleTreeOverview = ({ navigation }) => {
         if (polygons[0]) {
             coords = polygons[0].coordinates[0];
         }
-        let shouldEdit = inventory.status !== 'pending';
+        let shouldEdit = inventory.status == 'incomplete';
         let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
         let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}]
 
@@ -164,17 +166,25 @@ const SingleTreeOverview = ({ navigation }) => {
                 {!imageSource && <View>
                     <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
                     <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
-                        <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                        <Text style={styles.detailText}>{moment(plantationDate).format('ll')} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>}
             </View>)
     }
 
     const onPressSave = () => {
-        let data = { inventory_id: state.inventoryID }
-        statusToPending(data).then(() => {
+        if (inventory.status == 'complete') {
             navigation.navigate('TreeInventory')
-        })
+        } else {
+            if (specieText) {
+                let data = { inventory_id: state.inventoryID }
+                statusToPending(data).then(() => {
+                    navigation.navigate('TreeInventory')
+                })
+            } else {
+                alert('Specie Name  is required')
+            }
+        }
     }
 
     const onPressContinue = () => {
@@ -214,7 +224,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 </ScrollView>
                 <View style={styles.bottomBtnsContainer}>
                     <PrimaryButton onPress={goBack} btnText={'Back'} halfWidth theme={'white'} />
-                    <PrimaryButton onPress={onPressSave} btnText={'Next Tree'} halfWidth />
+                    <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                 </View>
             </View>
         </SafeAreaView >
