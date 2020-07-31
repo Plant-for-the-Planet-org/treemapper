@@ -48,7 +48,7 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
                     <View style={styles.horizontalBar} />
                     <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
                         <Text onPress={onPressPolicy} style={styles.textAlignCenter}>Privacy Policy</Text>
-                        <Text>.</Text>
+                        <Text>•</Text>
                         <Text onPress={onPressSupport} style={styles.textAlignCenter}>Support</Text>
                     </View>
                 </View>}
