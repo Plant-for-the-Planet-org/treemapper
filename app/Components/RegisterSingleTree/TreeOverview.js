@@ -68,8 +68,7 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
-    console.log('SPecies=', specieText)
-    const renderinputModal = () => {
+     const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpenModal}>
                 <View style={styles.cont}>

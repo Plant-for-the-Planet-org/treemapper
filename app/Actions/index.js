@@ -510,7 +510,7 @@ export const clearAllInventory = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 realm.write(() => {
-                    let allInventory = realm.objects('Inventory');
+                    let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
                     realm.delete(allInventory);
                     resolve()
                 })

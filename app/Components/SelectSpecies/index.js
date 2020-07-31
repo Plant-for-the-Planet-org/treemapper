@@ -12,17 +12,20 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
     const [treeCount, setTreeCount] = useState('');
     const [activeSpeice, setActiveSpecie] = useState(undefined);
-    const [speciesList, setSpeciesList] = useState(speciesJSON)
+    const [speciesList, setSpeciesList] = useState([...speciesJSON])
 
     useEffect(() => {
         for (let i = 0; i < species.length; i++) {
             const oneSpecie = species[i];
             speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount
         }
-        setSpeciesList(speciesList)
-        return () => {
+        if (species.length == 0) {
+            for (let i = 0; i < speciesJSON.length; i++) {
+                delete speciesJSON[i].treeCount;
+            }
             setSpeciesList([...speciesJSON])
         }
+        setSpeciesList(speciesList)
     }, [])
 
     const onPressSpecie = (index) => {
@@ -39,7 +42,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     const renderSpeciesCard = ({ item, index }) => {
         let isCheck = item.treeCount ? true : false;
         return (
-            <TouchableOpacity onPress={() => onPressSpecie(index)} style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <TouchableOpacity key={index} onPress={() => onPressSpecie(index)} style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
                 <View>
                     <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
                 </View>
@@ -97,13 +100,13 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
             }
         }
         onPressSaveAndContinue(selectedspeciesList)
-        setTimeout(() => {
-            setActiveSpecie(undefined)
-            setIsShowTreeCountModal(false)
-            setTreeCount('')
-            closeSelectSpeciesModal()
-            setSpeciesList([...speciesJSON])
-        }, 10)
+        // setTimeout(() => {
+        setActiveSpecie(undefined)
+        setIsShowTreeCountModal(false)
+        setTreeCount('')
+        closeSelectSpeciesModal()
+        setSpeciesList([...speciesJSON])
+        // }, 0)
     }
 
     return (

@@ -16,7 +16,6 @@ const infographicText = [
 ]
 
 const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMarkerIndex, updateActiveMarkerIndex }) => {
-    console.log('activeMarkerIndex=', activeMarkerIndex)
 
     const camera = useRef()
 

@@ -231,8 +231,7 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressDate = (status) => {
-        console.log('inventory.locate_tree', inventory.locate_tree)
-        status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null
+         status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null
     }
 
     const onPressSaveAndContinue = (SelectSpeciesList) => {
