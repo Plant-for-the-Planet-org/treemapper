@@ -86,9 +86,11 @@ const TreeInventory = ({ navigation }) => {
 
     let pendingInventory = []
     let inCompleteInventory = []
+    let uploadedInventory = []
     if (allInventory) {
         pendingInventory = allInventory.filter(x => x.status == 'pending')
         inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+        uploadedInventory = allInventory.filter(x => x.status == 'complete')
     }
 
     const onPressUploadNow = () => {
@@ -102,27 +104,25 @@ const TreeInventory = ({ navigation }) => {
     }
 
     const renderLoaderModal = () => {
-        return (
-            <Modal
-                transparent
-                visible={isLoaderShow}>
-                <View style={styles.dowloadModalContainer}>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading .......</Text>
-                    </View>
+        return (<Modal
+            transparent
+            visible={isLoaderShow}>
+            <View style={styles.dowloadModalContainer}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading .......</Text>
                 </View>
-            </Modal>
-        )
+            </View>
+        </Modal>)
     }
 
     const renderInventory = () => {
-        return <View style={styles.cont}>
+        return (<View style={styles.cont}>
             {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressUploadNow} leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
-            <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />
+            {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />}
             {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
-        </View>
+        </View>)
     }
 
     const renderLoadingInventoryList = () => {
@@ -137,7 +137,7 @@ const TreeInventory = ({ navigation }) => {
             <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
             <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
-                <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />
+                {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />}
                 <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
             </View>
         </View>)
