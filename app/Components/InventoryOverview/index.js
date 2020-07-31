@@ -10,6 +10,8 @@ import { marker_png, plus_icon, two_trees } from '../../assets';
 import { APLHABETS } from '../../Utils'
 import { bugsnag } from '../../Utils'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
 import { Colors, Typography } from '_styles';
 import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
@@ -76,13 +78,17 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressSave = () => {
-        if (inventory.species.length > 0) {
-            let data = { inventory_id: state.inventoryID }
-            statusToPending(data).then(() => {
-                navigation.navigate('TreeInventory')
-            })
+        if (inventory.status == 'incomplete') {
+            if (inventory.species.length > 0) {
+                let data = { inventory_id: state.inventoryID }
+                statusToPending(data).then(() => {
+                    navigation.navigate('TreeInventory')
+                })
+            } else {
+                alert('Select atleast one species')
+            }
         } else {
-            alert('Select atleast one species')
+            navigation.navigate('TreeInventory')
         }
     }
 
@@ -186,8 +192,13 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const renderDatePicker = () => {
+
+        const handleConfirm = (data) => onChangeDate(null, data)
+        const hideDatePicker = () => setShowDate(false)
+
         return (
-            showDate && <DateTimePicker
+            showDate && <DateTimePickerModal
+                isVisible={showDate}
                 maximumDate={new Date()}
                 testID="dateTimssePicker"
                 timeZoneOffsetInMinutes={0}
@@ -195,7 +206,8 @@ const InventoryOverview = ({ navigation, }) => {
                 mode={'date'}
                 is24Hour={true}
                 display="default"
-                onChange={onChangeDate}
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
             />
         )
     }
@@ -218,7 +230,10 @@ const InventoryOverview = ({ navigation, }) => {
         </TouchableOpacity>)
     }
 
-    const onPressDate = (status) => { status == 'incomplete' ? setShowDate(true) : null }
+    const onPressDate = (status) => {
+        console.log('inventory.locate_tree', inventory.locate_tree)
+        status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null
+    }
 
     const onPressSaveAndContinue = (SelectSpeciesList) => {
         //  Add it to local Db 
@@ -237,11 +252,13 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     let locationType;
-    let isSingleCoordinate
+    let isSingleCoordinate, locateType;
     if (inventory) {
         isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
         locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+        locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site'
     }
+
 
     let status = inventory ? inventory.status : 'pending';
     return (
@@ -252,7 +269,7 @@ const InventoryOverview = ({ navigation, }) => {
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
                         <Header closeIcon headingText={'Review'} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
                         <Label leftText={'Plant Date'} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={() => onPressDate(status)} />
-                        {!isSingleCoordinate && <Label leftText={`On Site Registration`} rightText={''} />}
+                        {!isSingleCoordinate && <Label leftText={`${locateType} Registration`} rightText={''} />}
                         <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
                         <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
                         {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}

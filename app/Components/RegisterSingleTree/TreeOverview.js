@@ -10,6 +10,7 @@ import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, upda
 import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 
 const SingleTreeOverview = ({ navigation }) => {
@@ -107,8 +108,11 @@ const SingleTreeOverview = ({ navigation }) => {
             setIsShowDate(false)
             setPLantationDate(selectedDate)
         }
+        const handleConfirm = (data) => onChangeDate(null, data)
+        const hideDatePicker = () => setShowDate(false)
 
-        return isShowDate && <DateTimePicker
+        return isShowDate && <DateTimePickerModal
+            isVisible={showDate}
             maximumDate={new Date()}
             testID="dateTimePicker1"
             timeZoneOffsetInMinutes={0}
@@ -116,7 +120,8 @@ const SingleTreeOverview = ({ navigation }) => {
             mode={'date'}
             is24Hour={true}
             display="default"
-            onChange={onChangeDate}
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
         />
     }
     let filePath, imageSource
