@@ -61,7 +61,11 @@ const User = {
     properties: {
         id: 'string?',
         accessToken: 'string?',
-        idToken: 'string?'
+        idToken: 'string?',
+        email: 'string?',
+        firstname: 'string?',
+        lastname: 'string?',
+
     }
 }
 

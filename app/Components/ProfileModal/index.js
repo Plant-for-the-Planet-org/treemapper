@@ -1,17 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { close, logo } from "../../assets";
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
-
+import { getUserInformation } from "../../Actions";
 
 const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPressLogout }) => {
+
+    const [userInfo, setUserInfo] = useState(null)
+
+    useEffect(() => {
+        getUserInformation().then(userInfo => {
+            setUserInfo(userInfo)
+        })
+    }, [])
 
     return (
         <Modal visible={isProfileModalVisible} transparent>
             <View style={styles.container}>
-                <View style={styles.subContainer}>
+                {userInfo && <View style={styles.subContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity onPress={onPressCloseProfileModal}>
                             <Image source={close} />
@@ -22,8 +30,8 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
                     <View style={styles.profileSection}>
                         <SvgXml xml={logo} style={styles.avatar} />
                         <View style={styles.nameAndEmailContainer}>
-                            <Text style={styles.userName}>Paulina Sanchez</Text>
-                            <Text style={styles.userEmail}>paulina@startplanting.org</Text>
+                            <Text style={styles.userName}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                            <Text style={styles.userEmail}>{userInfo.email}</Text>
                         </View>
                     </View>
                     <View style={styles.bottomBtnsContainer}>
@@ -32,7 +40,7 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
                     </View>
                     <View style={styles.horizontalBar} />
                     <Text style={styles.textAlignCenter}>Privacy Policy     •     Terms of Service</Text>
-                </View>
+                </View>}
                 <View />
             </View>
         </Modal >)

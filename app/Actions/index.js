@@ -6,6 +6,7 @@ import Auth0 from 'react-native-auth0';
 import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 import { uploadInventory } from "./UploadInventory";
+import { getUserInformationFromServer, getUserInformation } from "./User";
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
@@ -19,8 +20,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
-                console.log('credentials', credentials)
-                Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
                             realm.create('User', {
@@ -28,7 +28,9 @@ export const auth0Login = () => {
                                 accessToken: accessToken,
                                 idToken: 'NO NEED TO STORE',
                             }, 'modified')
-                            resolve(true)
+                            getUserInformationFromServer().then(() => {
+                                resolve(true)
+                            })
                         })
                     })
             })
@@ -63,7 +65,7 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                if (Object.keys(User).length > 0) {
+                 if (Object.keys(User).length > 0) {
                     resolve(true)
                 } else {
                     resolve(false)
@@ -71,6 +73,7 @@ export const isLogin = () => {
             })
     })
 }
+
 
 //  ---------------- AUTH0 ACTIONS END----------------
 
@@ -237,8 +240,7 @@ export const polygonUpdate = ({ inventory_id }) => {
                 realm.write(() => {
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
                     inventory.polygons[0].isPolygonComplete = true;
-                    console.log('inventory.polygons=', inventory.polygons)
-                    resolve()
+                     resolve()
                 })
 
             }).catch((err) => {
@@ -389,8 +391,7 @@ export const getInventory = ({ inventoryID }) => {
             .then(realm => {
                 realm.write(() => {
                     let inventory = realm.objectForPrimaryKey('Inventory', inventoryID)
-                    console.log('inventory=', JSON.parse(JSON.stringify(inventory)))
-                    resolve(JSON.parse(JSON.stringify(inventory)))
+                     resolve(JSON.parse(JSON.stringify(inventory)))
                 })
 
             }).catch((err) => {
@@ -536,4 +537,4 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
     })
 }
 
-export { uploadInventory }
+export { uploadInventory, getUserInformation }
