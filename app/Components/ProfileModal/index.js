@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Modal, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { close, logo } from "../../assets";
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
@@ -15,6 +15,13 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
             setUserInfo(userInfo)
         })
     }, [])
+
+    const onPressSupport = () => {
+        Linking.openURL('mailto:support@plant-for-the-planet.org')
+    }
+    const onPressPolicy = () => {
+        Linking.openURL(`https://www.trilliontreecampaign.org/data-protection-policy`);
+    }
 
     return (
         <Modal visible={isProfileModalVisible} transparent>
@@ -39,7 +46,11 @@ const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPress
                         <PrimaryButton onPress={onPressLogout} btnText={'Logout'} theme={'white'} halfWidth style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
                     </View>
                     <View style={styles.horizontalBar} />
-                    <Text style={styles.textAlignCenter}>Privacy Policy     •     Terms of Service</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
+                        <Text onPress={onPressPolicy} style={styles.textAlignCenter}>Privacy Policy</Text>
+                        <Text>.</Text>
+                        <Text onPress={onPressSupport} style={styles.textAlignCenter}>Support</Text>
+                    </View>
                 </View>}
                 <View />
             </View>
@@ -66,18 +77,13 @@ const styles = StyleSheet.create({
         flex: 1, justifyContent: 'space-evenly', paddingVertical: 10
     },
     primaryBtnContainer: {
-        borderColor: Colors.LIGHT_BORDER_COLOR,
-        paddingVertical: 10
+        borderColor: Colors.LIGHT_BORDER_COLOR, paddingVertical: 10
     },
     primaryBtnText: {
-        color: Colors.TEXT_COLOR,
-        fontFamily: Typography.FONT_FAMILY_REGULAR
+        color: Colors.TEXT_COLOR, fontFamily: Typography.FONT_FAMILY_REGULAR
     },
     textAlignCenter: {
-        color: Colors.TEXT_COLOR,
-        fontSize: Typography.FONT_SIZE_12,
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
-        textAlign: 'center',
+        color: Colors.TEXT_COLOR, fontSize: Typography.FONT_SIZE_14, fontFamily: Typography.FONT_FAMILY_REGULAR,
     },
     horizontalBar: {
         borderWidth: .5, borderColor: Colors.LIGHT_BORDER_COLOR, marginHorizontal: -20, marginVertical: 20
