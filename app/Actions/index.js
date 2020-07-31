@@ -19,6 +19,7 @@ export const auth0Login = () => {
             .authorize({ scope: 'openid email profile' })
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
+                console.log('credentials', credentials)
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
@@ -36,6 +37,7 @@ export const auth0Login = () => {
             });
     })
 }
+
 export const auth0Logout = () => {
     return new Promise((resolve, reject) => {
         auth0.webAuth.clearSession()
@@ -219,7 +221,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
                 realm.write(() => {
                     realm.create('Inventory', {
                         inventory_id: `${inventory_id}`,
-                        locate_tree
+                        locate_tree: locate_tree
                     }, 'modified')
                     resolve()
                 })
@@ -297,7 +299,7 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                         }]
                     }]
                     inventory.specei_diameter = 10
-                    inventory.locate_tree = locateTree
+                    locateTree ? inventory.locate_tree = locateTree : null
                     inventory.plantation_date = `${Date.now()}`
                     resolve()
                 })
@@ -508,7 +510,7 @@ export const clearAllInventory = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 realm.write(() => {
-                    let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
+                    let allInventory = realm.objects('Inventory');
                     realm.delete(allInventory);
                     resolve()
                 })

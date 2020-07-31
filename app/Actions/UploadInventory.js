@@ -31,7 +31,6 @@ const uploadInventory = () => {
                                     } else {
                                         species = Object.values(oneInventory.species).map(x => ({ otherSpecies: x.nameOfTree, treeCount: Number(x.treeCount) }))
                                     }
-
                                     let bodyTemplate = {
                                         captureMode: oneInventory.locate_tree,
                                         deviceLocation: {
@@ -49,6 +48,8 @@ const uploadInventory = () => {
                                         plantProject: null,
                                         plantedSpecies: species
                                     }
+                                    console.log('inventory ', oneInventory)
+                                
                                     const { protocol, url } = Config
                                     await axios({
                                         method: 'POST',
