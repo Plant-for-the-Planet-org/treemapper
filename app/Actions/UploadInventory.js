@@ -64,8 +64,6 @@ const uploadInventory = () => {
                                         }
                                     })
                                         .catch((err) => {
-                                            console.log('userToken', userToken)
-                                            console.log('err', err)
                                             alert('There is something wrong')
                                             reject()
                                         })

@@ -103,6 +103,8 @@ const TreeInventory = ({ navigation }) => {
                     }).catch((err) => {
                         alert(err.error_description)
                     })
+                } else {
+                    resolve()
                 }
             })
         })

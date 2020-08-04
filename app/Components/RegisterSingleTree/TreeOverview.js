@@ -182,19 +182,23 @@ const SingleTreeOverview = ({ navigation }) => {
     }
 
     const onPressNextTree = () => {
-        statusToPending({ inventory_id: state.inventoryID }).then(() => {
-            initiateInventory({ treeType: 'single' }).then((inventoryID) => {
-                dispatch(LocalInventoryActions.setInventoryId(inventoryID))
-                navigation.push('RegisterSingleTree')
+        if (inventory.status == 'incomplete') {
+            statusToPending({ inventory_id: state.inventoryID }).then(() => {
+                initiateInventory({ treeType: 'single' }).then((inventoryID) => {
+                    dispatch(LocalInventoryActions.setInventoryId(inventoryID))
+                    navigation.push('RegisterSingleTree')
+                })
             })
-        })
+        }
+        else {
+            navigation.goBack('TreeInventory')
+        }
     }
 
     const onBackPress = () => {
         if (inventory.status == 'incomplete') {
             navigation.navigate('RegisterSingleTree', { isEdit: true })
         } else {
-            navigation.goBack()
         }
     }
 

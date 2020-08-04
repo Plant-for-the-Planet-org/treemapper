@@ -11,7 +11,6 @@ export const getUserInformation = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objectForPrimaryKey('User', 'id0001');
-                console.log("USER ", User)
                 if (User) {
                     resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname })
                 } else {
@@ -45,7 +44,6 @@ export const getUserInformationFromServer = () => {
                     })
                     resolve(true)
                 }).catch((err) => {
-                    console.log('ERROR ', err)
                 })
 
             })

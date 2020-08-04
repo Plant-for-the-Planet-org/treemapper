@@ -65,12 +65,11 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                if (User?.[0])
-                    if (Object.keys(User?.[0]).length > 0) {
-                        resolve(true)
-                    } else {
-                        resolve(false)
-                    }
+                if (User[0]) {
+                    resolve(true)
+                } else {
+                    resolve(false)
+                }
             })
     })
 }
