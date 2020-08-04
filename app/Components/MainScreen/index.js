@@ -12,6 +12,7 @@ import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
 
 const { width, height } = Dimensions.get('window')
+
 const MainScreen = ({ navigation }) => {
 
     const [isModalVisible, setIsModalVisible] = useState(false) // * FOR VIDEO MODAL

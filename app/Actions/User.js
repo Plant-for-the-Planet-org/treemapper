@@ -37,6 +37,7 @@ export const getUserInformationFromServer = () => {
                             email, firstname, lastname
                         }, 'modified')
                     })
+                    resolve(true)
                 }).catch((err) => {
                 })
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Modal, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory, uploadInventory } from "../../Actions";
+import { getAllInventory, clearAllInventory, uploadInventory, isLogin, auth0Login } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
@@ -36,6 +36,8 @@ const TreeInventory = ({ navigation }) => {
             setAllInventory(Object.values(allInventory))
         })
     }
+
+
 
     const renderInventoryList = (inventoryList) => {
         return (
@@ -92,13 +94,30 @@ const TreeInventory = ({ navigation }) => {
         uploadedInventory = allInventory.filter(x => x.status == 'complete')
     }
 
+    const checkIsUserLogin = () => {
+        return new Promise((resolve, reject) => {
+            isLogin().then((isUserLogin) => {
+                if (!isUserLogin) {
+                    auth0Login().then((isUserLogin) => {
+                        isUserLogin ? resolve() : reject()
+                    }).catch((err) => {
+                        alert(JSON.stringify(err))
+                    })
+                }
+            })
+        })
+    }
+
     const onPressUploadNow = () => {
-        setIsLoaderShow(true)
-        uploadInventory().then((data) => {
-            initialState()
-            setIsLoaderShow(false)
-        }).catch((err) => {
-            setIsLoaderShow(false)
+        checkIsUserLogin().then(() => {
+            setIsLoaderShow(true)
+            uploadInventory().then((data) => {
+                initialState()
+                setIsLoaderShow(false)
+            }).catch((err) => {
+                setIsLoaderShow(false)
+            })
+
         })
     }
 
