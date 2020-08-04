@@ -50,8 +50,8 @@ const Inventory = {
         last_screen: 'string?',
         species: 'Species[]',
         polygons: 'Polygons[]',
-        specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-        specei_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
+        specei_name: 'string?',    // <*IMPORTANT*> ONLY FOR SINGLE TREE
+        species_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
     }
 };
 

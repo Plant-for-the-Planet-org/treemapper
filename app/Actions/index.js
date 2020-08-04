@@ -28,8 +28,8 @@ export const auth0Login = () => {
                                 accessToken: accessToken,
                                 idToken: 'NO NEED TO STORE',
                             }, 'modified')
-                            resolve(true)
                             getUserInformationFromServer().then(() => {
+                                resolve(true)
                             })
                         })
                     })
@@ -65,12 +65,11 @@ export const isLogin = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objects('User');
-                if (User?.[0])
-                    if (Object.keys(User?.[0]).length > 0) {
-                        resolve(true)
-                    } else {
-                        resolve(false)
-                    }
+                if (User[0]) {
+                    resolve(true)
+                } else {
+                    resolve(false)
+                }
             })
     })
 }
@@ -112,7 +111,7 @@ export const updateSpeceiDiameter = ({ inventory_id, speceisDiameter }) => {
             .then(realm => {
                 realm.write(() => {
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
-                    inventory.specei_diameter = speceisDiameter
+                    inventory.species_diameter = speceisDiameter
                 })
                 resolve()
             }).catch(bugsnag.notify);
@@ -301,7 +300,7 @@ export const addCoordinateSingleRegisterTree = ({ inventory_id, markedCoords, cu
                             currentloclong: currentCoords.longitude,
                         }]
                     }]
-                    inventory.specei_diameter = 10
+                    inventory.species_diameter = 10
                     locateTree ? inventory.locate_tree = locateTree : null
                     inventory.plantation_date = `${Date.now()}`
                     resolve()

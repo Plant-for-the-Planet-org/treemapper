@@ -12,7 +12,7 @@ const uploadInventory = () => {
                 realm.write(() => {
                     const User = realm.objectForPrimaryKey('User', 'id0001');
                     let userToken = User.accessToken;
-                     try {
+                    try {
                         Geolocation.getCurrentPosition(position => {
                             let currentCoords = position.coords;
                             getAllPendingInventory().then(async (allPendingInventory) => {
@@ -47,7 +47,7 @@ const uploadInventory = () => {
                                         plantProject: null,
                                         plantedSpecies: species
                                     }
- 
+
                                     const { protocol, url } = Config
                                     await axios({
                                         method: 'POST',
@@ -64,7 +64,7 @@ const uploadInventory = () => {
                                         }
                                     })
                                         .catch((err) => {
-                                             alert('There is something wrong')
+                                            alert('There is something wrong')
                                             reject()
                                         })
                                 }

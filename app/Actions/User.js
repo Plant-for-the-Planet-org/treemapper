@@ -11,7 +11,12 @@ export const getUserInformation = () => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 const User = realm.objectForPrimaryKey('User', 'id0001');
-                resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname })
+                if (User) {
+                    resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname })
+                } else {
+                    resolve({ email: '', firstName: '', lastName: '' })
+
+                }
             })
     })
 }
@@ -30,6 +35,7 @@ export const getUserInformationFromServer = () => {
                         'Authorization': `OAuth ${userToken}`
                     },
                 }).then((data) => {
+                    console.log('Response', data.data)
                     realm.write(() => {
                         const { email, firstname, lastname } = data.data
                         realm.create('User', {
