@@ -91,7 +91,7 @@ const UploadedInventory = ({ navigation }) => {
     const renderInventory = () => {
         return <View style={styles.cont}>
             {allInventory.length > 0 && <>
-                <TouchableOpacity onPress={freeUpSpace}>
+                <TouchableOpacity onPress={freeUpSpace} accessible={true} accessibilityLabel="Free Up Space" testID="free_up_space">
                     <Text style={styles.freeUpSpace}>Free Up Space</Text>
                 </TouchableOpacity>
                 {renderInventoryList(allInventory)}
