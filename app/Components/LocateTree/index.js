@@ -21,7 +21,6 @@ const LocateTree = ({ navigation }) => {
     }, [])
 
     const [locateTree, setLocateTree] = useState('on-site');
-    const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
     const [isSelectCoordinates, setIsSelectCoordinates] = useState(false);
 
     const onPressItem = (value) => {
@@ -30,23 +29,19 @@ const LocateTree = ({ navigation }) => {
     }
 
     const onPressContinue = () => {
-        if (isAlrightyModalShow) {
-            let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
-            if (isSelectCoordinates) {
-                data.locate_tree = 'off-site';
-                addLocateTree(data).then(() => {
-                    navigation.navigate('SelectCoordinates')
-                    setIsAlrightyModalShow(false)
-                })
-                return;
-            }
+        let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+        if (isSelectCoordinates) {
+            data.locate_tree = 'off-site';
             addLocateTree(data).then(() => {
-                navigation.navigate('CreatePolygon')
+                navigation.navigate('SelectCoordinates')
                 setIsAlrightyModalShow(false)
             })
-        } else {
-            setIsAlrightyModalShow(true)
+            return;
         }
+        addLocateTree(data).then(() => {
+            navigation.navigate('CreatePolygon')
+            setIsAlrightyModalShow(false)
+        })
     }
 
     const onPressClose = () => {
@@ -56,16 +51,6 @@ const LocateTree = ({ navigation }) => {
     const onPressSelectCoordinates = async () => {
         onPressItem('')
         setIsSelectCoordinates(true)
-    }
-
-    const renderAlrightyModal = () => {
-        return (
-            <Modal animationType={'slide'} visible={isAlrightyModalShow}>
-                <View style={styles.cont}>
-                    <Alrighty onPressContinue={onPressContinue} onPressWhiteButton={onPressClose} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`lets go to the first location click the continue when ready`} />
-                </View>
-            </Modal>
-        )
     }
 
     return (
@@ -81,7 +66,6 @@ const LocateTree = ({ navigation }) => {
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
             </View>
-            {renderAlrightyModal()}
         </SafeAreaView>
     )
 }
