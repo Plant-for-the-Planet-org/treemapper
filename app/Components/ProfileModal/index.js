@@ -24,6 +24,10 @@ const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVis
     const onPressPolicy = () => {
         Linking.openURL(`https://www.trilliontreecampaign.org/data-protection-policy`);
     }
+    let avatar;
+    if (userInfo) {
+        avatar = userInfo.avatar ? userInfo.avatar : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png'
+    }
 
     return (
         <Modal visible={isProfileModalVisible} transparent>
@@ -37,7 +41,7 @@ const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVis
                         <View />
                     </View>
                     <View style={styles.profileSection}>
-                        <SvgXml xml={logo} style={styles.avatar} />
+                        <Image source={{ uri: avatar }} style={styles.avatar} />
                         <View style={styles.nameAndEmailContainer}>
                             <Text style={styles.userName}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
                             <Text style={styles.userEmail}>{userInfo.email}</Text>

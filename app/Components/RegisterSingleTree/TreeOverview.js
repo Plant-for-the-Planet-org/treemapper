@@ -150,7 +150,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={detailHeaderStyle}>DIAMETER</Text>
+                    <Text style={detailHeaderStyle}>Diameter (in cm)</Text>
                     <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')}>
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
@@ -176,7 +176,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     navigation.navigate('TreeInventory')
                 })
             } else {
-                alert('Specie Name is required')
+                alert('Species Name  is required')
             }
         }
     }

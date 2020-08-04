@@ -35,6 +35,7 @@ export const getUserInformationFromServer = () => {
                         'Authorization': `OAuth ${userToken}`
                     },
                 }).then((data) => {
+                    console.log('Response', data.data)
                     realm.write(() => {
                         const { email, firstname, lastname } = data.data
                         realm.create('User', {
