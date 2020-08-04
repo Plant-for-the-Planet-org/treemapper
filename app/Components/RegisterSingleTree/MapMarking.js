@@ -98,13 +98,14 @@ class MapMarking extends React.Component {
 
                 let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
                 let distanceInMeters = distance * 1000;
-
                 if (distanceInMeters < 100) {
-                    this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'on-site', })
+                    this.setState({ locateTree: 'on-site', }, () => {
+                        this.pushMaker(currentCoords)
+                    })
                 } else {
-                    this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'off-site', })
+                    this.setState({ locateTree: 'off-site', }, () => {
+                        this.pushMaker(currentCoords)
+                    })
                 }
             }, (err) => alert(err.message));
         } catch (err) {
@@ -115,7 +116,9 @@ class MapMarking extends React.Component {
 
     pushMaker = (currentCoords) => {
         let { centerCoordinates } = this.state;
-        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true })
+        this.setState({ markedCoords: centerCoordinates }, () => {
+            this.onPressContinue()
+        })
     }
 
     distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
@@ -179,30 +182,28 @@ class MapMarking extends React.Component {
     }
 
     onPressContinue = () => {
-        this.setState({ isAlrightyModalShow: false }, () => {
-            const { inventoryID, updateScreenState, navigation } = this.props;
-            const { markedCoords, locateTree } = this.state;
-            Geolocation.getCurrentPosition(position => {
-                let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    if (locateTree == 'off-site') {
-                        navigation.navigate('SingleTreeOverview')
-                    } else {
-                        updateScreenState('ImageCapturing')
-                    }
-                })
 
-            }, (err) => alert(err.message));
+        const { inventoryID, updateScreenState, navigation } = this.props;
+        const { markedCoords, locateTree } = this.state;
+        Geolocation.getCurrentPosition(position => {
+            let currentCoords = position.coords;
+            addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                if (locateTree == 'off-site') {
+                    navigation.navigate('SingleTreeOverview')
+                } else {
+                    updateScreenState('ImageCapturing')
+                }
+            })
 
-        })
+        }, (err) => alert(err.message));
     }
-
 
     renderAlrightyModal = () => {
         const { isAlrightyModalShow, locateTree, } = this.state
         const { updateScreenState } = this.props
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
+
         let subHeading = `As you’re near to the tree, you can take a picture in the next step. Please click continue when you’re ready.`;
         let heading = `Picture Time!`;
         let bannerImage = undefined;
