@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Text } from 'react-native';
-import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
+import { Header, SmallHeader, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllUploadedInventory, clearAllInventory, uploadInventory, clearAllUploadedInventory } from "../../Actions";
 import { store } from '../../Actions/store';
@@ -14,6 +14,8 @@ const UploadedInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
+    const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false)
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             initialState()
@@ -38,7 +40,12 @@ const UploadedInventory = ({ navigation }) => {
     const freeUpSpace = () => {
         clearAllUploadedInventory().then(() => {
             initialState()
+            toogleIsShowFreeUpSpaceAlert()
         })
+    }
+
+    const toogleIsShowFreeUpSpaceAlert = () => {
+        setIsShowFreeUpSpaceAlert(!isShowFreeUpSpaceAlert)
     }
 
     const renderInventoryList = (inventoryList) => {
@@ -73,19 +80,6 @@ const UploadedInventory = ({ navigation }) => {
                 }}
             />
         )
-    }
-
-    const onPressClearAll = () => {
-        clearAllInventory().then(() => {
-            getAllInventory().then((allInventory) => {
-                setAllInventory(Object.values(allInventory))
-            })
-        })
-    }
-
-
-    const onPressUploadNow = () => {
-        uploadInventory()
     }
 
     const renderInventory = () => {
@@ -130,6 +124,7 @@ const UploadedInventory = ({ navigation }) => {
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
+            <AlertModal visible={isShowFreeUpSpaceAlert} heading={'Are You Sure?'} message={'The registrations are safe on cloud. Once the registrations are deleted, currently it is not possible to retrieve them on this app.'} primaryBtnText={'Sure Delete'} secondaryBtnText={'Go Back'} onPressPrimaryBtn={freeUpSpace} onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert} />
         </View>
     )
 }
