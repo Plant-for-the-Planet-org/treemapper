@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Text } from 'react-native';
-import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
+import { Header, SmallHeader, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { getAllUploadedInventory, clearAllInventory, uploadInventory, clearAllUploadedInventory } from "../../Actions";
 import { store } from '../../Actions/store';
@@ -14,6 +14,8 @@ const UploadedInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
+    const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false)
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             initialState()
@@ -38,7 +40,12 @@ const UploadedInventory = ({ navigation }) => {
     const freeUpSpace = () => {
         clearAllUploadedInventory().then(() => {
             initialState()
+            toogleIsShowFreeUpSpaceAlert()
         })
+    }
+
+    const toogleIsShowFreeUpSpaceAlert = () => {
+        setIsShowFreeUpSpaceAlert(!isShowFreeUpSpaceAlert)
     }
 
     const renderInventoryList = (inventoryList) => {
@@ -51,7 +58,6 @@ const UploadedInventory = ({ navigation }) => {
                     if (item.polygons[0] && item.polygons[0].coordinates && Object.values(item.polygons[0].coordinates).length) {
                         imageURL = item.polygons[0].coordinates[0].imageUrl
                     }
-
                     let locateTreeAndType = '';
                     let title = '';
                     if (item.locate_tree = 'off-site') {
@@ -60,32 +66,26 @@ const UploadedInventory = ({ navigation }) => {
                         locateTreeAndType = 'On Site'
                     }
                     if (item.tree_type == 'single') {
-                        title = `1 ${item.specei_name} Tree`
+                        title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`
                         locateTreeAndType += ' - Point'
                     } else {
-                        title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
+                        let totalTreeCount = 0
+                        let species = Object.values(item.species)
+
+                        for (let i = 0; i < species.length; i++) {
+                            const oneSpecies = species[i];
+                            totalTreeCount += Number(oneSpecies.treeCount)
+                        }
+                        title = `${totalTreeCount} Trees`
                         locateTreeAndType += ' - Polygon'
                     }
-
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
 
                     return (<TouchableOpacity onPress={() => onPressInventory(item)} accessible={true} accessibilityLabel="Upload Inventory List" testID="upload_inventory_list"><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)
+
                 }}
             />
         )
-    }
-
-    const onPressClearAll = () => {
-        clearAllInventory().then(() => {
-            getAllInventory().then((allInventory) => {
-                setAllInventory(Object.values(allInventory))
-            })
-        })
-    }
-
-
-    const onPressUploadNow = () => {
-        uploadInventory()
     }
 
     const renderInventory = () => {
@@ -130,6 +130,7 @@ const UploadedInventory = ({ navigation }) => {
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
+            <AlertModal visible={isShowFreeUpSpaceAlert} heading={'Are You Sure?'} message={'The registrations are safe on cloud. Once the registrations are deleted, currently it is not possible to retrieve them on this app.'} primaryBtnText={'Sure Delete'} secondaryBtnText={'Go Back'} onPressPrimaryBtn={freeUpSpace} onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert} />
         </View>
     )
 }

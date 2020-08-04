@@ -47,7 +47,7 @@ class SelectCoordinates extends React.Component {
     renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
@@ -102,8 +102,15 @@ class SelectCoordinates extends React.Component {
 
     pushMaker = (currentCoords) => {
         let { centerCoordinates } = this.state;
-        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true }, () => {
-
+        this.setState({ markedCoords: centerCoordinates }, () => {
+            const { inventoryID, updateScreenState, navigation } = this.props;
+            const { markedCoords, locateTree } = this.state;
+            Geolocation.getCurrentPosition(position => {
+                let currentCoords = position.coords;
+                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                    navigation.navigate('InventoryOverview')
+                })
+            }, (err) => alert(err.message));
         })
     }
 
@@ -167,41 +174,6 @@ class SelectCoordinates extends React.Component {
 
     }
 
-    onPressContinue = () => {
-        this.setState({ isAlrightyModalShow: false }, () => {
-            const { inventoryID, updateScreenState, navigation } = this.props;
-            const { markedCoords, locateTree } = this.state;
-            Geolocation.getCurrentPosition(position => {
-                let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    navigation.navigate('InventoryOverview')
-                })
-            }, (err) => alert(err.message));
-
-        })
-    }
-
-
-    renderAlrightyModal = () => {
-        const { isAlrightyModalShow, locateTree, } = this.state
-        const { updateScreenState } = this.props
-
-        const onPressClose = () => this.setState({ isAlrightyModalShow: false })
-        let subHeading = `Now, please tap continue to take picture of tree`;
-        if (locateTree == 'off-site') {
-            subHeading = `Now, please tap continue to see overview of tree`;
-        }
-        return (
-            <Modal
-                animationType={'slide'}
-                visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={subHeading} />
-                </View>
-            </Modal>
-        )
-    }
-
     onPressBack = () => {
         const { locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
@@ -242,7 +214,6 @@ class SelectCoordinates extends React.Component {
                 </LinearGradient>
                 <View>
                 </View>
-                {this.renderAlrightyModal()}
             </View>)
     }
 }

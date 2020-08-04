@@ -68,7 +68,7 @@ const SingleTreeOverview = ({ navigation }) => {
         }
     }
 
-     const renderinputModal = () => {
+    const renderinputModal = () => {
         return (
             <Modal transparent={true} visible={isOpenModal}>
                 <View style={styles.cont}>
@@ -111,7 +111,7 @@ const SingleTreeOverview = ({ navigation }) => {
         const hideDatePicker = () => setShowDate(false)
 
         return isShowDate && <DateTimePickerModal
-            isVisible={showDate}
+            isVisible={true}
             maximumDate={new Date()}
             testID="dateTimePicker1"
             timeZoneOffsetInMinutes={0}
@@ -156,17 +156,7 @@ const SingleTreeOverview = ({ navigation }) => {
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
-                <View style={{ marginVertical: 5 }}>
-                    <View style={styles.flexRow}>
-                        <View>
-                            <Text style={detailHeaderStyle}>{'CAPTURED CO'}</Text>
-                        </View>
-                        <View style={styles.flexEnd}>
-                            <Text style={styles.subScript}>{'2'}</Text>
-                        </View>
-                    </View>
-                    <Text style={styles.detailText}>200 kg</Text>
-                </View>
+
                 {!imageSource && <View>
                     <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
                     <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)} accessible={true} accessibilityLabel="Register Planting Date" testID="register_planting_date">
@@ -186,12 +176,12 @@ const SingleTreeOverview = ({ navigation }) => {
                     navigation.navigate('TreeInventory')
                 })
             } else {
-                alert('Specie Name  is required')
+                alert('Specie Name is required')
             }
         }
     }
 
-    const onPressContinue = () => {
+    const onPressNextTree = () => {
         statusToPending({ inventory_id: state.inventoryID }).then(() => {
             initiateInventory({ treeType: 'single' }).then((inventoryID) => {
                 dispatch(LocalInventoryActions.setInventoryId(inventoryID))
@@ -217,7 +207,7 @@ const SingleTreeOverview = ({ navigation }) => {
             {renderinputModal()}
             {renderDateModal()}
             <View style={styles.container}>
-                <Header closeIcon onBackPress={onBackPress} headingText={'Tree Details'} />
+                <Header closeIcon onBackPress={onBackPress} headingText={'Review'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
                         {imageSource && <Image source={imageSource} style={styles.bgImage} />}
@@ -227,7 +217,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     </View>}
                 </ScrollView>
                 <View style={styles.bottomBtnsContainer}>
-                    <PrimaryButton onPress={goBack} btnText={'Back'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressNextTree} btnText={'Next Tree'} halfWidth theme={'white'} />
                     <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                 </View>
             </View>
