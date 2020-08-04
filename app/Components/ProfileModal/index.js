@@ -6,15 +6,17 @@ import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
 import { getUserInformation } from "../../Actions";
 
-const ProfileModal = ({ onPressCloseProfileModal, isProfileModalVisible, onPressLogout }) => {
+const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVisible, onPressLogout }) => {
 
     const [userInfo, setUserInfo] = useState(null)
 
     useEffect(() => {
-        getUserInformation().then(userInfo => {
-            setUserInfo(userInfo)
-        })
-    }, [])
+        if (isUserLogin) {
+            getUserInformation().then(userInfo => {
+                setUserInfo(userInfo)
+            })
+        }
+    }, [isUserLogin])
 
     const onPressSupport = () => {
         Linking.openURL('mailto:support@plant-for-the-planet.org')

@@ -103,7 +103,7 @@ const MainScreen = ({ navigation }) => {
                 <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
             </View>
             {renderVideoModal()}
-            <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
+            <ProfileModal isUserLogin={isUserLogin} isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
         </SafeAreaView>
     )
 }

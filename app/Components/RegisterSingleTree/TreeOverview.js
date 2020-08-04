@@ -37,7 +37,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 inventory.polygons = Object.values(inventory.polygons);
                 setInventory(inventory)
                 setSpecieText(inventory.specei_name)
-                setSpecieDiameter(inventory.specei_diameter)
+                setSpecieDiameter(inventory.species_diameter)
                 setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString())
             })
         });
