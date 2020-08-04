@@ -37,7 +37,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 inventory.polygons = Object.values(inventory.polygons);
                 setInventory(inventory)
                 setSpecieText(inventory.specei_name)
-                setSpecieDiameter(inventory.specei_diameter)
+                setSpecieDiameter(inventory.species_diameter)
                 setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString())
             })
         });
@@ -150,8 +150,9 @@ const SingleTreeOverview = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={detailHeaderStyle}>DIAMETER</Text>
+                    <Text style={detailHeaderStyle}>DIAMETER (in cm)</Text>
                     <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')} accessibilityLabel="Diameter" testID="diameter_btn" accessible={true}>
+
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
@@ -176,25 +177,29 @@ const SingleTreeOverview = ({ navigation }) => {
                     navigation.navigate('TreeInventory')
                 })
             } else {
-                alert('Specie Name is required')
+                alert('Species Name  is required')
             }
         }
     }
 
     const onPressNextTree = () => {
-        statusToPending({ inventory_id: state.inventoryID }).then(() => {
-            initiateInventory({ treeType: 'single' }).then((inventoryID) => {
-                dispatch(LocalInventoryActions.setInventoryId(inventoryID))
-                navigation.push('RegisterSingleTree')
+        if (inventory.status == 'incomplete') {
+            statusToPending({ inventory_id: state.inventoryID }).then(() => {
+                initiateInventory({ treeType: 'single' }).then((inventoryID) => {
+                    dispatch(LocalInventoryActions.setInventoryId(inventoryID))
+                    navigation.push('RegisterSingleTree')
+                })
             })
-        })
+        }
+        else {
+            navigation.goBack('TreeInventory')
+        }
     }
 
     const onBackPress = () => {
         if (inventory.status == 'incomplete') {
             navigation.navigate('RegisterSingleTree', { isEdit: true })
         } else {
-            navigation.goBack()
         }
     }
 

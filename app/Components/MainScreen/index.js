@@ -90,9 +90,6 @@ const MainScreen = ({ navigation }) => {
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory" />
                     </ImageBackground>
-                    {/* <ImageBackground id={'manageuserbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('ManageUsers')} style={styles.customStyleLargeBtn} heading={'Manage Users '} active={false} subHeading={'invite and authorize users'} />
-                    </ImageBackground> */}
                     <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
                     </ImageBackground>
@@ -103,7 +100,7 @@ const MainScreen = ({ navigation }) => {
                 <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'}/>
             </View>
             {renderVideoModal()}
-            <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
+            <ProfileModal isUserLogin={isUserLogin} isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
         </SafeAreaView>
     )
 }

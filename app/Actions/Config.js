@@ -1,6 +1,8 @@
+import { API_ENDPOINT } from 'react-native-dotenv'
+
 let Config = {
     protocol: 'https',
-    url: 'app-development.plant-for-the-planet.org'
+    url: API_ENDPOINT
 }
 
 export { Config }
