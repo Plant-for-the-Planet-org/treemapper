@@ -33,7 +33,7 @@ const TreeInventory = ({ navigation }) => {
 
     const initialState = () => {
         getAllInventory().then((allInventory) => {
-             setAllInventory(Object.values(allInventory))
+            setAllInventory(Object.values(allInventory))
         })
     }
 
@@ -55,7 +55,7 @@ const TreeInventory = ({ navigation }) => {
                         locateTreeAndType = 'On Site'
                     }
                     if (item.tree_type == 'single') {
-                        title = `1 ${item.specei_name} Tree`
+                        title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`
                         locateTreeAndType += ' - Point'
                     } else {
                         let totalTreeCount = 0
