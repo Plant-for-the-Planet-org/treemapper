@@ -9,7 +9,7 @@ import { getAllOfflineMaps, deleteOfflineMap } from '../../Actions'
 
 
 
-const SavedAreas = ({ }) => {
+const SavedAreas = ({ navigation }) => {
     const [areas, setAreas] = useState(null)
 
     useEffect(() => {
@@ -27,6 +27,10 @@ const SavedAreas = ({ }) => {
             setTimeout(async () => await MapboxGL.offlineManager.deletePack(name), 0)
             loadAreas()
         })
+    }
+
+    const onPressAddArea = () => {
+        navigation.navigate('DownloadMap')
     }
 
     const renderSavedAreaItem = ({ item }) => {
@@ -57,7 +61,7 @@ const SavedAreas = ({ }) => {
                         renderItem={renderSavedAreaItem}
                     /> : areas && areas.length == 0 ? <Text style={{ alignSelf: 'center', textAlignVertical: 'center', margin: 20 }}>No offline area found</Text> : <ActivityIndicator />}
                 </ScrollView>
-                <PrimaryButton btnText={'Add Area'} />
+                <PrimaryButton onPress={onPressAddArea} btnText={'Add Area'} />
             </View>
         </SafeAreaView>
     )
