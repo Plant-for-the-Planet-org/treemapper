@@ -101,7 +101,7 @@ const TreeInventory = ({ navigation }) => {
                     auth0Login().then((isUserLogin) => {
                         isUserLogin ? resolve() : reject()
                     }).catch((err) => {
-                        alert(JSON.stringify(err))
+                        alert(err.error_description)
                     })
                 }
             })
