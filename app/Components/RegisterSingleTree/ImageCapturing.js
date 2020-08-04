@@ -80,7 +80,7 @@ const ImageCapturing = ({ updateScreenState }) => {
                         </View>
                     }
                 </View>
-                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer}>
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer} accessible={true} accessibilityLabel="Register Tree Camera" testID="register_tree_camera">
                     <View style={styles.cameraIconCont}>
                         <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                     </View>

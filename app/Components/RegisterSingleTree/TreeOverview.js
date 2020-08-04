@@ -145,13 +145,13 @@ const SingleTreeOverview = ({ navigation }) => {
                 </View>
                 <View style={{ marginVertical: 5 }}>
                     <Text style={detailHeaderStyle}>SPECIES</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')}>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')} accessible={true} accessibilityLabel="Species" testID="species_btn">
                         <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
                     <Text style={detailHeaderStyle}>DIAMETER</Text>
-                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')}>
+                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')} accessibilityLabel="Diameter" testID="diameter_btn" accessible={true}>
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
@@ -169,7 +169,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 </View>
                 {!imageSource && <View>
                     <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)} accessible={true} accessibilityLabel="Register Planting Date" testID="register_planting_date">
                         <Text style={styles.detailText}>{moment(plantationDate).format('ll')} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>}

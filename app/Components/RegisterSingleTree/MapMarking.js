@@ -164,7 +164,7 @@ class MapMarking extends React.Component {
 
 
     renderMyLocationIcon = () => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]} accessibilityLabel="Register Tree Camera" accessible={true} testID="register_tree_camera">
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons name={'md-locate'} size={22} />
             </View>
