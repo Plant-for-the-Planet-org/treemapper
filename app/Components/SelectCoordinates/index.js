@@ -153,7 +153,7 @@ class SelectCoordinates extends React.Component {
 
 
     renderMyLocationIcon = () => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]} accessibilityLabel="Coordinate Location" testID="coordinate_location" accessible={true}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons style={{}} name={'md-locate'} size={22} />
             </View>

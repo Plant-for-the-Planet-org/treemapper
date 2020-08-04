@@ -109,7 +109,7 @@ const MultipleTrees = ({ navigation, route }) => {
             <View style={styles.container}>
                 <ScrollView keyboardShouldPersistTaps={'always'} style={styles.cont} showsVerticalScrollIndicator={false}>
                     <Header headingText={'Multiple Trees'} subHeadingText={'Please enter the total number of trees and species.'} />
-                    <TouchableOpacity onPress={() => setShowDate(true)}>
+                    <TouchableOpacity onPress={() => setShowDate(true)} accessible={true} accessibilityLabel="Planting Date" testID="planting_date">
                         <Input editable={false} value={new Date(plantingDate).toLocaleDateString()} label={'Planting Date'} />
                     </TouchableOpacity>
                     {renderDatePicker()}
@@ -118,7 +118,7 @@ const MultipleTrees = ({ navigation, route }) => {
                         data={species}
                         renderItem={({ item, index }) => renderOneSpecies(item, index)}
                     />
-                    <TouchableOpacity onPress={addSpecies}>
+                    <TouchableOpacity onPress={addSpecies} accessibilityLabel="Add Species" testID="add_species" accessible={true}>
                         <Text style={styles.addSpecies}>+ Add Species</Text>
                     </TouchableOpacity>
                     <View style={styles.cont} />

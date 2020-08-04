@@ -72,7 +72,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
                 data={species}
                 renderItem={renderSpecieCont}
             />}
-            {status !== 'pending' && <TouchableOpacity onPress={addSpecies}>
+            {status !== 'pending' && <TouchableOpacity onPress={addSpecies} accessible={true} accessibilityLabel="Accordian Button" testID="accordian_btn">
                 <Text style={styles.addSpecies}>+ Add Species</Text>
             </TouchableOpacity>}
         </View>

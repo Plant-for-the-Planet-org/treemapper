@@ -69,7 +69,7 @@ const UploadedInventory = ({ navigation }) => {
 
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
 
-                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)} accessible={true} accessibilityLabel="Upload Inventory List" testID="upload_inventory_list"><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)
                 }}
             />
         )
