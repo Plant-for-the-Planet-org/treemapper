@@ -64,7 +64,7 @@ const uploadInventory = () => {
                                         }
                                     })
                                         .catch((err) => {
-                                            alert('There is something wrong')
+                                            alert('There is something wrong – Need to implement common error handling for all API Calls eg: 5xx, 4xx, etc ')
                                             reject()
                                         })
                                 }

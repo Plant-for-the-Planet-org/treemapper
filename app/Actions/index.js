@@ -17,9 +17,9 @@ const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
 export const auth0Login = () => {
     return new Promise((resolve, reject) => {
         auth0.webAuth
-            .authorize({ scope: 'openid email profile' })
+            .authorize({ scope: 'offline_access openid email profile' })
             .then(credentials => {
-                const { accessToken, idToken } = credentials;
+                const { accessToken, idToken, refreshToken } = credentials;
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
                     .then(realm => {
                         realm.write(() => {
@@ -27,6 +27,7 @@ export const auth0Login = () => {
                                 id: 'id0001',
                                 accessToken: accessToken,
                                 idToken: 'NO NEED TO STORE',
+                                refreshToken: refreshToken, //Todo if Backend responds 401 with expiration error code that accessToken has expired, client needs to call, Auth0 to retrieve new access token [store accessToken and refreshToken], and redo the request to backend.
                             }, 'modified')
                             getUserInformationFromServer().then(() => {
                                 resolve(true)

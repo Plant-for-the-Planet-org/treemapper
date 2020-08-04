@@ -62,6 +62,7 @@ const User = {
         id: 'string?',
         accessToken: 'string?',
         idToken: 'string?',
+        refreshToken: 'string?',
         email: 'string?',
         firstname: 'string?',
         lastname: 'string?',
