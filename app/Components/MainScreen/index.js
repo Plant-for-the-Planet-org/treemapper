@@ -82,13 +82,13 @@ const MainScreen = ({ navigation }) => {
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
                 <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin} testID={'btn_login'} accessibilityLabel={'Login / Sign Up'}/>
                     <View style={styles.bannerImgContainer}>
                         <SvgXml xml={main_screen_banner} />
                     </View>
                     <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
+                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory" />
                     </ImageBackground>
                     {/* <ImageBackground id={'manageuserbtn'} source={map_texture} style={styles.bgImage}>
                         <LargeButton onPress={() => onPressLargeButtons('ManageUsers')} style={styles.customStyleLargeBtn} heading={'Manage Users '} active={false} subHeading={'invite and authorize users'} />
@@ -97,10 +97,10 @@ const MainScreen = ({ navigation }) => {
                         <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
                     </ImageBackground>
                     <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />
+                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} accessibilityLabel="Learn" testID="page_learn"/>
                     </ImageBackground>
                 </ScrollView>
-                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
+                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'}/>
             </View>
             {renderVideoModal()}
             <ProfileModal isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />

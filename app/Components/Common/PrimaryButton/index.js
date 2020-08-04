@@ -10,6 +10,8 @@ const PrimaryButton = ({
   onPress,
   disabled,
   textStyle,
+  testID,
+  accessibilityLabel,
 }) => {
   const isWhiteTheme = theme == 'white';
   return (
@@ -17,8 +19,8 @@ const PrimaryButton = ({
       disabled={disabled}
       onPress={onPress}
       accessible={true}
-      testID="primary_btn"
-      accessibilityLabel="Primary Button"
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
       style={[
         styles.container,
         isWhiteTheme && styles.whiteTheme,

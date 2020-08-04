@@ -13,14 +13,16 @@ const LargeButton = ({
   style,
   notification,
   subHeadingStyle,
+  accessibilityLabel,
+  testID,
 }) => {
   return (
     <TouchableOpacity
       disabled={disabled}
       onPress={onPress}
       accessible={true}
-      accessibilityLabel="Large Button"
-      testID="large_btn"
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
       style={[
         styles.container,
         active && styles.activeContainer,

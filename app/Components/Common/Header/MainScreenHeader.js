@@ -2,14 +2,14 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {Colors, Typography} from '_styles';
 
-const MainScreenHeader = ({onPressLogin, isUserLogin}) => {
+const MainScreenHeader = ({onPressLogin, isUserLogin, accessibilityLabel, testID}) => {
   return (
     <View style={styles.container}>
       <View />
       <TouchableOpacity
         onPress={onPressLogin}
-        testID="main_header"
-        accessibilityLabel="Main Header"
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
         accessible={true}>
         {isUserLogin ? (
           <Image

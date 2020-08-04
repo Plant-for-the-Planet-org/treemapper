@@ -13,6 +13,8 @@ const Header = ({
   textAlignStyle,
   style,
   subHeadingStyle,
+  testID,
+  accessibilityLabel,
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -22,9 +24,9 @@ const Header = ({
         {!hideBackIcon && (
           <TouchableOpacity
             onPress={onPressBack}
-            testID="header"
+            testID={testID}
             accessible={true}
-            accessibilityLabel="Header"
+            accessibilityLabel={accessibilityLabel}
             style={styles.paddingVertical}>
             <Ionicons
               name={closeIcon ? 'md-close' : 'md-arrow-back'}

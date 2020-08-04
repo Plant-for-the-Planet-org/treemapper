@@ -56,15 +56,15 @@ const LocateTree = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <Header headingText={'Locate Trees'} />
+                <Header headingText={'Locate Trees'} testID={'btn_back'} accessibilityLabel={'Back'}/>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={`Collects Polygon and Images for high accuracy and verifiability`} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
-                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site – Polygon'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
-                    <LargeButton onPress={onPressSelectCoordinates} heading={'Off Site – Point'} subHeading={'Latitude & Longitude only'} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} />
+                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={`Collects Polygon and Images for high accuracy and verifiability`} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_on_site_polygon'} accessibilityLabel={'On Site'} />
+                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site – Polygon'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_polygon'} accessibilityLabel={'Off Site Polygon'}/>
+                    <LargeButton onPress={onPressSelectCoordinates} heading={'Off Site – Point'} subHeading={'Latitude & Longitude only'} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_point'} accessibilityLabel={'Off Site Point'} />
                     <LargeButton onPress={onPressSelectCoordinates} heading={'Upload GeoJson'} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} />
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
-                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
+                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} testID={'btn_continue'} accessibilityLabel={'Continue'}/>
             </View>
         </SafeAreaView>
     )

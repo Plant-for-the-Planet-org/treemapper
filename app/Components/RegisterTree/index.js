@@ -32,13 +32,13 @@ const RegisterTree = ({ navigation }) => {
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                    <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} />
-                    <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} subHeadingStyle={treeType == 'single' && styles.activeTextColor} />
-                    <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} subHeadingStyle={treeType == 'multiple' && styles.activeTextColor}/>
+                    <Header headingText={'Register Trees'} subHeadingText={'You can find incomplete registrations on Tree Inventory'} testID={'btn_back'} accessibilityLabel={'Back'}/>
+                    <LargeButton onPress={onPressSingleTree} heading={'Single Tree'} subHeading={'Allows high precision measurements'} active={treeType == 'single'} subHeadingStyle={treeType == 'single' && styles.activeTextColor} testID={'page_rt_single_tree'} accessibilityLabel={'Single Tree'} />
+                    <LargeButton onPress={onPressMultipleTree} heading={'Multiple Trees'} subHeading={'Add many trees with different counts'} active={treeType == 'multiple'} subHeadingStyle={treeType == 'multiple' && styles.activeTextColor} testID={'page_rt_multiple_trees'} accessibilityLabel={'Mutiple Trees'}/>
                     <View style={{ flex: 1 }}>
                     </View>
                 </ScrollView>
-                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} />
+                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} theme={'primary'} testID={'btn_rt_continue'} accessibilityLabel={'Continue'} />
             </View>
         </SafeAreaView>
     )
