@@ -89,13 +89,13 @@ export const getAreaName = ({ coords }) => {
     })
 }
 
-export const updateSpeceiName = ({ inventory_id, specieText }) => {
+export const updateSpeceiName = ({ inventory_id, speciesText }) => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
                 realm.write(() => {
                     let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`)
-                    inventory.specei_name = specieText
+                    inventory.specei_name = speciesText
                 })
                 resolve()
             }).catch((err) => {
