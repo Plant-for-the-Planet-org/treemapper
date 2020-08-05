@@ -17,7 +17,7 @@ const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
 export const auth0Login = () => {
     return new Promise((resolve, reject) => {
         auth0.webAuth
-            .authorize({ scope: 'openid email profile' })
+            .authorize({ scope: 'openid email profile' }, {ephemeralSession: true})
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
