@@ -40,11 +40,13 @@ jobs:
         BUGSNAP_CLIENT_KEY: ${{ secrets.BUGSNAP_CLIENT_KEY }}
         AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
         AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
         echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
         echo "AUTH0_DOMAIN=$AUTH0_DOMAIN" >> .env
         echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
+        echo "API_ENDPOINT=$API_ENDPOINT" >> .env
 
     - name: Build Android app
       run: |
