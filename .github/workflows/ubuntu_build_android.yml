@@ -104,7 +104,7 @@ jobs:
       env:
         BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       run: |
-        curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@uploads/$upload_file"
+        curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@uploads/$upload_file"
 
     # depends on existence of upload file in folder uploads
     - name: Upload Android APK to Google Drive
