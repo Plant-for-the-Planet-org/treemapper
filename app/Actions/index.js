@@ -506,7 +506,7 @@ export const clearAllUploadedInventory = () => {
 
     })
 }
-export const clearAllInventory = () => {
+export const clearAllIncompleteInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {

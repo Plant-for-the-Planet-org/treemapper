@@ -4,6 +4,9 @@ import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
+import RNFS from 'react-native-fs';
+
+const { protocol, url } = Config
 
 const uploadInventory = () => {
     return new Promise((resolve, reject) => {
@@ -47,8 +50,6 @@ const uploadInventory = () => {
                                         plantProject: null,
                                         plantedSpecies: species
                                     }
-
-                                    const { protocol, url } = Config
                                     await axios({
                                         method: 'POST',
                                         url: `${protocol}://${url}/treemapper/plantLocations`,
@@ -58,9 +59,19 @@ const uploadInventory = () => {
                                             'Authorization': `OAuth ${userToken}`
                                         },
                                     }).then((data) => {
-                                        statusToComplete({ inventory_id: oneInventory.inventory_id })
-                                        if (allPendingInventory.length - 1 == i) {
-                                            resolve()
+                                        let response = data.data
+                                        if (oneInventory.locate_tree == 'off-site') {
+                                            statusToComplete({ inventory_id: oneInventory.inventory_id })
+                                            if (allPendingInventory.length - 1 == i) {
+                                                resolve()
+                                            }
+                                        } else {
+                                            uploadImage(oneInventory, response, userToken).then(() => {
+                                                statusToComplete({ inventory_id: oneInventory.inventory_id })
+                                                if (allPendingInventory.length - 1 == i) {
+                                                    resolve()
+                                                }
+                                            })
                                         }
                                     })
                                         .catch((err) => {
@@ -81,6 +92,38 @@ const uploadInventory = () => {
             });
 
     });
+}
+
+const uploadImage = (oneInventory, response, userToken) => {
+    return new Promise(async (resolve, reject) => {
+        let locationId = response.id;
+        let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
+        let responseCoords = response.coordinates;
+        for (let i = 0; i < responseCoords.length; i++) {
+            const oneResponseCoords = responseCoords[i];
+            let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
+            await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
+                let body = {
+                    imageFile: `data:image/png;base64,${base64}`
+                }
+                let headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `OAuth ${userToken}`
+                }
+
+                await axios({
+                    method: 'PUT',
+                    url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
+                    data: body,
+                    headers: headers
+                }).then((res) => {
+                    resolve()
+                }).catch((err) => {
+                    reject()
+                })
+            })
+        }
+    })
 }
 
 export { uploadInventory }
