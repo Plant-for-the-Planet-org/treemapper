@@ -39,8 +39,6 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>To take pictures of the trees you have planted, please allow access to your camera.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
