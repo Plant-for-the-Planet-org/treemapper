@@ -5,13 +5,13 @@ import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
 import { getAreaName, createOfflineMap, getAllOfflineMaps } from "../../Actions";
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Config from "react-native-config";
 import Geolocation from '@react-native-community/geolocation';
 import { active_marker } from '../../assets/index';
 import { SvgXml } from 'react-native-svg';
 
 
-MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
+MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const DownloadMap = ({ navigation }) => {
     const [isLoaderShow, setIsLoaderShow] = useState(false)
