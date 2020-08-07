@@ -1,13 +1,12 @@
 
 import Realm from 'realm';
 import { bugsnag } from '../Utils/index';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Config from "react-native-config";
 import Auth0 from 'react-native-auth0';
-import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 
 // AUTH0 CONFIG
-const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
+const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
 
 
 //  ---------------- AUTH0 ACTIONS START----------------
@@ -54,7 +53,7 @@ export const isLogin = () => {
 
 export const getAreaName = ({ coords }) => {
     return new Promise((resolve, reject) => {
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${MAPBOXGL_ACCCESS_TOKEN}`).then((res) => res.json()).then((res) => {
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${Config.MAPBOXGL_ACCCESS_TOKEN}`).then((res) => res.json()).then((res) => {
             if (res && res.features && res.features[0]) {
                 resolve(res.features[0].place_name)
             } else {

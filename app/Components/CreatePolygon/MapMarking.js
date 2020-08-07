@@ -10,11 +10,11 @@ import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
 
 
-MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
+MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const infographicText = [
     { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
@@ -119,7 +119,7 @@ class MapMarking extends React.Component {
     addMarker = async (complete) => {
         let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
         if (this.state.locateTree == 'on-site') {
-            // Check distance 
+            // Check distance
             try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
@@ -267,7 +267,7 @@ class MapMarking extends React.Component {
         const { navigation, inventoryID, setIsCompletePolygon } = this.props;
         const { geoJSON } = this.state;
         await this.addMarker(true)
-        // 
+        //
         let data = { inventory_id: inventoryID, geoJSON: geoJSON };
         setIsCompletePolygon(true)
     }
