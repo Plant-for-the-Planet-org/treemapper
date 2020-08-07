@@ -10,12 +10,12 @@ import { store } from '../../Actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 
 
-MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
+MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 
 const infographicText = [
@@ -121,7 +121,7 @@ class MapMarking extends React.Component {
     addMarker = async (complete) => {
         let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
         if (this.state.locateTree == 'on-site') {
-            // Check distance 
+            // Check distance
             try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
@@ -355,7 +355,7 @@ class MapMarking extends React.Component {
     render() {
         const { activeMarkerIndex } = this.props
         const { geoJSON, loader, activePolygonIndex } = this.state;
-       
+
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[activeMarkerIndex];

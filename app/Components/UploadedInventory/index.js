@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllUploadedInventory, clearAllInventory, uploadInventory, clearAllUploadedInventory } from "../../Actions";
+import { getAllUploadedInventory, clearAllIncompleteInventory, uploadInventory, clearAllUploadedInventory } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'

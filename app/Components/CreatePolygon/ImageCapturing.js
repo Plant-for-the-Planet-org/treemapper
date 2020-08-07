@@ -76,10 +76,13 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onPressCompletePolygon = () => {
-        polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
-            completePolygon({ inventory_id: state.inventoryID }).then(() => {
-                setIsAlrightyModalShow(false)
-                navigation.navigate('InventoryOverview')
+        let data = { inventory_id: state.inventoryID, imageUrl: imagePath, index: activeMarkerIndex };
+        insertImageAtIndexCoordinate(data).then(() => {
+            polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
+                completePolygon({ inventory_id: state.inventoryID }).then(() => {
+                    setIsAlrightyModalShow(false)
+                    navigation.navigate('InventoryOverview')
+                })
             })
         })
     }

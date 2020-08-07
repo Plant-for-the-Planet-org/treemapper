@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Modal, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory, uploadInventory, isLogin, auth0Login } from "../../Actions";
+import { getAllInventory, clearAllIncompleteInventory, uploadInventory, isLogin, auth0Login } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
@@ -79,7 +79,7 @@ const TreeInventory = ({ navigation }) => {
     }
 
     const onPressClearAll = () => {
-        clearAllInventory().then(() => {
+        clearAllIncompleteInventory().then(() => {
             getAllInventory().then((allInventory) => {
                 setAllInventory(Object.values(allInventory))
             })

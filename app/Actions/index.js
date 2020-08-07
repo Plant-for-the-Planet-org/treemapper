@@ -1,15 +1,14 @@
 
 import Realm from 'realm';
 import { bugsnag } from '../Utils/index';
-import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
+import Config from "react-native-config";
 import Auth0 from 'react-native-auth0';
-import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from 'react-native-dotenv'
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
 import { uploadInventory } from "./UploadInventory";
 import { getUserInformationFromServer, getUserInformation } from "./User";
 
 // AUTH0 CONFIG
-const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
+const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
 
 
 //  ---------------- AUTH0 ACTIONS START----------------
@@ -17,7 +16,7 @@ const auth0 = new Auth0({ domain: AUTH0_DOMAIN, clientId: AUTH0_CLIENT_ID });
 export const auth0Login = () => {
     return new Promise((resolve, reject) => {
         auth0.webAuth
-            .authorize({ scope: 'openid email profile' })
+            .authorize({ scope: 'openid email profile' }, {ephemeralSession: true})
             .then(credentials => {
                 const { accessToken, idToken } = credentials;
                 Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
@@ -79,7 +78,7 @@ export const isLogin = () => {
 
 export const getAreaName = ({ coords }) => {
     return new Promise((resolve, reject) => {
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${MAPBOXGL_ACCCESS_TOKEN}`).then((res) => res.json()).then((res) => {
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${Config.MAPBOXGL_ACCCESS_TOKEN}`).then((res) => res.json()).then((res) => {
             if (res && res.features && res.features[0]) {
                 resolve(res.features[0].place_name)
             } else {
@@ -506,7 +505,7 @@ export const clearAllUploadedInventory = () => {
 
     })
 }
-export const clearAllInventory = () => {
+export const clearAllIncompleteInventory = () => {
     return new Promise((resolve, reject) => {
         Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
             .then(realm => {
