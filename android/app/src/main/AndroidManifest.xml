@@ -33,7 +33,7 @@
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
           <data
-              android:host="pftp.eu.auth0.com"
+              android:host="@string/AUTH0_DOMAIN"
               android:pathPrefix="/android/${applicationId}/callback"
               android:scheme="${applicationId}" />
           </intent-filter>

@@ -200,6 +200,7 @@ const SingleTreeOverview = ({ navigation }) => {
         if (inventory.status == 'incomplete') {
             navigation.navigate('RegisterSingleTree', { isEdit: true })
         } else {
+            goBack()
         }
     }
 
