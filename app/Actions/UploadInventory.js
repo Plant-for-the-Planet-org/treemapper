@@ -1,4 +1,4 @@
-import { Config } from './Config';
+import { APIConfig } from './Config';
 import axios from 'axios';
 import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
@@ -6,7 +6,7 @@ import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 
-const { protocol, url } = Config
+const { protocol, url } = APIConfig;
 
 const uploadInventory = () => {
     return new Promise((resolve, reject) => {

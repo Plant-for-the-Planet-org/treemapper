@@ -1,4 +1,4 @@
-import { Config } from './Config';
+import { APIConfig } from './Config';
 import axios from 'axios';
 import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas'
@@ -47,7 +47,7 @@ export const getUserInformationFromServer = () => {
                 })
 
             })
-        const { protocol, url } = Config
+        const { protocol, url } = APIConfig
 
     })
 }
