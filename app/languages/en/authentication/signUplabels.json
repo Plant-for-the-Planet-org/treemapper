@@ -1,6 +1,6 @@
 {
-  "signup": "Join In",
-  "email": "Email",
+  "signup": "Sign Up'",
+  "email": "EMAIL",
   "message": "Gift Message",
   "address": "Address",
   "zipCode": "Zip Code",
@@ -10,8 +10,8 @@
   "password_repeat": "Repeat Password",
   "mayPublish": "I agree to have my name published on the Plant-for-the-Planet Website and App.",
   "mayContact": "I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.",
-  "firstname": "First name",
-  "lastname": "Last name",
+  "firstname": "FIRST NAME",
+  "lastname": "LAST NAME",
   "company_or_orga_name": "Name of Company or Organization",
   "i_am_a": "I am a",
   "i_am": "I am",
@@ -25,5 +25,10 @@
   "title": "Title",
   "registration_successfully": "Registration successful",
   "passwords_do_not_match": "Passwords do not match",
-  "is_anonymous": "Hide my Name from the list (Anonymous Pledge)"
+  "is_anonymous": "Hide my Name from the list (Anonymous Pledge)",
+  "signup_confirm": "Please confirm your details.",
+  "individual": "Individual",
+  "company": "Company",
+  "tpo_title_organisation": "NAME OF TREE PLANTING ORGANIZATION",
+  "create_profile": "Create Profile"
 }

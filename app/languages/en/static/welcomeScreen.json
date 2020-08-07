@@ -17,7 +17,16 @@
   "welcome_scrn_5_heading": "Keep track of\ntrees you plant ",
   "welcome_scrn_5_sub_heading": "Registering a tree you’ve\nplanted is a breeze and you can\nalways add details about it.",
   "create_an_account": "Create an Account",
-  "login": "Log in",
+  "login": "Log in / Sign Up",
   "already_an_account": "Already have an account?",
-  "continue": "Continue"
+  "continue": "Continue",
+  "tree_mapper": "Tree Mapper",
+  "tree_inventory": "Tree Inventory",
+  "tree_inventory_sub_header": "of draft and pending registrations",
+  "download_maps": "Download Maps",
+  "download_maps_sub_header": "for offline use",
+  "learn": "Learn",
+  "learn_sub_header": "how to use Tree Mapper",
+  "register_tree": "Register Tree",
+  "back": "Back"
 }

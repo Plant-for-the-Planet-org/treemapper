@@ -9,6 +9,7 @@ import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 import { SvgXml } from "react-native-svg";
 import moment from "moment";
+import i18next from 'i18next';
 
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
@@ -129,7 +130,7 @@ const TreeInventory = ({ navigation }) => {
             visible={isLoaderShow}>
             <View style={styles.dowloadModalContainer}>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading .......</Text>
+                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>{i18next.t('label.tree_inventory_loading_modal')}</Text>
                 </View>
             </View>
         </Modal>)
@@ -137,28 +138,28 @@ const TreeInventory = ({ navigation }) => {
 
     const renderInventory = () => {
         return (<View style={styles.cont}>
-            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressUploadNow} leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
+            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressUploadNow} leftText={i18next.t('label.tree_inventory_left_text')} rightText={i18next.t('label.tree_inventory_right_text')} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
-            {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />}
-            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
+            {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={i18next.t('label.tree_inventory_view_upload')} theme={'white'} style={{ marginVertical: 20 }} />}
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={i18next.t('label.tree_inventory_incomplete_registrations')} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
         </View>)
     }
 
     const renderLoadingInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_sub_header')} style={{ marginHorizontal: 25 }} />
             <ActivityIndicator size={25} color={Colors.PRIMARY} />
         </View>)
     }
 
     const renderEmptyInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_empty_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_sub_header')} style={{ marginHorizontal: 25 }} />
             <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
-                {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={'View all uploaded Items'} theme={'white'} style={{ marginVertical: 20 }} />}
-                <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+                {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={i18next.t('label.tree_inventory_view_upload')} theme={'white'} style={{ marginVertical: 20 }} />}
+                <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={i18next.t('label.register_tree')} />
             </View>
         </View>)
     }
@@ -166,10 +167,10 @@ const TreeInventory = ({ navigation }) => {
     const renderInventoryListContainer = () => {
         return (<View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} >
-                <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                <Header headingText={i18next.t('label.tree_inventory_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')} />
                 {renderInventory()}
             </ScrollView>
-            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={i18next.t('label.register_tree')} />
             <SafeAreaView />
         </View>)
     }

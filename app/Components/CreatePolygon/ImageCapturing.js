@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
@@ -8,11 +9,12 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import { APLHABETS } from '../../Utils/index'
+import i18next from 'i18next';
 
 const infographicText = [
-    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+    { heading: i18next.t('label.info_graphic_header_1'), subHeading: i18next.t('label.info_graphic_sub_header_1') },
+    { heading: i18next.t('label.info_graphic_header_2'), subHeading: i18next.t('label.info_graphic_sub_header_2') },
+    { heading: i18next.t('label.info_graphic_header_3'), subHeading: i18next.t('label.info_graphic_sub_header_3') },
 ]
 
 const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMarkerIndex, updateActiveMarkerIndex }) => {
@@ -60,7 +62,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                     }
                 })
             } else {
-                alert('Image is required')
+                alert(i18next.t('label.image_capturing_required'));
             }
         } else {
             setIsAlrightyModalShow(true)
@@ -100,7 +102,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={i18next.t('label.image_capturing_sub_header')} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -129,7 +131,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} style={styles.bottomBtnsWidth} />
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={i18next.t('label.continue')} style={styles.bottomBtnsWidth} />
             </View>
             {renderAlrightyModal()}
         </SafeAreaView>

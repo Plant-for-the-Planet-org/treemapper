@@ -7,6 +7,7 @@ import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
+import i18next from 'i18next';
 
 const ImageCapturing = ({ updateScreenState }) => {
     const camera = useRef()
@@ -58,7 +59,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress}  headingText={`Picture`} subHeadingText={'Please take a picture facing planted tree.'} />
+                <Header onBackPress={onBackPress}  headingText={i18next.t('label.image_capturing_header')} subHeadingText={i18next.t('label.image_capturing_sub_header')} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -87,8 +88,8 @@ const ImageCapturing = ({ updateScreenState }) => {
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton  onPress={onBackPress} btnText={'Back'} theme={'white'} halfWidth/>
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth/>
+                <PrimaryButton  onPress={onBackPress} btnText={i18next.t('label.back')} theme={'white'} halfWidth/>
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={i18next.t('label.continue')} halfWidth/>
             </View>
         </SafeAreaView>
     )

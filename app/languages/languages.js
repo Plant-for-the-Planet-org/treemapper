@@ -1,5 +1,6 @@
 import i18next from 'i18next';
-import { getLanguages } from 'react-native-i18n';
+// import { getLanguages } from 'react-native-i18n';
+import * as RNLocalize from 'react-native-localize';
 
 // Refer this for checking the codes and creating new folders https://developer.chrome.com/webstore/i18n
 // Step 1 - Create index.js files for each language we want to have, in this file you can import all the json files (Step 4) and export them
@@ -13,10 +14,14 @@ import enlabels from './en';
 
 // This will fetch the user's language
 let userLang = undefined;
-getLanguages().then(languages => {
-  userLang = languages[0].split('-')[0]; // ['en-US' will become 'en']
-  i18next.changeLanguage(userLang);
+const lang = RNLocalize.getLocales();
+lang.map((ln) => {
+  userLang = ln.languageCode;
 });
+// getLanguages().then(languages => {
+//   userLang = languages[0].split('-')[0]; // ['en-US' will become 'en']
+//   i18next.changeLanguage(userLang);
+// });
 
 i18next.init({
   interpolation: {

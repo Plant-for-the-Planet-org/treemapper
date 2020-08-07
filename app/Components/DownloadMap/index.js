@@ -9,6 +9,7 @@ import { MAPBOXGL_ACCCESS_TOKEN } from 'react-native-dotenv';
 import Geolocation from '@react-native-community/geolocation';
 import { active_marker } from '../../assets/index';
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(MAPBOXGL_ACCCESS_TOKEN);
@@ -56,7 +57,7 @@ const DownloadMap = ({ navigation }) => {
                 if (status.percentage == 100) {
                     createOfflineMap({ name: offllineMapId, size: status.completedTileSize, areaName: areaName }).then(() => {
                         setIsLoaderShow(false)
-                        setTimeout(() => alert('Map download complete'), 1000)
+                        setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000)
                         getAllOfflineMapslocal()
 
                         setAreaName('')
@@ -104,7 +105,7 @@ const DownloadMap = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <Header headingText={'Download this area?'} />
+                <Header headingText={i18next.t('label.download_map_area')} />
                 <View style={styles.mapViewContainer}>
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={initialMapCamera}
@@ -117,10 +118,10 @@ const DownloadMap = ({ navigation }) => {
                         <MapboxGL.Camera ref={MapBoxGLCameraRef} />
                     </MapboxGL.MapView>
                 </View>
-                {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} /> :
+                {numberOfOfflineMaps == 0 ? <PrimaryButton onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} /> :
                     <View style={styles.bottomBtnsContainer}>
-                        <PrimaryButton onPress={onPressViewAll} btnText={'View all'} halfWidth theme={'white'} />
-                        <PrimaryButton onPress={onPressDownloadArea} btnText={'Download'} halfWidth />
+                        <PrimaryButton onPress={onPressViewAll} btnText={i18next.t('label.download_map_view')} halfWidth theme={'white'} />
+                        <PrimaryButton onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} halfWidth />
                     </View>}
             </View>
             {renderLoaderModal()}
