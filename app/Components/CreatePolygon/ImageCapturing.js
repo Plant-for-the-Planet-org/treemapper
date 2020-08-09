@@ -117,10 +117,10 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                                 ref={camera}
                                 style={styles.container}
                                 androidCameraPermissionOptions={{
-                                    title: 'Permission to use camera',
-                                    message: 'We need your permission to use your camera',
-                                    buttonPositive: 'Ok',
-                                    buttonNegative: 'Cancel',
+                                    title: i18next.t('label.permission_camera_title'),
+                                    message: i18next.t('label.permission_camera_message'),
+                                    buttonPositive: i18next.t('label.permission_camera_ok'),
+                                    buttonNegative: i18next.t('label.permission_camera_cancel'),
                                 }}
                             >
                             </RNCamera>

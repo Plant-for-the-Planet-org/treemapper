@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import React from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';

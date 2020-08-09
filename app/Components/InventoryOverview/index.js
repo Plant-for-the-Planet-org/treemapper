@@ -135,17 +135,17 @@ const InventoryOverview = ({ navigation, }) => {
                 const granted = await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
                     {
-                        title: "Storage Permission",
-                        message: "App needs access to memory to download the file ",
-                        'buttonPositive': 'Ok'
+                        title: i18next.t('label.storage_permission_android_title'),
+                        message:  i18next.t('label.storage_permission_android_message'),
+                        'buttonPositive': i18next.t('label.permission_camera_ok')
                     }
                 );
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     resolve()
                 } else {
                     Alert.alert(
-                        "Permission Denied!",
-                        "You need to give storage permission to save geoJSON the file"
+                        i18next.t('label.storage_permission_denied_header'),
+                        i18next.t('label.storage_permission_denied_sub_header')
                     );
                 }
             } catch (err) {

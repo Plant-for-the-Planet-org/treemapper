@@ -7,6 +7,8 @@ import EditUserProfile from './user/editUserProfilelabels.json';
 import InventoryOverview from './user/inventoryOverview.json';
 import DownloadMap from './user/downloadMap.json';
 import ManageUser from './user/manageUser.json';
+import SavedAreas from './user/savedAreas.json';
+import Permission from './static/permission.json';
 
 export default {
   ...WelcomeScreen,
@@ -18,4 +20,6 @@ export default {
   ...InventoryOverview,
   ...DownloadMap,
   ...ManageUser,
+  ...SavedAreas,
+  ...Permission,
 };
