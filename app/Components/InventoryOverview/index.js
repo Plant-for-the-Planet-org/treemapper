@@ -254,7 +254,7 @@ const InventoryOverview = ({ navigation, }) => {
     let isSingleCoordinate, locateType;
     if (inventory) {
         isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
-        locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+        locationType = isSingleCoordinate ? 'Point' : 'Polygon';
         locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site'
     }
 

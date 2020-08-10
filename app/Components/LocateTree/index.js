@@ -61,7 +61,7 @@ const LocateTree = ({ navigation }) => {
                     <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={`Collects Polygon and Images for high accuracy and verifiability`} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
                     <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site – Polygon'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} />
                     <LargeButton onPress={onPressSelectCoordinates} heading={'Off Site – Point'} subHeading={'Latitude & Longitude only'} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} />
-                    <LargeButton onPress={onPressSelectCoordinates} heading={'Upload GeoJson'} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} />
+                    {/* <LargeButton  heading={'Upload GeoJson'} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} /> */}
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
                 <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
