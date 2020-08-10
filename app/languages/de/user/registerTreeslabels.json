@@ -1,0 +1,18 @@
+{
+  "register_trees": "Bäume registrieren",
+  "register_trees_description": "Unvollständige Registrierungen findest du im Bauminventar",
+  "tree_registration_type_1": "Einzelner Baum",
+  "tree_registration_type_2": "Mehrere Bäume",
+  "tree_registration_type_1_sub_header": "Ermöglicht hochpräzise Messungen",
+  "tree_registration_type_2_sub_header": "Viele Bäume mit unterschiedlicher Anzahl hinzufügen",
+  "tree_map_marking_header": "Standort des Baumes",
+  "tree_map_marking_btn": "Standort wählen & weiter",
+  "alright_modal_sub_header": "Wenn du dich in der Nähe des Baumes befinden, kannst du im nächsten Schritt ein Foto machen. Bitte klicke auf \"Weiter\", wenn du bereit bist.",
+  "alright_modal_header": "Zeit für ein Bild!",
+  "alright_modal_white_btn": "Zurück",
+  "alright_modal_off_site_sub_header": "Wir sehen, dass du weit weg vom Baum bist. Bitte klicke auf \"Weiter\", um Details über den Baum hinzuzufügen.",
+  "alright_modal_off_site_header": "Off Site aktiviert!",
+  "image_capturing_header": "Bild",
+  "image_capturing_sub_header": "Bitte nehme ein Bild des gepflanzten Baumes auf.",
+  "image_capturing_required": "Bild ist erforderlich"
+}

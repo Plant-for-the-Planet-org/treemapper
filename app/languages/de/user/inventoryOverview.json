@@ -1,0 +1,17 @@
+{
+  "tree_inventory_overview_polygon_left_text": "Standorttyp: {{locationType}}",
+  "inventory_overview_select_species": "Wähle mindestens eine Art",
+  "inventory_overview_view_loc_modal_header": "Standort {{locationTitle}}",
+  "inventory_overview_loc": "{{locationTitle}}",
+  "inventory_overview_export_json_error": "Datei kann nicht gespeichert werden",
+  "inventory_overview_add_species": "Gepflanzt\nArten",
+  "inventory_overview_header_text": "Rezension",
+  "inventory_overview_sub_header": "Bäume werden zu deinem Inventar hinzugefügt, um sie zu synchronisieren, wenn du Internet hast.",
+  "inventory_overview_left_text": "Pflanzdatum",
+  "inventory_overview_left_text_planted_species": "Gepflanzte Arten",
+  "inventory_overview_loc_left_text": "{{item.nameOfTree}}",
+  "inventory_overview_loc_right_text": "{{item.treeCount}} Bäume",
+  "inventory_overview_loc_export_json": "GeoJson exportieren",
+  "inventory_overview_loc_next_tree": "Nächster Baum",
+  "inventory_overview_loc_save": "Speichern"
+}

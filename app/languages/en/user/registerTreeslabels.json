@@ -1,6 +1,6 @@
 {
   "register_trees": "Register Trees",
-  "register_trees_description": "You can find incomplete registrations on Tree Inventory.",
+  "register_trees_description": "You can find incomplete registrations on Tree Inventory",
   "tree_registration_type_1": "Single Tree",
   "tree_registration_type_2": "Multiple Tree",
   "tree_registration_type_1_sub_header": "Allows high precision measurements",
