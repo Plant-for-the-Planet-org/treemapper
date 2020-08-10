@@ -1,7 +1,7 @@
 import { Client } from 'bugsnag-react-native';
-import { BUGSNAP_CLIENT_KEY } from 'react-native-dotenv'
+import Config from "react-native-config";
 
 const APLHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const bugsnag = new Client(BUGSNAP_CLIENT_KEY);
+const bugsnag = new Client(Config.BUGSNAP_CLIENT_KEY);
 
 export { APLHABETS, bugsnag };

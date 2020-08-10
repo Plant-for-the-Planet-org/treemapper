@@ -1,8 +1,8 @@
-import { API_ENDPOINT } from 'react-native-dotenv'
+import Config from 'react-native-config'
 
-let Config = {
+let APIConfig = {
     protocol: 'https',
-    url: API_ENDPOINT
+    url: Config.API_ENDPOINT
 }
 
-export { Config }
+export { APIConfig }
