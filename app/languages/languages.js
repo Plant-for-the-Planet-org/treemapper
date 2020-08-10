@@ -18,16 +18,8 @@ import ptBRlabels from './pt-BR';
 
 // This will fetch the user's language
 let userLang = undefined;
-const lang = RNLocalize.getLocales();
-if (lang.length === 1) {
-  lang.map((ln) => {
-    userLang = ln.languageCode;
-  });
-} else {
-  lang[0].map((ln) => {
-    userLang = ln.languageCode;
-  });
-}
+const lang = RNLocalize.getLocales()[0];
+userLang = lang && lang.languageCode;
 // getLanguages().then(languages => {
 //   userLang = languages[0].split('-')[0]; // ['en-US' will become 'en']
 //   i18next.changeLanguage(userLang);
@@ -61,12 +53,13 @@ i18next.init({
         label: frlabels,
       },
     },
-    'pt-BR': {
+    pt: {
       translation: {
         label: ptBRlabels,
       },
     },
   },
 });
+i18next.changeLanguage(userLang);
 
 export default i18next;
