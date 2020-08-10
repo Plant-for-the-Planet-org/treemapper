@@ -4,7 +4,6 @@
   Created by Norbert Schuler on 29.08.19.
   Copyright © 2019 Facebook. All rights reserved. */
 "NSCameraUsageDescription" = "Um Bilder der gepflanzen Bäume aufzunehmen, erlaube bitte Zugriff auf die Kamera.";
-"NSLocationAlwaysUsageDescription" = "Wir brauchen Zugriff auf den genauen Standort, um Bäume zu registrieren.";
 "NSLocationWhenInUseUsageDescription" = "Wir brauchen Zugriff auf den genauen Standort, um Bäume zu registrieren.";
 "NSPhotoLibraryAddUsageDescription" = "Tree Mapper möchte gerne Bilder in deinem Album speichern.";
 "NSPhotoLibraryUsageDescription" = "Tree Mapper möchter gerne Bilder aus deinem Album laden.";
