@@ -22,6 +22,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
+    
     const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
     useEffect(() => {
