@@ -56,8 +56,10 @@ const UploadedInventory = ({ navigation }) => {
                 data={inventoryList}
                 renderItem={({ item }) => {
                     let imageURL;
+                    let isOffSitePoint = false;
                     if (item.polygons[0] && item.polygons[0].coordinates && Object.values(item.polygons[0].coordinates).length) {
                         imageURL = item.polygons[0].coordinates[0].imageUrl
+                        isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1
                     }
                     let locateTreeAndType = '';
                     let title = '';
@@ -78,7 +80,7 @@ const UploadedInventory = ({ navigation }) => {
                             totalTreeCount += Number(oneSpecies.treeCount)
                         }
                         title = `${totalTreeCount} Trees`
-                        locateTreeAndType += ' - Polygon'
+                        locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`
                     }
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
                     return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)

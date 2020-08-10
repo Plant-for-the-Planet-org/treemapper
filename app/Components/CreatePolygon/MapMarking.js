@@ -152,7 +152,7 @@ class MapMarking extends React.Component {
             }
         } else {
             this.setState({ isAlrightyModalShow: true })
-             try {
+            try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
                     this.pushMaker(complete, currentCoords)
@@ -166,14 +166,14 @@ class MapMarking extends React.Component {
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
-         geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
+        geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         this.setState({ geoJSON }, () => {
             // change the state
             const { inventoryID } = this.props;
             const { geoJSON } = this.state;
 
             let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
-             addCoordinates(data).then(() => {
+            addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[0].geometry.coordinates.length - (complete) ? 2 : 1]
                     this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length)

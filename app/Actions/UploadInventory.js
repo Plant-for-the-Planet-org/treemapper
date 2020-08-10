@@ -33,7 +33,7 @@ const uploadInventory = () => {
                                     } else {
                                         species = Object.values(oneInventory.species).map(x => ({ otherSpecies: x.nameOfTree, treeCount: Number(x.treeCount) }))
                                     }
-                                    let bodyTemplate = {
+                                    let body = {
                                         captureMode: oneInventory.locate_tree,
                                         deviceLocation: {
                                             coordinates: [
@@ -53,7 +53,7 @@ const uploadInventory = () => {
                                     await axios({
                                         method: 'POST',
                                         url: `${protocol}://${url}/treemapper/plantLocations`,
-                                        data: bodyTemplate,
+                                        data: body,
                                         headers: {
                                             'Content-Type': 'application/json',
                                             'Authorization': `OAuth ${userToken}`
@@ -75,6 +75,7 @@ const uploadInventory = () => {
                                         }
                                     })
                                         .catch((err) => {
+                                            console.log('EEORR =', err)
                                             alert('There is something wrong')
                                             reject()
                                         })

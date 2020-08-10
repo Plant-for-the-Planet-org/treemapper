@@ -108,7 +108,7 @@ const SingleTreeOverview = ({ navigation }) => {
             setPLantationDate(selectedDate)
         }
         const handleConfirm = (data) => onChangeDate(null, data)
-        const hideDatePicker = () => setShowDate(false)
+        const hideDatePicker = () => setIsShowDate(false)
 
         return isShowDate && <DateTimePickerModal
             isVisible={true}
