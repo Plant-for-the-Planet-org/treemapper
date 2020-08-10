@@ -75,6 +75,7 @@ const uploadInventory = () => {
                                         }
                                     })
                                         .catch((err) => {
+                                            console.log('EEORR =', err)
                                             alert('There is something wrong')
                                             reject()
                                         })
