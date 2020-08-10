@@ -10,7 +10,11 @@ import * as RNLocalize from 'react-native-localize';
 // Step 5 - Add the labels to be used in respective json files. The labels are the key and the content is the value in different language, so make sure for each file the key remains the same
 // Step 6 - In React Native code import the main languages file and call the translate function - languages.t('label.labelname')
 
+import delabels from './de';
 import enlabels from './en';
+import eslabels from './es';
+import frlabels from './fr';
+import ptBRlabels from './pt-BR';
 
 // This will fetch the user's language
 let userLang = undefined;
@@ -37,11 +41,31 @@ i18next.init({
   lng: userLang, // 'en' | 'es',
   fallbackLng: 'en', // If language detector fails
   resources: {
+    de: {
+      translation: {
+        label: delabels,
+      },
+    },
     en: {
       translation: {
         label: enlabels,
       },
-    }
+    },
+    es: {
+      translation: {
+        label: eslabels,
+      },
+    },
+    fr: {
+      translation: {
+        label: frlabels,
+      },
+    },
+    'pt-BR': {
+      translation: {
+        label: ptBRlabels,
+      },
+    },
   },
 });
 
