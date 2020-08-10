@@ -15,9 +15,15 @@ import enlabels from './en';
 // This will fetch the user's language
 let userLang = undefined;
 const lang = RNLocalize.getLocales();
-lang.map((ln) => {
-  userLang = ln.languageCode;
-});
+if (lang.length === 1) {
+  lang.map((ln) => {
+    userLang = ln.languageCode;
+  });
+} else {
+  lang[0].map((ln) => {
+    userLang = ln.languageCode;
+  });
+}
 // getLanguages().then(languages => {
 //   userLang = languages[0].split('-')[0]; // ['en-US' will become 'en']
 //   i18next.changeLanguage(userLang);

@@ -11,6 +11,6 @@
   "signup_confirm": "Please confirm your details.",
   "individual": "Individual",
   "company": "Company",
-  "tpo_title_organisation": "NAME OF TREE PLANTING ORGANIZATION",
+  "tpo_title_organisation": "Name of {{roleText}}",
   "create_profile": "Create Profile"
 }

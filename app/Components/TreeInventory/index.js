@@ -130,7 +130,7 @@ const TreeInventory = ({ navigation }) => {
             visible={isLoaderShow}>
             <View style={styles.dowloadModalContainer}>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>{i18next.t('label.tree_inventory_loading_modal')}</Text>
+                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading..........</Text>
                 </View>
             </View>
         </Modal>)
