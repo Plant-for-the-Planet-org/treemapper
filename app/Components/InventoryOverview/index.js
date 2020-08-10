@@ -236,7 +236,7 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressSaveAndContinue = (SelectSpeciesList) => {
-        //  Add it to local Db 
+        //  Add it to local Db
         addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
             initiatState()
         })
