@@ -38,17 +38,15 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Allow access to your camera</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Allow access to your camera</string>
+	<string>To take pictures of the trees you have planted, please allow access to your camera.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Allow access to your location</string>
+	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Allow access to your location</string>
+	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Tree Mapper would like to save photos from the app to your gallery</string>
+	<string>Tree Mapper would like to save photos from the app to your gallery.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow access to your photo gallery</string>
+	<string>Allow access to your photo gallery.</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleURLTypes</key>

@@ -30,5 +30,6 @@ export {
     GRAY_LIGHT,
     GRAY_MEDIUM,
     GRAY_DARK,
-    DISABLE
+    DISABLE,
+    GRAY_LIGHTEST
 }

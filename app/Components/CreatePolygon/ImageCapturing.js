@@ -1,31 +1,35 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex } from '../../Actions';
+import { insertImageAtIndexCoordinate, polygonUpdate, getCoordByIndex, removeLastCoord, completePolygon } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import { APLHABETS } from '../../Utils/index'
+import i18next from 'i18next';
 
 const infographicText = [
-    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+    { heading: i18next.t('label.info_graphic_header_1'), subHeading: i18next.t('label.info_graphic_sub_header_1') },
+    { heading: i18next.t('label.info_graphic_header_2'), subHeading: i18next.t('label.info_graphic_sub_header_2') },
+    { heading: i18next.t('label.info_graphic_header_3'), subHeading: i18next.t('label.info_graphic_sub_header_3') },
 ]
 
 const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMarkerIndex, updateActiveMarkerIndex }) => {
+
     const camera = useRef()
 
     const navigation = useNavigation()
     const { state } = useContext(store);
     const [imagePath, setImagePath] = useState('')
+    
     const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
     useEffect(() => {
         getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(({ coordsLength, coord }) => {
-             if (coord.imageUrl) {
+            if (coord.imageUrl) {
                 setImagePath(coord.imageUrl)
             }
         })
@@ -59,7 +63,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                     }
                 })
             } else {
-                alert('Image is required')
+                alert(i18next.t('label.image_capturing_required'));
             }
         } else {
             setIsAlrightyModalShow(true)
@@ -67,25 +71,33 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     }
 
     const onBackPress = () => {
-        toggleState()
+        removeLastCoord({ inventory_id: state.inventoryID }).then(() => {
+            toggleState()
+        })
     }
 
     const onPressCompletePolygon = () => {
-        polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
-            setIsAlrightyModalShow(false)
-            navigation.navigate('InventoryOverview')
+        let data = { inventory_id: state.inventoryID, imageUrl: imagePath, index: activeMarkerIndex };
+        insertImageAtIndexCoordinate(data).then(() => {
+            polygonUpdate({ inventory_id: state.inventoryID, }).then(() => {
+                completePolygon({ inventory_id: state.inventoryID }).then(() => {
+                    setIsAlrightyModalShow(false)
+                    navigation.navigate('InventoryOverview')
+                })
+            })
         })
     }
 
     const renderAlrightyModal = () => {
-        let infoIndex = activeMarkerIndex <= 1 ? 0 : activeMarkerIndex <= 2 ? 1 : 2
+
+        let infoIndex = activeMarkerIndex > 2 ? 2 : activeMarkerIndex
         const { heading, subHeading } = infographicText[infoIndex]
         return (
             <Modal
                 animationType={'slide'}
                 visible={isAlrightyModalShow}>
                 <View style={styles.mainContainer}>
-                    <Alrighty coordsLength={activeMarkerIndex} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
+                    <Alrighty coordsLength={activeMarkerIndex + 1} onPressContinue={onPressContinue} onPressWhiteButton={onPressCompletePolygon} onPressClose={onPressClose} heading={heading} subHeading={subHeading} />
                 </View>
             </Modal>
         )
@@ -94,7 +106,7 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress} headingText={`Location ${APLHABETS[activeMarkerIndex]}`} subHeadingText={i18next.t('label.image_capturing_sub_header')} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -106,25 +118,24 @@ const ImageCapturing = ({ toggleState, isCompletePolygon, locationText, activeMa
                                 ref={camera}
                                 style={styles.container}
                                 androidCameraPermissionOptions={{
-                                    title: 'Permission to use camera',
-                                    message: 'We need your permission to use your camera',
-                                    buttonPositive: 'Ok',
-                                    buttonNegative: 'Cancel',
+                                    title: i18next.t('label.permission_camera_title'),
+                                    message: i18next.t('label.permission_camera_message'),
+                                    buttonPositive: i18next.t('label.permission_camera_ok'),
+                                    buttonNegative: i18next.t('label.permission_camera_cancel'),
                                 }}
                             >
                             </RNCamera>
                         </View>
                     }
                 </View>
-                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer}>
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer} accessibilityLabel="Camera" testID="camera_icon">
                     <View style={styles.cameraIconCont}>
                         <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                     </View>
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton onPress={onBackPress} btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={i18next.t('label.continue')} style={styles.bottomBtnsWidth} />
             </View>
             {renderAlrightyModal()}
         </SafeAreaView>
@@ -143,7 +154,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', marginVertical: 20
     },
     bottomBtnsContainer: {
-        flexDirection: 'row', marginHorizontal: 25, justifyContent: 'space-between', marginVertical: 10
+        flexDirection: 'row', marginHorizontal: 25, alignItems: 'center', justifyContent: 'center', marginVertical: 10
     },
     container: {
         flex: 1,
@@ -182,6 +193,9 @@ const styles = StyleSheet.create({
     },
     cameraContainer: {
         flex: 1, overflow: 'hidden'
+    },
+    bottomBtnsWidth: {
+        width: '100%'
     }
 })
 

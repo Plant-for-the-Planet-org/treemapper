@@ -1,4 +1,4 @@
-const empty_inventory_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="393.798" height="569.706" viewBox="0 0 393.798 569.706">
+const empty_inventory_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="109%" height="100%" viewBox="0 0 393.798 569.706">
 <g id="Group_2255" data-name="Group 2255" transform="translate(0 -298.771)">
   <g id="Group_2254" data-name="Group 2254" transform="translate(0 70)">
     <path id="Path_3693" data-name="Path 3693" d="M378.443,641c-13.081-195.316,37.5-383.648,38.013-385.527l3.136.855c-.511,1.875-50.948,189.7-37.905,384.456Z" transform="translate(-304.904 96.052)" fill="#4d5153"/>

@@ -12,6 +12,7 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -47,7 +48,7 @@ class SelectCoordinates extends React.Component {
     renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
@@ -102,8 +103,15 @@ class SelectCoordinates extends React.Component {
 
     pushMaker = (currentCoords) => {
         let { centerCoordinates } = this.state;
-        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true }, () => {
-
+        this.setState({ markedCoords: centerCoordinates }, () => {
+            const { inventoryID, updateScreenState, navigation } = this.props;
+            const { markedCoords, locateTree } = this.state;
+            Geolocation.getCurrentPosition(position => {
+                let currentCoords = position.coords;
+                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                    navigation.navigate('InventoryOverview')
+                })
+            }, (err) => alert(err.message));
         })
     }
 
@@ -153,7 +161,7 @@ class SelectCoordinates extends React.Component {
 
 
     renderMyLocationIcon = () => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]} accessibilityLabel="Coordinate Location" testID="coordinate_location" accessible={true}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons style={{}} name={'md-locate'} size={22} />
             </View>
@@ -165,41 +173,6 @@ class SelectCoordinates extends React.Component {
             this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position))
         }, (err) => alert(err.message));
 
-    }
-
-    onPressContinue = () => {
-        this.setState({ isAlrightyModalShow: false }, () => {
-            const { inventoryID, updateScreenState, navigation } = this.props;
-            const { markedCoords, locateTree } = this.state;
-            Geolocation.getCurrentPosition(position => {
-                let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    navigation.navigate('InventoryOverview')
-                })
-            }, (err) => alert(err.message));
-
-        })
-    }
-
-
-    renderAlrightyModal = () => {
-        const { isAlrightyModalShow, locateTree, } = this.state
-        const { updateScreenState } = this.props
-
-        const onPressClose = () => this.setState({ isAlrightyModalShow: false })
-        let subHeading = `Now, please tap continue to take picture of tree`;
-        if (locateTree == 'off-site') {
-            subHeading = `Now, please tap continue to see overview of tree`;
-        }
-        return (
-            <Modal
-                animationType={'slide'}
-                visible={isAlrightyModalShow}>
-                <View style={{ flex: 1 }}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={'Alrighty!'} subHeading={subHeading} />
-                </View>
-            </Modal>
-        )
     }
 
     onPressBack = () => {
@@ -233,16 +206,15 @@ class SelectCoordinates extends React.Component {
                 <View>
                     {this.renderMyLocationIcon()}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={i18next.t('label.tree_map_marking_btn')} style={{ width: '90%', }} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Tree Location`} />
+                    <Header onBackPress={this.onPressBack} headingText={i18next.t('label.tree_map_marking_header')} />
                 </LinearGradient>
                 <View>
                 </View>
-                {this.renderAlrightyModal()}
             </View>)
     }
 }

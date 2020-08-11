@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -16,17 +15,17 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
     if (data.imageURL) {
         imageSource = { uri: data.imageURL }
     }
-     return (
+    return (
         <View style={styles.container}>
             <View style={styles.imageContainer}>
-                <Image source={imageSource}  style={styles.image} resizeMode={'stretch'}/>
+                <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
             </View>
             <View style={styles.contentContainer}>
-                <Text style={styles.subHeadingText}>{data.title}</Text>
-                <Text style={styles.subHeadingText}>{data.measurement}</Text>
+                <Text style={[styles.subHeadingText, styles.title]}>{data.title}</Text>
+                <Text style={styles.subHeadingText}>{data.subHeading}</Text>
                 <View style={styles.actionBtnContainer}>
                     <Text style={[styles.subHeadingText, activeBtn && styles.activeText]} onPress={onPressActiveButton}>{data.date}</Text>
-                    {icon && <MCIcons name={'cloud-outline'} size={22} style={styles.activeText} />}
+                    {icon && <MCIcons name={icon} size={22} style={styles.activeText} />}
                 </View>
             </View>
         </View>
@@ -37,12 +36,12 @@ export default InventoryCard;
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
-     },
+    },
     imageContainer: {
         flex: 1, justifyContent: 'center', alignItems: 'center',
     },
-    image :{
-        height:100, width:100, borderRadius:5
+    image: {
+        height: 100, width: 100, borderRadius: 5
     },
     contentContainer: {
         flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
@@ -55,7 +54,9 @@ const styles = StyleSheet.create({
         fontSize: Typography.FONT_SIZE_16,
         lineHeight: Typography.LINE_HEIGHT_24,
         color: Colors.TEXT_COLOR,
-        fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    },
+    title: {
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     },
     activeText: {
         color: Colors.PRIMARY,

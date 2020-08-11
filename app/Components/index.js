@@ -14,5 +14,8 @@ import SingleTreeOverview from './RegisterSingleTree/TreeOverview';
 import SelectCoordinates from './SelectCoordinates';
 import ManageUsers from './ManageUsers';
 import SelectSpecies from './SelectSpecies';
+import SignUp from './SignUp';
+import ProfileModal from './ProfileModal';
+import UploadedInventory from './UploadedInventory';
 
-export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates , ManageUsers, SelectSpecies};
+export { RegisterTree, MultipleTrees, SelectProject, TPOQuestion, LocateTree, CreatePolygon, TreeInventory, InventoryOverview, MainScreen, SavedAreas, DownloadMap, RegisterSingleTree, SingleTreeOverview, SelectCoordinates, ManageUsers, SelectSpecies, SignUp, ProfileModal, UploadedInventory };

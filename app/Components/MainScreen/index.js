@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions } from 'react-native';
-import { PrimaryButton, LargeButton, Header } from '../Common';
+import { PrimaryButton, LargeButton, Header, MainScreenHeader } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
-import { MainScreenHeader } from '../Common/';
-import { getAllInventory, auth0Login, isLogin } from '../../Actions'
+import { ProfileModal } from '../';
+import { getAllInventory, auth0Login, isLogin, uploadInventory, auth0Logout } from '../../Actions'
 import { map_texture, main_screen_banner } from '../../assets'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
+import i18next from '../../languages/languages';
 
 const { width, height } = Dimensions.get('window')
+
 const MainScreen = ({ navigation }) => {
 
-    const [isModalVisible, setIsModalVisible] = useState(false)
+    const [isModalVisible, setIsModalVisible] = useState(false) // * FOR VIDEO MODAL
+    const [isProfileModalVisible, setIsProfileModalVisible] = useState(false)
     const [numberOfInventory, setNumberOfInventory] = useState(0);
     const [isUserLogin, setIsUserLogin] = useState(false)
 
@@ -32,17 +35,31 @@ const MainScreen = ({ navigation }) => {
 
     const onPressLearn = () => setIsModalVisible(!isModalVisible)
 
+    const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible)
+
     const onPressLogin = () => {
-        auth0Login().then((data)=>{
-            setIsUserLogin(data)
-        })
+        if (isUserLogin) {
+            setIsProfileModalVisible(true)
+        } else {
+            auth0Login().then((data) => {
+                setIsUserLogin(data)
+            })
+        }
     }
 
     const checkIsLogin = () => {
         isLogin().then((data) => {
             setIsUserLogin(data)
         }).catch((err) => {
-            console.log(err)
+            onPressCloseProfileModal()
+            setIsUserLogin(false)
+        })
+    }
+
+    const onPressLogout = () => {
+        onPressCloseProfileModal()
+        auth0Logout().then(() => {
+            checkIsLogin()
         })
     }
 
@@ -62,31 +79,29 @@ const MainScreen = ({ navigation }) => {
         )
     }
 
-     return (
+    return (
         <SafeAreaView style={styles.safeAreaViewCont}>
             <View style={styles.container}>
                 <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin}/>
+                    <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin} testID={'btn_login'} accessibilityLabel={'Login / Sign Up'}/>
                     <View style={styles.bannerImgContainer}>
                         <SvgXml xml={main_screen_banner} />
                     </View>
-                    <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign :'center'}}/>
+                    <Header headingText={i18next.t('label.tree_mapper')} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} />
+                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={i18next.t('label.tree_inventory')} active={false} subHeading={i18next.t('label.tree_inventory_sub_header')} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory"/>
                     </ImageBackground>
-                    {/* <ImageBackground id={'manageuserbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('ManageUsers')} style={styles.customStyleLargeBtn} heading={'Manage Users '} active={false} subHeading={'invite and authorize users'} />
-                    </ImageBackground> */}
                     <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
+                        <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={i18next.t('label.download_maps')} active={false} subHeading={i18next.t('label.download_maps_sub_header')} testID="page_map" accessibilityLabel="Download Map"/>
                     </ImageBackground>
                     <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} />
+                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={i18next.t('label.learn')} active={false} subHeading={i18next.t('label.learn_sub_header')} accessibilityLabel="Learn" testID="page_learn"/>
                     </ImageBackground>
                 </ScrollView>
-                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} />
+                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={i18next.t('label.register_tree')} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'} />
             </View>
             {renderVideoModal()}
+            <ProfileModal isUserLogin={isUserLogin} isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
         </SafeAreaView>
     )
 }
@@ -108,7 +123,7 @@ const styles = StyleSheet.create({
         color: Colors.ALERT,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_18,
-        lineHeight: Typography.LINE_HEIGHT_30,
+        lineHeight: Typography.LINE_HEIGHT_24,
         textAlign: 'center'
     },
     customStyleLargeBtn: {

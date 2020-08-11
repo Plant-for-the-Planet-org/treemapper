@@ -86,11 +86,13 @@ jobs:
         BUGSNAP_CLIENT_KEY: ${{ secrets.BUGSNAP_CLIENT_KEY }}
         AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
         AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
         echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
         echo "AUTH0_DOMAIN=$AUTH0_DOMAIN" >> .env
         echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
+        echo "API_ENDPOINT=$API_ENDPOINT" >> .env
 
     # - name: Caching Pods
     #   uses: actions/cache@v1
@@ -146,6 +148,7 @@ jobs:
         BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       run: |
         curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@uploads/$upload_file"
+        curl -u "planetit1:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@uploads/$upload_file"
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload iOS IPA to Google Drive

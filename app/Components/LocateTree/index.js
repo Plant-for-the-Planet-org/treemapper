@@ -1,11 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
-import { SafeAreaView } from 'react-native'
+import { SafeAreaView } from 'react-native';
+import { cloud_upload_gray } from '../../assets'
 import { Colors, Typography } from '_styles';
 import { addLocateTree, updateLastScreen } from '../../Actions'
 import { store } from '../../Actions/store';
 import JailMonkey from 'jail-monkey';
+import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 const LocateTree = ({ navigation }) => {
@@ -19,7 +22,6 @@ const LocateTree = ({ navigation }) => {
     }, [])
 
     const [locateTree, setLocateTree] = useState('on-site');
-    const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
     const [isSelectCoordinates, setIsSelectCoordinates] = useState(false);
 
     const onPressItem = (value) => {
@@ -28,23 +30,19 @@ const LocateTree = ({ navigation }) => {
     }
 
     const onPressContinue = () => {
-        if (isAlrightyModalShow) {
-            let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
-            if (isSelectCoordinates) {
-                data.locate_tree = 'off-site';
-                addLocateTree(data).then(() => {
-                    navigation.navigate('SelectCoordinates')
-                    setIsAlrightyModalShow(false)
-                })
-                return;
-            }
+        let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+        if (isSelectCoordinates) {
+            data.locate_tree = 'off-site';
             addLocateTree(data).then(() => {
-                navigation.navigate('CreatePolygon')
+                navigation.navigate('SelectCoordinates')
                 setIsAlrightyModalShow(false)
             })
-        } else {
-            setIsAlrightyModalShow(true)
+            return;
         }
+        addLocateTree(data).then(() => {
+            navigation.navigate('CreatePolygon')
+            setIsAlrightyModalShow(false)
+        })
     }
 
     const onPressClose = () => {
@@ -56,29 +54,19 @@ const LocateTree = ({ navigation }) => {
         setIsSelectCoordinates(true)
     }
 
-    const renderAlrightyModal = () => {
-        return (
-            <Modal animationType={'slide'} visible={isAlrightyModalShow}>
-                <View style={styles.cont}>
-                    <Alrighty onPressContinue={onPressContinue} onPressWhiteButton={onPressClose} onPressClose={onPressClose} heading={'Alrighty'} subHeading={`lets go to the first location click the continue when ready`} />
-                </View>
-            </Modal>
-        )
-    }
-
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <Header headingText={'Locate Trees'} />
+                <Header headingText={i18next.t('label.locate_tree_header')} testID={'btn_back'} accessibilityLabel={'Back'} />
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={'On Site (Preferred)'} subHeading={'Collects Polygon and Images for high accuracy and verifiability '} active={locateTree == 'on-site'} />
-                    <LargeButton onPress={() => onPressItem('off-site')} heading={'Off Site'} subHeading={'Collects Polygon. Best to use when registering from office.'} active={locateTree == 'off-site'} />
-                    <LargeButton onPress={onPressSelectCoordinates} heading={'Select Coordinates'} active={isSelectCoordinates} medium />
+                    <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={i18next.t('label.locate_tree_heading')} subHeading={i18next.t('label.locate_tree_sub_heading')} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_on_site_polygon'} accessibilityLabel={'On Site'} />
+                    <LargeButton onPress={() => onPressItem('off-site')} heading={i18next.t('label.locate_tree_off_site')} subHeading={i18next.t('label.locate_tree_off_site_sub_heading')} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_polygon'} accessibilityLabel={'Off Site Polygon'} />
+                    <LargeButton onPress={onPressSelectCoordinates} heading={i18next.t('label.locate_tree_off_site_point_heading')} subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_point'} accessibilityLabel={'Off Site Point'} />
+                    <LargeButton onPress={onPressSelectCoordinates} heading={i18next.t('label.locate_tree_geo_json')} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} />
                 </ScrollView>
                 {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
-                <PrimaryButton onPress={onPressContinue} btnText={'Continue'} />
+                <PrimaryButton onPress={onPressContinue} btnText={i18next.t('label.continue')} testID={'btn_continue'} accessibilityLabel={'Continue'} />
             </View>
-            {renderAlrightyModal()}
         </SafeAreaView>
     )
 }

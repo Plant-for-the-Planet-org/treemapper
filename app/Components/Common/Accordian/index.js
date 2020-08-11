@@ -4,7 +4,7 @@ import { Colors, Typography } from '_styles';
 import Ionicons from 'react-native-vector-icons/MaterialIcons'
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const Accordian = ({ data, onChangeText, index,  onPressDelete, onSubmitEditing, shouldExpand, status }) => {
+const Accordian = ({ data, onChangeText, index, onPressDelete, onSubmitEditing, shouldExpand, status }) => {
 
     const treeCountInput = useRef()
 

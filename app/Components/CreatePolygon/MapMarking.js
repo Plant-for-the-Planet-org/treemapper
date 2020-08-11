@@ -12,16 +12,18 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
+
 const infographicText = [
-    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+    { heading: i18next.t('label.info_graphic_header_1'), subHeading: i18next.t('label.info_graphic_sub_header_1') },
+    { heading: i18next.t('label.info_graphic_header_2'), subHeading: i18next.t('label.info_graphic_sub_header_2') },
+    { heading: i18next.t('label.info_graphic_header_3'), subHeading: i18next.t('label.info_graphic_sub_header_3') },
 ]
-const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ALPHABETS = i18next.t('label.locate_tree_alphabets');
 const IS_ANDROID = Platform.OS == 'android';
 
 class MapMarking extends React.Component {
@@ -137,11 +139,11 @@ class MapMarking extends React.Component {
                     let distanceInMeters = distance * 1000;
 
                     if (!isValidMarkers) {
-                        alert('You are at the same location. Please walk to the next location.')
+                        alert(i18next.t('label.locate_tree_add_marker_valid'))
                     } else if (distanceInMeters < 100) {
                         this.pushMaker(complete, currentCoords)
                     } else {
-                        alert(`You are very far from your current location.`)
+                        alert(i18next.t('label.locate_tree_add_marker_invalid'))
                     }
                 }, (err) => alert(err.message));
             } catch (err) {
@@ -163,12 +165,8 @@ class MapMarking extends React.Component {
 
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
-        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props
-        geoJSON.features[activePolygonIndex].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
-        if (complete) {
-            geoJSON.features[activePolygonIndex].properties.isPolygonComplete = true;
-            geoJSON.features[activePolygonIndex].geometry.coordinates.push(geoJSON.features[activePolygonIndex].geometry.coordinates[0])
-        }
+        const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
+        geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         this.setState({ geoJSON }, () => {
             // change the state
             const { inventoryID } = this.props;
@@ -177,13 +175,15 @@ class MapMarking extends React.Component {
             let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
             addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
-                    let location = ALPHABETS[geoJSON.features[activePolygonIndex].geometry.coordinates.length - (complete) ? 2 : 1]
-                    this.props.toggleState(location, geoJSON.features[activePolygonIndex].geometry.coordinates.length)
+                    let location = ALPHABETS[geoJSON.features[0].geometry.coordinates.length - (complete) ? 2 : 1]
+                    this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length)
                 } else {
-                    updateActiveMarkerIndex(activeMarkerIndex + 1)
                     // For off site
                     if (complete) {
                         this.props.navigation.navigate('InventoryOverview')
+                    } else {
+                        updateActiveMarkerIndex(activeMarkerIndex + 1)
+
                     }
                 }
             })
@@ -222,7 +222,7 @@ class MapMarking extends React.Component {
     renderFakeMarker = (location) => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{location}</Text>}
             </View>)
     }
@@ -265,15 +265,26 @@ class MapMarking extends React.Component {
 
     onPressCompletePolygon = async () => {
         const { navigation, inventoryID, setIsCompletePolygon } = this.props;
-        const { geoJSON } = this.state;
-        await this.addMarker(true)
-        //
+        const { geoJSON, locateTree } = this.state;
         let data = { inventory_id: inventoryID, geoJSON: geoJSON };
         setIsCompletePolygon(true)
+
+        geoJSON.features[0].properties.isPolygonComplete = true;
+        geoJSON.features[0].geometry.coordinates.push(geoJSON.features[0].geometry.coordinates[0])
+        let lastCoords = geoJSON.features[0].geometry.coordinates[0]
+        addCoordinates({ inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: lastCoords.latitude, longitude: lastCoords.longitude } }).then(() => {
+            if (locateTree == 'on-site') {
+
+            } else {
+                // For off site
+                this.props.navigation.navigate('InventoryOverview')
+            }
+        })
+
     }
 
     renderMyLocationIcon = (isShowCompletePolygonBtn) => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]} accessibilityLabel="Location Icon" testID="loaction_icon" accessible={true}>
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons name={'md-locate'} size={22} />
             </View>
@@ -295,8 +306,8 @@ class MapMarking extends React.Component {
         const onPressContinue = () => this.setState({ isAlrightyModalShow: false })
         const onPressCompletePolygon = () => {
             polygonUpdate({ inventory_id: inventoryID }).then(() => {
+                this.onPressCompletePolygon()
                 onPressContinue()
-                this.props.navigation.navigate('InventoryOverview')
             })
         }
         const onPressClose = () => {
@@ -319,8 +330,11 @@ class MapMarking extends React.Component {
     }
 
     onPressBack = () => {
+        //  THIS IS MODIFICATION
         const { locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+        navigation.navigate('TreeInventory')
+        return;
         if (locateTree == 'off-site') {
             if (activeMarkerIndex > 0) {
                 this.setState({ isAlrightyModalShow: true })
@@ -340,9 +354,8 @@ class MapMarking extends React.Component {
 
     render() {
         const { activeMarkerIndex } = this.props
-
-
         const { geoJSON, loader, activePolygonIndex } = this.state;
+
         let isShowCompletePolygonBtn = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
         let coordinatesLenghtShouldBe = (geoJSON.features[activePolygonIndex].properties.isPolygonComplete) ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1 : geoJSON.features[activePolygonIndex].geometry.coordinates.length
         let location = ALPHABETS[activeMarkerIndex];
@@ -355,12 +368,12 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={styles.bottonBtnContainer} />
+                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={i18next.t('label.tree_map_marking_btn')} style={styles.bottonBtnContainer} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'transparent']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                    <Header onBackPress={this.onPressBack} headingText={`${i18next.t('label.locate_tree_location')} ${location}`} closeIcon subHeadingText={i18next.t('label.locate_tree_map_marking_sub_header')} />
                 </LinearGradient>
                 <View>
                 </View>

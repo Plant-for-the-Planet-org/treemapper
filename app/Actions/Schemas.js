@@ -50,16 +50,22 @@ const Inventory = {
         last_screen: 'string?',
         species: 'Species[]',
         polygons: 'Polygons[]',
-        specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-        specei_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
+        specei_name: 'string?',    // <*IMPORTANT*> ONLY FOR SINGLE TREE
+        species_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
     }
 };
 
 const User = {
     name: 'User',
+    primaryKey: 'id',
     properties: {
+        id: 'string?',
         accessToken: 'string?',
-        idToken: 'string?'
+        idToken: 'string?',
+        email: 'string?',
+        firstname: 'string?',
+        lastname: 'string?',
+
     }
 }
 

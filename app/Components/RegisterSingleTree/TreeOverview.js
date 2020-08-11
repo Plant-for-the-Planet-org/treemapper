@@ -10,6 +10,8 @@ import { updateLastScreen, getInventory, statusToPending, updateSpeceiName, upda
 import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import moment from "moment";
 
 const SingleTreeOverview = ({ navigation }) => {
 
@@ -35,7 +37,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 inventory.polygons = Object.values(inventory.polygons);
                 setInventory(inventory)
                 setSpecieText(inventory.specei_name)
-                setSpecieDiameter(inventory.specei_diameter)
+                setSpecieDiameter(inventory.species_diameter)
                 setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString())
             })
         });
@@ -77,7 +79,7 @@ const SingleTreeOverview = ({ navigation }) => {
                             style={styles.bgWhite}>
                             <View style={styles.externalInputContainer}>
                                 <Text style={styles.labelModal}>{isSpeciesEnable ? 'Name of Specie' : 'Diameter'}</Text>
-                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} keyboardType={'default'} />
+                                {isSpeciesEnable ? <TextInput value={specieText} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} onChangeText={(text) => setSpecieText(text)} onSubmitEditing={() => onSubmitInputFeild('specieText')} keyboardType={'email-address'} />
                                     : <TextInput ref={specieDiameterRef} value={specieDiameter} style={styles.value} autoFocus placeholderTextColor={Colors.TEXT_COLOR} keyboardType={'number-pad'} onChangeText={(text) => setSpecieDiameter(text)} onSubmitEditing={() => onSubmitInputFeild('specieDiameter')} />}
                                 <MCIcon onPress={onPressNextIcon} name={'arrow-right'} size={30} color={Colors.PRIMARY} />
                             </View>
@@ -105,8 +107,11 @@ const SingleTreeOverview = ({ navigation }) => {
             setIsShowDate(false)
             setPLantationDate(selectedDate)
         }
+        const handleConfirm = (data) => onChangeDate(null, data)
+        const hideDatePicker = () => setIsShowDate(false)
 
-        return isShowDate && <DateTimePicker
+        return isShowDate && <DateTimePickerModal
+            isVisible={true}
             maximumDate={new Date()}
             testID="dateTimePicker1"
             timeZoneOffsetInMinutes={0}
@@ -114,7 +119,8 @@ const SingleTreeOverview = ({ navigation }) => {
             mode={'date'}
             is24Hour={true}
             display="default"
-            onChange={onChangeDate}
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
         />
     }
     let filePath, imageSource
@@ -122,84 +128,92 @@ const SingleTreeOverview = ({ navigation }) => {
         filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl
         imageSource = filePath ? { uri: filePath } : false
     }
-     const renderDetails = ({ polygons }) => {
+    const renderDetails = ({ polygons }) => {
         let coords;
         if (polygons[0]) {
             coords = polygons[0].coordinates[0];
         }
-        let shouldEdit = inventory.status !== 'pending';
+        let shouldEdit = inventory.status == 'incomplete';
         let detailHeaderStyle = !imageSource ? [styles.detailHeader, styles.defaulFontColor] : [styles.detailHeader]
-        let detailContainerStyle = imageSource ? [{}] : [{}]
+        let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}]
+
         return (
-            coords && <View style={styles.detailSubContainer}>
-                <View>
-                    <Text style={detailHeaderStyle}>Planting Date</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)}>
-                        <Text style={styles.detailText}>{new Date(plantationDate).toLocaleDateString()} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
-                    </TouchableOpacity>
-                </View>
+            <View style={detailContainerStyle}>
                 <View>
                     <Text style={detailHeaderStyle}>LOCATION</Text>
                     <Text style={styles.detailText}>{`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`} </Text>
                 </View>
                 <View style={{ marginVertical: 5 }}>
                     <Text style={detailHeaderStyle}>SPECIES</Text>
-                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')}>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => onPressEditSpecies('species')} accessible={true} accessibilityLabel="Species" testID="species_btn">
                         <Text style={styles.detailText}>{specieText ? specieText : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginVertical: 5 }}>
-                    <Text style={detailHeaderStyle}>DIAMETER</Text>
-                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')}>
+                    <Text style={detailHeaderStyle}>DIAMETER (in cm)</Text>
+                    <TouchableOpacity disabled={!shouldEdit} style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => onPressEditSpecies('diameter')} accessibilityLabel="Diameter" testID="diameter_btn" accessible={true}>
+
                         <FIcon name={'arrow-h'} style={styles.detailText} />
                         <Text style={styles.detailText}>{specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
                     </TouchableOpacity>
                 </View>
-                <View style={{ marginVertical: 5 }}>
-                    <View style={styles.flexRow}>
-                        <View>
-                            <Text style={detailHeaderStyle}>{'CAPTURED CO'}</Text>
-                        </View>
-                        <View style={styles.flexEnd}>
-                            <Text style={styles.subScript}>{'2'}</Text>
-                        </View>
-                    </View>
-                    <Text style={styles.detailText}>200 kg</Text>
-                </View>
+
+                {!imageSource && <View>
+                    <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
+                    <TouchableOpacity disabled={!shouldEdit} onPress={() => setIsShowDate(true)} accessible={true} accessibilityLabel="Register Planting Date" testID="register_planting_date">
+                        <Text style={styles.detailText}>{moment(plantationDate).format('ll')} {shouldEdit && <MIcon name={'edit'} size={20} />}</Text>
+                    </TouchableOpacity>
+                </View>}
             </View>)
     }
 
     const onPressSave = () => {
-        let data = { inventory_id: state.inventoryID }
-        statusToPending(data).then(() => {
+        if (inventory.status == 'complete') {
             navigation.navigate('TreeInventory')
-        })
-    }
-
-    const onPressContinue = () => {
-        statusToPending({ inventory_id: state.inventoryID }).then(() => {
-            initiateInventory({ treeType: 'single' }).then((inventoryID) => {
-                dispatch(LocalInventoryActions.setInventoryId(inventoryID))
-                navigation.push('RegisterSingleTree')
-            })
-        })
-    }
-
-    const onBackPress = () => {
-        if (inventory.status !== 'pending') {
-            navigation.navigate('RegisterSingleTree', { isEdit: true })
         } else {
-            navigation.goBack()
+            if (specieText) {
+                let data = { inventory_id: state.inventoryID }
+                statusToPending(data).then(() => {
+                    navigation.navigate('TreeInventory')
+                })
+            } else {
+                alert('Species Name  is required')
+            }
         }
     }
 
+    const onPressNextTree = () => {
+        if (inventory.status == 'incomplete') {
+            statusToPending({ inventory_id: state.inventoryID }).then(() => {
+                initiateInventory({ treeType: 'single' }).then((inventoryID) => {
+                    dispatch(LocalInventoryActions.setInventoryId(inventoryID))
+                    navigation.push('RegisterSingleTree')
+                })
+            })
+        }
+        else {
+            navigation.goBack('TreeInventory')
+        }
+    }
+
+    const onBackPress = () => {
+        if (inventory.status == 'incomplete') {
+            navigation.navigate('RegisterSingleTree', { isEdit: true })
+        } else {
+            goBack()
+        }
+    }
+
+    const goBack = () => {
+        navigation.goBack()
+    }
 
     return (
         <SafeAreaView style={styles.mainContainer}>
             {renderinputModal()}
             {renderDateModal()}
             <View style={styles.container}>
-                <Header onBackPress={onBackPress} closeIcon headingText={'Tree Details'} />
+                <Header closeIcon onBackPress={onBackPress} headingText={'Review'} />
                 <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                     {inventory && <View style={styles.overViewContainer}>
                         {imageSource && <Image source={imageSource} style={styles.bgImage} />}
@@ -209,7 +223,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     </View>}
                 </ScrollView>
                 <View style={styles.bottomBtnsContainer}>
-                    <PrimaryButton onPress={onPressContinue} btnText={'Continue'} halfWidth theme={'white'} />
+                    <PrimaryButton onPress={onPressNextTree} btnText={'Next Tree'} halfWidth theme={'white'} />
                     <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
                 </View>
             </View>
@@ -231,7 +245,7 @@ const styles = StyleSheet.create({
         fontSize: 10, color: Colors.WHITE
     },
     overViewContainer: {
-        width: '100%', height: 350, borderWidth: 0, alignSelf: 'center', borderRadius: 15, overflow: 'hidden',
+        flex: 1, width: '100%', alignSelf: 'center', borderRadius: 15, overflow: 'hidden', marginVertical: 10
     },
     mainContainer: {
         flex: 1, backgroundColor: Colors.WHITE
@@ -255,7 +269,7 @@ const styles = StyleSheet.create({
         position: 'absolute', width: '100%', height: '100%'
     },
     scrollViewContainer: {
-        flex: 1, justifyContent: 'center'
+        flex: 1, marginTop: 20,
     },
     detailHeader: {
         fontSize: Typography.FONT_SIZE_14,
@@ -295,9 +309,9 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     defaulFontColor: {
-        color: undefined
+        color: Colors.TEXT_COLOR
     },
     detailSubContainer: {
-        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20
+        position: 'absolute', bottom: 0, right: 0, left: 0, padding: 20,
     }
 })

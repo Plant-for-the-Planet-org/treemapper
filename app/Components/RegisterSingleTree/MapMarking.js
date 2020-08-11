@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Platform, SafeAreaView, Image, ActivityIndicato
 import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { active_marker, marker_png } from '../../assets/index';
+import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -12,6 +12,7 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -60,7 +61,7 @@ class MapMarking extends React.Component {
     renderFakeMarker = () => {
         return (
             <View style={styles.fakeMarkerCont} >
-                <SvgXml xml={active_marker} style={styles.markerImage}/>
+                <SvgXml xml={active_marker} style={styles.markerImage} />
                 {this.state.loader ? <ActivityIndicator color={Colors.WHITE} style={styles.loader} /> : <Text style={styles.activeMarkerLocation}>{'A'}</Text>}
             </View>)
     }
@@ -98,13 +99,14 @@ class MapMarking extends React.Component {
 
                 let distance = this.distanceCalculator(currentCoords.latitude, currentCoords.longitude, markerCoords[1], centerCoordinates[0], 'K');
                 let distanceInMeters = distance * 1000;
-
                 if (distanceInMeters < 100) {
-                    this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'on-site', })
+                    this.setState({ locateTree: 'on-site', }, () => {
+                        this.pushMaker(currentCoords)
+                    })
                 } else {
-                    this.pushMaker(currentCoords)
-                    this.setState({ locateTree: 'off-site', })
+                    this.setState({ locateTree: 'off-site', }, () => {
+                        this.pushMaker(currentCoords)
+                    })
                 }
             }, (err) => alert(err.message));
         } catch (err) {
@@ -115,7 +117,9 @@ class MapMarking extends React.Component {
 
     pushMaker = (currentCoords) => {
         let { centerCoordinates } = this.state;
-        this.setState({ markedCoords: centerCoordinates, isAlrightyModalShow: true })
+        this.setState({ markedCoords: centerCoordinates }, () => {
+            this.onPressContinue()
+        })
     }
 
     distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
@@ -164,7 +168,7 @@ class MapMarking extends React.Component {
 
 
     renderMyLocationIcon = () => {
-        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]}>
+        return <TouchableOpacity onPress={this.onPressMyLocationIcon} style={[styles.myLocationIcon]} accessibilityLabel="Register Tree Camera" accessible={true} testID="register_tree_camera">
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
                 <Ionicons name={'md-locate'} size={22} />
             </View>
@@ -179,42 +183,43 @@ class MapMarking extends React.Component {
     }
 
     onPressContinue = () => {
-        this.setState({ isAlrightyModalShow: false }, () => {
-            const { inventoryID, updateScreenState, navigation } = this.props;
-            const { markedCoords, locateTree } = this.state;
-            Geolocation.getCurrentPosition(position => {
-                let currentCoords = position.coords;
-                addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
-                    if (locateTree == 'off-site') {
-                        navigation.navigate('SingleTreeOverview')
-                    } else {
-                        updateScreenState('ImageCapturing')
-                    }
-                })
 
-            }, (err) => alert(err.message));
+        const { inventoryID, updateScreenState, navigation } = this.props;
+        const { markedCoords, locateTree } = this.state;
+        Geolocation.getCurrentPosition(position => {
+            let currentCoords = position.coords;
+            addCoordinateSingleRegisterTree({ inventory_id: inventoryID, markedCoords: markedCoords, locateTree: locateTree, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } }).then(() => {
+                if (locateTree == 'off-site') {
+                    navigation.navigate('SingleTreeOverview')
+                } else {
+                    updateScreenState('ImageCapturing')
+                }
+            })
 
-        })
+        }, (err) => alert(err.message));
     }
-
 
     renderAlrightyModal = () => {
         const { isAlrightyModalShow, locateTree, } = this.state
         const { updateScreenState } = this.props
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
-        let subHeading = `Now, please tap continue to take picture of tree`;
-        let heading = `Picture Time!`
+
+        let subHeading = i18next.t('label.alright_modal_sub_header');
+        let heading = i18next.t('label.alright_modal_header');
+        let bannerImage = undefined;
+        let whiteBtnText = i18next.t('label.alright_modal_white_btn');
         if (locateTree == 'off-site') {
-            subHeading = `We see that you’re far away the tree. Please click continue to add details about the tree.`;
-            heading = `Off Site Enabled!`
+            subHeading = i18next.t('label.alright_modal_off_site_sub_header');
+            heading = i18next.t('label.alright_modal_off_site_header');
+            bannerImage = off_site_enable_banner;
+            whiteBtnText = undefined;
+
         }
         return (
-            <Modal
-                animationType={'slide'}
-                visible={isAlrightyModalShow}>
+            <Modal animationType={'slide'} visible={isAlrightyModalShow}>
                 <View style={styles.cont}>
-                    <Alrighty onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} />
+                    <Alrighty closeIcon bannerImage={bannerImage} onPressClose={onPressClose} onPressWhiteButton={onPressClose} onPressContinue={this.onPressContinue} heading={heading} subHeading={subHeading} whiteBtnText={whiteBtnText} />
                 </View>
             </Modal>
         )
@@ -223,6 +228,8 @@ class MapMarking extends React.Component {
     onPressBack = () => {
         const { locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+        navigation.navigate('TreeInventory')
+        return;
         if (locateTree == 'off-site') {
             if (activeMarkerIndex > 0) {
                 this.setState({ isAlrightyModalShow: true })
@@ -251,12 +258,12 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon()}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={styles.bottomBtnWith} />
+                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={i18next.t('label.tree_map_marking_btn')} style={styles.bottomBtnWith} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Tree Location`} />
+                    <Header onBackPress={this.onPressBack} closeIcon headingText={i18next.t('label.tree_map_marking_header')} />
                 </LinearGradient>
                 <View>
                 </View>

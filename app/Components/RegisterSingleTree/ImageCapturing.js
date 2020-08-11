@@ -7,6 +7,7 @@ import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
+import i18next from 'i18next';
 
 const ImageCapturing = ({ updateScreenState }) => {
     const camera = useRef()
@@ -58,7 +59,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     return (
         <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
             <View style={styles.screenMargin}>
-                <Header onBackPress={onBackPress} closeIcon headingText={`Location A`} subHeadingText={'Please take a picture facing planted trees.'} />
+                <Header onBackPress={onBackPress}  headingText={i18next.t('label.image_capturing_header')} subHeadingText={i18next.t('label.image_capturing_sub_header')} />
             </View>
             <View style={styles.container}>
                 <View style={styles.container}>
@@ -70,25 +71,25 @@ const ImageCapturing = ({ updateScreenState }) => {
                                 ref={camera}
                                 style={styles.container}
                                 androidCameraPermissionOptions={{
-                                    title: 'Permission to use camera',
-                                    message: 'We need your permission to use your camera',
-                                    buttonPositive: 'Ok',
-                                    buttonNegative: 'Cancel',
+                                    title: i18next.t('label.permission_camera_title'),
+                                    message: i18next.t('label.permission_camera_message'),
+                                    buttonPositive: i18next.t('label.permission_camera_ok'),
+                                    buttonNegative: i18next.t('label.permission_camera_cancel'),
                                 }}
                             >
                             </RNCamera>
                         </View>
                     }
                 </View>
-                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer}>
+                <TouchableOpacity onPress={onPressCamera} style={styles.cameraIconContainer} accessible={true} accessibilityLabel="Register Tree Camera" testID="register_tree_camera">
                     <View style={styles.cameraIconCont}>
                         <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
                     </View>
                 </TouchableOpacity>
             </View>
             <View style={styles.bottomBtnsContainer}>
-                <PrimaryButton btnText={'Back'} halfWidth theme={'white'} />
-                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={'Continue'} halfWidth />
+                <PrimaryButton  onPress={onBackPress} btnText={i18next.t('label.back')} theme={'white'} halfWidth/>
+                <PrimaryButton disabled={imagePath ? false : true} onPress={onPressContinue} btnText={i18next.t('label.continue')} halfWidth/>
             </View>
         </SafeAreaView>
     )

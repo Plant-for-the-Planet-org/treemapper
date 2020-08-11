@@ -1,22 +1,25 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Modal, Text } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native'
-import { getAllInventory, clearAllInventory, } from "../../Actions";
+import { getAllInventory, clearAllIncompleteInventory, uploadInventory, isLogin, auth0Login } from "../../Actions";
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 import { SvgXml } from "react-native-svg";
+import moment from "moment";
+import i18next from 'i18next';
+
 const TreeInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
 
     const [allInventory, setAllInventory] = useState(null)
+    const [isLoaderShow, setIsLoaderShow] = useState(false)
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
-            getAllInventory().then((allInventory) => {
-                setAllInventory(Object.values(allInventory))
-            })
+            initialState()
         });
 
         return unsubscribe
@@ -29,6 +32,14 @@ const TreeInventory = ({ navigation }) => {
         }, 0)
     }
 
+    const initialState = () => {
+        getAllInventory().then((allInventory) => {
+            setAllInventory(Object.values(allInventory))
+        })
+    }
+
+
+
     const renderInventoryList = (inventoryList) => {
         return (
             <FlatList
@@ -36,24 +47,41 @@ const TreeInventory = ({ navigation }) => {
                 data={inventoryList}
                 renderItem={({ item }) => {
                     let imageURL;
-                    if (item.polygons[0] && item.polygons[0].coordinates) {
+                    let isOffSitePoint = false;
+                    if (item.polygons[0] && item.polygons[0].coordinates && Object.values(item.polygons[0].coordinates).length) {
                         imageURL = item.polygons[0].coordinates[0].imageUrl
+                        isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1
                     }
-                    let measurement = '10cm';
-                    if (item.specei_diameter) {
-                        measurement = `${item.specei_diameter}cm`
+                    let locateTreeAndType = '';
+                    let title = '';
+                    if (item.locate_tree = 'off-site') {
+                        locateTreeAndType = 'Off Site'
+                    } else {
+                        locateTreeAndType = 'On Site'
                     }
-                    let title = item.species ? item.species[0] ? `${item.species[0].treeCount} ${item.species[0].nameOfTree} Tree` : '0 Species Tree' : '0 Species Tree'
-                    let data = { title: title, measurement: `${measurement}`, date: new Date(Number(item.plantation_date)).toLocaleDateString(), imageURL: imageURL }
+                    if (item.tree_type == 'single') {
+                        title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`
+                        locateTreeAndType += ' - Point'
+                    } else {
+                        let totalTreeCount = 0
+                        let species = Object.values(item.species)
 
-                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={item.status == 'pending'} data={data} /></TouchableOpacity>)
+                        for (let i = 0; i < species.length; i++) {
+                            const oneSpecies = species[i];
+                            totalTreeCount += Number(oneSpecies.treeCount)
+                        }
+                        title = `${totalTreeCount} Trees`
+                        locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`
+                    }
+                    let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)} accessibilityLabel="Inventory List" accessible={true} testID="inventory_list"><InventoryCard icon={'cloud-outline'} data={data} /></TouchableOpacity>)
                 }}
             />
         )
     }
 
     const onPressClearAll = () => {
-        clearAllInventory().then(() => {
+        clearAllIncompleteInventory().then(() => {
             getAllInventory().then((allInventory) => {
                 setAllInventory(Object.values(allInventory))
             })
@@ -62,33 +90,78 @@ const TreeInventory = ({ navigation }) => {
 
     let pendingInventory = []
     let inCompleteInventory = []
+    let uploadedInventory = []
     if (allInventory) {
         pendingInventory = allInventory.filter(x => x.status == 'pending')
         inCompleteInventory = allInventory.filter(x => x.status == 'incomplete')
+        uploadedInventory = allInventory.filter(x => x.status == 'complete')
+    }
+
+    const checkIsUserLogin = () => {
+        return new Promise((resolve, reject) => {
+            isLogin().then((isUserLogin) => {
+                if (!isUserLogin) {
+                    auth0Login().then((isUserLogin) => {
+                        isUserLogin ? resolve() : reject()
+                    }).catch((err) => {
+                        alert(err.error_description)
+                    })
+                } else {
+                    resolve()
+                }
+            })
+        })
+    }
+
+    const onPressUploadNow = () => {
+        checkIsUserLogin().then(() => {
+            setIsLoaderShow(true)
+            uploadInventory().then((data) => {
+                initialState()
+                setIsLoaderShow(false)
+            }).catch((err) => {
+                setIsLoaderShow(false)
+            })
+
+        })
+    }
+
+    const renderLoaderModal = () => {
+        return (<Modal
+            transparent
+            visible={isLoaderShow}>
+            <View style={styles.dowloadModalContainer}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>Uploading..........</Text>
+                </View>
+            </View>
+        </Modal>)
     }
 
     const renderInventory = () => {
-        return <View style={styles.cont}>
-            {pendingInventory.length > 0 && <><SmallHeader leftText={'Pending Upload'} rightText={'Upload now'} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
+        return (<View style={styles.cont}>
+            {pendingInventory.length > 0 && <><SmallHeader onPressRight={onPressUploadNow} leftText={i18next.t('label.tree_inventory_left_text')} rightText={i18next.t('label.tree_inventory_right_text')} icon={'cloud-upload'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(pendingInventory)}</>}
-            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={'Incomplete Registrations'} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
+            {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={i18next.t('label.tree_inventory_view_upload')} theme={'white'} style={{ marginVertical: 20 }} />}
+            {inCompleteInventory.length > 0 && <><SmallHeader onPressRight={onPressClearAll} leftText={i18next.t('label.tree_inventory_incomplete_registrations')} rightText={'Clear All'} rightTheme={'red'} style={{ marginVertical: 15 }} />
                 {renderInventoryList(inCompleteInventory)}</>}
-        </View>
+        </View>)
     }
 
     const renderLoadingInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_sub_header')} style={{ marginHorizontal: 25 }} />
             <ActivityIndicator size={25} color={Colors.PRIMARY} />
         </View>)
     }
 
     const renderEmptyInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Tree Inventory'} subHeadingText={'It’s empty in here, please register some trees to view them.'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_empty_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_sub_header')} style={{ marginHorizontal: 25 }} />
             <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
-                <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+                {uploadedInventory.length > 0 && <PrimaryButton onPress={() => navigation.navigate('UploadedInventory')} btnText={i18next.t('label.tree_inventory_view_upload')} theme={'white'} style={{ marginVertical: 20 }} />}
+                <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={i18next.t('label.register_tree')} />
             </View>
         </View>)
     }
@@ -96,10 +169,10 @@ const TreeInventory = ({ navigation }) => {
     const renderInventoryListContainer = () => {
         return (<View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} >
-                <Header headingText={'Tree Inventory'} subHeadingText={'Inventory will be cleared after upload is complete'} />
+                <Header headingText={i18next.t('label.tree_inventory_list_header')} subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')} />
                 {renderInventory()}
             </ScrollView>
-            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={'Register Tree'} />
+            <PrimaryButton onPress={() => navigation.navigate('RegisterTree')} btnText={i18next.t('label.register_tree')} />
             <SafeAreaView />
         </View>)
     }
@@ -108,6 +181,7 @@ const TreeInventory = ({ navigation }) => {
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
+            {renderLoaderModal()}
         </View>
     )
 }
@@ -128,5 +202,11 @@ const styles = StyleSheet.create({
     },
     parimaryBtnCont: {
         position: 'absolute', width: '100%', justifyContent: 'center', bottom: 10, paddingHorizontal: 25
-    }
+    },
+    dowloadModalContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    loader: {
+        backgroundColor: Colors.WHITE, borderRadius: 20, marginVertical: 20
+    },
 })
