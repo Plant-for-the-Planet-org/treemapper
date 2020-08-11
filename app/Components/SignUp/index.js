@@ -1,48 +1,60 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors, Typography } from '_styles';
+import i18next from 'i18next';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 
 const SignUp = ({ }) => {
+    const [accountType, setAccountType] = useState('Tree Planting Orgainsation');
+
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                    <Header headingText={'Sign Up'} subHeadingText={'Please confirm your details.'} />
+                    <Header headingText={i18next.t('label.signup')} subHeadingText={i18next.t('label.signup_confirm')} />
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Input label={'FIRST NAME'} value={'Paulina'} />
-                        <Input label={'LAST NAME'} value={'Sanchez'} style={{ marginLeft: 15 }} />
+                        <Input label={i18next.t('label.firstname')} value={'Paulina'} />
+                        <Input label={i18next.t('label.lastname')} value={'Sanchez'} style={{ marginLeft: 15 }} />
                     </View>
-                    <Input label={'EMAIL'} value={'startplanting@trees.com'} />
+                    <Input label={i18next.t('label.email')} value={'startplanting@trees.com'} />
                     <View style={styles.selectRoleBtnsContainer}>
-                        <View style={[styles.roleBtnContainer, styles.marginRight]}>
-                            <Text style={styles.roleText}>Individual</Text>
+                        <View style={[styles.roleBtnContainer, styles.marginRight, accountType === 'Individual' ? styles.activeRoleContainer : null]}>
+                            <TouchableOpacity onPress = {() => setAccountType('Individual')}>
+                                <Text style={styles.roleText}>{i18next.t('label.individual')}</Text>
+                            </TouchableOpacity>
                         </View>
-                        <View style={[styles.roleBtnContainer, styles.marginLeft]}>
-                            <Text style={styles.roleText}>Company</Text>
+                        <View style={[styles.roleBtnContainer, styles.marginLeft, accountType === 'Company' ? styles.activeRoleContainer : null]}>
+                            <TouchableOpacity onPress={() => setAccountType('Company')}>
+                                <Text style={styles.roleText}>{i18next.t('label.company')}</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                     <View style={styles.selectRoleBtnsContainer}>
-                        <View style={[[styles.roleBtnContainer, styles.activeRoleContainer], styles.justifyCenter, styles.marginRight]}>
-                            <Text style={[styles.roleText, styles.primaryText]}>Tree Planting Organisation</Text>
+                        <View style={[[styles.roleBtnContainer, accountType === 'Tree Planting Orgainsation' ? styles.activeRoleContainer : null], styles.justifyCenter, styles.marginRight]}>
+                        <TouchableOpacity onPress={() => setAccountType('Tree Planting Orgainsation')}>
+                            <Text style={[styles.roleText, styles.primaryText]}>{i18next.t('label.tpo_title')}</Text>
+                        </TouchableOpacity>
                         </View>
-                        <View style={[styles.roleBtnContainer, styles.marginLeft]}>
-                            <Text style={styles.roleText}>School</Text>
+                        <View style={[styles.roleBtnContainer, styles.marginLeft, accountType === 'School' ? styles.activeRoleContainer : null]}>
+                            <TouchableOpacity onPress={() => setAccountType('School')}>
+                                <Text style={styles.roleText}>{i18next.t('label.education_title')}</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                    <Input label={'NAME OF TREE PLANTING ORGANIZATION'} value={'Forest in Africa'} />
+                    <Input label={i18next.t('label.tpo_title_organisation', {roleText: accountType})} value={'Forest in Africa'} />
                     <View style={styles.switchContainer}>
-                        <Text style={styles.switchContainerText}>I agree to have my name published on the Plant-for-the-Planet App.</Text>
+                            <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
                         <Switch trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }} thumbColor={!false ? Colors.PRIMARY : Colors.WHITE} value={!false} />
                     </View>
                     <View style={styles.switchContainer}>
-                        <Text style={styles.switchContainerText}>I agree that I may be contacted by Plant-for-the-Planet as a part of Tree Planting news and challenges.</Text>
+                            <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
                         <Switch trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }} thumbColor={false ? Colors.PRIMARY : Colors.WHITE} value={false} />
                     </View>
                 </ScrollView>
-                <PrimaryButton btnText={'Create Profile'} />
+                <PrimaryButton btnText={i18next.t('label.create_profile')} />
             </View>
         </SafeAreaView>
     )

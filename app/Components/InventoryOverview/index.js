@@ -17,6 +17,7 @@ import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import moment from "moment";
+import i18next from 'i18next';
 
 const InventoryOverview = ({ navigation, }) => {
 
@@ -47,7 +48,7 @@ const InventoryOverview = ({ navigation, }) => {
             setInventory(inventory)
         })
     }
-
+    `Location Type: ${locationType}`
     const renderPolygon = (polygons, locationType) => {
         return (
             <FlatList
@@ -55,7 +56,7 @@ const InventoryOverview = ({ navigation, }) => {
                 data={polygons}
                 renderItem={({ item, index }) => {
                     return (<View>
-                        <Label leftText={`Location Type: ${locationType}`} rightText={''} />
+                        <Label leftText={i18next.t('label.tree_inventory_overview_polygon_left_text', {locationType})} rightText={''} />
                         <FlatList
                             data={Object.values(item.coordinates)}
                             renderItem={({ item: oneCoordinate, index }) => {
@@ -85,7 +86,7 @@ const InventoryOverview = ({ navigation, }) => {
                     navigation.navigate('TreeInventory')
                 })
             } else {
-                alert('Select atleast one species')
+                alert(i18next.t('label.inventory_overview_select_species'))
             }
         } else {
             navigation.navigate('TreeInventory')
@@ -111,7 +112,7 @@ const InventoryOverview = ({ navigation, }) => {
                 <SafeAreaView />
                 <View style={styles.mainContainer}>
                     <View style={styles.screenMargin}>
-                        <Header onBackPress={onBackPress} closeIcon headingText={`Location ${locationTitle}`} />
+                        <Header onBackPress={onBackPress} closeIcon headingText={i18next.t('label.inventory_overview_view_loc_modal_header', {locationTitle})} />
                     </View>
                     <MapboxGL.MapView
                         onDidFinishRenderingMapFully={focusMarker}
@@ -119,7 +120,7 @@ const InventoryOverview = ({ navigation, }) => {
                         <MapboxGL.Camera ref={cameraRef} />
                         {selectedLOC && <MapboxGL.PointAnnotation id={`markerContainer1`} coordinate={selectedLOC}>
                             <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-                                <Text style={styles.markerText}>{locationTitle}</Text>
+                                <Text style={styles.markerText}>{i18next.t('label.inventory_overview_loc', {locationTitle})}</Text>
                             </ImageBackground>
                         </MapboxGL.PointAnnotation>}
                     </MapboxGL.MapView>
@@ -134,17 +135,17 @@ const InventoryOverview = ({ navigation, }) => {
                 const granted = await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
                     {
-                        title: "Storage Permission",
-                        message: "App needs access to memory to download the file ",
-                        'buttonPositive': 'Ok'
+                        title: i18next.t('label.storage_permission_android_title'),
+                        message:  i18next.t('label.storage_permission_android_message'),
+                        'buttonPositive': i18next.t('label.permission_camera_ok')
                     }
                 );
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     resolve()
                 } else {
                     Alert.alert(
-                        "Permission Denied!",
-                        "You need to give storage permission to save geoJSON the file"
+                        i18next.t('label.storage_permission_denied_header'),
+                        i18next.t('label.storage_permission_denied_sub_header')
                     );
                 }
             } catch (err) {
@@ -178,7 +179,7 @@ const InventoryOverview = ({ navigation, }) => {
                 RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
                     .then((success) => {
                         alert(`GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`)
-                    }).catch((err) => alert('unable to save file '))
+                    }).catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')))
             }
         }
         if (Platform.OS == 'android') {
@@ -219,8 +220,8 @@ const InventoryOverview = ({ navigation, }) => {
     };
 
     const renderAddSpeciesButton = (status) => {
-        return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }} accessible={true} accessibilityLabel="Species Button" testID="species_btn">
-            <Text style={styles.plantSpeciesText}>{`Planted\nSpecies`}</Text>
+        return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }} accessibilityLabel="Species Button" testID="species_btn">
+            <Text style={styles.plantSpeciesText}>{i18next.t('label.inventory_overview_add_species')}</Text>
             <View style={styles.bannerImgContainer}>
                 <SvgXml xml={plus_icon} />
             </View>
@@ -235,7 +236,7 @@ const InventoryOverview = ({ navigation, }) => {
     }
 
     const onPressSaveAndContinue = (SelectSpeciesList) => {
-        //  Add it to local Db 
+        //  Add it to local Db
         addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
             initiatState()
         })
@@ -254,7 +255,7 @@ const InventoryOverview = ({ navigation, }) => {
     let isSingleCoordinate, locateType;
     if (inventory) {
         isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
-        locationType = isSingleCoordinate ? 'Single Coordinate' : 'Polygon';
+        locationType = isSingleCoordinate ? 'Point' : 'Polygon';
         locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site'
     }
 
@@ -266,19 +267,19 @@ const InventoryOverview = ({ navigation, }) => {
             <View style={styles.container}>
                 {inventory !== null ? <View style={styles.cont} >
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-                        <Header closeIcon headingText={'Review'} subHeadingText={'Trees will be added to your inventory to sync when you have internet.'} />
-                        <Label leftText={'Plant Date'} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={() => onPressDate(status)} />
+                        <Header closeIcon headingText={i18next.t('label.inventory_overview_header_text')} subHeadingText={i18next.t('label.inventory_overview_sub_header')} />
+                        <Label leftText={i18next.t('label.inventory_overview_left_text')} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={() => onPressDate(status)} />
                         {!isSingleCoordinate && <Label leftText={`${locateType} Registration`} rightText={''} />}
-                        <Label leftText={`Planted Species`} rightText={status == 'incomplete' ? 'Edit' : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
-                        <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={`${item.nameOfTree}`} rightText={`${item.treeCount} trees`} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
+                        <Label leftText={i18next.t('label.inventory_overview_left_text_planted_species')} rightText={status == 'incomplete' ? i18next.t('label.edit') : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
+                        <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={i18next.t('label.inventory_overview_loc_left_text', {item})} rightText={i18next.t('label.inventory_overview_loc_right_text', {item})} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
                         {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
                         {renderPolygon(inventory.polygons, locationType)}
-                        <LargeButton onPress={onPressExportJSON} heading={'Export GeoJson'} active={false} medium />
+                        <LargeButton onPress={onPressExportJSON} heading={i18next.t('label.inventory_overview_loc_export_json')} active={false} medium />
                     </ScrollView>
                     <View>
                         <View style={styles.bottomBtnsContainer}>
-                            <PrimaryButton btnText={'Next Tree'} halfWidth theme={'white'} />
-                            <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
+                            <PrimaryButton btnText={i18next.t('label.inventory_overview_loc_next_tree')} halfWidth theme={'white'} />
+                            <PrimaryButton onPress={onPressSave} btnText={i18next.t('label.inventory_overview_loc_save')} halfWidth />
                         </View>
                     </View>
                 </View> : null}

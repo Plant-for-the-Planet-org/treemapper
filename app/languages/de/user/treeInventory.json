@@ -1,0 +1,16 @@
+{
+  "tree_inventory_loading_modal": "Hochladen ...........",
+  "tree_inventory_left_text": "Ausstehender Upload",
+  "tree_inventory_right_text": "Jetzt hochladen",
+  "tree_inventory_view_upload": "Alle hochgeladenen Elemente anzeigen",
+  "tree_inventory_incomplete_registrations": "Unvollständige Registrierungen",
+  "tree_inventory_list_header": "Baum-Inventarisierung",
+  "tree_inventory_list_sub_header": "Hier ist es leer, bitte registriere einige Bäume, um etwas zu sehen.",
+  "tree_inventory_empty_list_header": "Baum-Inventarisierung",
+  "tree_inventory_list_container_sub_header": "Das Inventar wird nach Abschluss des Uploads gelöscht",
+  "tree_inventory_upload_list_header": "Hochgeladene Elemente",
+  "tree_inventory_upload_empty_btn_text": "Zurück zum Inventar",
+  "tree_inventory_alert_header": "Bist du sicher?",
+  "tree_inventory_alert_sub_header": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen.",
+  "tree_inventory_alert_primary_btn_text": "Bist du sicher?"
+}

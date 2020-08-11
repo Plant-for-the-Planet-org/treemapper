@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
+import i18next from '../../languages/languages';
 
 const { width, height } = Dimensions.get('window')
 
@@ -86,18 +87,18 @@ const MainScreen = ({ navigation }) => {
                     <View style={styles.bannerImgContainer}>
                         <SvgXml xml={main_screen_banner} />
                     </View>
-                    <Header headingText={'Tree Mapper'} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
+                    <Header headingText={i18next.t('label.tree_mapper')} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
                     <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={'Tree Inventory'} active={false} subHeading={'of draft and pending registrations'} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory" />
+                        <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={i18next.t('label.tree_inventory')} active={false} subHeading={i18next.t('label.tree_inventory_sub_header')} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory"/>
                     </ImageBackground>
                     <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={'Download Maps'} active={false} subHeading={'for offline use'} />
+                        <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={i18next.t('label.download_maps')} active={false} subHeading={i18next.t('label.download_maps_sub_header')} testID="page_map" accessibilityLabel="Download Map"/>
                     </ImageBackground>
                     <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
-                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={'Learn'} active={false} subHeading={'how to use Tree Mapper'} accessibilityLabel="Learn" testID="page_learn"/>
+                        <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={i18next.t('label.learn')} active={false} subHeading={i18next.t('label.learn_sub_header')} accessibilityLabel="Learn" testID="page_learn"/>
                     </ImageBackground>
                 </ScrollView>
-                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={'Register Tree'} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'}/>
+                <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={i18next.t('label.register_tree')} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'} />
             </View>
             {renderVideoModal()}
             <ProfileModal isUserLogin={isUserLogin} isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />

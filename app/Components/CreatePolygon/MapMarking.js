@@ -12,16 +12,18 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
+
 const infographicText = [
-    { heading: 'Alrighty!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'Now, please walk to the next corner and tap continue when ready' },
-    { heading: 'Great!', subHeading: 'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.' },
+    { heading: i18next.t('label.info_graphic_header_1'), subHeading: i18next.t('label.info_graphic_sub_header_1') },
+    { heading: i18next.t('label.info_graphic_header_2'), subHeading: i18next.t('label.info_graphic_sub_header_2') },
+    { heading: i18next.t('label.info_graphic_header_3'), subHeading: i18next.t('label.info_graphic_sub_header_3') },
 ]
-const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ALPHABETS = i18next.t('label.locate_tree_alphabets');
 const IS_ANDROID = Platform.OS == 'android';
 
 class MapMarking extends React.Component {
@@ -137,11 +139,11 @@ class MapMarking extends React.Component {
                     let distanceInMeters = distance * 1000;
 
                     if (!isValidMarkers) {
-                        alert('You are at the same location. Please walk to the next location.')
+                        alert(i18next.t('label.locate_tree_add_marker_valid'))
                     } else if (distanceInMeters < 100) {
                         this.pushMaker(complete, currentCoords)
                     } else {
-                        alert(`You are very far from your current location.`)
+                        alert(i18next.t('label.locate_tree_add_marker_invalid'))
                     }
                 }, (err) => alert(err.message));
             } catch (err) {
@@ -150,7 +152,7 @@ class MapMarking extends React.Component {
             }
         } else {
             this.setState({ isAlrightyModalShow: true })
-             try {
+            try {
                 Geolocation.getCurrentPosition(position => {
                     let currentCoords = position.coords;
                     this.pushMaker(complete, currentCoords)
@@ -164,14 +166,14 @@ class MapMarking extends React.Component {
     pushMaker = (complete, currentCoords) => {
         let { geoJSON, activePolygonIndex, centerCoordinates, locateTree } = this.state;
         const { activeMarkerIndex, updateActiveMarkerIndex } = this.props;
-         geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
+        geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = centerCoordinates;
         this.setState({ geoJSON }, () => {
             // change the state
             const { inventoryID } = this.props;
             const { geoJSON } = this.state;
 
             let data = { inventory_id: inventoryID, geoJSON: geoJSON, currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude } };
-             addCoordinates(data).then(() => {
+            addCoordinates(data).then(() => {
                 if (locateTree == 'on-site') {
                     let location = ALPHABETS[geoJSON.features[0].geometry.coordinates.length - (complete) ? 2 : 1]
                     this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length)
@@ -366,12 +368,12 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon(isShowCompletePolygonBtn)}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={'Select location & Continue'} style={styles.bottonBtnContainer} />
+                        <PrimaryButton disabled={loader} onPress={() => this.addMarker()} btnText={i18next.t('label.tree_map_marking_btn')} style={styles.bottonBtnContainer} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'transparent']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Location ${location}`} closeIcon subHeadingText={'Please visit first corner of the plantation and select your location'} />
+                    <Header onBackPress={this.onPressBack} headingText={`${i18next.t('label.locate_tree_location')} ${location}`} closeIcon subHeadingText={i18next.t('label.locate_tree_map_marking_sub_header')} />
                 </LinearGradient>
                 <View>
                 </View>
