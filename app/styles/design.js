@@ -6,10 +6,10 @@ import { Colors, Typography } from '_styles';
 // use StyleSheet.create()
 
 export const FONT_NAVBAR_TITLE = {
-    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
-    color: Colors.TEXT_COLOR
-}
+  fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+  fontSize: Typography.FONT_SIZE_27,
+  lineHeight: Typography.LINE_HEIGHT_40,
+  color: Colors.TEXT_COLOR
+};
 
 

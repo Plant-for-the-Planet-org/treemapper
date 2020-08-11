@@ -15,5 +15,5 @@ const plus_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://w
   <path id="Path_3714" data-name="Path 3714" d="M442.828,80.987H434.47V72.63h-1.285v8.357h-8.357v1.286h8.357V90.63h1.285V82.273h8.358Z" transform="translate(-113 859)" fill="#87b738"/>
 </g>
 </svg>
-`
-export { plus_icon }
+`;
+export { plus_icon };

@@ -14,6 +14,6 @@ const active_marker = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" heigh
     </g>
   </g>
 </svg>
-`)
+`);
 
-export { active_marker }
+export { active_marker };

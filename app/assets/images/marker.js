@@ -11,6 +11,6 @@ const marker_png = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="
     <line id="Line_38" data-name="Line 38" y2="10" transform="translate(158 511.59)" fill="none" stroke="#87b738" stroke-width="1"/>
     <circle id="Ellipse_184" data-name="Ellipse 184" cx="2" cy="2" r="2" transform="translate(156 518.09)" fill="#87b738"/>
   </g>
-</svg>`)
-export { marker_png }
+</svg>`);
+export { marker_png };
 
