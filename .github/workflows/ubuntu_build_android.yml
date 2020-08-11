@@ -58,9 +58,6 @@ jobs:
       env:
         android_release_password: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
       run: |
-        # react-native-i18n has an incompatible manifest
-        search='<uses-sdk android:minSdkVersion="16" />'
-        sed -i "s|${search}||g" node_modules/react-native-i18n/android/src/main/AndroidManifest.xml
         # prepare local.properties
         echo "MYAPP_RELEASE_STORE_PASSWORD=$android_release_password" > android/local.properties
         echo "MYAPP_RELEASE_KEY_PASSWORD=$android_release_password" >> android/local.properties
