@@ -35,9 +35,13 @@ const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVis
             <View style={styles.container}>
                 {userInfo && <View style={styles.subContainer}>
                     <View style={styles.headerContainer}>
-                        <TouchableOpacity onPress={onPressCloseProfileModal}>
-                            <Image source={close} />
-                        </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={onPressCloseProfileModal}
+                      accessible={true}
+                      accessibilityLabel="Profile Modal"
+                      testID="profile_modal">
+                      <Image source={close} />
+                    </TouchableOpacity>
                         <SvgXml xml={logo} />
                         <View />
                     </View>

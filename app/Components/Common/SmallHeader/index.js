@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -10,7 +9,7 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, styl
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
             <Text style={styles.subHeadingText}>{leftText}</Text>
             <View>
-                <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }}>
+                <TouchableOpacity onPress={onPressRight} style={{ flexDirection: 'row' }} accessibilityLabel="Small header" accessible={true} testID="small_header">
                     <Text style={[styles.uploadNowBtn, styles.activeText, rightTheme == 'red' && styles.redTheme]}>{rightText}</Text>
                     {icon && <MCIcons name={icon} size={22} style={styles.activeText} />}
                 </TouchableOpacity>

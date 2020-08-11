@@ -43,7 +43,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         let isCheck = item.treeCount ? true : false;
         console.log('localName', Number(item.treeCount).toLocaleString())
         return (
-            <TouchableOpacity key={index} onPress={() => onPressSpecie(index)} style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <TouchableOpacity key={index} onPress={() => onPressSpecie(index)} style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 20 }} accessible={true} accessibilityLabel="Species Card" testID="species_card">
                 <View>
                     <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
                 </View>

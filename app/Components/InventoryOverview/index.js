@@ -220,7 +220,7 @@ const InventoryOverview = ({ navigation, }) => {
     };
 
     const renderAddSpeciesButton = (status) => {
-        return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }}>
+        return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }} accessibilityLabel="Species Button" testID="species_btn">
             <Text style={styles.plantSpeciesText}>{i18next.t('label.inventory_overview_add_species')}</Text>
             <View style={styles.bannerImgContainer}>
                 <SvgXml xml={plus_icon} />

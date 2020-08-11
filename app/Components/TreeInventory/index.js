@@ -74,7 +74,7 @@ const TreeInventory = ({ navigation }) => {
                         locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`
                     }
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
-                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={'cloud-outline'} data={data} /></TouchableOpacity>)
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)} accessibilityLabel="Inventory List" accessible={true} testID="inventory_list"><InventoryCard icon={'cloud-outline'} data={data} /></TouchableOpacity>)
                 }}
             />
         )

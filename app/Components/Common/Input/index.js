@@ -13,7 +13,7 @@ const Input = ({ label, value, editable, placeholder, style }) => {
     return (
         <View style={[styles.container, style]}>
             <Text style={styles.label}>{label}</Text>
-            <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer}>
+            <TouchableOpacity disabled={editable == false} onPress={onPressLabel} style={styles.valueContainer} accessible={true} accessibilityLabel="Input Button" testID="input_btn">
                 <Text style={styles.value}>{value ? value : placeholder}</Text>
             </TouchableOpacity>
         </View>

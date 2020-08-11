@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Colors, Typography } from '_styles';

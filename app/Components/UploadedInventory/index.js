@@ -83,7 +83,9 @@ const UploadedInventory = ({ navigation }) => {
                         locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`
                     }
                     let data = { title: title, subHeading: locateTreeAndType, date: moment(new Date(Number(item.plantation_date))).format('ll'), imageURL: imageURL }
-                    return (<TouchableOpacity onPress={() => onPressInventory(item)}><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)
+
+                    return (<TouchableOpacity onPress={() => onPressInventory(item)} accessible={true} accessibilityLabel="Upload Inventory List" testID="upload_inventory_list"><InventoryCard icon={'cloud-check'} data={data} /></TouchableOpacity>)
+
                 }}
             />
         )
@@ -92,7 +94,7 @@ const UploadedInventory = ({ navigation }) => {
     const renderInventory = () => {
         return <View style={styles.cont}>
             {allInventory.length > 0 && <>
-                <TouchableOpacity onPress={toogleIsShowFreeUpSpaceAlert}>
+                <TouchableOpacity onPress={toogleIsShowFreeUpSpaceAlert} accessible={true} accessibilityLabel="Free Up Space" testID="free_up_space">
                     <Text style={styles.freeUpSpace}>Free Up Space</Text>
                 </TouchableOpacity>
                 {renderInventoryList(allInventory)}
