@@ -44,5 +44,5 @@ const alrighty_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="110%" h
   <rect id="Rectangle_1193" data-name="Rectangle 1193" width="1.974" height="13.816" transform="translate(83.528 425.244)" fill="#4d5153"/>
 </g>
 </svg>
-`)
-export { alrighty_banner }
+`);
+export { alrighty_banner };

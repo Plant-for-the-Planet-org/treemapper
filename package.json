@@ -7,7 +7,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint app",
+    "lint": "eslint app --fix",
     "lint:errors": "eslint app --quiet"
   },
   "dependencies": {
@@ -58,6 +58,8 @@
     "eslint": "6.8.0",
     "eslint-import-resolver-babel-module": "^5.1.2",
     "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-react": "^7.20.5",
+    "eslint-plugin-react-native": "^3.8.1",
     "jest": "^25.1.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "react-test-renderer": "16.13.1"

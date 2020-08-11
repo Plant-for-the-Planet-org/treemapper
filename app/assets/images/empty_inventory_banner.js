@@ -21,5 +21,5 @@ const empty_inventory_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="
   <path id="Path_3698" data-name="Path 3698" d="M949.215,138.8l12.413-9.928c-9.643-1.064-13.606,4.2-15.227,8.358-7.534-3.128-15.735.972-15.735.972l24.837,9.017a18.8,18.8,0,0,0-6.288-8.418Z" transform="translate(-702.904 175.052)" fill="#3f3d56"/>
 </g>
 </svg>
-`)
-export { empty_inventory_banner }
+`);
+export { empty_inventory_banner };

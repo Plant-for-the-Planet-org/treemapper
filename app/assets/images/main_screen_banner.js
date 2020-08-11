@@ -68,6 +68,6 @@ const main_screen_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="100%
   <rect id="Rectangle_1196" data-name="Rectangle 1196" width="1.974" height="13.816" transform="translate(154.528 314.244)" fill="#4d5153"/>
 </g>
 </svg>
-`)
+`);
 
-export { main_screen_banner }
+export { main_screen_banner };
