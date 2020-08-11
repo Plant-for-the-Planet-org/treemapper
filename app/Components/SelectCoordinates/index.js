@@ -12,6 +12,7 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -205,12 +206,12 @@ class SelectCoordinates extends React.Component {
                 <View>
                     {this.renderMyLocationIcon()}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={{ width: '90%', }} />
+                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={i18next.t('label.tree_map_marking_btn')} style={{ width: '90%', }} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} headingText={`Tree Location`} />
+                    <Header onBackPress={this.onPressBack} headingText={i18next.t('label.tree_map_marking_header')} />
                 </LinearGradient>
                 <View>
                 </View>

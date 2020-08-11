@@ -9,6 +9,7 @@ import { LocalInventoryActions } from '../../Actions/Action'
 import { empty_inventory_banner } from "../../assets";
 import { SvgXml } from "react-native-svg";
 import moment from "moment";
+import i18next from 'i18next';
 
 const UploadedInventory = ({ navigation }) => {
     const { dispatch } = useContext(store)
@@ -101,17 +102,17 @@ const UploadedInventory = ({ navigation }) => {
 
     const renderLoadingInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Uploaded Items'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_upload_list_header')} style={{ marginHorizontal: 25 }} />
             <ActivityIndicator size={25} color={Colors.PRIMARY} />
         </View>)
     }
 
     const renderEmptyInventoryList = () => {
         return (<View style={styles.cont}>
-            <Header headingText={'Uploaded Items'} style={{ marginHorizontal: 25 }} />
+            <Header headingText={i18next.t('label.tree_inventory_upload_list_header')} style={{ marginHorizontal: 25 }} />
             <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
             <View style={styles.parimaryBtnCont}>
-                <PrimaryButton onPress={() => navigation.navigate('TreeInventory')} btnText={'Back to Inventory'} />
+                <PrimaryButton onPress={() => navigation.navigate('TreeInventory')} btnText={i18next.t('label.tree_inventory_upload_empty_btn_text')} />
             </View>
         </View>)
     }
@@ -119,7 +120,7 @@ const UploadedInventory = ({ navigation }) => {
     const renderInventoryListContainer = () => {
         return (<View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} >
-                <Header headingText={'Uploaded Items'} />
+                <Header headingText={i18next.t('label.tree_inventory_upload_list_header')} />
                 {renderInventory()}
             </ScrollView>
             <SafeAreaView />
@@ -130,7 +131,7 @@ const UploadedInventory = ({ navigation }) => {
         <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <SafeAreaView />
             {allInventory && allInventory.length > 0 ? renderInventoryListContainer() : allInventory == null ? renderLoadingInventoryList() : renderEmptyInventoryList()}
-            <AlertModal visible={isShowFreeUpSpaceAlert} heading={'Are You Sure?'} message={'The registrations are safe on cloud. Once the registrations are deleted, currently it is not possible to retrieve them on this app.'} primaryBtnText={'Sure Delete'} secondaryBtnText={'Go Back'} onPressPrimaryBtn={freeUpSpace} onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert} />
+            <AlertModal visible={isShowFreeUpSpaceAlert} heading={i18next.t('label.tree_inventory_alert_header')} message={i18next.t('label.tree_inventory_alert_sub_header')} primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')} secondaryBtnText={i18next.t('label.alright_modal_white_btn')} onPressPrimaryBtn={freeUpSpace} onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert} />
         </View>
     )
 }

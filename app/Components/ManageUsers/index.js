@@ -3,13 +3,14 @@ import { View, StyleSheet } from 'react-native';
 import { Header } from '../Common';
 import { SafeAreaView } from 'react-native'
 import { Colors } from '_styles';
+import i18next from 'i18next';
 
 
 const ManageUsers = ({  }) => {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-                <Header headingText={'Manage Users'} subHeadingText={'List of all users you’ve invited to use tree inventory'} />
+                <Header headingText={i18next.t('label.manage_user_header')} subHeadingText={i18next.t('label.manage_user_sub_header')} />
                 <View style={styles.cont}>
 
                 </View>

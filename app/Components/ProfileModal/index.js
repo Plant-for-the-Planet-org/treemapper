@@ -5,6 +5,7 @@ import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
 import { getUserInformation } from "../../Actions";
+import i18next from 'i18next';
 
 const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVisible, onPressLogout }) => {
 
@@ -48,14 +49,14 @@ const ProfileModal = ({ isUserLogin, onPressCloseProfileModal, isProfileModalVis
                         </View>
                     </View>
                     <View style={styles.bottomBtnsContainer}>
-                        <PrimaryButton btnText={'Edit Profile'} halfWidth theme={'white'} style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
-                        <PrimaryButton onPress={onPressLogout} btnText={'Logout'} theme={'white'} halfWidth style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
+                        <PrimaryButton btnText={i18next.t('label.edit_profile')} halfWidth theme={'white'} style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
+                        <PrimaryButton onPress={onPressLogout} btnText={i18next.t('label.logout')} theme={'white'} halfWidth style={styles.primaryBtnContainer} textStyle={styles.primaryBtnText} />
                     </View>
                     <View style={styles.horizontalBar} />
                     <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
-                        <Text onPress={onPressPolicy} style={styles.textAlignCenter}>Privacy Policy</Text>
+                        <Text onPress={onPressPolicy} style={styles.textAlignCenter}>{i18next.t('label.privacy_policy')}</Text>
                         <Text>•</Text>
-                        <Text onPress={onPressSupport} style={styles.textAlignCenter}>Support</Text>
+                        <Text onPress={onPressSupport} style={styles.textAlignCenter}>{i18next.t('label.support')}</Text>
                     </View>
                 </View>}
                 <View />

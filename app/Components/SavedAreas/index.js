@@ -6,6 +6,7 @@ import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { getAllOfflineMaps, deleteOfflineMap } from '../../Actions'
+import i18next from 'i18next';
 
 
 
@@ -44,7 +45,7 @@ const SavedAreas = ({ navigation }) => {
                     <Text style={styles.subHeadingText}>{areaName}</Text>
                     <View style={styles.bottomContainer}>
                         <Text style={[styles.subHeadingText, styles.regularText]}>{`${(size / 1000)} MB`}</Text>
-                        <Text style={[styles.subHeadingText, styles.redText]} onPress={() => deleteArea(name)}>{'Delete'}</Text>
+                        <Text style={[styles.subHeadingText, styles.redText]} onPress={() => deleteArea(name)}>{i18next.t('labelsave_areas_delete')}</Text>
                     </View>
                 </View>
             </View>
@@ -54,14 +55,14 @@ const SavedAreas = ({ navigation }) => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
             <View style={styles.container}>
-                <Header headingText={'Saved Areas'} />
+                <Header headingText={i18next.t('label.save_areas_header')} />
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.areaListContainer}>
                     {areas && areas.length > 0 ? < FlatList
                         data={areas}
                         renderItem={renderSavedAreaItem}
-                    /> : areas && areas.length == 0 ? <Text style={{ alignSelf: 'center', textAlignVertical: 'center', margin: 20 }}>No offline area found</Text> : <ActivityIndicator />}
+                    /> : areas && areas.length == 0 ? <Text style={{ alignSelf: 'center', textAlignVertical: 'center', margin: 20 }}>{i18next.t('label.save_areas_offline')}</Text> : <ActivityIndicator />}
                 </ScrollView>
-                <PrimaryButton onPress={onPressAddArea} btnText={'Add Area'} />
+                <PrimaryButton onPress={onPressAddArea} btnText={i18next.t('label.save_areas_add_area')} />
             </View>
         </SafeAreaView>
     )

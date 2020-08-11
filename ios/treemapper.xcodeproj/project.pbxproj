@@ -18,6 +18,7 @@
 		2DCD954D1E0B4F2C00145EB5 /* treemapperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* treemapperTests.m */; };
 		63AB860FEF872767267EAC84 /* libPods-treemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BE722054B5D5A8289BA867A2 /* libPods-treemapper.a */; };
 		6B2967AB24C95D480025A1E2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */; };
+		6BD599BD24DFF67F00E90953 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6BD599BF24DFF67F00E90953 /* InfoPlist.strings */; };
 		812BB111941AE41145D25D15 /* libPods-treemapper-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E884C5491DFF998FB496A0D /* libPods-treemapper-tvOS.a */; };
 		C46E965824740409003148A3 /* OpenSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */; };
 		C46E965924740411003148A3 /* OpenSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */; };
@@ -68,6 +69,11 @@
 		4A744DF6EAD84ED68E567CA0 /* OpenSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6B2B65B55D99DB7473C6C3EE /* libPods-treemapper-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BD599BE24DFF67F00E90953 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6BD599C024DFF68700E90953 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6BD599C124DFF68700E90953 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6BD599C224DFF68800E90953 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		6BD599C324DFF68900E90953 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6E884C5491DFF998FB496A0D /* libPods-treemapper-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		71CC7B10BB7A41429F9F70DF /* OpenSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBold.ttf"; path = "../app/assets/fonts/OpenSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		74B118A88197BE5EAE224C1A /* Pods-treemapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.release.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.release.xcconfig"; sourceTree = "<group>"; };
@@ -165,6 +171,7 @@
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
+				6BD599BF24DFF67F00E90953 /* InfoPlist.strings */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */,
 			);
@@ -394,7 +401,10 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
-				Base,
+				es,
+				fr,
+				de,
+				"pt-BR",
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
@@ -424,6 +434,7 @@
 				C46E966124740425003148A3 /* OpenSans-SemiBoldItalic.ttf in Resources */,
 				C46E965F24740421003148A3 /* OpenSans-Regular.ttf in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				6BD599BD24DFF67F00E90953 /* InfoPlist.strings in Resources */,
 				C46E966024740423003148A3 /* OpenSans-SemiBold.ttf in Resources */,
 				C46E965B24740417003148A3 /* OpenSans-ExtraBoldItalic.ttf in Resources */,
 				C46E965D2474041C003148A3 /* OpenSans-Light.ttf in Resources */,
@@ -843,6 +854,21 @@
 			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		6BD599BF24DFF67F00E90953 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6BD599BE24DFF67F00E90953 /* en */,
+				6BD599C024DFF68700E90953 /* fr */,
+				6BD599C124DFF68700E90953 /* de */,
+				6BD599C224DFF68800E90953 /* pt-BR */,
+				6BD599C324DFF68900E90953 /* es */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {

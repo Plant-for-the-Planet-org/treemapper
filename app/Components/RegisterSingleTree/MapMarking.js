@@ -12,6 +12,7 @@ import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from "react-native-config";
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -204,13 +205,13 @@ class MapMarking extends React.Component {
 
         const onPressClose = () => this.setState({ isAlrightyModalShow: false })
 
-        let subHeading = `As you’re near to the tree, you can take a picture in the next step. Please click continue when you’re ready.`;
-        let heading = `Picture Time!`;
+        let subHeading = i18next.t('label.alright_modal_sub_header');
+        let heading = i18next.t('label.alright_modal_header');
         let bannerImage = undefined;
-        let whiteBtnText = 'Go Back';
+        let whiteBtnText = i18next.t('label.alright_modal_white_btn');
         if (locateTree == 'off-site') {
-            subHeading = `We see that you’re far away the tree. Please click continue to add details about the tree.`;
-            heading = `Off Site Enabled!`;
+            subHeading = i18next.t('label.alright_modal_off_site_sub_header');
+            heading = i18next.t('label.alright_modal_off_site_header');
             bannerImage = off_site_enable_banner;
             whiteBtnText = undefined;
 
@@ -257,12 +258,12 @@ class MapMarking extends React.Component {
                 <View>
                     {this.renderMyLocationIcon()}
                     <View style={styles.continueBtnCont}>
-                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={'Select location & Continue'} style={styles.bottomBtnWith} />
+                        <PrimaryButton onPress={this.addMarker} disabled={loader} btnText={i18next.t('label.tree_map_marking_btn')} style={styles.bottomBtnWith} />
                     </View>
                 </View>
                 <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']} >
                     <SafeAreaView />
-                    <Header onBackPress={this.onPressBack} closeIcon headingText={`Tree Location`} />
+                    <Header onBackPress={this.onPressBack} closeIcon headingText={i18next.t('label.tree_map_marking_header')} />
                 </LinearGradient>
                 <View>
                 </View>
