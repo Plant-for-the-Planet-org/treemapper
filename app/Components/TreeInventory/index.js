@@ -204,7 +204,7 @@ const TreeInventory = ({ navigation }) => {
             <SmallHeader
               onPressRight={onPressClearAll}
               leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
-              rightText={'Clear All'}
+              rightText={i18next.t('label.tree_inventory_clear_all')}
               rightTheme={'red'}
               style={{ marginVertical: 15 }}
             />

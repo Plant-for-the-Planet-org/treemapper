@@ -1,0 +1,15 @@
+{
+    "tree_review_header": "Review",
+    "tree_review_next_btn": "Next Tree",
+    "tree_review_Save": "Save",
+    "tree_review_name_of_species": "Name of Specie",
+    "tree_review_diameter": "Diameter",
+    "tree_review_location": "LOCATION",
+    "tree_review_specie": "SPECIES",
+    "tree_review_unable": "Unable to identify",
+    "tree_review_diameter_header": "DIAMETER (in cm)",
+    "tree_review_specie_text": "{{specieText}}",
+    "tree_review_specie_diameter": "{{specieDiameter}}cm",
+    "tree_review_plantation_date": "PLANTAION DATE",
+    "tree_Review_plantation_date_text": "{{date, ll}}"
+}
