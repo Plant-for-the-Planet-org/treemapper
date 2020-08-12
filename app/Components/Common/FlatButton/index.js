@@ -3,7 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 const FlatButton = ({ text, style, primary, onPress }) => {
-  return (<Text onPress={onPress} style={[styles.flatBtn, primary && styles.primaryColor, style]}>{text}</Text>);
+  return (
+    <Text onPress={onPress} style={[styles.flatBtn, primary && styles.primaryColor, style]}>
+      {text}
+    </Text>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -13,7 +17,7 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
-  primaryColor: { color: Colors.PRIMARY }
+  primaryColor: { color: Colors.PRIMARY },
 });
 
 export default FlatButton;

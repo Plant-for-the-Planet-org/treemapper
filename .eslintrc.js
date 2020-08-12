@@ -21,10 +21,12 @@ module.exports = {
     },
     "plugins": [
         "react",
-        "react-native"
+        "react-native",
+        "prettier"
     ],
+    "parser": "babel-eslint",
     "rules": {
-      indent: ['error', 2],
+      indent: ['error', 2, { SwitchCase: 1 }],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
       'linebreak-style': ['error', 'unix'],
@@ -36,5 +38,6 @@ module.exports = {
       'react-native/split-platform-components': ['warn'],
       'react-native/no-inline-styles': ['warn'],
       'react-native/no-color-literals': ['off'],
+      'prettier/prettier': 'error',
     }
 };

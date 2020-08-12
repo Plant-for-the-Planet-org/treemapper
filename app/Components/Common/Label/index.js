@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-
 
 const Label = ({ leftText, rightText, onPressRightText, leftTextStyle, rightTextStyle, style }) => {
   return (
@@ -11,7 +10,13 @@ const Label = ({ leftText, rightText, onPressRightText, leftTextStyle, rightText
           <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
         </View>
         <TouchableOpacity onPress={onPressRightText}>
-          <Text style={[styles.rightText, rightTextStyle]} accessibilityLabel="Label Button" accessible={true} testID="label_btn">{rightText}</Text>
+          <Text
+            style={[styles.rightText, rightTextStyle]}
+            accessibilityLabel="Label Button"
+            accessible={true}
+            testID="label_btn">
+            {rightText}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -21,14 +26,16 @@ export default Label;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row', justifyContent: 'space-between', marginVertical: 15
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 15,
   },
   headerText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_27,
     lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_BOLD
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
   leftText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -44,8 +51,5 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
   },
-  backArrow: {
-
-  }
-
+  backArrow: {},
 });

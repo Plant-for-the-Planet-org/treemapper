@@ -12,4 +12,18 @@ import Alrighty from './Alrighty';
 import AlertModal from './AlertModal';
 import FlatButton from './FlatButton';
 
-export { Header, LargeButton, PrimaryButton, Input, Accordian, SmallHeader, InventoryCard, Label, LabelAccordian, MainScreenHeader, Alrighty, AlertModal, FlatButton };
+export {
+  Header,
+  LargeButton,
+  PrimaryButton,
+  Input,
+  Accordian,
+  SmallHeader,
+  InventoryCard,
+  Label,
+  LabelAccordian,
+  MainScreenHeader,
+  Alrighty,
+  AlertModal,
+  FlatButton,
+};

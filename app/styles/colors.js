@@ -1,4 +1,3 @@
-
 let PRIMARY = '#89B53A';
 // export let SECONDARY = '#767676';
 let WHITE = '#FFFFFF';
@@ -17,7 +16,6 @@ let GRAY_MEDIUM = '#E1E2E2';
 let GRAY_DARK = '#D3D3D3';
 let GRAY_LIGHTEST = '#707070';
 
-
 export {
   PRIMARY,
   WHITE,
@@ -31,5 +29,5 @@ export {
   GRAY_MEDIUM,
   GRAY_DARK,
   DISABLE,
-  GRAY_LIGHTEST
+  GRAY_LIGHTEST,
 };

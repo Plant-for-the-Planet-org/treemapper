@@ -10,7 +10,6 @@ import JailMonkey from 'jail-monkey';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 
-
 const LocateTree = ({ navigation }) => {
   const isRooted = JailMonkey.isJailBroken();
 
@@ -57,15 +56,54 @@ const LocateTree = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
-        <Header headingText={i18next.t('label.locate_tree_header')} testID={'btn_back'} accessibilityLabel={'Back'} />
+        <Header
+          headingText={i18next.t('label.locate_tree_header')}
+          testID={'btn_back'}
+          accessibilityLabel={'Back'}
+        />
         <ScrollView showsVerticalScrollIndicator={false}>
-          <LargeButton disabled={isRooted} onPress={() => onPressItem('on-site')} heading={i18next.t('label.locate_tree_heading')} subHeading={i18next.t('label.locate_tree_sub_heading')} active={locateTree == 'on-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_on_site_polygon'} accessibilityLabel={'On Site'} />
-          <LargeButton onPress={() => onPressItem('off-site')} heading={i18next.t('label.locate_tree_off_site')} subHeading={i18next.t('label.locate_tree_off_site_sub_heading')} active={locateTree == 'off-site'} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_polygon'} accessibilityLabel={'Off Site Polygon'} />
-          <LargeButton onPress={onPressSelectCoordinates} heading={i18next.t('label.locate_tree_off_site_point_heading')} subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')} active={isSelectCoordinates} subHeadingStyle={{ fontStyle: 'italic' }} testID={'page_off_site_point'} accessibilityLabel={'Off Site Point'} />
-          <LargeButton onPress={onPressSelectCoordinates} heading={i18next.t('label.locate_tree_geo_json')} subHeadingStyle={{ fontStyle: 'italic' }} rightIcon={<SvgXml xml={cloud_upload_gray} />} />
+          <LargeButton
+            disabled={isRooted}
+            onPress={() => onPressItem('on-site')}
+            heading={i18next.t('label.locate_tree_heading')}
+            subHeading={i18next.t('label.locate_tree_sub_heading')}
+            active={locateTree == 'on-site'}
+            subHeadingStyle={{ fontStyle: 'italic' }}
+            testID={'page_on_site_polygon'}
+            accessibilityLabel={'On Site'}
+          />
+          <LargeButton
+            onPress={() => onPressItem('off-site')}
+            heading={i18next.t('label.locate_tree_off_site')}
+            subHeading={i18next.t('label.locate_tree_off_site_sub_heading')}
+            active={locateTree == 'off-site'}
+            subHeadingStyle={{ fontStyle: 'italic' }}
+            testID={'page_off_site_polygon'}
+            accessibilityLabel={'Off Site Polygon'}
+          />
+          <LargeButton
+            onPress={onPressSelectCoordinates}
+            heading={i18next.t('label.locate_tree_off_site_point_heading')}
+            subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')}
+            active={isSelectCoordinates}
+            subHeadingStyle={{ fontStyle: 'italic' }}
+            testID={'page_off_site_point'}
+            accessibilityLabel={'Off Site Point'}
+          />
+          <LargeButton
+            onPress={onPressSelectCoordinates}
+            heading={i18next.t('label.locate_tree_geo_json')}
+            subHeadingStyle={{ fontStyle: 'italic' }}
+            rightIcon={<SvgXml xml={cloud_upload_gray} />}
+          />
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
-        <PrimaryButton onPress={onPressContinue} btnText={i18next.t('label.continue')} testID={'btn_continue'} accessibilityLabel={'Continue'} />
+        <PrimaryButton
+          onPress={onPressContinue}
+          btnText={i18next.t('label.continue')}
+          testID={'btn_continue'}
+          accessibilityLabel={'Continue'}
+        />
       </View>
     </SafeAreaView>
   );
@@ -76,10 +114,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.WHITE,
   },
   mainContainer: {
-    flex: 1, backgroundColor: Colors.WHITE
+    flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   cont: {
     flex: 1,
@@ -89,6 +128,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_30,
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
 });

@@ -15,7 +15,6 @@ import i18next from '../../languages/languages';
 const { width, height } = Dimensions.get('window');
 
 const MainScreen = ({ navigation }) => {
-
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
@@ -27,7 +26,6 @@ const MainScreen = ({ navigation }) => {
       setNumberOfInventory(Object.values(data).length);
     });
   }, []);
-
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
@@ -48,12 +46,14 @@ const MainScreen = ({ navigation }) => {
   };
 
   const checkIsLogin = () => {
-    isLogin().then((data) => {
-      setIsUserLogin(data);
-    }).catch((err) => {
-      onPressCloseProfileModal();
-      setIsUserLogin(false);
-    });
+    isLogin()
+      .then((data) => {
+        setIsUserLogin(data);
+      })
+      .catch((err) => {
+        onPressCloseProfileModal();
+        setIsUserLogin(false);
+      });
   };
 
   const onPressLogout = () => {
@@ -67,15 +67,24 @@ const MainScreen = ({ navigation }) => {
     return (
       <Modal visible={isModalVisible} animationType={'slide'}>
         <View style={styles.modalContainer}>
-          <Ionicons name={'md-close'} size={30} color={Colors.WHITE} onPress={onPressLearn} style={styles.closeIcon} />
-          {isModalVisible && <Video
-            repeat={true}
-            resizeMode={'contain'}
-            posterResizeMode={'stretch'}
-            source={require('./learn.mp4')}
-            style={styles.videoPLayer} />}
+          <Ionicons
+            name={'md-close'}
+            size={30}
+            color={Colors.WHITE}
+            onPress={onPressLearn}
+            style={styles.closeIcon}
+          />
+          {isModalVisible && (
+            <Video
+              repeat={true}
+              resizeMode={'contain'}
+              posterResizeMode={'stretch'}
+              source={require('./learn.mp4')}
+              style={styles.videoPLayer}
+            />
+          )}
         </View>
-      </Modal >
+      </Modal>
     );
   };
 
@@ -83,25 +92,71 @@ const MainScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeAreaViewCont}>
       <View style={styles.container}>
         <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-          <MainScreenHeader onPressLogin={onPressLogin} isUserLogin={isUserLogin} testID={'btn_login'} accessibilityLabel={'Login / Sign Up'}/>
+          <MainScreenHeader
+            onPressLogin={onPressLogin}
+            isUserLogin={isUserLogin}
+            testID={'btn_login'}
+            accessibilityLabel={'Login / Sign Up'}
+          />
           <View style={styles.bannerImgContainer}>
             <SvgXml xml={main_screen_banner} />
           </View>
-          <Header headingText={i18next.t('label.tree_mapper')} hideBackIcon textAlignStyle={{ textAlign: 'center' }} />
+          <Header
+            headingText={i18next.t('label.tree_mapper')}
+            hideBackIcon
+            textAlignStyle={{ textAlign: 'center' }}
+          />
           <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-            <LargeButton onPress={() => onPressLargeButtons('TreeInventory')} notification style={styles.customStyleLargeBtn} heading={i18next.t('label.tree_inventory')} active={false} subHeading={i18next.t('label.tree_inventory_sub_header')} notification={numberOfInventory > 0 && numberOfInventory} testID="page_tree_inventory" accessibilityLabel="Tree Inventory"/>
+            <LargeButton
+              onPress={() => onPressLargeButtons('TreeInventory')}
+              notification
+              style={styles.customStyleLargeBtn}
+              heading={i18next.t('label.tree_inventory')}
+              active={false}
+              subHeading={i18next.t('label.tree_inventory_sub_header')}
+              notification={numberOfInventory > 0 && numberOfInventory}
+              testID="page_tree_inventory"
+              accessibilityLabel="Tree Inventory"
+            />
           </ImageBackground>
           <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
-            <LargeButton onPress={() => onPressLargeButtons('DownloadMap')} style={styles.customStyleLargeBtn} heading={i18next.t('label.download_maps')} active={false} subHeading={i18next.t('label.download_maps_sub_header')} testID="page_map" accessibilityLabel="Download Map"/>
+            <LargeButton
+              onPress={() => onPressLargeButtons('DownloadMap')}
+              style={styles.customStyleLargeBtn}
+              heading={i18next.t('label.download_maps')}
+              active={false}
+              subHeading={i18next.t('label.download_maps_sub_header')}
+              testID="page_map"
+              accessibilityLabel="Download Map"
+            />
           </ImageBackground>
           <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
-            <LargeButton onPress={onPressLearn} rightIcon={rightIcon} style={styles.customStyleLargeBtn} heading={i18next.t('label.learn')} active={false} subHeading={i18next.t('label.learn_sub_header')} accessibilityLabel="Learn" testID="page_learn"/>
+            <LargeButton
+              onPress={onPressLearn}
+              rightIcon={rightIcon}
+              style={styles.customStyleLargeBtn}
+              heading={i18next.t('label.learn')}
+              active={false}
+              subHeading={i18next.t('label.learn_sub_header')}
+              accessibilityLabel="Learn"
+              testID="page_learn"
+            />
           </ImageBackground>
         </ScrollView>
-        <PrimaryButton onPress={() => onPressLargeButtons('RegisterTree')} btnText={i18next.t('label.register_tree')} testID={'btn_register_trees'} accessibilityLabel={'Register Tree'} />
+        <PrimaryButton
+          onPress={() => onPressLargeButtons('RegisterTree')}
+          btnText={i18next.t('label.register_tree')}
+          testID={'btn_register_trees'}
+          accessibilityLabel={'Register Tree'}
+        />
       </View>
       {renderVideoModal()}
-      <ProfileModal isUserLogin={isUserLogin} isProfileModalVisible={isProfileModalVisible} onPressCloseProfileModal={onPressCloseProfileModal} onPressLogout={onPressLogout} />
+      <ProfileModal
+        isUserLogin={isUserLogin}
+        isProfileModalVisible={isProfileModalVisible}
+        onPressCloseProfileModal={onPressCloseProfileModal}
+        onPressLogout={onPressLogout}
+      />
     </SafeAreaView>
   );
 };
@@ -109,34 +164,47 @@ export default MainScreen;
 
 const styles = StyleSheet.create({
   safeAreaViewCont: {
-    flex: 1, backgroundColor: Colors.WHITE
+    flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.WHITE,
   },
   modalContainer: {
-    flex: 1, backgroundColor: Colors.BLACK, padding: 30
+    flex: 1,
+    backgroundColor: Colors.BLACK,
+    padding: 30,
   },
   addSpecies: {
     color: Colors.ALERT,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   customStyleLargeBtn: {
-    backgroundColor: 'transparent', paddingVertical: 10, marginVertical: 0, borderWidth: .1,
+    backgroundColor: 'transparent',
+    paddingVertical: 10,
+    marginVertical: 0,
+    borderWidth: 0.1,
   },
   bgImage: {
-    flex: 1, width: '100%', height: '150%', overflow: 'hidden', marginVertical: 10, borderRadius: 5
+    flex: 1,
+    width: '100%',
+    height: '150%',
+    overflow: 'hidden',
+    marginVertical: 10,
+    borderRadius: 5,
   },
   bannerImgContainer: {
-    flex: 1, justifyContent: 'center', paddingVertical: 30
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 30,
   },
   bannerImage: {
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   videoPLayer: {
     flex: 1,
@@ -147,7 +215,6 @@ const styles = StyleSheet.create({
     right: 0,
   },
   closeIcon: {
-    zIndex: 100
-  }
-}
-);
+    zIndex: 100,
+  },
+});

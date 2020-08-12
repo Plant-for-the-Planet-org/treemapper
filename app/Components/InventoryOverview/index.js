@@ -1,9 +1,33 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, Modal, PermissionsAndroid, ImageBackground, Text, Platform, Alert } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Label, LabelAccordian, InventoryCard } from '../Common';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  Modal,
+  PermissionsAndroid,
+  ImageBackground,
+  Text,
+  Platform,
+  Alert,
+} from 'react-native';
+import {
+  Header,
+  LargeButton,
+  PrimaryButton,
+  Label,
+  LabelAccordian,
+  InventoryCard,
+} from '../Common';
 import { SafeAreaView } from 'react-native';
 import { store } from '../../Actions/store';
-import { getInventory, statusToPending, updateLastScreen, updatePlantingDate, addSpeciesAction } from '../../Actions';
+import {
+  getInventory,
+  statusToPending,
+  updateLastScreen,
+  updatePlantingDate,
+  addSpeciesAction,
+} from '../../Actions';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';
@@ -19,8 +43,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import moment from 'moment';
 import i18next from 'i18next';
 
-const InventoryOverview = ({ navigation, }) => {
-
+const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
 
   const { state } = useContext(store);
@@ -38,7 +61,6 @@ const InventoryOverview = ({ navigation, }) => {
       let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' };
       updateLastScreen(data);
     });
-
   }, []);
 
   const initiatState = () => {
@@ -55,16 +77,37 @@ const InventoryOverview = ({ navigation, }) => {
         keyboardShouldPersistTaps={'always'}
         data={polygons}
         renderItem={({ item, index }) => {
-          return (<View>
-            <Label leftText={i18next.t('label.tree_inventory_overview_polygon_left_text', {locationType})} rightText={''} />
-            <FlatList
-              data={Object.values(item.coordinates)}
-              renderItem={({ item: oneCoordinate, index }) => {
-                let normalizeData = { title: `Coordinate ${APLHABETS[index]}`, subHeading: `${oneCoordinate.latitude.toFixed(5)}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`, date: 'View location', imageURL: oneCoordinate.imageUrl, index: index };
-                return (<InventoryCard data={normalizeData} activeBtn onPressActiveBtn={onPressViewLOC} />);
-              }}
-            />
-          </View>);
+          return (
+            <View>
+              <Label
+                leftText={i18next.t('label.tree_inventory_overview_polygon_left_text', {
+                  locationType,
+                })}
+                rightText={''}
+              />
+              <FlatList
+                data={Object.values(item.coordinates)}
+                renderItem={({ item: oneCoordinate, index }) => {
+                  let normalizeData = {
+                    title: `Coordinate ${APLHABETS[index]}`,
+                    subHeading: `${oneCoordinate.latitude.toFixed(
+                      5,
+                    )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
+                    date: 'View location',
+                    imageURL: oneCoordinate.imageUrl,
+                    index: index,
+                  };
+                  return (
+                    <InventoryCard
+                      data={normalizeData}
+                      activeBtn
+                      onPressActiveBtn={onPressViewLOC}
+                    />
+                  );
+                }}
+              />
+            </View>
+          );
         }}
       />
     );
@@ -101,7 +144,8 @@ const InventoryOverview = ({ navigation, }) => {
     });
   };
 
-  const onBackPress = () => { // * FOR LOCATION MODAL
+  const onBackPress = () => {
+    // * FOR LOCATION MODAL
     setIsLOCModalOpen(!isLOCModalOpen);
     setSelectedLOC(null);
   };
@@ -112,20 +156,31 @@ const InventoryOverview = ({ navigation, }) => {
         <SafeAreaView />
         <View style={styles.mainContainer}>
           <View style={styles.screenMargin}>
-            <Header onBackPress={onBackPress} closeIcon headingText={i18next.t('label.inventory_overview_view_loc_modal_header', {locationTitle})} />
+            <Header
+              onBackPress={onBackPress}
+              closeIcon
+              headingText={i18next.t('label.inventory_overview_view_loc_modal_header', {
+                locationTitle,
+              })}
+            />
           </View>
-          <MapboxGL.MapView
-            onDidFinishRenderingMapFully={focusMarker}
-            style={styles.cont}>
+          <MapboxGL.MapView onDidFinishRenderingMapFully={focusMarker} style={styles.cont}>
             <MapboxGL.Camera ref={cameraRef} />
-            {selectedLOC && <MapboxGL.PointAnnotation id={'markerContainer1'} coordinate={selectedLOC}>
-              <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-                <Text style={styles.markerText}>{i18next.t('label.inventory_overview_loc', {locationTitle})}</Text>
-              </ImageBackground>
-            </MapboxGL.PointAnnotation>}
+            {selectedLOC && (
+              <MapboxGL.PointAnnotation id={'markerContainer1'} coordinate={selectedLOC}>
+                <ImageBackground
+                  source={marker_png}
+                  style={styles.markerContainer}
+                  resizeMode={'cover'}>
+                  <Text style={styles.markerText}>
+                    {i18next.t('label.inventory_overview_loc', { locationTitle })}
+                  </Text>
+                </ImageBackground>
+              </MapboxGL.PointAnnotation>
+            )}
           </MapboxGL.MapView>
         </View>
-      </Modal >
+      </Modal>
     );
   };
 
@@ -136,16 +191,16 @@ const InventoryOverview = ({ navigation, }) => {
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
           {
             title: i18next.t('label.storage_permission_android_title'),
-            message:  i18next.t('label.storage_permission_android_message'),
-            'buttonPositive': i18next.t('label.permission_camera_ok')
-          }
+            message: i18next.t('label.storage_permission_android_message'),
+            buttonPositive: i18next.t('label.permission_camera_ok'),
+          },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           resolve();
         } else {
           Alert.alert(
             i18next.t('label.storage_permission_denied_header'),
-            i18next.t('label.storage_permission_denied_sub_header')
+            i18next.t('label.storage_permission_denied_sub_header'),
           );
         }
       } catch (err) {
@@ -162,24 +217,33 @@ const InventoryOverview = ({ navigation, }) => {
       if (inventory.polygons.length > 0) {
         let featureList = inventory.polygons.map((onePolygon) => {
           return {
-            'type': 'Feature',
-            'properties': {},
-            'geometry': {
-              'type': 'LineString',
-              'coordinates': Object.values(onePolygon.coordinates).map(oneCoordinate => ([oneCoordinate.longitude, oneCoordinate.latitude]))
-            }
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: Object.values(onePolygon.coordinates).map((oneCoordinate) => [
+                oneCoordinate.longitude,
+                oneCoordinate.latitude,
+              ]),
+            },
           };
         });
         let geoJSON = {
-          'type': 'FeatureCollection',
-          'features': featureList
+          type: 'FeatureCollection',
+          features: featureList,
         };
         let fileName = `Tree Mapper GeoJSON ${inventory.inventory_id}.json`;
-        let path = `${Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
-        RNFetchBlob.fs.writeFile(path, JSON.stringify(geoJSON), 'utf88')
+        let path = `${
+          Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir
+        }/${fileName}`;
+        RNFetchBlob.fs
+          .writeFile(path, JSON.stringify(geoJSON), 'utf88')
           .then((success) => {
-            alert(`GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`);
-          }).catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')));
+            alert(
+              `GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`,
+            );
+          })
+          .catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')));
       }
     };
     if (Platform.OS == 'android') {
@@ -189,46 +253,66 @@ const InventoryOverview = ({ navigation, }) => {
     } else {
       exportgeoJSONFile();
     }
-
   };
 
   const renderDatePicker = () => {
-
     const handleConfirm = (data) => onChangeDate(null, data);
     const hideDatePicker = () => setShowDate(false);
 
     return (
-      showDate && <DateTimePickerModal
-        isVisible={showDate}
-        maximumDate={new Date()}
-        testID="dateTimssePicker"
-        timeZoneOffsetInMinutes={0}
-        value={new Date(Number(inventory.plantation_date))}
-        mode={'date'}
-        is24Hour={true}
-        display="default"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-      />
+      showDate && (
+        <DateTimePickerModal
+          isVisible={showDate}
+          maximumDate={new Date()}
+          testID="dateTimssePicker"
+          timeZoneOffsetInMinutes={0}
+          value={new Date(Number(inventory.plantation_date))}
+          mode={'date'}
+          is24Hour={true}
+          display="default"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
+      )
     );
   };
 
   const onChangeDate = (event, selectedDate) => {
     setShowDate(false);
     setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
-    updatePlantingDate({ inventory_id: state.inventoryID, plantation_date: `${selectedDate.getTime()}` });
+    updatePlantingDate({
+      inventory_id: state.inventoryID,
+      plantation_date: `${selectedDate.getTime()}`,
+    });
   };
 
   const renderAddSpeciesButton = (status) => {
-    return (status == 'incomplete' && <TouchableOpacity onPress={() => setIsShowSpeciesListModal(true)} style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#F0F0F0', borderRadius: 10, marginVertical: 10 }} accessibilityLabel="Species Button" testID="species_btn">
-      <Text style={styles.plantSpeciesText}>{i18next.t('label.inventory_overview_add_species')}</Text>
-      <View style={styles.bannerImgContainer}>
-        <SvgXml xml={plus_icon} />
-      </View>
-      <View style={styles.bannerImgContainer}>
-        <SvgXml xml={two_trees} />
-      </View>
-    </TouchableOpacity>);
+    return (
+      status == 'incomplete' && (
+        <TouchableOpacity
+          onPress={() => setIsShowSpeciesListModal(true)}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            backgroundColor: '#F0F0F0',
+            borderRadius: 10,
+            marginVertical: 10,
+          }}
+          accessibilityLabel="Species Button"
+          testID="species_btn">
+          <Text style={styles.plantSpeciesText}>
+            {i18next.t('label.inventory_overview_add_species')}
+          </Text>
+          <View style={styles.bannerImgContainer}>
+            <SvgXml xml={plus_icon} />
+          </View>
+          <View style={styles.bannerImgContainer}>
+            <SvgXml xml={two_trees} />
+          </View>
+        </TouchableOpacity>
+      )
+    );
   };
 
   const onPressDate = (status) => {
@@ -245,7 +329,14 @@ const InventoryOverview = ({ navigation, }) => {
   const renderSelectSpeciesModal = () => {
     const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
     if (inventory) {
-      return (<SelectSpecies species={inventory.species} visible={isShowSpeciesListModal} closeSelectSpeciesModal={closeSelectSpeciesModal} onPressSaveAndContinue={onPressSaveAndContinue} />);
+      return (
+        <SelectSpecies
+          species={inventory.species}
+          visible={isShowSpeciesListModal}
+          closeSelectSpeciesModal={closeSelectSpeciesModal}
+          onPressSaveAndContinue={onPressSaveAndContinue}
+        />
+      );
     } else {
       return;
     }
@@ -259,30 +350,68 @@ const InventoryOverview = ({ navigation, }) => {
     locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site';
   }
 
-
   let status = inventory ? inventory.status : 'pending';
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
       <View style={styles.container}>
-        {inventory !== null ? <View style={styles.cont} >
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
-            <Header closeIcon headingText={i18next.t('label.inventory_overview_header_text')} subHeadingText={i18next.t('label.inventory_overview_sub_header')} />
-            <Label leftText={i18next.t('label.inventory_overview_left_text')} rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')} onPressRightText={() => onPressDate(status)} />
-            {!isSingleCoordinate && <Label leftText={`${locateType} Registration`} rightText={''} />}
-            <Label leftText={i18next.t('label.inventory_overview_left_text_planted_species')} rightText={status == 'incomplete' ? i18next.t('label.edit') : ''} onPressRightText={() => setIsShowSpeciesListModal(true)} />
-            <FlatList data={inventory.species} renderItem={({ item }) => (<Label leftText={i18next.t('label.inventory_overview_loc_left_text', {item})} rightText={i18next.t('label.inventory_overview_loc_right_text', {item})} style={{ marginVertical: 5 }} leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }} />)} />
-            {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
-            {renderPolygon(inventory.polygons, locationType)}
-            <LargeButton onPress={onPressExportJSON} heading={i18next.t('label.inventory_overview_loc_export_json')} active={false} medium />
-          </ScrollView>
-          <View>
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton btnText={i18next.t('label.inventory_overview_loc_next_tree')} halfWidth theme={'white'} />
-              <PrimaryButton onPress={onPressSave} btnText={i18next.t('label.inventory_overview_loc_save')} halfWidth />
+        {inventory !== null ? (
+          <View style={styles.cont}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'always'}>
+              <Header
+                closeIcon
+                headingText={i18next.t('label.inventory_overview_header_text')}
+                subHeadingText={i18next.t('label.inventory_overview_sub_header')}
+              />
+              <Label
+                leftText={i18next.t('label.inventory_overview_left_text')}
+                rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
+                onPressRightText={() => onPressDate(status)}
+              />
+              {!isSingleCoordinate && (
+                <Label leftText={`${locateType} Registration`} rightText={''} />
+              )}
+              <Label
+                leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
+                rightText={status == 'incomplete' ? i18next.t('label.edit') : ''}
+                onPressRightText={() => setIsShowSpeciesListModal(true)}
+              />
+              <FlatList
+                data={inventory.species}
+                renderItem={({ item }) => (
+                  <Label
+                    leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
+                    rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
+                    style={{ marginVertical: 5 }}
+                    leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }}
+                  />
+                )}
+              />
+              {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
+              {renderPolygon(inventory.polygons, locationType)}
+              <LargeButton
+                onPress={onPressExportJSON}
+                heading={i18next.t('label.inventory_overview_loc_export_json')}
+                active={false}
+                medium
+              />
+            </ScrollView>
+            <View>
+              <View style={styles.bottomBtnsContainer}>
+                <PrimaryButton
+                  btnText={i18next.t('label.inventory_overview_loc_next_tree')}
+                  halfWidth
+                  theme={'white'}
+                />
+                <PrimaryButton
+                  onPress={onPressSave}
+                  btnText={i18next.t('label.inventory_overview_loc_save')}
+                  halfWidth
+                />
+              </View>
             </View>
           </View>
-        </View> : null}
+        ) : null}
       </View>
       {renderDatePicker()}
       {renderSelectSpeciesModal()}
@@ -295,25 +424,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.WHITE,
   },
   bottomBtnsContainer: {
-    flexDirection: 'row', justifyContent: 'space-between'
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   cont: {
-    flex: 1
+    flex: 1,
   },
   mainContainer: {
-    flex: 1, backgroundColor: Colors.WHITE
+    flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   markerContainer: {
-    width: 30, height: 43, paddingBottom: 85,
+    width: 30,
+    height: 43,
+    paddingBottom: 85,
   },
   markerText: {
-    width: 30, height: 43, color: Colors.WHITE, fontWeight: 'bold', fontSize: 16, textAlign: 'center', paddingTop: 4
+    width: 30,
+    height: 43,
+    color: Colors.WHITE,
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingTop: 4,
   },
   screenMargin: {
-    marginHorizontal: 25
+    marginHorizontal: 25,
   },
   plantSpeciesText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -321,6 +460,5 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
-  }
-
+  },
 });

@@ -30,7 +30,7 @@ export {
   arrow_down,
   close,
   camera,
-  marker_png ,
+  marker_png,
   active_marker,
   cloud,
   upload_check,
@@ -47,5 +47,5 @@ export {
   two_trees,
   logo,
   cloud_upload_gray,
-  off_site_enable_banner
+  off_site_enable_banner,
 };

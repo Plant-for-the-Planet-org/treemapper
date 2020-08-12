@@ -4,12 +4,9 @@ import { Colors, Typography } from '_styles';
 import { tree, placeholder_image } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
-
   const onPressActiveButton = () => {
-    if (onPressActiveBtn)
-      onPressActiveBtn(data.index);
+    if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
   let imageSource = activeBtn ? placeholder_image : tree;
   if (data.imageURL) {
@@ -24,7 +21,11 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
         <Text style={[styles.subHeadingText, styles.title]}>{data.title}</Text>
         <Text style={styles.subHeadingText}>{data.subHeading}</Text>
         <View style={styles.actionBtnContainer}>
-          <Text style={[styles.subHeadingText, activeBtn && styles.activeText]} onPress={onPressActiveButton}>{data.date}</Text>
+          <Text
+            style={[styles.subHeadingText, activeBtn && styles.activeText]}
+            onPress={onPressActiveButton}>
+            {data.date}
+          </Text>
           {icon && <MCIcons name={icon} size={22} style={styles.activeText} />}
         </View>
       </View>
@@ -35,19 +36,28 @@ export default InventoryCard;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row', backgroundColor: Colors.WHITE, marginVertical: 20
+    flexDirection: 'row',
+    backgroundColor: Colors.WHITE,
+    marginVertical: 20,
   },
   imageContainer: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    height: 100, width: 100, borderRadius: 5
+    height: 100,
+    width: 100,
+    borderRadius: 5,
   },
   contentContainer: {
-    flex: 1.2, justifyContent: 'space-evenly', marginHorizontal: 20
+    flex: 1.2,
+    justifyContent: 'space-evenly',
+    marginHorizontal: 20,
   },
   actionBtnContainer: {
-    flexDirection: 'row', justifyContent: 'space-between'
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -62,7 +72,3 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
   },
 });
-
-
-
-

@@ -47,4 +47,4 @@ const off_site_enable_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="1
   </g>
 </svg>
 `;
-export  { off_site_enable_banner } ;
+export { off_site_enable_banner };

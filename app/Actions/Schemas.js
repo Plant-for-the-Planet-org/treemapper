@@ -7,7 +7,7 @@ const Coordinates = {
     imageUrl: 'string?',
     currentloclat: 'float',
     currentloclong: 'float',
-  }
+  },
 };
 
 const Polygons = {
@@ -15,7 +15,7 @@ const Polygons = {
   properties: {
     isPolygonComplete: 'bool?',
     coordinates: 'Coordinates[]',
-  }
+  },
 };
 
 const Species = {
@@ -23,8 +23,8 @@ const Species = {
   properties: {
     nameOfTree: 'string',
     treeCount: 'string',
-    id: 'string?'
-  }
+    id: 'string?',
+  },
 };
 const OfflineMaps = {
   name: 'OfflineMaps',
@@ -32,8 +32,8 @@ const OfflineMaps = {
   properties: {
     areaName: 'string',
     size: 'int',
-    name: 'string'
-  }
+    name: 'string',
+  },
 };
 
 const Inventory = {
@@ -50,9 +50,9 @@ const Inventory = {
     last_screen: 'string?',
     species: 'Species[]',
     polygons: 'Polygons[]',
-    specei_name: 'string?',    // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    species_diameter: 'float?' // <*IMPORTANT*> ONLY FOR SINGLE TREE
-  }
+    specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    species_diameter: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+  },
 };
 
 const User = {
@@ -65,8 +65,7 @@ const User = {
     email: 'string?',
     firstname: 'string?',
     lastname: 'string?',
-
-  }
+  },
 };
 
 export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory };
