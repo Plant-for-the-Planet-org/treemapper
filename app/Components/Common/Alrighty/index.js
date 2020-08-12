@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets';
 import { SvgXml } from 'react-native-svg';
+import i18next from 'i18next';
 
 const Alrighty = ({
   heading,
@@ -38,14 +39,14 @@ const Alrighty = ({
           {isShowBottomWhiteBtn && (
             <PrimaryButton
               onPress={onPressWhiteButton}
-              btnText={coordsLength >= 2 ? 'Complete' : whiteBtnText}
+              btnText={coordsLength >= 2 ? i18next.t('label.tree_review_alrighty') : whiteBtnText}
               halfWidth
               theme={'white'}
             />
           )}
           <PrimaryButton
             onPress={onPressContinue}
-            btnText={'Continue'}
+            btnText={i18next.t('label.continue')}
             halfWidth={isShowBottomWhiteBtn}
           />
         </View>
