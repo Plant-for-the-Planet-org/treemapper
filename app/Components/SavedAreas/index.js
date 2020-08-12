@@ -52,7 +52,7 @@ const SavedAreas = ({ navigation }) => {
           <View style={styles.bottomContainer}>
             <Text style={[styles.subHeadingText, styles.regularText]}>{`${size / 1000} MB`}</Text>
             <Text style={[styles.subHeadingText, styles.redText]} onPress={() => deleteArea(name)}>
-              {i18next.t('labelsave_areas_delete')}
+              {i18next.t('label.save_areas_delete')}
             </Text>
           </View>
         </View>

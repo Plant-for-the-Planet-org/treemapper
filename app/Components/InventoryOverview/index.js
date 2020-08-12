@@ -365,7 +365,10 @@ const InventoryOverview = ({ navigation }) => {
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
-                rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
+                // rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
+                rightText={i18next.t('label.inventory_overview_date', {
+                  date: moment(new Date(Number(inventory.plantation_date))),
+                })}
                 onPressRightText={() => onPressDate(status)}
               />
               {!isSingleCoordinate && (
