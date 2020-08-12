@@ -6,5 +6,5 @@ const logo = `<svg xmlns="http://www.w3.org/2000/svg" width="44.276" height="43.
     </g>
   </g>
 </svg>
-`
-export {logo }
+`;
+export { logo };

@@ -1,8 +1,8 @@
-import Config from 'react-native-config'
+import Config from 'react-native-config';
 
 let APIConfig = {
-    protocol: 'https',
-    url: Config.API_ENDPOINT
-}
+  protocol: 'https',
+  url: Config.API_ENDPOINT,
+};
 
-export { APIConfig }
+export { APIConfig };

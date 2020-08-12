@@ -1,4 +1,4 @@
-import {Dimensions,PixelRatio} from 'react-native';
+import { Dimensions, PixelRatio } from 'react-native';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 
@@ -6,12 +6,12 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 const guidelineBaseWidth = 360;
 
 // This will scale all the items acc to our base width and user's device
-export const scaleSize = size => (WINDOW_WIDTH/guidelineBaseWidth) * size;
+export const scaleSize = (size) => (WINDOW_WIDTH / guidelineBaseWidth) * size;
 
 // This will scale the font acc to user's device
-export const scaleFont = size => size * PixelRatio.getFontScale();
+export const scaleFont = (size) => size * PixelRatio.getFontScale();
 
-function dimensions(top, right = top, bottom = top, left = right, property){
+function dimensions(top, right = top, bottom = top, left = right, property) {
   let styles = {};
 
   styles[`${property}Top`] = top;
@@ -22,20 +22,20 @@ function dimensions(top, right = top, bottom = top, left = right, property){
   return styles;
 }
 
-export function margin(top, right, bottom, left){
-    return dimensions(top, right, bottom, left, 'margin');
-}
-  
-export function padding(top, right, bottom, left){
-    return dimensions(top, right, bottom, left, 'padding');
+export function margin(top, right, bottom, left) {
+  return dimensions(top, right, bottom, left, 'margin');
 }
 
-export function boxShadow(color, offset = {height:2,width:2},radius = 8, opacity = 0.2){
-    return {
-        shadowColor: color,
-        shadowOffset: offset,
-        shadowOpacity: opacity,
-        shadowRadius: radius,
-        elevation: radius,
-    };
+export function padding(top, right, bottom, left) {
+  return dimensions(top, right, bottom, left, 'padding');
+}
+
+export function boxShadow(color, offset = { height: 2, width: 2 }, radius = 8, opacity = 0.2) {
+  return {
+    shadowColor: color,
+    shadowOffset: offset,
+    shadowOpacity: opacity,
+    shadowRadius: radius,
+    elevation: radius,
+  };
 }

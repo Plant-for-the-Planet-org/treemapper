@@ -1,7 +1,6 @@
-/* eslint-disable prettier/prettier */
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {Colors, Typography} from '_styles';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Colors, Typography } from '_styles';
 
 const LargeButton = ({
   heading,
@@ -30,20 +29,13 @@ const LargeButton = ({
         medium && styles.mediumCont,
         style,
       ]}>
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <View style={styles.subContainer}>
-          <Text style={[styles.heading, active && styles.activeText]}>
-            {heading}
-          </Text>
+          <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
         </View>
         {subHeading && (
           <View style={styles.subContainer}>
-            <Text
-              style={[
-                styles.subHeading,
-                active && styles.blackTextColor,
-                subHeadingStyle,
-              ]}>
+            <Text style={[styles.subHeading, active && styles.blackTextColor, subHeadingStyle]}>
               {subHeading}
             </Text>
           </View>
