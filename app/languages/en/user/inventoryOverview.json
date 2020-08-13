@@ -1,6 +1,6 @@
 {
   "tree_inventory_overview_polygon_left_text": "Location Type: {{locationType}}",
-  "inventory_overview_select_species": "Select atleast one species",
+  "inventory_overview_select_species": "Select at least one species",
   "inventory_overview_view_loc_modal_header": "Location {{locationTitle}}",
   "inventory_overview_loc": "{{locationTitle}}",
   "inventory_overview_export_json_error": "unable to save file",
