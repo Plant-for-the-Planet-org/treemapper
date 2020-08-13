@@ -29,7 +29,7 @@ module.exports = {
       indent: ['error', 2, { SwitchCase: 1 }],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
-      'linebreak-style': ['error', 'unix'],
+      'linebreak-style': ['error', 'windows'],
       'no-undef': ['error'],
       'no-console': ['warn'],
       'no-unused-vars': ['warn'],
@@ -38,6 +38,7 @@ module.exports = {
       'react-native/split-platform-components': ['warn'],
       'react-native/no-inline-styles': ['warn'],
       'react-native/no-color-literals': ['off'],
-      'prettier/prettier': 'error',
+      'prettier/prettier': 0,
+      'eslint(no-prototype-builtins)': 0
     }
 };
