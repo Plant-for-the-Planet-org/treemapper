@@ -32,6 +32,7 @@ import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import i18next from 'i18next';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
@@ -98,7 +99,9 @@ const SingleTreeOverview = ({ navigation }) => {
               style={styles.bgWhite}>
               <View style={styles.externalInputContainer}>
                 <Text style={styles.labelModal}>
-                  {isSpeciesEnable ? 'Name of Specie' : 'Diameter'}
+                  {isSpeciesEnable
+                    ? i18next.t('label.tree_review_name_of_species')
+                    : i18next.t('label.tree_review_diameter')}
                 </Text>
                 {isSpeciesEnable ? (
                   <TextInput
@@ -194,13 +197,13 @@ const SingleTreeOverview = ({ navigation }) => {
     return (
       <View style={detailContainerStyle}>
         <View>
-          <Text style={detailHeaderStyle}>LOCATION</Text>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
           <Text style={styles.detailText}>
             {`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`}{' '}
           </Text>
         </View>
         <View style={{ marginVertical: 5 }}>
-          <Text style={detailHeaderStyle}>SPECIES</Text>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
             onPress={() => onPressEditSpecies('species')}
@@ -208,13 +211,15 @@ const SingleTreeOverview = ({ navigation }) => {
             accessibilityLabel="Species"
             testID="species_btn">
             <Text style={styles.detailText}>
-              {specieText ? specieText : 'Unable to identify '}{' '}
+              {specieText
+                ? i18next.t('label.tree_review_specie_text', { specieText })
+                : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
         <View style={{ marginVertical: 5 }}>
-          <Text style={detailHeaderStyle}>DIAMETER (in cm)</Text>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_diameter_header')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -224,7 +229,9 @@ const SingleTreeOverview = ({ navigation }) => {
             accessible={true}>
             <FIcon name={'arrow-h'} style={styles.detailText} />
             <Text style={styles.detailText}>
-              {specieDiameter ? `${specieDiameter}cm` : 'Unable to identify '}{' '}
+              {specieDiameter
+                ? i18next.t('label.tree_review_specie_diameter', { specieDiameter })
+                : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
@@ -232,7 +239,7 @@ const SingleTreeOverview = ({ navigation }) => {
 
         {!imageSource && (
           <View>
-            <Text style={detailHeaderStyle}>PLANTAION DATE</Text>
+            <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
             <TouchableOpacity
               disabled={!shouldEdit}
               onPress={() => setIsShowDate(true)}
@@ -240,7 +247,9 @@ const SingleTreeOverview = ({ navigation }) => {
               accessibilityLabel="Register Planting Date"
               testID="register_planting_date">
               <Text style={styles.detailText}>
-                {moment(plantationDate).format('ll')}{' '}
+                {i18next.t('label.tree_Review_plantation_date_text', {
+                  date: moment(plantationDate),
+                })}{' '}
                 {shouldEdit && <MIcon name={'edit'} size={20} />}
               </Text>
             </TouchableOpacity>
@@ -295,7 +304,11 @@ const SingleTreeOverview = ({ navigation }) => {
       {renderinputModal()}
       {renderDateModal()}
       <View style={styles.container}>
-        <Header closeIcon onBackPress={onBackPress} headingText={'Review'} />
+        <Header
+          closeIcon
+          onBackPress={onBackPress}
+          headingText={i18next.t('label.tree_review_header')}
+        />
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           {inventory && (
             <View style={styles.overViewContainer}>
@@ -314,11 +327,15 @@ const SingleTreeOverview = ({ navigation }) => {
         <View style={styles.bottomBtnsContainer}>
           <PrimaryButton
             onPress={onPressNextTree}
-            btnText={'Next Tree'}
+            btnText={i18next.t('label.tree_review_next_btn')}
             halfWidth
             theme={'white'}
           />
-          <PrimaryButton onPress={onPressSave} btnText={'Save'} halfWidth />
+          <PrimaryButton
+            onPress={onPressSave}
+            btnText={i18next.t('label.tree_review_Save')}
+            halfWidth
+          />
         </View>
       </View>
     </SafeAreaView>

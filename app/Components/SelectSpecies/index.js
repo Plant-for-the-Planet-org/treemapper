@@ -17,6 +17,7 @@ import { Colors, Typography } from '_styles';
 import { placeholder_image, checkCircleFill, checkCircle } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import i18next from 'i18next';
 
 const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue, species }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
@@ -73,12 +74,16 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         <Image source={placeholder_image} resizeMode={'contain'} style={{ flex: 1 }} />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={styles.speciesLocalName}>
-            {item.localName}
+            {i18next.t('label.select_species_local_name', { item })}
           </Text>
           <Text numberOfLines={2} style={styles.speciesName}>
-            {item.nameOfTree}
+            {i18next.t('label.select_species_name_of_tree', { item })}
           </Text>
-          {item.treeCount && <Text style={styles.treeCount}>{`${item.treeCount} Trees`}</Text>}
+          {item.treeCount && (
+            <Text style={styles.treeCount}>
+              {i18next.t('label.select_species_tree_count', { count: item.treeCount })}
+            </Text>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -117,17 +122,19 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
             <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
             <Header
               hideBackIcon
-              subHeadingText={'How many'}
+              subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
               textAlignStyle={{ textAlign: 'center' }}
             />
             <Header
               hideBackIcon
-              subHeadingText={specieName}
+              subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header', {
+                specieName,
+              })}
               textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
             />
             <Header
               hideBackIcon
-              subHeadingText={'did you plant?'}
+              subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
               textAlignStyle={{ textAlign: 'center' }}
             />
           </View>
@@ -136,7 +143,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
           behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
           style={styles.bgWhite}>
           <View style={styles.externalInputContainer}>
-            <Text style={styles.labelModal}>{'Tree Count'}</Text>
+            <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
             <TextInput
               value={treeCount}
               style={styles.value}
@@ -185,8 +192,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
             <Header
               onBackPress={closeSelectSpeciesModal}
               closeIcon
-              headingText={'Species'}
-              subHeadingText={'Please select the species that has been planted'}
+              headingText={i18next.t('label.select_species_header')}
+              subHeadingText={i18next.t('label.select_species_sub_header')}
             />
             <FlatList
               style={{ flex: 1 }}
@@ -194,7 +201,10 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
               showsVerticalScrollIndicator={false}
               renderItem={renderSpeciesCard}
             />
-            <PrimaryButton onPress={onPressContinue} btnText={'Save & Continue'} />
+            <PrimaryButton
+              onPress={onPressContinue}
+              btnText={i18next.t('label.select_species_btn_text')}
+            />
           </View>
         </SafeAreaView>
       </View>
