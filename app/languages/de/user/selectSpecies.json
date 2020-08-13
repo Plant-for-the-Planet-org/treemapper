@@ -1,3 +1,12 @@
 {
-  "select_species_modal_label": "Baumzahl"
+  "select_species_local_name": "{{item.localName}}",
+  "select_species_name_of_tree": "{{item.nameOfTree}}",
+  "select_species_tree_count": "{{count}} Bäume",
+  "select_species_tree_count_modal_header": "Wie viele",
+  "select_species_tree_count_modal_sub_header": "{{specieName}}",
+  "select_species_tree_count_modal_sub_header_2": "hast du gepflanzt?",
+  "select_species_modal_label": "Baumzahl",
+  "select_species_header": "Art",
+  "select_species_sub_header": "Bitte wähle die Art, die gepflanzt wurde",
+  "select_species_btn_text": "Speichern & Weiter"
 }
