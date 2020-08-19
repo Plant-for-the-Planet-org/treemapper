@@ -1,14 +1,75 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, ScrollView, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, ScrollView, Switch, TextInput } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { LoginDetails } from '../../Actions';
+import jwtDecode from 'jwt-decode';
+import { SignupService } from '../../Services/Signup';
 
 const SignUp = () => {
   const [accountType, setAccountType] = useState('Tree Planting Orgainsation');
+  const [lastname, setLastName] = useState('Sanchez');
+  const [firstname, setFirstName] = useState('Paulina');
+  const [email, setEmail] = useState('startplanting@trees.com');
+  const [nameOfOrg, setNameOfOrg] = useState('Forest in Africa');
+  const [mayPublish, setMayPublish] = useState(true);
+  const [mayContact, setMayContact] = useState(false);
+  const [authDetail, setAuthDetails] = useState({});
+  const [oAuthAccessToken, setAuthtAccessToken] = useState('');
+  const [type, setType] = useState('');
 
+  const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
+  const toggleSwitchContact = () => setMayContact(previousState => !previousState);
+  const SelectType = (type) => {
+    let name;
+    switch (type) {
+      case 'individual':
+        name = 'Individual';
+        break;
+      case 'tpo':
+        name ='Tree Planting Orgainization';
+        break;
+      case 'school':
+        name = 'School';
+        break;
+      case 'company':
+        name = 'Company';
+        break;
+      default:
+        name ='Tree Planting Orgainization';
+        break;
+    }
+    return name;
+  }
+  const submitDetails = () => {
+    let country;
+    country = authDetail.locale.split('-')[1];
+    let locale = authDetail.locale;
+    const userData = {
+      firstname,
+      lastname,
+      // email,
+      mayContact,
+      mayPublish,
+      country,
+      locale,
+      oAuthAccessToken,
+      type: accountType
+    };
+    SignupService(userData);
+  };
+
+  useEffect(() => {
+    LoginDetails().then((User) => {
+      let detail = (Object.values(User));
+      let decode = jwtDecode(detail[0].idToken);
+      setAuthtAccessToken(detail[0].accessToken);
+      setAuthDetails(decode);
+    });
+  }, []);
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
@@ -17,23 +78,46 @@ const SignUp = () => {
             headingText={i18next.t('label.signup')}
             subHeadingText={i18next.t('label.signup_confirm')}
           />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Input label={i18next.t('label.firstname')} value={'Paulina'} />
-            <Input
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around'}}>
+            {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
+              <TextInput style={styles.value} 
+                value={firstname}
+                onChangeText={text => setFirstName(text)}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
+              <TextInput style={styles.value} 
+                value={lastname} 
+                onChangeText={text => setLastName(text)}
+              />
+            </View>
+            {/* <TextInput style={styles.value} value={lastName} /> */}
+            {/* <Input
               label={i18next.t('label.lastname')}
               value={'Sanchez'}
               style={{ marginLeft: 15 }}
+              onChangeText={text => setLastName(text)}
+              editable
+            /> */}
+          </View>
+          <View style={styles.emailContainer}>
+            <Text style={styles.label}>{i18next.t('label.email')}</Text>
+            <TextInput style={styles.value} 
+              value={email} 
+              onChangeText={text => setEmail(text)}
             />
           </View>
-          <Input label={i18next.t('label.email')} value={'startplanting@trees.com'} />
           <View style={styles.selectRoleBtnsContainer}>
             <View
               style={[
                 styles.roleBtnContainer,
                 styles.marginRight,
-                accountType === 'Individual' ? styles.activeRoleContainer : null,
+                accountType === 'individual' ? styles.activeRoleContainer : null,
               ]}>
-              <TouchableOpacity onPress={() => setAccountType('Individual')}>
+              <TouchableOpacity onPress={() => setAccountType('individual')}>
                 <Text style={styles.roleText}>{i18next.t('label.individual')}</Text>
               </TouchableOpacity>
             </View>
@@ -41,9 +125,9 @@ const SignUp = () => {
               style={[
                 styles.roleBtnContainer,
                 styles.marginLeft,
-                accountType === 'Company' ? styles.activeRoleContainer : null,
+                accountType === 'company' ? styles.activeRoleContainer : null,
               ]}>
-              <TouchableOpacity onPress={() => setAccountType('Company')}>
+              <TouchableOpacity onPress={() => setAccountType('company')}>
                 <Text style={styles.roleText}>{i18next.t('label.company')}</Text>
               </TouchableOpacity>
             </View>
@@ -53,13 +137,13 @@ const SignUp = () => {
               style={[
                 [
                   styles.roleBtnContainer,
-                  accountType === 'Tree Planting Orgainsation' ? styles.activeRoleContainer : null,
+                  accountType === 'tpo' ? styles.activeRoleContainer : null,
                 ],
                 styles.justifyCenter,
                 styles.marginRight,
               ]}>
-              <TouchableOpacity onPress={() => setAccountType('Tree Planting Orgainsation')}>
-                <Text style={[styles.roleText, styles.primaryText]}>
+              <TouchableOpacity onPress={() => setAccountType('tpo')}>
+                <Text style={[styles.roleText, accountType === 'tpo' ? styles.primaryText : null]}>
                   {i18next.t('label.tpo_title')}
                 </Text>
               </TouchableOpacity>
@@ -68,35 +152,46 @@ const SignUp = () => {
               style={[
                 styles.roleBtnContainer,
                 styles.marginLeft,
-                accountType === 'School' ? styles.activeRoleContainer : null,
+                styles.justifyCenter,
+                accountType === 'school' ? styles.activeRoleContainer : null,
               ]}>
-              <TouchableOpacity onPress={() => setAccountType('School')}>
+              <TouchableOpacity onPress={() => setAccountType('school')}>
                 <Text style={styles.roleText}>{i18next.t('label.education_title')}</Text>
               </TouchableOpacity>
             </View>
           </View>
-          <Input
+          {/* <Input
             label={i18next.t('label.tpo_title_organisation', { roleText: accountType })}
             value={'Forest in Africa'}
-          />
+          /> */}
+          <View style={styles.emailContainer}>
+            <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
+            <TextInput style={styles.value} 
+              value={nameOfOrg}
+              onChangeText={text => setNameOfOrg(text)}
+            />
+
+          </View>
           <View style={styles.switchContainer}>
             <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
             <Switch
               trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }}
-              thumbColor={!false ? Colors.PRIMARY : Colors.WHITE}
-              value={!false}
+              thumbColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
+              value={mayPublish}
+              onValueChange={toggleSwitchPublish}
             />
           </View>
-          <View style={styles.switchContainer}>
+          <View style={styles.switchContainer, styles.mayContactText}>
             <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
             <Switch
               trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }}
-              thumbColor={false ? Colors.PRIMARY : Colors.WHITE}
-              value={false}
+              thumbColor={mayContact ? Colors.PRIMARY : Colors.WHITE}
+              value={mayContact}
+              onValueChange={toggleSwitchContact}
             />
           </View>
         </ScrollView>
-        <PrimaryButton btnText={i18next.t('label.create_profile')} />
+        <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails}/>
       </View>
     </SafeAreaView>
   );
@@ -155,4 +250,31 @@ const styles = StyleSheet.create({
   },
   marginRight: { marginRight: 5 },
   marginLeft: { marginLeft: 5 },
+  value: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: 20,
+    // color: Colors.TEXT_COLOR,
+    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+    flex: 1,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.TEXT_COLOR,
+  },
+  label: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    lineHeight: Typography.LINE_HEIGHT_30,
+    color: Colors.TEXT_COLOR,
+  },
+  inputContainer: {
+    width: '49%', 
+    paddingLeft: 5
+  },
+  emailContainer: {
+    width: '100%',
+    paddingTop: 13
+  },
+  mayContactText: {
+    paddingBottom: 10
+  },
 });

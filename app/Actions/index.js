@@ -25,7 +25,7 @@ export const auth0Login = () => {
                 {
                   id: 'id0001',
                   accessToken: accessToken,
-                  idToken: 'NO NEED TO STORE',
+                  idToken
                 },
                 'modified',
               );
@@ -69,13 +69,28 @@ export const isLogin = () => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] }).then(
       (realm) => {
         const User = realm.objects('User');
-        if (User[0]) {
+        if (User[0]) {   
           resolve(true);
         } else {
           resolve(false);
         }
       },
     );
+  });
+};
+
+export const LoginDetails = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+      .then((realm) => {
+        realm.write(() => {
+          const User = realm.objects('User');
+          resolve(JSON.parse(JSON.stringify(User)));
+        });
+      })
+      .catch(err => {
+        reject(err);
+      });
   });
 };
 
