@@ -24,7 +24,6 @@
     "bugsnag-react-native": "^2.23.8",
     "i18next": "^19.6.0",
     "jail-monkey": "^2.3.2",
-    "jsonwebtoken": "^8.5.1",
     "jwt-decode": "^2.2.0",
     "moment": "^2.27.0",
     "react": "16.13.1",
