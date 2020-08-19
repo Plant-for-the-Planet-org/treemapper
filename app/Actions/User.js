@@ -4,7 +4,6 @@ import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
 import Realm from 'realm';
 import { Use } from 'react-native-svg';
-import * as RootNavigation from '../Utils/RootNavigation';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
