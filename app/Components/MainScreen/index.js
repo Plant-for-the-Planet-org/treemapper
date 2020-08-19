@@ -39,7 +39,7 @@ const MainScreen = ({ navigation }) => {
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
-      auth0Login().then((data) => {
+      auth0Login(navigation).then((data) => {
         setIsUserLogin(data);
       });
     }
