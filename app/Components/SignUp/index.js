@@ -8,18 +8,21 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LoginDetails } from '../../Actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../Services/Signup';
+import Snackbar from 'react-native-snackbar';
 
 const SignUp = () => {
-  const [accountType, setAccountType] = useState('Tree Planting Orgainsation');
-  const [lastname, setLastName] = useState('Sanchez');
-  const [firstname, setFirstName] = useState('Paulina');
-  const [email, setEmail] = useState('startplanting@trees.com');
-  const [nameOfOrg, setNameOfOrg] = useState('Forest in Africa');
+  const [accountType, setAccountType] = useState('');
+  const [lastname, setLastName] = useState('');
+  const [firstname, setFirstName] = useState('');
+  const [email, setEmail] = useState('');
+  const [nameOfOrg, setNameOfOrg] = useState('');
   const [mayPublish, setMayPublish] = useState(true);
   const [mayContact, setMayContact] = useState(false);
   const [authDetail, setAuthDetails] = useState({});
   const [oAuthAccessToken, setAuthtAccessToken] = useState('');
   const [type, setType] = useState('');
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -43,23 +46,48 @@ const SignUp = () => {
         break;
     }
     return name;
-  }
+  };
   const submitDetails = () => {
-    let country;
-    country = authDetail.locale.split('-')[1];
-    let locale = authDetail.locale;
-    const userData = {
-      firstname,
-      lastname,
-      // email,
-      mayContact,
-      mayPublish,
-      country,
-      locale,
-      oAuthAccessToken,
-      type: accountType
-    };
-    SignupService(userData);
+    if(accountType === '') {
+      Snackbar.show({
+        text: 'Select Role Type',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    }
+
+    if (firstname === '') {
+      setFirstNameError(true);
+      Snackbar.show({
+        text: 'Enter first name',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    }
+
+    if (lastname === ''){
+      setLastNameError(true);
+      Snackbar.show({
+        text: 'Enter last name',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    }
+
+    if(firstname && lastname && accountType) {
+      let country;
+      country = authDetail.locale.split('-')[1];
+      let locale = authDetail.locale;
+      const userData = {
+        firstname,
+        lastname,
+        // email,
+        mayContact,
+        mayPublish,
+        country,
+        locale,
+        oAuthAccessToken,
+        type: accountType
+      };
+      SignupService(userData);
+    }
   };
 
   useEffect(() => {
@@ -82,16 +110,18 @@ const SignUp = () => {
             {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
-              <TextInput style={styles.value} 
+              <TextInput style={styles.value(firstNameError)} 
                 value={firstname}
                 onChangeText={text => setFirstName(text)}
+                placeholder='Paulina'
               />
             </View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
-              <TextInput style={styles.value} 
+              <TextInput style={styles.value(lastNameError)} 
                 value={lastname} 
                 onChangeText={text => setLastName(text)}
+                placeholder="Sanchez"
               />
             </View>
             {/* <TextInput style={styles.value} value={lastName} /> */}
@@ -105,9 +135,10 @@ const SignUp = () => {
           </View>
           <View style={styles.emailContainer}>
             <Text style={styles.label}>{i18next.t('label.email')}</Text>
-            <TextInput style={styles.value} 
+            <TextInput style={styles.value()} 
               value={email} 
               onChangeText={text => setEmail(text)}
+              placeholder='startplanting@trees.com'
             />
           </View>
           <View style={styles.selectRoleBtnsContainer}>
@@ -166,9 +197,10 @@ const SignUp = () => {
           /> */}
           <View style={styles.emailContainer}>
             <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
-            <TextInput style={styles.value} 
+            <TextInput style={styles.value()} 
               value={nameOfOrg}
               onChangeText={text => setNameOfOrg(text)}
+              placeholder="Forest in Africa"
             />
 
           </View>
@@ -250,7 +282,7 @@ const styles = StyleSheet.create({
   },
   marginRight: { marginRight: 5 },
   marginLeft: { marginLeft: 5 },
-  value: {
+  value: (invalid) => ({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: 20,
     // color: Colors.TEXT_COLOR,
@@ -258,8 +290,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.TEXT_COLOR,
-  },
+    borderBottomColor: invalid  ? 'red' : Colors.TEXT_COLOR,
+  }),
   label: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
