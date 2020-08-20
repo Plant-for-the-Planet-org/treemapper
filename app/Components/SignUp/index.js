@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch, TextInput } from 'react-native';
-import { Header, PrimaryButton, Input } from '../Common';
+import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
@@ -20,9 +20,16 @@ const SignUp = () => {
   const [mayContact, setMayContact] = useState(false);
   const [authDetail, setAuthDetails] = useState({});
   const [oAuthAccessToken, setAuthtAccessToken] = useState('');
-  const [type, setType] = useState('');
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
+  const [address, setAddress] = useState('');
+  const [addressError, setAddressError] = useState(false);
+  const [zipCode, setZipCode] = useState('');
+  const [zipCodeError, setZipCodeError] = useState(false);
+  const [city, setCity] = useState('');
+  const [cityError, setCityError] = useState(false);
+  const [nameError, setNameError] = useState(false);
+  const [completeCheck, setCompleteCheck] = useState(false);
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -48,6 +55,11 @@ const SignUp = () => {
     return name;
   };
   const submitDetails = () => {
+    let country;
+    country = authDetail.locale.split('-')[1];
+    let locale = authDetail.locale;
+    let userData;
+
     if(accountType === '') {
       Snackbar.show({
         text: 'Select Role Type',
@@ -70,24 +82,90 @@ const SignUp = () => {
         duration: Snackbar.LENGTH_SHORT,
       });
     }
-
-    if(firstname && lastname && accountType) {
-      let country;
-      country = authDetail.locale.split('-')[1];
-      let locale = authDetail.locale;
-      const userData = {
-        firstname,
-        lastname,
-        // email,
-        mayContact,
-        mayPublish,
-        country,
-        locale,
-        oAuthAccessToken,
-        type: accountType
-      };
-      SignupService(userData);
+    if (accountType === 'tpo') {
+      if (city === '') {
+        setCityError(true);
+        Snackbar.show({
+          text: 'Enter City Name',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+      if (zipCode === '') {
+        setZipCodeError(true);
+        Snackbar.show({
+          text: 'Enter zipcode',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+      if (address === '') {
+        setAddressError(true);
+        Snackbar.show({
+          text: 'Enter Address',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+      if (nameOfOrg === '') {
+        setNameError(true);
+        Snackbar.show({
+          text: 'Enter Organisation Name',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+      if(address && city && zipCode && firstname && lastname && accountType && nameOfOrg) {
+        setCompleteCheck(true);
+        userData = {
+          firstname,
+          lastname,
+          mayContact,
+          mayPublish,
+          country,
+          locale,
+          oAuthAccessToken,
+          type: accountType,
+          name: nameOfOrg
+        };
+      }
+    } else if (accountType === 'school' || accountType === 'company') {
+      if (nameOfOrg === '') {
+        setNameError(true);
+        Snackbar.show({
+          text: 'Enter Organisation Name',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+      if(firstname && lastname && accountType && nameOfOrg) {
+        setCompleteCheck(true);
+        userData = {
+          firstname,
+          lastname,
+          mayContact,
+          mayPublish,
+          country,
+          locale,
+          oAuthAccessToken,
+          type: accountType,
+          name: nameOfOrg
+        };
+      }
     }
+    else {
+      if(firstname && lastname && accountType) {
+        setCompleteCheck(true);
+        userData = {
+          firstname,
+          lastname,
+          mayContact,
+          mayPublish,
+          country,
+          locale,
+          oAuthAccessToken,
+          type: accountType
+        };
+      }
+      // SignupService(userData);
+    }
+    
+    completeCheck ? SignupService(userData): null;
   };
 
   useEffect(() => {
@@ -124,14 +202,6 @@ const SignUp = () => {
                 placeholder="Sanchez"
               />
             </View>
-            {/* <TextInput style={styles.value} value={lastName} /> */}
-            {/* <Input
-              label={i18next.t('label.lastname')}
-              value={'Sanchez'}
-              style={{ marginLeft: 15 }}
-              onChangeText={text => setLastName(text)}
-              editable
-            /> */}
           </View>
           <View style={styles.emailContainer}>
             <Text style={styles.label}>{i18next.t('label.email')}</Text>
@@ -191,19 +261,45 @@ const SignUp = () => {
               </TouchableOpacity>
             </View>
           </View>
-          {/* <Input
-            label={i18next.t('label.tpo_title_organisation', { roleText: accountType })}
-            value={'Forest in Africa'}
-          /> */}
           <View style={styles.emailContainer}>
             <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
-            <TextInput style={styles.value()} 
+            <TextInput style={styles.value(nameError)} 
               value={nameOfOrg}
               onChangeText={text => setNameOfOrg(text)}
               placeholder="Forest in Africa"
             />
 
           </View>
+          {accountType === 'tpo' ? (
+            <View>
+              <View style={styles.emailContainer}>
+                <Text style={styles.label}>{i18next.t('label.city')}</Text>
+                <TextInput style={styles.value(cityError)} 
+                  value={city} 
+                  onChangeText={text => setCity(text)}
+                  placeholder="Chur"
+                />
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 15}}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
+                  <TextInput style={styles.value(zipCodeError)} 
+                    value={zipCode}
+                    onChangeText={text => setZipCode(text)}
+                    placeholder='98212'
+                  />
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>{i18next.t('label.address')}</Text>
+                  <TextInput style={styles.value(addressError)} 
+                    value={address} 
+                    onChangeText={text => setAddress(text)}
+                    placeholder="Some Address"
+                  />
+                </View>
+              </View>
+            </View>
+          ) : null}
           <View style={styles.switchContainer}>
             <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
             <Switch
