@@ -1,5 +1,5 @@
 {
-  "signup": "Sign Up'",
+  "signup": "Sign Up",
   "email": "EMAIL",
   "mayPublish": "I agree to have my name published on the Plant-for-the-Planet Website and App.",
   "mayContact": "I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.",
@@ -15,5 +15,6 @@
   "create_profile": "Create Profile",
   "city": "City",
   "address": "Address",
-  "zipcode": "Zip Code"
+  "zipcode": "Zip Code",
+  "account_type": "Account Type"
 }

@@ -174,17 +174,69 @@ const SignUp = () => {
       let decode = jwtDecode(detail[0].idToken);
       setAuthtAccessToken(detail[0].accessToken);
       setAuthDetails(decode);
+      setEmail(decode.email);
     });
   }, []);
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <Header
             headingText={i18next.t('label.signup')}
-            subHeadingText={i18next.t('label.signup_confirm')}
           />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around'}}>
+          <Text style={styles.accountTypeHeader}>{i18next.t('label.account_type')}</Text>
+          <View style={styles.selectRoleBtnsContainer}>
+            <View
+              style={[
+                styles.roleBtnContainer,
+                styles.marginRight,
+                accountType === 'individual' ? styles.activeRoleContainer : null,
+              ]}>
+              <TouchableOpacity onPress={() => setAccountType('individual')}>
+                <Text style={accountType === 'individual' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.individual')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={[
+                styles.roleBtnContainer,
+                styles.marginLeft,
+                accountType === 'company' ? styles.activeRoleContainer : null,
+              ]}>
+              <TouchableOpacity onPress={() => setAccountType('company')}>
+                <Text style={accountType === 'company' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.company')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.selectRoleBtnsContainer}>
+            <View
+              style={[
+                [
+                  styles.roleBtnContainer,
+                  accountType === 'tpo' ? styles.activeRoleContainer : null,
+                ],
+                styles.justifyCenter,
+                styles.marginRight,
+              ]}>
+              <TouchableOpacity onPress={() => setAccountType('tpo')}>
+                <Text style={[accountType === 'tpo' ? styles.accountTypeText : styles.roleText]}>
+                  {i18next.t('label.tpo_title')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={[
+                styles.roleBtnContainer,
+                styles.marginLeft,
+                styles.justifyCenter,
+                accountType === 'school' ? styles.activeRoleContainer : null,
+              ]}>
+              <TouchableOpacity onPress={() => setAccountType('school')}>
+                <Text style={accountType === 'school' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 10, paddingBottom: 10}}>
             {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
@@ -204,64 +256,6 @@ const SignUp = () => {
             </View>
           </View>
           <View style={styles.emailContainer}>
-            <Text style={styles.label}>{i18next.t('label.email')}</Text>
-            <TextInput style={styles.value()} 
-              value={email} 
-              onChangeText={text => setEmail(text)}
-              placeholder='startplanting@trees.com'
-            />
-          </View>
-          <View style={styles.selectRoleBtnsContainer}>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginRight,
-                accountType === 'individual' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('individual')}>
-                <Text style={styles.roleText}>{i18next.t('label.individual')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginLeft,
-                accountType === 'company' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('company')}>
-                <Text style={styles.roleText}>{i18next.t('label.company')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.selectRoleBtnsContainer}>
-            <View
-              style={[
-                [
-                  styles.roleBtnContainer,
-                  accountType === 'tpo' ? styles.activeRoleContainer : null,
-                ],
-                styles.justifyCenter,
-                styles.marginRight,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('tpo')}>
-                <Text style={[styles.roleText, accountType === 'tpo' ? styles.primaryText : null]}>
-                  {i18next.t('label.tpo_title')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginLeft,
-                styles.justifyCenter,
-                accountType === 'school' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('school')}>
-                <Text style={styles.roleText}>{i18next.t('label.education_title')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.emailContainer}>
             <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
             <TextInput style={styles.value(nameError)} 
               value={nameOfOrg}
@@ -269,6 +263,14 @@ const SignUp = () => {
               placeholder="Forest in Africa"
             />
 
+          </View>
+          <View style={styles.emailContainer}>
+            <Text style={styles.label}>{i18next.t('label.email')}</Text>
+            <TextInput style={styles.value()} 
+              value={email} 
+              onChangeText={text => setEmail(text)}
+              editable={false}
+            />
           </View>
           {accountType === 'tpo' ? (
             <View>
@@ -354,7 +356,7 @@ const styles = StyleSheet.create({
   },
   roleText: {
     margin: 14,
-    color: Colors.LIGHT_BORDER_COLOR,
+    color: Colors.BLACK,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
   },
@@ -400,9 +402,22 @@ const styles = StyleSheet.create({
   },
   emailContainer: {
     width: '100%',
-    paddingTop: 13
+    paddingTop: 13,
+    paddingBottom:10
   },
   mayContactText: {
     paddingBottom: 10
   },
+  accountTypeText: {
+    margin: 14,
+    color: Colors.PRIMARY,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_18,
+  },
+  accountTypeHeader: {
+    paddingTop: 30,
+    paddingBottom: 8,
+    color: Colors.BLACK,
+    fontSize: 20
+  }
 });
