@@ -29,7 +29,7 @@ module.exports = {
       indent: ['error', 2, { SwitchCase: 1 }],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
-      'linebreak-style': ['error', 'windows'],
+      'linebreak-style': ['error', 'unix'],
       'no-undef': ['error'],
       'no-console': ['warn'],
       'no-unused-vars': ['warn'],
