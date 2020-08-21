@@ -11,10 +11,10 @@
   "signup_confirm": "Please confirm your details.",
   "individual": "Individual",
   "company": "Company",
-  "tpo_title_organisation": "Name of {{roleText}}",
+  "tpo_title_organisation": "NAME OF {{roleText}}",
   "create_profile": "Create Profile",
-  "city": "City",
-  "address": "Address",
-  "zipcode": "Zip Code",
+  "city": "CITY",
+  "address": "ADDRESS",
+  "zipcode": "ZIP CODE",
   "account_type": "Account Type"
 }

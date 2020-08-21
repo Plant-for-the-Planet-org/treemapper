@@ -37,22 +37,43 @@ const SignUp = () => {
     let name;
     switch (type) {
       case 'individual':
-        name = 'Individual';
+        name = 'INIDIVDUAL';
         break;
       case 'tpo':
-        name ='Tree Planting Orgainization';
+        name ='TREE PLANTING ORGANISATION';
         break;
       case 'school':
-        name = 'School';
+        name = 'SCHOOL';
         break;
       case 'company':
-        name = 'Company';
+        name = 'COMPANY';
         break;
       default:
-        name ='Tree Planting Orgainization';
+        name ='TREE PLANTING ORGANISATION';
         break;
     }
     return name;
+  };
+  const checkValidation = (name) => {
+    if (name === 'individual') {
+      if (lastname && firstname){
+        setCompleteCheck(true);
+      }else {
+        setCompleteCheck(false);
+      }
+    } else if(name === 'school' || name === 'company') {
+      if (lastname && firstname && nameOfOrg) {
+        setCompleteCheck(true);
+      } else {
+        setCompleteCheck(false);
+      }
+    } else if(name === 'tpo') {
+      if(lastname && firstname && nameOfOrg && zipCode && city && address) {
+        setCompleteCheck(true);
+      } else {
+        setCompleteCheck(false);
+      }
+    }
   };
   const submitDetails = () => {
     let country;
@@ -177,13 +198,17 @@ const SignUp = () => {
       setEmail(decode.email);
     });
   }, []);
-
+  
+  useEffect(() => {
+    checkValidation(accountType);
+  }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode]);
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <Header
             headingText={i18next.t('label.signup')}
+            closeIcon
           />
           <Text style={styles.accountTypeHeader}>{i18next.t('label.account_type')}</Text>
           <View style={styles.selectRoleBtnsContainer}>
@@ -243,7 +268,7 @@ const SignUp = () => {
               <TextInput style={styles.value(firstNameError)} 
                 value={firstname}
                 onChangeText={text => setFirstName(text)}
-                placeholder='Paulina'
+                // placeholder='Paulina'
               />
             </View>
             <View style={styles.inputContainer}>
@@ -251,20 +276,22 @@ const SignUp = () => {
               <TextInput style={styles.value(lastNameError)} 
                 value={lastname} 
                 onChangeText={text => setLastName(text)}
-                placeholder="Sanchez"
+                // placeholder="Sanchez"
               />
             </View>
           </View>
-          <View style={styles.emailContainer}>
-            <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
-            <TextInput style={styles.value(nameError)} 
-              value={nameOfOrg}
-              onChangeText={text => setNameOfOrg(text)}
-              placeholder="Forest in Africa"
-            />
-
-          </View>
-          <View style={styles.emailContainer}>
+          {accountType === 'company' || accountType === 'tpo' || accountType === 'school' ? (
+            <View style={styles.emailContainer()}>
+              <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
+              <TextInput style={styles.value(nameError)} 
+                value={nameOfOrg}
+                onChangeText={text => setNameOfOrg(text)}
+                // placeholder="Forest in Africa"
+              />
+          
+            </View>
+          ) : null}
+          <View style={styles.emailContainer('email')}>
             <Text style={styles.label}>{i18next.t('label.email')}</Text>
             <TextInput style={styles.value()} 
               value={email} 
@@ -274,29 +301,29 @@ const SignUp = () => {
           </View>
           {accountType === 'tpo' ? (
             <View>
-              <View style={styles.emailContainer}>
-                <Text style={styles.label}>{i18next.t('label.city')}</Text>
-                <TextInput style={styles.value(cityError)} 
-                  value={city} 
-                  onChangeText={text => setCity(text)}
-                  placeholder="Chur"
+              <View style={styles.emailContainer()}>
+                <Text style={styles.label}>{i18next.t('label.address')}</Text>
+                <TextInput style={styles.value(addressError)} 
+                  value={address} 
+                  onChangeText={text => setAddress(text)}
+                  // placeholder="Some Address"
                 />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 15}}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>{i18next.t('label.city')}</Text>
+                  <TextInput style={styles.value(cityError)} 
+                    value={city} 
+                    onChangeText={text => setCity(text)}
+                  // placeholder="Chur"
+                  />
+                </View>
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
                   <TextInput style={styles.value(zipCodeError)} 
                     value={zipCode}
                     onChangeText={text => setZipCode(text)}
-                    placeholder='98212'
-                  />
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>{i18next.t('label.address')}</Text>
-                  <TextInput style={styles.value(addressError)} 
-                    value={address} 
-                    onChangeText={text => setAddress(text)}
-                    placeholder="Some Address"
+                    // placeholder='98212'
                   />
                 </View>
               </View>
@@ -305,23 +332,26 @@ const SignUp = () => {
           <View style={styles.switchContainer}>
             <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
             <Switch
-              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }}
+              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#c0f069' }}
               thumbColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
               value={mayPublish}
               onValueChange={toggleSwitchPublish}
+              ios_backgroundColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
             />
           </View>
           <View style={styles.switchContainer, styles.mayContactText}>
             <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
             <Switch
-              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: Colors.PRIMARY }}
+              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#c0f069' }}
               thumbColor={mayContact ? Colors.PRIMARY : Colors.WHITE}
               value={mayContact}
               onValueChange={toggleSwitchContact}
+              ios_backgroundColor={Colors.PRIMARY}     
             />
           </View>
+          
+          <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} textStyle={ completeCheck ? null : styles.textStyle}/>
         </ScrollView>
-        <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails}/>
       </View>
     </SafeAreaView>
   );
@@ -337,6 +367,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_REGULAR
   },
   cont: {
     flex: 1,
@@ -364,6 +395,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_16,
+    width: '80%'
   },
   switchContainer: {
     flexDirection: 'row',
@@ -400,11 +432,13 @@ const styles = StyleSheet.create({
     width: '49%', 
     paddingLeft: 5
   },
-  emailContainer: {
+  emailContainer: (email)  => ({
     width: '100%',
     paddingTop: 13,
-    paddingBottom:10
-  },
+    paddingBottom:10,
+    color: email === 'email' ? Colors.PRIMARY : null,
+    fontFamily: Typography.FONT_FAMILY_REGULAR
+  }),
   mayContactText: {
     paddingBottom: 10
   },
@@ -419,5 +453,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     color: Colors.BLACK,
     fontSize: 20
+  },
+  textStyle: {
+    color: Colors.PRIMARY
   }
 });
