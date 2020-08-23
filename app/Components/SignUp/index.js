@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch, TextInput } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
@@ -9,6 +9,9 @@ import { LoginDetails } from '../../Actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../Services/Signup';
 import Snackbar from 'react-native-snackbar';
+import { store } from '../../Actions/store';
+import { LoaderActions, SignUpLoader } from '../../Actions/Action';
+import {Loader} from '../Common';
 
 const SignUp = () => {
   const [accountType, setAccountType] = useState('');
@@ -30,6 +33,7 @@ const SignUp = () => {
   const [cityError, setCityError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
+  const {dispatch, state} = useContext(store);
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -186,10 +190,16 @@ const SignUp = () => {
       // SignupService(userData);
     }
     
-    completeCheck ? SignupService(userData): null;
+    if (completeCheck) {
+      dispatch(SignUpLoader.setSignUpLoader(true));
+      SignupService(userData).then(() => {
+        dispatch(SignUpLoader.setSignUpLoader(false));
+      });
+    }
   };
 
   useEffect(() => {
+    dispatch(LoaderActions.setLoader(false));
     LoginDetails().then((User) => {
       let detail = (Object.values(User));
       let decode = jwtDecode(detail[0].idToken);
@@ -204,155 +214,156 @@ const SignUp = () => {
   }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode]);
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <View style={styles.container}>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <Header
-            headingText={i18next.t('label.signup')}
-            closeIcon
-          />
-          <Text style={styles.accountTypeHeader}>{i18next.t('label.account_type')}</Text>
-          <View style={styles.selectRoleBtnsContainer}>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginRight,
-                accountType === 'individual' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('individual')}>
-                <Text style={accountType === 'individual' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.individual')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginLeft,
-                accountType === 'company' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('company')}>
-                <Text style={accountType === 'company' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.company')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.selectRoleBtnsContainer}>
-            <View
-              style={[
-                [
-                  styles.roleBtnContainer,
-                  accountType === 'tpo' ? styles.activeRoleContainer : null,
-                ],
-                styles.justifyCenter,
-                styles.marginRight,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('tpo')}>
-                <Text style={[accountType === 'tpo' ? styles.accountTypeText : styles.roleText]}>
-                  {i18next.t('label.tpo_title')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={[
-                styles.roleBtnContainer,
-                styles.marginLeft,
-                styles.justifyCenter,
-                accountType === 'school' ? styles.activeRoleContainer : null,
-              ]}>
-              <TouchableOpacity onPress={() => setAccountType('school')}>
-                <Text style={accountType === 'school' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 10, paddingBottom: 10}}>
-            {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
-              <TextInput style={styles.value(firstNameError)} 
-                value={firstname}
-                onChangeText={text => setFirstName(text)}
-                // placeholder='Paulina'
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
-              <TextInput style={styles.value(lastNameError)} 
-                value={lastname} 
-                onChangeText={text => setLastName(text)}
-                // placeholder="Sanchez"
-              />
-            </View>
-          </View>
-          {accountType === 'company' || accountType === 'tpo' || accountType === 'school' ? (
-            <View style={styles.emailContainer()}>
-              <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
-              <TextInput style={styles.value(nameError)} 
-                value={nameOfOrg}
-                onChangeText={text => setNameOfOrg(text)}
-                // placeholder="Forest in Africa"
-              />
-          
-            </View>
-          ) : null}
-          <View style={styles.emailContainer('email')}>
-            <Text style={styles.label}>{i18next.t('label.email')}</Text>
-            <TextInput style={styles.value()} 
-              value={email} 
-              onChangeText={text => setEmail(text)}
-              editable={false}
+      {state.isSignUpLoader ? <Loader isLoaderShow={true} /> : 
+        <View style={styles.container}>
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <Header
+              headingText={i18next.t('label.signup')}
+              closeIcon
             />
-          </View>
-          {accountType === 'tpo' ? (
-            <View>
-              <View style={styles.emailContainer()}>
-                <Text style={styles.label}>{i18next.t('label.address')}</Text>
-                <TextInput style={styles.value(addressError)} 
-                  value={address} 
-                  onChangeText={text => setAddress(text)}
-                  // placeholder="Some Address"
+            <Text style={styles.accountTypeHeader}>{i18next.t('label.account_type')}</Text>
+            <View style={styles.selectRoleBtnsContainer}>
+              <View
+                style={[
+                  styles.roleBtnContainer,
+                  styles.marginRight,
+                  accountType === 'individual' ? styles.activeRoleContainer : null,
+                ]}>
+                <TouchableOpacity onPress={() => setAccountType('individual')}>
+                  <Text style={accountType === 'individual' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.individual')}</Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={[
+                  styles.roleBtnContainer,
+                  styles.marginLeft,
+                  accountType === 'company' ? styles.activeRoleContainer : null,
+                ]}>
+                <TouchableOpacity onPress={() => setAccountType('company')}>
+                  <Text style={accountType === 'company' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.company')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.selectRoleBtnsContainer}>
+              <View
+                style={[
+                  [
+                    styles.roleBtnContainer,
+                    accountType === 'tpo' ? styles.activeRoleContainer : null,
+                  ],
+                  styles.justifyCenter,
+                  styles.marginRight,
+                ]}>
+                <TouchableOpacity onPress={() => setAccountType('tpo')}>
+                  <Text style={[accountType === 'tpo' ? styles.accountTypeText : styles.roleText]}>
+                    {i18next.t('label.tpo_title')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={[
+                  styles.roleBtnContainer,
+                  styles.marginLeft,
+                  styles.justifyCenter,
+                  accountType === 'school' ? styles.activeRoleContainer : null,
+                ]}>
+                <TouchableOpacity onPress={() => setAccountType('school')}>
+                  <Text style={accountType === 'school' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 10, paddingBottom: 10}}>
+              {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
+                <TextInput style={styles.value(firstNameError)} 
+                  value={firstname}
+                  onChangeText={text => setFirstName(text)}
+                // placeholder='Paulina'
                 />
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 15}}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>{i18next.t('label.city')}</Text>
-                  <TextInput style={styles.value(cityError)} 
-                    value={city} 
-                    onChangeText={text => setCity(text)}
-                  // placeholder="Chur"
-                  />
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
-                  <TextInput style={styles.value(zipCodeError)} 
-                    value={zipCode}
-                    onChangeText={text => setZipCode(text)}
-                    // placeholder='98212'
-                  />
-                </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
+                <TextInput style={styles.value(lastNameError)} 
+                  value={lastname} 
+                  onChangeText={text => setLastName(text)}
+                // placeholder="Sanchez"
+                />
               </View>
             </View>
-          ) : null}
-          <View style={styles.switchContainer}>
-            <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
-            <Switch
-              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#c0f069' }}
-              thumbColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
-              value={mayPublish}
-              onValueChange={toggleSwitchPublish}
-              ios_backgroundColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
-            />
-          </View>
-          <View style={styles.switchContainer, styles.mayContactText}>
-            <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
-            <Switch
-              trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#c0f069' }}
-              thumbColor={mayContact ? Colors.PRIMARY : Colors.WHITE}
-              value={mayContact}
-              onValueChange={toggleSwitchContact}
-              ios_backgroundColor={Colors.PRIMARY}     
-            />
-          </View>
+            {accountType === 'company' || accountType === 'tpo' || accountType === 'school' ? (
+              <View style={styles.emailContainer()}>
+                <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
+                <TextInput style={styles.value(nameError)} 
+                  value={nameOfOrg}
+                  onChangeText={text => setNameOfOrg(text)}
+                // placeholder="Forest in Africa"
+                />
           
-          <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} textStyle={ completeCheck ? null : styles.textStyle}/>
-        </ScrollView>
-      </View>
+              </View>
+            ) : null}
+            <View style={styles.emailContainer('email')}>
+              <Text style={styles.label}>{i18next.t('label.email')}</Text>
+              <TextInput style={styles.value()} 
+                value={email} 
+                onChangeText={text => setEmail(text)}
+                editable={false}
+              />
+            </View>
+            {accountType === 'tpo' ? (
+              <View>
+                <View style={styles.emailContainer()}>
+                  <Text style={styles.label}>{i18next.t('label.address')}</Text>
+                  <TextInput style={styles.value(addressError)} 
+                    value={address} 
+                    onChangeText={text => setAddress(text)}
+                  // placeholder="Some Address"
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 15}}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>{i18next.t('label.city')}</Text>
+                    <TextInput style={styles.value(cityError)} 
+                      value={city} 
+                      onChangeText={text => setCity(text)}
+                      // placeholder="Chur"
+                    />
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
+                    <TextInput style={styles.value(zipCodeError)} 
+                      value={zipCode}
+                      onChangeText={text => setZipCode(text)}
+                    // placeholder='98212'
+                    />
+                  </View>
+                </View>
+              </View>
+            ) : null}
+            <View style={styles.switchContainer}>
+              <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
+              <Switch
+                trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
+                thumbColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
+                value={mayPublish}
+                onValueChange={toggleSwitchPublish}
+                ios_backgroundColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
+              />
+            </View>
+            <View style={styles.switchContainer, styles.mayContactText}>
+              <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
+              <Switch
+                trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
+                thumbColor={mayContact ? Colors.PRIMARY : Colors.WHITE}
+                value={mayContact}
+                onValueChange={toggleSwitchContact}
+                ios_backgroundColor={Colors.PRIMARY}     
+              />
+            </View>
+          
+            <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} textStyle={ completeCheck ? null : styles.textStyle}/>
+          </ScrollView>
+        </View>}
     </SafeAreaView>
   );
 };
@@ -452,7 +463,8 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingBottom: 8,
     color: Colors.BLACK,
-    fontSize: 20
+    fontSize: Typography.FONT_SIZE_18,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
   },
   textStyle: {
     color: Colors.PRIMARY

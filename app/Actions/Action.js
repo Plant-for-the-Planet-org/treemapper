@@ -7,4 +7,21 @@ class LocalInventoryActions {
   });
 }
 
-export { LocalInventoryActions };
+class LoaderActions {
+  static SET_LOADING = 'SET_LOADING';
+
+  static setLoader = (payload) => ({
+    type: LoaderActions.SET_LOADING,
+    payload: payload
+  });
+}
+
+class SignUpLoader {
+  static SET_SIGNUP_LOADER = 'SET_SIGNUP_LOADER';
+
+  static setSignUpLoader = (payload) => ({
+    type: SignUpLoader.SET_SIGNUP_LOADER,
+    payload
+  });
+}
+export { LocalInventoryActions, LoaderActions, SignUpLoader };
