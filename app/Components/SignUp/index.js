@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   roleBtnContainer: {
-    height: 80,
+    height: Platform.OS === 'ios' ? 120 : 80,
     borderWidth: 2,
     flex: 1,
     borderRadius: 10,
