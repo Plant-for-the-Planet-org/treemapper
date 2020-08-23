@@ -12,9 +12,10 @@ import Snackbar from 'react-native-snackbar';
 import { store } from '../../Actions/store';
 import { LoaderActions, SignUpLoader } from '../../Actions/Action';
 import {Loader} from '../Common';
+import { tree } from '_assets';
 
 const SignUp = () => {
-  const [accountType, setAccountType] = useState('');
+  const [accountType, setAccountType] = useState('tpo');
   const [lastname, setLastName] = useState('');
   const [firstname, setFirstName] = useState('');
   const [email, setEmail] = useState('');
@@ -84,7 +85,6 @@ const SignUp = () => {
     country = authDetail.locale.split('-')[1];
     let locale = authDetail.locale;
     let userData;
-
     if(accountType === '') {
       Snackbar.show({
         text: 'Select Role Type',
@@ -303,7 +303,7 @@ const SignUp = () => {
               </View>
             ) : null}
             <View style={styles.emailContainer('email')}>
-              <Text style={styles.label}>{i18next.t('label.email')}</Text>
+              <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
               <TextInput style={styles.inputColor} 
                 value={email} 
                 onChangeText={text => setEmail(text)}
@@ -361,7 +361,7 @@ const SignUp = () => {
               />
             </View>
             <View style={styles.mayContactText}>
-              <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} textStyle={ completeCheck ? null : styles.textStyle}/>
+              <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} disabled={completeCheck ? false : true}/>
             </View>
           </ScrollView>
         </View>}
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: 20,
     // color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+    // fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_18,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
+    fontFamily: Typography.FONT_FAMILY_REGULAR
   },
   textStyle: {
     color: Colors.PRIMARY
@@ -480,5 +480,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
+    borderBottomColor: Colors.GRAY_LIGHT
+  },
+  emailLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    lineHeight: Typography.LINE_HEIGHT_30,
+    color: Colors.GRAY_LIGHT, 
   }
 });
