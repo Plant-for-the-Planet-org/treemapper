@@ -1,5 +1,5 @@
 import React, { createContext, useReducer } from 'react';
-import { LocalInventoryActions } from '../Actions/Action';
+import { LocalInventoryActions, LoaderActions, SignUpLoader } from '../Actions/Action';
 
 const initialState = { inventoryID: undefined };
 const store = createContext(initialState);
@@ -12,6 +12,16 @@ const StateProvider = ({ children }) => {
         const newState = state;
         newState.inventoryID = action.payload;
         return newState;
+      case LoaderActions.SET_LOADING:
+        return {
+          ...state,
+          isLoading: action.payload
+        };
+      case SignUpLoader.SET_SIGNUP_LOADER:
+        return {
+          ...state,
+          isSignUpLoader: action.payload
+        };
       default:
         throw new Error();
     }
