@@ -11,7 +11,7 @@ const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CL
 
 //  ---------------- AUTH0 ACTIONS START----------------
 
-export const auth0Login = () => {
+export const auth0Login = (navigation) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
       .authorize({ scope: 'openid email profile' }, { ephemeralSession: true })
@@ -25,11 +25,11 @@ export const auth0Login = () => {
                 {
                   id: 'id0001',
                   accessToken: accessToken,
-                  idToken: 'NO NEED TO STORE',
+                  idToken
                 },
                 'modified',
               );
-              getUserInformationFromServer().then(() => {
+              getUserInformationFromServer(navigation).then(() => {
                 resolve(true);
               });
             });
@@ -69,13 +69,28 @@ export const isLogin = () => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] }).then(
       (realm) => {
         const User = realm.objects('User');
-        if (User[0]) {
+        if (User[0]) {   
           resolve(true);
         } else {
           resolve(false);
         }
       },
     );
+  });
+};
+
+export const LoginDetails = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+      .then((realm) => {
+        realm.write(() => {
+          const User = realm.objects('User');
+          resolve(JSON.parse(JSON.stringify(User)));
+        });
+      })
+      .catch(err => {
+        reject(err);
+      });
   });
 };
 

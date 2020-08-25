@@ -248,7 +248,7 @@ const SingleTreeOverview = ({ navigation }) => {
               testID="register_planting_date">
               <Text style={styles.detailText}>
                 {i18next.t('label.tree_Review_plantation_date_text', {
-                  date: moment(plantationDate),
+                  date: moment(plantationDate).format('ll'),
                 })}{' '}
                 {shouldEdit && <MIcon name={'edit'} size={20} />}
               </Text>

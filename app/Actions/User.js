@@ -1,4 +1,5 @@
 import { APIConfig } from './Config';
+// import React, {useContext} from 'react';
 import axios from 'axios';
 import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
@@ -20,7 +21,7 @@ export const getUserInformation = () => {
   });
 };
 
-export const getUserInformationFromServer = () => {
+export const getUserInformationFromServer = (navigation) => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] }).then(
       (realm) => {
@@ -50,7 +51,11 @@ export const getUserInformationFromServer = () => {
             });
             resolve(true);
           })
-          .catch((err) => {});
+          .catch((err) => {
+            if (err.response.status === 303) {
+              navigation.navigate('SignUp');
+            }
+          });
       },
     );
     const { protocol, url } = APIConfig;
