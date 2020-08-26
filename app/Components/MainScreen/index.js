@@ -45,6 +45,7 @@ const MainScreen = ({ navigation }) => {
       dispatch(LoaderActions.setLoader(true));
       auth0Login(navigation).then((data) => {
         setIsUserLogin(data);
+        dispatch(LoaderActions.setLoader(false));
       }).catch(() => {
         dispatch(LoaderActions.setLoader(false));
       });

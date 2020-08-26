@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch, TextInput, Platform } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
@@ -12,9 +12,9 @@ import Snackbar from 'react-native-snackbar';
 import { store } from '../../Actions/store';
 import { LoaderActions, SignUpLoader } from '../../Actions/Action';
 import {Loader} from '../Common';
-import { tree } from '_assets';
+import Modal from '../Common/Modal';
 
-const SignUp = () => {
+const SignUp = ({navigation}) => {
   const [accountType, setAccountType] = useState('tpo');
   const [lastname, setLastName] = useState('');
   const [firstname, setFirstName] = useState('');
@@ -34,7 +34,15 @@ const SignUp = () => {
   const [cityError, setCityError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
+  const [country, setCountry] = useState('');
   const {dispatch, state} = useContext(store);
+  const [modalVisible, setModalVisible] = useState(false);
+  const textInput = useRef(null);
+  const textInputCountry = useRef(null);
+  const textInputZipCode = useRef(null);
+  const textInputNameOfOrg = useRef(null);
+  const textInputAddress = useRef(null);
+  const textInputCity = useRef(null);
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -47,7 +55,7 @@ const SignUp = () => {
       case 'tpo':
         name ='TREE PLANTING ORGANISATION';
         break;
-      case 'school':
+      case 'education':
         name = 'SCHOOL';
         break;
       case 'company':
@@ -61,19 +69,19 @@ const SignUp = () => {
   };
   const checkValidation = (name) => {
     if (name === 'individual') {
-      if (lastname && firstname){
+      if (lastname && firstname && country){
         setCompleteCheck(true);
       }else {
         setCompleteCheck(false);
       }
-    } else if(name === 'school' || name === 'company') {
-      if (lastname && firstname && nameOfOrg) {
+    } else if(name === 'education' || name === 'company') {
+      if (lastname && firstname && nameOfOrg && country) {
         setCompleteCheck(true);
       } else {
         setCompleteCheck(false);
       }
     } else if(name === 'tpo') {
-      if(lastname && firstname && nameOfOrg && zipCode && city && address) {
+      if(lastname && firstname && nameOfOrg && zipCode && city && address && country) {
         setCompleteCheck(true);
       } else {
         setCompleteCheck(false);
@@ -81,8 +89,8 @@ const SignUp = () => {
     }
   };
   const submitDetails = () => {
-    let country;
-    country = authDetail.locale.split('-')[1];
+    // let country;
+    // country = authDetail.locale.split('-')[1];
     let locale = authDetail.locale;
     let userData;
     if(accountType === '') {
@@ -150,7 +158,7 @@ const SignUp = () => {
           name: nameOfOrg
         };
       }
-    } else if (accountType === 'school' || accountType === 'company') {
+    } else if (accountType === 'education' || accountType === 'company') {
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
@@ -190,9 +198,13 @@ const SignUp = () => {
       // SignupService(userData);
     }
     
-    if (completeCheck) {
+    if (completeCheck) {    
       dispatch(SignUpLoader.setSignUpLoader(true));
       SignupService(userData).then(() => {
+        dispatch(SignUpLoader.setSignUpLoader(false));
+        navigation.navigate('MainScreen');
+      }).catch(err => {
+        console.log(err.response.data, 'err');
         dispatch(SignUpLoader.setSignUpLoader(false));
       });
     }
@@ -212,6 +224,15 @@ const SignUp = () => {
   useEffect(() => {
     checkValidation(accountType);
   }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode]);
+
+  const openModal = (data) => {
+    setModalVisible(data);
+  };
+
+  const userCountry = (data) => {
+    setCountry(data.countryCode);
+    setModalVisible(!modalVisible);
+  };
   return (
     <SafeAreaView style={styles.mainContainer}>
       {state.isSignUpLoader ? <Loader isLoaderShow={true} /> : 
@@ -265,10 +286,10 @@ const SignUp = () => {
                   styles.roleBtnContainer,
                   styles.marginLeft,
                   styles.justifyCenter,
-                  accountType === 'school' ? styles.activeRoleContainer : null,
+                  accountType === 'education' ? styles.activeRoleContainer : null,
                 ]}>
-                <TouchableOpacity onPress={() => setAccountType('school')}>
-                  <Text style={accountType === 'school' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
+                <TouchableOpacity onPress={() => setAccountType('education')}>
+                  <Text style={accountType === 'education' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -279,6 +300,9 @@ const SignUp = () => {
                 <TextInput style={styles.value(firstNameError)} 
                   value={firstname}
                   onChangeText={text => setFirstName(text)}
+                  returnKeyType= {completeCheck ? 'done' : 'next'}
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => textInput.current.focus()}
                 // placeholder='Paulina'
                 />
               </View>
@@ -287,16 +311,34 @@ const SignUp = () => {
                 <TextInput style={styles.value(lastNameError)} 
                   value={lastname} 
                   onChangeText={text => setLastName(text)}
+                  returnKeyType= {completeCheck ? 'done' : 'next'} 
+                  ref={textInput}
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => textInputCountry.current.focus()}
                 // placeholder="Sanchez"
                 />
               </View>
             </View>
-            {accountType === 'company' || accountType === 'tpo' || accountType === 'school' ? (
+            <View style={styles.emailContainer()}>
+              <Text style={styles.label}>COUNTRY</Text>
+              <TextInput style={styles.value(nameError)} 
+                value={country}
+                onFocus={() => setModalVisible(!modalVisible)}
+                ref={textInputCountry}
+                // placeholder="Select Country"
+              />
+            </View>
+            {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
+            {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer()}>
                 <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
                 <TextInput style={styles.value(nameError)} 
                   value={nameOfOrg}
                   onChangeText={text => setNameOfOrg(text)}
+                  returnKeyType= {completeCheck ? 'done' : 'next'}
+                  ref={textInputNameOfOrg}
+                  blurOnSubmit={completeCheck ? true : false}
+                  onSubmitEditing={completeCheck ? null: () => textInputAddress.current.focus()}
                 // placeholder="Forest in Africa"
                 />
           
@@ -317,6 +359,10 @@ const SignUp = () => {
                   <TextInput style={styles.value(addressError)} 
                     value={address} 
                     onChangeText={text => setAddress(text)}
+                    returnKeyType= {completeCheck ? 'done' : 'next'}
+                    ref={textInputAddress}
+                    blurOnSubmit={completeCheck ? true : false}
+                    onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
                   // placeholder="Some Address"
                   />
                 </View>
@@ -326,6 +372,10 @@ const SignUp = () => {
                     <TextInput style={styles.value(cityError)} 
                       value={city} 
                       onChangeText={text => setCity(text)}
+                      returnKeyType= {completeCheck ? 'done' : 'next'}
+                      ref={textInputCity}
+                      blurOnSubmit={completeCheck ? true : false}
+                      onSubmitEditing={completeCheck ? null : () => textInputZipCode.current.focus()}
                       // placeholder="Chur"
                     />
                   </View>
@@ -334,6 +384,8 @@ const SignUp = () => {
                     <TextInput style={styles.value(zipCodeError)} 
                       value={zipCode}
                       onChangeText={text => setZipCode(text)}
+                      returnKeyType= {completeCheck ? 'done' : 'next'}
+                      ref={textInputZipCode}
                     // placeholder='98212'
                     />
                   </View>
@@ -442,7 +494,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: '49%', 
-    paddingLeft: 5
   },
   emailContainer: (email)  => ({
     width: '100%',
