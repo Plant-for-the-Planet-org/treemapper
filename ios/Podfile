@@ -12,6 +12,8 @@ target 'treemapper' do
   # pod 'react-native-mapbox-gl/DynamicLibrary', :path => '../node_modules/@react-native-mapbox-gl/maps'
 
 
+  pod 'RNSVG', :path => '../node_modules/react-native-svg'
+
   target 'treemapperTests' do
     inherit! :complete
     # Pods for testing

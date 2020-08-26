@@ -1,13 +1,17 @@
 import axios from 'axios';
 import {APIConfig} from '../Actions/Config';
 
-export const SignupService = async (payload) => {
-  try {
+export const SignupService = (payload) => {
+  // try {
+  return new Promise((resolve, reject) => {
     const {protocol, url} = APIConfig;
-    console.log(payload);
-    const res = await axios.post(`${protocol}://${url}/treemapper/profiles`, payload);
-    console.log(res.data, 'response');
-  } catch (error) {
-    console.log(error, 'erroe');
-  }
+    axios.post(`${protocol}://${url}/treemapper/profiles`, payload).then((res => {
+      const {status, data} = res;
+      if (status === 200) {
+        resolve(data);
+      }
+    })).catch(err => {
+      reject(err);
+    });
+  });
 };

@@ -12,9 +12,9 @@ import Snackbar from 'react-native-snackbar';
 import { store } from '../../Actions/store';
 import { LoaderActions, SignUpLoader } from '../../Actions/Action';
 import {Loader} from '../Common';
-import { tree } from '_assets';
+import Modal from '../Common/Modal';
 
-const SignUp = () => {
+const SignUp = ({navigation}) => {
   const [accountType, setAccountType] = useState('tpo');
   const [lastname, setLastName] = useState('');
   const [firstname, setFirstName] = useState('');
@@ -34,7 +34,9 @@ const SignUp = () => {
   const [cityError, setCityError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
+  const [country, setCountry] = useState('');
   const {dispatch, state} = useContext(store);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -47,7 +49,7 @@ const SignUp = () => {
       case 'tpo':
         name ='TREE PLANTING ORGANISATION';
         break;
-      case 'school':
+      case 'education':
         name = 'SCHOOL';
         break;
       case 'company':
@@ -66,7 +68,7 @@ const SignUp = () => {
       }else {
         setCompleteCheck(false);
       }
-    } else if(name === 'school' || name === 'company') {
+    } else if(name === 'education' || name === 'company') {
       if (lastname && firstname && nameOfOrg) {
         setCompleteCheck(true);
       } else {
@@ -81,8 +83,8 @@ const SignUp = () => {
     }
   };
   const submitDetails = () => {
-    let country;
-    country = authDetail.locale.split('-')[1];
+    // let country;
+    // country = authDetail.locale.split('-')[1];
     let locale = authDetail.locale;
     let userData;
     if(accountType === '') {
@@ -150,7 +152,7 @@ const SignUp = () => {
           name: nameOfOrg
         };
       }
-    } else if (accountType === 'school' || accountType === 'company') {
+    } else if (accountType === 'education' || accountType === 'company') {
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
@@ -190,9 +192,13 @@ const SignUp = () => {
       // SignupService(userData);
     }
     
-    if (completeCheck) {
+    if (completeCheck) {    
       dispatch(SignUpLoader.setSignUpLoader(true));
       SignupService(userData).then(() => {
+        dispatch(SignUpLoader.setSignUpLoader(false));
+        navigation.navigate('MainScreen');
+      }).catch(err => {
+        console.log(err.response.data, 'err');
         dispatch(SignUpLoader.setSignUpLoader(false));
       });
     }
@@ -212,6 +218,15 @@ const SignUp = () => {
   useEffect(() => {
     checkValidation(accountType);
   }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode]);
+
+  const openModal = (data) => {
+    setModalVisible(data);
+  };
+
+  const userCountry = (data) => {
+    setCountry(data.countryCode);
+    setModalVisible(!modalVisible);
+  };
   return (
     <SafeAreaView style={styles.mainContainer}>
       {state.isSignUpLoader ? <Loader isLoaderShow={true} /> : 
@@ -265,10 +280,10 @@ const SignUp = () => {
                   styles.roleBtnContainer,
                   styles.marginLeft,
                   styles.justifyCenter,
-                  accountType === 'school' ? styles.activeRoleContainer : null,
+                  accountType === 'education' ? styles.activeRoleContainer : null,
                 ]}>
-                <TouchableOpacity onPress={() => setAccountType('school')}>
-                  <Text style={accountType === 'school' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
+                <TouchableOpacity onPress={() => setAccountType('education')}>
+                  <Text style={accountType === 'education' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -291,7 +306,16 @@ const SignUp = () => {
                 />
               </View>
             </View>
-            {accountType === 'company' || accountType === 'tpo' || accountType === 'school' ? (
+            <View style={styles.emailContainer()}>
+              <Text style={styles.label}>COUNTRY</Text>
+              <TextInput style={styles.value(nameError)} 
+                value={country}
+                onFocus={() => setModalVisible(!modalVisible)}
+                // placeholder="Select Country"
+              />
+            </View>
+            {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
+            {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer()}>
                 <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
                 <TextInput style={styles.value(nameError)} 
@@ -442,7 +466,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: '49%', 
-    paddingLeft: 5
   },
   emailContainer: (email)  => ({
     width: '100%',
