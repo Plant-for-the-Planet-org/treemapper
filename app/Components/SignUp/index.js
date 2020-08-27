@@ -4,7 +4,7 @@ import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity, TouchableHighlight } from 'react-native-gesture-handler';
 import { LoginDetails } from '../../Actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../Services/Signup';
@@ -320,13 +320,15 @@ const SignUp = ({navigation}) => {
               </View>
             </View>
             <View style={styles.emailContainer()}>
-              <Text style={styles.label}>COUNTRY</Text>
-              <TextInput style={styles.value(nameError)} 
-                value={country}
-                onFocus={() => setModalVisible(!modalVisible)}
-                ref={textInputCountry}
+              <TouchableHighlight onPress={Platform.OS === 'ios' ? () => setModalVisible(!modalVisible): null}>
+                <Text style={styles.label}>COUNTRY</Text>
+                <TextInput style={styles.value(nameError)} 
+                  value={country}
+                  onFocus={Platform.OS === 'ios' ? null : () => setModalVisible(!modalVisible)}
+                  ref={textInputCountry}
                 // placeholder="Select Country"
-              />
+                />
+              </TouchableHighlight>
             </View>
             {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (

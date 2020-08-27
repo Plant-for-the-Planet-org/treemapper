@@ -370,6 +370,8 @@ PODS:
     - React
   - RNScreens (2.8.0):
     - React
+  - RNSnackbar (2.2.3):
+    - React
   - RNSVG (12.1.0):
     - React
   - RNVectorIcons (6.6.0):
@@ -447,6 +449,7 @@ DEPENDENCIES:
   - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSnackbar (from `../node_modules/react-native-snackbar`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "toolbar-android (from `../node_modules/@react-native-community/toolbar-android`)"
@@ -562,6 +565,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSnackbar:
+    :path: "../node_modules/react-native-snackbar"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
@@ -632,12 +637,13 @@ SPEC CHECKSUMS:
   RNLocalize: c388679af021ddd6069c215f7fdd2acf4e77ede5
   RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
   RNScreens: 62211832af51e0aebcf6e8c36bcf7dd65592f244
+  RNSnackbar: 57932b2527096e609a86b1da2a2dfa46d624dc7c
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   toolbar-android: 404f4450b203597e7b417f714ff417bed562a1be
   Yoga: 7740b94929bbacbddda59bf115b5317e9a161598
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5de3e4bfdf092da8b6558bee0faa625368e6dc3d
+PODFILE CHECKSUM: b1bc88ba58fffc88442e88eb6c0c68ef96f9d08f
 
 COCOAPODS: 1.9.3
