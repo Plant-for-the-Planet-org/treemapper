@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, ScrollView, Switch, TextInput, Platform } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
+import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
@@ -321,14 +321,11 @@ const SignUp = ({navigation}) => {
             </View>
             <View style={styles.emailContainer()}>
               <Text style={styles.label}>COUNTRY</Text>
-              {/* <TouchableHighlight onPress={Platform.OS === 'ios' ? () => setModalVisible(!modalVisible): null}> */}
-              <TextInput style={styles.value(nameError)} 
-                value={country}
-                onFocus={() => setModalVisible(!modalVisible)}
-                ref={textInputCountry}
-                // placeholder="Select Country"
-              />
-              {/* </TouchableHighlight> */}
+              <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
+                <Text style={styles.value(nameError)} 
+                  ref={textInputCountry}
+                >{country ? country : ''}</Text>
+              </TouchableOpacity>
             </View>
             {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
