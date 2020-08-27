@@ -37,12 +37,15 @@ const SignUp = ({navigation}) => {
   const [country, setCountry] = useState('');
   const {dispatch, state} = useContext(store);
   const [modalVisible, setModalVisible] = useState(false);
+<<<<<<< HEAD
   const textInput = useRef(null);
   const textInputCountry = useRef(null);
   const textInputZipCode = useRef(null);
   const textInputNameOfOrg = useRef(null);
   const textInputAddress = useRef(null);
   const textInputCity = useRef(null);
+=======
+>>>>>>> 237349710afd65150b0ef9399dde1117733c491e
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
@@ -75,7 +78,11 @@ const SignUp = ({navigation}) => {
         setCompleteCheck(false);
       }
     } else if(name === 'education' || name === 'company') {
+<<<<<<< HEAD
       if (lastname && firstname && nameOfOrg && country) {
+=======
+      if (lastname && firstname && nameOfOrg) {
+>>>>>>> 237349710afd65150b0ef9399dde1117733c491e
         setCompleteCheck(true);
       } else {
         setCompleteCheck(false);
@@ -324,7 +331,10 @@ const SignUp = ({navigation}) => {
               <TextInput style={styles.value(nameError)} 
                 value={country}
                 onFocus={() => setModalVisible(!modalVisible)}
+<<<<<<< HEAD
                 ref={textInputCountry}
+=======
+>>>>>>> 237349710afd65150b0ef9399dde1117733c491e
                 // placeholder="Select Country"
               />
             </View>
