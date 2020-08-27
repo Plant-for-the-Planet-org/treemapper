@@ -321,14 +321,14 @@ const SignUp = ({navigation}) => {
             </View>
             <View style={styles.emailContainer()}>
               <Text style={styles.label}>COUNTRY</Text>
-              <TouchableHighlight onPress={Platform.OS === 'ios' ? () => setModalVisible(!modalVisible): null}>
-                <TextInput style={styles.value(nameError)} 
-                  value={country}
-                  onFocus={Platform.OS === 'ios' ? null : () => setModalVisible(!modalVisible)}
-                  ref={textInputCountry}
+              {/* <TouchableHighlight onPress={Platform.OS === 'ios' ? () => setModalVisible(!modalVisible): null}> */}
+              <TextInput style={styles.value(nameError)} 
+                value={country}
+                onFocus={() => setModalVisible(!modalVisible)}
+                ref={textInputCountry}
                 // placeholder="Select Country"
-                />
-              </TouchableHighlight>
+              />
+              {/* </TouchableHighlight> */}
             </View>
             {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
