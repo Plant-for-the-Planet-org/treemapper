@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, Modal, StyleSheet, FlatList, TouchableOpacity, Image, Platform } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography } from '_styles';
 import { TextInput } from 'react-native-gesture-handler';
@@ -37,7 +37,6 @@ export default function index({visible, openModal, userCountry}) {
         </View>
       </View>
     </TouchableOpacity>
-    // console.log(`https://cdn.pp.eco/media/images/flags/svg/${title.currencyCountryFlag}.svg`)
   );
   const sort = () => {
     CountryData.sort((a, b) => {
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    paddingTop: 10,
+    paddingTop: Platform.OS === 'ios' ? 20 : 10,
     backgroundColor: 'black',
     color: 'white'
   },
