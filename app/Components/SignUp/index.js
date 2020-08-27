@@ -321,8 +321,8 @@ const SignUp = ({navigation}) => {
             </View>
             <View style={styles.emailContainer()}>
               <Text style={styles.label}>COUNTRY</Text>
-              <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
-                <Text style={styles.value(nameError)} 
+              <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.countryContainer}>
+                <Text style={styles.countryValue}
                   ref={textInputCountry}
                 >{country ? country : ''}</Text>
               </TouchableOpacity>
@@ -537,5 +537,17 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
     color: Colors.GRAY_LIGHT, 
+  },
+  countryContainer: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.TEXT_COLOR,
+  },
+  countryValue: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_20,
+    color: Colors.TEXT_COLOR,
+    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+    flex: 1,
+    paddingVertical: 10,
   }
 });
