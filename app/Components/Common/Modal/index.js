@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    paddingTop: Platform.OS === 'ios' ? 20 : 10,
+    paddingTop: Platform.OS === 'ios' ? 25 : 10,
     backgroundColor: 'black',
     color: 'white'
   },
