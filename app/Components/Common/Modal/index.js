@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography } from '_styles';
 import { TextInput } from 'react-native-gesture-handler';
 import CountryData from '../../../Utils/countryData.json';
 import Config from 'react-native-config';
-import SvgUri from 'react-native-svg-uri';
 
 export default function index({visible, openModal, userCountry}) {
   const [countryData, setCountryData] = useState(null);
@@ -24,17 +23,12 @@ export default function index({visible, openModal, userCountry}) {
   const Item = ({ title, onPress }) => (
     <TouchableOpacity style={styles.item} onPress={onPress}>
       <View style={{flexDirection: 'row'}}>
-        {/* <Image 
+        <Image 
           source={{
-            uri: 'https://cdn.pp.eco/media/images/flags/svg/US.svg',
+            uri: `${Config.CDN_URL}${title.currencyCountryFlag}.png`,
           }}
           style={styles.countryFlag}
           resizeMode="contain"
-        /> */}
-        <SvgUri 
-          height='50'
-          width='50'
-          source={{uri: `${Config.CDN_URL}${title.cocurrencyCountryFlag}.svg`}}
         />
         <View style={{paddingLeft: 20}}>
           <Text style={{color: 'white'}}>{title.currencyCode}</Text>
@@ -166,6 +160,7 @@ const styles = StyleSheet.create({
   },
   countryFlag: {
     height: 50,
-    width: 50
+    width: 50,
+    borderRadius: 3
   }
 });

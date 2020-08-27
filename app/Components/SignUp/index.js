@@ -223,7 +223,7 @@ const SignUp = ({navigation}) => {
   
   useEffect(() => {
     checkValidation(accountType);
-  }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode]);
+  }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode, country]);
 
   const openModal = (data) => {
     setModalVisible(data);
