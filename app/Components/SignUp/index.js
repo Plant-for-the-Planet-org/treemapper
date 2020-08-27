@@ -320,8 +320,8 @@ const SignUp = ({navigation}) => {
               </View>
             </View>
             <View style={styles.emailContainer()}>
+              <Text style={styles.label}>COUNTRY</Text>
               <TouchableHighlight onPress={Platform.OS === 'ios' ? () => setModalVisible(!modalVisible): null}>
-                <Text style={styles.label}>COUNTRY</Text>
                 <TextInput style={styles.value(nameError)} 
                   value={country}
                   onFocus={Platform.OS === 'ios' ? null : () => setModalVisible(!modalVisible)}
