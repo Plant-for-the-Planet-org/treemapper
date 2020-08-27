@@ -39,18 +39,17 @@ const MainScreen = ({ navigation }) => {
   const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible);
 
   const onPressLogin = () => {
-    navigation.navigate('SignUp');
-    // if (isUserLogin) {
-    //   setIsProfileModalVisible(true);
-    // } else {
-    //   dispatch(LoaderActions.setLoader(true));
-    //   auth0Login(navigation).then((data) => {
-    //     setIsUserLogin(data);
-    //     dispatch(LoaderActions.setLoader(false));
-    //   }).catch(() => {
-    //     dispatch(LoaderActions.setLoader(false));
-    //   });
-    // }
+    if (isUserLogin) {
+      setIsProfileModalVisible(true);
+    } else {
+      dispatch(LoaderActions.setLoader(true));
+      auth0Login(navigation).then((data) => {
+        setIsUserLogin(data);
+        dispatch(LoaderActions.setLoader(false));
+      }).catch(() => {
+        dispatch(LoaderActions.setLoader(false));
+      });
+    }
   };
 
   const checkIsLogin = () => {
