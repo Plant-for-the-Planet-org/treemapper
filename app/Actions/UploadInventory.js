@@ -5,6 +5,7 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+import Upload from 'react-native-background-upload';
 
 const { protocol, url } = APIConfig;
 
@@ -116,19 +117,55 @@ const uploadImage = (oneInventory, response, userToken) => {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
         };
-
-        await axios({
-          method: 'PUT',
+        const options = {
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
-          data: body,
+          path: body,
+          method: 'PUT',
+          type: 'raw',
+          maxRetries: 4,
           headers: headers,
-        })
-          .then((res) => {
-            resolve();
-          })
-          .catch((err) => {
-            reject();
+          // Below are options only supported on Android
+          notification: {
+            enabled: true
+          },
+          useUtf8Charset: true
+        };
+
+        Upload.startUpload(options).then((uploadId) => {
+          Upload.addListener('progress', uploadId, (data) => {
+            // Add to global state so that it can be used in other components
+            console.log(`Progress: ${data.progress}%`);
           });
+          Upload.addListener('error', uploadId, (data) => {
+            // Add to global state so that it can be used in other components
+            console.log(`Error: ${data.error}%`);
+          });
+          Upload.addListener('cancelled', uploadId, (data) => {
+            // Add to global state so that it can be used in other components
+            console.log('Cancelled!');
+          });
+          Upload.addListener('completed', uploadId, (data) => {
+            // Add to global state so that it can be used in other components
+            // data includes responseCode: number and responseBody: Object
+            console.log('Completed!');
+            resolve();
+          });
+        }).catch((err) => {
+          console.log('Upload error!', err);
+          reject();
+        });
+        // await axios({
+        //   method: 'PUT',
+        //   url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
+        //   data: body,
+        //   headers: headers,
+        // })
+        //   .then((res) => {
+        //     resolve();
+        //   })
+        //   .catch((err) => {
+        //     reject();
+        //   });
       });
     }
   });
