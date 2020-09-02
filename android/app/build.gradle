@@ -78,6 +78,8 @@ import com.android.build.OutputFile
  * ]
  */
 
+// Unfortunately realm is not compatible yet with Hermes engine: https://github.com/realm/realm-js/issues/2581#issuecomment-547289399
+// Here you can check if Realm is already supporting Hermes engine: https://github.com/realm/realm-js/issues/2455
 project.ext.react = [
     enableHermes: false,  // clean and rebuild if changing
 ]
