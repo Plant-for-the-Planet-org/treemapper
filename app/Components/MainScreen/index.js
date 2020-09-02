@@ -28,7 +28,7 @@ const MainScreen = ({ navigation }) => {
     getAllInventory().then((data) => {
       setNumberOfInventory(Object.values(data).length);
     });
-  }, []);
+  }, [navigation]);
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 

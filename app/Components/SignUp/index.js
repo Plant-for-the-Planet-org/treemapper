@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, ScrollView, Switch, TextInput, Platform } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Switch, TextInput, Platform, Image } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity, TouchableHighlight } from 'react-native-gesture-handler';
 import { LoginDetails } from '../../Actions';
 import jwtDecode from 'jwt-decode';
@@ -13,6 +14,7 @@ import { store } from '../../Actions/store';
 import { LoaderActions, SignUpLoader } from '../../Actions/Action';
 import {Loader} from '../Common';
 import Modal from '../Common/Modal';
+import Config from 'react-native-config';
 
 const SignUp = ({navigation}) => {
   const [accountType, setAccountType] = useState('tpo');
@@ -88,9 +90,10 @@ const SignUp = ({navigation}) => {
       }
     }
   };
+
   const submitDetails = () => {
-    // let country;
-    // country = authDetail.locale.split('-')[1];
+    let countryName;
+    countryName = country.countryName;
     let locale = authDetail.locale;
     let userData;
     if(accountType === '') {
@@ -144,15 +147,18 @@ const SignUp = ({navigation}) => {
           duration: Snackbar.LENGTH_SHORT,
         });
       }
-      if(address && city && zipCode && firstname && lastname && accountType && nameOfOrg) {
-        setCompleteCheck(true);
+      if(completeCheck) {
+        // setCompleteCheck(true);
         userData = {
           firstname,
           lastname,
           mayContact,
           mayPublish,
-          country,
+          country: countryName,
           locale,
+          city,
+          zipCode,
+          address,
           oAuthAccessToken,
           type: accountType,
           name: nameOfOrg
@@ -173,7 +179,7 @@ const SignUp = ({navigation}) => {
           lastname,
           mayContact,
           mayPublish,
-          country,
+          country: countryName,
           locale,
           oAuthAccessToken,
           type: accountType,
@@ -189,7 +195,7 @@ const SignUp = ({navigation}) => {
           lastname,
           mayContact,
           mayPublish,
-          country,
+          country: countryName,
           locale,
           oAuthAccessToken,
           type: accountType
@@ -230,7 +236,7 @@ const SignUp = ({navigation}) => {
   };
 
   const userCountry = (data) => {
-    setCountry(data.countryCode);
+    setCountry(data);
     setModalVisible(!modalVisible);
   };
   return (
@@ -289,7 +295,7 @@ const SignUp = ({navigation}) => {
                   accountType === 'education' ? styles.activeRoleContainer : null,
                 ]}>
                 <TouchableOpacity onPress={() => setAccountType('education')}>
-                  <Text style={accountType === 'education' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.education_title')}</Text>
+                  <Text style={[accountType === 'education' ? styles.accountTypeText : styles.roleText, styles.schoolText]}>{i18next.t('label.education_title')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -314,18 +320,48 @@ const SignUp = ({navigation}) => {
                   returnKeyType= {completeCheck ? 'done' : 'next'} 
                   ref={textInput}
                   blurOnSubmit={false}
-                  onSubmitEditing={() => textInputCountry.current.focus()}
+                  onSubmitEditing={accountType === 'company' || accountType === 'education' || accountType === 'tpo' ? () => textInputNameOfOrg.current.focus() : 
+                    null
+                  }
                 // placeholder="Sanchez"
                 />
               </View>
             </View>
-            <View style={styles.emailContainer()}>
-              <Text style={styles.label}>COUNTRY</Text>
+            <View style={{paddingVertical: 10}}>
+              <Text>COUNTRY</Text>
+              <View style={styles.countryContainer}>
+                <Image 
+                  source={{
+                    uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : 'https://reactnative.dev/img/tiny_logo.png',
+                  }}
+                  resizeMode="contain"
+                  style={styles.countryFlag}
+                />
+                <View>
+                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={{paddingLeft: 15}}>
+                    <View>
+                      <Text style={{paddingBottom: 8, fontFamily: Typography.FONT_FAMILY_REGULAR}}>{country ? country.countryName : 'Select Country'}</Text>
+                      <View style={{flexDirection: 'row'}}>
+                        <Text style={{color: Colors.PRIMARY, fontFamily: Typography.FONT_FAMILY_REGULAR}}>Change</Text>
+                        <Ionicons
+                          name= 'angle-right'
+                          size={25}
+                          color={Colors.PRIMARY}
+                          style={styles.iconStyle}
+                          // onPress={modalOpen}
+                        />
+
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {/* <Text style={styles.label}>COUNTRY</Text>
               <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.countryContainer}>
                 <Text style={styles.countryValue}
                   ref={textInputCountry}
                 >{country ? country : ''}</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
             {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
@@ -539,8 +575,12 @@ const styles = StyleSheet.create({
     color: Colors.GRAY_LIGHT, 
   },
   countryContainer: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.TEXT_COLOR,
+    width: '100%',
+    paddingTop: 13,
+    paddingBottom:10,
+    color: Colors.PRIMARY,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    flexDirection: 'row'
   },
   countryValue: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -549,5 +589,18 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
+  }, 
+  iconStyle: {
+    paddingLeft: 7,
+    // paddingBottom: 10,
+    // paddingHorizontal: 15
+  },
+  countryFlag: {
+    height: 50,
+    width: 50,
+    borderRadius: 6
+  },
+  schoolText: {
+    paddingTop: 28,
   }
 });

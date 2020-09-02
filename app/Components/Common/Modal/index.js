@@ -5,6 +5,8 @@ import { Typography } from '_styles';
 import { TextInput } from 'react-native-gesture-handler';
 import CountryData from '../../../Utils/countryData.json';
 import Config from 'react-native-config';
+import Header from '../Header';
+import { Colors } from '_styles';
 
 export default function index({visible, openModal, userCountry}) {
   const [countryData, setCountryData] = useState(null);
@@ -31,8 +33,8 @@ export default function index({visible, openModal, userCountry}) {
           resizeMode="contain"
         />
         <View style={{paddingLeft: 20}}>
-          <Text style={{color: 'white'}}>{title.currencyCode}</Text>
-          <Text style={{color: 'white', paddingTop: 5}}>{title.countryName}</Text>
+          {/* <Text style={{color: 'black'}}>{title.currencyCode}</Text> */}
+          <Text style={{color: 'black', paddingTop: 15}}>{title.countryName}</Text>
 
         </View>
       </View>
@@ -81,22 +83,33 @@ export default function index({visible, openModal, userCountry}) {
         }}
       >
         <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <View style={styles.searchContainer}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 10, paddingTop: 14}}>
+            <TouchableOpacity style={{}}>
               <Ionicons
-                name= 'md-close'
-                size={25}
-                color={'white'}
+                name= 'md-arrow-back'
+                size={30}
+                color={Colors.TEXT_COLOR}
                 style={styles.iconStyle}
                 onPress={modalOpen}
               />
+            </TouchableOpacity>
+            <View />
+          </View>
+          <View style={{paddingLeft: 10, paddingTop: 15}}>
+            <Text style={styles.headerText}>Select Country</Text>
+          </View>
+          {/* <View style={{paddingLeft: 10}}>
+            <Header headingText="Select Country" />
+          </View> */}
+          <View style={styles.modalView}>
+            {/* <View style={styles.searchContainer}>
               <TextInput 
-                placeholder='choose country'
+                placeholder='Select country'
                 style={styles.searchInput}
-                placeholderTextColor="white"
+                placeholderTextColor="black"
                 onChangeText={text => setSearch(text)}
               />
-            </View>
+            </View> */}
             <View style={styles.itemContainer}>
               <FlatList 
                 data={countryData}
@@ -114,13 +127,14 @@ export default function index({visible, openModal, userCountry}) {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'white',
     height: '100%'
   },
   modalView: {
     // marginTop: 15,
     // paddingTop: 15,
     backgroundColor: 'white',
+    color: 'black'
     // borderRadius: 20,
     // padding: 35,
     // alignItems: 'center',
@@ -133,33 +147,42 @@ const styles = StyleSheet.create({
     // shadowRadius: 3.84,
     // elevation: 5
   },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingTop: Platform.OS === 'ios' ? 25 : 10,
-    backgroundColor: 'black',
-    color: 'white'
-  },
-  iconStyle: {
-    paddingTop: 10,
-    paddingHorizontal: 15
-  },
-  searchInput: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    color: 'white',
-    width: '100%'
-  },
+  // searchContainer: {
+  //   flexDirection: 'row',
+  //   paddingTop: Platform.OS === 'ios' ? 25 : 10,
+  //   backgroundColor: 'white',
+  //   color: 'black'
+  // },
+  // iconStyle: {
+  //   paddingTop: 10,
+  //   paddingHorizontal: 15
+  // },
+  // searchInput: {
+  //   fontFamily: Typography.FONT_FAMILY_REGULAR,
+  //   fontSize: Typography.FONT_SIZE_20,
+  //   color: 'black',
+  //   width: '100%',
+  //   fontWeight: 'bold',
+  //   paddingTop: 10,
+  //   paddingLeft: 10
+  // },
   item: {
     padding: 10,
     marginVertical: 8,
     marginHorizontal: 16,
   },
   itemContainer: {
-    backgroundColor: 'black',
+    backgroundColor: 'white',
   },
   countryFlag: {
     height: 50,
     width: 50,
-    borderRadius: 3
+    borderRadius: 25
+  },
+  headerText: {
+    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+    fontSize: Typography.FONT_SIZE_27,
+    lineHeight: Typography.LINE_HEIGHT_40,
+    color: Colors.TEXT_COLOR,
   }
 });
