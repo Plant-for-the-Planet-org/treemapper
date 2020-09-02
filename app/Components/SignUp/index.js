@@ -15,6 +15,8 @@ import { LoaderActions, SignUpLoader } from '../../Actions/Action';
 import {Loader} from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
+import * as RNLocalize from 'react-native-localize';
+import {handleFilter} from '../../Utils/CountryDataFilter';
 
 const SignUp = ({navigation}) => {
   const [accountType, setAccountType] = useState('tpo');
@@ -40,7 +42,6 @@ const SignUp = ({navigation}) => {
   const {dispatch, state} = useContext(store);
   const [modalVisible, setModalVisible] = useState(false);
   const textInput = useRef(null);
-  const textInputCountry = useRef(null);
   const textInputZipCode = useRef(null);
   const textInputNameOfOrg = useRef(null);
   const textInputAddress = useRef(null);
@@ -48,6 +49,7 @@ const SignUp = ({navigation}) => {
 
   const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
   const toggleSwitchContact = () => setMayContact(previousState => !previousState);
+  const lang = RNLocalize.getLocales()[0];
   const SelectType = (type) => {
     let name;
     switch (type) {
@@ -224,6 +226,7 @@ const SignUp = ({navigation}) => {
       setAuthtAccessToken(detail[0].accessToken);
       setAuthDetails(decode);
       setEmail(decode.email);
+      setCountry(handleFilter(lang.countryCode)[0]);
     });
   }, []);
   
