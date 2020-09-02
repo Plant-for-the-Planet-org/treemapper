@@ -95,7 +95,7 @@ const SignUp = ({navigation}) => {
 
   const submitDetails = () => {
     let countryName;
-    countryName = country.countryName;
+    countryName = country.countryCode;
     let locale = authDetail.locale;
     let userData;
     if(accountType === '') {
@@ -335,7 +335,7 @@ const SignUp = ({navigation}) => {
               <View style={styles.countryContainer}>
                 <Image 
                   source={{
-                    uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : 'https://reactnative.dev/img/tiny_logo.png',
+                    uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
