@@ -38,6 +38,7 @@ const TreeInventory = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
   const [mobileData, setMobileData] = useState(false);
   const [connectionType, setConnectionType] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -67,11 +68,12 @@ const TreeInventory = ({ navigation }) => {
   const wifiConnection = () => {
     NetInfo.addEventListener(state => {
       setConnectionType(state.type);
+      setIsConnected(state.isConnected);
     });
   };
 
   const wifiUpload = () => {
-    if (connectionType === 'wifi' && pendingInventory.length > 0) {
+    if (isConnected && connectionType === 'wifi' && pendingInventory.length > 0) {
       onPressUploadNow();
     }
   };
