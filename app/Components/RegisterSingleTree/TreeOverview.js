@@ -35,7 +35,7 @@ import moment from 'moment';
 import i18next from 'i18next';
 
 const SingleTreeOverview = ({ navigation }) => {
-  const specieDiameterRef = useRef();
+  const specieDiameterRef = useRef(null);
 
   const { state, dispatch } = useContext(store);
   const [inventory, setInventory] = useState(null);
@@ -54,9 +54,10 @@ const SingleTreeOverview = ({ navigation }) => {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
+        console.log(inventory, 'overview');
         setInventory(inventory);
         setSpecieText(inventory.specei_name);
-        setSpecieDiameter(inventory.species_diameter);
+        setSpecieDiameter(inventory.species_diameter.toString());
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
