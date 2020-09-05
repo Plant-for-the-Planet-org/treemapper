@@ -2,12 +2,13 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
-import { insertImageSingleRegisterTree, getInventory } from '../../Actions';
+import { insertImageSingleRegisterTree, getInventory, UpdateSpecieAndSpecieDiameter } from '../../Actions';
 import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import i18next from 'i18next';
+import SelectSpecies  from '../SelectSpecies';
 
 const ImageCapturing = ({ updateScreenState }) => {
   const camera = useRef();
@@ -16,9 +17,13 @@ const ImageCapturing = ({ updateScreenState }) => {
   const { state } = useContext(store);
   const [imagePath, setImagePath] = useState('');
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  const [inventory, setInventory] = useState(null);
 
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      inventory.species = Object.values(inventory.species);
+      setInventory(inventory);
       if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
         setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
       }
@@ -44,8 +49,9 @@ const ImageCapturing = ({ updateScreenState }) => {
     if (imagePath) {
       let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
       insertImageSingleRegisterTree(data).then(() => {
-        setIsAlrightyModalShow(false);
-        navigation.navigate('SingleTreeOverview');
+        setIsShowSpeciesListModal(true);
+        // setIsAlrightyModalShow(false);
+        // navigation.navigate('SelectSpecies');
       });
     } else {
       alert('Image is required');
@@ -54,6 +60,29 @@ const ImageCapturing = ({ updateScreenState }) => {
 
   const onBackPress = () => {
     updateScreenState('MapMarking');
+  };
+
+  const onPressSaveAndContinue = (data) => {
+    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {
+      navigation.navigate('SingleTreeOverview');
+    });
+  };
+
+  const renderSpeciesModal = () => {
+    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
+    if(inventory) {
+      return (
+        <SelectSpecies
+          species={inventory.species}
+          visible={isShowSpeciesListModal}
+          closeSelectSpeciesModal={closeSelectSpeciesModal}
+          treeType={inventory.tree_type}
+          onPressSaveAndContinue={onPressSaveAndContinue}
+        />
+      );
+    } else {
+      return;
+    }
   };
 
   return (
@@ -110,6 +139,7 @@ const ImageCapturing = ({ updateScreenState }) => {
           halfWidth
         />
       </View>
+      {renderSpeciesModal()}
     </SafeAreaView>
   );
 };

@@ -19,13 +19,17 @@ import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 
-const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue, species }) => {
+const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue, species, treeType }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpeice, setActiveSpecie] = useState(undefined);
   const [speciesList, setSpeciesList] = useState([...speciesJSON]);
+  const [singleTree, setSingleTree] = useState(null);
+  const [isShowTreeDiameterModal, setIsShowTreeDiameterModal] = useState(false);
+  const [diameter, setDiameter] = useState(null);
 
   useEffect(() => {
+    console.log(treeType, 'specs');
     for (let i = 0; i < species.length; i++) {
       const oneSpecie = species[i];
       speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount;
@@ -52,13 +56,22 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     }
   };
 
+  const onPressSpecieSingleTree = (index) => {
+    console.log(index, 'yeahh');
+    setSingleTree(index);
+  };
+  
+  const onPressSaveBtn = () => {
+    setIsShowTreeDiameterModal(true);
+  };
+
   const renderSpeciesCard = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
-    console.log('localName', Number(item.treeCount).toLocaleString());
+    // console.log('localName', Number(item.treeCount).toLocaleString());
     return (
       <TouchableOpacity
         key={index}
-        onPress={() => onPressSpecie(index)}
+        onPress={treeType === 'single' ? ()=> onPressSpecieSingleTree(item) : () => onPressSpecie(index)}
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -165,6 +178,60 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     );
   };
 
+  const renderDiameterModal = () => {
+    // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
+    return (
+      <Modal visible={isShowTreeDiameterModal} transparent={true}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.8)',
+          }}>
+          <View
+            style={{
+              backgroundColor: Colors.WHITE,
+              marginVertical: 30,
+              marginHorizontal: 20,
+              borderRadius: 20,
+              padding: 20,
+              width: '80%',
+            }}>
+            <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            <Header
+              hideBackIcon
+              subHeadingText={'Please enter the diameter of the plant in cetimeter'}
+              textAlignStyle={{ textAlign: 'center' }}
+            />
+          </View>
+        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+          style={styles.bgWhite}>
+          <View style={styles.externalInputContainer}>
+            <Text style={styles.labelModal}>Diameter</Text>
+            <TextInput
+              value={diameter}
+              style={styles.value}
+              autoFocus
+              placeholderTextColor={Colors.TEXT_COLOR}
+              onChangeText={(text) => setDiameter(text)}
+              keyboardType={'number-pad'}
+            />
+            <MCIcon
+              onPress={onPressDiameterBtn}
+              name={'arrow-right'}
+              size={30}
+              color={Colors.PRIMARY}
+            />
+          </View>
+          <SafeAreaView />
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  };
+
   const onPressContinue = () => {
     let selectedspeciesList = [];
     for (let i = 0; i < speciesList.length; i++) {
@@ -184,6 +251,12 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     // }, 0)
   };
 
+  const onPressDiameterBtn = () => {
+    let selected = {nameOfTree: singleTree.nameOfTree, diameter: diameter};
+    onPressSaveAndContinue(selected);
+    setIsShowTreeDiameterModal(false);
+  };
+
   return (
     <Modal visible={visible} animationType={'slide'}>
       <View style={{ flex: 1 }}>
@@ -201,14 +274,22 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
               showsVerticalScrollIndicator={false}
               renderItem={renderSpeciesCard}
             />
-            <PrimaryButton
-              onPress={onPressContinue}
-              btnText={i18next.t('label.select_species_btn_text')}
-            />
+            {treeType === 'single' ? (
+              <PrimaryButton
+                onPress={onPressSaveBtn}
+                btnText={i18next.t('label.select_species_btn_text')}
+                disabled={singleTree ? false : true}
+              />
+            ) : 
+              <PrimaryButton
+                onPress={onPressContinue}
+                btnText={i18next.t('label.select_species_btn_text')}
+              />}
           </View>
         </SafeAreaView>
       </View>
       {renderTreeCountModal()}
+      {renderDiameterModal()}
     </Modal>
   );
 };

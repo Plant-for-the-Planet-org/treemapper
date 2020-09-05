@@ -245,7 +245,8 @@ class MapMarking extends React.Component {
           if (locateTree == 'off-site') {
             navigation.navigate('SingleTreeOverview');
           } else {
-            updateScreenState('ImageCapturing');
+            this.setState({isAlrightyModalShow: true});
+            // updateScreenState('ImageCapturing');
           }
         });
       },
@@ -258,6 +259,8 @@ class MapMarking extends React.Component {
     const { updateScreenState } = this.props;
 
     const onPressClose = () => this.setState({ isAlrightyModalShow: false });
+
+    const moveScreen = () => updateScreenState('ImageCapturing');
 
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
@@ -277,7 +280,7 @@ class MapMarking extends React.Component {
             bannerImage={bannerImage}
             onPressClose={onPressClose}
             onPressWhiteButton={onPressClose}
-            onPressContinue={this.onPressContinue}
+            onPressContinue={moveScreen}
             heading={heading}
             subHeading={subHeading}
             whiteBtnText={whiteBtnText}
