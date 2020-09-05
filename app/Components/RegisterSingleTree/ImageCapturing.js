@@ -9,6 +9,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import i18next from 'i18next';
 import SelectSpecies  from '../SelectSpecies';
+// import SingleTreeOverview from './TreeOverview';
 
 const ImageCapturing = ({ updateScreenState }) => {
   const camera = useRef();
@@ -64,7 +65,10 @@ const ImageCapturing = ({ updateScreenState }) => {
 
   const onPressSaveAndContinue = (data) => {
     UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {
+      setIsShowSpeciesListModal(false);
       navigation.navigate('SingleTreeOverview');
+    }).catch(err => {
+      console.log(err);
     });
   };
 
@@ -139,6 +143,7 @@ const ImageCapturing = ({ updateScreenState }) => {
           halfWidth
         />
       </View>
+
       {renderSpeciesModal()}
     </SafeAreaView>
   );

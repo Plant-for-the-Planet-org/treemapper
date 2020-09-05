@@ -35,7 +35,7 @@ import moment from 'moment';
 import i18next from 'i18next';
 
 const SingleTreeOverview = ({ navigation }) => {
-  const specieDiameterRef = useRef(null);
+  const specieDiameterRef = useRef();
 
   const { state, dispatch } = useContext(store);
   const [inventory, setInventory] = useState(null);
