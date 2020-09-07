@@ -25,6 +25,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
+      console.log(inventory, 'inventory');
       if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
         setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
       }
@@ -80,7 +81,7 @@ const ImageCapturing = ({ updateScreenState }) => {
           species={inventory.species}
           visible={isShowSpeciesListModal}
           closeSelectSpeciesModal={closeSelectSpeciesModal}
-          treeType={inventory.tree_type}
+          treeType={inventory.locate_tree}
           onPressSaveAndContinue={onPressSaveAndContinue}
         />
       );

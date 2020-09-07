@@ -613,4 +613,21 @@ export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diamet
       });
   });
 };
+
+export const DeleteInventory = ({inventory_id}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          realm.delete(inventory);
+        });
+        resolve(true);
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
 export { uploadInventory, getUserInformation };

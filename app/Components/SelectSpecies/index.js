@@ -67,11 +67,15 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
 
   const renderSpeciesCard = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
+    let onSiteCheck;
+    if (singleTree !== null) {
+      onSiteCheck = item.nameOfTree === singleTree.nameOfTree ? true : false;
+    }
     // console.log('localName', Number(item.treeCount).toLocaleString());
     return (
       <TouchableOpacity
         key={index}
-        onPress={treeType === 'single' ? ()=> onPressSpecieSingleTree(item) : () => onPressSpecie(index)}
+        onPress={treeType === 'on-site' ? ()=> onPressSpecieSingleTree(item) : () => onPressSpecie(index)}
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -81,9 +85,15 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         accessible={true}
         accessibilityLabel="Species Card"
         testID="species_card">
-        <View>
-          <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
-        </View>
+        {treeType === 'on-site' ? (
+          <View>
+            <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
+          </View>
+        ) : 
+          <View>
+            <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
+          </View>
+        }
         <Image source={placeholder_image} resizeMode={'contain'} style={{ flex: 1 }} />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={styles.speciesLocalName}>
@@ -274,7 +284,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
               showsVerticalScrollIndicator={false}
               renderItem={renderSpeciesCard}
             />
-            {treeType === 'single' ? (
+            {treeType === 'on-site' ? (
               <PrimaryButton
                 onPress={onPressSaveBtn}
                 btnText={i18next.t('label.select_species_btn_text')}
