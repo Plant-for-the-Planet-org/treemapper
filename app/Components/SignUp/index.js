@@ -302,7 +302,7 @@ const SignUp = ({navigation}) => {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 10, paddingBottom: 10}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10}}>
               {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
@@ -404,7 +404,7 @@ const SignUp = ({navigation}) => {
                   // placeholder="Some Address"
                   />
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 15}}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15}}>
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.city')}</Text>
                     <TextInput style={styles.value(cityError)} 
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   inputContainer: {
-    width: '49%', 
+    width: '46.7%', 
   },
   emailContainer: (email)  => ({
     width: '100%',

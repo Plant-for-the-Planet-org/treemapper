@@ -83,7 +83,7 @@ export default function index({visible, openModal, userCountry}) {
         }}
       >
         <View style={styles.centeredView}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 10, paddingTop: 14}}>
+          <View style={styles.container}>
             <TouchableOpacity style={{}}>
               <Ionicons
                 name= 'md-arrow-back'
@@ -184,5 +184,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_27,
     lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
+  },
+  container: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    paddingLeft: 10, 
+    paddingTop: Platform.OS === 'ios'? 20:  14
   }
 });
