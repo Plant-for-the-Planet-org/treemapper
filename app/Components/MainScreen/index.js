@@ -62,7 +62,6 @@ const MainScreen = ({ navigation }) => {
           ],
           { cancelable: false }
         );
-        console.log(typeof err);
         dispatch(LoaderActions.setLoader(false));
       });
     }
