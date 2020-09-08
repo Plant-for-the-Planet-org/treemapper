@@ -84,7 +84,7 @@ export default function index({visible, openModal, userCountry}) {
       >
         <View style={styles.centeredView}>
           <View style={styles.container}>
-            <TouchableOpacity style={{}}>
+            <TouchableOpacity style={{paddingTop: Platform.OS === 'ios' ? 14 : null}}>
               <Ionicons
                 name= 'md-arrow-back'
                 size={30}
@@ -153,10 +153,9 @@ const styles = StyleSheet.create({
   //   backgroundColor: 'white',
   //   color: 'black'
   // },
-  // iconStyle: {
-  //   paddingTop: 10,
-  //   paddingHorizontal: 15
-  // },
+  iconStyle: {
+    paddingTop: 10,
+  },
   // searchInput: {
   //   fontFamily: Typography.FONT_FAMILY_REGULAR,
   //   fontSize: Typography.FONT_SIZE_20,
