@@ -54,15 +54,16 @@ const MainScreen = ({ navigation }) => {
         setIsUserLogin(data);
         dispatch(LoaderActions.setLoader(false));
       }).catch((err) => {
-        Alert.alert(
-          'Verify Your Email',
-          err.toString(),
-          [
-            { text: 'OK', onPress: () => console.log('OK Pressed') }
-          ],
-          { cancelable: false }
-        );
-        console.log(typeof err);
+        if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [
+              { text: 'OK', onPress: () => console.log('OK Pressed') }
+            ],
+            { cancelable: false }
+          );
+        }
         dispatch(LoaderActions.setLoader(false));
       });
     }
