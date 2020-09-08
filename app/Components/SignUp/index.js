@@ -96,7 +96,7 @@ const SignUp = ({navigation}) => {
   const submitDetails = () => {
     let countryName;
     countryName = country.countryCode;
-    let locale = authDetail.locale;
+    let locale = authDetail.locale === undefined ? lang.languageCode : authDetail.locale;
     let userData;
     if(accountType === '') {
       Snackbar.show({
@@ -206,13 +206,14 @@ const SignUp = ({navigation}) => {
       // SignupService(userData);
     }
     
-    if (completeCheck) {    
+    if (completeCheck) {   
       dispatch(SignUpLoader.setSignUpLoader(true));
       SignupService(userData).then(() => {
         dispatch(SignUpLoader.setSignUpLoader(false));
         navigation.navigate('MainScreen');
       }).catch(err => {
-        console.log(err.response.data, 'err');
+        alert(err.response.data.message);
+        console.log(err.response.data.message, 'err');
         dispatch(SignUpLoader.setSignUpLoader(false));
       });
     }
@@ -302,7 +303,7 @@ const SignUp = ({navigation}) => {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20}}>
               {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
@@ -330,7 +331,7 @@ const SignUp = ({navigation}) => {
                 />
               </View>
             </View>
-            <View style={{paddingVertical: 10}}>
+            <View style={{marginVertical: 20}}>
               <Text>COUNTRY</Text>
               <View style={styles.countryContainer}>
                 <Image 
@@ -535,13 +536,13 @@ const styles = StyleSheet.create({
   },
   emailContainer: (email)  => ({
     width: '100%',
-    paddingTop: 13,
-    paddingBottom:10,
     color: email === 'email' ? Colors.PRIMARY : null,
-    fontFamily: Typography.FONT_FAMILY_REGULAR
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginVertical: 20
   }),
   mayContactText: {
-    paddingTop: 15
+    // paddingTop: 60,
+    marginTop: 130
   },
   accountTypeText: {
     margin: 14,

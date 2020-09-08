@@ -13,6 +13,7 @@ import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
 import { store } from '../../Actions/store';
 import { LoaderActions } from '../../Actions/Action';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,6 +31,12 @@ const MainScreen = ({ navigation }) => {
     });
   }, [navigation]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      checkIsLogin();
+    }, [])
+  );
+
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
   const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
@@ -46,7 +53,9 @@ const MainScreen = ({ navigation }) => {
       auth0Login(navigation).then((data) => {
         setIsUserLogin(data);
         dispatch(LoaderActions.setLoader(false));
-      }).catch(() => {
+      }).catch((err) => {
+        alert(err);
+        console.log(err);
         dispatch(LoaderActions.setLoader(false));
       });
     }
