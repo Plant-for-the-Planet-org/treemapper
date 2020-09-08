@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions, Alert } from 'react-native';
 import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -54,7 +54,14 @@ const MainScreen = ({ navigation }) => {
         setIsUserLogin(data);
         dispatch(LoaderActions.setLoader(false));
       }).catch((err) => {
-        alert(err);
+        Alert.alert(
+          'Verify Your Email',
+          err,
+          [
+            { text: 'OK', onPress: () => console.log('OK Pressed') }
+          ],
+          { cancelable: false }
+        );
         console.log(err);
         dispatch(LoaderActions.setLoader(false));
       });
