@@ -96,7 +96,7 @@ const SignUp = ({navigation}) => {
   const submitDetails = () => {
     let countryName;
     countryName = country.countryCode;
-    let locale = authDetail.locale;
+    let locale = authDetail.locale === undefined ? lang.languageCode : authDetail.locale;
     let userData;
     if(accountType === '') {
       Snackbar.show({
@@ -206,13 +206,14 @@ const SignUp = ({navigation}) => {
       // SignupService(userData);
     }
     
-    if (completeCheck) {    
+    if (completeCheck) {   
       dispatch(SignUpLoader.setSignUpLoader(true));
       SignupService(userData).then(() => {
         dispatch(SignUpLoader.setSignUpLoader(false));
         navigation.navigate('MainScreen');
       }).catch(err => {
-        console.log(err.response.data, 'err');
+        alert(err.response.data.message);
+        console.log(err.response.data.message, 'err');
         dispatch(SignUpLoader.setSignUpLoader(false));
       });
     }
