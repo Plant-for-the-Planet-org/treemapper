@@ -243,7 +243,8 @@ class MapMarking extends React.Component {
           currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
         }).then(() => {
           if (locateTree == 'off-site') {
-            navigation.navigate('SingleTreeOverview');
+            // navigation.navigate('SingleTreeOverview');
+            this.setState({isAlrightyModalShow: true});
           } else {
             this.setState({isAlrightyModalShow: true});
             // updateScreenState('ImageCapturing');
@@ -256,11 +257,15 @@ class MapMarking extends React.Component {
 
   renderAlrightyModal = () => {
     const { isAlrightyModalShow, locateTree } = this.state;
-    const { updateScreenState } = this.props;
+    const { updateScreenState, navigation } = this.props;
 
     const onPressClose = () => this.setState({ isAlrightyModalShow: false });
 
     const moveScreen = () => updateScreenState('ImageCapturing');
+    const offSiteContinue = () => {
+      navigation.navigate('SingleTreeOverview');
+      onPressClose();
+    };
 
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
@@ -280,7 +285,7 @@ class MapMarking extends React.Component {
             bannerImage={bannerImage}
             onPressClose={onPressClose}
             onPressWhiteButton={onPressClose}
-            onPressContinue={moveScreen}
+            onPressContinue={locateTree === 'off-site' ? offSiteContinue : moveScreen}
             heading={heading}
             subHeading={subHeading}
             whiteBtnText={whiteBtnText}

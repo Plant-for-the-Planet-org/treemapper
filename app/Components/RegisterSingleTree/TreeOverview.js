@@ -62,10 +62,9 @@ const SingleTreeOverview = ({ navigation }) => {
         inventory.polygons = Object.values(inventory.polygons);
         // console.log(inventory.locate_tree, 'overview');
         setInventory(inventory);
-        console.log(inventory, 'herer');
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
-        setSpecieDiameter(inventory.species_diameter.toString());
+        setSpecieDiameter(inventory.species_diameter);
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
@@ -73,7 +72,7 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const onSubmitInputFeild = (action) => {
     if (action === 'specieText') {
-      updateSpeceiName({ inventory_id: state.inventoryID, specieText: specieText });
+      updateSpeceiName({ inventory_id: inventory.inventory_id, speciesText: specieText });
     } else {
       updateSpeceiDiameter({
         inventory_id: state.inventoryID,
@@ -197,7 +196,7 @@ const SingleTreeOverview = ({ navigation }) => {
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    let shouldEdit = inventory.status == 'incomplete';
+    let shouldEdit = inventory.status == 'incomplete' ? true : inventory.status == null ? true : false;
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
@@ -414,7 +413,7 @@ const SingleTreeOverview = ({ navigation }) => {
           <Header
             closeIcon
             onBackPress={onBackPress}
-            headingText={i18next.t('label.tree_review_header')}
+            headingText={locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')}
           />}
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           {inventory && locateTree !== 'on-site' && (

@@ -113,12 +113,14 @@ export const getAreaName = ({ coords }) => {
 };
 
 export const updateSpeceiName = ({ inventory_id, speciesText }) => {
+  console.log(speciesText, 'yyyyy');
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
+          console.log(inventory, 'actions');
         });
         resolve();
       })
