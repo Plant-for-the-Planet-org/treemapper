@@ -11,6 +11,6 @@
   "signup_confirm": "Bitte bestätige deine Angaben.",
   "individual": "Einzelperson",
   "company": "Unternehmen",
-  "tpo_title_organisation": "NAME DER BAUMPFLANZUNGSORGANISATION",
+  "tpo_title_organisation": "Name von {{roleText}}",
   "create_profile": "Profil erstellen"
 }

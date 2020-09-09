@@ -1,0 +1,16 @@
+{
+  "tree_review_header": "Bewertung",
+  "tree_review_next_btn": "Nächster Baum",
+  "tree_review_Save": "Speichern",
+  "tree_review_name_of_species": "Name der Art",
+  "tree_review_diameter": "Durchmesser",
+  "tree_review_location": "STANDORT",
+  "tree_review_specie": "ART",
+  "tree_review_unable": "Nicht identifizierbar",
+  "tree_review_diameter_header": "BAUMDURCHMESSER (cm)",
+  "tree_review_specie_text": "{{specieText}}",
+  "tree_review_specie_diameter": "{{specieDiameter}}cm",
+  "tree_review_plantation_date": "PFLANZDATUM",
+  "tree_Review_plantation_date_text": "{{date, ll}}",
+  "tree_review_alrighty": "Vervollständige"
+}

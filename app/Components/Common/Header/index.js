@@ -1,7 +1,7 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {Colors, Typography} from '_styles';
-import {useNavigation} from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Colors, Typography } from '_styles';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Header = ({
@@ -38,14 +38,13 @@ const Header = ({
         <View />
       </View>
       {headingText ? (
-        <View style={{marginVertical: 0}}>
+        <View style={{ marginVertical: 0 }}>
           <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
         </View>
       ) : null}
       {subHeadingText && (
-        <View style={{marginVertical: 10}}>
-          <Text
-            style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
+        <View style={{ marginVertical: 10 }}>
+          <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
             {subHeadingText}
           </Text>
         </View>

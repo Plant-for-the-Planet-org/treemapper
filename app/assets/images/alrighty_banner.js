@@ -1,4 +1,4 @@
-const alrighty_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="110%" height="277.944" viewBox="0 0 375 277.944">
+const alrighty_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="110%" height="277.944" viewBox="0 0 375 277.944">
 <g id="Group_2251" data-name="Group 2251" transform="translate(0 -196.132)">
   <path id="Path_3673" data-name="Path 3673" d="M374.837,699.067H0V698.05H375Z" transform="translate(0 -256.518)" fill="#4d5153"/>
   <path id="Path_3674" data-name="Path 3674" d="M205.361,734.529H195.1c-5.367,0-10.161.38-13.325,2.413A17.248,17.248,0,0,0,166.654,728h-10.26a17.255,17.255,0,0,0-17.255,17.255h83.476C222.616,735.725,214.89,734.529,205.361,734.529Z" transform="translate(-132.611 -303.318)" fill="#4d5153"/>
@@ -44,5 +44,5 @@ const alrighty_banner = (`<svg xmlns="http://www.w3.org/2000/svg" width="110%" h
   <rect id="Rectangle_1193" data-name="Rectangle 1193" width="1.974" height="13.816" transform="translate(83.528 425.244)" fill="#4d5153"/>
 </g>
 </svg>
-`)
-export { alrighty_banner }
+`;
+export { alrighty_banner };
