@@ -362,12 +362,13 @@ const InventoryOverview = ({ navigation }) => {
                 closeIcon
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
+                onBackPress={() => navigation.navigate('TreeInventory')}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 // rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: moment(new Date(Number(inventory.plantation_date))),
+                  date: moment(new Date(Number(inventory.plantation_date))).format('ll'),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
