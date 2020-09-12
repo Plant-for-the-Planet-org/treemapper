@@ -9,6 +9,8 @@ import DownloadMap from './user/downloadMap.json';
 import ManageUser from './user/manageUser.json';
 import SavedAreas from './user/savedAreas.json';
 import Permission from './static/permission.json';
+import SelectSpecies from './user/selectSpecies.json';
+import Review from './user/treeReview.json';
 
 export default {
   ...WelcomeScreen,
@@ -22,4 +24,6 @@ export default {
   ...ManageUser,
   ...SavedAreas,
   ...Permission,
+  ...Review,
+  ...SelectSpecies,
 };

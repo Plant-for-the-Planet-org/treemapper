@@ -1,6 +1,7 @@
 import React from 'react';
-import {Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {Colors, Typography} from '_styles';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Colors, Typography } from '_styles';
+import { tree } from '_assets';
 
 const PrimaryButton = ({
   btnText,
@@ -28,10 +29,7 @@ const PrimaryButton = ({
         disabled && styles.disabledCont,
         style,
       ]}>
-      <Text
-        style={[styles.btnText, isWhiteTheme && styles.primaryText, textStyle]}>
-        {btnText}
-      </Text>
+      <Text style={[styles.btnText, isWhiteTheme && styles.primaryText, textStyle]}>{btnText}</Text>
     </TouchableOpacity>
   );
 };

@@ -46,5 +46,5 @@ const off_site_enable_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="1
     <rect id="Rectangle_1193" data-name="Rectangle 1193" width="1.974" height="13.816" transform="translate(156.528 428.244)" fill="#4d5153"/>
   </g>
 </svg>
-`
-export  { off_site_enable_banner } ;
+`;
+export { off_site_enable_banner };

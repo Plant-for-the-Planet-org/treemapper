@@ -1,4 +1,4 @@
-const marker_png = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="74" viewBox="0 0 38 74">
+const marker_png = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="74" viewBox="0 0 38 74">
   <g id="Group_1661" data-name="Group 1661" transform="translate(-139 -448.09)">
     <rect id="Rectangle_906" data-name="Rectangle 906" width="38" height="38" transform="translate(139 448.09)" fill="none"/>
     <g id="Group_1583" data-name="Group 1583" transform="translate(143.761 482.174)">
@@ -11,6 +11,5 @@ const marker_png = (`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="
     <line id="Line_38" data-name="Line 38" y2="10" transform="translate(158 511.59)" fill="none" stroke="#87b738" stroke-width="1"/>
     <circle id="Ellipse_184" data-name="Ellipse 184" cx="2" cy="2" r="2" transform="translate(156 518.09)" fill="#87b738"/>
   </g>
-</svg>`)
-export { marker_png }
-
+</svg>`;
+export { marker_png };
