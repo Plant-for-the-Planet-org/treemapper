@@ -10,6 +10,7 @@ import tree from './images/tree.png';
 import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 import marker_png from './images/marker.png';
+import logout from './images/logout_icon.png';
 
 // * SVGs *
 // import { marker_png } from './images/marker';
@@ -48,4 +49,5 @@ export {
   logo,
   cloud_upload_gray,
   off_site_enable_banner,
+  logout
 };
