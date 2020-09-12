@@ -6,6 +6,8 @@ import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
 import { getUserInformation } from '../../Actions';
 import i18next from 'i18next';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import Iconics from 'react-native-vector-icons/SimpleLineIcons';
 
 const ProfileModal = ({
   isUserLogin,
@@ -28,6 +30,9 @@ const ProfileModal = ({
   };
   const onPressPolicy = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/data-protection-policy');
+  };
+  const onPressEdit = () => {
+    Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
   };
   let avatar;
   if (userInfo) {
@@ -59,7 +64,56 @@ const ProfileModal = ({
                 <Text style={styles.userEmail}>{userInfo.email}</Text>
               </View>
             </View>
-            <View style={styles.bottomBtnsContainer}>
+            <View style={styles.profileSection}>
+              <Icon 
+                name="user-edit"
+                size={30}
+                color="black"
+                style={styles.avatar}
+              />
+              <TouchableOpacity 
+                // style={styles.detailText}
+                onPress={onPressEdit}
+              >
+                <Text style={styles.userName}>Edit Profile</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.profileSection}>
+              <Icon 
+                name="leaf"
+                size={30}
+                color="black"
+                style={styles.avatar}
+              />
+              <TouchableOpacity>
+                <Text style={styles.userName}>Manage Species</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.profileSection}>
+              <Icon 
+                name="map-marked-alt"
+                size={30}
+                color="black"
+                style={styles.avatar}
+              />
+              <TouchableOpacity>
+                <Text style={styles.userName}>Manage Offline Maps</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.profileSection}>
+              <Iconics
+                name="logout"
+                size={30}
+                color="black"
+                style={styles.avatar}
+              />
+              <TouchableOpacity
+                onPress={onPressLogout}
+              >
+                <Text style={styles.userName}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+            {/* <View style={styles.bottomBtnsContainer}>
               <PrimaryButton
                 btnText={i18next.t('label.edit_profile')}
                 halfWidth
@@ -75,7 +129,7 @@ const ProfileModal = ({
                 style={styles.primaryBtnContainer}
                 textStyle={styles.primaryBtnText}
               />
-            </View>
+            </View> */}
             <View style={styles.horizontalBar} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
               <Text onPress={onPressPolicy} style={styles.textAlignCenter}>
@@ -113,7 +167,7 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     flexDirection: 'row',
-    marginVertical: 20,
+    marginVertical: 15,
     alignItems: 'center',
   },
   avatar: {
@@ -158,6 +212,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  detailText: {
+    paddingLeft: 20
+  }
 });
 
 export default ProfileModal;
