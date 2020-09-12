@@ -57,60 +57,82 @@ const ProfileModal = ({
               <SvgXml xml={logo} />
               <View />
             </View>
-            <View style={styles.profileSection}>
-              <Image source={{ uri: avatar }} style={styles.avatar} />
+            <View style={styles.profileSection1}>
+              <Image
+                style={{ width: 50, height: 50, marginHorizontal: 10, }}
+                source={{ uri: 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }}
+              />
+              {/* <Image source={{ uri: avatar }} style={styles.avatar} /> */}
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
-                <Text style={styles.userEmail}>{userInfo.email}</Text>
+                <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>
             <View style={styles.profileSection}>
               <Icon 
                 name="user-edit"
-                size={30}
-                color="black"
+                size={25}
+                color={Colors.TEXT_COLOR}
                 style={styles.avatar}
               />
               <TouchableOpacity 
-                // style={styles.detailText}
+                style={styles.nameAndEmailContainer}
                 onPress={onPressEdit}
               >
-                <Text style={styles.userName}>Edit Profile</Text>
+                <Text style={styles.userName}>{i18next.t('label.edit_profile')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
               <Icon 
                 name="leaf"
-                size={30}
-                color="black"
+                size={25}
+                color={Colors.TEXT_COLOR}
                 style={styles.avatar}
               />
-              <TouchableOpacity>
-                <Text style={styles.userName}>Manage Species</Text>
+              <TouchableOpacity
+                style={styles.nameAndEmailContainer}
+              >
+                <Text style={styles.userName}>{i18next.t('label.manage_species')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.profileSection}>
+              <Icon 
+                name="cloud-download-alt"
+                size={25}
+                color={Colors.TEXT_COLOR}
+                style={styles.avatar}
+              />
+              <TouchableOpacity
+                style={styles.nameAndEmailContainer}
+              >
+                <Text style={styles.userName}>{i18next.t('label.back_up')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
               <Icon 
                 name="map-marked-alt"
-                size={30}
-                color="black"
+                size={25}
+                color={Colors.TEXT_COLOR}
                 style={styles.avatar}
               />
-              <TouchableOpacity>
-                <Text style={styles.userName}>Manage Offline Maps</Text>
+              <TouchableOpacity
+                style={styles.nameAndEmailContainer}
+              >
+                <Text style={styles.userName}>{i18next.t('label.manage_offline')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
               <Iconics
                 name="logout"
-                size={30}
-                color="black"
+                size={25}
+                color={Colors.TEXT_COLOR}
                 style={styles.avatar}
               />
               <TouchableOpacity
                 onPress={onPressLogout}
+                style={styles.nameAndEmailContainer}
               >
-                <Text style={styles.userName}>Logout</Text>
+                <Text style={styles.userName}>{i18next.t('label.logout')}</Text>
               </TouchableOpacity>
             </View>
             {/* <View style={styles.bottomBtnsContainer}>
@@ -137,7 +159,7 @@ const ProfileModal = ({
               </Text>
               <Text>•</Text>
               <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-                {i18next.t('label.support')}
+                {i18next.t('label.terms_of_service')}
               </Text>
             </View>
           </View>
@@ -167,7 +189,12 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     flexDirection: 'row',
-    marginVertical: 15,
+    alignItems: 'center',
+  },
+  profileSection1: {
+    flexDirection: 'row',
+    marginVertical: 5,
+    paddingTop: 15,
     alignItems: 'center',
   },
   avatar: {
@@ -177,6 +204,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-evenly',
     paddingVertical: 10,
+    paddingLeft: 13
   },
   primaryBtnContainer: {
     borderColor: Colors.LIGHT_BORDER_COLOR,
@@ -188,7 +216,7 @@ const styles = StyleSheet.create({
   },
   textAlignCenter: {
     color: Colors.TEXT_COLOR,
-    fontSize: Typography.FONT_SIZE_14,
+    fontSize: Typography.FONT_SIZE_10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   horizontalBar: {
@@ -199,14 +227,17 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
+    fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
+    color: Colors.TEXT_COLOR
   },
   userEmail: {
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    textTransform: 'capitalize'
   },
   bottomBtnsContainer: {
     flexDirection: 'row',

@@ -2,6 +2,9 @@
   "edit_profile": "Edit Profile",
   "logout": "Logout",
   "privacy_policy": "Privacy Policy",
-  "support": "Support",
-  "edit": "Edit"
+  "terms_of_service": "Terms of Service",
+  "edit": "Edit",
+  "manage_offline": "Manage Offline Maps",
+  "manage_species": "Manage Species",
+  "back_up": "All changes backed up"
 }
