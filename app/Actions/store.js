@@ -1,5 +1,5 @@
 import React, { createContext, useReducer } from 'react';
-import { LocalInventoryActions, LoaderActions, SignUpLoader } from '../Actions/Action';
+import { LocalInventoryActions, LoaderActions, SignUpLoader, UploadAction, UploadCompleteAction } from '../Actions/Action';
 
 const initialState = { inventoryID: undefined };
 const store = createContext(initialState);
@@ -21,6 +21,17 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           isSignUpLoader: action.payload
+        };
+      case UploadAction.SET_UPLOAD_PROGRESS:
+        return {
+          ...state,
+          progress: action.payload.progress,
+          isUploading: action.payload.isUploading
+        };
+      case UploadCompleteAction.SET_UPLOAD_COMPLETE:
+        return {
+          ...state,
+          isUploading: action.payload
         };
       default:
         throw new Error();

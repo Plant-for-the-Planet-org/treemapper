@@ -5,10 +5,14 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+// import store from './store';
+// import React from 'react';
+import { UploadAction } from './Action';
 
 const { protocol, url } = APIConfig;
+// const {dispatch } = React.useContext(store);
 
-const uploadInventory = () => {
+const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
       .then((realm) => {
@@ -71,7 +75,7 @@ const uploadInventory = () => {
                               resolve();
                             }
                           } else {
-                            uploadImage(oneInventory, response, userToken).then(() => {
+                            uploadImage(oneInventory, response, userToken, dispatch).then(() => {
                               statusToComplete({ inventory_id: oneInventory.inventory_id });
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
@@ -100,7 +104,7 @@ const uploadInventory = () => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken) => {
+const uploadImage = (oneInventory, response, userToken, dispatch) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -116,12 +120,21 @@ const uploadImage = (oneInventory, response, userToken) => {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
         };
-
+        let onUploadProgress = (progressEvent) => {
+          const progress = Math.round((100 * progressEvent.loaded) / progressEvent.total);
+          const payload ={
+            progress,
+            isUploading: i === responseCoords.length ? false : true
+          };
+          console.log(payload);
+          dispatch(UploadAction.setUploadProgess(payload));
+        };
         await axios({
           method: 'PUT',
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
           data: body,
           headers: headers,
+          onUploadProgress
         })
           .then((res) => {
             resolve();
@@ -132,6 +145,11 @@ const uploadImage = (oneInventory, response, userToken) => {
       });
     }
   });
+};
+
+const handleProgres = (event) => {
+  console.log(event);
+  console.log(Math.round((event.loaded * 100)/ event.total));
 };
 
 export { uploadInventory };

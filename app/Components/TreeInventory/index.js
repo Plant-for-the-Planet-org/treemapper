@@ -30,7 +30,7 @@ import moment from 'moment';
 import i18next from 'i18next';
 
 const TreeInventory = ({ navigation }) => {
-  const { dispatch } = useContext(store);
+  const { dispatch, state } = useContext(store);
 
   const [allInventory, setAllInventory] = useState(null);
   const [isLoaderShow, setIsLoaderShow] = useState(false);
@@ -41,7 +41,7 @@ const TreeInventory = ({ navigation }) => {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, state.progress]);
 
   const onPressInventory = (item) => {
     setTimeout(() => {
@@ -150,11 +150,12 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
-      setIsLoaderShow(true);
-      uploadInventory()
+      // setIsLoaderShow(true);
+      uploadInventory(dispatch)
         .then((data) => {
           initialState();
           setIsLoaderShow(false);
+          navigation.navigate('MainScreen');
         })
         .catch((err) => {
           setIsLoaderShow(false);

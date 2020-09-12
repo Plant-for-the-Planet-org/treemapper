@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions } from 'react-native';
-import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader } from '../Common';
+import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
@@ -28,6 +28,7 @@ const MainScreen = ({ navigation }) => {
     getAllInventory().then((data) => {
       setNumberOfInventory(Object.values(data).length);
     });
+    console.log(state.isUploading);
   }, []);
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
@@ -105,6 +106,10 @@ const MainScreen = ({ navigation }) => {
               testID={'btn_login'}
               accessibilityLabel={'Login / Sign Up'}
             />
+            {state.isUploading &&
+          <View style={{position: 'absolute', top: 30, bottom: 0}}>
+            <Sync progress={state.progress} />
+          </View>}
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -149,13 +154,13 @@ const MainScreen = ({ navigation }) => {
                 testID="page_learn"
               />
             </ImageBackground>
+            <PrimaryButton
+              onPress={() => onPressLargeButtons('RegisterTree')}
+              btnText={i18next.t('label.register_tree')}
+              testID={'btn_register_trees'}
+              accessibilityLabel={'Register Tree'}
+            />
           </ScrollView>
-          <PrimaryButton
-            onPress={() => onPressLargeButtons('RegisterTree')}
-            btnText={i18next.t('label.register_tree')}
-            testID={'btn_register_trees'}
-            accessibilityLabel={'Register Tree'}
-          />
         </View>}
       {renderVideoModal()}
       <ProfileModal
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
   bannerImgContainer: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 30,
+    paddingVertical: 50,
   },
   bannerImage: {
     alignSelf: 'center',

@@ -24,4 +24,22 @@ class SignUpLoader {
     payload
   });
 }
-export { LocalInventoryActions, LoaderActions, SignUpLoader };
+
+class UploadAction{
+  static SET_UPLOAD_PROGRESS = 'SET_UPLOAD_PROGRESS';
+
+  static setUploadProgess = (payload) => ({
+    type: UploadAction.SET_UPLOAD_PROGRESS,
+    payload
+  })
+}
+
+class UploadCompleteAction {
+  static SET_UPLOAD_COMPLETE = 'SET_UPLOAD_COMPLETE';
+
+  static setUploadComplete = (payload) => ({
+    type: UploadCompleteAction.SET_UPLOAD_COMPLETE,
+    payload
+  })
+}
+export { LocalInventoryActions, LoaderActions, SignUpLoader, UploadAction, UploadCompleteAction };
