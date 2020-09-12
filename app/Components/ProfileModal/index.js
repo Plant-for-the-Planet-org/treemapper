@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { close, logo } from '../../assets';
+import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
 import { getUserInformation } from '../../Actions';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import Iconics from 'react-native-vector-icons/SimpleLineIcons';
 
 const ProfileModal = ({
   isUserLogin,
@@ -60,7 +59,7 @@ const ProfileModal = ({
             <View style={styles.profileSection1}>
               <Image
                 style={{ width: 50, height: 50, marginHorizontal: 10, }}
-                source={{ uri: 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }}
+                source={{ uri: avatar }}
               />
               {/* <Image source={{ uri: avatar }} style={styles.avatar} /> */}
               <View style={styles.nameAndEmailContainer}>
@@ -97,7 +96,7 @@ const ProfileModal = ({
             </View>
             <View style={styles.profileSection}>
               <Icon 
-                name="cloud-download-alt"
+                name="cloud-upload-alt"
                 size={25}
                 color={Colors.TEXT_COLOR}
                 style={styles.avatar}
@@ -110,7 +109,7 @@ const ProfileModal = ({
             </View>
             <View style={styles.profileSection}>
               <Icon 
-                name="map-marked-alt"
+                name="map-marked"
                 size={25}
                 color={Colors.TEXT_COLOR}
                 style={styles.avatar}
@@ -122,11 +121,9 @@ const ProfileModal = ({
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
-              <Iconics
-                name="logout"
-                size={25}
-                color={Colors.TEXT_COLOR}
-                style={styles.avatar}
+              <Image 
+                source={logout}
+                style={styles.imgIcon}
               />
               <TouchableOpacity
                 onPress={onPressLogout}
@@ -243,8 +240,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  detailText: {
-    paddingLeft: 20
+  imgIcon: {
+    width: 25,
+    height: 25,
+    marginHorizontal: 20,
+    color: Colors.TEXT_COLOR
   }
 });
 
