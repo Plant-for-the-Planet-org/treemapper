@@ -223,9 +223,11 @@ const SignUp = ({navigation}) => {
     dispatch(LoaderActions.setLoader(false));
     LoginDetails().then((User) => {
       let detail = (Object.values(User));
+      console.log(detail);
       let decode = jwtDecode(detail[0].idToken);
       setAuthtAccessToken(detail[0].accessToken);
       setAuthDetails(decode);
+      console.log(decode);
       setEmail(decode.email);
       setCountry(handleFilter(lang.countryCode)[0]);
     });

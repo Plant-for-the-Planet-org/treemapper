@@ -49,12 +49,13 @@ export const getUserInformationFromServer = (navigation) => {
                 'modified',
               );
             });
-            resolve(true);
+            resolve(data.data);
           })
           .catch((err) => {
             if (err.response.status === 303) {
               navigation.navigate('SignUp');
             }
+            reject(err);
           });
       },
     );

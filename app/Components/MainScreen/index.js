@@ -14,6 +14,8 @@ import i18next from '../../languages/languages';
 import { store } from '../../Actions/store';
 import { LoaderActions } from '../../Actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
+import jwtDecode from 'jwt-decode'; 
+import { LoginDetails } from '../../Actions/index';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,6 +25,7 @@ const MainScreen = ({ navigation }) => {
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
   const {state, dispatch} = useContext(store);
+  const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
     checkIsLogin();
@@ -73,6 +76,7 @@ const MainScreen = ({ navigation }) => {
     isLogin()
       .then((data) => {
         setIsUserLogin(data);
+        userImage();
       })
       .catch((err) => {
         onPressCloseProfileModal();
@@ -84,6 +88,14 @@ const MainScreen = ({ navigation }) => {
     onPressCloseProfileModal();
     auth0Logout().then(() => {
       checkIsLogin();
+    });
+  };
+
+  const userImage = () => {
+    LoginDetails().then((User) => {
+      let detail = (Object.values(User));
+      let decode = jwtDecode(detail[0].idToken);
+      setUserPhoto(decode.picture);
     });
   };
 
@@ -122,6 +134,7 @@ const MainScreen = ({ navigation }) => {
               isUserLogin={isUserLogin}
               testID={'btn_login'}
               accessibilityLabel={'Login / Sign Up'}
+              photo={userPhoto}
             />
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
