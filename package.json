@@ -22,7 +22,7 @@
     "@react-navigation/stack": "^5.7.1",
     "axios": "^0.19.2",
     "bugsnag-react-native": "^2.23.10",
-    "i18next": "^19.6.0",
+    "i18next": "^19.7.0",
     "jail-monkey": "^2.3.2",
     "jwt-decode": "^2.2.0",
     "moment": "^2.27.0",
