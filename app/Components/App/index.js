@@ -20,7 +20,8 @@ import {
   ManageUsers,
   SignUp,
   UploadedInventory,
-  SelectSpecies
+  SelectSpecies,
+  AddSpecies
 } from '../';
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -99,6 +100,11 @@ const App = () => {
             options={MyTransition}
           />
           <Stack.Screen name='SelectSpecies' component={SelectSpecies} options={MyTransition} />
+          <Stack.Screen
+            name="AddSpecies"
+            component={AddSpecies}
+            options={MyTransition}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </StateProvider>

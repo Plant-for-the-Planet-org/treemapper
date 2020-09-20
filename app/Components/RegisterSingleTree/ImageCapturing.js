@@ -51,9 +51,9 @@ const ImageCapturing = ({ updateScreenState }) => {
     if (imagePath) {
       let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
       insertImageSingleRegisterTree(data).then(() => {
-        setIsShowSpeciesListModal(true);
+        // setIsShowSpeciesListModal(true);
         // setIsAlrightyModalShow(false);
-        // navigation.navigate('SelectSpecies');
+        navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
       });
     } else {
       alert('Image is required');
@@ -145,7 +145,7 @@ const ImageCapturing = ({ updateScreenState }) => {
         />
       </View>
 
-      {renderSpeciesModal()}
+      {/* {renderSpeciesModal()} */}
     </SafeAreaView>
   );
 };

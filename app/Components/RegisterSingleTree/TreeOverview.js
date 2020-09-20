@@ -350,7 +350,8 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onBackPressOnSite = () => {
-    setIsShowSpeciesListModal(true);
+    // setIsShowSpeciesListModal(true);
+    navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
   };
 
   const renderSpeciesModal = () => {
@@ -396,7 +397,7 @@ const SingleTreeOverview = ({ navigation }) => {
     <SafeAreaView style={styles.mainContainer}>
       {renderinputModal()}
       {renderDateModal()}
-      {renderSpeciesModal()}
+      {/* {renderSpeciesModal()} */}
       <View style={styles.container}> 
         {locateTree === 'on-site' ? (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10}}>
