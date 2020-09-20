@@ -68,4 +68,15 @@ const User = {
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory };
+const AddSpecies = {
+  name: 'AddSpecies',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    name: 'string?',
+    image: 'string?',
+    scientificName: 'string',
+  }
+};
+
+export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies };

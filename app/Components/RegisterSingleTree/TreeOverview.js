@@ -200,8 +200,8 @@ const SingleTreeOverview = ({ navigation }) => {
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
-    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
-
+    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
+    
     return (
       <View style={detailContainerStyle}>
         <View>
@@ -350,7 +350,8 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onBackPressOnSite = () => {
-    setIsShowSpeciesListModal(true);
+    // setIsShowSpeciesListModal(true);
+    navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
   };
 
   const renderSpeciesModal = () => {
@@ -396,7 +397,7 @@ const SingleTreeOverview = ({ navigation }) => {
     <SafeAreaView style={styles.mainContainer}>
       {renderinputModal()}
       {renderDateModal()}
-      {renderSpeciesModal()}
+      {/* {renderSpeciesModal()} */}
       <View style={styles.container}> 
         {locateTree === 'on-site' ? (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10}}>
