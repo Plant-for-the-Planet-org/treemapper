@@ -1,7 +1,7 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
-import { getAllPendingInventory, statusToComplete } from './';
-import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
+import { filterSpecies, getAllPendingInventory, statusToComplete, updateStatusForUserSpecies } from './';
+import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory, AddSpecies } from './Schemas';
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
@@ -10,7 +10,7 @@ const { protocol, url } = APIConfig;
 
 const uploadInventory = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
           const User = realm.objectForPrimaryKey('User', 'id0001');
@@ -65,6 +65,7 @@ const uploadInventory = () => {
                       })
                         .then((data) => {
                           let response = data.data;
+                          createSpecies(userToken);
                           if (oneInventory.locate_tree == 'off-site') {
                             statusToComplete({ inventory_id: oneInventory.inventory_id });
                             if (allPendingInventory.length - 1 == i) {
@@ -134,4 +135,43 @@ const uploadImage = (oneInventory, response, userToken) => {
   });
 };
 
-export { uploadInventory };
+const createSpecies = (userToken) => {
+  return new Promise((resolve, reject) => {
+    filterSpecies().then(async (data) => {
+      const species = Object.values(data);
+      for(let specie in species) {
+        await RNFS.readFile(species[specie].image, 'base64').then(async(base64) => {
+          // console.log(base64);
+          let body ={
+            imageFile: `data:image/jpeg;base64,${base64}`,
+            scientificSpecies: species[specie].speciesId,
+            aliases: species[specie].name,
+          };
+          await axios({
+            method: 'POST',
+            url: `${protocol}://${url}/treemapper/species`,
+            data: body,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+            },
+          })
+            .then((res) => {
+              const {status, data} = res;
+              console.log(res, 'data');
+              if (status === 200) {
+                console.log(res, 'res');
+                updateStatusForUserSpecies({id: species[specie].id});
+                resolve();
+              }
+            }).catch((err) => {
+              console.log(err, 'create error');
+              reject(err);
+            });
+        });
+      }
+    });
+  });
+};
+
+export { uploadInventory, createSpecies };

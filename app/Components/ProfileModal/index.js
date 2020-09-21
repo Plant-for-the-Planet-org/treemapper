@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { close, logo } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
-import { getUserInformation } from '../../Actions';
+import { getUserInformationFromServer } from '../../Actions/User';
 import i18next from 'i18next';
+import { LoginDetails } from '../../Actions/index';
+import jwtDecode from 'jwt-decode';
+import { SpeciesList } from '../../Services/Species';
+import { SpeciesListAction } from '../../Actions/Action';
+import {store} from '../../Actions/store';
 
 const ProfileModal = ({
   isUserLogin,
@@ -14,15 +19,28 @@ const ProfileModal = ({
   onPressLogout,
 }) => {
   const [userInfo, setUserInfo] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
+  const {dispatch} = useContext(store);
 
   useEffect(() => {
     if (isUserLogin) {
-      getUserInformation().then((userInfo) => {
+      getUserInformationFromServer().then((userInfo) => {
         setUserInfo(userInfo);
-      });
+      }).catch((err) => console.log(err));
     }
+    userImage();
   }, [isUserLogin]);
 
+  const userImage = () => {
+    LoginDetails().then((User) => {
+      let detail = (Object.values(User));
+      let decode = jwtDecode(detail[0].idToken);
+      setUserPhoto(decode.picture);
+      SpeciesList(detail[0].accessToken).then((data) =>{
+        dispatch(SpeciesListAction.setSpeciesList(data))
+      });
+    });
+  };
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org');
   };
@@ -30,9 +48,9 @@ const ProfileModal = ({
     Linking.openURL('https://www.trilliontreecampaign.org/data-protection-policy');
   };
   let avatar;
-  if (userInfo) {
-    avatar = userInfo.avatar
-      ? userInfo.avatar
+  if (userPhoto) {
+    avatar = userPhoto
+      ? userPhoto
       : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
   }
 
@@ -55,7 +73,7 @@ const ProfileModal = ({
             <View style={styles.profileSection}>
               <Image source={{ uri: avatar }} style={styles.avatar} />
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                <Text style={styles.userName}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
                 <Text style={styles.userEmail}>{userInfo.email}</Text>
               </View>
             </View>

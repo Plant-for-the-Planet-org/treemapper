@@ -5,12 +5,14 @@ import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
 import Realm from 'realm';
 import { Use } from 'react-native-svg';
+import { SpeciesList } from '../Services/Species';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] }).then(
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
+        console.log(User);
         if (User) {
           resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname });
         } else {
@@ -36,6 +38,8 @@ export const getUserInformationFromServer = (navigation) => {
           },
         })
           .then((data) => {
+            // SpeciesList(userToken);
+            data.data.push(userToken);
             realm.write(() => {
               const { email, firstname, lastname } = data.data;
               realm.create(
@@ -49,7 +53,7 @@ export const getUserInformationFromServer = (navigation) => {
                 'modified',
               );
             });
-            resolve(true);
+            resolve(data.data);
           })
           .catch((err) => {
             if (err.response.status === 303) {

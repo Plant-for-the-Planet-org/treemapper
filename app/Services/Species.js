@@ -56,3 +56,30 @@ export const SearchSpecies = (payload) => {
 
   });
 };
+export const SpeciesList = (userToken) => {
+  return new Promise((resolve, reject) => {
+    axios({
+      method: 'GET',
+      url: `${protocol}://${url}/treemapper/species`,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `OAuth ${userToken}`,
+      }
+    })
+      .then((res) => {
+        const {
+          data,
+          status
+        } = res;
+        // console.log(res, 'res');
+        if (status === 200) {
+        // console.log(data, 'search');
+          resolve(data);
+        }
+      }).catch((err) => {
+        reject(err);
+        console.log(err, 'error');
+      });
+
+  });
+};

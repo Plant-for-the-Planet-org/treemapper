@@ -38,7 +38,7 @@ import moment from 'moment';
 import i18next from 'i18next';
 import SelectSpecies from '../SelectSpecies';
 
-const SingleTreeOverview = ({ navigation }) => {
+const SingleTreeOverview = ({ navigation, route }) => {
   const specieDiameterRef = useRef();
 
   const { state, dispatch } = useContext(store);
@@ -52,6 +52,7 @@ const SingleTreeOverview = ({ navigation }) => {
   const [specieDiameter, setSpecieDiameter] = useState('10');
   const [locateTree, setLocateTree] = useState(null);
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  const [direction, setDirection] = useState(null);
 
   useEffect(() => {
     let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -60,7 +61,7 @@ const SingleTreeOverview = ({ navigation }) => {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
-        // console.log(inventory.locate_tree, 'overview');
+        console.log(inventory, 'overview');
         setInventory(inventory);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
@@ -351,7 +352,11 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const onBackPressOnSite = () => {
     // setIsShowSpeciesListModal(true);
-    navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
+    // if (direction){
+    //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
+    // }else {
+    navigation.goBack();
+    // }
   };
 
   const renderSpeciesModal = () => {

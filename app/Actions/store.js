@@ -1,5 +1,5 @@
 import React, { createContext, useReducer } from 'react';
-import { LocalInventoryActions, LoaderActions, SignUpLoader } from '../Actions/Action';
+import { LocalInventoryActions, LoaderActions, SignUpLoader, SpeciesListAction } from '../Actions/Action';
 
 const initialState = { inventoryID: undefined };
 const store = createContext(initialState);
@@ -21,6 +21,11 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           isSignUpLoader: action.payload
+        };
+      case SpeciesListAction.SET_SPECIES_LIST:
+        return {
+          ...state,
+          species: action.payload
         };
       default:
         throw new Error();

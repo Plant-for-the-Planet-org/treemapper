@@ -70,6 +70,7 @@ export const isLogin = () => {
       (realm) => {
         const User = realm.objects('User');
         if (User[0]) {   
+          // console.log(User, 'login');
           resolve(true);
         } else {
           resolve(false);
@@ -632,7 +633,7 @@ export const DeleteInventory = ({inventory_id}) => {
   });
 };
 
-export const AddUserSpecies = ({name, image, scientificName}) => {
+export const AddUserSpecies = ({aliases, image, scientificName, speciesId}) => {
   return new Promise((resolve, reject) => {
     Realm.open({schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies]})
       .then((realm) => {
@@ -640,9 +641,11 @@ export const AddUserSpecies = ({name, image, scientificName}) => {
           let id = `${new Date().getTime()}`;
           realm.create('AddSpecies', {
             id,
-            name,
+            aliases,
             image,
-            scientificName
+            scientificName,
+            status: 'pending',
+            speciesId,
           });
           resolve(id);
         });
@@ -685,13 +688,63 @@ export const insertImageForUserSpecies = ({id, imagePath}) => {
       });
   });
 };
-export const updateNameForUserSpecies = ({id, name}) => {
+export const updateNameForUserSpecies = ({id, aliases}) => {
+  console.log(aliases)
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
           let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
-          specie.name = name;
+          specie.aliases = aliases;
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+export const filterSpecies = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          const species = realm.objects('AddSpecies');
+          let fiteredSpecies = species.filtered('aliases != "" && status == "pending"');
+          resolve(JSON.parse(JSON.stringify(fiteredSpecies)));
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+export const filterPendingSpecies = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          const species = realm.objects('AddSpecies');
+          let fiteredSpecies = species.filtered('status == "pending"');
+          resolve(JSON.parse(JSON.stringify(fiteredSpecies)));
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+export const updateStatusForUserSpecies = ({id}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
+          specie.status = 'complete';
           resolve(true);
         });
       })

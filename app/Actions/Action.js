@@ -24,4 +24,13 @@ class SignUpLoader {
     payload
   });
 }
-export { LocalInventoryActions, LoaderActions, SignUpLoader };
+
+class SpeciesListAction {
+  static SET_SPECIES_LIST = 'SET_SPECIES_LIST';
+
+  static setSpeciesList = (payload) => ({
+    type: SpeciesListAction.SET_SPECIES_LIST,
+    payload
+  })
+}
+export { LocalInventoryActions, LoaderActions, SignUpLoader, SpeciesListAction };

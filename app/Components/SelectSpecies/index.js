@@ -18,7 +18,7 @@ import { placeholder_image, checkCircleFill, checkCircle, add_image } from '../.
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
-import {AddUserSpecies, getAllSpecies, getInventory, updateNameForUserSpecies, UpdateSpecieAndSpecieDiameter} from '../../Actions';
+import {AddUserSpecies, filterPendingSpecies, getInventory, updateNameForUserSpecies, UpdateSpecieAndSpecieDiameter, getAllSpecies} from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -48,7 +48,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   const [imageIndex, setImageIndex] = useState(null);
 
   useEffect(() => {
-    console.log(treeType, 'specs');
+    console.log(state.species, 'specs');
+    // setSpeciesList(state.species);
     getAllUserSpecies();
     const {species, inventory} = route.params;
     setTreeType(inventory.locate_tree);
@@ -78,7 +79,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
 
   const getAllUserSpecies = () => {
     getAllSpecies().then((data) => {
-      // console.log(data, 'component');
+      console.log(data, 'component');
       setSpeciesList(Object.values(data));
     }).catch((err) => {
       console.log(err, 'hererer');
@@ -118,8 +119,10 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const handleInput = (index, text) => {
+    console.log(text, index);
     let species = [...speciesList];
     species[index] = {...species[index], name: text};
+    console.log(species[index], 'handle');
     setSpeciesList(species);
   };
   const handleCamera = (data) => {
@@ -163,20 +166,21 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
         }
         {item.image ? (
           <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image source={{uri : item.image}} resizeMode={'contain'} style={{ flex: 1, width: 100,height: 100, borderRadius: 10}} />
+            <Image source={{uri : item.image}} resizeMode={'contain'} style={{ flex: 1, width: 200,height: 100, borderRadius: 10}} />
           </TouchableOpacity>
         ) : 
           <TouchableOpacity onPress={onPressImage(index)}>
             <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 50,height: 100, borderRadius: 10}} />
           </TouchableOpacity>}
         <View style={{ flex: 1 }}>
-          {item.alias ? (
+          {item.aliases ? (
             <Text numberOfLines={2} style={styles.speciesLocalName}>
-              {i18next.t('label.select_species_local_name', { item })}
+              {item.aliases}
+              {/* {i18next.t('label.select_species_local_name', { item })} */}
             </Text>
           ): (
             <TextInput
-              value={item.name}
+              value={item.aliases}
               style={styles.speciesLocalName}
               placeholder="Add Name"
               // autoFocus
@@ -300,7 +304,11 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
               padding: 20,
               width: '80%',
             }}>
-            <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            {singleTree ? (
+              <Image source={{uri: singleTree.image}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
+            ): 
+              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            }
             <Header
               hideBackIcon
               subHeadingText={'Please enter the diameter of the plant in cetimeter'}
@@ -335,8 +343,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree || data.name, diameter: data.diameter}).then(() => {
-      updateNameForUserSpecies({id: singleTree.id, name: data.nameOfTree}).then(() => {
+    console.log(data, 'daata');
+    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter}).then(() => {
+      updateNameForUserSpecies({id: singleTree.id, aliases: data.aliases}).then(() => {
         navigation.navigate('SingleTreeOverview');
       }).catch(err => {
         console.log(err);
@@ -368,7 +377,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const onPressDiameterBtn = () => {
-    let selected = {nameOfTree: singleTree.name, diameter: diameter};
+    let selected = {aliases: singleTree.name, diameter: diameter};
     onPressSaveAndContinue(selected);
     setIsShowTreeDiameterModal(false);
   };

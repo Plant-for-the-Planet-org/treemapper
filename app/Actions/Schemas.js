@@ -73,9 +73,11 @@ const AddSpecies = {
   primaryKey: 'id',
   properties: {
     id: 'string',
-    name: 'string?',
+    aliases: 'string?',
     image: 'string?',
     scientificName: 'string',
+    status: 'string?',
+    speciesId: 'string'
   }
 };
 

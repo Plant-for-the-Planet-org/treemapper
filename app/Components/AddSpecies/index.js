@@ -14,7 +14,7 @@ import {RNCamera} from 'react-native-camera';
 import Camera from '../Common/Camera';
 import { store } from '../../Actions/store';
 
-export default function index({closeSearch, navigation}) {
+export default function index({navigation}) {
   const [imagePath, setImagePath] = useState(null);
   const [search, setSearch] = useState(null);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
@@ -28,9 +28,9 @@ export default function index({closeSearch, navigation}) {
   const [inventory, setInventory] = useState(null);
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   const { state } = useContext(store);
+  const [direction, setDirection] = useState(null);
 
   useEffect(() => {
-    getAllUserSpecies();
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
@@ -76,7 +76,7 @@ export default function index({closeSearch, navigation}) {
     }
     let species = [...selectedSpecies];
     for(let specie of species ) {
-      AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName}).then((data) => {
+      AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName, speciesId: specie.id}).then((data) => {
         console.log(data, 'add species');
         navigation.goBack();
       // setOpenImageModal(!openImageModal);
@@ -88,6 +88,7 @@ export default function index({closeSearch, navigation}) {
   };
   const addSpecies = (item) => {
     setSelectedSpecies([...selectedSpecies, item]);
+    console.log(item);
   };
 
 
