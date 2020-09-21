@@ -632,7 +632,7 @@ export const DeleteInventory = ({inventory_id}) => {
   });
 };
 
-export const AddUserSpecies = ({name, image, scientificName}) => {
+export const AddUserSpecies = ({name, image, scientificName, speciesId}) => {
   return new Promise((resolve, reject) => {
     Realm.open({schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies]})
       .then((realm) => {
@@ -642,7 +642,9 @@ export const AddUserSpecies = ({name, image, scientificName}) => {
             id,
             name,
             image,
-            scientificName
+            scientificName,
+            status: 'pending',
+            speciesId,
           });
           resolve(id);
         });
@@ -692,6 +694,39 @@ export const updateNameForUserSpecies = ({id, name}) => {
         realm.write(() => {
           let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
           specie.name = name;
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+export const filterSpecies = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          const species = realm.objects('AddSpecies');
+          let fiteredSpecies = species.filtered('name != "" && status == "pending"');
+          resolve(JSON.parse(JSON.stringify(fiteredSpecies)));
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+export const updateStatusForUserSpecies = ({id}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
+          specie.status = 'complete';
           resolve(true);
         });
       })

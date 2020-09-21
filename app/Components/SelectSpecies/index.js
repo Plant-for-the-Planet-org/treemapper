@@ -163,7 +163,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
         }
         {item.image ? (
           <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image source={{uri : item.image}} resizeMode={'contain'} style={{ flex: 1, width: 100,height: 100, borderRadius: 10}} />
+            <Image source={{uri : item.image}} resizeMode={'contain'} style={{ flex: 1, width: 200,height: 100, borderRadius: 10}} />
           </TouchableOpacity>
         ) : 
           <TouchableOpacity onPress={onPressImage(index)}>
@@ -300,7 +300,11 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
               padding: 20,
               width: '80%',
             }}>
-            <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            {singleTree ? (
+              <Image source={{uri: singleTree.image}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
+            ): 
+              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            }
             <Header
               hideBackIcon
               subHeadingText={'Please enter the diameter of the plant in cetimeter'}

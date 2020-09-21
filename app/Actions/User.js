@@ -36,6 +36,7 @@ export const getUserInformationFromServer = (navigation) => {
           },
         })
           .then((data) => {
+            console.log(data, 'userdata');
             realm.write(() => {
               const { email, firstname, lastname } = data.data;
               realm.create(

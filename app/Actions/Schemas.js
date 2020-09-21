@@ -76,6 +76,8 @@ const AddSpecies = {
     name: 'string?',
     image: 'string?',
     scientificName: 'string',
+    status: 'string?',
+    speciesId: 'string'
   }
 };
 
