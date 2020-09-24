@@ -1,5 +1,11 @@
 import React, { createContext, useReducer } from 'react';
-import { LocalInventoryActions, LoaderActions, SignUpLoader, SpeciesListAction } from '../Actions/Action';
+import {
+  LocalInventoryActions,
+  LoaderActions,
+  SignUpLoader,
+  SpeciesListAction,
+  SpecieIdFromServer
+} from '../Actions/Action';
 
 const initialState = { inventoryID: undefined };
 const store = createContext(initialState);
@@ -15,17 +21,22 @@ const StateProvider = ({ children }) => {
       case LoaderActions.SET_LOADING:
         return {
           ...state,
-          isLoading: action.payload
+          isLoading: action.payload,
         };
       case SignUpLoader.SET_SIGNUP_LOADER:
         return {
           ...state,
-          isSignUpLoader: action.payload
+          isSignUpLoader: action.payload,
         };
       case SpeciesListAction.SET_SPECIES_LIST:
         return {
           ...state,
-          species: action.payload
+          species: action.payload,
+        };
+      case SpecieIdFromServer.SET_SPECIES_ID:
+        return {
+          ...state,
+          specieId: action.payload,
         };
       default:
         throw new Error();

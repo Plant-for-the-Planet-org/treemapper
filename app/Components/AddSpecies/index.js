@@ -7,12 +7,13 @@ import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {AddUserSpecies, getAllSpecies, insertImageForUserSpecies, UpdateSpecieAndSpecieDiameter, getInventory} from '../../Actions';
+import { getInventory, isLogin,auth0Login,} from '../../Actions';
 import { add_image } from '../../assets';
 import { AllSpecies, SearchSpecies } from '../../Services/Species';
-import {RNCamera} from 'react-native-camera';
 import Camera from '../Common/Camera';
 import { store } from '../../Actions/store';
+import { createSpecies } from '../../Actions/UploadInventory';
+import { SpecieIdFromServer } from '../../Actions/Action';
 
 export default function index({navigation}) {
   const [imagePath, setImagePath] = useState(null);
@@ -27,8 +28,7 @@ export default function index({navigation}) {
   const [isAddSpecies, setIsAddSpecies] = useState(null);
   const [inventory, setInventory] = useState(null);
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
-  const { state } = useContext(store);
-  const [direction, setDirection] = useState(null);
+  const { state, dispatch } = useContext(store);
 
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
@@ -53,55 +53,53 @@ export default function index({navigation}) {
       console.log(err);
     });
   };
-  const getAllUserSpecies = () => {
-    getAllSpecies().then((data) => {
-      console.log(Object.values(data), 'component');
-      setSpeciesList(Object.values(data));
-    }).catch((err) => {
-      console.log(err, 'hererer');
-    });
-  };
 
   const onPressSearchBtn = () => {
     searchSpecies();
   };
 
-  const onPressImage = () => {
-    setIsCamera(!isCamera);
-  };
-
-  const addSelectedSpecies = () => {
-    if (selectedSpecies.length === 0) {
-      navigation.goBack();
-    }
-    let species = [...selectedSpecies];
-    for(let specie of species ) {
-      AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName, speciesId: specie.id}).then((data) => {
-        console.log(data, 'add species');
-        navigation.goBack();
-      // setOpenImageModal(!openImageModal);
-      // closeSearch(false);
-      }).catch((err) => {
-        console.log(err, 'species');
+  const checkIsUserLogin = () => {
+    return new Promise((resolve, reject) => {
+      isLogin().then((isUserLogin) => {
+        if (!isUserLogin) {
+          auth0Login()
+            .then((isUserLogin) => {
+              isUserLogin ? resolve() : reject();
+            })
+            .catch((err) => {
+              alert(err.error_description);
+            });
+        } else {
+          resolve();
+        }
       });
-    }
+    });
+  };
+  const addSelectedSpecies = () => {
+    checkIsUserLogin().then(() => {
+      if (selectedSpecies.length === 0) {
+        navigation.goBack();
+      }
+      let species = [...selectedSpecies];
+      for(let specie of species ) {
+        console.log(specie, 'specie');
+        createSpecies(imagePath, specie.id, specie.scientificName).then((data) => {
+          dispatch(SpecieIdFromServer.setSpecieId(data));
+          navigation.goBack();
+        });
+      // AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName, speciesId: specie.id}).then((data) => {
+      //   console.log(data, 'add species');
+      //   navigation.goBack();
+      // // setOpenImageModal(!openImageModal);
+      // // closeSearch(false);
+      // }).catch((err) => {
+      //   console.log(err, 'species');
+      // });
+      }
+    });
   };
   const addSpecies = (item) => {
     setSelectedSpecies([...selectedSpecies, item]);
-    console.log(item);
-  };
-
-
-  const onPressCamera = async () => {
-    if (imagePath) {
-      setImagePath('');
-      return;
-    }
-    const options = { quality: 0.5 };
-    const data = await camera.current.takePictureAsync(options);
-    setImagePath(data.uri);
-    setIsCamera(!isCamera);
-    // updateImagePath();
   };
 
   const renderSpeciesCard = ({item}) => {
@@ -165,15 +163,6 @@ export default function index({navigation}) {
     );
   };
 
-  const handleCamera = (data) => {
-    console.log(data, 'camera data');
-    setImagePath(data);
-    setIsCamera(false);
-  };
-
-  if (isCamera) {
-    return <Camera handleCamera={handleCamera}/>;
-  }
   return (
     <View style={{flex: 1}}>
       <SafeAreaView style={styles.mainContainer}>

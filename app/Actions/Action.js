@@ -12,7 +12,7 @@ class LoaderActions {
 
   static setLoader = (payload) => ({
     type: LoaderActions.SET_LOADING,
-    payload: payload
+    payload: payload,
   });
 }
 
@@ -21,7 +21,7 @@ class SignUpLoader {
 
   static setSignUpLoader = (payload) => ({
     type: SignUpLoader.SET_SIGNUP_LOADER,
-    payload
+    payload,
   });
 }
 
@@ -30,7 +30,16 @@ class SpeciesListAction {
 
   static setSpeciesList = (payload) => ({
     type: SpeciesListAction.SET_SPECIES_LIST,
-    payload
+    payload,
+  });
+}
+
+class SpecieIdFromServer {
+  static SET_SPECIES_ID = 'SET_SPECIES_ID';
+
+  static setSpecieId = (payload) => ({
+    type: SpecieIdFromServer.SET_SPECIES_ID,
+    payload,
   })
 }
-export { LocalInventoryActions, LoaderActions, SignUpLoader, SpeciesListAction };
+export { LocalInventoryActions, LoaderActions, SignUpLoader, SpeciesListAction, SpecieIdFromServer };
