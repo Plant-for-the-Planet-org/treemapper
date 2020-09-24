@@ -754,37 +754,5 @@ export const updateStatusForUserSpecies = ({id}) => {
       });
   });
 };
-export const filterSpecies = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
-      .then((realm) => {
-        realm.write(() => {
-          const species = realm.objects('AddSpecies');
-          let fiteredSpecies = species.filtered('name != "" && status == "pending"');
-          resolve(JSON.parse(JSON.stringify(fiteredSpecies)));
-        });
-      })
-      .catch((err) => {
-        reject(err);
-        bugsnag.notify(err);
-      });
-  });
-};
 
-export const updateStatusForUserSpecies = ({id}) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
-      .then((realm) => {
-        realm.write(() => {
-          let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
-          specie.status = 'complete';
-          resolve(true);
-        });
-      })
-      .catch((err) => {
-        reject(err);
-        bugsnag.notify(err);
-      });
-  });
-};
 export { uploadInventory, getUserInformation };
