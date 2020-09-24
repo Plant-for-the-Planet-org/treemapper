@@ -5,7 +5,6 @@ import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
 import Realm from 'realm';
 import { Use } from 'react-native-svg';
-import { SpeciesList } from '../Services/Species';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
@@ -38,8 +37,6 @@ export const getUserInformationFromServer = (navigation) => {
           },
         })
           .then((data) => {
-            // SpeciesList(userToken);
-            data.data.push(userToken);
             realm.write(() => {
               const { email, firstname, lastname } = data.data;
               realm.create(
