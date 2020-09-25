@@ -351,11 +351,12 @@ const SingleTreeOverview = ({ navigation, route }) => {
   };
 
   const onBackPressOnSite = () => {
+    navigation.navigate('TreeInventory');
     // setIsShowSpeciesListModal(true);
     // if (direction){
     //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
     // }else {
-    navigation.goBack();
+    // navigation.goBack();
     // }
   };
 
