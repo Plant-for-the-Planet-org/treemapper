@@ -20,7 +20,7 @@
     "@react-navigation/drawer": "^5.3.4",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.7.1",
-    "axios": "^0.19.2",
+    "axios": "^0.20.0",
     "bugsnag-react-native": "^2.23.10",
     "i18next": "^19.6.0",
     "jail-monkey": "^2.3.2",
