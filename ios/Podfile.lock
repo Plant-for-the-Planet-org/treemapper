@@ -356,6 +356,8 @@ PODS:
     - React
   - rn-fetch-blob (0.12.0):
     - React-Core
+  - RNCAsyncStorage (1.12.0):
+    - React
   - RNCMaskedView (0.1.10):
     - React
   - RNDateTimePicker (2.6.0):
@@ -369,8 +371,6 @@ PODS:
   - RNReanimated (1.12.0):
     - React
   - RNScreens (2.10.1):
-    - React
-  - RNSnackbar (2.2.3):
     - React
   - RNSnackbar (2.2.3):
     - React
@@ -444,6 +444,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RealmJS (from `../node_modules/realm`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFS (from `../node_modules/react-native-fs`)
@@ -553,6 +554,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/realm"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-community/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDateTimePicker:
@@ -632,13 +635,14 @@ SPEC CHECKSUMS:
   ReactCommon: a0a1edbebcac5e91338371b72ffc66aa822792ce
   RealmJS: 16eb794ce5490cf2981372167ac6a6c45f989a4e
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
+  RNCAsyncStorage: 3eea36d9460c5159b592f9ecbe5a77f8aca98006
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNDateTimePicker: 8784fb27ddd12a9f0eaf6d994bfe3892f0f319cf
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNLocalize: c388679af021ddd6069c215f7fdd2acf4e77ede5
-  RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
-  RNScreens: 62211832af51e0aebcf6e8c36bcf7dd65592f244
+  RNReanimated: 9c475f9b272232351d94a1a781e8b7580bac1ff4
+  RNScreens: b748efec66e095134c7166ca333b628cd7e6f3e2
   RNSnackbar: 57932b2527096e609a86b1da2a2dfa46d624dc7c
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
@@ -646,6 +650,6 @@ SPEC CHECKSUMS:
   Yoga: 7740b94929bbacbddda59bf115b5317e9a161598
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: b1bc88ba58fffc88442e88eb6c0c68ef96f9d08f
+PODFILE CHECKSUM: f54cc039bc5eb9f8a44f267d3cc02aa46a945a4e
 
 COCOAPODS: 1.9.3
