@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, Modal, StyleSheet } from 'react-native';
+import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 
 const Loader = ({isLoaderShow}) => {
   return (
     <Modal transparent visible={isLoaderShow}>
       <View style={styles.dowloadModalContainer}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>
-              Uploading..........
+          <ActivityIndicator size="large" color="#89B53A" />
+          <Text style={{ padding: 30, borderRadius: 10 }}>
+            Please Wait.....
           </Text>
         </View>
       </View>
