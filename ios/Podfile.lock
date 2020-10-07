@@ -3,10 +3,10 @@ PODS:
   - A0Auth0 (2.5.0):
     - React
   - boost-for-react-native (1.63.0)
-  - BugsnagReactNative (2.23.8):
-    - BugsnagReactNative/Core (= 2.23.8)
+  - BugsnagReactNative (2.23.10):
+    - BugsnagReactNative/Core (= 2.23.10)
     - React
-  - BugsnagReactNative/Core (2.23.8):
+  - BugsnagReactNative/Core (2.23.10):
     - React
   - BVLinearGradient (2.5.6):
     - React
@@ -266,7 +266,7 @@ PODS:
     - react-native-config/App (= 1.3.3)
   - react-native-config/App (1.3.3):
     - React
-  - react-native-document-picker (3.4.0):
+  - react-native-document-picker (3.5.4):
     - React
   - react-native-geolocation (2.0.2):
     - React
@@ -356,6 +356,8 @@ PODS:
     - React
   - rn-fetch-blob (0.12.0):
     - React-Core
+  - RNCAsyncStorage (1.12.0):
+    - React
   - RNCMaskedView (0.1.10):
     - React
   - RNDateTimePicker (2.6.0):
@@ -366,9 +368,11 @@ PODS:
     - React
   - RNLocalize (1.4.1):
     - React
-  - RNReanimated (1.9.0):
+  - RNReanimated (1.12.0):
     - React
-  - RNScreens (2.8.0):
+  - RNScreens (2.10.1):
+    - React
+  - RNSnackbar (2.2.3):
     - React
   - RNSVG (12.1.0):
     - React
@@ -440,6 +444,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RealmJS (from `../node_modules/realm`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFS (from `../node_modules/react-native-fs`)
@@ -447,6 +452,7 @@ DEPENDENCIES:
   - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSnackbar (from `../node_modules/react-native-snackbar`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "toolbar-android (from `../node_modules/@react-native-community/toolbar-android`)"
@@ -548,6 +554,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/realm"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-community/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDateTimePicker:
@@ -562,6 +570,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSnackbar:
+    :path: "../node_modules/react-native-snackbar"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
@@ -575,7 +585,7 @@ SPEC CHECKSUMS:
   "@react-native-mapbox-gl-mapbox-static": e247172bc43f47757f47d6cec1b325b1ab3e9287
   A0Auth0: ee7810c19bbd3895d890e3bc1dce5d72b16d75eb
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  BugsnagReactNative: 0aacb961ccd13b4eb4ca44928b811d76b97d646d
+  BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -608,7 +618,7 @@ SPEC CHECKSUMS:
   React-jsinspector: b14e62ebe7a66e9231e9581279909f2fc3db6606
   react-native-camera: 8a63c369af9383fcedea9a73fe234c7efb234d24
   react-native-config: 9a061347e0136fdb32d43a34d60999297d672361
-  react-native-document-picker: d694111879537cec2c258a1dcd2243d9df746824
+  react-native-document-picker: c5752781fbc0c126c627c1549b037c139444a4cf
   react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
   react-native-mapbox-gl: 77b87a1dd2d7b41b6b77018c0f3bed5f8ee55c81
   react-native-safe-area-context: 8260e5157617df4b72865f44006797f895b2ada7
@@ -625,19 +635,21 @@ SPEC CHECKSUMS:
   ReactCommon: a0a1edbebcac5e91338371b72ffc66aa822792ce
   RealmJS: 16eb794ce5490cf2981372167ac6a6c45f989a4e
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
+  RNCAsyncStorage: 3eea36d9460c5159b592f9ecbe5a77f8aca98006
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNDateTimePicker: 8784fb27ddd12a9f0eaf6d994bfe3892f0f319cf
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNLocalize: c388679af021ddd6069c215f7fdd2acf4e77ede5
-  RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
-  RNScreens: 62211832af51e0aebcf6e8c36bcf7dd65592f244
+  RNReanimated: 9c475f9b272232351d94a1a781e8b7580bac1ff4
+  RNScreens: b748efec66e095134c7166ca333b628cd7e6f3e2
+  RNSnackbar: 57932b2527096e609a86b1da2a2dfa46d624dc7c
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   toolbar-android: 404f4450b203597e7b417f714ff417bed562a1be
   Yoga: 7740b94929bbacbddda59bf115b5317e9a161598
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5de3e4bfdf092da8b6558bee0faa625368e6dc3d
+PODFILE CHECKSUM: f54cc039bc5eb9f8a44f267d3cc02aa46a945a4e
 
 COCOAPODS: 1.9.3

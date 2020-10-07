@@ -5,6 +5,7 @@ import { getAllPendingInventory, statusToComplete } from './';
 import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
 import Realm from 'realm';
 import { Use } from 'react-native-svg';
+import getSessionData from '../Utils/sessionId';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
@@ -28,35 +29,39 @@ export const getUserInformationFromServer = (navigation) => {
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = User.accessToken;
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/treemapper/accountInfo`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                },
-                'modified',
-              );
-            });
-            resolve(data.data);
+        getSessionData().then((sessionData) => {
+          axios({
+            method: 'GET',
+            url: `${protocol}://${url}/treemapper/accountInfo`,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+              'x-session-id': sessionData,
+            },
           })
-          .catch((err) => {
-            if (err.response.status === 303) {
-              navigation.navigate('SignUp');
-            }
-          });
+            .then((data) => {
+              realm.write(() => {
+                const { email, firstname, lastname } = data.data;
+                realm.create(
+                  'User',
+                  {
+                    id: 'id0001',
+                    email,
+                    firstname,
+                    lastname,
+                  },
+                  'modified',
+                );
+              });
+              resolve(data.data);
+            })
+            .catch((err) => {
+              if (err.response.status === 303) {
+                navigation.navigate('SignUp');
+              }
+              reject(err);
+            });
+        });
       },
     );
     const { protocol, url } = APIConfig;

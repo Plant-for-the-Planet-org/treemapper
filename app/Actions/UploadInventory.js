@@ -18,6 +18,7 @@ import {
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
 
@@ -69,37 +70,39 @@ const uploadInventory = () => {
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                        },
-                      })
-                        .then((data) => {
-                          let response = data.data;
-                          createSpecies(userToken);
-                          if (oneInventory.locate_tree == 'off-site') {
-                            statusToComplete({ inventory_id: oneInventory.inventory_id });
-                            if (allPendingInventory.length - 1 == i) {
-                              resolve();
-                            }
-                          } else {
-                            uploadImage(oneInventory, response, userToken).then(() => {
+                      getSessionData().then( async (sessionData) => {
+                        await axios({
+                          method: 'POST',
+                          url: `${protocol}://${url}/treemapper/plantLocations`,
+                          data: body,
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `OAuth ${userToken}`,
+                            'x-session-id': sessionData,
+                          },
+                        })
+                          .then((data) => {
+                            let response = data.data;
+                            if (oneInventory.locate_tree == 'off-site') {
                               statusToComplete({ inventory_id: oneInventory.inventory_id });
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
                               }
-                            });
-                          }
-                        })
-                        .catch((err) => {
-                          console.log('EEORR =', err);
-                          alert('There is something wrong');
-                          reject();
-                        });
+                            } else {
+                              uploadImage(oneInventory, response, userToken, sessionData).then(() => {
+                                statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                if (allPendingInventory.length - 1 == i) {
+                                  resolve();
+                                }
+                              });
+                            }
+                          })
+                          .catch((err) => {
+                            console.log('EEORR =', err);
+                            alert('There is something wrong');
+                            reject();
+                          });
+                      });
                     }
                   })
                   .catch((err) => {});
@@ -116,7 +119,7 @@ const uploadInventory = () => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken) => {
+const uploadImage = (oneInventory, response, userToken, sessionId) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -131,6 +134,7 @@ const uploadImage = (oneInventory, response, userToken) => {
         let headers = {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
+          'x-session-id': sessionId,
         };
 
         await axios({
