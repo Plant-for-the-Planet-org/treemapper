@@ -24,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
+import {toLetters} from '../../Utils/mapMarkingCoordinate';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -66,6 +67,7 @@ class MapMarking extends React.Component {
         },
       ],
     },
+    ALPHABETS: [],
   };
 
   async UNSAFE_componentWillMount() {
@@ -77,6 +79,16 @@ class MapMarking extends React.Component {
 
   componentDidMount() {
     this.initialState();
+    this.generateMarkers();
+  }
+
+  generateMarkers = () => {
+    let array = [];
+    for (var x = 27, y; x <= 130; x++) {
+      y = toLetters(x);
+      array.push(y);
+    }
+    this.setState({ALPHABETS: array});
   }
 
   initialState = () => {
@@ -215,7 +227,7 @@ class MapMarking extends React.Component {
       addCoordinates(data).then(() => {
         if (locateTree == 'on-site') {
           let location =
-            ALPHABETS[geoJSON.features[0].geometry.coordinates.length - complete ? 2 : 1];
+            this.state.ALPHABETS[geoJSON.features[0].geometry.coordinates.length - complete ? 2 : 1];
           this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length);
         } else {
           // For off site
@@ -314,7 +326,7 @@ class MapMarking extends React.Component {
               source={marker_png}
               style={styles.markerContainer}
               resizeMode={'cover'}>
-              <Text style={styles.markerText}>{ALPHABETS[j]}</Text>
+              <Text style={styles.markerText}>{this.state.ALPHABETS[j]}</Text>
             </ImageBackground>
           </MapboxGL.PointAnnotation>,
         );
@@ -438,7 +450,7 @@ class MapMarking extends React.Component {
       .isPolygonComplete
       ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1
       : geoJSON.features[activePolygonIndex].geometry.coordinates.length;
-    let location = ALPHABETS[activeMarkerIndex];
+    let location = this.state.ALPHABETS[activeMarkerIndex];
     return (
       <View style={styles.container} fourceInset={{ top: 'always' }}>
         <View style={styles.container}>
