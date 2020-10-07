@@ -84,7 +84,7 @@ class MapMarking extends React.Component {
 
   generateMarkers = () => {
     let array = [];
-    for (var x = 27, y; x <= 130; x++) {
+    for (var x = 1, y; x <= 130; x++) {
       y = toLetters(x);
       array.push(y);
     }
