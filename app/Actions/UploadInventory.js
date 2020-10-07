@@ -8,6 +8,8 @@ import RNFS from 'react-native-fs';
 // import store from './store';
 // import React from 'react';
 import { UploadAction } from './Action';
+import getSessionData from '../Utils/sessionId';
+
 
 const { protocol, url } = APIConfig;
 // const {dispatch } = React.useContext(store);
@@ -58,36 +60,39 @@ const uploadInventory = (dispatch) => {
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                        },
-                      })
-                        .then((data) => {
-                          let response = data.data;
-                          if (oneInventory.locate_tree == 'off-site') {
-                            statusToComplete({ inventory_id: oneInventory.inventory_id });
-                            if (allPendingInventory.length - 1 == i) {
-                              resolve();
-                            }
-                          } else {
-                            uploadImage(oneInventory, response, userToken, dispatch).then(() => {
+                      getSessionData().then( async (sessionData) => {
+                        await axios({
+                          method: 'POST',
+                          url: `${protocol}://${url}/treemapper/plantLocations`,
+                          data: body,
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `OAuth ${userToken}`,
+                            'x-session-id': sessionData,
+                          },
+                        })
+                          .then((data) => {
+                            let response = data.data;
+                            if (oneInventory.locate_tree == 'off-site') {
                               statusToComplete({ inventory_id: oneInventory.inventory_id });
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
                               }
-                            });
-                          }
-                        })
-                        .catch((err) => {
-                          console.log('EEORR =', err);
-                          alert('There is something wrong');
-                          reject();
-                        });
+                            } else {
+                              uploadImage(oneInventory, response, userToken, sessionData).then(() => {
+                                statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                if (allPendingInventory.length - 1 == i) {
+                                  resolve();
+                                }
+                              });
+                            }
+                          })
+                          .catch((err) => {
+                            console.log('EEORR =', err);
+                            alert('There is something wrong');
+                            reject();
+                          });
+                      });
                     }
                   })
                   .catch((err) => {});
@@ -104,7 +109,7 @@ const uploadInventory = (dispatch) => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken, dispatch) => {
+const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -119,6 +124,7 @@ const uploadImage = (oneInventory, response, userToken, dispatch) => {
         let headers = {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
+          'x-session-id': sessionId,
         };
         let onUploadProgress = (progressEvent) => {
           const progress = Math.round((100 * progressEvent.loaded) / progressEvent.total);

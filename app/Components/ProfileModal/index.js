@@ -4,9 +4,11 @@ import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
-import { getUserInformation } from '../../Actions';
+import { getUserInformationFromServer } from '../../Actions/User';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { LoginDetails } from '../../Actions/index';
+import jwtDecode from 'jwt-decode';
 
 const ProfileModal = ({
   isUserLogin,
@@ -15,15 +17,24 @@ const ProfileModal = ({
   onPressLogout,
 }) => {
   const [userInfo, setUserInfo] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
     if (isUserLogin) {
-      getUserInformation().then((userInfo) => {
+      getUserInformationFromServer().then((userInfo) => {
         setUserInfo(userInfo);
-      });
+      }).catch((err) => console.log(err));
     }
+    userImage();
   }, [isUserLogin]);
 
+  const userImage = () => {
+    LoginDetails().then((User) => {
+      let detail = (Object.values(User));
+      let decode = jwtDecode(detail[0].idToken);
+      setUserPhoto(decode.picture);
+    });
+  };
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org');
   };
@@ -34,9 +45,9 @@ const ProfileModal = ({
     Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
   };
   let avatar;
-  if (userInfo) {
-    avatar = userInfo.avatar
-      ? userInfo.avatar
+  if (userPhoto) {
+    avatar = userPhoto
+      ? userPhoto
       : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
   }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions, Alert } from 'react-native';
 import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -13,6 +13,9 @@ import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
 import { store } from '../../Actions/store';
 import { LoaderActions } from '../../Actions/Action';
+import { useFocusEffect } from '@react-navigation/native';
+import jwtDecode from 'jwt-decode'; 
+import { LoginDetails } from '../../Actions/index';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,14 +25,20 @@ const MainScreen = ({ navigation }) => {
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
   const {state, dispatch} = useContext(store);
+  const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
     checkIsLogin();
     getAllInventory().then((data) => {
       setNumberOfInventory(Object.values(data).length);
     });
-    console.log(state.isUploading);
-  }, []);
+  }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      checkIsLogin();
+    }, [])
+  );
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
@@ -46,7 +55,18 @@ const MainScreen = ({ navigation }) => {
       dispatch(LoaderActions.setLoader(true));
       auth0Login(navigation).then((data) => {
         setIsUserLogin(data);
-      }).catch(() => {
+        dispatch(LoaderActions.setLoader(false));
+      }).catch((err) => {
+        if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [
+              { text: 'OK', onPress: () => console.log('OK Pressed') }
+            ],
+            { cancelable: false }
+          );
+        }
         dispatch(LoaderActions.setLoader(false));
       });
     }
@@ -56,6 +76,7 @@ const MainScreen = ({ navigation }) => {
     isLogin()
       .then((data) => {
         setIsUserLogin(data);
+        userImage();
       })
       .catch((err) => {
         onPressCloseProfileModal();
@@ -67,6 +88,14 @@ const MainScreen = ({ navigation }) => {
     onPressCloseProfileModal();
     auth0Logout().then(() => {
       checkIsLogin();
+    });
+  };
+
+  const userImage = () => {
+    LoginDetails().then((User) => {
+      let detail = (Object.values(User));
+      let decode = jwtDecode(detail[0].idToken);
+      setUserPhoto(decode.picture);
     });
   };
 
@@ -105,6 +134,7 @@ const MainScreen = ({ navigation }) => {
               isUserLogin={isUserLogin}
               testID={'btn_login'}
               accessibilityLabel={'Login / Sign Up'}
+              photo={userPhoto}
             />
             {state.isUploading &&
           <View style={{position: 'absolute', top: 30, bottom: 0}}>

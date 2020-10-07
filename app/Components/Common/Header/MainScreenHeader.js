@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from '../../../languages/languages';
 
-const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testID }) => {
+const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testID, photo }) => {
   return (
     <View style={styles.container}>
       <View />
@@ -14,8 +14,8 @@ const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testI
         accessible={true}>
         {isUserLogin ? (
           <Image
-            style={{ width: 40, height: 40 }}
-            source={{ uri: 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }}
+            style={{ width: 40, height: 40, borderRadius: 20 }}
+            source={{ uri: photo ? photo : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }}
           />
         ) : (
           <Text style={styles.loginText}>{i18next.t('label.login')}</Text>
