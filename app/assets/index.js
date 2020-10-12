@@ -10,6 +10,8 @@ import tree from './images/tree.png';
 import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 import marker_png from './images/marker.png';
+import map_image from './images/map_image.png';
+import map_img from './images/map_img.png';
 
 // * SVGs *
 // import { marker_png } from './images/marker';
@@ -48,4 +50,6 @@ export {
   logo,
   cloud_upload_gray,
   off_site_enable_banner,
+  map_image,
+  map_img,
 };
