@@ -68,6 +68,7 @@ const InventoryOverview = ({ navigation }) => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
       setInventory(inventory);
+
     });
   };
   `Location Type: ${locationType}`;
@@ -100,7 +101,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn
+                      activeBtn={inventory.status === 'complete' ?  true : false}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -367,7 +368,7 @@ const InventoryOverview = ({ navigation }) => {
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 // rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: moment(new Date(Number(inventory.plantation_date))),
+                  date: moment(new Date(Number(inventory.plantation_date))).format('ll'),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
