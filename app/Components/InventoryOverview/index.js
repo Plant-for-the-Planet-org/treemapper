@@ -67,6 +67,7 @@ const InventoryOverview = ({ navigation }) => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
+      console.log(inventory, 'inventory');
       setInventory(inventory);
 
     });
