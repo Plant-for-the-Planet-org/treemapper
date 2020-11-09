@@ -2,6 +2,9 @@
   "edit_profile": "Profil bearbeiten",
   "logout": "Abmelden",
   "privacy_policy": "Datenschutzerklärung",
-  "support": "Unterstützen",
-  "edit": "Bearbeiten"
+  "terms_of_service": "AGB",
+  "edit": "Bearbeiten",
+  "manage_offline": "Offline Maps verwalten",
+  "manage_species": "Arten verwalten",
+  "back_up": "Alle Änderungen gesichert"
 }
