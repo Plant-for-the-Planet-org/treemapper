@@ -75,13 +75,13 @@ const TreeInventory = ({ navigation }) => {
           let locateTreeAndType = '';
           let title = '';
           if (item.locate_tree === 'off-site') {
-            locateTreeAndType = 'Off Site';
+            locateTreeAndType = i18next.t('label.tree_inventory_off_site');
           } else {
-            locateTreeAndType = 'On Site';
+            locateTreeAndType = i18next.t('label.tree_inventory_on_site');
           }
           if (item.tree_type == 'single') {
-            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`;
-            locateTreeAndType += ' - Point';
+            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}` + i18next.t('label.tree_inventory_tree');
+            locateTreeAndType += ' - ' + i18next.t('label.tree_inventory_point');
           } else {
             let totalTreeCount = 0;
             let species = Object.values(item.species);
@@ -90,8 +90,8 @@ const TreeInventory = ({ navigation }) => {
               const oneSpecies = species[i];
               totalTreeCount += Number(oneSpecies.treeCount);
             }
-            title = `${totalTreeCount} Trees`;
-            locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`;
+            title = `${totalTreeCount} ` + i18next.t('label.tree_inventory_trees');
+            locateTreeAndType += ` - ${isOffSitePoint ? i18next.t('label.tree_inventory_point') : i18next.t('label.tree_inventory_polygon')}`;
           }
           let data = {
             title: title,
@@ -102,7 +102,7 @@ const TreeInventory = ({ navigation }) => {
           return (
             <TouchableOpacity
               onPress={() => onPressInventory(item)}
-              accessibilityLabel="Inventory List"
+              accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               accessible={true}
               testID="inventory_list">
               <InventoryCard icon={'cloud-outline'} data={data} />

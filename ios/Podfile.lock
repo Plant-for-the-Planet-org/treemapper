@@ -360,7 +360,7 @@ PODS:
     - React
   - RNCMaskedView (0.1.10):
     - React
-  - RNDateTimePicker (2.6.0):
+  - RNDateTimePicker (2.6.2):
     - React
   - RNFS (2.16.6):
     - React
@@ -637,7 +637,7 @@ SPEC CHECKSUMS:
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 3eea36d9460c5159b592f9ecbe5a77f8aca98006
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
-  RNDateTimePicker: 8784fb27ddd12a9f0eaf6d994bfe3892f0f319cf
+  RNDateTimePicker: dc9dab744823a2c734dbc7362cdf57a3adba3c43
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNLocalize: c388679af021ddd6069c215f7fdd2acf4e77ede5

@@ -347,8 +347,8 @@ const InventoryOverview = ({ navigation }) => {
   let isSingleCoordinate, locateType;
   if (inventory) {
     isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
-    locationType = isSingleCoordinate ? 'Point' : 'Polygon';
-    locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site';
+    locationType = isSingleCoordinate ? i18next.t('label.tree_inventory_point') : i18next.t('label.tree_inventory_polygon');
+    locateType = inventory.locate_tree == 'off-site' ? i18next.t('label.tree_inventory_off_site') : i18next.t('label.tree_inventory_on_site');
   }
 
   let status = inventory ? inventory.status : 'pending';

@@ -84,13 +84,13 @@ const UploadedInventory = ({ navigation }) => {
           let locateTreeAndType = '';
           let title = '';
           if (item.locate_tree === 'off-site') {
-            locateTreeAndType = 'Off Site';
+            locateTreeAndType = i18next.t('label.tree_inventory_off_site');
           } else {
-            locateTreeAndType = 'On Site';
+            locateTreeAndType = i18next.t('label.tree_inventory_on_site');
           }
           if (item.tree_type == 'single') {
-            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`;
-            locateTreeAndType += ' - Point';
+            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}` + i18next.t('label.tree_inventory_tree');
+            locateTreeAndType += ' - ' + i18next.t('label.tree_inventory_point');
           } else {
             let totalTreeCount = 0;
             let species = Object.values(item.species);
@@ -99,13 +99,15 @@ const UploadedInventory = ({ navigation }) => {
               const oneSpecies = species[i];
               totalTreeCount += Number(oneSpecies.treeCount);
             }
-            title = `${totalTreeCount} Trees`;
-            locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`;
+            title = `${totalTreeCount} ` + i18next.t('label.tree_inventory_trees');
+            locateTreeAndType += ` - ${isOffSitePoint ? i18next.t('label.tree_inventory_point') : i18next.t('label.tree_inventory_polygon')}`;
           }
           let data = {
             title: title,
             subHeading: locateTreeAndType,
-            date: moment(new Date(Number(item.plantation_date))).format('ll'),
+            date: i18next.t('label.inventory_overview_date', {
+              date: moment(new Date(Number(item.plantation_date))).format('ll'),
+            }),
             imageURL: imageURL,
           };
 
@@ -113,7 +115,7 @@ const UploadedInventory = ({ navigation }) => {
             <TouchableOpacity
               onPress={() => onPressInventory(item)}
               accessible={true}
-              accessibilityLabel="Upload Inventory List"
+              accessibilityLabel={i18next.t('label.tree_inventory_upload_inventory_list')}
               testID="upload_inventory_list">
               <InventoryCard icon={'cloud-check'} data={data} />
             </TouchableOpacity>
@@ -131,9 +133,9 @@ const UploadedInventory = ({ navigation }) => {
             <TouchableOpacity
               onPress={toogleIsShowFreeUpSpaceAlert}
               accessible={true}
-              accessibilityLabel="Free Up Space"
+              accessibilityLabel={i18next.t('label.tree_inventory_free_up_space')}
               testID="free_up_space">
-              <Text style={styles.freeUpSpace}>Free Up Space</Text>
+              <Text style={styles.freeUpSpace}>{i18next.t('label.tree_inventory_free_up_space')}</Text>
             </TouchableOpacity>
             {renderInventoryList(allInventory)}
           </>

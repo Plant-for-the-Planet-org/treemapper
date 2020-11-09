@@ -13,5 +13,14 @@
   "tree_inventory_alert_header": "Are You Sure?",
   "tree_inventory_alert_sub_header": "The registrations are safe on cloud. Once the registrations are deleted, currently it is not possible to retrieve them on this app.",
   "tree_inventory_alert_primary_btn_text": "Sure Delete",
-  "tree_inventory_clear_all": "Clear All"
+  "tree_inventory_clear_all": "Clear All",
+  "tree_inventory_free_up_space": "Free Up Space",
+  "tree_inventory_off_site": "Off Site",
+  "tree_inventory_on_site": "On Site",
+  "tree_inventory_tree": "Tree",
+  "tree_inventory_trees": "Trees",
+  "tree_inventory_point": "Point",
+  "tree_inventory_polygon": "Polygon",
+  "tree_inventory_upload_inventory_list": "Upload Inventory List",
+  "tree_inventory_inventory_list": "Inventory List"
 }
