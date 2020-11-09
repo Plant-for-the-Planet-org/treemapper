@@ -6,6 +6,7 @@ import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 import getSessionData from '../Utils/sessionId';
+import i18next from 'i18next';
 
 const { protocol, url } = APIConfig;
 
