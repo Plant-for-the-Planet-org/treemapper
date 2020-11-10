@@ -31,7 +31,6 @@ import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
 import i18next from 'i18next';
 
 const SingleTreeOverview = ({ navigation }) => {
@@ -208,7 +207,7 @@ const SingleTreeOverview = ({ navigation }) => {
             disabled={!shouldEdit}
             onPress={() => onPressEditSpecies('species')}
             accessible={true}
-            accessibilityLabel="Species"
+            accessibilityLabel={i18next.t('label.tree_review_specie')}
             testID="species_btn">
             <Text style={styles.detailText}>
               {specieText
@@ -224,7 +223,7 @@ const SingleTreeOverview = ({ navigation }) => {
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
             onPress={() => onPressEditSpecies('diameter')}
-            accessibilityLabel="Diameter"
+            accessibilityLabel={i18next.t('label.tree_review_diameter')}
             testID="diameter_btn"
             accessible={true}>
             <FIcon name={'arrow-h'} style={styles.detailText} />
@@ -244,11 +243,11 @@ const SingleTreeOverview = ({ navigation }) => {
               disabled={!shouldEdit}
               onPress={() => setIsShowDate(true)}
               accessible={true}
-              accessibilityLabel="Register Planting Date"
+              accessibilityLabel={i18next.t('label.tree_review_register_planting_date')}
               testID="register_planting_date">
               <Text style={styles.detailText}>
-                {i18next.t('label.tree_Review_plantation_date_text', {
-                  date: moment(plantationDate).format('ll'),
+                {i18next.t('label.tree_review_plantation_date_text', {
+                  date: new Date(Number(plantationDate)),
                 })}{' '}
                 {shouldEdit && <MIcon name={'edit'} size={20} />}
               </Text>

@@ -22,5 +22,6 @@
   "tree_inventory_point": "Point",
   "tree_inventory_polygon": "Polygon",
   "tree_inventory_upload_inventory_list": "Upload Inventory List",
-  "tree_inventory_inventory_list": "Inventory List"
+  "tree_inventory_inventory_list": "Inventory List",
+  "tree_inventory_overview_date": "{{date, ll}}"
 }

@@ -24,7 +24,6 @@ import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
-import moment from 'moment';
 import i18next from 'i18next';
 
 const UploadedInventory = ({ navigation }) => {
@@ -106,7 +105,7 @@ const UploadedInventory = ({ navigation }) => {
             title: title,
             subHeading: locateTreeAndType,
             date: i18next.t('label.inventory_overview_date', {
-              date: moment(new Date(Number(item.plantation_date))).format('ll'),
+              date: new Date(Number(item.plantation_date)),
             }),
             imageURL: imageURL,
           };

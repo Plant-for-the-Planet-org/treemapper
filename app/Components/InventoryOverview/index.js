@@ -40,7 +40,6 @@ import { Colors, Typography } from '_styles';
 import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import moment from 'moment';
 import i18next from 'i18next';
 
 const InventoryOverview = ({ navigation }) => {
@@ -366,9 +365,8 @@ const InventoryOverview = ({ navigation }) => {
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
-                // rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: moment(new Date(Number(inventory.plantation_date))).format('ll'),
+                  date: new Date(Number(inventory.plantation_date)),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
