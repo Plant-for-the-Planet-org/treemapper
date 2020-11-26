@@ -129,7 +129,6 @@ const uploadImage = (oneInventory, response, userToken, sessionId) => {
         let headers = {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
-          'x-session-id': sessionId,
         };
 
         await axios({

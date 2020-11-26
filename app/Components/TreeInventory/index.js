@@ -11,7 +11,8 @@ import {
   Platform,
   Modal,
   Text,
-  Switch
+  Switch,
+  Alert, Button
 } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
@@ -174,6 +175,17 @@ const TreeInventory = ({ navigation }) => {
       });
     });
   };
+
+  const createTwoButtonAlert = () =>{
+    Alert.alert(
+      "Alert",
+      "Something went wrong",
+      [
+        { text: "OK"}
+      ]
+    );
+  };
+
   const closeModal = () => {
     setIsLoaderShow(false);
   }
@@ -188,7 +200,7 @@ const TreeInventory = ({ navigation }) => {
         .catch((err) => {
           closeModal();
           console.log(err);
-          alert(`Something went wrong`);
+          createTwoButtonAlert();
         });
       });
   };
