@@ -5,7 +5,6 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
-import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
 
