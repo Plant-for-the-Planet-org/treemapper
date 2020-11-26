@@ -5,6 +5,7 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
 
@@ -54,41 +55,55 @@ const uploadInventory = () => {
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                        },
-                      })
-                        .then((data) => {
-                          let response = data.data;
-                          if (oneInventory.locate_tree == 'off-site') {
-                            statusToComplete({ inventory_id: oneInventory.inventory_id });
-                            if (allPendingInventory.length - 1 == i) {
-                              resolve();
-                            }
-                          } else {
-                            uploadImage(oneInventory, response, userToken).then(() => {
+                      getSessionData().then( async (sessionData) => {
+                        await axios({
+                          method: 'POST',
+                          url: `${protocol}://${url}/treemapper/plantLocations`,
+                          data: body,
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `OAuth ${userToken}`,
+                            'x-session-id': sessionData,
+                          },
+                        })
+                          .then((data) => {
+                            let response = data.data;
+                            if (oneInventory.locate_tree == 'off-site') {
                               statusToComplete({ inventory_id: oneInventory.inventory_id });
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
                               }
-                            });
-                          }
-                        })
-                        .catch((err) => {
-                          console.log('EEORR =', err);
-                          alert('There is something wrong');
-                          reject();
-                        });
+                            } else {
+                              uploadImage(oneInventory, response, userToken, sessionData).then(() => {
+                                statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                if (allPendingInventory.length - 1 == i) {
+                                  resolve();
+                                }
+                              })
+                              .catch((err) => {
+                              console.log('EEORR = Image error', err);
+                              //alert('Upload Image Error');
+                              reject();
+                              });
+                            }
+                          })
+                          .catch((err) => {
+                            console.log('EEORR =', err);
+                            alert('There is something wrong');
+                            reject();
+                          });
+                      });
                     }
                   })
-                  .catch((err) => {});
+                  .catch((err) => {
+                    console.log(err);
+                    reject();
+                  });
               },
-              (err) => alert(err.message),
+              (err) => {
+                alert(`${err.message}`);
+                reject();
+              }
             );
           } catch (err) {
             reject();
@@ -96,11 +111,14 @@ const uploadInventory = () => {
           }
         });
       })
-      .catch((err) => {});
+      .catch((err) => {
+        reject();
+        console.log(err)
+      });
   });
 };
 
-const uploadImage = (oneInventory, response, userToken) => {
+const uploadImage = (oneInventory, response, userToken, sessionId) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -108,13 +126,15 @@ const uploadImage = (oneInventory, response, userToken) => {
     for (let i = 0; i < responseCoords.length; i++) {
       const oneResponseCoords = responseCoords[i];
       let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-      await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
+      await RNFS.readFile(inventoryObject.imageUrl, 'base64')
+      .then(async (base64) => {
         let body = {
           imageFile: `data:image/png;base64,${base64}`,
         };
         let headers = {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
+          'x-session-id': sessionId,
         };
 
         await axios({
@@ -124,11 +144,19 @@ const uploadImage = (oneInventory, response, userToken) => {
           headers: headers,
         })
           .then((res) => {
+            console.log(res);
             resolve();
           })
           .catch((err) => {
+            console.log(err);
             reject();
+            alert(`Can not upload the image: ${err}`);
+            
           });
+      })
+      .catch((err) => {
+        reject();
+        console.log(err);
       });
     }
   });
