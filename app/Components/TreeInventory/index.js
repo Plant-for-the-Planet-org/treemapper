@@ -44,7 +44,7 @@ const TreeInventory = ({ navigation }) => {
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
     });
-    // wifiConnection();
+
     return unsubscribe;
   }, [navigation]);
 
@@ -73,7 +73,7 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const wifiUpload = () => {
-    if (isConnected && connectionType === 'wifi' && pendingInventory.length > 0) {
+    if (isConnected && (connectionType === 'wifi' || connectionType === 'cellular') && pendingInventory.length > 0) {
       onPressUploadNow();
     }
   };
@@ -174,19 +174,23 @@ const TreeInventory = ({ navigation }) => {
       });
     });
   };
-
+  const closeModal = () => {
+    setIsLoaderShow(false);
+  }
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
       setIsLoaderShow(true);
-      uploadInventory()
+        uploadInventory()
         .then((data) => {
           initialState();
-          setIsLoaderShow(false);
+          closeModal();
         })
         .catch((err) => {
-          setIsLoaderShow(false);
+          closeModal();
+          console.log(err);
+          alert(`Something went wrong`);
         });
-    });
+      });
   };
 
   const renderLoaderModal = () => {
@@ -317,8 +321,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       {renderLoaderModal()}
     </View>
   );

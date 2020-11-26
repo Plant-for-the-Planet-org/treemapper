@@ -54,41 +54,51 @@ const uploadInventory = () => {
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                        },
-                      })
-                        .then((data) => {
-                          let response = data.data;
-                          if (oneInventory.locate_tree == 'off-site') {
-                            statusToComplete({ inventory_id: oneInventory.inventory_id });
-                            if (allPendingInventory.length - 1 == i) {
-                              resolve();
-                            }
-                          } else {
-                            uploadImage(oneInventory, response, userToken).then(() => {
+                        await axios({
+                          method: 'POST',
+                          url: `${protocol}://${url}/treemapper/plantLocations`,
+                          data: body,
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `OAuth ${userToken}`,
+                          },
+                        })
+                          .then((data) => {
+                            let response = data.data;
+                            if (oneInventory.locate_tree == 'off-site') {
                               statusToComplete({ inventory_id: oneInventory.inventory_id });
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
                               }
-                            });
-                          }
-                        })
-                        .catch((err) => {
-                          console.log('EEORR =', err);
-                          alert('There is something wrong');
-                          reject();
-                        });
+                            } else {
+                              uploadImage(oneInventory, response, userToken).then(() => {
+                                statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                if (allPendingInventory.length - 1 == i) {
+                                  resolve();
+                                }
+                              })
+                              .catch((err) => {
+                              console.log('EEORR = Image error', err);
+                              reject();
+                              });
+                            }
+                          })
+                          .catch((err) => {
+                            console.log('EEORR =', err);
+                            //alert('There is something wrong');
+                            reject();
+                          });
                     }
                   })
-                  .catch((err) => {});
+                  .catch((err) => {
+                    console.log(err);
+                    reject();
+                  });
               },
-              (err) => alert(err.message),
+              (err) => {
+                //alert(`${err}`);
+                reject();
+              }
             );
           } catch (err) {
             reject();
@@ -96,7 +106,10 @@ const uploadInventory = () => {
           }
         });
       })
-      .catch((err) => {});
+      .catch((err) => {
+        reject();
+        console.log(err)
+      });
   });
 };
 
@@ -108,7 +121,8 @@ const uploadImage = (oneInventory, response, userToken) => {
     for (let i = 0; i < responseCoords.length; i++) {
       const oneResponseCoords = responseCoords[i];
       let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-      await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
+      await RNFS.readFile(inventoryObject.imageUrl, 'base64')
+      .then(async (base64) => {
         let body = {
           imageFile: `data:image/png;base64,${base64}`,
         };
@@ -124,11 +138,17 @@ const uploadImage = (oneInventory, response, userToken) => {
           headers: headers,
         })
           .then((res) => {
+            console.log(res);
             resolve();
           })
           .catch((err) => {
+            console.log(err);
             reject();
           });
+      })
+      .catch((err) => {
+        reject();
+        console.log(err);
       });
     }
   });

@@ -27,35 +27,37 @@ export const getUserInformationFromServer = (navigation) => {
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = User.accessToken;
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/treemapper/accountInfo`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                },
-                'modified',
-              );
-            });
-            resolve(true);
+        console.log(`Token: ${userToken}`);
+          axios({
+            method: 'GET',
+            url: `${protocol}://${url}/app/profile`,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+            },
           })
-          .catch((err) => {
-            if (err.response.status === 303) {
-              navigation.navigate('SignUp');
-            }
-          });
+            .then((data) => {
+              realm.write(() => {
+                const { email, firstname, lastname } = data.data;
+                realm.create(
+                  'User',
+                  {
+                    id: 'id0001',
+                    email,
+                    firstname,
+                    lastname,
+                  },
+                  'modified',
+                );
+              });
+              resolve(data.data);
+            })
+            .catch((err) => {
+              if (err.response.status === 303) {
+                navigation.navigate('SignUp');
+              }
+              reject(err);
+            });
       },
     );
     const { protocol, url } = APIConfig;
