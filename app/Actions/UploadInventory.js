@@ -5,6 +5,7 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
 
@@ -113,7 +114,7 @@ const uploadInventory = () => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken) => {
+const uploadImage = (oneInventory, response, userToken, sessionId) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -129,6 +130,7 @@ const uploadImage = (oneInventory, response, userToken) => {
         let headers = {
           'Content-Type': 'application/json',
           Authorization: `OAuth ${userToken}`,
+          'x-session-id': sessionId,
         };
 
         await axios({
@@ -144,6 +146,8 @@ const uploadImage = (oneInventory, response, userToken) => {
           .catch((err) => {
             console.log(err);
             reject();
+            alert(`Can not upload the image: ${err}`);
+            
           });
       })
       .catch((err) => {
