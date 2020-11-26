@@ -101,7 +101,7 @@ const uploadInventory = () => {
                   });
               },
               (err) => {
-                alert(`${err}`);
+                //alert(`${err}`);
                 reject();
               }
             );
