@@ -145,7 +145,7 @@ const uploadImage = (oneInventory, response, userToken, sessionId) => {
           .catch((err) => {
             console.log(err);
             reject();
-            alert(`Can not upload the image: ${err}`);
+            //alert(`Can not upload the image`);
             
           });
       })
