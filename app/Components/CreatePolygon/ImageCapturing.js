@@ -13,7 +13,8 @@ import { store } from '../../Actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
-import { APLHABETS } from '../../Utils/index';
+// import { APLHABETS } from '../../Utils/index';
+import {toLetters} from '../../Utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 
 const infographicText = [
@@ -43,6 +44,7 @@ const ImageCapturing = ({
   const navigation = useNavigation();
   const { state } = useContext(store);
   const [imagePath, setImagePath] = useState('');
+  const [APLHABETS, setAPLHABETS] = useState([]);
 
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
@@ -54,7 +56,17 @@ const ImageCapturing = ({
         }
       },
     );
+    generateMarkers();
   }, []);
+
+  const generateMarkers = () => {
+    let array = [];
+    for (var x = 1, y; x <= 130; x++) {
+      y = toLetters(x);
+      array.push(y);
+    }
+    setAPLHABETS(array);
+  };
 
   const onPressCamera = async () => {
     if (imagePath) {
