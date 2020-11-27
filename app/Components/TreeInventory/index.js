@@ -11,6 +11,8 @@ import {
   Platform,
   Modal,
   Text,
+  Switch,
+  Alert
 } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
@@ -22,18 +24,22 @@ import {
   auth0Login,
 } from '../../Actions';
 import { store } from '../../Actions/store';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
+import NetInfo from '@react-native-community/netinfo';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(store);
 
   const [allInventory, setAllInventory] = useState(null);
   const [isLoaderShow, setIsLoaderShow] = useState(false);
+  const [mobileData, setMobileData] = useState(false);
+  const [connectionType, setConnectionType] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -43,6 +49,14 @@ const TreeInventory = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    wifiConnection();
+    wifiUpload();
+    return () => {
+      wifiConnection();
+    };
+  }, [connectionType]);
+
   const onPressInventory = (item) => {
     setTimeout(() => {
       dispatch(LocalInventoryActions.setInventoryId(item.inventory_id));
@@ -50,6 +64,20 @@ const TreeInventory = ({ navigation }) => {
     }, 0);
   };
 
+  const toggleSwitchPublish = () => setMobileData(previousState => !previousState);
+
+  const wifiConnection = () => {
+    NetInfo.addEventListener(state => {
+      setConnectionType(state.type);
+      setIsConnected(state.isInternetReachable);
+    });
+  };
+
+  const wifiUpload = () => {
+    if (isConnected && (connectionType === 'wifi' || connectionType === 'cellular') && pendingInventory.length > 0) {
+      onPressUploadNow();
+    }
+  };
   const initialState = () => {
     getAllInventory().then((allInventory) => {
       setAllInventory(Object.values(allInventory));
@@ -148,18 +176,34 @@ const TreeInventory = ({ navigation }) => {
     });
   };
 
+  const createTwoButtonAlert = () =>{
+    Alert.alert(
+      "Alert",
+      "Something went wrong",
+      [
+        { text: "OK"}
+      ]
+    );
+  };
+
+  const closeModal = () => {
+    setIsLoaderShow(false);
+  }
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
       setIsLoaderShow(true);
-      uploadInventory()
+        uploadInventory()
         .then((data) => {
           initialState();
-          setIsLoaderShow(false);
+          closeModal();
         })
         .catch((err) => {
-          setIsLoaderShow(false);
+          closeModal();
+          console.log(err);
+          createTwoButtonAlert();
+          //alert(`Something went wrong`);
         });
-    });
+      });
   };
 
   const renderLoaderModal = () => {
@@ -236,6 +280,16 @@ const TreeInventory = ({ navigation }) => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
         />
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchContainerText}>Enable Upload on moblie data</Text>
+          <Switch 
+            trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
+            thumbColor={mobileData ? Colors.PRIMARY : Colors.WHITE}
+            value={mobileData}
+            onValueChange={toggleSwitchPublish}
+            ios_backgroundColor={mobileData ? Colors.PRIMARY : Colors.GRAY_LIGHT}
+          />
+        </View>
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
         <View style={styles.parimaryBtnCont}>
           {uploadedInventory.length > 0 && (
@@ -321,4 +375,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginVertical: 20,
   },
+  switchContainerText: {
+    flex: 1,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_16,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 25,
+    paddingVertical: 20
+  }
 });
+

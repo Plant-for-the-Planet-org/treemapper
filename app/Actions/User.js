@@ -28,10 +28,11 @@ export const getUserInformationFromServer = (navigation) => {
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = User.accessToken;
+        console.log(`Token: ${userToken}`);
         getSessionData().then((sessionData) => {
           axios({
             method: 'GET',
-            url: `${protocol}://${url}/treemapper/accountInfo`,
+            url: `${protocol}://${url}/app/profile`,
             headers: {
               'Content-Type': 'application/json',
               Authorization: `OAuth ${userToken}`,

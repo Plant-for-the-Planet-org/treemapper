@@ -79,20 +79,31 @@ const uploadInventory = () => {
                                 if (allPendingInventory.length - 1 == i) {
                                   resolve();
                                 }
+                              })
+                              .catch((err) => {
+                              console.log('EEORR = Image error', err);
+                              //alert('Upload Image Error');
+                              reject();
                               });
                             }
                           })
                           .catch((err) => {
                             console.log('EEORR =', err);
-                            alert('There is something wrong');
+                            //alert('There is something wrong');
                             reject();
                           });
                       });
                     }
                   })
-                  .catch((err) => {});
+                  .catch((err) => {
+                    console.log(err);
+                    reject();
+                  });
               },
-              (err) => alert(err.message),
+              (err) => {
+                //alert(`${err.message}`);
+                reject();
+              }
             );
           } catch (err) {
             reject();
@@ -100,7 +111,10 @@ const uploadInventory = () => {
           }
         });
       })
-      .catch((err) => {});
+      .catch((err) => {
+        reject();
+        console.log(err)
+      });
   });
 };
 
@@ -112,7 +126,8 @@ const uploadImage = (oneInventory, response, userToken, sessionId) => {
     for (let i = 0; i < responseCoords.length; i++) {
       const oneResponseCoords = responseCoords[i];
       let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-      await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
+      await RNFS.readFile(inventoryObject.imageUrl, 'base64')
+      .then(async (base64) => {
         let body = {
           imageFile: `data:image/png;base64,${base64}`,
         };
@@ -129,11 +144,19 @@ const uploadImage = (oneInventory, response, userToken, sessionId) => {
           headers: headers,
         })
           .then((res) => {
+            console.log(res);
             resolve();
           })
           .catch((err) => {
+            console.log(err);
             reject();
+            //alert(`Can not upload the image: ${err}`);
+            
           });
+      })
+      .catch((err) => {
+        reject();
+        console.log(err);
       });
     }
   });
