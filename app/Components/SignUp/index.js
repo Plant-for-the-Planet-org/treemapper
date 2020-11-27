@@ -329,7 +329,6 @@ const SignUp = ({navigation}) => {
                   onSubmitEditing={accountType === 'company' || accountType === 'education' || accountType === 'tpo' ? () => textInputNameOfOrg.current.focus() : 
                     null
                   }
-                // placeholder="Sanchez"
                 />
               </View>
             </View>
