@@ -242,13 +242,7 @@ class MapMarking extends React.Component {
           locateTree: locateTree,
           currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
         }).then(() => {
-          if (locateTree == 'off-site') {
-            // navigation.navigate('SingleTreeOverview');
-            this.setState({isAlrightyModalShow: true});
-          } else {
-            this.setState({isAlrightyModalShow: true});
-            // updateScreenState('ImageCapturing');
-          }
+          this.setState({isAlrightyModalShow: true});
         });
       },
       (err) => alert(err.message),
