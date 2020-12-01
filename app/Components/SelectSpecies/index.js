@@ -182,7 +182,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
             <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 200,height: 100, borderRadius: 10}} />
           </TouchableOpacity>
         ) : 
-          <TouchableOpacity onPress={onPressImage(index)}>
+          <TouchableOpacity onPress={() => onPressImage(index)}>
             <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 50,height: 100}} />
           </TouchableOpacity>}
         <View style={{ flex: 1 }}>

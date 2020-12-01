@@ -1,10 +1,8 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
 import {
-  filterSpecies,
   getAllPendingInventory,
   statusToComplete,
-  updateStatusForUserSpecies,
 } from './';
 import {
   Coordinates,
