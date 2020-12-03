@@ -193,9 +193,9 @@ const TreeInventory = ({ navigation }) => {
     checkIsUserLogin().then(() => {
       setIsLoaderShow(true);
         uploadInventory()
-        .then((data) => {
-          initialState();
+        .then(() => {
           closeModal();
+          initialState();
         })
         .catch((err) => {
           closeModal();
