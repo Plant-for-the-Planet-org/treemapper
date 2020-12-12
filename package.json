@@ -26,7 +26,7 @@
     "i18next": "^19.8.3",
     "jail-monkey": "^2.3.2",
     "jwt-decode": "^2.2.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.1",
     "react": "16.13.1",
     "react-native": "0.63.3",
     "react-native-auth0": "^2.5.0",
