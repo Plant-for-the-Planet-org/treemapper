@@ -21,7 +21,7 @@
     "@react-navigation/drawer": "^5.9.2",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bugsnag-react-native": "^2.23.10",
     "i18next": "^19.8.3",
     "jail-monkey": "^2.3.2",
