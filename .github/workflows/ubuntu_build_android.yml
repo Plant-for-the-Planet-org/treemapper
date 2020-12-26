@@ -93,7 +93,7 @@ jobs:
     - name: Prepare Android APK for upload
       run: |
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
-        echo "::set-env name=upload_file::$upload_file"
+        echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
         mv android/app/build/outputs/apk/release/app-release.apk uploads/$upload_file
 
