@@ -24,8 +24,8 @@ const SignUp = ({navigation}) => {
   const [firstname, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [nameOfOrg, setNameOfOrg] = useState('');
-  const [mayPublish, setMayPublish] = useState(true);
-  const [mayContact, setMayContact] = useState(false);
+  const [isPrivate, setisPrivate] = useState(true);
+  const [getNews, setgetNews] = useState(false);
   const [authDetail, setAuthDetails] = useState({});
   const [oAuthAccessToken, setAuthtAccessToken] = useState('');
   const [firstNameError, setFirstNameError] = useState(false);
@@ -47,8 +47,8 @@ const SignUp = ({navigation}) => {
   const textInputAddress = useRef(null);
   const textInputCity = useRef(null);
 
-  const toggleSwitchPublish = () => setMayPublish(previousState => !previousState);
-  const toggleSwitchContact = () => setMayContact(previousState => !previousState);
+  const toggleSwitchPublish = () => setisPrivate(previousState => !previousState);
+  const toggleSwitchContact = () => setgetNews(previousState => !previousState);
   const lang = RNLocalize.getLocales()[0];
   const SelectType = (type) => {
     let name;
@@ -154,8 +154,8 @@ const SignUp = ({navigation}) => {
         userData = {
           firstname,
           lastname,
-          mayContact,
-          mayPublish,
+          getNews,
+          isPrivate,
           country: countryName,
           locale,
           city,
@@ -179,8 +179,8 @@ const SignUp = ({navigation}) => {
         userData = {
           firstname,
           lastname,
-          mayContact,
-          mayPublish,
+          getNews,
+          isPrivate,
           country: countryName,
           locale,
           oAuthAccessToken,
@@ -195,8 +195,8 @@ const SignUp = ({navigation}) => {
         userData = {
           firstname,
           lastname,
-          mayContact,
-          mayPublish,
+          getNews,
+          isPrivate,
           country: countryName,
           locale,
           oAuthAccessToken,
@@ -433,26 +433,26 @@ const SignUp = ({navigation}) => {
               </View>
             ) : null}
             <View style={styles.switchContainer}>
-              <Text style={styles.switchContainerText}>{i18next.t('label.mayPublish')}</Text>
+              <Text style={styles.switchContainerText}>{i18next.t('label.isPrivate')}</Text>
               <Switch
                 trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
-                thumbColor={mayPublish ? Colors.PRIMARY : Colors.WHITE}
-                value={mayPublish}
+                thumbColor={isPrivate ? Colors.PRIMARY : Colors.WHITE}
+                value={isPrivate}
                 onValueChange={toggleSwitchPublish}
-                ios_backgroundColor={mayPublish ? Colors.PRIMARY : Colors.GRAY_LIGHT}
+                ios_backgroundColor={isPrivate ? Colors.PRIMARY : Colors.GRAY_LIGHT}
               />
             </View>
             <View style={styles.switchContainer}>
-              <Text style={styles.switchContainerText}>{i18next.t('label.mayContact')}</Text>
+              <Text style={styles.switchContainerText}>{i18next.t('label.getNews')}</Text>
               <Switch
                 trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
-                thumbColor={mayContact ? Colors.PRIMARY : Colors.WHITE}
-                value={mayContact}
+                thumbColor={ getNews? Colors.PRIMARY : Colors.WHITE}
+                value={getNews}
                 onValueChange={toggleSwitchContact}
-                ios_backgroundColor={mayContact ? Colors.PRIMARY : Colors.GRAY_LIGHT}     
+                ios_backgroundColor={getNews ? Colors.PRIMARY : Colors.GRAY_LIGHT}     
               />
             </View>
-            <View style={styles.mayContactText}>
+            <View style={styles.getNewsText}>
               <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} disabled={completeCheck ? false : true}/>
             </View>
           </ScrollView>
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginVertical: 20
   }),
-  mayContactText: {
+  getNewsText: {
     // paddingTop: 60,
     marginTop: 130
   },
