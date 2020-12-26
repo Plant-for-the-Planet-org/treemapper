@@ -5,7 +5,7 @@ export const SignupService = (payload) => {
   // try {
   return new Promise((resolve, reject) => {
     const {protocol, url} = APIConfig;
-    axios.post(`${protocol}://${url}/treemapper/profiles`, payload).then((res => {
+    axios.post(`${protocol}://${url}/app/profile`, payload).then((res => {
       const {status, data} = res;
       if (status === 200) {
         resolve(data);

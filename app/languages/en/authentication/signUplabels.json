@@ -1,8 +1,8 @@
 {
   "signup": "Complete Sign Up",
   "email": "EMAIL",
-  "mayPublish": "I agree to have my name published on the Plant-for-the-Planet Website and App.",
-  "mayContact": "I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.",
+  "isPrivate": "I agree to have my name published on the Plant-for-the-Planet Website and App.",
+  "getNews": "I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.",
   "firstname": "FIRST NAME",
   "lastname": "LAST NAME",
   "tpo_title": "Tree Planting Organisation",
