@@ -1,5 +1,5 @@
 {
-  "select_species_local_name": "{{item.localName}}",
+  "select_species_local_name": "​{{item.localName}}​",
   "select_species_name_of_tree": "{{item.nameOfTree}}",
   "select_species_tree_count": "{{count}} Trees",
   "select_species_tree_count_modal_header": "How many",

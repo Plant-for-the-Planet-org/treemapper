@@ -1,1 +1,17 @@
-{}
+{
+  "tree_inventory_overview_polygon_left_text": "Type d'emplacement: {{locationType}}",
+  "inventory_overview_select_species": "Sélectionnez au moins une espèce",
+  "inventory_overview_view_loc_modal_header": "Emplacement {{locationTitle}}",
+  "inventory_overview_loc": "{{locationTitle}}",
+  "inventory_overview_export_json_error": "impossible d'enregistrer le fichier",
+  "inventory_overview_add_species": "Espèces plantées",
+  "inventory_overview_header_text": "Compte rendu",
+  "inventory_overview_sub_header": "Les arbres seront ajoutés à votre inventaire pour synchroniser lorsque vous aurez accès à Internet.",
+  "inventory_overview_left_text": "Date de plantation",
+  "inventory_overview_left_text_planted_species": "Espèce plantée",
+  "inventory_overview_loc_left_text": "{{item.nameOfTree}}",
+  "inventory_overview_loc_right_text": "{{item.treeCount}} arbres",
+  "inventory_overview_loc_export_json": "Exporter GeoJson",
+  "inventory_overview_loc_next_tree": "Arbre suivant",
+  "inventory_overview_loc_save": "Sauver"
+}
