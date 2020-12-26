@@ -140,7 +140,7 @@ jobs:
     - name: Prepare iOS IPA for upload
       run: |
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
-        echo "::set-env name=upload_file::$upload_file"
+        echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
         mv 'ios/DerivedData/ipa/treemapper.ipa' uploads/$upload_file
 

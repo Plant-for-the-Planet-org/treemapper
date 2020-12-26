@@ -31,7 +31,7 @@ export const getUserInformationFromServer = (navigation) => {
         getSessionData().then((sessionData) => {
           axios({
             method: 'GET',
-            url: `${protocol}://${url}/treemapper/accountInfo`,
+            url: `${protocol}://${url}/app/profile`,
             headers: {
               'Content-Type': 'application/json',
               Authorization: `OAuth ${userToken}`,
