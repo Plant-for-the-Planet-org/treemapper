@@ -9,7 +9,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import i18next from 'i18next';
 import SelectSpecies  from '../SelectSpecies';
-// import SingleTreeOverview from './TreeOverview';
+// import SingleTreeOverview from './SingleTreeOverview';
 
 const ImageCapturing = ({ updateScreenState }) => {
   const camera = useRef();
@@ -73,22 +73,6 @@ const ImageCapturing = ({ updateScreenState }) => {
     });
   };
 
-  const renderSpeciesModal = () => {
-    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-    if(inventory) {
-      return (
-        <SelectSpecies
-          species={inventory.species}
-          visible={isShowSpeciesListModal}
-          closeSelectSpeciesModal={closeSelectSpeciesModal}
-          treeType={inventory.locate_tree}
-          onPressSaveAndContinue={onPressSaveAndContinue}
-        />
-      );
-    } else {
-      return;
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>

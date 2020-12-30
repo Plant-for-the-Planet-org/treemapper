@@ -14,6 +14,7 @@ import Camera from '../Common/Camera';
 import { store } from '../../Actions/store';
 import { createSpecies } from '../../Actions/UploadInventory';
 import { SpecieIdFromServer } from '../../Actions/Action';
+import {placeholder_image} from '../../assets';
 
 export default function index({navigation}) {
   const [imagePath, setImagePath] = useState(null);
@@ -140,16 +141,19 @@ export default function index({navigation}) {
             color={Colors.TEXT_COLOR}
             onPress={() =>addSpecies(item)}
           />}
-        {/* <TouchableOpacity onPress={() => onPressImage()} style={{flex:1}}> */}
-        {/* <Image source={add_image} 
-          resizeMode={'contain'} 
-          style={{ flex: 1, width: 50,height: 100, borderRadius: 10}}
-        /> */}
-        {/* </TouchableOpacity> */}
+        <TouchableOpacity onPress={() => onPressImage()} style={{flex:1}}>
+          <Image 
+            source={
+              placeholder_image
+            } 
+            resizeMode={'contain'} 
+            style={{ flex: 1}}
+          />
+        </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 20 }}>
-          {/* <Text numberOfLines={2} style={styles.speciesLocalName}>
+          <Text numberOfLines={2} style={styles.speciesLocalName}>
             {i18next.t('label.select_species_local_name', { item })}
-          </Text> */}
+          </Text>
           <Text numberOfLines={2} style={styles.speciesName}>
             {i18next.t('label.select_species_name_of_tree', { item })}
           </Text>

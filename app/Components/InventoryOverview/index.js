@@ -290,7 +290,7 @@ const InventoryOverview = ({ navigation }) => {
     return (
       status == 'incomplete' && (
         <TouchableOpacity
-          onPress={() => setIsShowSpeciesListModal(true)}
+          onPress={() => navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory})}
           style={{
             flexDirection: 'row',
             justifyContent: 'space-around',
@@ -326,21 +326,6 @@ const InventoryOverview = ({ navigation }) => {
     });
   };
 
-  const renderSelectSpeciesModal = () => {
-    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-    if (inventory) {
-      return (
-        <SelectSpecies
-          species={inventory.species}
-          visible={isShowSpeciesListModal}
-          closeSelectSpeciesModal={closeSelectSpeciesModal}
-          onPressSaveAndContinue={onPressSaveAndContinue}
-        />
-      );
-    } else {
-      return;
-    }
-  };
 
   let locationType;
   let isSingleCoordinate, locateType;
@@ -377,7 +362,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={status == 'incomplete' ? i18next.t('label.edit') : ''}
-                onPressRightText={() => setIsShowSpeciesListModal(true)}
+                onPressRightText={() => navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory})}
               />
               <FlatList
                 data={inventory.species}
@@ -417,7 +402,6 @@ const InventoryOverview = ({ navigation }) => {
         ) : null}
       </View>
       {renderDatePicker()}
-      {renderSelectSpeciesModal()}
     </SafeAreaView>
   );
 };

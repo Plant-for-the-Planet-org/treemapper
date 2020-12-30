@@ -444,13 +444,13 @@ const SingleTreeOverview = ({ navigation, route }) => {
             </View>
           )}
         </ScrollView>
-        {locateTree === 'on-site' ? (
+        {/* {locateTree === 'on-site' ? (
           <PrimaryButton
             onPress={onPressNextTree}
             btnText={i18next.t('label.tree_review_next_btn')}
 
           />
-        ) :
+        ) : */}
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressNextTree}
@@ -463,7 +463,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
               btnText={i18next.t('label.tree_review_Save')}
               halfWidth
             />
-          </View>}
+          </View>
+          {/* } */}
       </View>
     </SafeAreaView>
   );

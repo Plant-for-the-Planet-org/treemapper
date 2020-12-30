@@ -10,7 +10,7 @@ import MainScreen from './MainScreen';
 import SavedAreas from './SavedAreas';
 import DownloadMap from './DownloadMap';
 import RegisterSingleTree from './RegisterSingleTree';
-import SingleTreeOverview from './RegisterSingleTree/TreeOverview';
+import SingleTreeOverview from './RegisterSingleTree/SingleTreeOverview';
 import SelectCoordinates from './SelectCoordinates';
 import ManageUsers from './ManageUsers';
 import SelectSpecies from './SelectSpecies';
