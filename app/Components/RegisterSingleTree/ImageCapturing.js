@@ -23,9 +23,8 @@ const ImageCapturing = ({ updateScreenState }) => {
 
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      // inventory.species = Object.values(inventory.species);
-      // setInventory(inventory);
-      // console.log(inventory, 'inventory');
+      inventory.species = Object.values(inventory.species);
+      setInventory(inventory);
       if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
         setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
       }
