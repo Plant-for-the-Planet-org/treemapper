@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TouchableOpacity, Image, TextInput,  KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TouchableOpacity, TextInput,  KeyboardAvoidingView, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { Header } from '../Common';
-import { SvgXml } from 'react-native-svg';
+//import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+//import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getInventory, isLogin,auth0Login,} from '../../Actions';
-import { add_image } from '../../assets';
-import { AllSpecies, SearchSpecies } from '../../Services/Species';
-import Camera from '../Common/Camera';
+//import { add_image } from '../../assets';
+import { SearchSpecies } from '../../Services/Species';
+//import Camera from '../Common/Camera';
 import { store } from '../../Actions/store';
 import { createSpecies } from '../../Actions/UploadInventory';
 import { SpecieIdFromServer } from '../../Actions/Action';
@@ -20,15 +20,15 @@ export default function index({navigation}) {
   const [imagePath, setImagePath] = useState(null);
   const [search, setSearch] = useState(null);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
-  const [speciesList, setSpeciesList] = useState(null);
+  //const [speciesList, setSpeciesList] = useState(null);
   const [searchList, setSearchList] = useState(null);
-  const [isCamera, setIsCamera] = useState(false);
-  const [specieId, setSpecieId] = useState(null);
-  const camera = useRef();
-  const [openImageModal, setOpenImageModal] = useState(false);
-  const [isAddSpecies, setIsAddSpecies] = useState(null);
+  //const [isCamera, setIsCamera] = useState(false);
+  //const [specieId, setSpecieId] = useState(null);
+  //const camera = useRef();
+  //const [openImageModal, setOpenImageModal] = useState(false);
+  //const [isAddSpecies, setIsAddSpecies] = useState(null);
   const [inventory, setInventory] = useState(null);
-  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  //const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   const { state, dispatch } = useContext(store);
 
   useEffect(() => {
@@ -61,21 +61,17 @@ export default function index({navigation}) {
 
   const checkIsUserLogin = () => {
     return new Promise((resolve, reject) => {
-      isLogin().then((isUserLogin) => {
-        if (!isUserLogin) {
-          auth0Login()
-            .then((isUserLogin) => {
-              isUserLogin ? resolve() : reject();
-            })
-            .catch((err) => {
-              alert(err.error_description);
-            });
-        } else {
-          resolve();
-        }
-      });
-    });
+      isLogin()
+      .then(() => {
+        resolve();
+      })
+      .catch(() => {
+        auth0Login();
+      })
+    }
+    );
   };
+
   const addSelectedSpecies = () => {
     checkIsUserLogin().then(() => {
       if (selectedSpecies.length === 0) {
@@ -105,7 +101,7 @@ export default function index({navigation}) {
 
   const renderSpeciesCard = ({item}) => {
     let isCheck;
-    let image;
+    //let image;
     if (selectedSpecies !== null) {
       let selectItem =[...selectedSpecies];
       for(let specie of selectItem ) {

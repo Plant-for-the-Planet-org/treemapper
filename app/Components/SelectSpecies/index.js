@@ -41,7 +41,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   const [specieIndex, setSpecieIndex] = useState(null);
   const [name, setName] = useState('');
   const navigation = useNavigation();
-  const [showSpecies, setShowSpecies] = useState(false);
+  // const [showSpecies, setShowSpecies] = useState(false);
   const [treeType, setTreeType] = useState(null);
   const [inventory, setInventory] = useState(null);
   const { state, dispatch } = useContext(store);
@@ -121,18 +121,18 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
     setIsShowTreeDiameterModal(true);
   };
 
-  const handleInput = (index, text) => {
-    console.log(text, index);
-    let species = [...speciesList];
-    species[index] = {...species[index], name: text};
-    console.log(species[index], 'handle');
-    setSpeciesList(species);
-  };
+  // const handleInput = (index, text) => {
+  //   console.log(text, index);
+  //   let specieslist = [...speciesList];
+  //   specieslist[index] = {...specieslist[index], name: text};
+  //   console.log(specieslist[index], 'handle');
+  //   setSpeciesList(specieslist);
+  // };
   const handleCamera = (data) => {
     setIsCamera(!isCamera);
-    let species = [...speciesList];
-    species[imageIndex] = {...species[imageIndex], image: data};
-    UpdateSpeciesImage(species[imageIndex].image, species[imageIndex].id).then(() => {
+    let specieslist = [...speciesList];
+    specieslist[imageIndex] = {...specieslist[imageIndex], image: data};
+    UpdateSpeciesImage(specieslist[imageIndex].image, specieslist[imageIndex].id).then(() => {
       getAllUserSpecies();
     }).catch(() => {
 
@@ -444,10 +444,10 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const onPressDiameterBtn = () => {
-    let species = [...speciesList];
-    for(let specie in species){
-      if (species[specie].id=== singleTree.id) {
-        let selected = {aliases: species[specie].aliases, diameter: diameter};
+    let speciesDiameterList = [...speciesList];
+    for(let specie in speciesDiameterList){
+      if (speciesDiameterList[specie].id=== singleTree.id) {
+        let selected = {aliases: speciesDiameterList[specie].aliases, diameter: diameter};
         onPressSaveAndContinue(selected);
         setIsShowTreeDiameterModal(false);
       }
@@ -455,9 +455,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const onPressAddNameBtn = () => {
-    let species = [...speciesList];
-    species[specieIndex] = {...species[specieIndex], aliases: name};
-    UpdateSpecies(species[specieIndex].aliases, species[specieIndex].id).then(() => {
+    let speciesNameList = [...speciesList];
+    speciesNameList[specieIndex] = {...speciesNameList[specieIndex], aliases: name};
+    UpdateSpecies(speciesNameList[specieIndex].aliases, speciesNameList[specieIndex].id).then(() => {
       setIsShowAddNameModal(false);
       // setSpeciesList(species);
       getAllUserSpecies();

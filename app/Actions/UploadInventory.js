@@ -158,8 +158,8 @@ const createSpecies = (image, scientificSpecies, aliases) => {
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
     }).then((realm) => {
       realm.write(async () => {
-        const User = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = User.accessToken;
+        const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = createSpeciesUser.accessToken;
         console.log(userToken, 'token');
         await RNFS.readFile(image, 'base64').then(async (base64) => {
           let body = {
@@ -200,8 +200,8 @@ const UpdateSpecies = (aliases, speciesId) => {
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
     }).then((realm) => {
       realm.write(async () => {
-        const User = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = User.accessToken;
+        const UpdateSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = UpdateSpeciesUser.accessToken;
         console.log(userToken, speciesId);
         // await RNFS.readFile(image, 'base64').then(async (base64) => {
         let body = {
@@ -218,8 +218,8 @@ const UpdateSpecies = (aliases, speciesId) => {
           },
         })
           .then((res) => {
-            const { status, data } = res;
-            console.log(res, 'data');
+            const { status } = res;
+            //console.log(res, 'data');
             if (status === 200) {
               console.log(res, 'res');
               // updateStatusForUserSpecies({ id: speciesId });
@@ -241,8 +241,8 @@ const UpdateSpeciesImage = (image, speciesId) => {
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
     }).then((realm) => {
       realm.write(async () => {
-        const User = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = User.accessToken;
+        const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = UpdateSpeciesImageUser.accessToken;
         await RNFS.readFile(image, 'base64').then(async (base64) => {
           let body = {
             imageFile: `data:image/jpeg;base64,${base64}`,
@@ -258,7 +258,7 @@ const UpdateSpeciesImage = (image, speciesId) => {
           })
             .then((res) => {
               const { status, data } = res;
-              console.log(res, 'data');
+              console.log(res, data);
               if (status === 200) {
                 console.log(res, 'res');
                 // updateStatusForUserSpecies({ id: speciesId });
@@ -281,8 +281,8 @@ const SpeciesListData = () => {
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
     }).then((realm) => {
       realm.write(async () => {
-        const User = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = User.accessToken;
+        const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = SpeciesListDataUser.accessToken;
         console.log(userToken, 'list');
         axios({
           method: 'GET',

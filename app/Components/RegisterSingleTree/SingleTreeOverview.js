@@ -52,7 +52,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [specieDiameter, setSpecieDiameter] = useState('10');
   const [locateTree, setLocateTree] = useState(null);
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
-  const [direction, setDirection] = useState(null);
+  //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
     let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -360,22 +360,22 @@ const SingleTreeOverview = ({ navigation, route }) => {
     // }
   };
 
-  const renderSpeciesModal = () => {
-    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-    if(inventory) {
-      return (
-        <SelectSpecies
-          species={inventory.species}
-          visible={isShowSpeciesListModal}
-          closeSelectSpeciesModal={closeSelectSpeciesModal}
-          treeType={inventory.locate_tree}
-          onPressSaveAndContinue={onPressSaveAndContinue}
-        />
-      );
-    } else {
-      return;
-    }
-  };
+  // const renderSpeciesModal = () => {
+  //   const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
+  //   if(inventory) {
+  //     return (
+  //       <SelectSpecies
+  //         species={inventory.species}
+  //         visible={isShowSpeciesListModal}
+  //         closeSelectSpeciesModal={closeSelectSpeciesModal}
+  //         treeType={inventory.locate_tree}
+  //         onPressSaveAndContinue={onPressSaveAndContinue}
+  //       />
+  //     );
+  //   } else {
+  //     return;
+  //   }
+  // };
 
   const onPressSaveAndContinue = (data) => {
     UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {

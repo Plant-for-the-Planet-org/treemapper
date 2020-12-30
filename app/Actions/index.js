@@ -73,7 +73,7 @@ export const isLogin = () => {
           // console.log(User, 'login');
           resolve(true);
         } else {
-          resolve(false);
+          reject();
         }
       },
     );

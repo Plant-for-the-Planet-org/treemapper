@@ -231,7 +231,7 @@ class MapMarking extends React.Component {
   };
 
   onPressContinue = () => {
-    const { inventoryID, updateScreenState, navigation } = this.props;
+    const { inventoryID } = this.props;
     const { markedCoords, locateTree } = this.state;
     Geolocation.getCurrentPosition(
       (position) => {
