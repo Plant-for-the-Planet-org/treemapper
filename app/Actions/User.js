@@ -9,7 +9,7 @@ import getSessionData from '../Utils/sessionId';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] }).then(
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         console.log(User);

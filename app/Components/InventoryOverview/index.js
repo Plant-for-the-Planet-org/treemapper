@@ -37,11 +37,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import { Colors, Typography } from '_styles';
-import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import moment from 'moment';
 import i18next from 'i18next';
+import SelectSpecies from '../SelectSpecies/index';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -319,13 +319,30 @@ const InventoryOverview = ({ navigation }) => {
     status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null;
   };
 
-  const onPressSaveAndContinue = (SelectSpeciesList) => {
+  const onPressSaveAndContinueMultiple = (selectedspeciesList) => {
     //  Add it to local Db
-    addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
+    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedspeciesList }).then(() => {
       initiatState();
     });
   };
 
+  const renderSelectSpeciesModal = () => {
+    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
+    if (inventory) {
+      console.log(inventory);
+      return (
+        <SelectSpecies
+          speciess={inventory.species}
+          invent ={inventory}
+          visible={isShowSpeciesListModal}
+          closeSelectSpeciesModal={closeSelectSpeciesModal}
+          onPressSaveAndContinueMultiple={onPressSaveAndContinueMultiple}
+        />
+      );
+    } else {
+      return;
+    }
+  };
 
   let locationType;
   let isSingleCoordinate, locateType;
@@ -350,9 +367,8 @@ const InventoryOverview = ({ navigation }) => {
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
-                // rightText={moment(new Date(Number(inventory.plantation_date))).format('ll')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: moment(new Date(Number(inventory.plantation_date))),
+                  date: moment(new Date(Number(inventory.plantation_date))).format('ll'),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
@@ -362,7 +378,9 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={status == 'incomplete' ? i18next.t('label.edit') : ''}
-                onPressRightText={() => navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory})}
+                onPressRightText={
+                  () => setIsShowSpeciesListModal(true)
+                }
               />
               <FlatList
                 data={inventory.species}
@@ -402,6 +420,7 @@ const InventoryOverview = ({ navigation }) => {
         ) : null}
       </View>
       {renderDatePicker()}
+      {renderSelectSpeciesModal()}
     </SafeAreaView>
   );
 };

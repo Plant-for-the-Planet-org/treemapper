@@ -29,7 +29,7 @@ import { APIConfig } from '../../Actions/Config';
 import { SpeciesListAction } from '../../Actions/Action';
 import { useIsFocused } from '@react-navigation/native';
 
-const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => {
+const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, invent, onPressSaveAndContinueMultiple }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpeice, setActiveSpecie] = useState(undefined);
@@ -41,7 +41,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   const [specieIndex, setSpecieIndex] = useState(null);
   const [name, setName] = useState('');
   const navigation = useNavigation();
-  // const [showSpecies, setShowSpecies] = useState(false);
+  const [showSpecies, setShowSpecies] = useState(visible);
   const [treeType, setTreeType] = useState(null);
   const [inventory, setInventory] = useState(null);
   const { state, dispatch } = useContext(store);
@@ -49,12 +49,20 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   const [isShowAddNameModal, setIsShowAddNameModal] = useState(false);
   const [imageIndex, setImageIndex] = useState(null);
   const isFocused = useIsFocused();
-
+  const [numberTrees, setNumberTrees] = useState(null);
+  console.log('showSpecie',showSpecies);
   useEffect(() => {
     setSpeciesList(state.species);
     getAllUserSpecies();
-    const {species, inventory} = route.params;
+    if (route !== undefined){
+      var {species, inventory} = route.params ;
+    }
+    else{
+      var species = speciess;
+      var inventory = invent;
+    }
     setTreeType(inventory.locate_tree);
+    setNumberTrees(inventory.tree_type);
     if (speciesList) {
       for (let i = 0; i < species.length; i++) {
         const oneSpecie = species[i];
@@ -71,6 +79,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
       Inventory();
     }
   }, [navigation, isFocused]);
+
+  useEffect(()=>{setShowSpecies(visible)},[visible]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -95,16 +105,21 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
       setInventory(inventory);
       console.log(inventory);
       setTreeType(inventory.locate_tree);
+      setNumberTrees(inventory.tree_type);
+      // console.log('treetype & numbertrees',treeType, numberTrees);
     });
   };
 
 
 
   const onPressSpecie = (index) => {
+    // console.log('In onPressSpecie');
     if (speciesList[index].treeCount) {
+      // console.log('in If');
       speciesList[index].treeCount = undefined;
       setTimeout(() => setSpeciesList([...speciesList]), 0);
     } else {
+      // console.log('in Else');
       setActiveSpecie(index);
       setIsShowTreeCountModal(true);
       setTimeout(() => {
@@ -154,11 +169,10 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
     if (singleTree !== null) {
       onSiteCheck = item.id === singleTree.id ? true : false;
     }
-    // console.log('localName', Number(item.treeCount).toLocaleString());
     return (
       <TouchableOpacity
         key={index}
-        onPress={treeType === 'on-site' ? ()=> onPressSpecieSingleTree(item) : () => onPressSpecie(index)}
+        onPress={numberTrees === 'multiple' ?  () => onPressSpecie(index) : ()=> onPressSpecieSingleTree(item)}
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -168,7 +182,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
         accessible={true}
         accessibilityLabel="Species Card"
         testID="species_card">
-        {treeType === 'on-site' ? (
+        {numberTrees === 'single' ? (
           <View>
             <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
           </View>
@@ -189,31 +203,21 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
           {item.aliases ? (
             <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
               {item.aliases}
-              {/* {i18next.t('label.select_species_local_name', { item })} */}
             </Text>
           ): (
             <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
               Add Name
-              {/* {i18next.t('label.select_species_local_name', { item })} */}
             </Text>
-            // <TextInput
-            //   value={item.aliases}
-            //   style={styles.speciesLocalName}
-            //   placeholder="Add Name"
-            //   // autoFocus
-            //   placeholderTextColor={Colors.PRIMARY}
-            //   onChangeText={(text) => handleInput(index, text)}
-            //   keyboardType={'email-address'}
-            // />
           ) }
           <Text numberOfLines={2} style={styles.speciesName}>
             {i18next.t('label.select_species_name_of_tree', { item })}
           </Text>
-          {item.treeCount && (
+          {item.treeCount ? (
             <Text style={styles.treeCount}>
               {i18next.t('label.select_species_tree_count', { count: item.treeCount })}
             </Text>
-          )}
+            ) : [] 
+          }
         </View>
       </TouchableOpacity>
     );
@@ -225,7 +229,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
     speciesListClone.splice(activeSpeice, 1, specie);
     setIsShowTreeCountModal(false);
     setTreeCount(0);
-    setSpeciesList([...speciesJSON]);
+    setSpeciesList([...speciesList]);
   };
 
   const renderTreeCountModal = () => {
@@ -298,6 +302,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   const onPressSearch = () => {
     navigation.navigate('AddSpecies');
     // closeSelectSpeciesModal();
+    setShowSpecies(false);
   };
 
 
@@ -416,9 +421,13 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
   };
 
   const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter}).then(() => {
+    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter})
+    .then(() => {
+      setShowSpecies(false);
+      console.log('yahape pohach gaya hai');
       navigation.navigate('SingleTreeOverview');
-    }).catch(err => {
+    })
+    .catch(err => {
       console.log(err);
     });
   };
@@ -432,14 +441,13 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
         selectedspeciesList.push(oneSpecie);
       }
     }
-
-    onPressSaveAndContinue(selectedspeciesList);
+    onPressSaveAndContinueMultiple(selectedspeciesList);
     // setTimeout(() => {
     setActiveSpecie(undefined);
     setIsShowTreeCountModal(false);
     setTreeCount('');
     closeSelectSpeciesModal();
-    setSpeciesList([...speciesJSON]);
+    setSpeciesList([...speciesList]);
     // }, 0)
   };
 
@@ -452,6 +460,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
         setIsShowTreeDiameterModal(false);
       }
     }
+    setShowSpecies(false);
   };
 
   const onPressAddNameBtn = () => {
@@ -468,53 +477,47 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, species, route }) => 
     return <Camera handleCamera={handleCamera}/>;
   } else {
     return (
-      // <View>
-      <View style={{ flex: 1 }}>
-        <SafeAreaView style={styles.mainContainer}>
-          <View style={styles.container}>
-            <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 10}}>
-              <Header
-                // onBackPress={}
-                closeIcon
-                headingText={i18next.t('label.select_species_header')}
-                subHeadingText={i18next.t('label.select_species_sub_header')}
+      <Modal visible= {showSpecies} animationType={'slide'}>
+        <View style={{ flex: 1 }}>
+          <SafeAreaView style={styles.mainContainer}>
+            <View style={styles.container}>
+              <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 10}}>
+                <Header
+                  closeIcon
+                  headingText={i18next.t('label.select_species_header')}
+                  subHeadingText={i18next.t('label.select_species_sub_header')}
+                />
+                <TouchableOpacity
+                  onPress={onPressSearch}
+                >
+                  <Text style={styles.searchText}>Search</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                style={{ flex: 1 }}
+                data={speciesList}
+                showsVerticalScrollIndicator={false}
+                renderItem={renderSpeciesCard}
               />
-              <TouchableOpacity 
-                onPress={onPressSearch}
-              >
-                <Text style={styles.searchText}>Search</Text>
-              </TouchableOpacity>
+              {numberTrees === 'single'  ? (
+                <PrimaryButton
+                  onPress={onPressSaveBtn}
+                  btnText={i18next.t('label.select_species_btn_text')}
+                  disabled={singleTree ? false : true}
+                />
+              ) : 
+                <PrimaryButton
+                  onPress={onPressContinue}
+                  btnText={i18next.t('label.select_species_btn_text')}
+                />  
+              }
             </View>
-            <FlatList
-              style={{ flex: 1 }}
-              data={speciesList}
-              showsVerticalScrollIndicator={false}
-              renderItem={renderSpeciesCard}
-              keyExtractor={item => item.id}
-            />
-            {treeType === 'on-site'  ? (
-              // <View style={name ? styles.searchDisplay : null}>
-              <PrimaryButton
-                onPress={onPressSaveBtn}
-                btnText={i18next.t('label.select_species_btn_text')}
-                disabled={singleTree ? false : true}
-              />
-              // </View>
-            ) : 
-              // <View style={name ? styles.searchDisplay : null}>
-              <PrimaryButton
-                onPress={onPressContinue}
-                btnText={i18next.t('label.select_species_btn_text')}
-              /> 
-              // </View>
-            }
-          </View>
-        </SafeAreaView>
-        {renderTreeCountModal()}
-        {renderDiameterModal()}
-        {renderAddNameModal()}
-      </View>
-      // </View>
+          </SafeAreaView>
+          {renderTreeCountModal()}
+          {renderDiameterModal()}
+          {renderAddNameModal()}
+        </View>
+      </Modal>
     );
   }
 };

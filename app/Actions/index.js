@@ -73,7 +73,7 @@ export const isLogin = () => {
           // console.log(User, 'login');
           resolve(true);
         } else {
-          reject();
+          resolve(false);
         }
       },
     );
@@ -248,7 +248,10 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
   });
 };
 

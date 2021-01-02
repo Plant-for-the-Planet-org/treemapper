@@ -75,8 +75,8 @@ export const SearchSpecies = (payload) => {
     })
       .then((realm) => {
         realm.write(() => {
-          const User = realm.objectForPrimaryKey('User', 'id0001');
-          let userToken = User.accessToken;
+          const SearchSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
+          let userToken = SearchSpeciesUser.accessToken;
           let formData = new FormData();
           formData.append('q', payload);
           formData.append('t', 'species');

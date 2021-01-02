@@ -21,7 +21,7 @@ const Header = ({
   return (
     <View style={style}>
       <View style={styles.arrowContainer}>
-        {!hideBackIcon && (
+        {!hideBackIcon ? (
           <TouchableOpacity
             onPress={onPressBack}
             testID={testID}
@@ -34,7 +34,7 @@ const Header = ({
               color={Colors.TEXT_COLOR}
             />
           </TouchableOpacity>
-        )}
+        ) : []}
         <View />
       </View>
       {headingText ? (
@@ -42,13 +42,13 @@ const Header = ({
           <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
         </View>
       ) : null}
-      {subHeadingText && (
+      {subHeadingText ? (
         <View style={{ marginVertical: 10 }}>
           <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
             {subHeadingText}
           </Text>
         </View>
-      )}
+      ) : []}
     </View>
   );
 };

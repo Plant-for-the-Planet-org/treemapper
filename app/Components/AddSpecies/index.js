@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TouchableOpacity, TextInput,  KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TouchableOpacity, TextInput,  KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { Header } from '../Common';
 //import { SvgXml } from 'react-native-svg';

@@ -21,7 +21,7 @@ const Polygons = {
 const Species = {
   name: 'Species',
   properties: {
-    nameOfTree: 'string',
+    aliases: 'string',
     treeCount: 'string',
     id: 'string?',
   },

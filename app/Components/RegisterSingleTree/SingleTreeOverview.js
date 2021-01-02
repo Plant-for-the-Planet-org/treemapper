@@ -32,11 +32,11 @@ import {
 } from '../../Actions';
 import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import i18next from 'i18next';
-import SelectSpecies from '../SelectSpecies';
+// import SelectSpecies from '../SelectSpecies';
 
 const SingleTreeOverview = ({ navigation, route }) => {
   const specieDiameterRef = useRef();
@@ -125,7 +125,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                 ) : (
                   <TextInput
                     ref={specieDiameterRef}
-                    value={specieDiameter}
+                    value={specieDiameter.toString()}
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}

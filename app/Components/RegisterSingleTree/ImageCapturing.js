@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import i18next from 'i18next';
-import SelectSpecies  from '../SelectSpecies';
+// import SelectSpecies  from '../SelectSpecies';
 // import SingleTreeOverview from './SingleTreeOverview';
 
 const ImageCapturing = ({ updateScreenState }) => {
@@ -18,7 +18,7 @@ const ImageCapturing = ({ updateScreenState }) => {
   const { state } = useContext(store);
   const [imagePath, setImagePath] = useState('');
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
-  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  // const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   const [inventory, setInventory] = useState(null);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const ImageCapturing = ({ updateScreenState }) => {
       insertImageSingleRegisterTree(data).then(() => {
         // setIsShowSpeciesListModal(true);
         // setIsAlrightyModalShow(false);
-        navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
+        navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory, visible: true });
       });
     } else {
       alert('Image is required');
@@ -63,14 +63,14 @@ const ImageCapturing = ({ updateScreenState }) => {
     updateScreenState('MapMarking');
   };
 
-  const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {
-      setIsShowSpeciesListModal(false);
-      navigation.navigate('SingleTreeOverview');
-    }).catch(err => {
-      console.log(err);
-    });
-  };
+  // const onPressSaveAndContinue = (data) => {
+  //   UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {
+  //     setIsShowSpeciesListModal(false);
+  //     navigation.navigate('SingleTreeOverview');
+  //   }).catch(err => {
+  //     console.log(err);
+  //   });
+  // };
 
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
