@@ -42,7 +42,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [name, setName] = useState('');
   const navigation = useNavigation();
   const [showSpecies, setShowSpecies] = useState(visible);
-  const [treeType, setTreeType] = useState(null);
+  // const [treeType, setTreeType] = useState(null);
   const [inventory, setInventory] = useState(null);
   const { state, dispatch } = useContext(store);
   const [isCamera, setIsCamera] = useState(false);
@@ -50,7 +50,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [imageIndex, setImageIndex] = useState(null);
   const isFocused = useIsFocused();
   const [numberTrees, setNumberTrees] = useState(null);
-  console.log('showSpecie',showSpecies);
   useEffect(() => {
     setSpeciesList(state.species);
     getAllUserSpecies();
@@ -61,7 +60,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       var species = speciess;
       var inventory = invent;
     }
-    setTreeType(inventory.locate_tree);
+    // setTreeType(inventory.locate_tree);
     setNumberTrees(inventory.tree_type);
     if (speciesList) {
       for (let i = 0; i < species.length; i++) {
@@ -75,7 +74,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
         setSpeciesList([...speciesJSON]);
       }
       setSpeciesList(speciesList);
-      // console.log(speciesList);
       Inventory();
     }
   }, [navigation, isFocused]);
@@ -85,7 +83,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   useFocusEffect(
     React.useCallback(() => {
       setSpeciesList(state.species);
-      // getAllUserSpecies();
       Inventory();
     }, [state])
   );
@@ -104,22 +101,18 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
       console.log(inventory);
-      setTreeType(inventory.locate_tree);
+      // setTreeType(inventory.locate_tree);
       setNumberTrees(inventory.tree_type);
-      // console.log('treetype & numbertrees',treeType, numberTrees);
     });
   };
 
 
 
   const onPressSpecie = (index) => {
-    // console.log('In onPressSpecie');
     if (speciesList[index].treeCount) {
-      // console.log('in If');
       speciesList[index].treeCount = undefined;
       setTimeout(() => setSpeciesList([...speciesList]), 0);
     } else {
-      // console.log('in Else');
       setActiveSpecie(index);
       setIsShowTreeCountModal(true);
       setTimeout(() => {
@@ -137,10 +130,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   // const handleInput = (index, text) => {
-  //   console.log(text, index);
   //   let specieslist = [...speciesList];
   //   specieslist[index] = {...specieslist[index], name: text};
-  //   console.log(specieslist[index], 'handle');
   //   setSpeciesList(specieslist);
   // };
   const handleCamera = (data) => {
@@ -278,7 +269,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           <View style={styles.externalInputContainer}>
             <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
             <TextInput
-              value={treeCount}
+              value={treeCount.toString()}
               style={styles.value}
               autoFocus
               placeholderTextColor={Colors.TEXT_COLOR}
@@ -424,7 +415,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter})
     .then(() => {
       setShowSpecies(false);
-      console.log('yahape pohach gaya hai');
       navigation.navigate('SingleTreeOverview');
     })
     .catch(err => {

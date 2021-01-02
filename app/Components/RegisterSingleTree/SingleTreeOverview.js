@@ -51,7 +51,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [specieText, setSpecieText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
   const [locateTree, setLocateTree] = useState(null);
-  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
@@ -377,14 +376,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
   //   }
   // };
 
-  const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.nameOfTree, diameter: data.diameter}).then(() => {
-      setIsShowSpeciesListModal(false);
-      navigation.navigate('SingleTreeOverview');
-    }).catch(err => {
-      console.log(err);
-    });
-  };
+  
 
 
   const goBack = () => {
