@@ -13,5 +13,6 @@
   "inventory_overview_loc_right_text": "{{item.treeCount}} trees",
   "inventory_overview_loc_export_json": "Export GeoJson",
   "inventory_overview_loc_next_tree": "Next Tree",
-  "inventory_overview_loc_save": "Save"
+  "inventory_overview_loc_save": "Save",
+  "inventory_overview_date": "{{date, ll}}"
 }
