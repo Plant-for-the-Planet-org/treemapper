@@ -5,14 +5,11 @@ import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
-// import store from './store';
-// import React from 'react';
 import { UploadAction } from './Action';
 import getSessionData from '../Utils/sessionId';
 
 
 const { protocol, url } = APIConfig;
-// const {dispatch } = React.useContext(store);
 
 const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
@@ -57,6 +54,7 @@ const uploadInventory = (dispatch) => {
                           coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                         },
                         plantDate: new Date().toISOString(),
+                        registrationDate: new Date().toISOString(),
                         plantProject: null,
                         plantedSpecies: species,
                       };
@@ -79,11 +77,14 @@ const uploadInventory = (dispatch) => {
                                 resolve();
                               }
                             } else {
-                              uploadImage(oneInventory, response, userToken, sessionData).then(() => {
+                              uploadImage(oneInventory, response, userToken, sessionData, dispatch ).then(() => {
                                 statusToComplete({ inventory_id: oneInventory.inventory_id });
                                 if (allPendingInventory.length - 1 == i) {
                                   resolve();
                                 }
+                              })
+                              .catch((err)=> {
+                                console.log('Error:', err);
                               });
                             }
                           })
