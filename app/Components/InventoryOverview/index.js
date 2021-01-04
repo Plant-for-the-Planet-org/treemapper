@@ -364,6 +364,7 @@ const InventoryOverview = ({ navigation }) => {
                 closeIcon
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
+                onBackPress={() => navigation.navigate('TreeInventory')}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
