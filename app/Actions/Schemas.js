@@ -21,7 +21,7 @@ const Polygons = {
 const Species = {
   name: 'Species',
   properties: {
-    nameOfTree: 'string',
+    aliases: 'string',
     treeCount: 'string',
     id: 'string?',
   },
@@ -68,4 +68,17 @@ const User = {
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory };
+const AddSpecies = {
+  name: 'AddSpecies',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    aliases: 'string?',
+    image: 'string?',
+    scientificName: 'string',
+    status: 'string?',
+    speciesId: 'string'
+  }
+};
+
+export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies };

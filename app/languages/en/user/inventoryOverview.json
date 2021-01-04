@@ -9,7 +9,7 @@
   "inventory_overview_sub_header": "Trees will be added to your inventory to sync when you have internet.",
   "inventory_overview_left_text": "Plant Date",
   "inventory_overview_left_text_planted_species": "Planted Species",
-  "inventory_overview_loc_left_text": "{{item.nameOfTree}}",
+  "inventory_overview_loc_left_text": "{{item.aliases}}",
   "inventory_overview_loc_right_text": "{{item.treeCount}} trees",
   "inventory_overview_loc_export_json": "Export GeoJson",
   "inventory_overview_loc_next_tree": "Next Tree",
