@@ -228,21 +228,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     return (
       <Modal visible={isShowTreeCountModal} transparent={true}>
         <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-          }}>
+          style={styles.modalBackground}>
           <View
-            style={{
-              backgroundColor: Colors.WHITE,
-              marginVertical: 30,
-              marginHorizontal: 20,
-              borderRadius: 20,
-              padding: 20,
-              width: '80%',
-            }}>
+            style={styles.inputModal}>
             <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
             <Header
               hideBackIcon
@@ -302,21 +290,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     return (
       <Modal visible={isShowTreeDiameterModal} transparent={true}>
         <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.8)',
-          }}>
+          style={styles.modalBackground}>
           <View
-            style={{
-              backgroundColor: Colors.WHITE,
-              marginVertical: 30,
-              marginHorizontal: 20,
-              borderRadius: 20,
-              padding: 20,
-              width: '80%',
-            }}>
+            style={styles.inputModal}>
             {singleTree ? (
               <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
             ): 
@@ -359,21 +335,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     return (
       <Modal visible={isShowAddNameModal} transparent={true}>
         <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.8)',
-          }}>
+          style={styles.modalBackground}>
           <View
-            style={{
-              backgroundColor: Colors.WHITE,
-              marginVertical: 30,
-              marginHorizontal: 20,
-              borderRadius: 20,
-              padding: 20,
-              width: '80%',
-            }}>
+            style={styles.inputModal}>
             {singleTree ? (
               <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
             ): 
@@ -590,6 +554,20 @@ const styles = StyleSheet.create({
   },
   searchDisplay: {
     display: 'none'
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  inputModal: {
+    backgroundColor: Colors.WHITE,
+    marginVertical: 30,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
   }
 });
 

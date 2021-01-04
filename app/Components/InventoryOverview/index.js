@@ -290,7 +290,7 @@ const InventoryOverview = ({ navigation }) => {
     return (
       status == 'incomplete' && (
         <TouchableOpacity
-          onPress={() => navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory})}
+          onPress={() => setIsShowSpeciesListModal(true)}
           style={{
             flexDirection: 'row',
             justifyContent: 'space-around',

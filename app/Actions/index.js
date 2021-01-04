@@ -460,13 +460,10 @@ export const statusToPending = ({ inventory_id }) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
-          realm.create(
-            'Inventory',
-            {
+          realm.create('Inventory',{
               inventory_id: `${inventory_id}`,
               status: 'pending',
-            },
-            'modified',
+            },'modified',
           );
           const Inventory = realm.objects('Inventory');
           resolve();
@@ -480,13 +477,10 @@ export const statusToComplete = ({ inventory_id }) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
-          realm.create(
-            'Inventory',
-            {
+          realm.create('Inventory',{
               inventory_id: `${inventory_id}`,
               status: 'complete',
-            },
-            'modified',
+            },'modified',
           );
           const Inventory = realm.objects('Inventory');
           resolve();
