@@ -33,9 +33,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper2-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treemapper-
+          ${{ runner.os }}-node-treemapper2-
 
     - name: Install npm
       run: npm install
@@ -75,9 +75,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-treemapper-${{ hashFiles('android/*.gradle') }}
+        key: ${{ runner.os }}-gradle-treemapper2-${{ hashFiles('android/*.gradle') }}
         restore-keys: |
-          ${{ runner.os }}-gradle-treemapper-
+          ${{ runner.os }}-gradle-treemapper2-
 
     - name: Android Build
       run: ./gradlew assembleRelease --stacktrace --no-daemon
