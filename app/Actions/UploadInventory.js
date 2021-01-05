@@ -1,19 +1,28 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
 import { getAllPendingInventory, statusToComplete } from './';
-import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory } from './Schemas';
+import {
+  Coordinates,
+  OfflineMaps,
+  Polygons,
+  User,
+  Species,
+  Inventory,
+  AddSpecies,
+} from './Schemas';
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 import { UploadAction } from './Action';
 import getSessionData from '../Utils/sessionId';
 
-
 const { protocol, url } = APIConfig;
 
 const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const User = realm.objectForPrimaryKey('User', 'id0001');
@@ -58,7 +67,7 @@ const uploadInventory = (dispatch) => {
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      getSessionData().then( async (sessionData) => {
+                      getSessionData().then(async (sessionData) => {
                         await axios({
                           method: 'POST',
                           url: `${protocol}://${url}/treemapper/plantLocations`,
@@ -77,15 +86,16 @@ const uploadInventory = (dispatch) => {
                                 resolve();
                               }
                             } else {
-                              uploadImage(oneInventory, response, userToken, sessionData, dispatch ).then(() => {
-                                statusToComplete({ inventory_id: oneInventory.inventory_id });
-                                if (allPendingInventory.length - 1 == i) {
-                                  resolve();
-                                }
-                              })
-                              .catch((err)=> {
-                                console.log('Error:', err);
-                              });
+                              uploadImage(oneInventory, response, userToken, sessionData, dispatch)
+                                .then(() => {
+                                  statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                  if (allPendingInventory.length - 1 == i) {
+                                    resolve();
+                                  }
+                                })
+                                .catch((err) => {
+                                  console.log('Error:', err);
+                                });
                             }
                           })
                           .catch((err) => {
@@ -129,9 +139,9 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
         };
         let onUploadProgress = (progressEvent) => {
           const progress = Math.round((100 * progressEvent.loaded) / progressEvent.total);
-          const payload ={
+          const payload = {
             progress,
-            isUploading: i === responseCoords.length ? false : true
+            isUploading: i === responseCoords.length ? false : true,
           };
           console.log(payload);
           dispatch(UploadAction.setUploadProgess(payload));
@@ -141,7 +151,7 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
           data: body,
           headers: headers,
-          onUploadProgress
+          onUploadProgress,
         })
           .then((res) => {
             resolve();
@@ -154,9 +164,161 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
   });
 };
 
-const handleProgres = (event) => {
-  console.log(event);
-  console.log(Math.round((event.loaded * 100)/ event.total));
+const createSpecies = (image, scientificSpecies, aliases) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    }).then((realm) => {
+      realm.write(async () => {
+        const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = createSpeciesUser.accessToken;
+        console.log(userToken, 'token');
+        await RNFS.readFile(image, 'base64').then(async (base64) => {
+          let body = {
+            imageFile: `data:image/jpeg;base64,${base64}`,
+            scientificSpecies,
+            aliases,
+          };
+          await axios({
+            method: 'POST',
+            url: `${protocol}://${url}/treemapper/species`,
+            data: body,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+            },
+          })
+            .then((res) => {
+              const { status, data } = res;
+              console.log(res, 'data');
+              if (status === 200) {
+                console.log(res, 'res');
+                // updateStatusForUserSpecies({ id: speciesId });
+                resolve(data);
+              }
+            })
+            .catch((err) => {
+              console.log(err, 'create error');
+              reject(err);
+            });
+        });
+      });
+    });
+  });
+};
+const UpdateSpecies = (aliases, speciesId) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    }).then((realm) => {
+      realm.write(async () => {
+        const UpdateSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = UpdateSpeciesUser.accessToken;
+        console.log(userToken, speciesId);
+        // await RNFS.readFile(image, 'base64').then(async (base64) => {
+        let body = {
+          // imageFile: `data:image/jpeg;base64,${base64}`,
+          aliases,
+        };
+        await axios({
+          method: 'PUT',
+          url: `${protocol}://${url}/treemapper/species/${speciesId}`,
+          data: body,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `OAuth ${userToken}`,
+          },
+        })
+          .then((res) => {
+            const { status } = res;
+            //console.log(res, 'data');
+            if (status === 200) {
+              console.log(res, 'res');
+              // updateStatusForUserSpecies({ id: speciesId });
+              resolve(true);
+            }
+          })
+          .catch((err) => {
+            console.log(err, 'create error');
+            reject(err);
+          });
+        // });
+      });
+    });
+  });
+};
+const UpdateSpeciesImage = (image, speciesId) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    }).then((realm) => {
+      realm.write(async () => {
+        const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = UpdateSpeciesImageUser.accessToken;
+        await RNFS.readFile(image, 'base64').then(async (base64) => {
+          let body = {
+            imageFile: `data:image/jpeg;base64,${base64}`,
+          };
+          await axios({
+            method: 'PUT',
+            url: `${protocol}://${url}/treemapper/species/${speciesId}`,
+            data: body,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+            },
+          })
+            .then((res) => {
+              const { status, data } = res;
+              console.log(res, data);
+              if (status === 200) {
+                console.log(res, 'res');
+                // updateStatusForUserSpecies({ id: speciesId });
+                resolve(true);
+              }
+            })
+            .catch((err) => {
+              console.log(err, 'create error');
+              reject(err);
+            });
+        });
+      });
+    });
+  });
 };
 
-export { uploadInventory };
+const SpeciesListData = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    }).then((realm) => {
+      realm.write(async () => {
+        const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = SpeciesListDataUser.accessToken;
+        console.log(userToken, 'list');
+        axios({
+          method: 'GET',
+          url: `${protocol}://${url}/treemapper/species`,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `OAuth ${userToken}`,
+          },
+        })
+          .then((res) => {
+            const { data, status } = res;
+            // console.log(res, 'res');
+            if (status === 200) {
+              // console.log(data, 'search');
+              resolve(data);
+            }
+          })
+          .catch((err) => {
+            reject(err);
+            console.log(err, 'error');
+          });
+      });
+    });
+  });
+};
+
+export { uploadInventory, createSpecies, UpdateSpecies, UpdateSpeciesImage, SpeciesListData };

@@ -30,7 +30,7 @@ const RegisterSingleTree = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {screenState == 'MapMarking' && <MapMarking updateScreenState={updateScreenState} />}
-      {screenState == 'ImageCapturing' && <ImageCapturing updateScreenState={updateScreenState} />}
+      {screenState == 'ImageCapturing' && <ImageCapturing updateScreenState={updateScreenState} navigation />}
     </View>
   );
 };

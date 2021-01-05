@@ -6,9 +6,6 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
-  Image,
-  Dimensions,
-  Platform,
   Modal,
   Text,
 } from 'react-native';
@@ -28,6 +25,7 @@ import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
+// import { createSpecies } from '../../Actions/UploadInventory';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch, state } = useContext(store);
@@ -150,8 +148,9 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
-      // setIsLoaderShow(true);
-      uploadInventory(dispatch)
+      setIsLoaderShow(true);
+      uploadInventory()
+        // createSpecies()
         .then((data) => {
           initialState();
           setIsLoaderShow(false);
