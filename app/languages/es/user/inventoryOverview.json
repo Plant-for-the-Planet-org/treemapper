@@ -9,6 +9,7 @@
   "inventory_overview_sub_header": "Los árboles se añadirán a tu inventario para sincronizarlos cuando tengas acceso a Internet.",
   "inventory_overview_left_text": "Fecha de plantación",
   "inventory_overview_left_text_planted_species": "Especies plantadas",
+  "inventory_overview_loc_left_text": "{{item.aliases}}",
   "inventory_overview_loc_right_text": "{{item.treeCount}} árboles",
   "inventory_overview_loc_export_json": "Exportar GeoJson",
   "inventory_overview_loc_next_tree": "Próximo árbol",
