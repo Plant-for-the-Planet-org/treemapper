@@ -1,4 +1,5 @@
 {
+  "inventory_overview_loc": "{{locationTitle}}",
   "inventory_overview_loc_left_text": "{{item.aliases}}",
-  "inventory_overview_date": "{{item.title}}"
+  "inventory_overview_date": "{{date, ll}}"
 }

@@ -14,5 +14,5 @@
   "inventory_overview_loc_export_json": "GeoJson exportieren",
   "inventory_overview_loc_next_tree": "Nächster Baum",
   "inventory_overview_loc_save": "Speichern",
-  "inventory_overview_date": "{{item.title}}"
+  "inventory_overview_date": "{{date, ll}}"
 }
