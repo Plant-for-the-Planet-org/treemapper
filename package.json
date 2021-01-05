@@ -24,7 +24,7 @@
     "@react-navigation/drawer": "^5.11.4",
     "bugsnag-react-native": "^2.23.10",
     "i18next": "^19.8.3",
-    "jail-monkey": "^2.3.2",
+    "jail-monkey": "^2.3.3",
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.1",
     "react": "16.13.1",
