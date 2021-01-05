@@ -79,7 +79,7 @@ const DownloadMap = ({ navigation }) => {
       await MapboxGL.offlineManager.createPack(
         {
           name: offllineMapId,
-          styleURL: 'mapbox://styles/haideralishah/ck9nual3q0ejy1ilidwhjl3mz',
+          styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
           minZoom: 14,
           maxZoom: 20,
           bounds: bounds,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,30 +14,99 @@ import {
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle } from '../../assets';
+import { placeholder_image, checkCircleFill, checkCircle, add_image } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
+import {getInventory, UpdateSpecieAndSpecieDiameter} from '../../Actions';
+import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { store } from '../../Actions/store';
+import Camera from '../Common/Camera';
+import { UpdateSpecies, SpeciesListData, UpdateSpeciesImage } from '../../Actions/UploadInventory';
+import Config from 'react-native-config';
+import { APIConfig } from '../../Actions/Config';
+import { SpeciesListAction } from '../../Actions/Action';
+import { useIsFocused } from '@react-navigation/native';
 
-const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinue, species }) => {
+const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, invent, onPressSaveAndContinueMultiple }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpeice, setActiveSpecie] = useState(undefined);
-  const [speciesList, setSpeciesList] = useState([...speciesJSON]);
-
+  // const [speciesList, setSpeciesList] = useState([...speciesJSON]);
+  const [singleTree, setSingleTree] = useState(null);
+  const [isShowTreeDiameterModal, setIsShowTreeDiameterModal] = useState(false);
+  const [diameter, setDiameter] = useState(null);
+  const [speciesList, setSpeciesList] = useState(null);
+  const [specieIndex, setSpecieIndex] = useState(null);
+  const [name, setName] = useState('');
+  const navigation = useNavigation();
+  const [showSpecies, setShowSpecies] = useState(visible);
+  // const [treeType, setTreeType] = useState(null);
+  const [inventory, setInventory] = useState(null);
+  const { state, dispatch } = useContext(store);
+  const [isCamera, setIsCamera] = useState(false);
+  const [isShowAddNameModal, setIsShowAddNameModal] = useState(false);
+  const [imageIndex, setImageIndex] = useState(null);
+  const isFocused = useIsFocused();
+  const [numberTrees, setNumberTrees] = useState(null);
   useEffect(() => {
-    for (let i = 0; i < species.length; i++) {
-      const oneSpecie = species[i];
-      speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount;
+    setSpeciesList(state.species);
+    getAllUserSpecies();
+    if (route !== undefined){
+      var {species, inventory} = route.params ;
     }
-    if (species.length == 0) {
-      for (let i = 0; i < speciesJSON.length; i++) {
-        delete speciesJSON[i].treeCount;
+    else{
+      var species = speciess;
+      var inventory = invent;
+    }
+    // setTreeType(inventory.locate_tree);
+    setNumberTrees(inventory.tree_type);
+    if (speciesList) {
+      for (let i = 0; i < species.length; i++) {
+        const oneSpecie = species[i];
+        speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount;
       }
-      setSpeciesList([...speciesJSON]);
+      if (species.length == 0) {
+        for (let i = 0; i < speciesJSON.length; i++) {
+          delete speciesJSON[i].treeCount;
+        }
+        setSpeciesList([...speciesJSON]);
+      }
+      setSpeciesList(speciesList);
+      Inventory();
     }
-    setSpeciesList(speciesList);
-  }, []);
+  }, [navigation, isFocused]);
+
+  useEffect(()=>{setShowSpecies(visible)},[visible]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSpeciesList(state.species);
+      Inventory();
+    }, [state])
+  );
+
+  const getAllUserSpecies = () => {
+    SpeciesListData().then((data) => {
+      console.log(data);
+      dispatch(SpeciesListAction.setSpeciesList(data));
+    }).catch((err) => {
+      console.log(err, 'hererer');
+    });
+  };
+
+  const Inventory = () => {
+    getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      inventory.species = Object.values(inventory.species);
+      setInventory(inventory);
+      console.log(inventory);
+      // setTreeType(inventory.locate_tree);
+      setNumberTrees(inventory.tree_type);
+    });
+  };
+
+
 
   const onPressSpecie = (index) => {
     if (speciesList[index].treeCount) {
@@ -52,13 +121,49 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     }
   };
 
+  const onPressSpecieSingleTree = (index) => {
+    setSingleTree(index);
+  };
+  
+  const onPressSaveBtn = () => {
+    setIsShowTreeDiameterModal(true);
+  };
+
+  // const handleInput = (index, text) => {
+  //   let specieslist = [...speciesList];
+  //   specieslist[index] = {...specieslist[index], name: text};
+  //   setSpeciesList(specieslist);
+  // };
+  const handleCamera = (data) => {
+    setIsCamera(!isCamera);
+    let specieslist = [...speciesList];
+    specieslist[imageIndex] = {...specieslist[imageIndex], image: data};
+    UpdateSpeciesImage(specieslist[imageIndex].image, specieslist[imageIndex].id).then(() => {
+      getAllUserSpecies();
+    }).catch(() => {
+
+    });
+    // setSpeciesList(species);
+  };
+  const onPressImage = (index) => {
+    setIsCamera(!isCamera);
+    setImageIndex(index);
+  };
+
+  const addName = (index) => {
+    setIsShowAddNameModal(true);
+    setSpecieIndex(index);
+  };
   const renderSpeciesCard = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
-    console.log('localName', Number(item.treeCount).toLocaleString());
+    let onSiteCheck;
+    if (singleTree !== null) {
+      onSiteCheck = item.id === singleTree.id ? true : false;
+    }
     return (
       <TouchableOpacity
         key={index}
-        onPress={() => onPressSpecie(index)}
+        onPress={numberTrees === 'multiple' ?  () => onPressSpecie(index) : ()=> onPressSpecieSingleTree(item)}
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -68,27 +173,46 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         accessible={true}
         accessibilityLabel="Species Card"
         testID="species_card">
-        <View>
-          <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
-        </View>
-        <Image source={placeholder_image} resizeMode={'contain'} style={{ flex: 1 }} />
+        {numberTrees === 'single' ? (
+          <View>
+            <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
+          </View>
+        ) : 
+          <View>
+            <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
+          </View>
+        }
+        {item.image ? (
+          <TouchableOpacity onPress={() =>onPressImage(index)}>
+            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 200,height: 100, borderRadius: 10}} />
+          </TouchableOpacity>
+        ) : 
+          <TouchableOpacity onPress={() => onPressImage(index)}>
+            <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 50,height: 100}} />
+          </TouchableOpacity>}
         <View style={{ flex: 1 }}>
-          <Text numberOfLines={1} style={styles.speciesLocalName}>
-            {i18next.t('label.select_species_local_name', { item })}
-          </Text>
+          {item.aliases ? (
+            <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
+              {item.aliases}
+            </Text>
+          ): (
+            <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
+              Add Name
+            </Text>
+          ) }
           <Text numberOfLines={2} style={styles.speciesName}>
             {i18next.t('label.select_species_name_of_tree', { item })}
           </Text>
-          {item.treeCount && (
+          {item.treeCount ? (
             <Text style={styles.treeCount}>
               {i18next.t('label.select_species_tree_count', { count: item.treeCount })}
             </Text>
-          )}
+            ) : [] 
+          }
         </View>
       </TouchableOpacity>
     );
   };
-
   const onPressTreeCountNextBtn = () => {
     let speciesListClone = speciesList;
     let specie = speciesListClone[activeSpeice];
@@ -96,29 +220,17 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     speciesListClone.splice(activeSpeice, 1, specie);
     setIsShowTreeCountModal(false);
     setTreeCount(0);
-    setSpeciesList([...speciesJSON]);
+    setSpeciesList([...speciesList]);
   };
 
   const renderTreeCountModal = () => {
-    let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
+    let specieName = isShowTreeCountModal ? speciesList[activeSpeice].name : '';
     return (
       <Modal visible={isShowTreeCountModal} transparent={true}>
         <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-          }}>
+          style={styles.modalBackground}>
           <View
-            style={{
-              backgroundColor: Colors.WHITE,
-              marginVertical: 30,
-              marginHorizontal: 20,
-              borderRadius: 20,
-              padding: 20,
-              width: '80%',
-            }}>
+            style={styles.inputModal}>
             <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
             <Header
               hideBackIcon
@@ -145,7 +257,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
           <View style={styles.externalInputContainer}>
             <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
             <TextInput
-              value={treeCount}
+              value={treeCount.toString()}
               style={styles.value}
               autoFocus
               placeholderTextColor={Colors.TEXT_COLOR}
@@ -165,6 +277,115 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
     );
   };
 
+
+  const onPressSearch = () => {
+    navigation.navigate('AddSpecies');
+    // closeSelectSpeciesModal();
+    setShowSpecies(false);
+  };
+
+
+  const renderDiameterModal = () => {
+    // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
+    return (
+      <Modal visible={isShowTreeDiameterModal} transparent={true}>
+        <View
+          style={styles.modalBackground}>
+          <View
+            style={styles.inputModal}>
+            {singleTree ? (
+              <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
+            ): 
+              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            }
+            <Header
+              hideBackIcon
+              subHeadingText={'Please enter the diameter of the plant in cetimeter'}
+              textAlignStyle={{ textAlign: 'center' }}
+            />
+          </View>
+        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+          style={styles.bgWhite}>
+          <View style={styles.externalInputContainer}>
+            <Text style={styles.labelModal}>Diameter</Text>
+            <TextInput
+              value={diameter}
+              style={styles.value}
+              autoFocus
+              placeholderTextColor={Colors.TEXT_COLOR}
+              onChangeText={(text) => setDiameter(text)}
+              keyboardType={'number-pad'}
+            />
+            <MCIcon
+              onPress={onPressDiameterBtn}
+              name={'arrow-right'}
+              size={30}
+              color={Colors.PRIMARY}
+            />
+          </View>
+          <SafeAreaView />
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  };
+  const renderAddNameModal = () => {
+    // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
+    return (
+      <Modal visible={isShowAddNameModal} transparent={true}>
+        <View
+          style={styles.modalBackground}>
+          <View
+            style={styles.inputModal}>
+            {singleTree ? (
+              <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
+            ): 
+              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+            }
+            <Header
+              hideBackIcon
+              subHeadingText={'Please enter the name of the plant'}
+              textAlignStyle={{ textAlign: 'center' }}
+            />
+          </View>
+        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+          style={styles.bgWhite}>
+          <View style={styles.externalInputContainer}>
+            <Text style={styles.labelModal}>Name</Text>
+            <TextInput
+              value={name}
+              style={styles.value}
+              autoFocus
+              placeholderTextColor={Colors.TEXT_COLOR}
+              onChangeText={(text) => setName(text)}
+            />
+            <MCIcon
+              onPress={onPressAddNameBtn}
+              name={'arrow-right'}
+              size={30}
+              color={Colors.PRIMARY}
+            />
+          </View>
+          <SafeAreaView />
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  };
+
+  const onPressSaveAndContinue = (data) => {
+    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter})
+    .then(() => {
+      setShowSpecies(false);
+      navigation.navigate('SingleTreeOverview');
+    })
+    .catch(err => {
+      console.log(err);
+    });
+  };
+
   const onPressContinue = () => {
     let selectedspeciesList = [];
     for (let i = 0; i < speciesList.length; i++) {
@@ -174,43 +395,85 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, onPressSaveAndContinu
         selectedspeciesList.push(oneSpecie);
       }
     }
-    onPressSaveAndContinue(selectedspeciesList);
+    onPressSaveAndContinueMultiple(selectedspeciesList);
     // setTimeout(() => {
     setActiveSpecie(undefined);
     setIsShowTreeCountModal(false);
     setTreeCount('');
     closeSelectSpeciesModal();
-    setSpeciesList([...speciesJSON]);
+    setSpeciesList([...speciesList]);
     // }, 0)
   };
 
-  return (
-    <Modal visible={visible} animationType={'slide'}>
-      <View style={{ flex: 1 }}>
-        <SafeAreaView style={styles.mainContainer}>
-          <View style={styles.container}>
-            <Header
-              onBackPress={closeSelectSpeciesModal}
-              closeIcon
-              headingText={i18next.t('label.select_species_header')}
-              subHeadingText={i18next.t('label.select_species_sub_header')}
-            />
-            <FlatList
-              style={{ flex: 1 }}
-              data={speciesList}
-              showsVerticalScrollIndicator={false}
-              renderItem={renderSpeciesCard}
-            />
-            <PrimaryButton
-              onPress={onPressContinue}
-              btnText={i18next.t('label.select_species_btn_text')}
-            />
-          </View>
-        </SafeAreaView>
-      </View>
-      {renderTreeCountModal()}
-    </Modal>
-  );
+  const onPressDiameterBtn = () => {
+    let speciesDiameterList = [...speciesList];
+    for(let specie in speciesDiameterList){
+      if (speciesDiameterList[specie].id=== singleTree.id) {
+        let selected = {aliases: speciesDiameterList[specie].aliases, diameter: diameter};
+        onPressSaveAndContinue(selected);
+        setIsShowTreeDiameterModal(false);
+      }
+    }
+    setShowSpecies(false);
+  };
+
+  const onPressAddNameBtn = () => {
+    let speciesNameList = [...speciesList];
+    speciesNameList[specieIndex] = {...speciesNameList[specieIndex], aliases: name};
+    UpdateSpecies(speciesNameList[specieIndex].aliases, speciesNameList[specieIndex].id).then(() => {
+      setIsShowAddNameModal(false);
+      // setSpeciesList(species);
+      getAllUserSpecies();
+    });
+  };
+
+  if (isCamera) {
+    return <Camera handleCamera={handleCamera}/>;
+  } else {
+    return (
+      <Modal visible= {showSpecies} animationType={'slide'}>
+        <View style={{ flex: 1 }}>
+          <SafeAreaView style={styles.mainContainer}>
+            <View style={styles.container}>
+              <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 10}}>
+                <Header
+                  closeIcon
+                  headingText={i18next.t('label.select_species_header')}
+                  subHeadingText={i18next.t('label.select_species_sub_header')}
+                />
+                <TouchableOpacity
+                  onPress={onPressSearch}
+                >
+                  <Text style={styles.searchText}>Search</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                style={{ flex: 1 }}
+                data={speciesList}
+                showsVerticalScrollIndicator={false}
+                renderItem={renderSpeciesCard}
+              />
+              {numberTrees === 'single'  ? (
+                <PrimaryButton
+                  onPress={onPressSaveBtn}
+                  btnText={i18next.t('label.select_species_btn_text')}
+                  disabled={singleTree ? false : true}
+                />
+              ) : 
+                <PrimaryButton
+                  onPress={onPressContinue}
+                  btnText={i18next.t('label.select_species_btn_text')}
+                />  
+              }
+            </View>
+          </SafeAreaView>
+          {renderTreeCountModal()}
+          {renderDiameterModal()}
+          {renderAddNameModal()}
+        </View>
+      </Modal>
+    );
+  }
 };
 export default SelectSpecies;
 
@@ -246,7 +509,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
+    // paddingHorizontal: 20,
     borderTopWidth: 0.5,
     borderColor: Colors.TEXT_COLOR,
   },
@@ -258,13 +521,54 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
   },
+  valueAddspcies: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_20,
+    color: Colors.TEXT_COLOR,
+    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+    flex: 1,
+    paddingVertical: 10,
+    paddingTop: 20
+  },
   labelModal: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_30,
     color: Colors.TEXT_COLOR,
     marginRight: 10,
+    paddingHorizontal: 10,
   },
+  searchText: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    // lineHeight: Typography.LINE_HEIGHT_30,
+    color: Colors.PRIMARY,
+    paddingTop: 15,
+    paddingRight: 5
+  },
+  bgWhiteAdd: {
+    position: 'absolute', 
+    left: 0, 
+    right: 0, 
+    bottom: 0
+  },
+  searchDisplay: {
+    display: 'none'
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  inputModal: {
+    backgroundColor: Colors.WHITE,
+    marginVertical: 30,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
+  }
 });
 
 const speciesJSON = [

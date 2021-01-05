@@ -37,10 +37,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import { Colors, Typography } from '_styles';
-import { SelectSpecies } from '../../Components';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import i18next from 'i18next';
+import SelectSpecies from '../SelectSpecies/index';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -67,7 +67,6 @@ const InventoryOverview = ({ navigation }) => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
       setInventory(inventory);
-
     });
   };
   `Location Type: ${locationType}`;
@@ -100,7 +99,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn={inventory.status === 'complete' ?  true : false}
+                      activeBtn={inventory.status === 'complete' ? true : false}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -319,9 +318,9 @@ const InventoryOverview = ({ navigation }) => {
     status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null;
   };
 
-  const onPressSaveAndContinue = (SelectSpeciesList) => {
+  const onPressSaveAndContinueMultiple = (selectedspeciesList) => {
     //  Add it to local Db
-    addSpeciesAction({ inventory_id: state.inventoryID, species: SelectSpeciesList }).then(() => {
+    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedspeciesList }).then(() => {
       initiatState();
     });
   };
@@ -329,12 +328,14 @@ const InventoryOverview = ({ navigation }) => {
   const renderSelectSpeciesModal = () => {
     const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
     if (inventory) {
+      console.log(inventory);
       return (
         <SelectSpecies
-          species={inventory.species}
+          speciess={inventory.species}
+          invent={inventory}
           visible={isShowSpeciesListModal}
           closeSelectSpeciesModal={closeSelectSpeciesModal}
-          onPressSaveAndContinue={onPressSaveAndContinue}
+          onPressSaveAndContinueMultiple={onPressSaveAndContinueMultiple}
         />
       );
     } else {
@@ -346,8 +347,13 @@ const InventoryOverview = ({ navigation }) => {
   let isSingleCoordinate, locateType;
   if (inventory) {
     isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
-    locationType = isSingleCoordinate ? i18next.t('label.tree_inventory_point') : i18next.t('label.tree_inventory_polygon');
-    locateType = inventory.locate_tree == 'off-site' ? i18next.t('label.tree_inventory_off_site') : i18next.t('label.tree_inventory_on_site');
+    locationType = isSingleCoordinate
+      ? i18next.t('label.tree_inventory_point')
+      : i18next.t('label.tree_inventory_polygon');
+    locateType =
+      inventory.locate_tree == 'off-site'
+        ? i18next.t('label.tree_inventory_off_site')
+        : i18next.t('label.tree_inventory_on_site');
   }
 
   let status = inventory ? inventory.status : 'pending';
@@ -362,6 +368,7 @@ const InventoryOverview = ({ navigation }) => {
                 closeIcon
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
+                onBackPress={() => navigation.navigate('TreeInventory')}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}

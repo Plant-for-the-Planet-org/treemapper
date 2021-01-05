@@ -26,14 +26,18 @@ import {
   updateSpeceiDiameter,
   updatePlantingDate,
   initiateInventory,
+  UpdateSpecieAndSpecieDiameter,
+  DeleteInventory,
+  // statusToComplete
 } from '../../Actions';
 import { store } from '../../Actions/store';
 import { LocalInventoryActions } from '../../Actions/Action';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
+// import SelectSpecies from '../SelectSpecies';
 
-const SingleTreeOverview = ({ navigation }) => {
+const SingleTreeOverview = ({ navigation, route }) => {
   const specieDiameterRef = useRef();
 
   const { state, dispatch } = useContext(store);
@@ -45,6 +49,8 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const [specieText, setSpecieText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
+  const [locateTree, setLocateTree] = useState(null);
+  //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
     let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -53,8 +59,10 @@ const SingleTreeOverview = ({ navigation }) => {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
+        console.log(inventory, 'overview');
         setInventory(inventory);
         setSpecieText(inventory.specei_name);
+        setLocateTree(inventory.locate_tree);
         setSpecieDiameter(inventory.species_diameter);
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
@@ -63,7 +71,7 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const onSubmitInputFeild = (action) => {
     if (action === 'specieText') {
-      updateSpeceiName({ inventory_id: state.inventoryID, specieText: specieText });
+      updateSpeceiName({ inventory_id: inventory.inventory_id, speciesText: specieText });
     } else {
       updateSpeceiDiameter({
         inventory_id: state.inventoryID,
@@ -115,7 +123,7 @@ const SingleTreeOverview = ({ navigation }) => {
                 ) : (
                   <TextInput
                     ref={specieDiameterRef}
-                    value={specieDiameter}
+                    value={specieDiameter.toString()}
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
@@ -187,12 +195,12 @@ const SingleTreeOverview = ({ navigation }) => {
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    let shouldEdit = inventory.status == 'incomplete';
+    let shouldEdit = inventory.status == 'incomplete' ? true : inventory.status == null ? true : false;
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
-    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
-
+    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
+    
     return (
       <View style={detailContainerStyle}>
         <View>
@@ -258,6 +266,38 @@ const SingleTreeOverview = ({ navigation }) => {
     );
   };
 
+  const renderOnSite = ({polygons}) => {
+    let coords;
+    if (polygons[0]) {
+      coords = polygons[0].coordinates[0];
+    }
+    // let detailHeaderStyle = !imageSource
+    //   ? [styles.detailHeader, styles.defaulFontColor]
+    //   : [styles.detailHeader];
+    // let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
+    return (
+      <View style={{paddingTop: 20, fontFamily: Typography.FONT_FAMILY_REGULAR, fontSize: Typography.FONT_SIZE_18}}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+          <Text style={styles.detailHead}>Location</Text>
+          <Text style={styles.detailTxt}>
+            {`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`}{' '}
+          </Text>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+          <Text style={styles.detailHead}>Species</Text>
+          <Text style={styles.detailTxt} >
+            {specieText}{' '}
+          </Text>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+          <Text style={styles.detailHead}>Diameter</Text>
+          <Text style={styles.detailTxt} >
+            {`${specieDiameter}cm`}{' '}
+          </Text>
+        </View>
+      </View>
+    );
+  };
   const onPressSave = () => {
     if (inventory.status == 'complete') {
       navigation.navigate('TreeInventory');
@@ -273,6 +313,20 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
+  // const onPressSaveOnSite = () => {
+  //   if (inventory.status == 'complete') {
+  //     navigation.navigate('TreeInventory');
+  //   } else {
+  //     if (specieText) {
+  //       let data = { inventory_id: state.inventoryID };
+  //       statusToComplete(data).then(() => {
+  //         navigation.navigate('RegisterSingleTree');
+  //       });
+  //     } else {
+  //       alert('Species Name  is required');
+  //     }
+  //   }
+  // };
   const onPressNextTree = () => {
     if (inventory.status == 'incomplete') {
       statusToPending({ inventory_id: state.inventoryID }).then(() => {
@@ -294,22 +348,73 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
+  const onBackPressOnSite = () => {
+    navigation.navigate('TreeInventory');
+    // setIsShowSpeciesListModal(true);
+    // if (direction){
+    //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
+    // }else {
+    // navigation.goBack();
+    // }
+  };
+
+  // const renderSpeciesModal = () => {
+  //   const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
+  //   if(inventory) {
+  //     return (
+  //       <SelectSpecies
+  //         species={inventory.species}
+  //         visible={isShowSpeciesListModal}
+  //         closeSelectSpeciesModal={closeSelectSpeciesModal}
+  //         treeType={inventory.locate_tree}
+  //         onPressSaveAndContinue={onPressSaveAndContinue}
+  //       />
+  //     );
+  //   } else {
+  //     return;
+  //   }
+  // };
+
+  
+
+
   const goBack = () => {
     navigation.goBack();
+  };
+
+  const deleteInventory = () => {
+    DeleteInventory({inventory_id: inventory.inventory_id}).then(() => {
+      navigation.navigate('TreeInventory');
+    }).catch((err) => {
+      console.log(err);
+    });
   };
 
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderinputModal()}
       {renderDateModal()}
-      <View style={styles.container}>
-        <Header
-          closeIcon
-          onBackPress={onBackPress}
-          headingText={i18next.t('label.tree_review_header')}
-        />
+      {/* {renderSpeciesModal()} */}
+      <View style={styles.container}> 
+        {locateTree === 'on-site' ? (
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10}}>
+            <Header
+              closeIcon
+              onBackPress={onBackPressOnSite}
+              headingText={i18next.t('label.tree_review_header')}
+            />
+            <TouchableOpacity style={{paddingTop: 15}} onPress={deleteInventory}>
+              <Text style={{fontFamily: Typography.FONT_FAMILY_REGULAR, fontSize: Typography.FONT_SIZE_18, lineHeight: Typography.LINE_HEIGHT_24}}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        ) :
+          <Header
+            closeIcon
+            onBackPress={onBackPress}
+            headingText={locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')}
+          />}
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-          {inventory && (
+          {inventory && locateTree !== 'on-site' && (
             <View style={styles.overViewContainer}>
               {imageSource && <Image source={imageSource} style={styles.bgImage} />}
               <LinearGradient
@@ -322,20 +427,35 @@ const SingleTreeOverview = ({ navigation }) => {
               </LinearGradient>
             </View>
           )}
+          {locateTree === 'on-site' && (
+            <View style={styles.overViewContainer}>
+
+              {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
+              {renderOnSite(inventory)}
+            </View>
+          )}
         </ScrollView>
-        <View style={styles.bottomBtnsContainer}>
+        {/* {locateTree === 'on-site' ? (
           <PrimaryButton
             onPress={onPressNextTree}
             btnText={i18next.t('label.tree_review_next_btn')}
-            halfWidth
-            theme={'white'}
+
           />
-          <PrimaryButton
-            onPress={onPressSave}
-            btnText={i18next.t('label.tree_review_Save')}
-            halfWidth
-          />
-        </View>
+        ) : */}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+              halfWidth
+              theme={'white'}
+            />
+            <PrimaryButton
+              onPress={onPressSave}
+              btnText={i18next.t('label.tree_review_Save')}
+              halfWidth
+            />
+          </View>
+          {/* } */}
       </View>
     </SafeAreaView>
   );
@@ -395,7 +515,7 @@ const styles = StyleSheet.create({
   },
   detailHeader: {
     fontSize: Typography.FONT_SIZE_14,
-    color: Colors.WHITE,
+    color: Colors.GRAY_LIGHTEST,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginVertical: 5,
   },
@@ -440,4 +560,21 @@ const styles = StyleSheet.create({
     left: 0,
     padding: 20,
   },
+  imgSpecie: {
+    width: '100%',
+    height: '50%'
+  },
+  detailHead: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR, 
+    fontSize: Typography.FONT_SIZE_18, 
+    color: Colors.TEXT_COLOR, 
+    fontWeight: Typography.FONT_WEIGHT_BOLD, 
+    lineHeight: Typography.LINE_HEIGHT_24
+  },
+  detailTxt: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR, 
+    fontSize: Typography.FONT_SIZE_18, 
+    color: Colors.TEXT_COLOR, 
+    lineHeight: Typography.LINE_HEIGHT_24
+  }
 });

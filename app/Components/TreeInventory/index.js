@@ -27,6 +27,7 @@ import { LocalInventoryActions } from '../../Actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
+// import { createSpecies } from '../../Actions/UploadInventory';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(store);
@@ -153,6 +154,7 @@ const TreeInventory = ({ navigation }) => {
     checkIsUserLogin().then(() => {
       setIsLoaderShow(true);
       uploadInventory()
+      // createSpecies()
         .then((data) => {
           initialState();
           setIsLoaderShow(false);
