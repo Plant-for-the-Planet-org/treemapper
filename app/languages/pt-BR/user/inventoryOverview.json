@@ -9,9 +9,10 @@
   "inventory_overview_sub_header": "As árvores serão adicionadas ao seu inventário para sincronizar quando você tiver internet.",
   "inventory_overview_left_text": "Data do Plantio",
   "inventory_overview_left_text_planted_species": "Espécies Plantadas",
-  "inventory_overview_loc_left_text": "{{item.nameOfTree}}",
+  "inventory_overview_loc_left_text": "{{item.aliases}}",
   "inventory_overview_loc_right_text": "{{item.treeCount}}árvores",
   "inventory_overview_loc_export_json": "Exportar GeoJson",
   "inventory_overview_loc_next_tree": "Próxima árvore",
-  "inventory_overview_loc_save": "Salvar"
+  "inventory_overview_loc_save": "Salvar",
+  "inventory_overview_date": "{{date, ll}}"
 }
