@@ -231,7 +231,7 @@ class MapMarking extends React.Component {
   };
 
   onPressContinue = () => {
-    const { inventoryID, updateScreenState, navigation } = this.props;
+    const { inventoryID } = this.props;
     const { markedCoords, locateTree } = this.state;
     Geolocation.getCurrentPosition(
       (position) => {
@@ -242,11 +242,7 @@ class MapMarking extends React.Component {
           locateTree: locateTree,
           currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
         }).then(() => {
-          if (locateTree == 'off-site') {
-            navigation.navigate('SingleTreeOverview');
-          } else {
-            updateScreenState('ImageCapturing');
-          }
+          this.setState({isAlrightyModalShow: true});
         });
       },
       (err) => alert(err.message),
@@ -255,9 +251,15 @@ class MapMarking extends React.Component {
 
   renderAlrightyModal = () => {
     const { isAlrightyModalShow, locateTree } = this.state;
-    const { updateScreenState } = this.props;
+    const { updateScreenState, navigation } = this.props;
 
     const onPressClose = () => this.setState({ isAlrightyModalShow: false });
+
+    const moveScreen = () => updateScreenState('ImageCapturing');
+    const offSiteContinue = () => {
+      navigation.navigate('SingleTreeOverview');
+      onPressClose();
+    };
 
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
@@ -277,7 +279,7 @@ class MapMarking extends React.Component {
             bannerImage={bannerImage}
             onPressClose={onPressClose}
             onPressWhiteButton={onPressClose}
-            onPressContinue={this.onPressContinue}
+            onPressContinue={locateTree === 'off-site' ? offSiteContinue : moveScreen}
             heading={heading}
             subHeading={subHeading}
             whiteBtnText={whiteBtnText}
