@@ -1,6 +1,6 @@
 {
-  "select_species_local_name": "{{item.localName}}",
-  "select_species_name_of_tree": "{{item.nameOfTree}}",
+  "select_species_local_name": "{{item.name}}",
+  "select_species_name_of_tree": "{{item.scientificName}}",
   "select_species_tree_count": "{{count}} Arbres",
   "select_species_tree_count_modal_header": "Combien",
   "select_species_tree_count_modal_sub_header": "{{specieName}}",

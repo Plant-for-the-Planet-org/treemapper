@@ -1,1 +1,4 @@
-{ }
+{
+  "select_species_local_name": "{{item.name}}",
+  "select_species_name_of_tree": "{{item.scientificName}}"
+}

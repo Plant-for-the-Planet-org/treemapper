@@ -1,5 +1,5 @@
 {
-  "select_species_local_name": "{{item.aliases}}",
+  "select_species_local_name": "{{item.name}}",
   "select_species_name_of_tree": "{{item.scientificName}}",
   "select_species_tree_count": "{{count}} Bäume",
   "select_species_tree_count_modal_header": "Wie viele",
