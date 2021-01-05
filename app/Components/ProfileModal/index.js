@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { close, logo } from '../../assets';
 import { Colors, Typography } from '_styles';
@@ -8,6 +8,9 @@ import { getUserInformationFromServer } from '../../Actions/User';
 import i18next from 'i18next';
 import { LoginDetails } from '../../Actions/index';
 import jwtDecode from 'jwt-decode';
+import { SpeciesList } from '../../Services/Species';
+import { SpeciesListAction } from '../../Actions/Action';
+import {store} from '../../Actions/store';
 
 const ProfileModal = ({
   isUserLogin,
@@ -17,6 +20,7 @@ const ProfileModal = ({
 }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
+  const {dispatch} = useContext(store);
 
   useEffect(() => {
     if (isUserLogin) {
@@ -32,6 +36,9 @@ const ProfileModal = ({
       let detail = (Object.values(User));
       let decode = jwtDecode(detail[0].idToken);
       setUserPhoto(decode.picture);
+      SpeciesList(detail[0].accessToken).then((data) =>{
+        dispatch(SpeciesListAction.setSpeciesList(data))
+      });
     });
   };
   const onPressSupport = () => {
