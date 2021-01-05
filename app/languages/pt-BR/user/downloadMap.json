@@ -1,1 +1,6 @@
-{}
+{
+  "download_map_complete": "Download do mapa completo",
+  "download_map_area": "Fazer download dessa área?",
+  "download_map": "Download",
+  "download_map_view": "Ver tudo"
+}

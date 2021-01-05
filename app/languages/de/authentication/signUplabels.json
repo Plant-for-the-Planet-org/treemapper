@@ -1,8 +1,8 @@
 {
-  "signup": "Anmelden",
+  "signup": "Vervollständige Anmeldung",
   "email": "EMAIL",
-  "mayPublish": "Ich bin damit einverstanden, dass mein Name auf der Plant-for-the-Planet Website und App veröffentlicht wird.",
-  "mayContact": "Ich bin damit einverstanden, dass ich von der Kinder- und Jugendorganisation Plant-for-the-Planet im Rahmen von Neuigkeiten und Herausforderungen im Zusammenhang mit Baumpflanzungen kontaktiert werden kann.",
+  "isPrivate": "Ich bin damit einverstanden, dass mein Name auf der Plant-for-the-Planet Website und App veröffentlicht wird.",
+  "getNews": "Ich bin damit einverstanden, dass ich von der Kinder- und Jugendorganisation Plant-for-the-Planet im Rahmen von Neuigkeiten und Herausforderungen im Zusammenhang mit Baumpflanzungen kontaktiert werden kann.",
   "firstname": "VORNAME",
   "lastname": "NACHNAME",
   "tpo_title": "Baumpflanzungs-Organisation",
@@ -11,6 +11,10 @@
   "signup_confirm": "Bitte bestätige deine Angaben.",
   "individual": "Einzelperson",
   "company": "Unternehmen",
-  "tpo_title_organisation": "Name von {{roleText}}",
-  "create_profile": "Profil erstellen"
+  "tpo_title_organisation": "NAME VON {{roleText}}",
+  "create_profile": "Profil erstellen",
+  "city": "STADT",
+  "address": "ADRESSE",
+  "zipcode": "PLZ",
+  "account_type": "Kontotyp"
 }

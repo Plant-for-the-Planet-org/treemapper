@@ -1,4 +1,16 @@
 {
+  "tree_review_header": "Compte rendu",
+  "tree_review_next_btn": "Arbre suivant",
   "tree_review_Save": "Sauvegarder",
-  "tree_review_diameter": "Diamètre"
+  "tree_review_name_of_species": "Nom de l'espèce",
+  "tree_review_diameter": "Diamètre",
+  "tree_review_location": "EMPLACEMENT",
+  "tree_review_specie": "ESPÈCE",
+  "tree_review_unable": "Impossible d'identifier",
+  "tree_review_diameter_header": "DIAMÈTRE (en cm)",
+  "tree_review_specie_text": "{{specieText}}",
+  "tree_review_specie_diameter": "{{specieDiameter}}cm",
+  "tree_review_plantation_date": "DATE DE PLANTATION",
+  "tree_Review_plantation_date_text": "{{date, ll}}",
+  "tree_review_alrighty": "Compléter"
 }
