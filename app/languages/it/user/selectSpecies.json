@@ -1,0 +1,4 @@
+{
+  "select_species_local_name": "{{item.localName}}",
+  "select_species_name_of_tree": "{{item.nameOfTree}}"
+}

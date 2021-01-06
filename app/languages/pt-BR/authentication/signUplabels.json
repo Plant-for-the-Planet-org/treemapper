@@ -1,1 +1,20 @@
-{}
+{
+  "signup": "Complete a inscrição",
+  "email": "Email",
+  "isPrivate": "Eu concordo em ter meu nome publicado no site e no app Plant for-the-Planet.",
+  "getNews": "Concordo em possivelmente ser contatado pela organização de crianças e jovens Plant-for-the-Planet para receber novidades e desafios do plantio de árvores.",
+  "firstname": "Primeiro Nome",
+  "lastname": "Sobrenome",
+  "tpo_title": "Organização de Plantio de Árvores",
+  "education_title": "Escola",
+  "education": "Educação",
+  "signup_confirm": "Por favor, confirme seus dados.",
+  "individual": "Indivíduo",
+  "company": "Empresa",
+  "tpo_title_organisation": "Nome do {{roleText}}",
+  "create_profile": "Criar Perfil",
+  "city": "CIDADE",
+  "address": "ENDEREÇO",
+  "zipcode": "CÓDIGO POSTAL",
+  "account_type": "TIPO DE CONTA"
+}
