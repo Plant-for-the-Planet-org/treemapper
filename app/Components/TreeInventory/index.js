@@ -151,27 +151,12 @@ const TreeInventory = ({ navigation }) => {
       uploadInventory(dispatch)
         .then((data) => {
           initialState();
-          // navigation.navigate('MainScreen');
         })
         .catch((err) => {
           console.error(err);
         });
       navigation.navigate('MainScreen');
     });
-  };
-
-  const renderLoaderModal = () => {
-    return (
-      <Modal transparent visible={isLoaderShow}>
-        <View style={styles.dowloadModalContainer}>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>
-              Uploading..........
-            </Text>
-          </View>
-        </View>
-      </Modal>
-    );
   };
 
   const renderInventory = () => {
@@ -280,7 +265,6 @@ const TreeInventory = ({ navigation }) => {
         : allInventory == null
         ? renderLoadingInventoryList()
         : renderEmptyInventoryList()}
-      {renderLoaderModal()}
     </View>
   );
 };
