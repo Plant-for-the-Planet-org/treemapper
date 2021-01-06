@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground, Modal, Dimensions, Alert } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+  Modal,
+  Dimensions,
+  Alert,
+} from 'react-native';
 import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -12,9 +20,9 @@ import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
 import { store } from '../../Actions/store';
-import { LoaderActions } from '../../Actions/Action';
+import { LoaderActions, LocalInventoryActions } from '../../Actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
-import jwtDecode from 'jwt-decode'; 
+import jwtDecode from 'jwt-decode';
 import { LoginDetails } from '../../Actions/index';
 
 const { width, height } = Dimensions.get('window');
@@ -24,12 +32,23 @@ const MainScreen = ({ navigation }) => {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
-  const {state, dispatch} = useContext(store);
+  const { state, dispatch } = useContext(store);
   const [userPhoto, setUserPhoto] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     checkIsLogin();
     getAllInventory().then((data) => {
+      console.log('inventory data', data);
+      let count = 0;
+      for (inventory of data) {
+        if (inventory.status === 'pending') {
+          count++;
+        }
+      }
+      console.log('count n pendingCount', count, pendingCount);
+      setPendingCount(count);
+      dispatch(LocalInventoryActions.updatePendingCount('custom', count));
       setNumberOfInventory(Object.values(data).length);
     });
   }, [navigation]);
@@ -37,7 +56,7 @@ const MainScreen = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       checkIsLogin();
-    }, [])
+    }, []),
   );
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
@@ -53,22 +72,22 @@ const MainScreen = ({ navigation }) => {
       setIsProfileModalVisible(true);
     } else {
       dispatch(LoaderActions.setLoader(true));
-      auth0Login(navigation).then((data) => {
-        setIsUserLogin(data);
-        dispatch(LoaderActions.setLoader(false));
-      }).catch((err) => {
-        if (err.error !== 'a0.session.user_cancelled') {
-          Alert.alert(
-            'Verify your Email',
-            'Please verify your email before logging in.',
-            [
-              { text: 'OK', onPress: () => console.log('OK Pressed') }
-            ],
-            { cancelable: false }
-          );
-        }
-        dispatch(LoaderActions.setLoader(false));
-      });
+      auth0Login(navigation)
+        .then((data) => {
+          setIsUserLogin(data);
+          dispatch(LoaderActions.setLoader(false));
+        })
+        .catch((err) => {
+          if (err.error !== 'a0.session.user_cancelled') {
+            Alert.alert(
+              'Verify your Email',
+              'Please verify your email before logging in.',
+              [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+              { cancelable: false },
+            );
+          }
+          dispatch(LoaderActions.setLoader(false));
+        });
     }
   };
 
@@ -93,7 +112,7 @@ const MainScreen = ({ navigation }) => {
 
   const userImage = () => {
     LoginDetails().then((User) => {
-      let detail = (Object.values(User));
+      let detail = Object.values(User);
       let decode = jwtDecode(detail[0].idToken);
       setUserPhoto(decode.picture);
     });
@@ -126,7 +145,9 @@ const MainScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeAreaViewCont}>
-      {state.isLoading ? <Loader isLoaderShow={true} /> :
+      {state.isLoading ? (
+        <Loader isLoaderShow={true} />
+      ) : (
         <View style={styles.container}>
           <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
             <MainScreenHeader
@@ -136,10 +157,15 @@ const MainScreen = ({ navigation }) => {
               accessibilityLabel={'Login / Sign Up'}
               photo={userPhoto}
             />
-            {state.isUploading &&
-          <View style={{position: 'absolute', top: 30, bottom: 0}}>
-            <Sync progress={state.progress} />
-          </View>}
+
+            <View style={{ position: 'absolute', top: 20 }}>
+              <Sync
+                progress={state.progress}
+                uploadCount={state.uploadCount}
+                pendingCount={state.pendingCount}
+                isUploading={state.isUploading}
+              />
+            </View>
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -191,7 +217,8 @@ const MainScreen = ({ navigation }) => {
               accessibilityLabel={'Register Tree'}
             />
           </ScrollView>
-        </View>}
+        </View>
+      )}
       {renderVideoModal()}
       <ProfileModal
         isUserLogin={isUserLogin}

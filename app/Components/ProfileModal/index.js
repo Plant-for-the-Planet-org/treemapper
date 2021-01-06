@@ -11,7 +11,7 @@ import { LoginDetails } from '../../Actions/index';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../Services/Species';
 import { SpeciesListAction } from '../../Actions/Action';
-import {store} from '../../Actions/store';
+import { store } from '../../Actions/store';
 
 const ProfileModal = ({
   isUserLogin,
@@ -21,24 +21,26 @@ const ProfileModal = ({
 }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
-  const {dispatch} = useContext(store);
+  const { dispatch } = useContext(store);
 
   useEffect(() => {
     if (isUserLogin) {
-      getUserInformationFromServer().then((userInfo) => {
-        setUserInfo(userInfo);
-      }).catch((err) => console.log(err));
+      getUserInformationFromServer()
+        .then((userInfo) => {
+          setUserInfo(userInfo);
+        })
+        .catch((err) => console.log(err));
     }
     userImage();
   }, [isUserLogin]);
 
   const userImage = () => {
     LoginDetails().then((User) => {
-      let detail = (Object.values(User));
+      let detail = Object.values(User);
       let decode = jwtDecode(detail[0].idToken);
       setUserPhoto(decode.picture);
-      SpeciesList(detail[0].accessToken).then((data) =>{
-        dispatch(SpeciesListAction.setSpeciesList(data))
+      SpeciesList(detail[0].accessToken).then((data) => {
+        dispatch(SpeciesListAction.setSpeciesList(data));
       });
     });
   };
@@ -76,77 +78,47 @@ const ProfileModal = ({
             </View>
             <View style={styles.profileSection1}>
               <Image
-                style={{ width: 50, height: 50, marginHorizontal: 10, }}
+                style={{ width: 50, height: 50, marginHorizontal: 10 }}
                 source={{ uri: avatar }}
               />
               {/* <Image source={{ uri: avatar }} style={styles.avatar} /> */}
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                <Text style={styles.userEmail}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
                 <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>
             <View style={styles.profileSection}>
-              <Icon 
-                name="user-edit"
-                size={25}
-                color={Colors.TEXT_COLOR}
-                style={styles.avatar}
-              />
-              <TouchableOpacity 
-                style={styles.nameAndEmailContainer}
-                onPress={onPressEdit}
-              >
+              <Icon name="user-edit" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
+              <TouchableOpacity style={styles.nameAndEmailContainer} onPress={onPressEdit}>
                 <Text style={styles.userName}>{i18next.t('label.edit_profile')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
-              <Icon 
-                name="leaf"
-                size={25}
-                color={Colors.TEXT_COLOR}
-                style={styles.avatar}
-              />
-              <TouchableOpacity
-                style={styles.nameAndEmailContainer}
-              >
+              <Icon name="leaf" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
+              <TouchableOpacity style={styles.nameAndEmailContainer}>
                 <Text style={styles.userName}>{i18next.t('label.manage_species')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
-              <Icon 
+              <Icon
                 name="cloud-upload-alt"
                 size={25}
                 color={Colors.TEXT_COLOR}
                 style={styles.avatar}
               />
-              <TouchableOpacity
-                style={styles.nameAndEmailContainer}
-              >
+              <TouchableOpacity style={styles.nameAndEmailContainer}>
                 <Text style={styles.userName}>{i18next.t('label.back_up')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
-              <Icon 
-                name="map-marked"
-                size={25}
-                color={Colors.TEXT_COLOR}
-                style={styles.avatar}
-              />
-              <TouchableOpacity
-                style={styles.nameAndEmailContainer}
-              >
+              <Icon name="map-marked" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
+              <TouchableOpacity style={styles.nameAndEmailContainer}>
                 <Text style={styles.userName}>{i18next.t('label.manage_offline')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.profileSection}>
-              <Image 
-                source={logout}
-                style={styles.imgIcon}
-              />
-              <TouchableOpacity
-                onPress={onPressLogout}
-                style={styles.nameAndEmailContainer}
-              >
+              <Image source={logout} style={styles.imgIcon} />
+              <TouchableOpacity onPress={onPressLogout} style={styles.nameAndEmailContainer}>
                 <Text style={styles.userName}>{i18next.t('label.logout')}</Text>
               </TouchableOpacity>
             </View>
@@ -219,7 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-evenly',
     paddingVertical: 10,
-    paddingLeft: 13
+    paddingLeft: 13,
   },
   primaryBtnContainer: {
     borderColor: Colors.LIGHT_BORDER_COLOR,
@@ -244,7 +216,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR
+    color: Colors.TEXT_COLOR,
   },
   userEmail: {
     color: Colors.TEXT_COLOR,
@@ -252,7 +224,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   bottomBtnsContainer: {
     flexDirection: 'row',
@@ -261,8 +233,8 @@ const styles = StyleSheet.create({
   imgIcon: {
     width: 25,
     height: 25,
-    marginHorizontal: 20
-  }
+    marginHorizontal: 20,
+  },
 });
 
 export default ProfileModal;

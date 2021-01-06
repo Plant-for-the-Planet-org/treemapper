@@ -46,7 +46,7 @@ import SelectSpecies from '../SelectSpecies/index';
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
 
-  const { state } = useContext(store);
+  const { state, dispatch } = useContext(store);
 
   const [inventory, setInventory] = useState(null);
   const [locationTitle, setlocationTitle] = useState('');
@@ -125,7 +125,7 @@ const InventoryOverview = ({ navigation }) => {
     if (inventory.status == 'incomplete') {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID };
-        statusToPending(data).then(() => {
+        statusToPending(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -333,7 +333,7 @@ const InventoryOverview = ({ navigation }) => {
       return (
         <SelectSpecies
           speciess={inventory.species}
-          invent ={inventory}
+          invent={inventory}
           visible={isShowSpeciesListModal}
           closeSelectSpeciesModal={closeSelectSpeciesModal}
           onPressSaveAndContinueMultiple={onPressSaveAndContinueMultiple}
@@ -379,9 +379,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={status == 'incomplete' ? i18next.t('label.edit') : ''}
-                onPressRightText={
-                  () => setIsShowSpeciesListModal(true)
-                }
+                onPressRightText={() => setIsShowSpeciesListModal(true)}
               />
               <FlatList
                 data={inventory.species}

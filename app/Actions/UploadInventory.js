@@ -13,7 +13,7 @@ import {
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
-import { UploadAction } from './Action';
+import { LocalInventoryActions, UploadAction } from './Action';
 import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
@@ -36,6 +36,10 @@ const uploadInventory = (dispatch) => {
                     let coordinates = [];
                     let species = [];
                     allPendingInventory = Object.values(allPendingInventory);
+                    dispatch(
+                      LocalInventoryActions.updateUploadCount('custom', allPendingInventory.length),
+                    );
+                    dispatch(LocalInventoryActions.updateIsUploading(true));
                     for (let i = 0; i < allPendingInventory.length; i++) {
                       const oneInventory = allPendingInventory[i];
                       let polygons = Object.values(oneInventory.polygons);
@@ -81,14 +85,24 @@ const uploadInventory = (dispatch) => {
                           .then((data) => {
                             let response = data.data;
                             if (oneInventory.locate_tree == 'off-site') {
-                              statusToComplete({ inventory_id: oneInventory.inventory_id });
+                              statusToComplete({ inventory_id: oneInventory.inventory_id }).then(
+                                () => {
+                                  dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+                                  dispatch(LocalInventoryActions.updateUploadCount('decrement'));
+                                },
+                              );
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
                               }
                             } else {
                               uploadImage(oneInventory, response, userToken, sessionData, dispatch)
                                 .then(() => {
-                                  statusToComplete({ inventory_id: oneInventory.inventory_id });
+                                  statusToComplete({
+                                    inventory_id: oneInventory.inventory_id,
+                                  }).then(() => {
+                                    dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+                                    dispatch(LocalInventoryActions.updateUploadCount('decrement'));
+                                  });
                                   if (allPendingInventory.length - 1 == i) {
                                     resolve();
                                   }
@@ -105,6 +119,7 @@ const uploadInventory = (dispatch) => {
                           });
                       });
                     }
+                    dispatch(LocalInventoryActions.updateIsUploading(false));
                   })
                   .catch((err) => {});
               },

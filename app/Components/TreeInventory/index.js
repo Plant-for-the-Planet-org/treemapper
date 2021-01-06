@@ -148,17 +148,15 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
-      setIsLoaderShow(true);
-      uploadInventory()
-        // createSpecies()
+      uploadInventory(dispatch)
         .then((data) => {
           initialState();
-          setIsLoaderShow(false);
-          navigation.navigate('MainScreen');
+          // navigation.navigate('MainScreen');
         })
         .catch((err) => {
-          setIsLoaderShow(false);
+          console.error(err);
         });
+      navigation.navigate('MainScreen');
     });
   };
 
