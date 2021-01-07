@@ -122,7 +122,7 @@ const TreeInventory = ({ navigation }) => {
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch)
       .then(() => {
-        initialState();
+        console.log('upload inventory successfully');
       })
       .catch((err) => {
         console.error(err);
