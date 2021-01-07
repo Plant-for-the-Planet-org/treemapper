@@ -1,1 +1,6 @@
-{}
+{
+  "download_map_complete": "Téléchargement de la carte terminé",
+  "download_map_area": "Télécharger cette zone?",
+  "download_map": "Télécharger",
+  "download_map_view": "Tout voir"
+}

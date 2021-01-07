@@ -1,1 +1,14 @@
-{}
+{
+  "email": "Correo electrónico",
+  "isPrivate": "Acepto que mi nombre se publique en el sitio web de Plant-for-the-Planet y en la aplicación.",
+  "getNews": "Acepto que la organización de niños y jóvenes Plant-for-the-Planet me contacte para actualizarme sobre los desafíos de plantar árboles.",
+  "firstname": "Nombre",
+  "lastname": "Apellidos",
+  "tpo_title": "Organización de plantación de árboles",
+  "education_title": "Escuela",
+  "education": "Educación",
+  "signup_confirm": "Por favor, confirma tus datos.",
+  "individual": "Individual",
+  "company": "Empresa",
+  "create_profile": "Crear el perfil"
+}

@@ -9,7 +9,7 @@
   "inventory_overview_sub_header": "Bäume werden zu deinem Inventar hinzugefügt, um sie zu synchronisieren, wenn du Internet hast.",
   "inventory_overview_left_text": "Pflanzdatum",
   "inventory_overview_left_text_planted_species": "Gepflanzte Arten",
-  "inventory_overview_loc_left_text": "{{item.nameOfTree}}",
+  "inventory_overview_loc_left_text": "{{item.aliases}}",
   "inventory_overview_loc_right_text": "{{item.treeCount}} Bäume",
   "inventory_overview_loc_export_json": "GeoJson exportieren",
   "inventory_overview_loc_next_tree": "Nächster Baum",
