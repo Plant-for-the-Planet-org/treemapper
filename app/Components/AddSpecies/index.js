@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TouchableOpacity, TextInput,  KeyboardAvoidingView, Platform, Image } from 'react-native';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from 'react-native';
 import { Colors, Typography } from '_styles';
 import { Header } from '../Common';
 //import { SvgXml } from 'react-native-svg';
@@ -7,16 +18,16 @@ import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 //import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getInventory, isLogin,auth0Login,} from '../../Actions';
+import { getInventory, isLogin, auth0Login } from '../../Actions';
 //import { add_image } from '../../assets';
 import { SearchSpecies } from '../../Services/Species';
 //import Camera from '../Common/Camera';
 import { store } from '../../Actions/store';
 import { createSpecies } from '../../Actions/UploadInventory';
 import { SpecieIdFromServer } from '../../Actions/Action';
-import {placeholder_image} from '../../assets';
+import { placeholder_image } from '../../assets';
 
-export default function index({navigation}) {
+export default function index({ navigation }) {
   const [imagePath, setImagePath] = useState(null);
   const [search, setSearch] = useState(null);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
@@ -47,51 +58,40 @@ export default function index({navigation}) {
   }, [search]);
 
   const searchSpecies = () => {
-    SearchSpecies(search).then((data) => {
-      setSearchList(data);
-      console.log(data, 'search data');
-    }).catch((err) => {
-      console.log(err);
-    });
+    SearchSpecies(search)
+      .then((data) => {
+        setSearchList(data);
+        console.log(data, 'search data');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const onPressSearchBtn = () => {
     searchSpecies();
   };
 
-  const checkIsUserLogin = () => {
-    return new Promise((resolve, reject) => {
-      isLogin()
-      .then(() => {
-        resolve();
-      })
-      .catch(() => {
-        auth0Login();
-      })
-    }
-    );
-  };
-
   const addSelectedSpecies = () => {
-    checkIsUserLogin().then(() => {
+    isLogin().then(() => {
       if (selectedSpecies.length === 0) {
         navigation.goBack();
       }
       let species = [...selectedSpecies];
-      for(let specie of species ) {
+      for (let specie of species) {
         console.log(specie, 'specie');
         createSpecies(imagePath, specie.id, specie.scientificName).then((data) => {
           dispatch(SpecieIdFromServer.setSpecieId(data));
           navigation.goBack();
         });
-      // AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName, speciesId: specie.id}).then((data) => {
-      //   console.log(data, 'add species');
-      //   navigation.goBack();
-      // // setOpenImageModal(!openImageModal);
-      // // closeSearch(false);
-      // }).catch((err) => {
-      //   console.log(err, 'species');
-      // });
+        // AddUserSpecies({name: null, image: imagePath, scientificName: specie.scientificName, speciesId: specie.id}).then((data) => {
+        //   console.log(data, 'add species');
+        //   navigation.goBack();
+        // // setOpenImageModal(!openImageModal);
+        // // closeSearch(false);
+        // }).catch((err) => {
+        //   console.log(err, 'species');
+        // });
       }
     });
   };
@@ -99,12 +99,12 @@ export default function index({navigation}) {
     setSelectedSpecies([...selectedSpecies, item]);
   };
 
-  const renderSpeciesCard = ({item}) => {
+  const renderSpeciesCard = ({ item }) => {
     let isCheck;
     //let image;
     if (selectedSpecies !== null) {
-      let selectItem =[...selectedSpecies];
-      for(let specie of selectItem ) {
+      let selectItem = [...selectedSpecies];
+      for (let specie of selectItem) {
         if (specie === item) {
           isCheck = specie.name === item.name ? true : false;
         }
@@ -125,26 +125,17 @@ export default function index({navigation}) {
         accessibilityLabel="Species Card"
         testID="species_card">
         {isCheck ? (
-          <Icon 
-            name='check-circle'
-            size={25}
-            color={Colors.PRIMARY}
-          />
-        ) :
-          <Icon 
-            name='plus-circle'
+          <Icon name="check-circle" size={25} color={Colors.PRIMARY} />
+        ) : (
+          <Icon
+            name="plus-circle"
             size={25}
             color={Colors.TEXT_COLOR}
-            onPress={() =>addSpecies(item)}
-          />}
-        <TouchableOpacity onPress={() => onPressImage()} style={{flex:1}}>
-          <Image 
-            source={
-              placeholder_image
-            } 
-            resizeMode={'contain'} 
-            style={{ flex: 1}}
+            onPress={() => addSpecies(item)}
           />
+        )}
+        <TouchableOpacity onPress={() => onPressImage()} style={{ flex: 1 }}>
+          <Image source={placeholder_image} resizeMode={'contain'} style={{ flex: 1 }} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 20 }}>
           <Text numberOfLines={2} style={styles.speciesLocalName}>
@@ -164,24 +155,24 @@ export default function index({navigation}) {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <SafeAreaView style={styles.mainContainer}>
         {/* {renderSpeciesModal} */}
         <View style={styles.container}>
           <Header
             onBackPress={addSelectedSpecies}
             closeIcon
-            headingText='Add Species'
-            subHeadingText='Species list will update as you type Click + to add it to your profile'
+            headingText="Add Species"
+            subHeadingText="Species list will update as you type Click + to add it to your profile"
           />
-          <FlatList 
-            style={{flex: 1}}
+          <FlatList
+            style={{ flex: 1 }}
             data={searchList}
             renderItem={renderSpeciesCard}
-            keyExtractor={item=> item.id}
+            keyExtractor={(item) => item.id}
             extraData={selectedSpecies}
           />
-  
+
           <KeyboardAvoidingView
             behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
             style={styles.bgWhite}>
@@ -191,7 +182,7 @@ export default function index({navigation}) {
                 value={search}
                 style={styles.value}
                 autoFocus
-                placeholder='Select Species'
+                placeholder="Select Species"
                 placeholderTextColor={Colors.TEXT_COLOR}
                 onChangeText={(text) => setSearch(text)}
               />
@@ -230,7 +221,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_22,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
   speciesName: {
     flex: 1,
@@ -268,7 +259,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,.7)'
+    backgroundColor: 'rgba(0,0,0,.7)',
   },
   modalView: {
     margin: 6,
@@ -279,10 +270,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5
+    elevation: 5,
   },
 });

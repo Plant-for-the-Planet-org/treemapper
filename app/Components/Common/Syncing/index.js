@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
-import { uploadInventory, isLogin, auth0Login } from '../../../Actions';
 import { store } from '../../../Actions/store';
+import { uploadInventoryData } from '../../../Utils/uploadInventory';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, navigation }) {
   const [syncText, setSyncText] = useState('');
@@ -27,34 +27,14 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, naviga
     }
   }, [pendingCount, uploadCount, isUploading]);
 
-  const checkIsUserLogin = () => {
-    return new Promise((resolve, reject) => {
-      isLogin().then((isUserLogin) => {
-        if (!isUserLogin) {
-          auth0Login()
-            .then((isUserLogin) => {
-              isUserLogin ? resolve() : reject();
-            })
-            .catch((err) => {
-              alert(err.error_description);
-            });
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
-
   const onPressUploadNow = () => {
-    checkIsUserLogin().then(() => {
-      uploadInventory(dispatch)
-        .then(() => {
-          console.log('uploaded successfully');
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    });
+    uploadInventoryData(dispatch)
+      .then(() => {
+        console.log('uploaded successfully');
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const renderSyncContainer = () => {
