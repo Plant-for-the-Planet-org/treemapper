@@ -3,19 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 
-export default function index({ progress, uploadCount, pendingCount, isUploading }) {
-  const [averageProgress, setAverageProgress] = useState(null);
+export default function index({ uploadCount, pendingCount, isUploading }) {
   const [syncText, setSyncText] = useState('');
-  const average = () => {
-    if (progress.length > 1) {
-      const averageProgress = progress.reduce((a, b) => a + b) / progress.length;
-      setAverageProgress(averageProgress);
-      setSyncText(`Syncing - ${averageProgress} remaining`);
-    } else {
-      setAverageProgress(progress);
-      setSyncText(`Syncing - ${progress} remaining`);
-    }
-  };
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {
@@ -32,15 +21,7 @@ export default function index({ progress, uploadCount, pendingCount, isUploading
     } else {
       checkPendingCount();
     }
-  }, [uploadCount, isUploading]);
-
-  useEffect(() => {
-    if (isUploading) {
-      setSyncText(`Syncing - ${uploadCount} remaining`);
-    } else {
-      checkPendingCount();
-    }
-  }, [pendingCount, isUploading]);
+  }, [pendingCount, uploadCount, isUploading]);
 
   return (
     <View style={styles.syncContainer}>

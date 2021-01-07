@@ -12,7 +12,7 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } fr
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
-import { getAllInventory, auth0Login, isLogin, uploadInventory, auth0Logout } from '../../Actions';
+import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout } from '../../Actions';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -34,20 +34,16 @@ const MainScreen = ({ navigation }) => {
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(store);
   const [userPhoto, setUserPhoto] = useState(null);
-  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     checkIsLogin();
-    getAllInventory().then((data) => {
-      console.log('inventory data', data);
+    getAllInventoryByStatus('all').then((data) => {
       let count = 0;
       for (inventory of data) {
         if (inventory.status === 'pending') {
           count++;
         }
       }
-      console.log('count n pendingCount', count, pendingCount);
-      setPendingCount(count);
       dispatch(LocalInventoryActions.updatePendingCount('custom', count));
       setNumberOfInventory(Object.values(data).length);
     });
@@ -160,7 +156,6 @@ const MainScreen = ({ navigation }) => {
 
             <View style={{ position: 'absolute', top: 20 }}>
               <Sync
-                progress={state.progress}
                 uploadCount={state.uploadCount}
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}

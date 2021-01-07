@@ -55,24 +55,6 @@ class SpeciesListAction {
     payload,
   });
 }
-
-class UploadAction {
-  static SET_UPLOAD_PROGRESS = 'SET_UPLOAD_PROGRESS';
-
-  static setUploadProgess = (payload) => ({
-    type: UploadAction.SET_UPLOAD_PROGRESS,
-    payload,
-  });
-}
-
-class UploadCompleteAction {
-  static SET_UPLOAD_COMPLETE = 'SET_UPLOAD_COMPLETE';
-
-  static setUploadComplete = (payload) => ({
-    type: UploadCompleteAction.SET_UPLOAD_COMPLETE,
-    payload,
-  });
-}
 class SpecieIdFromServer {
   static SET_SPECIES_ID = 'SET_SPECIES_ID';
 
@@ -87,6 +69,4 @@ export {
   SignUpLoader,
   SpeciesListAction,
   SpecieIdFromServer,
-  UploadAction,
-  UploadCompleteAction,
 };

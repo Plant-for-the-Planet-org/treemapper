@@ -1,6 +1,6 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
-import { getAllPendingInventory, statusToComplete } from './';
+import { getAllInventoryByStatus, statusToComplete } from './';
 import {
   Coordinates,
   OfflineMaps,
@@ -13,7 +13,7 @@ import {
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
-import { LocalInventoryActions, UploadAction } from './Action';
+import { LocalInventoryActions } from './Action';
 import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
@@ -31,7 +31,7 @@ const uploadInventory = (dispatch) => {
             Geolocation.getCurrentPosition(
               (position) => {
                 let currentCoords = position.coords;
-                getAllPendingInventory()
+                getAllInventoryByStatus('pending')
                   .then(async (allPendingInventory) => {
                     let coordinates = [];
                     let species = [];
@@ -85,11 +85,9 @@ const uploadInventory = (dispatch) => {
                           .then((data) => {
                             let response = data.data;
                             if (oneInventory.locate_tree == 'off-site') {
-                              statusToComplete({ inventory_id: oneInventory.inventory_id }).then(
-                                () => {
-                                  dispatch(LocalInventoryActions.updatePendingCount('decrement'));
-                                  dispatch(LocalInventoryActions.updateUploadCount('decrement'));
-                                },
+                              statusToComplete(
+                                { inventory_id: oneInventory.inventory_id },
+                                dispatch,
                               );
                               if (allPendingInventory.length - 1 == i) {
                                 resolve();
@@ -97,13 +95,14 @@ const uploadInventory = (dispatch) => {
                             } else {
                               uploadImage(oneInventory, response, userToken, sessionData, dispatch)
                                 .then(() => {
-                                  statusToComplete({
-                                    inventory_id: oneInventory.inventory_id,
-                                  }).then(() => {
-                                    dispatch(LocalInventoryActions.updatePendingCount('decrement'));
-                                    dispatch(LocalInventoryActions.updateUploadCount('decrement'));
-                                  });
+                                  statusToComplete(
+                                    {
+                                      inventory_id: oneInventory.inventory_id,
+                                    },
+                                    dispatch,
+                                  );
                                   if (allPendingInventory.length - 1 == i) {
+                                    dispatch(LocalInventoryActions.updateIsUploading(false));
                                     resolve();
                                   }
                                 })
@@ -119,7 +118,6 @@ const uploadInventory = (dispatch) => {
                           });
                       });
                     }
-                    dispatch(LocalInventoryActions.updateIsUploading(false));
                   })
                   .catch((err) => {});
               },
@@ -152,21 +150,11 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
           Authorization: `OAuth ${userToken}`,
           'x-session-id': sessionId,
         };
-        let onUploadProgress = (progressEvent) => {
-          const progress = Math.round((100 * progressEvent.loaded) / progressEvent.total);
-          const payload = {
-            progress,
-            isUploading: i === responseCoords.length ? false : true,
-          };
-          console.log(payload);
-          dispatch(UploadAction.setUploadProgess(payload));
-        };
         await axios({
           method: 'PUT',
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
           data: body,
           headers: headers,
-          onUploadProgress,
         })
           .then((res) => {
             resolve();

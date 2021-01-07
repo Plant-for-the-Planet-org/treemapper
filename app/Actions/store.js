@@ -5,8 +5,6 @@ import {
   SignUpLoader,
   SpeciesListAction,
   SpecieIdFromServer,
-  UploadAction,
-  UploadCompleteAction,
 } from '../Actions/Action';
 
 const initialState = {
@@ -45,17 +43,6 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           specieId: action.payload,
-        };
-      case UploadAction.SET_UPLOAD_PROGRESS:
-        return {
-          ...state,
-          progress: action.payload.progress,
-          isUploading: action.payload.isUploading,
-        };
-      case UploadCompleteAction.SET_UPLOAD_COMPLETE:
-        return {
-          ...state,
-          isUploading: action.payload,
         };
       case LocalInventoryActions.ADD_INVENTORY:
         return {

@@ -6,13 +6,11 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
-  Modal,
-  Text,
 } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import {
-  getAllInventory,
+  getAllInventoryByStatus,
   clearAllIncompleteInventory,
   uploadInventory,
   isLogin,
@@ -39,7 +37,7 @@ const TreeInventory = ({ navigation }) => {
     });
 
     return unsubscribe;
-  }, [navigation, state.progress]);
+  }, [navigation]);
 
   const onPressInventory = (item) => {
     setTimeout(() => {
@@ -49,7 +47,7 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getAllInventory().then((allInventory) => {
+    getAllInventoryByStatus('all').then((allInventory) => {
       setAllInventory(Object.values(allInventory));
     });
   };
@@ -113,7 +111,7 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
-      getAllInventory().then((allInventory) => {
+      getAllInventoryByStatus('all').then((allInventory) => {
         setAllInventory(Object.values(allInventory));
       });
     });
@@ -149,7 +147,7 @@ const TreeInventory = ({ navigation }) => {
   const onPressUploadNow = () => {
     checkIsUserLogin().then(() => {
       uploadInventory(dispatch)
-        .then((data) => {
+        .then(() => {
           initialState();
         })
         .catch((err) => {

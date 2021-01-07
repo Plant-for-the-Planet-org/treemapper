@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import i18next from 'i18next';
+import RNFS from 'react-native-fs';
 // import SelectSpecies  from '../SelectSpecies';
 // import SingleTreeOverview from './SingleTreeOverview';
 
@@ -45,15 +46,30 @@ const ImageCapturing = ({ updateScreenState }) => {
     setIsAlrightyModalShow(false);
   };
 
-  const onPressContinue = () => {
+  const onPressContinue = async () => {
     // Save Image in local
     if (imagePath) {
-      let data = { inventory_id: state.inventoryID, imageUrl: imagePath };
-      insertImageSingleRegisterTree(data).then(() => {
-        // setIsShowSpeciesListModal(true);
-        // setIsAlrightyModalShow(false);
-        navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory, visible: true });
-      });
+      let splittedPath = imagePath.split('/');
+      const fileName = splittedPath.pop();
+      const inbox = splittedPath.pop();
+
+      const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+      const inputPath = `${RNFS.TemporaryDirectoryPath}/${inbox}/${fileName}`;
+      try {
+        await RNFS.copyFile(inputPath, outputPath);
+        let data = { inventory_id: state.inventoryID, imageUrl: `file:///${outputPath}` };
+        insertImageSingleRegisterTree(data).then(() => {
+          // setIsShowSpeciesListModal(true);
+          // setIsAlrightyModalShow(false);
+          navigation.navigate('SelectSpecies', {
+            species: inventory.species,
+            inventory: inventory,
+            visible: true,
+          });
+        });
+      } catch (err) {
+        console.error('error while saving file', err);
+      }
     } else {
       alert('Image is required');
     }

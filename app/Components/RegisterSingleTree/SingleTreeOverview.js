@@ -384,7 +384,10 @@ const SingleTreeOverview = ({ navigation, route }) => {
   };
 
   const deleteInventory = () => {
-    DeleteInventory({ inventory_id: inventory.inventory_id })
+    DeleteInventory(
+      { inventory_id: inventory.inventory_id },
+      inventory.status === 'pending' ? dispatch : null,
+    )
       .then(() => {
         navigation.navigate('TreeInventory');
       })
