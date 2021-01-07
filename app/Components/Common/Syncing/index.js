@@ -42,10 +42,10 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, naviga
       <View style={styles.syncContainer}>
         {isUploading ? (
           <RotatingView>
-            <Icon size={20} name="sync" color={Colors.PRIMARY} />
+            <Icon size={24} name="sync" color={Colors.PRIMARY} />
           </RotatingView>
         ) : (
-          <Icon size={20} name="sync" color={Colors.PRIMARY} />
+          <Icon size={24} name="sync" color={Colors.PRIMARY} />
         )}
         <Text style={styles.syncText}>{syncText}</Text>
       </View>
@@ -66,11 +66,14 @@ const styles = StyleSheet.create({
     borderColor: '#c3c3c3',
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
+    flex: 1.5,
+    marginRight: 10,
   },
   syncText: {
-    paddingLeft: 10,
+    paddingLeft: 6,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     color: Colors.TEXT_COLOR,

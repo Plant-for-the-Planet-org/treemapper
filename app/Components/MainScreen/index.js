@@ -146,20 +146,24 @@ const MainScreen = ({ navigation }) => {
       ) : (
         <View style={styles.container}>
           <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-            <MainScreenHeader
-              onPressLogin={onPressLogin}
-              isUserLogin={isUserLogin}
-              testID={'btn_login'}
-              accessibilityLabel={'Login / Sign Up'}
-              photo={userPhoto}
-            />
-
-            <View style={{ position: 'absolute', top: 20 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
               <Sync
                 uploadCount={state.uploadCount}
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
                 navigation={navigation}
+              />
+              <MainScreenHeader
+                onPressLogin={onPressLogin}
+                isUserLogin={isUserLogin}
+                testID={'btn_login'}
+                accessibilityLabel={'Login/Sign Up'}
+                photo={userPhoto}
               />
             </View>
             <View style={styles.bannerImgContainer}>
@@ -235,6 +239,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
+    paddingTop: 20,
     backgroundColor: Colors.WHITE,
   },
   modalContainer: {
