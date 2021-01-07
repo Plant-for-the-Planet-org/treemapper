@@ -12,6 +12,7 @@ import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../Services/Species';
 import { SpeciesListAction } from '../../Actions/Action';
 import { store } from '../../Actions/store';
+import ProfileListItem from './ProfileListItem';
 
 const ProfileModal = ({
   isUserLogin,
@@ -60,6 +61,36 @@ const ProfileModal = ({
       : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
   }
 
+  const profileListItems = [
+    {
+      media: 'user-edit',
+      mediaType: 'icon',
+      onPressFunction: onPressEdit,
+      text: 'edit_profile',
+    },
+    {
+      media: 'leaf',
+      mediaType: 'icon',
+      text: 'manage_species',
+    },
+    {
+      media: 'cloud-upload-alt',
+      mediaType: 'icon',
+      text: 'back_up',
+    },
+    {
+      media: 'map-marked',
+      mediaType: 'icon',
+      text: 'manage_offline',
+    },
+    {
+      media: logout,
+      mediaType: 'image',
+      onPressFunction: onPressLogout,
+      text: 'logout',
+    },
+  ];
+
   return (
     <Modal visible={isProfileModalVisible} transparent>
       <View style={styles.container}>
@@ -87,41 +118,9 @@ const ProfileModal = ({
                 <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>
-            <View style={styles.profileSection}>
-              <Icon name="user-edit" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
-              <TouchableOpacity style={styles.nameAndEmailContainer} onPress={onPressEdit}>
-                <Text style={styles.userName}>{i18next.t('label.edit_profile')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.profileSection}>
-              <Icon name="leaf" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
-              <TouchableOpacity style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{i18next.t('label.manage_species')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.profileSection}>
-              <Icon
-                name="cloud-upload-alt"
-                size={25}
-                color={Colors.TEXT_COLOR}
-                style={styles.avatar}
-              />
-              <TouchableOpacity style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{i18next.t('label.back_up')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.profileSection}>
-              <Icon name="map-marked" size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
-              <TouchableOpacity style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{i18next.t('label.manage_offline')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.profileSection}>
-              <Image source={logout} style={styles.imgIcon} />
-              <TouchableOpacity onPress={onPressLogout} style={styles.nameAndEmailContainer}>
-                <Text style={styles.userName}>{i18next.t('label.logout')}</Text>
-              </TouchableOpacity>
-            </View>
+            {profileListItems.map((item) => (
+              <ProfileListItem {...item} />
+            ))}
             {/* <View style={styles.bottomBtnsContainer}>
               <PrimaryButton
                 btnText={i18next.t('label.edit_profile')}
