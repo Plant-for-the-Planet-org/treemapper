@@ -15,6 +15,7 @@ const Header = ({
   subHeadingStyle,
   testID,
   accessibilityLabel,
+  rightText
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -36,6 +37,7 @@ const Header = ({
           </TouchableOpacity>
         ) : []}
         <View />
+        {rightText ? (<Text style={styles.rightText}>{rightText}</Text>) : null}
       </View>
       {headingText ? (
         <View style={{ marginVertical: 0 }}>
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_20,
+    fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
@@ -75,4 +77,10 @@ const styles = StyleSheet.create({
   paddingVertical: {
     paddingVertical: 15,
   },
+  rightText:{
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_20,
+    paddingTop: 20,
+    color: Colors.PRIMARY 
+  }
 });

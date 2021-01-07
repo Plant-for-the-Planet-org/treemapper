@@ -28,6 +28,7 @@ import Config from 'react-native-config';
 import { APIConfig } from '../../Actions/Config';
 import { SpeciesListAction } from '../../Actions/Action';
 import { useIsFocused } from '@react-navigation/native';
+import AddSpeciesModal from '../AddSpecies';
 
 const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, invent, onPressSaveAndContinueMultiple }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
@@ -42,7 +43,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [name, setName] = useState('');
   const navigation = useNavigation();
   const [showSpecies, setShowSpecies] = useState(visible);
-  // const [treeType, setTreeType] = useState(null);
+  const [addSpecies, setAddSpecies] = useState(false);
   const [inventory, setInventory] = useState(null);
   const { state, dispatch } = useContext(store);
   const [isCamera, setIsCamera] = useState(false);
@@ -76,7 +77,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       setSpeciesList(speciesList);
       Inventory();
     }
-  }, [navigation, isFocused]);
+  }, [navigation, isFocused, addSpecies]);
 
   useEffect(()=>{setShowSpecies(visible)},[visible]);
 
@@ -184,7 +185,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
         }
         {item.image ? (
           <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 200,height: 100, borderRadius: 10}} />
+            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10}} />
           </TouchableOpacity>
         ) : 
           <TouchableOpacity onPress={() => onPressImage(index)}>
@@ -279,11 +280,23 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
 
 
   const onPressSearch = () => {
-    navigation.navigate('AddSpecies');
+    // navigation.navigate('AddSpecies');
     // closeSelectSpeciesModal();
-    setShowSpecies(false);
+    // setShowSpecies(false);
+    setAddSpecies(true);
+    // renderAddSpeciesModal();
   };
 
+  const renderAddSpeciesModal = () => {
+    console.log('AddSpecies tak aya hai::', addSpecies);
+    const closeAddSpeciesModal = () => setAddSpecies(false);
+    return(
+      <AddSpeciesModal
+        visible = {addSpecies}
+        closeAddSpeciesModal = {closeAddSpeciesModal}
+      />
+    );
+  }
 
   const renderDiameterModal = () => {
     // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
@@ -467,6 +480,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
               }
             </View>
           </SafeAreaView>
+          {renderAddSpeciesModal()}
           {renderTreeCountModal()}
           {renderDiameterModal()}
           {renderAddNameModal()}

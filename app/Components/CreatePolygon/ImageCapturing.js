@@ -179,7 +179,7 @@ const ImageCapturing = ({
           accessibilityLabel="Camera"
           testID="camera_icon">
           <View style={styles.cameraIconCont}>
-            <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+            <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
           </View>
         </TouchableOpacity>
       </View>
