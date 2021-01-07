@@ -118,8 +118,8 @@ const ProfileModal = ({
                 <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>
-            {profileListItems.map((item) => (
-              <ProfileListItem {...item} />
+            {profileListItems.map((item, index) => (
+              <ProfileListItem key={index} {...item} />
             ))}
             {/* <View style={styles.bottomBtnsContainer}>
               <PrimaryButton

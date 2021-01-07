@@ -89,7 +89,8 @@ const uploadInventory = (dispatch) => {
                                 { inventory_id: oneInventory.inventory_id },
                                 dispatch,
                               );
-                              if (allPendingInventory.length - 1 == i) {
+                              if (allPendingInventory.length - 1 === i) {
+                                dispatch(LocalInventoryActions.updateIsUploading(false));
                                 resolve();
                               }
                             } else {
@@ -101,7 +102,7 @@ const uploadInventory = (dispatch) => {
                                     },
                                     dispatch,
                                   );
-                                  if (allPendingInventory.length - 1 == i) {
+                                  if (allPendingInventory.length - 1 === i) {
                                     dispatch(LocalInventoryActions.updateIsUploading(false));
                                     resolve();
                                   }

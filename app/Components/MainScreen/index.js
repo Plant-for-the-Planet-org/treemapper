@@ -159,6 +159,7 @@ const MainScreen = ({ navigation }) => {
                 uploadCount={state.uploadCount}
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
+                navigation={navigation}
               />
             </View>
             <View style={styles.bannerImgContainer}>
