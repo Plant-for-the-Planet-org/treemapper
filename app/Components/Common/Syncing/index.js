@@ -57,8 +57,8 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, naviga
     });
   };
 
-  return (
-    <TouchableOpacity onPress={!isUploading && pendingCount > 0 ? onPressUploadNow : () => {}}>
+  const renderSyncContainer = () => {
+    return (
       <View style={styles.syncContainer}>
         {isUploading ? (
           <RotatingView>
@@ -69,8 +69,14 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, naviga
         )}
         <Text style={styles.syncText}>{syncText}</Text>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
+
+  if (!isUploading && pendingCount > 0) {
+    return <TouchableOpacity onPress={onPressUploadNow}>{renderSyncContainer()}</TouchableOpacity>;
+  } else {
+    return renderSyncContainer();
+  }
 }
 
 const styles = StyleSheet.create({
