@@ -21,7 +21,7 @@ import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   updateLastScreen,
   getInventory,
-  statusToPending,
+  changeInventoryStatus,
   updateSpeceiName,
   updateSpeceiDiameter,
   updatePlantingDate,
@@ -308,8 +308,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
       navigation.navigate('TreeInventory');
     } else {
       if (specieText) {
-        let data = { inventory_id: state.inventoryID };
-        statusToPending(data, dispatch).then(() => {
+        let data = { inventory_id: state.inventoryID, status: 'pending' };
+        changeInventoryStatus(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -334,11 +334,13 @@ const SingleTreeOverview = ({ navigation, route }) => {
   // };
   const onPressNextTree = () => {
     if (inventory.status == 'incomplete') {
-      statusToPending({ inventory_id: state.inventoryID }, dispatch).then(() => {
-        initiateInventory({ treeType: 'single' }, dispatch).then(() => {
-          navigation.push('RegisterSingleTree');
-        });
-      });
+      changeInventoryStatus({ inventory_id: state.inventoryID, status: 'pending' }, dispatch).then(
+        () => {
+          initiateInventory({ treeType: 'single' }, dispatch).then(() => {
+            navigation.push('RegisterSingleTree');
+          });
+        },
+      );
     } else {
       navigation.goBack('TreeInventory');
     }
