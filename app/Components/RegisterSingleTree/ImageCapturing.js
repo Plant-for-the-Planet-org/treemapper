@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Platform } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
 import { insertImageSingleRegisterTree, getInventory } from '../../Actions';
@@ -40,6 +40,7 @@ const ImageCapturing = ({ updateScreenState }) => {
     const options = { quality: 0.5 };
     const data = await camera.current.takePictureAsync(options);
     setImagePath(data.uri);
+    console.log('at onPressCamera imagePath =>', data.uri);
   };
 
   const onPressClose = () => {
@@ -50,14 +51,22 @@ const ImageCapturing = ({ updateScreenState }) => {
     // Save Image in local
     if (imagePath) {
       let splittedPath = imagePath.split('/');
-      const fileName = splittedPath.pop();
+      let fileName = splittedPath.pop();
       const inbox = splittedPath.pop();
+      const fileExtension = fileName.split('.').pop();
+      fileName = fileName.split('.')[0];
 
-      const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-      const inputPath = `${RNFS.TemporaryDirectoryPath}/${inbox}/${fileName}`;
+      const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}-out.${fileExtension}`;
+      const inputPath = `${RNFS.TemporaryDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
+      console.log('outputPath =>', outputPath);
+      console.log('inputPath =>', inputPath);
+      console.log('imagePath =>', imagePath);
       try {
         await RNFS.copyFile(inputPath, outputPath);
-        let data = { inventory_id: state.inventoryID, imageUrl: `file:///${outputPath}` };
+        let data = {
+          inventory_id: state.inventoryID,
+          imageUrl: Platform.OS === 'android' ? `file:///${outputPath}` : outputPath,
+        };
         insertImageSingleRegisterTree(data).then(() => {
           // setIsShowSpeciesListModal(true);
           // setIsAlrightyModalShow(false);
@@ -124,7 +133,7 @@ const ImageCapturing = ({ updateScreenState }) => {
           accessibilityLabel="Register Tree Camera"
           testID="register_tree_camera">
           <View style={styles.cameraIconCont}>
-            <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+            <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
           </View>
         </TouchableOpacity>
       </View>

@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 // import { APLHABETS } from '../../Utils/index';
-import {toLetters} from '../../Utils/mapMarkingCoordinate';
+import { toLetters } from '../../Utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 
 const infographicText = [
@@ -179,7 +179,7 @@ const ImageCapturing = ({
           accessibilityLabel="Camera"
           testID="camera_icon">
           <View style={styles.cameraIconCont}>
-            <Ionicons name={imagePath ? 'md-reverse-camera' : 'md-camera'} size={25} />
+            <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
           </View>
         </TouchableOpacity>
       </View>

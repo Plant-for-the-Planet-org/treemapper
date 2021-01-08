@@ -6,7 +6,7 @@ import RotatingView from '../RotatingView';
 import { store } from '../../../Actions/store';
 import { uploadInventoryData } from '../../../Utils/uploadInventory';
 
-export default function Syncing({ uploadCount, pendingCount, isUploading, navigation }) {
+export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
   const { dispatch } = useContext(store);
 
@@ -51,6 +51,11 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, naviga
       </View>
     );
   };
+  console.log('isUserLogin =>', isUserLogin);
+
+  if (!isUserLogin && !isUploading && pendingCount === 0) {
+    return <></>;
+  }
 
   if (!isUploading && pendingCount > 0) {
     return <TouchableOpacity onPress={onPressUploadNow}>{renderSyncContainer()}</TouchableOpacity>;

@@ -156,7 +156,7 @@ const MainScreen = ({ navigation }) => {
                 uploadCount={state.uploadCount}
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
-                navigation={navigation}
+                isUserLogin={isUserLogin}
               />
               <MainScreenHeader
                 onPressLogin={onPressLogin}
