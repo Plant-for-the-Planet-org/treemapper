@@ -47,9 +47,9 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [isSpeciesEnable, setIsSpeciesEnable] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
   const [plantationDate, setPLantationDate] = useState(new Date());
-
   const [specieText, setSpecieText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
+  const [specieHeight, setSpecieHeight] = useState('2')
   const [locateTree, setLocateTree] = useState(null);
   //const [direction, setDirection] = useState(null);
 
@@ -65,6 +65,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(inventory.species_diameter);
+        setSpecieHeight(inventory.species_height);
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
@@ -131,6 +132,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieDiameter(text)}
                     onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
+
                   />
                 )}
                 <MCIcon
@@ -203,11 +205,12 @@ const SingleTreeOverview = ({ navigation, route }) => {
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
     
     return (
-      <View style={detailContainerStyle}>
+      <ScrollView>
+        <View style={detailContainerStyle}>
         <View>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
           <Text style={styles.detailText}>
-            {`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`}{' '}
+            {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
         <View style={{ marginVertical: 5 }}>
@@ -244,26 +247,44 @@ const SingleTreeOverview = ({ navigation, route }) => {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {!imageSource && (
-          <View>
-            <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
-            <TouchableOpacity
-              disabled={!shouldEdit}
-              onPress={() => setIsShowDate(true)}
-              accessible={true}
-              accessibilityLabel="Register Planting Date"
-              testID="register_planting_date">
-              <Text style={styles.detailText}>
-                {i18next.t('label.tree_Review_plantation_date_text', {
-                  date: moment(plantationDate).format('ll'),
-                })}{' '}
-                {shouldEdit && <MIcon name={'edit'} size={20} />}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={{ marginVertical: 5 }}>
+          <Text style={detailHeaderStyle}>Height (in m)</Text>
+          <TouchableOpacity
+            disabled={!shouldEdit}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => onPressEditSpecies('height')}
+            accessibilityLabel="Height"
+            testID="height_btn"
+            accessible={true}>
+            <FIcon name={'arrow-h'} style={styles.detailText} />
+            <Text style={styles.detailText}>
+              {specieHeight
+                ? `${Math.round(specieHeight*10)/10}m`
+                : i18next.t('label.tree_review_unable')}{' '}
+              {shouldEdit && <MIcon name={'edit'} size={20} />}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
+          <TouchableOpacity
+            disabled={!shouldEdit}
+            onPress={() => setIsShowDate(true)}
+            accessible={true}
+            accessibilityLabel="Register Planting Date"
+            testID="register_planting_date">
+            <Text style={styles.detailText}>
+              {i18next.t('label.tree_Review_plantation_date_text', {
+                date: moment(plantationDate).format('ll'),
+              })}{' '}
+              {shouldEdit && <MIcon name={'edit'} size={20} />}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
       </View>
+      </ScrollView>
+      
     );
   };
 
@@ -281,7 +302,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
           <Text style={styles.detailHead}>Location</Text>
           <Text style={styles.detailTxt}>
-            {`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`}{' '}
+            {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
@@ -292,6 +313,12 @@ const SingleTreeOverview = ({ navigation, route }) => {
         </View>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
           <Text style={styles.detailHead}>Diameter</Text>
+          <Text style={styles.detailTxt} >
+            {`${specieDiameter}cm`}{' '}
+          </Text>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+          <Text style={styles.detailHead}>Date</Text>
           <Text style={styles.detailTxt} >
             {`${specieDiameter}cm`}{' '}
           </Text>
@@ -398,7 +425,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
       {/* {renderSpeciesModal()} */}
       <View style={styles.container}> 
         {locateTree === 'on-site' ? (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10}}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0}}>
             <Header
               closeIcon
               onBackPress={onBackPressOnSite}
@@ -432,7 +459,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <View style={styles.overViewContainer}>
 
               {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
-              {renderOnSite(inventory)}
+              {renderDetails(inventory)}
             </View>
           )}
         </ScrollView>
@@ -512,7 +539,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     flex: 1,
-    marginTop: 20,
+    marginTop: 0,
   },
   detailHeader: {
     fontSize: Typography.FONT_SIZE_14,
@@ -555,13 +582,14 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   detailSubContainer: {
-    position: 'absolute',
+    position: 'relative',
     bottom: 0,
     right: 0,
     left: 0,
-    padding: 20,
+    padding: 10,
   },
   imgSpecie: {
+    marginTop: 0,
     width: '100%',
     height: '50%'
   },

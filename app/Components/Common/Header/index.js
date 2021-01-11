@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   rightText:{
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_20,
+    fontSize: Typography.FONT_SIZE_16,
     paddingTop: 20,
     color: Colors.PRIMARY 
   }

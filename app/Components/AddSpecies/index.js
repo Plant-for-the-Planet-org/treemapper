@@ -14,7 +14,7 @@ import { SearchSpecies } from '../../Services/Species';
 import { store } from '../../Actions/store';
 import { createSpecies } from '../../Actions/UploadInventory';
 import { SpecieIdFromServer } from '../../Actions/Action';
-import {placeholder_image, add_image} from '../../assets';
+import {placeholder_image, add_image, tree} from '../../assets';
 import { APIConfig } from '../../Actions/Config';
 
 const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
@@ -25,6 +25,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   const [showAddspeciesModal, setShowAddSpeciesModal] = useState(visible);
   const [inventory, setInventory] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const [isLoaderShow, setIsLoaderShow] = useState(false);
   const { state, dispatch } = useContext(store);
 
   // console.log('visibility:', visible);
@@ -82,18 +83,21 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
         // setShowAddSpeciesModal(false);
         closeAddSpeciesModal();
       }
+      setIsLoaderShow(true);
       let species = [...selectedSpecies];
       for(let specie of species ) {
         console.log(specie, 'specie');
-        createSpecies(imagePath, specie.id, specie.scientificName)
+        createSpecies( specie.id, specie.scientificName)
         .then((data) => {
           dispatch(SpecieIdFromServer.setSpecieId(data));
           // navigation.goBack();
         // setShowAddSpeciesModal(false);
+        setIsLoaderShow(false);
         closeAddSpeciesModal();
         })
         .catch((err) => {
           console.log(err);
+          setIsLoaderShow(false);
           Alert.alert(
             "Error",
             `You have already added ${specie.scientificName}`,
@@ -171,7 +175,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           </TouchableOpacity>
         ) : 
           <TouchableOpacity onPress={() => onPressImage(index)}>
-            <Image source={placeholder_image} resizeMode={'contain'} style={{ flex: 1, width: 130, height: 90}} />
+            <Image source={tree} resizeMode={'contain'} style={{ flex: 1, width: 130, height: 90, borderRadius: 10}} />
           </TouchableOpacity>}
         <View style={{ flex: 1, paddingLeft: 20 }}>
           <Text numberOfLines={2} style={styles.speciesLocalName}>
@@ -182,6 +186,20 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           </Text>
         </View>
       </TouchableOpacity>
+    );
+  };
+
+  const renderLoaderModal = () => {
+    return (
+      <Modal transparent visible={isLoaderShow}>
+        <View style={styles.dowloadModalContainer}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>
+              Adding Species...
+            </Text>
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -223,7 +241,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
                   value={search}
                   style={styles.value}
                   autoFocus
-                  placeholder='Select Species'
+                  placeholder='Search Species'
                   placeholderTextColor={Colors.TEXT_COLOR}
                   onChangeText={(text) => setSearch(text)}
                 />
@@ -245,6 +263,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
             </KeyboardAvoidingView>
           </View>
         </SafeAreaView>
+        {renderLoaderModal()}
       </View>
     </Modal>
   );
@@ -348,6 +367,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     paddingTop: 15,
     paddingRight: 20
+  },
+  dowloadModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   }
-
 });

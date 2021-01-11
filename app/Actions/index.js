@@ -595,13 +595,14 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
   });
 };
 
-export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diameter}) => {
+export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diameter, height}) => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_diameter = Number(diameter);
+          inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
         });
         resolve();

@@ -14,7 +14,7 @@ import {
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle, add_image } from '../../assets';
+import { placeholder_image, checkCircleFill, checkCircle, add_image, off_site_enable_banner} from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
@@ -36,8 +36,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [activeSpeice, setActiveSpecie] = useState(undefined);
   // const [speciesList, setSpeciesList] = useState([...speciesJSON]);
   const [singleTree, setSingleTree] = useState(null);
-  const [isShowTreeDiameterModal, setIsShowTreeDiameterModal] = useState(false);
+  const [isShowTreeMeasurementModal, setIsShowTreeMeasurementModal] = useState(false);
   const [diameter, setDiameter] = useState(null);
+  const [height, setHeight] = useState(null)
   const [speciesList, setSpeciesList] = useState(null);
   const [specieIndex, setSpecieIndex] = useState(null);
   const [name, setName] = useState('');
@@ -127,7 +128,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
   
   const onPressSaveBtn = () => {
-    setIsShowTreeDiameterModal(true);
+    setIsShowTreeMeasurementModal(true);
   };
 
   // const handleInput = (index, text) => {
@@ -189,7 +190,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           </TouchableOpacity>
         ) : 
           <TouchableOpacity onPress={() => onPressImage(index)}>
-            <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 50,height: 100}} />
+            <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 130,height: 90, borderRadius:13, marginHorizontal: 10}} />
           </TouchableOpacity>}
         <View style={{ flex: 1 }}>
           {item.aliases ? (
@@ -288,7 +289,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   const renderAddSpeciesModal = () => {
-    console.log('AddSpecies tak aya hai::', addSpecies);
     const closeAddSpeciesModal = () => setAddSpecies(false);
     return(
       <AddSpeciesModal
@@ -298,48 +298,64 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     );
   }
 
-  const renderDiameterModal = () => {
+  const renderMeasurementModal = () => {
     // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
     return (
-      <Modal visible={isShowTreeDiameterModal} transparent={true}>
-        <View
-          style={styles.modalBackground}>
-          <View
-            style={styles.inputModal}>
-            {singleTree ? (
-              <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
-            ): 
-              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
-            }
-            <Header
-              hideBackIcon
-              subHeadingText={'Please enter the diameter of the plant in cetimeter'}
-              textAlignStyle={{ textAlign: 'center' }}
-            />
-          </View>
+      <Modal visible= {isShowTreeMeasurementModal} animationType={'slide'}>
+        <View style={{ flex: 1 }}>
+          <SafeAreaView style={styles.mainContainer}>
+            <View style={styles.container}>
+              <View style={{flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10}}>
+                <Header
+                  headingText={'Add Measuremets'}
+                /> 
+              </View>
+              <View style={{flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
+                <View >
+                  <View style={styles.inputBox}>
+                    <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between'}}>
+                      <TextInput
+                      value={diameter}
+                      style={styles.input}
+                      autoFocus
+                      placeholder={'Diameter'}
+                      placeholderTextColor={Colors.TEXT_COLOR}
+                      onChangeText={(text) => setDiameter(text)}
+                      keyboardType={'number-pad'}
+                      />
+                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20}}>cm</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.inputBox}>
+                    <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between'}}>
+                      <TextInput
+                      value={height}
+                      style={styles.input}
+                      placeholder={'Height'}
+                      placeholderTextColor={Colors.TEXT_COLOR}
+                      onChangeText={(text) => setHeight(text)}
+                      keyboardType={'number-pad'}
+                      />
+                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20 }}>m</Text>
+                    </View>
+                  </View>
+                </View>
+                <View>
+                  <KeyboardAvoidingView
+                  behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+                  style={styles.bgWhite}>
+                    <PrimaryButton
+                      onPress={onPressMeasurementBtn}
+                      btnText={'Continue'}
+                      // disabled={singleTree ? false : true}
+                    />
+                  </KeyboardAvoidingView>
+                </View>
+              </View>     
+            </View>
+          </SafeAreaView>
         </View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-          style={styles.bgWhite}>
-          <View style={styles.externalInputContainer}>
-            <Text style={styles.labelModal}>Diameter</Text>
-            <TextInput
-              value={diameter}
-              style={styles.value}
-              autoFocus
-              placeholderTextColor={Colors.TEXT_COLOR}
-              onChangeText={(text) => setDiameter(text)}
-              keyboardType={'number-pad'}
-            />
-            <MCIcon
-              onPress={onPressDiameterBtn}
-              name={'arrow-right'}
-              size={30}
-              color={Colors.PRIMARY}
-            />
-          </View>
-          <SafeAreaView />
-        </KeyboardAvoidingView>
       </Modal>
     );
   };
@@ -389,7 +405,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter})
+    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter, height: Math.round(data.height*10)/10})
     .then(() => {
       setShowSpecies(false);
       navigation.navigate('SingleTreeOverview');
@@ -418,13 +434,13 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     // }, 0)
   };
 
-  const onPressDiameterBtn = () => {
-    let speciesDiameterList = [...speciesList];
-    for(let specie in speciesDiameterList){
-      if (speciesDiameterList[specie].id=== singleTree.id) {
-        let selected = {aliases: speciesDiameterList[specie].aliases, diameter: diameter};
+  const onPressMeasurementBtn = () => {
+    let speciesMeasurementList = [...speciesList];
+    for(let specie in speciesMeasurementList){
+      if (speciesMeasurementList[specie].id=== singleTree.id) {
+        let selected = {aliases: speciesMeasurementList[specie].aliases, diameter: diameter, height: height};
         onPressSaveAndContinue(selected);
-        setIsShowTreeDiameterModal(false);
+        setIsShowTreeMeasurementModal(false);
       }
     }
     setShowSpecies(false);
@@ -482,7 +498,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           </SafeAreaView>
           {renderAddSpeciesModal()}
           {renderTreeCountModal()}
-          {renderDiameterModal()}
+          {renderMeasurementModal()}
           {renderAddNameModal()}
         </View>
       </Modal>
@@ -496,6 +512,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
+    flexDirection: 'column'
   },
   mainContainer: {
     flex: 1,
@@ -582,6 +599,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '80%',
+  },
+  inputBox: {
+    borderWidth: 1,
+    borderColor: Colors.PRIMARY,
+    padding: 0,
+    marginVertical: 12,
+    width: '100%',
+    borderRadius: 5,
+    height: 50
+  },
+  input: {
+    flex:1,
+    fontSize: Typography.FONT_SIZE_18,
+    paddingLeft: 15,
+    
   }
 });
 
