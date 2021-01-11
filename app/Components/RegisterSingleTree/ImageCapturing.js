@@ -57,7 +57,7 @@ const ImageCapturing = ({ updateScreenState }) => {
       fileName = fileName.split('.')[0];
 
       const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}-out.${fileExtension}`;
-      const inputPath = `${RNFS.TemporaryDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
+      const inputPath = `${RNFS.CachesDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
       console.log('outputPath =>', outputPath);
       console.log('inputPath =>', inputPath);
       console.log('imagePath =>', imagePath);
