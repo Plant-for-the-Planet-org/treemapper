@@ -15,7 +15,11 @@ const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testI
         {isUserLogin ? (
           <Image
             style={{ width: 40, height: 40, borderRadius: 20 }}
-            source={{ uri: photo ? photo : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png' }}
+            source={{
+              uri: photo
+                ? photo
+                : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png',
+            }}
           />
         ) : (
           <Text style={styles.loginText}>{i18next.t('label.login')}</Text>
@@ -30,10 +34,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 15,
+    flex: 1,
   },
   loginText: {
     color: Colors.PRIMARY,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_14,
   },
 });

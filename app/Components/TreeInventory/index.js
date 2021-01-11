@@ -6,21 +6,10 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
-  Image,
-  Dimensions,
-  Platform,
-  Modal,
-  Text,
 } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-import {
-  getAllInventory,
-  clearAllIncompleteInventory,
-  uploadInventory,
-  isLogin,
-  auth0Login,
-} from '../../Actions';
+import { getAllInventoryByStatus, clearAllIncompleteInventory } from '../../Actions';
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
@@ -28,13 +17,12 @@ import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
-// import { createSpecies } from '../../Actions/UploadInventory';
+import { uploadInventoryData } from '../../Utils/uploadInventory';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(store);
 
   const [allInventory, setAllInventory] = useState(null);
-  const [isLoaderShow, setIsLoaderShow] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -52,7 +40,7 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getAllInventory().then((allInventory) => {
+    getAllInventoryByStatus('all').then((allInventory) => {
       setAllInventory(Object.values(allInventory));
     });
   };
@@ -116,7 +104,7 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
-      getAllInventory().then((allInventory) => {
+      getAllInventoryByStatus('all').then((allInventory) => {
         setAllInventory(Object.values(allInventory));
       });
     });
@@ -131,51 +119,15 @@ const TreeInventory = ({ navigation }) => {
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
-  const checkIsUserLogin = () => {
-    return new Promise((resolve, reject) => {
-      isLogin().then((isUserLogin) => {
-        if (!isUserLogin) {
-          auth0Login()
-            .then((isUserLogin) => {
-              isUserLogin ? resolve() : reject();
-            })
-            .catch((err) => {
-              alert(err.error_description);
-            });
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
-
   const onPressUploadNow = () => {
-    checkIsUserLogin().then(() => {
-      setIsLoaderShow(true);
-      uploadInventory()
-      // createSpecies()
-        .then((data) => {
-          initialState();
-          setIsLoaderShow(false);
-        })
-        .catch((err) => {
-          setIsLoaderShow(false);
-        });
-    });
-  };
-
-  const renderLoaderModal = () => {
-    return (
-      <Modal transparent visible={isLoaderShow}>
-        <View style={styles.dowloadModalContainer}>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>
-              Uploading..........
-            </Text>
-          </View>
-        </View>
-      </Modal>
-    );
+    uploadInventoryData(dispatch)
+      .then(() => {
+        console.log('upload inventory successfully');
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    navigation.navigate('MainScreen');
   };
 
   const renderInventory = () => {
@@ -284,7 +236,6 @@ const TreeInventory = ({ navigation }) => {
         : allInventory == null
         ? renderLoadingInventoryList()
         : renderEmptyInventoryList()}
-      {renderLoaderModal()}
     </View>
   );
 };

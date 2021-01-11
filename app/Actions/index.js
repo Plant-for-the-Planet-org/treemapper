@@ -2,9 +2,18 @@ import Realm from 'realm';
 import { bugsnag } from '../Utils/index';
 import Config from 'react-native-config';
 import Auth0 from 'react-native-auth0';
-import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory, AddSpecies } from './Schemas';
+import {
+  Coordinates,
+  OfflineMaps,
+  Polygons,
+  User,
+  Species,
+  Inventory,
+  AddSpecies,
+} from './Schemas';
 import { uploadInventory } from './UploadInventory';
 import { getUserInformationFromServer, getUserInformation } from './User';
+import { LocalInventoryActions } from './Action';
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -17,24 +26,24 @@ export const auth0Login = (navigation) => {
       .authorize({ scope: 'openid email profile' }, { ephemeralSession: true })
       .then((credentials) => {
         const { accessToken, idToken } = credentials;
-        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
-          (realm) => {
-            realm.write(() => {
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  accessToken: accessToken,
-                  idToken
-                },
-                'modified',
-              );
-              getUserInformationFromServer(navigation).then(() => {
-                resolve(true);
-              });
+        Realm.open({
+          schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+        }).then((realm) => {
+          realm.write(() => {
+            realm.create(
+              'User',
+              {
+                id: 'id0001',
+                accessToken: accessToken,
+                idToken,
+              },
+              'modified',
+            );
+            getUserInformationFromServer(navigation).then(() => {
+              resolve(true);
             });
-          },
-        );
+          });
+        });
       })
       .catch((error) => {
         reject(error);
@@ -47,15 +56,15 @@ export const auth0Logout = () => {
     auth0.webAuth
       .clearSession()
       .then(() => {
-        Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
-          (realm) => {
-            realm.write(() => {
-              const user = realm.objectForPrimaryKey('User', 'id0001');
-              realm.delete(user);
-              resolve(true);
-            });
-          },
-        );
+        Realm.open({
+          schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+        }).then((realm) => {
+          realm.write(() => {
+            const user = realm.objectForPrimaryKey('User', 'id0001');
+            realm.delete(user);
+            resolve(true);
+          });
+        });
       })
       .catch((error) => {
         alert('error');
@@ -66,30 +75,32 @@ export const auth0Logout = () => {
 
 export const isLogin = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
-      (realm) => {
-        const User = realm.objects('User');
-        if (User[0]) {   
-          // console.log(User, 'login');
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      },
-    );
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    }).then((realm) => {
+      const User = realm.objects('User');
+      if (User[0]) {
+        // console.log(User, 'login');
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
   });
 };
 
 export const LoginDetails = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const User = realm.objects('User');
           resolve(JSON.parse(JSON.stringify(User)));
         });
       })
-      .catch(err => {
+      .catch((err) => {
         reject(err);
       });
   });
@@ -115,9 +126,12 @@ export const getAreaName = ({ coords }) => {
 
 export const updateSpeceiName = ({ inventory_id, speciesText }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
+          console.log('inventory id', inventory_id);
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
           console.log(inventory, 'actions');
@@ -131,13 +145,15 @@ export const updateSpeceiName = ({ inventory_id, speciesText }) => {
   });
 };
 
-export const updateSpeceiDiameter = ({ inventory_id, speceisDiameter }) => {
+export const updateSpeceiDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = speceisDiameter;
+          inventory.species_diameter = speciesDiameter;
         });
         resolve();
       })
@@ -147,7 +163,9 @@ export const updateSpeceiDiameter = ({ inventory_id, speceisDiameter }) => {
 
 export const getAllOfflineMaps = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const offlineMaps = realm.objects('OfflineMaps');
@@ -160,7 +178,9 @@ export const getAllOfflineMaps = () => {
 
 export const deleteOfflineMap = ({ name }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
@@ -174,7 +194,9 @@ export const deleteOfflineMap = ({ name }) => {
 
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           realm.create('OfflineMaps', {
@@ -192,19 +214,25 @@ export const createOfflineMap = ({ name, size, areaName }) => {
   });
 };
 
-export const initiateInventory = ({ treeType }) => {
+export const initiateInventory = ({ treeType }, dispatch) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventoryID = `${new Date().getTime()}`;
-          realm.create('Inventory', {
+          console.log('inventory id', inventoryID);
+          const inventoryData = {
             inventory_id: inventoryID,
             tree_type: treeType,
             status: 'incomplete',
             plantation_date: `${new Date().getTime()}`,
-          });
-          resolve(inventoryID);
+          };
+          realm.create('Inventory', inventoryData);
+          dispatch(LocalInventoryActions.setInventoryId(inventoryID));
+          dispatch(LocalInventoryActions.addInventory(inventoryData));
+          resolve();
         });
       })
       .catch(bugsnag.notify);
@@ -213,7 +241,9 @@ export const initiateInventory = ({ treeType }) => {
 
 export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           realm.create(
@@ -233,7 +263,9 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
 
 export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           realm.create(
@@ -257,7 +289,9 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
 
 export const addLocateTree = ({ locate_tree, inventory_id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           realm.create(
@@ -277,7 +311,9 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
 
 export const polygonUpdate = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -293,7 +329,9 @@ export const polygonUpdate = ({ inventory_id }) => {
 };
 export const completePolygon = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -311,7 +349,9 @@ export const completePolygon = ({ inventory_id }) => {
 
 export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventory_id);
@@ -333,7 +373,9 @@ export const addCoordinateSingleRegisterTree = ({
   locateTree,
 }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventory_id);
@@ -364,7 +406,9 @@ export const addCoordinateSingleRegisterTree = ({
 
 export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let polygons = [];
@@ -401,39 +445,20 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
   });
 };
 
-export const getAllPendingInventory = () => {
+export const getAllInventoryByStatus = (status) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
-          const Inventory = realm.objects('Inventory').filtered('status == "pending"');
-          resolve(JSON.parse(JSON.stringify(Inventory)));
-        });
-      })
-      .catch(bugsnag.notify);
-  });
-};
-
-export const getAllInventory = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
-      .then((realm) => {
-        realm.write(() => {
-          const Inventory = realm.objects('Inventory');
-          resolve(JSON.parse(JSON.stringify(Inventory)));
-        });
-      })
-      .catch(bugsnag.notify);
-  });
-};
-
-export const getAllUploadedInventory = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
-      .then((realm) => {
-        realm.write(() => {
-          const Inventory = realm.objects('Inventory').filtered('status == "complete"');
-          resolve(JSON.parse(JSON.stringify(Inventory)));
+          let inventory;
+          if (status === 'all') {
+            inventory = realm.objects('Inventory');
+          } else {
+            inventory = realm.objects('Inventory').filtered(`status == "${status}"`);
+          }
+          resolve(JSON.parse(JSON.stringify(inventory)));
         });
       })
       .catch(bugsnag.notify);
@@ -442,7 +467,9 @@ export const getAllUploadedInventory = () => {
 
 export const getInventory = ({ inventoryID }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventoryID);
@@ -455,34 +482,47 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
-export const statusToPending = ({ inventory_id }) => {
+export const statusToPending = ({ inventory_id }, dispatch) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
-          realm.create('Inventory',{
+          realm.create(
+            'Inventory',
+            {
               inventory_id: `${inventory_id}`,
               status: 'pending',
-            },'modified',
+            },
+            'modified',
           );
           const Inventory = realm.objects('Inventory');
+          dispatch(LocalInventoryActions.updatePendingCount('increment'));
           resolve();
         });
       })
       .catch(bugsnag.notify);
   });
 };
-export const statusToComplete = ({ inventory_id }) => {
+export const statusToComplete = ({ inventory_id }, dispatch) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
-          realm.create('Inventory',{
+          realm.create(
+            'Inventory',
+            {
               inventory_id: `${inventory_id}`,
               status: 'complete',
-            },'modified',
+            },
+            'modified',
           );
           const Inventory = realm.objects('Inventory');
+          dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+          dispatch(LocalInventoryActions.updateUploadCount('decrement'));
           resolve();
         });
       })
@@ -492,7 +532,9 @@ export const statusToComplete = ({ inventory_id }) => {
 
 export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -516,7 +558,9 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
 
 export const getCoordByIndex = ({ inventory_id, index }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -532,7 +576,9 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
 
 export const removeLastCoord = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -550,7 +596,9 @@ export const removeLastCoord = ({ inventory_id }) => {
 
 export const clearAllUploadedInventory = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "complete"');
@@ -563,7 +611,9 @@ export const clearAllUploadedInventory = () => {
 };
 export const clearAllIncompleteInventory = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
@@ -577,7 +627,9 @@ export const clearAllIncompleteInventory = () => {
 
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           realm.create(
@@ -595,9 +647,11 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
   });
 };
 
-export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diameter}) => {
+export const UpdateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diameter }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
@@ -613,14 +667,19 @@ export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diamet
   });
 };
 
-export const DeleteInventory = ({inventory_id}) => {
+export const DeleteInventory = ({ inventory_id }, dispatch) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           realm.delete(inventory);
         });
+        if (dispatch) {
+          dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+        }
         resolve(true);
       })
       .catch((err) => {
@@ -630,9 +689,11 @@ export const DeleteInventory = ({inventory_id}) => {
   });
 };
 
-export const AddUserSpecies = ({aliases, image, scientificName, speciesId}) => {
+export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies]})
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let id = `${new Date().getTime()}`;
@@ -646,7 +707,8 @@ export const AddUserSpecies = ({aliases, image, scientificName, speciesId}) => {
           });
           resolve(id);
         });
-      }).catch((err) => {
+      })
+      .catch((err) => {
         reject(err);
         bugsnag.notify(err);
       });
@@ -655,7 +717,9 @@ export const AddUserSpecies = ({aliases, image, scientificName, speciesId}) => {
 
 export const getAllSpecies = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const species = realm.objects('AddSpecies');
@@ -669,9 +733,11 @@ export const getAllSpecies = () => {
   });
 };
 
-export const insertImageForUserSpecies = ({id, imagePath}) => {
+export const insertImageForUserSpecies = ({ id, imagePath }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
@@ -685,10 +751,12 @@ export const insertImageForUserSpecies = ({id, imagePath}) => {
       });
   });
 };
-export const updateNameForUserSpecies = ({id, aliases}) => {
-  console.log(aliases)
+export const updateNameForUserSpecies = ({ id, aliases }) => {
+  console.log(aliases);
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
@@ -704,7 +772,9 @@ export const updateNameForUserSpecies = ({id, aliases}) => {
 };
 export const filterSpecies = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const species = realm.objects('AddSpecies');
@@ -720,7 +790,9 @@ export const filterSpecies = () => {
 };
 export const filterPendingSpecies = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           const species = realm.objects('AddSpecies');
@@ -735,9 +807,11 @@ export const filterPendingSpecies = () => {
   });
 };
 
-export const updateStatusForUserSpecies = ({id}) => {
+export const updateStatusForUserSpecies = ({ id }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+    Realm.open({
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+    })
       .then((realm) => {
         realm.write(() => {
           let specie = realm.objectForPrimaryKey('AddSpecies', `${id}`);
