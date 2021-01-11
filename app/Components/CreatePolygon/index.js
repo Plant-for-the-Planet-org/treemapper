@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
-import ImageCapturing from './ImageCapturing';
+import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
 import { store } from '../../Actions/store';
 import { updateLastScreen, getInventory } from '../../Actions/';
@@ -62,10 +62,8 @@ const CreatePolygon = ({ route, navigation }) => {
             toggleState={toggleState}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
             activeMarkerIndex={activeMarkerIndex}
-            coordsLength={coordsLength}
             isCompletePolygon={isCompletePolygon}
-            setIsCompletePolygon={setIsCompletePolygon}
-            locationText={locationText}
+            inventoryType="multiple"
           />
         )}
       </View>
