@@ -50,18 +50,25 @@ const ImageCapturing = ({ updateScreenState }) => {
   const onPressContinue = async () => {
     // Save Image in local
     if (imagePath) {
+      // splits and stores the image path directories
       let splittedPath = imagePath.split('/');
+      // splits and stores the file name and extension which is present on last index
       let fileName = splittedPath.pop();
+      // splits and stores the file parent directory which is present on last index after pop
       const inbox = splittedPath.pop();
+      // splits and stores the file extension
       const fileExtension = fileName.split('.').pop();
+      // splits and stores the file name
       fileName = fileName.split('.')[0];
 
-      const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}-out.${fileExtension}`;
+      // stores the destination path in which image should be stored
+      const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
+
+      // stores the path from which the image should be copied
       const inputPath = `${RNFS.CachesDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
-      console.log('outputPath =>', outputPath);
-      console.log('inputPath =>', inputPath);
-      console.log('imagePath =>', imagePath);
+
       try {
+        // copies the image to destination folder
         await RNFS.copyFile(inputPath, outputPath);
         let data = {
           inventory_id: state.inventoryID,
@@ -122,7 +129,8 @@ const ImageCapturing = ({ updateScreenState }) => {
                   message: i18next.t('label.permission_camera_message'),
                   buttonPositive: i18next.t('label.permission_camera_ok'),
                   buttonNegative: i18next.t('label.permission_camera_cancel'),
-                }}></RNCamera>
+                }}
+              />
             </View>
           )}
         </View>

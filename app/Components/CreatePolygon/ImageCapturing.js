@@ -16,6 +16,7 @@ import { RNCamera } from 'react-native-camera';
 // import { APLHABETS } from '../../Utils/index';
 import { toLetters } from '../../Utils/mapMarkingCoordinate';
 import i18next from 'i18next';
+import RNFS from 'react-native-fs';
 
 const infographicText = [
   {
@@ -82,23 +83,45 @@ const ImageCapturing = ({
     setIsAlrightyModalShow(false);
   };
 
-  const onPressContinue = () => {
+  const onPressContinue = async () => {
     if (isAlrightyModalShow) {
       if (imagePath) {
-        let data = {
-          inventory_id: state.inventoryID,
-          imageUrl: imagePath,
-          index: activeMarkerIndex,
-        };
-        insertImageAtIndexCoordinate(data).then(() => {
-          if (isCompletePolygon) {
-            setIsAlrightyModalShow(false);
-            navigation.navigate('InventoryOverview');
-          } else {
-            updateActiveMarkerIndex(activeMarkerIndex + 1);
-            toggleState();
-          }
-        });
+        // splits and stores the image path directories
+        let splittedPath = imagePath.split('/');
+        // splits and stores the file name and extension which is present on last index
+        let fileName = splittedPath.pop();
+        // splits and stores the file parent directory which is present on last index after pop
+        const inbox = splittedPath.pop();
+        // splits and stores the file extension
+        const fileExtension = fileName.split('.').pop();
+        // splits and stores the file name
+        fileName = fileName.split('.')[0];
+
+        // stores the destination path in which image should be stored
+        const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
+
+        // stores the path from which the image should be copied
+        const inputPath = `${RNFS.CachesDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
+        try {
+          // copies the image to destination folder
+          await RNFS.copyFile(inputPath, outputPath);
+          let data = {
+            inventory_id: state.inventoryID,
+            imageUrl: imagePath,
+            index: activeMarkerIndex,
+          };
+          insertImageAtIndexCoordinate(data).then(() => {
+            if (isCompletePolygon) {
+              setIsAlrightyModalShow(false);
+              navigation.navigate('InventoryOverview');
+            } else {
+              updateActiveMarkerIndex(activeMarkerIndex + 1);
+              toggleState();
+            }
+          });
+        } catch (err) {
+          console.error('error while saving file', err);
+        }
       } else {
         alert(i18next.t('label.image_capturing_required'));
       }
