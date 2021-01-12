@@ -23,9 +23,8 @@ import getSessionData from '../Utils/sessionId';
 const { protocol, url } = APIConfig;
 
 const uploadInventory = (dispatch) => {
-  const changeStatusAndUpload = async (data, oneInventory, userToken, sessionData) => {
+  const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData) => {
     return new Promise(async (resolve, reject) => {
-      let response = data.data;
       if (oneInventory.locate_tree == 'off-site') {
         await changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
@@ -47,22 +46,24 @@ const uploadInventory = (dispatch) => {
             console.log('============= Starting image upload =============');
             console.log('\n\n');
             uploadImage(oneInventory, response, userToken, sessionData, dispatch)
-              .then(() => {
-                console.log('\n\n');
-                console.log('============= Image upload complete =============');
-                console.log('\n\n');
-                changeInventoryStatus(
-                  {
-                    inventory_id: oneInventory.inventory_id,
-                    status: 'complete',
-                  },
-                  dispatch,
-                )
-                  .then(() => resolve())
-                  .catch((err) => {
-                    console.error(err);
-                    reject();
-                  });
+              .then((response) => {
+                if (response.allUploadCompleted) {
+                  console.log('\n\n');
+                  console.log('============= Image upload complete =============');
+                  console.log('\n\n');
+                  changeInventoryStatus(
+                    {
+                      inventory_id: oneInventory.inventory_id,
+                      status: 'complete',
+                    },
+                    dispatch,
+                  )
+                    .then(() => resolve())
+                    .catch((err) => {
+                      console.error(err);
+                      reject();
+                    });
+                }
               })
               .catch((err) => {
                 reject();
@@ -125,22 +126,24 @@ const uploadInventory = (dispatch) => {
                     plantProject: null,
                     plantedSpecies: species,
                   };
-                  getSessionData().then(async (sessionData) => {
+                  await getSessionData().then(async (sessionData) => {
                     if (oneInventory.response !== null && oneInventory.status === 'uploading') {
-                      await changeStatusAndUpload(
-                        { data: JSON.parse(oneInventory.response) },
-                        oneInventory,
-                        userToken,
-                        sessionData,
-                      )
-                        .then(() => {
-                          if (inventoryData.length - 1 === i) {
-                            dispatch(LocalInventoryActions.updateIsUploading(false));
-                            resolve();
-                          }
+                      const inventoryResponse = JSON.parse(oneInventory.response);
+                      getPlantLocationDetails(inventoryResponse.id, userToken)
+                        .then((response) => {
+                          changeStatusAndUpload(response, oneInventory, userToken, sessionData)
+                            .then(() => {
+                              if (inventoryData.length - 1 === i) {
+                                dispatch(LocalInventoryActions.updateIsUploading(false));
+                                resolve();
+                              }
+                            })
+                            .catch((err) => {
+                              console.error(err);
+                            });
                         })
                         .catch((err) => {
-                          console.error(err);
+                          console.log('error => ', err);
                         });
                     } else {
                       console.log('\n\n');
@@ -157,16 +160,23 @@ const uploadInventory = (dispatch) => {
                         },
                       })
                         .then(async (data) => {
-                          await changeStatusAndUpload(data, oneInventory, userToken, sessionData)
-                            .then(() => {
-                              if (inventoryData.length - 1 === i) {
-                                dispatch(LocalInventoryActions.updateIsUploading(false));
-                                resolve();
-                              }
-                            })
-                            .catch((err) => {
-                              console.error(err);
-                            });
+                          if (data && data.data) {
+                            await changeStatusAndUpload(
+                              data.data,
+                              oneInventory,
+                              userToken,
+                              sessionData,
+                            )
+                              .then(() => {
+                                if (inventoryData.length - 1 === i) {
+                                  dispatch(LocalInventoryActions.updateIsUploading(false));
+                                  resolve();
+                                }
+                              })
+                              .catch((err) => {
+                                console.error(err);
+                              });
+                          }
                         })
                         .catch((err) => {
                           console.error('error =>', err);
@@ -194,10 +204,25 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
     let responseCoords = response.coordinates;
+    let completedUploadCount = 0;
     for (let i = 0; i < responseCoords.length; i++) {
       const oneResponseCoords = responseCoords[i];
+      console.log('\noneResponseCoords', oneResponseCoords);
+      if (oneResponseCoords.status === 'complete') {
+        completedUploadCount++;
+        continue;
+      }
       let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
+      console.log(
+        `\n======================= coordinate uploading STARTED ${i} =======================`,
+      );
       await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
+        console.log(
+          'file read completed',
+          locationId,
+          oneResponseCoords.id,
+          inventoryObject.imageUrl,
+        );
         let body = {
           imageFile: `data:image/png;base64,${base64}`,
         };
@@ -213,13 +238,17 @@ const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => 
           headers: headers,
         })
           .then((res) => {
-            resolve();
+            console.log(
+              `======================= coordinate uploading COMPLETED ${i} =======================`,
+            );
           })
           .catch((err) => {
+            console.log('axios coord upload err =>', err);
             reject();
           });
       });
     }
+    resolve({ allUploadCompleted: completedUploadCount === responseCoords.length });
   });
 };
 
@@ -249,7 +278,7 @@ const createSpecies = (image, scientificSpecies, aliases) => {
           })
             .then((res) => {
               const { status, data } = res;
-              console.log(res, 'data');
+
               if (status === 200) {
                 console.log(res, 'res');
                 // updateStatusForUserSpecies({ id: speciesId });
@@ -273,7 +302,7 @@ const UpdateSpecies = (aliases, speciesId) => {
       realm.write(async () => {
         const UpdateSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = UpdateSpeciesUser.accessToken;
-        console.log(userToken, speciesId);
+
         // await RNFS.readFile(image, 'base64').then(async (base64) => {
         let body = {
           // imageFile: `data:image/jpeg;base64,${base64}`,
@@ -290,7 +319,7 @@ const UpdateSpecies = (aliases, speciesId) => {
         })
           .then((res) => {
             const { status } = res;
-            //console.log(res, 'data');
+
             if (status === 200) {
               console.log(res, 'res');
               // updateStatusForUserSpecies({ id: speciesId });
@@ -329,9 +358,8 @@ const UpdateSpeciesImage = (image, speciesId) => {
           })
             .then((res) => {
               const { status, data } = res;
-              console.log(res, data);
+
               if (status === 200) {
-                console.log(res, 'res');
                 // updateStatusForUserSpecies({ id: speciesId });
                 resolve(true);
               }
@@ -354,7 +382,7 @@ const SpeciesListData = () => {
       realm.write(async () => {
         const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = SpeciesListDataUser.accessToken;
-        console.log(userToken, 'list');
+
         axios({
           method: 'GET',
           url: `${protocol}://${url}/treemapper/species`,
@@ -365,7 +393,7 @@ const SpeciesListData = () => {
         })
           .then((res) => {
             const { data, status } = res;
-            // console.log(res, 'res');
+
             if (status === 200) {
               // console.log(data, 'search');
               resolve(data);
@@ -377,6 +405,30 @@ const SpeciesListData = () => {
           });
       });
     });
+  });
+};
+
+const getPlantLocationDetails = (locationId, userToken) => {
+  console.log('locationId =>', locationId);
+  return new Promise((resolve, reject) => {
+    axios({
+      method: 'GET',
+      url: `${protocol}://${url}/treemapper/plantLocations/${locationId}`,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `OAuth ${userToken}`,
+      },
+    })
+      .then((res) => {
+        const { data, status } = res;
+        if (status === 200) {
+          resolve(data);
+        }
+      })
+      .catch((err) => {
+        reject(err);
+        console.log(err, 'error');
+      });
   });
 };
 

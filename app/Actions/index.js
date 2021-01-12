@@ -387,6 +387,7 @@ export const addCoordinateSingleRegisterTree = ({
                   longitude: markedCoords[0],
                   currentloclat: currentCoords.latitude,
                   currentloclong: currentCoords.longitude,
+                  isImageUploaded: false,
                 },
               ],
             },
@@ -422,6 +423,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                 latitude: oneLatlong[1],
                 currentloclat: currentCoords.latitude ? currentCoords.latitude : 0,
                 currentloclong: currentCoords.longitude ? currentCoords.longitude : 0,
+                isImageUploaded: false,
               });
             });
             onePolygonTemp.coordinates = coordinates;

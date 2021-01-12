@@ -7,6 +7,7 @@ const Coordinates = {
     imageUrl: 'string?',
     currentloclat: 'float',
     currentloclong: 'float',
+    isImageUploaded: 'bool?',
   },
 };
 
