@@ -22,9 +22,9 @@ import getSessionData from '../Utils/sessionId';
 
 const { protocol, url } = APIConfig;
 
-const uploadInventory = (dispatch) => {
-  const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData) => {
-    return new Promise(async (resolve, reject) => {
+const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData, dispatch) => {
+  return new Promise(async (resolve, reject) => {
+    try {
       if (oneInventory.locate_tree == 'off-site') {
         await changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
@@ -41,42 +41,41 @@ const uploadInventory = (dispatch) => {
           },
           dispatch,
         )
-          .then(() => {
-            console.log('\n\n');
-            console.log('============= Starting image upload =============');
-            console.log('\n\n');
-            uploadImage(oneInventory, response, userToken, sessionData, dispatch)
-              .then((response) => {
-                if (response.allUploadCompleted) {
-                  console.log('\n\n');
-                  console.log('============= Image upload complete =============');
-                  console.log('\n\n');
-                  changeInventoryStatus(
-                    {
-                      inventory_id: oneInventory.inventory_id,
-                      status: 'complete',
-                    },
-                    dispatch,
-                  )
-                    .then(() => resolve())
-                    .catch((err) => {
-                      console.error(err);
-                      reject();
-                    });
-                }
-              })
-              .catch((err) => {
-                reject();
-                console.error('Error:', err);
-              });
+          .then(async () => {
+            const result = await uploadImage(
+              oneInventory,
+              response,
+              userToken,
+              sessionData,
+              dispatch,
+            );
+            if (result.allUploadCompleted) {
+              changeInventoryStatus(
+                {
+                  inventory_id: oneInventory.inventory_id,
+                  status: 'complete',
+                },
+                dispatch,
+              )
+                .then(() => resolve())
+                .catch((err) => {
+                  console.error(err);
+                  reject();
+                });
+            }
           })
           .catch((err) => {
             reject();
             console.error('Error:', err);
           });
       }
-    });
-  };
+    } catch (err) {
+      reject();
+      console.error(`Error at: /action/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
+    }
+  });
+};
+const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -129,27 +128,31 @@ const uploadInventory = (dispatch) => {
                   await getSessionData().then(async (sessionData) => {
                     if (oneInventory.response !== null && oneInventory.status === 'uploading') {
                       const inventoryResponse = JSON.parse(oneInventory.response);
-                      getPlantLocationDetails(inventoryResponse.id, userToken)
-                        .then((response) => {
-                          changeStatusAndUpload(response, oneInventory, userToken, sessionData)
-                            .then(() => {
-                              if (inventoryData.length - 1 === i) {
-                                dispatch(LocalInventoryActions.updateIsUploading(false));
-                                resolve();
-                              }
-                            })
-                            .catch((err) => {
-                              console.error(err);
-                            });
-                        })
-                        .catch((err) => {
-                          console.log('error => ', err);
-                        });
+                      try {
+                        const response = await getPlantLocationDetails(
+                          inventoryResponse.id,
+                          userToken,
+                        );
+                        await changeStatusAndUpload(
+                          response,
+                          oneInventory,
+                          userToken,
+                          sessionData,
+                          dispatch,
+                        );
+                        if (inventoryData.length - 1 === i) {
+                          dispatch(LocalInventoryActions.updateIsUploading(false));
+                          resolve();
+                        }
+                      } catch (err) {
+                        if (inventoryData.length - 1 === i) {
+                          dispatch(LocalInventoryActions.updateIsUploading(false));
+                          reject();
+                        }
+                        console.error(err);
+                      }
                     } else {
-                      console.log('\n\n');
-                      console.log('============= Starting data upload =============');
-                      console.log('\n\n');
-                      await axios({
+                      const data = await axios({
                         method: 'POST',
                         url: `${protocol}://${url}/treemapper/plantLocations`,
                         data: body,
@@ -158,31 +161,27 @@ const uploadInventory = (dispatch) => {
                           Authorization: `OAuth ${userToken}`,
                           'x-session-id': sessionData,
                         },
-                      })
-                        .then(async (data) => {
-                          if (data && data.data) {
-                            await changeStatusAndUpload(
-                              data.data,
-                              oneInventory,
-                              userToken,
-                              sessionData,
-                            )
-                              .then(() => {
-                                if (inventoryData.length - 1 === i) {
-                                  dispatch(LocalInventoryActions.updateIsUploading(false));
-                                  resolve();
-                                }
-                              })
-                              .catch((err) => {
-                                console.error(err);
-                              });
-                          }
-                        })
-                        .catch((err) => {
-                          console.error('error =>', err);
-                          alert('There is something wrong');
-                          reject();
-                        });
+                      });
+                      if (data && data.data) {
+                        await changeStatusAndUpload(
+                          data.data,
+                          oneInventory,
+                          userToken,
+                          sessionData,
+                          dispatch,
+                        )
+                          .then(() => {
+                            if (inventoryData.length - 1 === i) {
+                              dispatch(LocalInventoryActions.updateIsUploading(false));
+                              resolve();
+                            }
+                          })
+                          .catch((err) => {
+                            console.error(err);
+                          });
+                      } else {
+                        reject();
+                      }
                     }
                   });
                 }
@@ -199,57 +198,50 @@ const uploadInventory = (dispatch) => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => {
-  return new Promise(async (resolve, reject) => {
-    let locationId = response.id;
-    let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
-    let responseCoords = response.coordinates;
-    let completedUploadCount = 0;
-    for (let i = 0; i < responseCoords.length; i++) {
-      const oneResponseCoords = responseCoords[i];
-      console.log('\noneResponseCoords', oneResponseCoords);
-      if (oneResponseCoords.status === 'complete') {
-        completedUploadCount++;
-        continue;
-      }
-      let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-      console.log(
-        `\n======================= coordinate uploading STARTED ${i} =======================`,
-      );
-      await RNFS.readFile(inventoryObject.imageUrl, 'base64').then(async (base64) => {
-        console.log(
-          'file read completed',
-          locationId,
-          oneResponseCoords.id,
-          inventoryObject.imageUrl,
-        );
-        let body = {
-          imageFile: `data:image/png;base64,${base64}`,
-        };
-        let headers = {
-          'Content-Type': 'application/json',
-          Authorization: `OAuth ${userToken}`,
-          'x-session-id': sessionId,
-        };
-        await axios({
-          method: 'PUT',
-          url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
-          data: body,
-          headers: headers,
-        })
-          .then((res) => {
-            console.log(
-              `======================= coordinate uploading COMPLETED ${i} =======================`,
-            );
-          })
-          .catch((err) => {
-            console.log('axios coord upload err =>', err);
-            reject();
-          });
-      });
+const uploadImage = async (oneInventory, response, userToken, sessionId, dispatch) => {
+  let locationId = response.id;
+  let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
+  let responseCoords = response.coordinates;
+  let completedUploadCount = 0;
+  for (let i = 0; i < responseCoords.length; i++) {
+    const oneResponseCoords = responseCoords[i];
+
+    if (oneResponseCoords.status === 'complete') {
+      completedUploadCount++;
+      continue;
     }
-    resolve({ allUploadCompleted: completedUploadCount === responseCoords.length });
-  });
+    let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
+
+    const bas64Image = await RNFS.readFile(inventoryObject.imageUrl, 'base64');
+
+    let body = {
+      imageFile: `data:image/png;base64,${bas64Image}`,
+    };
+    let headers = {
+      'Content-Type': 'application/json',
+      Authorization: `OAuth ${userToken}`,
+      'x-session-id': sessionId,
+    };
+    try {
+      const result = await axios({
+        method: 'PUT',
+        url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
+        data: body,
+        headers: headers,
+      });
+
+      if (result.status === 200) {
+        completedUploadCount++;
+      }
+    } catch (err) {
+      console.error(
+        `Error at: action/uploadImage, ${locationId}/coordinates/${
+          oneResponseCoords.id
+        } -> ${JSON.stringify(err)}`,
+      );
+    }
+  }
+  return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
 const createSpecies = (image, scientificSpecies, aliases) => {
@@ -260,7 +252,7 @@ const createSpecies = (image, scientificSpecies, aliases) => {
       realm.write(async () => {
         const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = createSpeciesUser.accessToken;
-        console.log(userToken, 'token');
+
         await RNFS.readFile(image, 'base64').then(async (base64) => {
           let body = {
             imageFile: `data:image/jpeg;base64,${base64}`,
@@ -280,13 +272,11 @@ const createSpecies = (image, scientificSpecies, aliases) => {
               const { status, data } = res;
 
               if (status === 200) {
-                console.log(res, 'res');
-                // updateStatusForUserSpecies({ id: speciesId });
                 resolve(data);
               }
             })
             .catch((err) => {
-              console.log(err, 'create error');
+              console.error(err, 'create error');
               reject(err);
             });
         });
@@ -321,13 +311,11 @@ const UpdateSpecies = (aliases, speciesId) => {
             const { status } = res;
 
             if (status === 200) {
-              console.log(res, 'res');
-              // updateStatusForUserSpecies({ id: speciesId });
               resolve(true);
             }
           })
           .catch((err) => {
-            console.log(err, 'create error');
+            console.error(err, 'create error');
             reject(err);
           });
         // });
@@ -365,7 +353,7 @@ const UpdateSpeciesImage = (image, speciesId) => {
               }
             })
             .catch((err) => {
-              console.log(err, 'create error');
+              console.error(err, 'create error');
               reject(err);
             });
         });
@@ -395,13 +383,12 @@ const SpeciesListData = () => {
             const { data, status } = res;
 
             if (status === 200) {
-              // console.log(data, 'search');
               resolve(data);
             }
           })
           .catch((err) => {
             reject(err);
-            console.log(err, 'error');
+            console.error(err, 'error');
           });
       });
     });
@@ -409,7 +396,6 @@ const SpeciesListData = () => {
 };
 
 const getPlantLocationDetails = (locationId, userToken) => {
-  console.log('locationId =>', locationId);
   return new Promise((resolve, reject) => {
     axios({
       method: 'GET',
@@ -427,7 +413,7 @@ const getPlantLocationDetails = (locationId, userToken) => {
       })
       .catch((err) => {
         reject(err);
-        console.log(err, 'error');
+        console.error(err, 'error');
       });
   });
 };
