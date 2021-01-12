@@ -27,7 +27,7 @@
     "jail-monkey": "^2.3.3",
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.1",
-    "react": "16.13.1",
+    "react": "16.14.0",
     "react-native": "0.63.4",
     "react-native-auth0": "^2.5.0",
     "react-native-camera": "^3.40.0",
