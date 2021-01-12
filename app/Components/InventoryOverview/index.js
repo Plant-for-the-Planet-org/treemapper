@@ -45,7 +45,7 @@ import SelectSpecies from '../SelectSpecies/index';
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
 
-  const { state } = useContext(store);
+  const { state, dispatch } = useContext(store);
 
   const [inventory, setInventory] = useState(null);
   const [locationTitle, setlocationTitle] = useState('');
@@ -124,7 +124,7 @@ const InventoryOverview = ({ navigation }) => {
     if (inventory.status == 'incomplete') {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID };
-        statusToPending(data).then(() => {
+        statusToPending(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
       } else {

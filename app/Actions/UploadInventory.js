@@ -1,9 +1,6 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
-import {
-  getAllPendingInventory,
-  statusToComplete,
-} from './';
+import { getAllInventoryByStatus, statusToComplete } from './';
 import {
   Coordinates,
   OfflineMaps,
@@ -16,12 +13,13 @@ import {
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
+import { LocalInventoryActions } from './Action';
 import getSessionData from '../Utils/sessionId';
 import i18next from 'i18next';
 
 const { protocol, url } = APIConfig;
 
-const uploadInventory = () => {
+const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -34,11 +32,15 @@ const uploadInventory = () => {
             Geolocation.getCurrentPosition(
               (position) => {
                 let currentCoords = position.coords;
-                getAllPendingInventory()
+                getAllInventoryByStatus('pending')
                   .then(async (allPendingInventory) => {
                     let coordinates = [];
                     let species = [];
                     allPendingInventory = Object.values(allPendingInventory);
+                    dispatch(
+                      LocalInventoryActions.updateUploadCount('custom', allPendingInventory.length),
+                    );
+                    dispatch(LocalInventoryActions.updateIsUploading(true));
                     for (let i = 0; i < allPendingInventory.length; i++) {
                       const oneInventory = allPendingInventory[i];
                       let polygons = Object.values(oneInventory.polygons);
@@ -66,10 +68,11 @@ const uploadInventory = () => {
                           coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                         },
                         plantDate: new Date().toISOString(),
+                        registrationDate: new Date().toISOString(),
                         plantProject: null,
                         plantedSpecies: species,
                       };
-                      getSessionData().then( async (sessionData) => {
+                      getSessionData().then(async (sessionData) => {
                         await axios({
                           method: 'POST',
                           url: `${protocol}://${url}/treemapper/plantLocations`,
@@ -83,17 +86,31 @@ const uploadInventory = () => {
                           .then((data) => {
                             let response = data.data;
                             if (oneInventory.locate_tree == 'off-site') {
-                              statusToComplete({ inventory_id: oneInventory.inventory_id });
-                              if (allPendingInventory.length - 1 == i) {
+                              statusToComplete(
+                                { inventory_id: oneInventory.inventory_id },
+                                dispatch,
+                              );
+                              if (allPendingInventory.length - 1 === i) {
+                                dispatch(LocalInventoryActions.updateIsUploading(false));
                                 resolve();
                               }
                             } else {
-                              uploadImage(oneInventory, response, userToken, sessionData).then(() => {
-                                statusToComplete({ inventory_id: oneInventory.inventory_id });
-                                if (allPendingInventory.length - 1 == i) {
-                                  resolve();
-                                }
-                              });
+                              uploadImage(oneInventory, response, userToken, sessionData, dispatch)
+                                .then(() => {
+                                  statusToComplete(
+                                    {
+                                      inventory_id: oneInventory.inventory_id,
+                                    },
+                                    dispatch,
+                                  );
+                                  if (allPendingInventory.length - 1 === i) {
+                                    dispatch(LocalInventoryActions.updateIsUploading(false));
+                                    resolve();
+                                  }
+                                })
+                                .catch((err) => {
+                                  console.log('Error:', err);
+                                });
                             }
                           })
                           .catch((err) => {
@@ -118,7 +135,7 @@ const uploadInventory = () => {
   });
 };
 
-const uploadImage = (oneInventory, response, userToken, sessionId) => {
+const uploadImage = (oneInventory, response, userToken, sessionId, dispatch) => {
   return new Promise(async (resolve, reject) => {
     let locationId = response.id;
     let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
@@ -135,7 +152,6 @@ const uploadImage = (oneInventory, response, userToken, sessionId) => {
           Authorization: `OAuth ${userToken}`,
           'x-session-id': sessionId,
         };
-
         await axios({
           method: 'PUT',
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
@@ -166,7 +182,7 @@ const createSpecies = (image, scientificSpecies, aliases) => {
           let body = {
             imageFile: `data:image/jpeg;base64,${base64}`,
             scientificSpecies,
-            aliases
+            aliases,
           };
           await axios({
             method: 'POST',
@@ -291,19 +307,17 @@ const SpeciesListData = () => {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `OAuth ${userToken}`,
-          }
+          },
         })
           .then((res) => {
-            const {
-              data,
-              status
-            } = res;
+            const { data, status } = res;
             // console.log(res, 'res');
             if (status === 200) {
-            // console.log(data, 'search');
+              // console.log(data, 'search');
               resolve(data);
             }
-          }).catch((err) => {
+          })
+          .catch((err) => {
             reject(err);
             console.log(err, 'error');
           });

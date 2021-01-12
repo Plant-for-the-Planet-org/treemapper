@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, BackHandler } from 'react-native';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
-import ImageCapturing from './ImageCapturing';
+import ImageCapturing from '../Common/ImageCapturing';
 import { store } from '../../Actions/store';
 import { updateLastScreen } from '../../Actions';
 
@@ -30,7 +30,9 @@ const RegisterSingleTree = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {screenState == 'MapMarking' && <MapMarking updateScreenState={updateScreenState} />}
-      {screenState == 'ImageCapturing' && <ImageCapturing updateScreenState={updateScreenState} navigation />}
+      {screenState == 'ImageCapturing' && (
+        <ImageCapturing updateScreenState={updateScreenState} inventoryType="single" />
+      )}
     </View>
   );
 };

@@ -4,10 +4,16 @@ import {
   LoaderActions,
   SignUpLoader,
   SpeciesListAction,
-  SpecieIdFromServer
+  SpecieIdFromServer,
 } from '../Actions/Action';
 
-const initialState = { inventoryID: undefined };
+const initialState = {
+  inventoryID: undefined,
+  pendingCount: 0,
+  isInventoryUploading: false,
+  allInventory: [],
+  uploadCount: 0,
+};
 const store = createContext(initialState);
 const { Provider } = store;
 
@@ -37,6 +43,40 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           specieId: action.payload,
+        };
+      case LocalInventoryActions.ADD_INVENTORY:
+        return {
+          ...state,
+          allInventory: [...state.allInventory, action.payload],
+        };
+      case LocalInventoryActions.UPDATE_PENDING_COUNT:
+        return {
+          ...state,
+          pendingCount:
+            action.payload.type === 'custom'
+              ? action.payload.count
+              : action.payload.type === 'decrement'
+              ? state.pendingCount === 0
+                ? state.pendingCount
+                : state.pendingCount - 1
+              : state.pendingCount + 1,
+        };
+      case LocalInventoryActions.UPDATE_UPLOAD_COUNT:
+        return {
+          ...state,
+          uploadCount:
+            action.payload.type === 'custom'
+              ? action.payload.count
+              : action.payload.type === 'decrement'
+              ? state.uploadCount === 0
+                ? state.uploadCount
+                : state.uploadCount - 1
+              : state.uploadCount + 1,
+        };
+      case LocalInventoryActions.IS_UPLOADING:
+        return {
+          ...state,
+          isUploading: action.payload,
         };
       default:
         throw new Error();

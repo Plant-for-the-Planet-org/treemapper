@@ -31,7 +31,6 @@ import {
   // statusToComplete
 } from '../../Actions';
 import { store } from '../../Actions/store';
-import { LocalInventoryActions } from '../../Actions/Action';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
@@ -195,12 +194,13 @@ const SingleTreeOverview = ({ navigation, route }) => {
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    let shouldEdit = inventory.status == 'incomplete' ? true : inventory.status == null ? true : false;
+    let shouldEdit =
+      inventory.status == 'incomplete' ? true : inventory.status == null ? true : false;
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
-    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
-    
+    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
+
     return (
       <View style={detailContainerStyle}>
         <View>
@@ -266,7 +266,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
     );
   };
 
-  const renderOnSite = ({polygons}) => {
+  const renderOnSite = ({ polygons }) => {
     let coords;
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
@@ -276,24 +276,28 @@ const SingleTreeOverview = ({ navigation, route }) => {
     //   : [styles.detailHeader];
     // let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
     return (
-      <View style={{paddingTop: 20, fontFamily: Typography.FONT_FAMILY_REGULAR, fontSize: Typography.FONT_SIZE_18}}>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+      <View
+        style={{
+          paddingTop: 20,
+          fontFamily: Typography.FONT_FAMILY_REGULAR,
+          fontSize: Typography.FONT_SIZE_18,
+        }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
           <Text style={styles.detailHead}>Location</Text>
           <Text style={styles.detailTxt}>
             {`${coords.latitude.toFixed(5)}˚N,${coords.longitude.toFixed(5)}˚E`}{' '}
           </Text>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
           <Text style={styles.detailHead}>Species</Text>
-          <Text style={styles.detailTxt} >
-            {specieText}{' '}
-          </Text>
+          <Text style={styles.detailTxt}>{specieText} </Text>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
           <Text style={styles.detailHead}>Diameter</Text>
-          <Text style={styles.detailTxt} >
-            {`${specieDiameter}cm`}{' '}
-          </Text>
+          <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
         </View>
       </View>
     );
@@ -304,7 +308,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
     } else {
       if (specieText) {
         let data = { inventory_id: state.inventoryID };
-        statusToPending(data).then(() => {
+        statusToPending(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -329,9 +333,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
   // };
   const onPressNextTree = () => {
     if (inventory.status == 'incomplete') {
-      statusToPending({ inventory_id: state.inventoryID }).then(() => {
-        initiateInventory({ treeType: 'single' }).then((inventoryID) => {
-          dispatch(LocalInventoryActions.setInventoryId(inventoryID));
+      statusToPending({ inventory_id: state.inventoryID }, dispatch).then(() => {
+        initiateInventory({ treeType: 'single' }, dispatch).then(() => {
           navigation.push('RegisterSingleTree');
         });
       });
@@ -375,19 +378,21 @@ const SingleTreeOverview = ({ navigation, route }) => {
   //   }
   // };
 
-  
-
-
   const goBack = () => {
     navigation.goBack();
   };
 
   const deleteInventory = () => {
-    DeleteInventory({inventory_id: inventory.inventory_id}).then(() => {
-      navigation.navigate('TreeInventory');
-    }).catch((err) => {
-      console.log(err);
-    });
+    DeleteInventory(
+      { inventory_id: inventory.inventory_id },
+      inventory.status === 'pending' ? dispatch : null,
+    )
+      .then(() => {
+        navigation.navigate('TreeInventory');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
@@ -395,24 +400,35 @@ const SingleTreeOverview = ({ navigation, route }) => {
       {renderinputModal()}
       {renderDateModal()}
       {/* {renderSpeciesModal()} */}
-      <View style={styles.container}> 
+      <View style={styles.container}>
         {locateTree === 'on-site' ? (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10}}>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10 }}>
             <Header
               closeIcon
               onBackPress={onBackPressOnSite}
               headingText={i18next.t('label.tree_review_header')}
             />
-            <TouchableOpacity style={{paddingTop: 15}} onPress={deleteInventory}>
-              <Text style={{fontFamily: Typography.FONT_FAMILY_REGULAR, fontSize: Typography.FONT_SIZE_18, lineHeight: Typography.LINE_HEIGHT_24}}>Delete</Text>
+            <TouchableOpacity style={{ paddingTop: 15 }} onPress={deleteInventory}>
+              <Text
+                style={{
+                  fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  fontSize: Typography.FONT_SIZE_18,
+                  lineHeight: Typography.LINE_HEIGHT_24,
+                }}>
+                Delete
+              </Text>
             </TouchableOpacity>
           </View>
-        ) :
+        ) : (
           <Header
             closeIcon
             onBackPress={onBackPress}
-            headingText={locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')}
-          />}
+            headingText={
+              locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
+            }
+          />
+        )}
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           {inventory && locateTree !== 'on-site' && (
             <View style={styles.overViewContainer}>
@@ -429,7 +445,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
           )}
           {locateTree === 'on-site' && (
             <View style={styles.overViewContainer}>
-
               {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
               {renderOnSite(inventory)}
             </View>
@@ -442,20 +457,20 @@ const SingleTreeOverview = ({ navigation, route }) => {
 
           />
         ) : */}
-          <View style={styles.bottomBtnsContainer}>
-            <PrimaryButton
-              onPress={onPressNextTree}
-              btnText={i18next.t('label.tree_review_next_btn')}
-              halfWidth
-              theme={'white'}
-            />
-            <PrimaryButton
-              onPress={onPressSave}
-              btnText={i18next.t('label.tree_review_Save')}
-              halfWidth
-            />
-          </View>
-          {/* } */}
+        <View style={styles.bottomBtnsContainer}>
+          <PrimaryButton
+            onPress={onPressNextTree}
+            btnText={i18next.t('label.tree_review_next_btn')}
+            halfWidth
+            theme={'white'}
+          />
+          <PrimaryButton
+            onPress={onPressSave}
+            btnText={i18next.t('label.tree_review_Save')}
+            halfWidth
+          />
+        </View>
+        {/* } */}
       </View>
     </SafeAreaView>
   );
@@ -562,19 +577,19 @@ const styles = StyleSheet.create({
   },
   imgSpecie: {
     width: '100%',
-    height: '50%'
+    height: '50%',
   },
   detailHead: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR, 
-    fontSize: Typography.FONT_SIZE_18, 
-    color: Colors.TEXT_COLOR, 
-    fontWeight: Typography.FONT_WEIGHT_BOLD, 
-    lineHeight: Typography.LINE_HEIGHT_24
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_18,
+    color: Colors.TEXT_COLOR,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    lineHeight: Typography.LINE_HEIGHT_24,
   },
   detailTxt: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR, 
-    fontSize: Typography.FONT_SIZE_18, 
-    color: Colors.TEXT_COLOR, 
-    lineHeight: Typography.LINE_HEIGHT_24
-  }
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_18,
+    color: Colors.TEXT_COLOR,
+    lineHeight: Typography.LINE_HEIGHT_24,
+  },
 });

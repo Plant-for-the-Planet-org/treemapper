@@ -6,19 +6,11 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
-  Image,
-  Dimensions,
-  Platform,
   Text,
 } from 'react-native';
-import { Header, SmallHeader, InventoryCard, PrimaryButton, AlertModal } from '../Common';
+import { Header, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import {
-  getAllUploadedInventory,
-  clearAllIncompleteInventory,
-  uploadInventory,
-  clearAllUploadedInventory,
-} from '../../Actions';
+import { getAllInventoryByStatus, clearAllUploadedInventory } from '../../Actions';
 import { store } from '../../Actions/store';
 import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
@@ -41,7 +33,7 @@ const UploadedInventory = ({ navigation }) => {
   }, [navigation]);
 
   const initialState = () => {
-    getAllUploadedInventory().then((allInventory) => {
+    getAllInventoryByStatus('complete').then((allInventory) => {
       setAllInventory(Object.values(allInventory));
     });
   };

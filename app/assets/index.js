@@ -11,6 +11,7 @@ import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 import marker_png from './images/marker.png';
 import map_img from './images/map_img.png';
+import logout from './images/logout_icon.png';
 import add_image from './images/add_image1.jpg';
 
 // * SVGs *
@@ -51,5 +52,6 @@ export {
   cloud_upload_gray,
   off_site_enable_banner,
   map_img,
+  logout,
   add_image,
 };

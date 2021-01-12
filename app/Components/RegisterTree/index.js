@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native';
 import { initiateInventory } from '../../Actions';
 import { store } from '../../Actions/store';
 import { Colors } from '_styles';
-import { LocalInventoryActions } from '../../Actions/Action';
 import i18next from 'i18next';
 
 const RegisterTree = ({ navigation }) => {
@@ -19,8 +18,7 @@ const RegisterTree = ({ navigation }) => {
 
   const onPressContinue = () => {
     let data = { treeType };
-    initiateInventory(data).then((inventoryID) => {
-      dispatch(LocalInventoryActions.setInventoryId(inventoryID));
+    initiateInventory(data, dispatch).then(() => {
       if (treeType === 'multiple') {
         navigation.navigate('LocateTree');
       } else {
