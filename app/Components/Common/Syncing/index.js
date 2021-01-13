@@ -51,7 +51,6 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
       </View>
     );
   };
-  console.log('isUserLogin =>', isUserLogin);
 
   if (!isUserLogin && !isUploading && pendingCount === 0) {
     return <></>;
