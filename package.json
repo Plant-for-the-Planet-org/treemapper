@@ -29,7 +29,7 @@
     "moment": "^2.29.1",
     "react": "16.13.1",
     "react-native": "0.63.4",
-    "react-native-auth0": "^2.5.0",
+    "react-native-auth0": "^2.6.0",
     "react-native-camera": "^3.40.0",
     "react-native-awesome-alerts": "^1.4.2",
     "react-native-config": "1.4.0",
