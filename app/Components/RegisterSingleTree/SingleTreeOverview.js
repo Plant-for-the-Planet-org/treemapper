@@ -145,7 +145,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
-                    onChangeText={(text) => setSpecieDiameter(text)}
+                    onChangeText={(text) => setSpecieDiameter(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
 
                   />
@@ -156,7 +156,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
-                    onChangeText={(text) => setSpecieHeight(text)}
+                    onChangeText={(text) => setSpecieHeight(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild('specieHeight')}
 
                   />

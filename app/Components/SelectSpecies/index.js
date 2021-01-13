@@ -341,7 +341,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
               style={styles.value}
               autoFocus
               placeholderTextColor={Colors.TEXT_COLOR}
-              onChangeText={(text) => setTreeCount(text)}
+              onChangeText={(text) => setTreeCount(text.replace(/[^0-9]/g, ''))}
               keyboardType={'number-pad'}
             />
             <MCIcon
@@ -398,7 +398,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
                       autoFocus
                       placeholder={'Diameter'}
                       placeholderTextColor={Colors.TEXT_COLOR}
-                      onChangeText={(text) => setDiameter(text)}
+                      onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
                       keyboardType={'number-pad'}
                       />
                       <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20}}>
@@ -598,11 +598,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
                 />
               )}
               {numberTrees === 'single'  ? (
-                <PrimaryButton
-                  onPress={onPressSaveBtn}
-                  btnText={i18next.t('label.select_species_btn_text')}
-                  disabled={singleTree ? false : true}
-                />
+                []
               ) : 
                 <PrimaryButton
                   onPress={onPressContinue}
