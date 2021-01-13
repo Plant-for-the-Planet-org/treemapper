@@ -115,7 +115,7 @@ const TreeInventory = ({ navigation }) => {
   let inCompleteInventory = [];
   let uploadedInventory = [];
   if (allInventory) {
-    pendingInventory = allInventory.filter((x) => x.status == 'pending');
+    pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
     inCompleteInventory = allInventory.filter((x) => x.status == 'incomplete');
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }

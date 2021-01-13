@@ -387,6 +387,7 @@ export const addCoordinateSingleRegisterTree = ({
                   longitude: markedCoords[0],
                   currentloclat: currentCoords.latitude,
                   currentloclong: currentCoords.longitude,
+                  isImageUploaded: false,
                 },
               ],
             },
@@ -422,6 +423,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
                 latitude: oneLatlong[1],
                 currentloclat: currentCoords.latitude ? currentCoords.latitude : 0,
                 currentloclong: currentCoords.longitude ? currentCoords.longitude : 0,
+                isImageUploaded: false,
               });
             });
             onePolygonTemp.coordinates = coordinates;
@@ -482,7 +484,7 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
-export const statusToPending = ({ inventory_id }, dispatch) => {
+export const changeInventoryStatusAndResponse = ({ inventory_id, status, response }, dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -493,19 +495,25 @@ export const statusToPending = ({ inventory_id }, dispatch) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              status: 'pending',
+              status,
+              response,
             },
             'modified',
           );
-          const Inventory = realm.objects('Inventory');
-          dispatch(LocalInventoryActions.updatePendingCount('increment'));
+          if (status === 'complete') {
+            dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+            dispatch(LocalInventoryActions.updateUploadCount('decrement'));
+          } else if (status === 'pending') {
+            dispatch(LocalInventoryActions.updatePendingCount('increment'));
+          }
           resolve();
         });
       })
       .catch(bugsnag.notify);
   });
 };
-export const statusToComplete = ({ inventory_id }, dispatch) => {
+
+export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -516,13 +524,16 @@ export const statusToComplete = ({ inventory_id }, dispatch) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              status: 'complete',
+              status,
             },
             'modified',
           );
-          const Inventory = realm.objects('Inventory');
-          dispatch(LocalInventoryActions.updatePendingCount('decrement'));
-          dispatch(LocalInventoryActions.updateUploadCount('decrement'));
+          if (status === 'complete') {
+            dispatch(LocalInventoryActions.updatePendingCount('decrement'));
+            dispatch(LocalInventoryActions.updateUploadCount('decrement'));
+          } else if (status === 'pending') {
+            dispatch(LocalInventoryActions.updatePendingCount('increment'));
+          }
           resolve();
         });
       })

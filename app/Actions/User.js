@@ -36,6 +36,7 @@ export const getUserInformationFromServer = (navigation) => {
     }).then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');
       let userToken = User.accessToken;
+      console.log('usertolenm', userToken);
       getSessionData().then((sessionData) => {
         axios({
           method: 'GET',

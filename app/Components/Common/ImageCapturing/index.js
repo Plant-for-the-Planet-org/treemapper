@@ -112,7 +112,7 @@ const ImageCapturing = ({
       await RNFS.copyFile(inputPath, outputPath);
       let data = {
         inventory_id: state.inventoryID,
-        imageUrl: Platform.OS === 'android' ? `file:///${outputPath}` : outputPath,
+        imageUrl: Platform.OS === 'android' ? `file://${outputPath}` : outputPath,
       };
       return data;
     } catch (err) {

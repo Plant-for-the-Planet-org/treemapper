@@ -40,7 +40,7 @@ const MainScreen = ({ navigation }) => {
     getAllInventoryByStatus('all').then((data) => {
       let count = 0;
       for (inventory of data) {
-        if (inventory.status === 'pending') {
+        if (inventory.status === 'pending' || inventory.status === 'uploading') {
           count++;
         }
       }

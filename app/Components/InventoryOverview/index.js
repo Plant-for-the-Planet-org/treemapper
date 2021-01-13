@@ -23,7 +23,7 @@ import { SafeAreaView } from 'react-native';
 import { store } from '../../Actions/store';
 import {
   getInventory,
-  statusToPending,
+  changeInventoryStatus,
   updateLastScreen,
   updatePlantingDate,
   addSpeciesAction,
@@ -123,8 +123,8 @@ const InventoryOverview = ({ navigation }) => {
   const onPressSave = () => {
     if (inventory.status == 'incomplete') {
       if (inventory.species.length > 0) {
-        let data = { inventory_id: state.inventoryID };
-        statusToPending(data, dispatch).then(() => {
+        let data = { inventory_id: state.inventoryID, status: 'pending' };
+        changeInventoryStatus(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
       } else {

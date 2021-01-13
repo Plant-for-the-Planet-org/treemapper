@@ -7,6 +7,7 @@ const Coordinates = {
     imageUrl: 'string?',
     currentloclat: 'float',
     currentloclong: 'float',
+    isImageUploaded: 'bool?',
   },
 };
 
@@ -52,6 +53,7 @@ const Inventory = {
     polygons: 'Polygons[]',
     specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     species_diameter: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    response: 'string?',
   },
 };
 
@@ -77,8 +79,8 @@ const AddSpecies = {
     image: 'string?',
     scientificName: 'string',
     status: 'string?',
-    speciesId: 'string'
-  }
+    speciesId: 'string',
+  },
 };
 
 export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies };
