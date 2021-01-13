@@ -66,6 +66,7 @@ const User = {
     email: 'string?',
     firstname: 'string?',
     lastname: 'string?',
+    country: 'string?'
   },
 };
 

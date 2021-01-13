@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Platform,
+  Alert,
 } from 'react-native';
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
@@ -18,7 +19,7 @@ import { placeholder_image, checkCircleFill, checkCircle, add_image, off_site_en
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
-import {getInventory, UpdateSpecieAndSpecieDiameter} from '../../Actions';
+import {getInventory, getUserInformation, UpdateSpecieAndSpecieDiameter} from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -52,6 +53,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [imageIndex, setImageIndex] = useState(null);
   const isFocused = useIsFocused();
   const [numberTrees, setNumberTrees] = useState(null);
+  const [countryCode, setCountryCode] = useState('');
   useEffect(() => {
     setSpeciesList(state.species);
     getAllUserSpecies();
@@ -77,6 +79,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       }
       setSpeciesList(speciesList);
       Inventory();
+      Country();
     }
   }, [navigation, isFocused, addSpecies]);
 
@@ -108,7 +111,12 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     });
   };
 
-
+  const Country = () => {
+    getUserInformation().then((data) =>{
+      console.log(data,'CountryData');
+      setCountryCode(data.country);
+    })
+  }
 
   const onPressSpecie = (index) => {
     if (speciesList[index].treeCount) {
@@ -127,7 +135,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     setSingleTree(index);
   };
   
-  const onPressSaveBtn = () => {
+  const onPressSaveBtn = (index) => {
+    setSingleTree(index);
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -156,7 +165,12 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     setIsShowAddNameModal(true);
     setSpecieIndex(index);
   };
-  const renderSpeciesCard = ({ item, index }) => {
+
+  // const isNormalInteger= (str) =>  {
+  //   var n = Math.floor(Number(str));
+  //   return (n !== Infinity && String(n) === str && n >= 0);
+  // }
+  const renderSpeciesCardMultiple = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
     let onSiteCheck;
     if (singleTree !== null) {
@@ -165,7 +179,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     return (
       <TouchableOpacity
         key={index}
-        onPress={numberTrees === 'multiple' ?  () => onPressSpecie(index) : ()=> onPressSpecieSingleTree(item)}
+        onPress={ () => onPressSpecie(index) }
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -215,7 +229,63 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       </TouchableOpacity>
     );
   };
+
+  const renderSpeciesCardSingle = ({ item, index }) => {
+    // let isCheck = item.treeCount ? true : false;
+    let onSiteCheck;
+    if (singleTree !== null) {
+      onSiteCheck = item.id === singleTree.id ? true : false;
+    }
+    return (
+      <TouchableOpacity
+        key={index}
+        // onPress={ () => onPressSpecieSingleTree(item) }
+        onPress={() => onPressSaveBtn(item)}
+        style={{
+          flex:1,
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          marginVertical: 10,
+        }}
+        accessible={true}
+        accessibilityLabel="Species Card"
+        testID="species_card">
+        {/* <View>
+          <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
+        </View> */}
+        <View>
+          {item.image ? (
+            // <TouchableOpacity onPress={() =>onPressImage(index)}>
+              <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'cover'} style={{  minWidth: 130, height: 90, borderRadius: 13, marginRight: 20}} />
+            // </TouchableOpacity>
+            ) : 
+            // <TouchableOpacity onPress={() => onPressImage(index)}>
+              <Image source={add_image} resizeMode={'cover'} style={{  width: 130,height: 90, borderRadius:13, marginRight: 20}} />
+            // </TouchableOpacity>
+          }
+        </View>
+        
+        <View style={{ flex: 1,flexDirection: 'column', justifyContent: 'flex-start', alignSelf: 'flex-start'}}>
+          {item.aliases ? (
+            <Text  style={styles.speciesLocalName} onPress={() => addName(index)}>
+              {item.aliases}
+            </Text>
+          ): (
+            <Text style={styles.speciesLocalName} onPress={() => addName(index)}>
+              Add Name
+            </Text>
+          ) }
+          <Text style={styles.speciesName}>
+            {i18next.t('label.select_species_name_of_tree', { item })}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
   const onPressTreeCountNextBtn = () => {
+    // if (isNormalInteger(treeCount)){
     let speciesListClone = speciesList;
     let specie = speciesListClone[activeSpeice];
     specie.treeCount = Number(treeCount) ? treeCount : undefined;
@@ -223,6 +293,14 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     setIsShowTreeCountModal(false);
     setTreeCount(0);
     setSpeciesList([...speciesList]);
+    // } else {
+    //   Alert.alert(
+    //     "Error",
+    //     "Enter valid input",
+    //     [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+    //     {cancelable: false}
+    //   );
+    // }
   };
 
   const renderTreeCountModal = () => {
@@ -297,7 +375,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
       />
     );
   }
-
+  const Countries = ['US', 'LR', 'MM']
   const renderMeasurementModal = () => {
     // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
     return (
@@ -323,7 +401,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
                       onChangeText={(text) => setDiameter(text)}
                       keyboardType={'number-pad'}
                       />
-                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20}}>cm</Text>
+                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20}}>
+                        {Countries.includes(countryCode)? 'inches' : 'cm'}
+                      </Text>
                     </View>
                   </View>
                   
@@ -334,10 +414,12 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
                       style={styles.input}
                       placeholder={'Height'}
                       placeholderTextColor={Colors.TEXT_COLOR}
-                      onChangeText={(text) => setHeight(text)}
+                      onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
                       keyboardType={'number-pad'}
                       />
-                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20 }}>m</Text>
+                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20 }}>
+                      {Countries.includes(countryCode)? 'Feet' : 'm'}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -435,15 +517,24 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   const onPressMeasurementBtn = () => {
-    let speciesMeasurementList = [...speciesList];
-    for(let specie in speciesMeasurementList){
-      if (speciesMeasurementList[specie].id=== singleTree.id) {
-        let selected = {aliases: speciesMeasurementList[specie].aliases, diameter: diameter, height: height};
-        onPressSaveAndContinue(selected);
-        setIsShowTreeMeasurementModal(false);
+    // if (isNormalInteger(height) && isNormalInteger(diameter)){
+      let speciesMeasurementList = [...speciesList];
+      for(let specie in speciesMeasurementList){
+        if (speciesMeasurementList[specie].id=== singleTree.id) {
+          let selected = {aliases: speciesMeasurementList[specie].aliases, diameter: diameter, height: height};
+          onPressSaveAndContinue(selected);
+          setIsShowTreeMeasurementModal(false);
+        }
       }
-    }
-    setShowSpecies(false);
+      setShowSpecies(false);
+    // } else {
+    //   Alert.alert(
+    //     "Error",
+    //     "Enter valid input",
+    //     [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+    //     {cancelable: false}
+    //   );
+    // }
   };
 
   const onPressAddNameBtn = () => {
@@ -464,24 +555,48 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
         <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 10}}>
-                <Header
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 10}}>
+                
+                { numberTrees === 'single' ? (
+                  <Header
+                  // closeIcon
+                  headingText={i18next.t('label.select_species_header')}
+                />
+                ) : (
+                  <Header
                   closeIcon
                   headingText={i18next.t('label.select_species_header')}
                   subHeadingText={i18next.t('label.select_species_sub_header')}
                 />
+                )
+                }
                 <TouchableOpacity
                   onPress={onPressSearch}
                 >
                   <Text style={styles.searchText}>Search</Text>
                 </TouchableOpacity>
               </View>
-              <FlatList
+              {/* <FlatList
                 style={{ flex: 1 }}
                 data={speciesList}
                 showsVerticalScrollIndicator={false}
                 renderItem={renderSpeciesCard}
-              />
+              /> */}
+              {numberTrees === 'single' ? (
+                <FlatList
+                style={{ flex: 1, marginTop: 15 }}
+                data={speciesList}
+                showsVerticalScrollIndicator={false}
+                renderItem={renderSpeciesCardSingle}
+                />
+              ): (
+                <FlatList
+                style={{ flex: 1 }}
+                data={speciesList}
+                showsVerticalScrollIndicator={false}
+                renderItem={renderSpeciesCardMultiple}
+                />
+              )}
               {numberTrees === 'single'  ? (
                 <PrimaryButton
                   onPress={onPressSaveBtn}
@@ -519,14 +634,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   speciesLocalName: {
-    flex: 1,
+    
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_22,
+    fontSize: Typography.FONT_SIZE_18,
   },
   speciesName: {
-    flex: 1,
+    
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
+    fontSize: Typography.FONT_SIZE_14,
     fontStyle: 'italic',
   },
   treeCount: {

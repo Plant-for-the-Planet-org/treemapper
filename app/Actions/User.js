@@ -14,7 +14,7 @@ export const getUserInformation = () => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         console.log(User);
         if (User) {
-          resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname });
+          resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname, country: User.country });
         } else {
           resolve({ email: '', firstName: '', lastName: '' });
         }
@@ -41,7 +41,7 @@ export const getUserInformationFromServer = (navigation) => {
           })
             .then((data) => {
               realm.write(() => {
-                const { email, firstname, lastname } = data.data;
+                const { email, firstname, lastname, country } = data.data;
                 realm.create(
                   'User',
                   {
@@ -49,6 +49,7 @@ export const getUserInformationFromServer = (navigation) => {
                     email,
                     firstname,
                     lastname,
+                    country
                   },
                   'modified',
                 );

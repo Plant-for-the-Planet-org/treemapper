@@ -28,6 +28,7 @@ import {
   initiateInventory,
   UpdateSpecieAndSpecieDiameter,
   DeleteInventory,
+  updateSpeceiHeight,
   // statusToComplete
 } from '../../Actions';
 import { store } from '../../Actions/store';
@@ -51,6 +52,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [specieDiameter, setSpecieDiameter] = useState('10');
   const [specieHeight, setSpecieHeight] = useState('2')
   const [locateTree, setLocateTree] = useState(null);
+  const [editEnable, setEditEnable] = useState('');
+  // const [specieCoordinates, setSpecieCoordinates] = useState('');
   //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
@@ -65,7 +68,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(inventory.species_diameter);
-        setSpecieHeight(inventory.species_height);
+        setSpecieHeight(Math.round(inventory.species_height*10)/10);
+        // setSpecieCoordinates(inventory.polygons[0].coordinates[0].latitude,inventory.polygons[0].coordinates[0].latitude)
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
@@ -74,12 +78,20 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const onSubmitInputFeild = (action) => {
     if (action === 'specieText') {
       updateSpeceiName({ inventory_id: inventory.inventory_id, speciesText: specieText });
-    } else {
+    } else if (action === 'specieDiameter') {
       updateSpeceiDiameter({
         inventory_id: state.inventoryID,
         speceisDiameter: Number(specieDiameter),
       });
+    } else if (action === 'specieHeight'){
+      updateSpeceiHeight({
+        inventory_id: state.inventoryID,
+        speceisDiameter: Number(specieDiameter),
+      });
+    } else {
+      console.log('Something wrong!');
     }
+    setEditEnable('');
   };
 
   const onPressNextIcon = () => {
@@ -108,11 +120,14 @@ const SingleTreeOverview = ({ navigation, route }) => {
               style={styles.bgWhite}>
               <View style={styles.externalInputContainer}>
                 <Text style={styles.labelModal}>
-                  {isSpeciesEnable
+                  {editEnable === 'species'
                     ? i18next.t('label.tree_review_name_of_species')
-                    : i18next.t('label.tree_review_diameter')}
+                    : editEnable === 'diameter'
+                    ? i18next.t('label.tree_review_diameter')
+                    :  'Height'
+                  }
                 </Text>
-                {isSpeciesEnable ? (
+                {editEnable === 'species' ? (
                   <TextInput
                     value={specieText}
                     style={styles.value}
@@ -122,7 +137,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     onSubmitEditing={() => onSubmitInputFeild('specieText')}
                     keyboardType={'email-address'}
                   />
-                ) : (
+                ) : editEnable === 'diameter' ? (
                   <TextInput
                     ref={specieDiameterRef}
                     value={specieDiameter.toString()}
@@ -132,6 +147,17 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieDiameter(text)}
                     onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
+
+                  />
+                ) : (
+                  <TextInput
+                    value={specieHeight.toString()}
+                    style={styles.value}
+                    autoFocus
+                    placeholderTextColor={Colors.TEXT_COLOR}
+                    keyboardType={'number-pad'}
+                    onChangeText={(text) => setSpecieHeight(text)}
+                    onSubmitEditing={() => onSubmitInputFeild('specieHeight')}
 
                   />
                 )}
@@ -151,12 +177,13 @@ const SingleTreeOverview = ({ navigation, route }) => {
   };
 
   const onPressEditSpecies = (action) => {
+    setEditEnable(action);
     setIsOpenModal(true);
-    if (action == 'species') {
-      setTimeout(() => setIsSpeciesEnable(true), 0);
-    } else {
-      setTimeout(() => setIsSpeciesEnable(false), 0);
-    }
+    // if (action == 'species') {
+    //   setTimeout(() => setIsSpeciesEnable(true), 0);
+    // } else {
+    //   setTimeout(() => setIsSpeciesEnable(false), 0);
+    // }
   };
 
   const renderDateModal = () => {
@@ -203,9 +230,13 @@ const SingleTreeOverview = ({ navigation, route }) => {
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
-    
+    // if (inventory.locate_tree === 'off-site') {
+    //   setCoordinateEdit(true);
+    // } else {
+    //   setCoordinateEdit(false);
+    // }
     return (
-      <ScrollView>
+      // <ScrollView>
         <View style={detailContainerStyle}>
         <View>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
@@ -256,7 +287,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             accessibilityLabel="Height"
             testID="height_btn"
             accessible={true}>
-            <FIcon name={'arrow-h'} style={styles.detailText} />
+            <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieHeight
                 ? `${Math.round(specieHeight*10)/10}m`
@@ -283,7 +314,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         </View>
         
       </View>
-      </ScrollView>
+      // </ScrollView>
       
     );
   };
@@ -441,7 +472,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             onBackPress={onBackPress}
             headingText={locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')}
           />}
-        <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        <ScrollView  contentContainerStyle={styles.scrollViewContainer}>
           {inventory && locateTree !== 'on-site' && (
             <View style={styles.overViewContainer}>
               {imageSource && <Image source={imageSource} style={styles.bgImage} />}
@@ -456,11 +487,11 @@ const SingleTreeOverview = ({ navigation, route }) => {
             </View>
           )}
           {locateTree === 'on-site' && (
-            <View style={styles.overViewContainer}>
+            <ScrollView style={styles.overViewContainer}>
 
               {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
               {renderDetails(inventory)}
-            </View>
+            </ScrollView>
           )}
         </ScrollView>
         {/* {locateTree === 'on-site' ? (
@@ -549,7 +580,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: Typography.FONT_SIZE_18,
-    color: Colors.PRIMARY,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     lineHeight: Typography.LINE_HEIGHT_30,
   },
@@ -591,7 +622,8 @@ const styles = StyleSheet.create({
   imgSpecie: {
     marginTop: 0,
     width: '100%',
-    height: '50%'
+    height: '50%',
+    borderRadius: 13
   },
   detailHead: {
     fontFamily: Typography.FONT_FAMILY_REGULAR, 

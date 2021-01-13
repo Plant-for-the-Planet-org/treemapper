@@ -145,6 +145,22 @@ export const updateSpeceiDiameter = ({ inventory_id, speceisDiameter }) => {
   });
 };
 
+export const updateSpeceiHeight = ({ inventory_id, speceisHeight }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          inventory.species_height = (speceisHeight*10)/10;
+        });
+        resolve(
+          console.log('updated',inventory)
+        );
+      })
+      .catch(bugsnag.notify);
+  });
+};
+
 export const getAllOfflineMaps = () => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
