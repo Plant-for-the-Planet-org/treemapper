@@ -9,7 +9,14 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-  let imageSource = activeBtn === true ? map_img : data.subHeading === (i18next.t('label.tree_inventory_off_site') + ' - ' + i18next.t('label.tree_inventory_point')) ? map_img : activeBtn === false ? placeholder_image : tree;
+  let imageSource =
+    activeBtn === true
+      ? map_img
+      : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
+      ? map_img
+      : activeBtn === false
+      ? placeholder_image
+      : tree;
   if (data.imageURL) {
     imageSource = { uri: data.imageURL };
   }
