@@ -41,9 +41,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   imageContainer: {
-    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   image: {
     height: 100,
@@ -53,7 +51,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1.2,
     justifyContent: 'space-evenly',
-    marginHorizontal: 20,
+    marginLeft: 30,
   },
   actionBtnContainer: {
     flexDirection: 'row',

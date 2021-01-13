@@ -7,7 +7,7 @@ import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import Config from 'react-native-config';
 //import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getInventory, isLogin,auth0Login,} from '../../Actions';
+import { getInventory, isLogin, auth0Login } from '../../Actions';
 //import { add_image } from '../../assets';
 import { SearchSpecies } from '../../Services/Species';
 //import Camera from '../Common/Camera';
@@ -63,21 +63,8 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   };
 
 
-  const checkIsUserLogin = () => {
-    return new Promise((resolve, reject) => {
-      isLogin()
-      .then(() => {
-        resolve();
-      })
-      .catch(() => {
-        auth0Login();
-      })
-    }
-    );
-  };
-
   const addSelectedSpecies = () => {
-    checkIsUserLogin().then(() => {
+    isLogin().then(() => {
       if (selectedSpecies.length === 0) {
         // navigation.goBack();
         // setShowAddSpeciesModal(false);
@@ -85,7 +72,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
       }
       setIsLoaderShow(true);
       let species = [...selectedSpecies];
-      for(let specie of species ) {
+      for (let specie of species) {
         console.log(specie, 'specie');
         createSpecies( specie.id, specie.scientificName)
         .then((data) => {
@@ -123,8 +110,8 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   const renderSpeciesCard = ({item}) => {
     let isCheck;
     if (selectedSpecies !== null) {
-      let selectItem =[...selectedSpecies];
-      for(let specie of selectItem ) {
+      let selectItem = [...selectedSpecies];
+      for (let specie of selectItem) {
         if (specie === item) {
           isCheck = specie.name === item.name ? true : false;
         }
@@ -290,7 +277,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_22,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
   speciesName: {
     flex: 1,
@@ -328,7 +315,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,.7)'
+    backgroundColor: 'rgba(0,0,0,.7)',
   },
   modalView: {
     margin: 6,
@@ -339,11 +326,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5
+    elevation: 5,
   },
   doneButton: {
     backgroundColor: Colors.PRIMARY,

@@ -1,1 +1,6 @@
-{}
+{
+  "save_areas_delete": "Borrar",
+  "save_areas_header": "Áreas salvadas",
+  "save_areas_offline": "No se encontró ningún área fuera de línea",
+  "save_areas_add_area": "Añadir área"
+}

@@ -1,10 +1,16 @@
 import { APIConfig } from './Config';
 // import React, {useContext} from 'react';
 import axios from 'axios';
-import { getAllPendingInventory, statusToComplete } from './';
-import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory, AddSpecies } from './Schemas';
+import {
+  Coordinates,
+  OfflineMaps,
+  Polygons,
+  User,
+  Species,
+  Inventory,
+  AddSpecies,
+} from './Schemas';
 import Realm from 'realm';
-import { Use } from 'react-native-svg';
 import getSessionData from '../Utils/sessionId';
 
 export const getUserInformation = () => {
@@ -53,18 +59,18 @@ export const getUserInformationFromServer = (navigation) => {
                   },
                   'modified',
                 );
-              });
-              resolve(data.data);
-            })
-            .catch((err) => {
-              if (err.response.status === 303) {
-                navigation.navigate('SignUp');
-              }
-              reject(err);
+              
             });
-        });
-      },
-    );
+            resolve(data.data);
+          })
+          .catch((err) => {
+            if (err.response.status === 303) {
+              navigation.navigate('SignUp');
+            }
+            reject(err);
+          });
+      });
+    });
     const { protocol, url } = APIConfig;
   });
 };
