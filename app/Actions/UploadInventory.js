@@ -59,19 +59,25 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
               )
                 .then(() => resolve())
                 .catch((err) => {
-                  console.error(err);
+                  console.error(
+                    `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
+                  );
                   reject();
                 });
             }
           })
           .catch((err) => {
             reject();
-            console.error('Error:', err);
+            console.error(
+              `Error at: /action/upload/changeInventoryStatusAndResponse, -> ${JSON.stringify(
+                err,
+              )}`,
+            );
           });
       }
     } catch (err) {
       reject();
-      console.error(`Error at: /action/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
+      console.error(`Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
     }
   });
 };
@@ -125,71 +131,104 @@ const uploadInventory = (dispatch) => {
                     plantProject: null,
                     plantedSpecies: species,
                   };
-                  await getSessionData().then(async (sessionData) => {
-                    if (oneInventory.response !== null && oneInventory.status === 'uploading') {
-                      const inventoryResponse = JSON.parse(oneInventory.response);
-                      try {
-                        const response = await getPlantLocationDetails(
-                          inventoryResponse.id,
-                          userToken,
-                        );
-                        await changeStatusAndUpload(
-                          response,
-                          oneInventory,
-                          userToken,
-                          sessionData,
-                          dispatch,
-                        );
-                        if (inventoryData.length - 1 === i) {
-                          dispatch(LocalInventoryActions.updateIsUploading(false));
-                          resolve();
+                  await getSessionData()
+                    .then(async (sessionData) => {
+                      if (oneInventory.response !== null && oneInventory.status === 'uploading') {
+                        const inventoryResponse = JSON.parse(oneInventory.response);
+                        try {
+                          const response = await getPlantLocationDetails(
+                            inventoryResponse.id,
+                            userToken,
+                          );
+                          await changeStatusAndUpload(
+                            response,
+                            oneInventory,
+                            userToken,
+                            sessionData,
+                            dispatch,
+                          );
+                          if (inventoryData.length - 1 === i) {
+                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            resolve();
+                          }
+                        } catch (err) {
+                          if (inventoryData.length - 1 === i) {
+                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            reject();
+                          }
+                          console.error(err);
                         }
-                      } catch (err) {
-                        if (inventoryData.length - 1 === i) {
-                          dispatch(LocalInventoryActions.updateIsUploading(false));
-                          reject();
-                        }
-                        console.error(err);
-                      }
-                    } else {
-                      const data = await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                          'x-session-id': sessionData,
-                        },
-                      });
-                      if (data && data.data) {
-                        await changeStatusAndUpload(
-                          data.data,
-                          oneInventory,
-                          userToken,
-                          sessionData,
-                          dispatch,
-                        )
-                          .then(() => {
+                      } else {
+                        try {
+                          const data = await axios({
+                            method: 'POST',
+                            url: `${protocol}://${url}/treemapper/plantLocations`,
+                            data: body,
+                            headers: {
+                              'Content-Type': 'application/json',
+                              Authorization: `OAuth ${userToken}`,
+                              'x-session-id': sessionData,
+                            },
+                          });
+                          if (data && data.data) {
+                            await changeStatusAndUpload(
+                              data.data,
+                              oneInventory,
+                              userToken,
+                              sessionData,
+                              dispatch,
+                            )
+                              .then(() => {
+                                if (inventoryData.length - 1 === i) {
+                                  dispatch(LocalInventoryActions.updateIsUploading(false));
+                                  resolve();
+                                }
+                              })
+                              .catch((err) => {
+                                if (inventoryData.length - 1 === i) {
+                                  dispatch(LocalInventoryActions.updateIsUploading(false));
+                                  reject(err);
+                                }
+                                console.error(
+                                  `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
+                                    err,
+                                  )}`,
+                                );
+                              });
+                          } else {
                             if (inventoryData.length - 1 === i) {
                               dispatch(LocalInventoryActions.updateIsUploading(false));
-                              resolve();
+                              reject(err);
                             }
-                          })
-                          .catch((err) => {
-                            console.error(err);
-                          });
-                      } else {
-                        reject();
+                          }
+                        } catch (err) {
+                          if (inventoryData.length - 1 === i) {
+                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            reject(err);
+                          }
+                          console.error(
+                            `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
+                              err,
+                            )}`,
+                          );
+                        }
                       }
-                    }
-                  });
+                    })
+                    .catch((err) => {
+                      if (inventoryData.length - 1 === i) {
+                        dispatch(LocalInventoryActions.updateIsUploading(false));
+                        reject(err);
+                      }
+                      console.error(
+                        `Error at: /action/upload, getSessionData -> ${JSON.stringify(err)}`,
+                      );
+                    });
                 }
               },
               (err) => alert(err.message),
             );
           } catch (err) {
-            reject();
+            reject(err);
             alert('Unable to retrive location');
           }
         });
@@ -235,7 +274,7 @@ const uploadImage = async (oneInventory, response, userToken, sessionId, dispatc
       }
     } catch (err) {
       console.error(
-        `Error at: action/uploadImage, ${locationId}/coordinates/${
+        `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${
           oneResponseCoords.id
         } -> ${JSON.stringify(err)}`,
       );
