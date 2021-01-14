@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Platform,
   TextInput,
+  Dimensions,
 } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
@@ -49,7 +50,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [plantationDate, setPLantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
-  const [specieHeight, setSpecieHeight] = useState('2')
+  const [specieHeight, setSpecieHeight] = useState('2');
   const [locateTree, setLocateTree] = useState(null);
   const [editEnable, setEditEnable] = useState('');
   // const [specieCoordinates, setSpecieCoordinates] = useState('');
@@ -67,7 +68,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(inventory.species_diameter);
-        setSpecieHeight(Math.round(inventory.species_height*10)/10);
+        setSpecieHeight(Math.round(inventory.species_height * 10) / 10);
         // setSpecieCoordinates(inventory.polygons[0].coordinates[0].latitude,inventory.polygons[0].coordinates[0].latitude)
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
@@ -82,7 +83,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         inventory_id: state.inventoryID,
         speceisDiameter: Number(specieDiameter),
       });
-    } else if (action === 'specieHeight'){
+    } else if (action === 'specieHeight') {
       updateSpeceiHeight({
         inventory_id: state.inventoryID,
         speceisDiameter: Number(specieDiameter),
@@ -123,8 +124,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     ? i18next.t('label.tree_review_name_of_species')
                     : editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
-                    :  'Height'
-                  }
+                    : 'Height'}
                 </Text>
                 {editEnable === 'species' ? (
                   <TextInput
@@ -146,7 +146,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieDiameter(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
-
                   />
                 ) : (
                   <TextInput
@@ -157,7 +156,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieHeight(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild('specieHeight')}
-
                   />
                 )}
                 <MCIcon
@@ -229,15 +227,16 @@ const SingleTreeOverview = ({ navigation, route }) => {
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
-    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];  
+    let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
     // if (inventory.locate_tree === 'off-site') {
     //   setCoordinateEdit(true);
     // } else {
     //   setCoordinateEdit(false);
     // }
+    console.log('imageSource =>', imageSource);
     return (
       // <ScrollView>
-        <View style={detailContainerStyle}>
+      <View style={detailContainerStyle}>
         <View>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
           <Text style={styles.detailText}>
@@ -290,7 +289,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieHeight
-                ? `${Math.round(specieHeight*10)/10}m`
+                ? `${Math.round(specieHeight * 10) / 10}m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -312,10 +311,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
             </Text>
           </TouchableOpacity>
         </View>
-        
       </View>
       // </ScrollView>
-      
     );
   };
 
@@ -352,11 +349,10 @@ const SingleTreeOverview = ({ navigation, route }) => {
           <Text style={styles.detailHead}>Diameter</Text>
           <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15}}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
           <Text style={styles.detailHead}>Date</Text>
-          <Text style={styles.detailTxt} >
-            {`${specieDiameter}cm`}{' '}
-          </Text>
+          <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
         </View>
       </View>
     );
@@ -462,51 +458,57 @@ const SingleTreeOverview = ({ navigation, route }) => {
       {renderDateModal()}
       {/* {renderSpeciesModal()} */}
       <View style={styles.container}>
-        {locateTree === 'on-site' ? (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0}}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {locateTree === 'on-site' ? (
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
+              <Header
+                closeIcon
+                onBackPress={onBackPressOnSite}
+                headingText={i18next.t('label.tree_review_header')}
+              />
+              <TouchableOpacity style={{ paddingTop: 15 }} onPress={deleteInventory}>
+                <Text
+                  style={{
+                    fontFamily: Typography.FONT_FAMILY_REGULAR,
+                    fontSize: Typography.FONT_SIZE_18,
+                    lineHeight: Typography.LINE_HEIGHT_24,
+                  }}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
             <Header
               closeIcon
-              onBackPress={onBackPressOnSite}
-              headingText={i18next.t('label.tree_review_header')}
+              onBackPress={onBackPress}
+              headingText={
+                locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
+              }
             />
-            <TouchableOpacity style={{ paddingTop: 15 }} onPress={deleteInventory}>
-              <Text
-                style={{
-                  fontFamily: Typography.FONT_FAMILY_REGULAR,
-                  fontSize: Typography.FONT_SIZE_18,
-                  lineHeight: Typography.LINE_HEIGHT_24,
-                }}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <Header
-            closeIcon
-            onBackPress={onBackPress}
-            headingText={locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')}
-          />)}
-        <ScrollView  contentContainerStyle={styles.scrollViewContainer}>
-          {inventory && locateTree !== 'on-site' && (
-            <View style={styles.overViewContainer}>
-              {imageSource && <Image source={imageSource} style={styles.bgImage} />}
-              <LinearGradient
-                colors={[
-                  'rgba(255,255,255,0)',
-                  imageSource ? Colors.GRAY_LIGHTEST : 'rgba(255,255,255,0)',
-                ]}
-                style={styles.detailContainer}>
-                {renderDetails(inventory)}
-              </LinearGradient>
-            </View>
           )}
-          {locateTree === 'on-site' && (
-            <ScrollView style={styles.overViewContainer}>
 
-              {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
-              {renderDetails(inventory)}
-            </ScrollView>
-          )}
+          <View style={styles.scrollViewContainer}>
+            {inventory && locateTree !== 'on-site' && (
+              <>
+                {imageSource && <Image source={imageSource} style={styles.bgImage} />}
+                <LinearGradient
+                  colors={[
+                    'rgba(255,255,255,0)',
+                    imageSource ? Colors.GRAY_LIGHTEST : 'rgba(255,255,255,0)',
+                  ]}
+                  style={styles.detailContainer}>
+                  {renderDetails(inventory)}
+                </LinearGradient>
+              </>
+            )}
+            {locateTree === 'on-site' && (
+              <>
+                {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
+                {renderDetails(inventory)}
+              </>
+            )}
+          </View>
         </ScrollView>
         {/* {locateTree === 'on-site' ? (
           <PrimaryButton
@@ -576,11 +578,10 @@ const styles = StyleSheet.create({
   bottomBtnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 10,
   },
   detailContainer: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    marginTop: 24,
   },
   scrollViewContainer: {
     flex: 1,
@@ -627,17 +628,14 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   detailSubContainer: {
-    position: 'relative',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    padding: 10,
+    paddingTop: 10,
   },
   imgSpecie: {
     marginTop: 0,
     width: '100%',
-    height: '50%',
-    borderRadius: 13
+    height: Dimensions.get('window').height * 0.3,
+    borderRadius: 13,
+    marginTop: 24,
   },
   detailHead: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
