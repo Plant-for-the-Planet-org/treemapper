@@ -39,7 +39,6 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import moment from 'moment';
 import i18next from 'i18next';
 import SelectSpecies from '../SelectSpecies/index';
 
@@ -100,7 +99,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn
+                      activeBtn={inventory.status === 'complete' ? true : false}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -348,8 +347,13 @@ const InventoryOverview = ({ navigation }) => {
   let isSingleCoordinate, locateType;
   if (inventory) {
     isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
-    locationType = isSingleCoordinate ? 'Point' : 'Polygon';
-    locateType = inventory.locate_tree == 'off-site' ? 'Off Site' : 'On Site';
+    locationType = isSingleCoordinate
+      ? i18next.t('label.tree_inventory_point')
+      : i18next.t('label.tree_inventory_polygon');
+    locateType =
+      inventory.locate_tree == 'off-site'
+        ? i18next.t('label.tree_inventory_off_site')
+        : i18next.t('label.tree_inventory_on_site');
   }
 
   let status = inventory ? inventory.status : 'pending';
@@ -369,7 +373,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: moment(new Date(Number(inventory.plantation_date))).format('ll'),
+                  date: new Date(Number(inventory.plantation_date)),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
