@@ -15,7 +15,7 @@ import {
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle, add_image, off_site_enable_banner} from '../../assets';
+import { placeholder_image, checkCircleFill, checkCircle, add_image, off_site_enable_banner, tree} from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
@@ -166,10 +166,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     setSpecieIndex(index);
   };
 
-  // const isNormalInteger= (str) =>  {
-  //   var n = Math.floor(Number(str));
-  //   return (n !== Infinity && String(n) === str && n >= 0);
-  // }
+  
   const renderSpeciesCardMultiple = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
     let onSiteCheck;
@@ -184,7 +181,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          marginVertical: 20,
+          marginVertical: 10,
         }}
         accessible={true}
         accessibilityLabel="Species Card"
@@ -199,14 +196,23 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           </View>
         }
         {item.image ? (
-          <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10}} />
-          </TouchableOpacity>
+          // <TouchableOpacity onPress={() =>onPressImage(index)}>
+            <Image 
+              source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} 
+              resizeMode={'cover'} 
+              style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10}} 
+            />
+          // </TouchableOpacity>
         ) : 
-          <TouchableOpacity onPress={() => onPressImage(index)}>
-            <Image source={add_image} resizeMode={'contain'} style={{ flex: 1, width: 130,height: 90, borderRadius:13, marginHorizontal: 10}} />
-          </TouchableOpacity>}
-        <View style={{ flex: 1 }}>
+          // <TouchableOpacity onPress={() => onPressImage(index)}>
+            <Image 
+              source={tree} 
+              resizeMode={'cover'} 
+              style={{ flex: 1, width: 130,height: 90, borderRadius:13, marginHorizontal: 10}} 
+            />
+          // </TouchableOpacity>
+        }
+        <View style={{ flex: 1, paddingLeft: 15, alignSelf:'flex-start'}}>
           {item.aliases ? (
             <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
               {item.aliases}
@@ -261,23 +267,29 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
             // </TouchableOpacity>
             ) : 
             // <TouchableOpacity onPress={() => onPressImage(index)}>
-              <Image source={add_image} resizeMode={'cover'} style={{  width: 130,height: 90, borderRadius:13, marginRight: 20}} />
+              <Image source={tree} resizeMode={'cover'} style={{  width: 130,height: 90, borderRadius:13, marginRight: 20}} />
             // </TouchableOpacity>
           }
         </View>
         
-        <View style={{ flex: 1,flexDirection: 'column', justifyContent: 'flex-start', alignSelf: 'flex-start'}}>
+        <View style={{ flex: 1,flexDirection: 'column', justifyContent: 'flex-start', alignSelf: 'flex-start', paddingLeft: 15}}>
           {item.aliases ? (
-            <Text  style={styles.speciesLocalName} onPress={() => addName(index)}>
-              {item.aliases}
+            <Text  
+              style={styles.speciesLocalName} 
+              // onPress={() => addName(index)}
+            >
+                {item.aliases}
             </Text>
           ): (
-            <Text style={styles.speciesLocalName} onPress={() => addName(index)}>
+            <Text 
+              style={styles.speciesLocalName} 
+              // onPress={() => addName(index)}
+            >
               Add Name
             </Text>
           ) }
           <Text style={styles.speciesName}>
-            {i18next.t('label.select_species_name_of_tree', { item })}
+            {item.scientificName}
           </Text>
         </View>
       </TouchableOpacity>
@@ -558,30 +570,28 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
               <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 10}}>
                 
                 { numberTrees === 'single' ? (
-                  <Header
-                  // closeIcon
-                  headingText={i18next.t('label.select_species_header')}
-                />
+                  <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 10}}>
+                    <Header
+                      headingText={i18next.t('label.select_species_header')}
+                    />
+                    <TouchableOpacity
+                    onPress={onPressSearch}
+                    >
+                      <Text style={styles.searchText}>Search</Text>
+                    </TouchableOpacity>
+                  </View>
                 ) : (
                   <Header
                   closeIcon
                   headingText={i18next.t('label.select_species_header')}
                   subHeadingText={i18next.t('label.select_species_sub_header')}
+                  rightText={'Search'}
+                  onPressSearch ={onPressSearch}
                 />
                 )
                 }
-                <TouchableOpacity
-                  onPress={onPressSearch}
-                >
-                  <Text style={styles.searchText}>Search</Text>
-                </TouchableOpacity>
+                
               </View>
-              {/* <FlatList
-                style={{ flex: 1 }}
-                data={speciesList}
-                showsVerticalScrollIndicator={false}
-                renderItem={renderSpeciesCard}
-              /> */}
               {numberTrees === 'single' ? (
                 <FlatList
                 style={{ flex: 1, marginTop: 15 }}

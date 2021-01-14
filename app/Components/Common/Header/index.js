@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,7 +15,8 @@ const Header = ({
   subHeadingStyle,
   testID,
   accessibilityLabel,
-  rightText
+  rightText,
+  onPressSearch
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -37,7 +38,13 @@ const Header = ({
           </TouchableOpacity>
         ) : []}
         <View />
-        {rightText ? (<Text style={styles.rightText}>{rightText}</Text>) : null}
+        {rightText ? ( onPressSearch ? (
+          <TouchableOpacity onPress= {() => onPressSearch()}>
+            <Text style={styles.rightText}>{rightText}</Text>
+          </TouchableOpacity>) : (
+            <Text style={styles.rightText}>{rightText}</Text>
+          )
+        ) : null}
       </View>
       {headingText ? (
         <View style={{ marginVertical: 0 }}>

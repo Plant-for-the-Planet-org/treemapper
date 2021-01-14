@@ -66,7 +66,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setInventory(inventory);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
-        setSpecieDiameter(inventory.species_diameter);
+        setSpecieDiameter(Math.round(inventory.species_diameter*10)/10);
         setSpecieHeight(Math.round(inventory.species_height*10)/10);
         // setSpecieCoordinates(inventory.polygons[0].coordinates[0].latitude,inventory.polygons[0].coordinates[0].latitude)
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
@@ -272,7 +272,9 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <FIcon name={'arrow-h'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieDiameter
-                ? i18next.t('label.tree_review_specie_diameter', { specieDiameter })
+                ? 
+                // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
+                `${Math.round(specieDiameter*10)/10}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
