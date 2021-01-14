@@ -124,7 +124,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          marginVertical: 20,
+          marginVertical: 10,
         }}
         accessible={true}
         accessibilityLabel="Species Card"
@@ -157,19 +157,22 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           />
         </TouchableOpacity> */}
         {item.image ? (
-          <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'contain'} style={{ flex: 1, width: 130,height: 90, borderRadius: 10}} />
-          </TouchableOpacity>
+          // <TouchableOpacity onPress={() =>onPressImage(index)}>
+            <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'cover'} style={{ flex: 1, width: 130,height: 90, borderRadius: 10}} />
+          // </TouchableOpacity>
         ) : 
-          <TouchableOpacity onPress={() => onPressImage(index)}>
-            <Image source={tree} resizeMode={'contain'} style={{ flex: 1, width: 130, height: 90, borderRadius: 10}} />
-          </TouchableOpacity>}
+          // <TouchableOpacity onPress={() => onPressImage(index)}>
+            <Image source={tree} resizeMode={'cover'} style={{ flex: 1, width: 130, height: 90, borderRadius: 10, marginHorizontal: 10}} />
+          // </TouchableOpacity>
+        }
         <View style={{ flex: 1, paddingLeft: 20 }}>
           <Text numberOfLines={2} style={styles.speciesLocalName}>
-            {i18next.t('label.select_species_local_name', { item })}
+            {/* {i18next.t('label.select_species_local_name', { item })} */}
+            {`${item.name}`}
           </Text>
           <Text numberOfLines={2} style={styles.speciesName}>
             {i18next.t('label.select_species_name_of_tree', { item })}
+            {`${item.scientificName}`}
           </Text>
         </View>
       </TouchableOpacity>
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
   speciesLocalName: {
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_22,
+    fontSize: Typography.FONT_SIZE_18,
   },
   speciesLocalNameSingle: {
     flex: 1,
@@ -282,7 +285,7 @@ const styles = StyleSheet.create({
   speciesName: {
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
+    fontSize: Typography.FONT_SIZE_12,
     fontStyle: 'italic',
   },
   externalInputContainer: {
