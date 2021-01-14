@@ -29,8 +29,8 @@ import {
   UpdateSpecieAndSpecieDiameter,
   DeleteInventory,
   // statusToComplete
-} from '../../Actions';
-import { store } from '../../Actions/store';
+} from '../../actions';
+import { store } from '../../actions/store';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';

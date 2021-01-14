@@ -1,7 +1,5 @@
 import axios from 'axios';
-import {
-  APIConfig
-} from '../Actions/Config';
+import { APIConfig } from '../actions/Config';
 import {
   Coordinates,
   OfflineMaps,
@@ -10,33 +8,29 @@ import {
   Species,
   Inventory,
   AddSpecies,
-} from '../Actions/Schemas';
+} from '../actions/Schemas';
 import Realm from 'realm';
 import getSessionData from '../Utils/sessionId';
 
-const {
-  protocol,
-  url
-} = APIConfig;
+const { protocol, url } = APIConfig;
 export const AllSpecies = () => {
   return new Promise((resolve, reject) => {
     let headers = {
       'Content-Type': 'application/json',
-      'X-Accept-Version': 'v2.0'
+      'X-Accept-Version': 'v2.0',
     };
-    axios.get(`${protocol}://${url}/treemapper/scientificSpecies`, headers).then((res) => {
-      const {
-        data,
-        status
-      } = res;
-      if (status === 200) {
-        console.log(data);
-        resolve(data);
-      }
-    }).catch((err) => {
-      console.log(err, 'error');
-    });
-
+    axios
+      .get(`${protocol}://${url}/treemapper/scientificSpecies`, headers)
+      .then((res) => {
+        const { data, status } = res;
+        if (status === 200) {
+          console.log(data);
+          resolve(data);
+        }
+      })
+      .catch((err) => {
+        console.log(err, 'error');
+      });
   });
 };
 
@@ -80,41 +74,43 @@ export const SearchSpecies = (payload) => {
           let formData = new FormData();
           formData.append('q', payload);
           formData.append('t', 'species');
-          getSessionData().then( async (sessionData) => {
-            await axios({
-              method: 'POST',
-              url: `${protocol}://${url}/suggest.php`,
-              data: formData,
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `OAuth ${userToken}`,
-                'x-session-id': sessionData,
-              },
+          getSessionData()
+            .then(async (sessionData) => {
+              await axios({
+                method: 'POST',
+                url: `${protocol}://${url}/suggest.php`,
+                data: formData,
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `OAuth ${userToken}`,
+                  'x-session-id': sessionData,
+                },
+              })
+                .then((res) => {
+                  const { data, status } = res;
+                  // console.log(res, 'res');
+                  if (status === 200) {
+                    // console.log(data, 'search');
+                    resolve(data);
+                  }
+                })
+                .catch((err) => {
+                  reject(err);
+                  console.log(err, 'error');
+                });
             })
-            .then((res) => {
-              const {data, status} = res;
-              // console.log(res, 'res');
-              if (status === 200) {
-                // console.log(data, 'search');
-                resolve(data);
-              }
-            }).catch((err) => {
+            .catch((err) => {
+              console.log(err);
               reject(err);
-              console.log(err, 'error');
             });
-          })
-          .catch((err) => {
-            console.log(err);
-            reject(err);});
-        })
+        });
       })
-      .catch( err=> {
+      .catch((err) => {
         console.log(err);
         reject(err);
       });
   });
 };
-
 
 export const SpeciesList = (userToken) => {
   return new Promise((resolve, reject) => {
@@ -124,22 +120,19 @@ export const SpeciesList = (userToken) => {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `OAuth ${userToken}`,
-      }
+      },
     })
       .then((res) => {
-        const {
-          data,
-          status
-        } = res;
+        const { data, status } = res;
         // console.log(res, 'res');
         if (status === 200) {
-        // console.log(data, 'search');
+          // console.log(data, 'search');
           resolve(data);
         }
-      }).catch((err) => {
+      })
+      .catch((err) => {
         reject(err);
         console.log(err, 'error');
       });
-
   });
 };

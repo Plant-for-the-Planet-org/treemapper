@@ -15,9 +15,9 @@ import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
-import { addCoordinateSingleRegisterTree, getInventory } from '../../Actions';
+import { addCoordinateSingleRegisterTree, getInventory } from '../../actions';
 import { useNavigation } from '@react-navigation/native';
-import { store } from '../../Actions/store';
+import { store } from '../../actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
@@ -242,7 +242,7 @@ class MapMarking extends React.Component {
           locateTree: locateTree,
           currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
         }).then(() => {
-          this.setState({isAlrightyModalShow: true});
+          this.setState({ isAlrightyModalShow: true });
         });
       },
       (err) => alert(err.message),

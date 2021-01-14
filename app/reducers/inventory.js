@@ -5,7 +5,7 @@ import {
   SET_INVENTORY_ID,
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
-} from '../Actions/Types';
+} from '../actions/Types';
 
 // Creates the context object for Inventory. Used by component to get the state and dispatch function of inventory
 export const InventoryContext = createContext();

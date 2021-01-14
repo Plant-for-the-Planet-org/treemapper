@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { Header, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { getAllInventoryByStatus, clearAllUploadedInventory } from '../../Actions';
-import { store } from '../../Actions/store';
+import { getAllInventoryByStatus, clearAllUploadedInventory } from '../../actions';
+import { store } from '../../actions/store';
 import { Colors, Typography } from '_styles';
-import { LocalInventoryActions } from '../../Actions/Action';
+import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';

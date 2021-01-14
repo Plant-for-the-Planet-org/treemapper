@@ -1,4 +1,4 @@
-import { uploadInventory, isLogin, auth0Login } from '../Actions';
+import { uploadInventory, isLogin, auth0Login } from '../actions';
 
 export const uploadInventoryData = (dispatch) => {
   return new Promise((resolve, reject) => {

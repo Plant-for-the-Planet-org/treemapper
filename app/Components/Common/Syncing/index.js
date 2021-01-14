@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
-import { store } from '../../../Actions/store';
+import { store } from '../../../actions/store';
 import { uploadInventoryData } from '../../../Utils/uploadInventory';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {

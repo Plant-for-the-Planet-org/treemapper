@@ -4,14 +4,14 @@ import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { PrimaryButton } from '../Common';
-import { getUserInformationFromServer } from '../../Actions/User';
+import { getUserInformationFromServer } from '../../actions/User';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { LoginDetails } from '../../Actions/index';
+import { LoginDetails } from '../../actions/index';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../Services/Species';
-import { SpeciesListAction } from '../../Actions/Action';
-import { store } from '../../Actions/store';
+import { SpeciesListAction } from '../../actions/Action';
+import { store } from '../../actions/store';
 import ProfileListItem from './ProfileListItem';
 
 const ProfileModal = ({
