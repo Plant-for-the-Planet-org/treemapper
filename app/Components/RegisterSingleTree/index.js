@@ -3,8 +3,8 @@ import { View, StyleSheet, BackHandler } from 'react-native';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from '../Common/ImageCapturing';
-import { store } from '../../Actions/store';
-import { updateLastScreen } from '../../Actions';
+import { store } from '../../actions/store';
+import { updateLastScreen } from '../../actions';
 
 const RegisterSingleTree = ({ navigation, route }) => {
   const { state } = useContext(store);

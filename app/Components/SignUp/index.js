@@ -1,24 +1,33 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, ScrollView, Switch, TextInput, Platform, Image } from 'react-native';
-import { Header, PrimaryButton, Input } from '../Common';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ScrollView,
+  Switch,
+  TextInput,
+  Platform,
+  Image,
+} from 'react-native';
+import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
-import { TouchableOpacity, TouchableHighlight } from 'react-native-gesture-handler';
-import { LoginDetails } from '../../Actions';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { LoginDetails } from '../../actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../Services/Signup';
 import Snackbar from 'react-native-snackbar';
-import { store } from '../../Actions/store';
-import { LoaderActions, SignUpLoader } from '../../Actions/Action';
-import {Loader} from '../Common';
+import { store } from '../../actions/store';
+import { LoaderActions, SignUpLoader } from '../../actions/Action';
+import { Loader } from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
-import {handleFilter} from '../../Utils/CountryDataFilter';
+import { handleFilter } from '../../Utils/CountryDataFilter';
 
-const SignUp = ({navigation}) => {
+const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');
   const [lastname, setLastName] = useState('');
   const [firstname, setFirstName] = useState('');
@@ -39,7 +48,7 @@ const SignUp = ({navigation}) => {
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
   const [country, setCountry] = useState('');
-  const {dispatch, state} = useContext(store);
+  const { dispatch, state } = useContext(store);
   const [modalVisible, setModalVisible] = useState(false);
   const textInput = useRef(null);
   const textInputZipCode = useRef(null);
@@ -47,8 +56,8 @@ const SignUp = ({navigation}) => {
   const textInputAddress = useRef(null);
   const textInputCity = useRef(null);
 
-  const toggleSwitchPublish = () => setisPrivate(previousState => !previousState);
-  const toggleSwitchContact = () => setgetNews(previousState => !previousState);
+  const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
+  const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
   const lang = RNLocalize.getLocales()[0];
   const SelectType = (type) => {
     let name;
@@ -57,7 +66,7 @@ const SignUp = ({navigation}) => {
         name = 'INIDIVDUAL';
         break;
       case 'tpo':
-        name ='TREE PLANTING ORGANISATION';
+        name = 'TREE PLANTING ORGANISATION';
         break;
       case 'education':
         name = 'SCHOOL';
@@ -66,26 +75,26 @@ const SignUp = ({navigation}) => {
         name = 'COMPANY';
         break;
       default:
-        name ='TREE PLANTING ORGANISATION';
+        name = 'TREE PLANTING ORGANISATION';
         break;
     }
     return name;
   };
   const checkValidation = (name) => {
     if (name === 'individual') {
-      if (lastname && firstname && country){
+      if (lastname && firstname && country) {
         setCompleteCheck(true);
-      }else {
+      } else {
         setCompleteCheck(false);
       }
-    } else if(name === 'education' || name === 'company') {
+    } else if (name === 'education' || name === 'company') {
       if (lastname && firstname && nameOfOrg && country) {
         setCompleteCheck(true);
       } else {
         setCompleteCheck(false);
       }
-    } else if(name === 'tpo') {
-      if(lastname && firstname && nameOfOrg && zipCode && city && address && country) {
+    } else if (name === 'tpo') {
+      if (lastname && firstname && nameOfOrg && zipCode && city && address && country) {
         setCompleteCheck(true);
       } else {
         setCompleteCheck(false);
@@ -98,7 +107,7 @@ const SignUp = ({navigation}) => {
     countryName = country.countryCode;
     let locale = authDetail.locale === undefined ? lang.languageCode : authDetail.locale;
     let userData;
-    if(accountType === '') {
+    if (accountType === '') {
       Snackbar.show({
         text: 'Select Role Type',
         duration: Snackbar.LENGTH_SHORT,
@@ -113,7 +122,7 @@ const SignUp = ({navigation}) => {
       });
     }
 
-    if (lastname === ''){
+    if (lastname === '') {
       setLastNameError(true);
       Snackbar.show({
         text: 'Enter last name',
@@ -149,7 +158,7 @@ const SignUp = ({navigation}) => {
           duration: Snackbar.LENGTH_SHORT,
         });
       }
-      if(completeCheck) {
+      if (completeCheck) {
         // setCompleteCheck(true);
         userData = {
           firstname,
@@ -163,7 +172,7 @@ const SignUp = ({navigation}) => {
           address,
           oAuthAccessToken,
           type: accountType,
-          name: nameOfOrg
+          name: nameOfOrg,
         };
       }
     } else if (accountType === 'education' || accountType === 'company') {
@@ -174,7 +183,7 @@ const SignUp = ({navigation}) => {
           duration: Snackbar.LENGTH_SHORT,
         });
       }
-      if(firstname && lastname && accountType && nameOfOrg) {
+      if (firstname && lastname && accountType && nameOfOrg) {
         setCompleteCheck(true);
         userData = {
           firstname,
@@ -185,12 +194,11 @@ const SignUp = ({navigation}) => {
           locale,
           oAuthAccessToken,
           type: accountType,
-          name: nameOfOrg
+          name: nameOfOrg,
         };
       }
-    }
-    else {
-      if(firstname && lastname && accountType) {
+    } else {
+      if (firstname && lastname && accountType) {
         setCompleteCheck(true);
         userData = {
           firstname,
@@ -200,29 +208,31 @@ const SignUp = ({navigation}) => {
           country: countryName,
           locale,
           oAuthAccessToken,
-          type: accountType
+          type: accountType,
         };
       }
       // SignupService(userData);
     }
-    
-    if (completeCheck) {   
+
+    if (completeCheck) {
       dispatch(SignUpLoader.setSignUpLoader(true));
-      SignupService(userData).then(() => {
-        dispatch(SignUpLoader.setSignUpLoader(false));
-        navigation.navigate('MainScreen');
-      }).catch(err => {
-        alert(err.response.data.message);
-        console.log(err.response.data.message, 'err');
-        dispatch(SignUpLoader.setSignUpLoader(false));
-      });
+      SignupService(userData)
+        .then(() => {
+          dispatch(SignUpLoader.setSignUpLoader(false));
+          navigation.navigate('MainScreen');
+        })
+        .catch((err) => {
+          alert(err.response.data.message);
+          console.log(err.response.data.message, 'err');
+          dispatch(SignUpLoader.setSignUpLoader(false));
+        });
     }
   };
 
   useEffect(() => {
     dispatch(LoaderActions.setLoader(false));
     LoginDetails().then((User) => {
-      let detail = (Object.values(User));
+      let detail = Object.values(User);
       console.log(detail);
       let decode = jwtDecode(detail[0].idToken);
       setAuthtAccessToken(detail[0].accessToken);
@@ -232,7 +242,7 @@ const SignUp = ({navigation}) => {
       setCountry(handleFilter(lang.countryCode)[0]);
     });
   }, []);
-  
+
   useEffect(() => {
     checkValidation(accountType);
   }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode, country]);
@@ -247,13 +257,12 @@ const SignUp = ({navigation}) => {
   };
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {state.isSignUpLoader ? <Loader isLoaderShow={true} /> : 
+      {state.isSignUpLoader ? (
+        <Loader isLoaderShow={true} />
+      ) : (
         <View style={styles.container}>
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            <Header
-              headingText={i18next.t('label.signup')}
-              closeIcon
-            />
+            <Header headingText={i18next.t('label.signup')} closeIcon />
             <Text style={styles.accountTypeHeader}>{i18next.t('label.account_type')}</Text>
             <View style={styles.selectRoleBtnsContainer}>
               <View
@@ -263,7 +272,10 @@ const SignUp = ({navigation}) => {
                   accountType === 'individual' ? styles.activeRoleContainer : null,
                 ]}>
                 <TouchableOpacity onPress={() => setAccountType('individual')}>
-                  <Text style={accountType === 'individual' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.individual')}</Text>
+                  <Text
+                    style={accountType === 'individual' ? styles.accountTypeText : styles.roleText}>
+                    {i18next.t('label.individual')}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View
@@ -273,7 +285,10 @@ const SignUp = ({navigation}) => {
                   accountType === 'company' ? styles.activeRoleContainer : null,
                 ]}>
                 <TouchableOpacity onPress={() => setAccountType('company')}>
-                  <Text style={accountType === 'company' ? styles.accountTypeText : styles.roleText}>{i18next.t('label.company')}</Text>
+                  <Text
+                    style={accountType === 'company' ? styles.accountTypeText : styles.roleText}>
+                    {i18next.t('label.company')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -301,41 +316,54 @@ const SignUp = ({navigation}) => {
                   accountType === 'education' ? styles.activeRoleContainer : null,
                 ]}>
                 <TouchableOpacity onPress={() => setAccountType('education')}>
-                  <Text style={[accountType === 'education' ? styles.accountTypeText : styles.roleText, styles.schoolText]}>{i18next.t('label.education_title')}</Text>
+                  <Text
+                    style={[
+                      accountType === 'education' ? styles.accountTypeText : styles.roleText,
+                      styles.schoolText,
+                    ]}>
+                    {i18next.t('label.education_title')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20}}>
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20 }}>
               {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
-                <TextInput style={styles.value(firstNameError)} 
+                <TextInput
+                  style={styles.value(firstNameError)}
                   value={firstname}
-                  onChangeText={text => setFirstName(text)}
-                  returnKeyType= {completeCheck ? 'done' : 'next'}
+                  onChangeText={(text) => setFirstName(text)}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
                   blurOnSubmit={false}
                   onSubmitEditing={() => textInput.current.focus()}
-                // placeholder='Paulina'
+                  // placeholder='Paulina'
                 />
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
-                <TextInput style={styles.value(lastNameError)} 
-                  value={lastname} 
-                  onChangeText={text => setLastName(text)}
-                  returnKeyType= {completeCheck ? 'done' : 'next'} 
+                <TextInput
+                  style={styles.value(lastNameError)}
+                  value={lastname}
+                  onChangeText={(text) => setLastName(text)}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
                   ref={textInput}
                   blurOnSubmit={false}
-                  onSubmitEditing={accountType === 'company' || accountType === 'education' || accountType === 'tpo' ? () => textInputNameOfOrg.current.focus() : 
-                    null
+                  onSubmitEditing={
+                    accountType === 'company' ||
+                    accountType === 'education' ||
+                    accountType === 'tpo'
+                      ? () => textInputNameOfOrg.current.focus()
+                      : null
                   }
                 />
               </View>
             </View>
-            <View style={{marginVertical: 20}}>
+            <View style={{ marginVertical: 20 }}>
               <Text>COUNTRY</Text>
               <View style={styles.countryContainer}>
-                <Image 
+                <Image
                   source={{
                     uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : null,
                   }}
@@ -343,19 +371,29 @@ const SignUp = ({navigation}) => {
                   style={styles.countryFlag}
                 />
                 <View>
-                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={{paddingLeft: 15}}>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(!modalVisible)}
+                    style={{ paddingLeft: 15 }}>
                     <View>
-                      <Text style={{paddingBottom: 8, fontFamily: Typography.FONT_FAMILY_REGULAR}}>{country ? country.countryName : 'Select Country'}</Text>
-                      <View style={{flexDirection: 'row'}}>
-                        <Text style={{color: Colors.PRIMARY, fontFamily: Typography.FONT_FAMILY_REGULAR}}>Change</Text>
+                      <Text
+                        style={{ paddingBottom: 8, fontFamily: Typography.FONT_FAMILY_REGULAR }}>
+                        {country ? country.countryName : 'Select Country'}
+                      </Text>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text
+                          style={{
+                            color: Colors.PRIMARY,
+                            fontFamily: Typography.FONT_FAMILY_REGULAR,
+                          }}>
+                          Change
+                        </Text>
                         <Ionicons
-                          name= 'angle-right'
+                          name="angle-right"
                           size={25}
                           color={Colors.PRIMARY}
                           style={styles.iconStyle}
                           // onPress={modalOpen}
                         />
-
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -368,27 +406,32 @@ const SignUp = ({navigation}) => {
                 >{country ? country : ''}</Text>
               </TouchableOpacity> */}
             </View>
-            {modalVisible ? <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />: null}
+            {modalVisible ? (
+              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
+            ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer()}>
-                <Text style={styles.label}>{i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}</Text>
-                <TextInput style={styles.value(nameError)} 
+                <Text style={styles.label}>
+                  {i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}
+                </Text>
+                <TextInput
+                  style={styles.value(nameError)}
                   value={nameOfOrg}
-                  onChangeText={text => setNameOfOrg(text)}
-                  returnKeyType= {completeCheck ? 'done' : 'next'}
+                  onChangeText={(text) => setNameOfOrg(text)}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
                   ref={textInputNameOfOrg}
                   blurOnSubmit={completeCheck ? true : false}
-                  onSubmitEditing={completeCheck ? null: () => textInputAddress.current.focus()}
-                // placeholder="Forest in Africa"
+                  onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
+                  // placeholder="Forest in Africa"
                 />
-          
               </View>
             ) : null}
             <View style={styles.emailContainer('email')}>
               <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
-              <TextInput style={styles.inputColor} 
-                value={email} 
-                onChangeText={text => setEmail(text)}
+              <TextInput
+                style={styles.inputColor}
+                value={email}
+                onChangeText={(text) => setEmail(text)}
                 editable={false}
               />
             </View>
@@ -396,37 +439,43 @@ const SignUp = ({navigation}) => {
               <View>
                 <View style={styles.emailContainer()}>
                   <Text style={styles.label}>{i18next.t('label.address')}</Text>
-                  <TextInput style={styles.value(addressError)} 
-                    value={address} 
-                    onChangeText={text => setAddress(text)}
-                    returnKeyType= {completeCheck ? 'done' : 'next'}
+                  <TextInput
+                    style={styles.value(addressError)}
+                    value={address}
+                    onChangeText={(text) => setAddress(text)}
+                    returnKeyType={completeCheck ? 'done' : 'next'}
                     ref={textInputAddress}
                     blurOnSubmit={completeCheck ? true : false}
                     onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
-                  // placeholder="Some Address"
+                    // placeholder="Some Address"
                   />
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15}}>
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15 }}>
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.city')}</Text>
-                    <TextInput style={styles.value(cityError)} 
-                      value={city} 
-                      onChangeText={text => setCity(text)}
-                      returnKeyType= {completeCheck ? 'done' : 'next'}
+                    <TextInput
+                      style={styles.value(cityError)}
+                      value={city}
+                      onChangeText={(text) => setCity(text)}
+                      returnKeyType={completeCheck ? 'done' : 'next'}
                       ref={textInputCity}
                       blurOnSubmit={completeCheck ? true : false}
-                      onSubmitEditing={completeCheck ? null : () => textInputZipCode.current.focus()}
+                      onSubmitEditing={
+                        completeCheck ? null : () => textInputZipCode.current.focus()
+                      }
                       // placeholder="Chur"
                     />
                   </View>
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
-                    <TextInput style={styles.value(zipCodeError)} 
+                    <TextInput
+                      style={styles.value(zipCodeError)}
                       value={zipCode}
-                      onChangeText={text => setZipCode(text)}
-                      returnKeyType= {completeCheck ? 'done' : 'next'}
+                      onChangeText={(text) => setZipCode(text)}
+                      returnKeyType={completeCheck ? 'done' : 'next'}
                       ref={textInputZipCode}
-                    // placeholder='98212'
+                      // placeholder='98212'
                     />
                   </View>
                 </View>
@@ -446,17 +495,22 @@ const SignUp = ({navigation}) => {
               <Text style={styles.switchContainerText}>{i18next.t('label.getNews')}</Text>
               <Switch
                 trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
-                thumbColor={ getNews? Colors.PRIMARY : Colors.WHITE}
+                thumbColor={getNews ? Colors.PRIMARY : Colors.WHITE}
                 value={getNews}
                 onValueChange={toggleSwitchContact}
-                ios_backgroundColor={getNews ? Colors.PRIMARY : Colors.GRAY_LIGHT}     
+                ios_backgroundColor={getNews ? Colors.PRIMARY : Colors.GRAY_LIGHT}
               />
             </View>
             <View style={styles.getNewsText}>
-              <PrimaryButton btnText={i18next.t('label.create_profile')} onPress={submitDetails} disabled={completeCheck ? false : true}/>
+              <PrimaryButton
+                btnText={i18next.t('label.create_profile')}
+                onPress={submitDetails}
+                disabled={completeCheck ? false : true}
+              />
             </View>
           </ScrollView>
-        </View>}
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -471,7 +525,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_REGULAR
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   cont: {
     flex: 1,
@@ -499,7 +553,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_16,
-    width: '80%'
+    width: '80%',
   },
   switchContainer: {
     flexDirection: 'row',
@@ -524,7 +578,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: invalid  ? 'red' : Colors.TEXT_COLOR,
+    borderBottomColor: invalid ? 'red' : Colors.TEXT_COLOR,
   }),
   label: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -533,17 +587,17 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   inputContainer: {
-    width: '46.7%', 
+    width: '46.7%',
   },
-  emailContainer: (email)  => ({
+  emailContainer: (email) => ({
     width: '100%',
     color: email === 'email' ? Colors.PRIMARY : null,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    marginVertical: 20
+    marginVertical: 20,
   }),
   getNewsText: {
     // paddingTop: 60,
-    marginTop: 130
+    marginTop: 130,
   },
   accountTypeText: {
     margin: 14,
@@ -557,10 +611,10 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_18,
-    fontFamily: Typography.FONT_FAMILY_REGULAR
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   textStyle: {
-    color: Colors.PRIMARY
+    color: Colors.PRIMARY,
   },
   inputColor: {
     color: Colors.GRAY_LIGHT,
@@ -571,21 +625,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.GRAY_LIGHT
+    borderBottomColor: Colors.GRAY_LIGHT,
   },
   emailLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.GRAY_LIGHT, 
+    color: Colors.GRAY_LIGHT,
   },
   countryContainer: {
     width: '100%',
     paddingTop: 13,
-    paddingBottom:10,
+    paddingBottom: 10,
     color: Colors.PRIMARY,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   countryValue: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -594,7 +648,7 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
-  }, 
+  },
   iconStyle: {
     paddingLeft: 7,
     // paddingBottom: 10,
@@ -603,9 +657,9 @@ const styles = StyleSheet.create({
   countryFlag: {
     height: 50,
     width: 50,
-    borderRadius: 6
+    borderRadius: 6,
   },
   schoolText: {
     paddingTop: 28,
-  }
+  },
 });

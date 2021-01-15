@@ -5,7 +5,6 @@ import {
   Text,
   Platform,
   SafeAreaView,
-  Image,
   ActivityIndicator,
   TouchableOpacity,
   ImageBackground,
@@ -15,16 +14,16 @@ import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinates, getInventory, polygonUpdate } from '../../Actions';
+import { addCoordinates, getInventory, polygonUpdate } from '../../actions';
 import { useNavigation } from '@react-navigation/native';
-import { store } from '../../Actions/store';
+import { store } from '../../actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-import {toLetters} from '../../Utils/mapMarkingCoordinate';
+import { toLetters } from '../../Utils/mapMarkingCoordinate';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -88,8 +87,8 @@ class MapMarking extends React.Component {
       y = toLetters(x);
       array.push(y);
     }
-    this.setState({ALPHABETS: array});
-  }
+    this.setState({ ALPHABETS: array });
+  };
 
   initialState = () => {
     const { inventoryID, updateActiveMarkerIndex, activeMarkerIndex } = this.props;
@@ -226,8 +225,9 @@ class MapMarking extends React.Component {
       };
       addCoordinates(data).then(() => {
         if (locateTree == 'on-site') {
-          let location =
-            this.state.ALPHABETS[geoJSON.features[0].geometry.coordinates.length - complete ? 2 : 1];
+          let location = this.state.ALPHABETS[
+            geoJSON.features[0].geometry.coordinates.length - complete ? 2 : 1
+          ];
           this.props.toggleState(location, geoJSON.features[0].geometry.coordinates.length);
         } else {
           // For off site

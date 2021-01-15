@@ -9,8 +9,8 @@ import {
   updateLastScreen,
   getInventory,
   updatePlantingDate,
-} from '../../Actions';
-import { store } from '../../Actions/store';
+} from '../../actions';
+import { store } from '../../actions/store';
 
 const MultipleTrees = ({ navigation, route }) => {
   const { state } = useContext(store);

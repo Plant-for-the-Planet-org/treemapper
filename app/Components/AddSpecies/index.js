@@ -17,14 +17,13 @@ import { Header } from '../Common';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-//import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getInventory, isLogin, auth0Login } from '../../Actions';
+import { getInventory, isLogin, auth0Login } from '../../actions';
 //import { add_image } from '../../assets';
 import { SearchSpecies } from '../../Services/Species';
 //import Camera from '../Common/Camera';
-import { store } from '../../Actions/store';
-import { createSpecies } from '../../Actions/UploadInventory';
-import { SpecieIdFromServer } from '../../Actions/Action';
+import { store } from '../../actions/store';
+import { createSpecies } from '../../actions/UploadInventory';
+import { SpecieIdFromServer } from '../../actions/Action';
 import { placeholder_image } from '../../assets';
 
 export default function index({ navigation }) {

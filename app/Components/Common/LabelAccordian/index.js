@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { Colors, Typography } from '_styles';
 import { Label } from '../';
 import { Accordian } from '../';
-import { store } from '../../../Actions/store';
-import { addSpeciesAction } from '../../../Actions';
+import { store } from '../../../actions/store';
+import { addSpeciesAction } from '../../../actions';
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
   const { state } = useContext(store);

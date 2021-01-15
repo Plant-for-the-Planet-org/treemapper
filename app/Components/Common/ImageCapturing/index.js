@@ -18,8 +18,8 @@ import {
   completePolygon,
   insertImageSingleRegisterTree,
   getInventory,
-} from '../../../Actions';
-import { store } from '../../../Actions/store';
+} from '../../../actions';
+import { store } from '../../../actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';

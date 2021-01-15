@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { getAllOfflineMaps, deleteOfflineMap } from '../../Actions';
+import { getAllOfflineMaps, deleteOfflineMap } from '../../actions';
 import i18next from 'i18next';
 
 const SavedAreas = ({ navigation }) => {

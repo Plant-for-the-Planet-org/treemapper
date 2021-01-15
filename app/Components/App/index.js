@@ -26,7 +26,8 @@ import {
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import axios from 'axios';
-import { getUserToken } from 'app/repositories/user';
+import { getUserToken } from '../../repositories/user';
+import AsyncStorage from '@react-native-community/async-storage';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 

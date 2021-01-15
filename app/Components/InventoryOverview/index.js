@@ -11,29 +11,21 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import {
-  Header,
-  LargeButton,
-  PrimaryButton,
-  Label,
-  LabelAccordian,
-  InventoryCard,
-} from '../Common';
+import { Header, LargeButton, PrimaryButton, Label, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { store } from '../../Actions/store';
+import { store } from '../../actions/store';
 import {
   getInventory,
   changeInventoryStatus,
   updateLastScreen,
   updatePlantingDate,
   addSpeciesAction,
-} from '../../Actions';
+} from '../../actions';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { APLHABETS } from '../../Utils';
 import { bugsnag } from '../../Utils';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import { Colors, Typography } from '_styles';

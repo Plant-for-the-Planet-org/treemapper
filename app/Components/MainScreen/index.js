@@ -12,20 +12,18 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } fr
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
-import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout } from '../../Actions';
+import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout } from '../../actions';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
-import { store } from '../../Actions/store';
-import { LoaderActions, LocalInventoryActions } from '../../Actions/Action';
+import { store } from '../../actions/store';
+import { LoaderActions, LocalInventoryActions } from '../../actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
 import jwtDecode from 'jwt-decode';
-import { LoginDetails } from '../../Actions/index';
-
-const { width, height } = Dimensions.get('window');
+import { LoginDetails } from '../../actions/index';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL

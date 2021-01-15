@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Alrighty } from '../Common';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { cloud_upload_gray } from '../../assets';
 import { Colors, Typography } from '_styles';
-import { addLocateTree, updateLastScreen } from '../../Actions';
-import { store } from '../../Actions/store';
+import { addLocateTree, updateLastScreen } from '../../actions';
+import { store } from '../../actions/store';
 import JailMonkey from 'jail-monkey';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';

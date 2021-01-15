@@ -3,10 +3,10 @@ import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
-import { store } from '../../Actions/store';
-import { updateLastScreen, getInventory } from '../../Actions/';
+import { store } from '../../actions/store';
+import { updateLastScreen, getInventory } from '../../actions/';
 
-const CreatePolygon = ({ route, navigation }) => {
+const CreatePolygon = ({ route }) => {
   const { state } = useContext(store);
 
   const [locationText, setLocationText] = useState('');

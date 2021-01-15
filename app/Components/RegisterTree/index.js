@@ -2,8 +2,8 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { initiateInventory } from '../../Actions';
-import { store } from '../../Actions/store';
+import { initiateInventory } from '../../actions';
+import { store } from '../../actions/store';
 import { Colors } from '_styles';
 import i18next from 'i18next';
 

@@ -5,19 +5,17 @@ import {
   Text,
   Platform,
   SafeAreaView,
-  Image,
   ActivityIndicator,
   TouchableOpacity,
   ImageBackground,
-  Modal,
 } from 'react-native';
-import { Header, PrimaryButton, Alrighty } from '../Common';
+import { Header, PrimaryButton } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinateSingleRegisterTree, getInventory } from '../../Actions';
+import { addCoordinateSingleRegisterTree, getInventory } from '../../actions';
 import { useNavigation } from '@react-navigation/native';
-import { store } from '../../Actions/store';
+import { store } from '../../actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
@@ -27,21 +25,6 @@ import i18next from 'i18next';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-const infographicText = [
-  {
-    heading: 'Alrighty!',
-    subHeading: 'Now, please walk to the next corner and tap continue when ready',
-  },
-  {
-    heading: 'Great!',
-    subHeading: 'Now, please walk to the next corner and tap continue when ready',
-  },
-  {
-    heading: 'Great!',
-    subHeading:
-      'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.',
-  },
-];
 const IS_ANDROID = Platform.OS == 'android';
 
 class SelectCoordinates extends React.Component {

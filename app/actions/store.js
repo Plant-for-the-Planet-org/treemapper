@@ -5,7 +5,7 @@ import {
   SignUpLoader,
   SpeciesListAction,
   SpecieIdFromServer,
-} from '../Actions/Action';
+} from './Action';
 
 const initialState = {
   inventoryID: undefined,

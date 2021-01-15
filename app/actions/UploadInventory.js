@@ -4,7 +4,7 @@ import {
   getAllInventoryByStatus,
   changeInventoryStatus,
   changeInventoryStatusAndResponse,
-} from './';
+} from '.';
 import {
   Coordinates,
   OfflineMaps,

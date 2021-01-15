@@ -1,4 +1,4 @@
-import { bugsnag } from 'app/Utils';
+import { bugsnag } from '../Utils';
 
 export const getUserToken = () => {
   return new Promise((resolve, reject) => {
