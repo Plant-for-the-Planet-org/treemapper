@@ -196,7 +196,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   // console.log('showAddspeciesModal:::', showAddspeciesModal);
   // console.log('Selected Species', selectedSpecies);
   return (
-    <Modal visible= {showAddspeciesModal} animatioType= {'slide'}>
+    <Modal visible= {showAddspeciesModal} animationType= {'slide'}>
       <View style={{flex: 1}}>
         <SafeAreaView style={styles.mainContainer}>
           {/* {renderSpeciesModal} */}

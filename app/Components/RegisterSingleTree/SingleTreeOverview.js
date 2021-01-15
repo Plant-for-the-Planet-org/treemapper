@@ -12,6 +12,7 @@ import {
   Platform,
   TextInput,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
@@ -23,13 +24,13 @@ import {
   updateLastScreen,
   getInventory,
   changeInventoryStatus,
-  updateSpeceiName,
-  updateSpeceiDiameter,
+  updateSpecieName,
+  updateSpecieDiameter,
   updatePlantingDate,
   initiateInventory,
   UpdateSpecieAndSpecieDiameter,
   DeleteInventory,
-  updateSpeceiHeight,
+  updateSpecieHeight,
   // statusToComplete
 } from '../../Actions';
 import { store } from '../../Actions/store';
@@ -69,27 +70,37 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(Math.round(inventory.species_diameter * 10) / 10);
         setSpecieHeight(Math.round(inventory.species_height * 10) / 10);
-        // setSpecieCoordinates(inventory.polygons[0].coordinates[0].latitude,inventory.polygons[0].coordinates[0].latitude)
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
   }, []);
 
   const onSubmitInputFeild = (action) => {
-    if (action === 'specieText') {
-      updateSpeceiName({ inventory_id: inventory.inventory_id, speciesText: specieText });
-    } else if (action === 'specieDiameter') {
-      updateSpeceiDiameter({
+    console.log(action, specieText, specieHeight, specieDiameter);
+    if (action === 'species' && specieText !== "") {
+      updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieText });
+      setIsOpenModal(false);
+    } else if (action === 'diameter' && specieDiameter !== "" && Number(specieDiameter) !== 0) {
+      updateSpecieDiameter({
         inventory_id: state.inventoryID,
-        speceisDiameter: Number(specieDiameter),
+        speciesDiameter: Number(specieDiameter),
       });
-    } else if (action === 'specieHeight') {
-      updateSpeceiHeight({
+      setIsOpenModal(false);
+    } else if (action === 'height' && specieHeight !== "" && Number(specieHeight) !== 0) {
+      updateSpecieHeight({
         inventory_id: state.inventoryID,
-        speceisDiameter: Number(specieDiameter),
+        speciesDiameter: Number(specieDiameter),
       });
+      setIsOpenModal(false);
     } else {
       console.log('Something wrong!');
+      Alert.alert(
+        "Error",
+        "This field can not be empty",
+        [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+        { cancelable: false }
+      );
+      setIsOpenModal(false);
     }
     setEditEnable('');
   };
@@ -105,7 +116,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
       }, 0);
     } else {
       setIsOpenModal(false);
-      onSubmitInputFeild('specieDiameter');
+      // onSubmitInputFeild('specieDiameter');
     }
   };
 
@@ -133,7 +144,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     onChangeText={(text) => setSpecieText(text)}
-                    onSubmitEditing={() => onSubmitInputFeild('specieText')}
+                    onSubmitEditing={() => onSubmitInputFeild(editEnable)}
                     keyboardType={'email-address'}
                   />
                 ) : editEnable === 'diameter' ? (
@@ -145,9 +156,9 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieDiameter(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
+                    onSubmitEditing={() => onSubmitInputFeild(editEnable)}
                   />
-                ) : (
+                ) :  (
                   <TextInput
                     value={specieHeight.toString()}
                     style={styles.value}
@@ -155,11 +166,11 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieHeight(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputFeild('specieHeight')}
+                    onSubmitEditing={() => onSubmitInputFeild('height')}
                   />
                 )}
                 <MCIcon
-                  onPress={onPressNextIcon}
+                  onPress={() => onSubmitInputFeild(editEnable)}
                   name={'arrow-right'}
                   size={30}
                   color={Colors.PRIMARY}
@@ -391,6 +402,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
     if (inventory.status == 'incomplete') {
       changeInventoryStatus({ inventory_id: state.inventoryID, status: 'pending' }, dispatch).then(
         () => {
+          console.log('Initiating Inventory');
           initiateInventory({ treeType: 'single' }, dispatch).then(() => {
             navigation.push('RegisterSingleTree');
           });
@@ -632,7 +644,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   imgSpecie: {
-    marginTop: 0,
+    // marginTop: 0,
     width: '100%',
     height: Dimensions.get('window').height * 0.3,
     borderRadius: 13,

@@ -15,11 +15,18 @@ import {
 import { Header, PrimaryButton, Input } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle, add_image, off_site_enable_banner, tree} from '../../assets';
+import {
+  placeholder_image,
+  checkCircleFill,
+  checkCircle,
+  add_image,
+  off_site_enable_banner,
+  tree,
+} from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
-import {getInventory, getUserInformation, UpdateSpecieAndSpecieDiameter} from '../../Actions';
+import { getInventory, getUserInformation, UpdateSpecieAndSpecieDiameter } from '../../Actions';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { store } from '../../Actions/store';
@@ -31,7 +38,14 @@ import { SpeciesListAction } from '../../Actions/Action';
 import { useIsFocused } from '@react-navigation/native';
 import AddSpeciesModal from '../AddSpecies';
 
-const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, invent, onPressSaveAndContinueMultiple }) => {
+const SelectSpecies = ({
+  visible,
+  closeSelectSpeciesModal,
+  speciess,
+  route,
+  invent,
+  onPressSaveAndContinueMultiple,
+}) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpeice, setActiveSpecie] = useState(undefined);
@@ -39,7 +53,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const [singleTree, setSingleTree] = useState(null);
   const [isShowTreeMeasurementModal, setIsShowTreeMeasurementModal] = useState(false);
   const [diameter, setDiameter] = useState(null);
-  const [height, setHeight] = useState(null)
+  const [height, setHeight] = useState(null);
   const [speciesList, setSpeciesList] = useState(null);
   const [specieIndex, setSpecieIndex] = useState(null);
   const [name, setName] = useState('');
@@ -54,13 +68,13 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const isFocused = useIsFocused();
   const [numberTrees, setNumberTrees] = useState(null);
   const [countryCode, setCountryCode] = useState('');
+  
   useEffect(() => {
     setSpeciesList(state.species);
     getAllUserSpecies();
-    if (route !== undefined){
-      var {species, inventory} = route.params ;
-    }
-    else{
+    if (route !== undefined) {
+      var { species, inventory } = route.params;
+    } else {
       var species = speciess;
       var inventory = invent;
     }
@@ -83,22 +97,38 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     }
   }, [navigation, isFocused, addSpecies]);
 
-  useEffect(()=>{setShowSpecies(visible)},[visible]);
-
+  useEffect(() => {
+    console.log("visible =>>>>>>",visible)
+    console.log("route.params.visible =>>>>>>",route.params.visible)
+    console.log("showSpecies =>>>>>>",showSpecies)
+    if (route && route.params && route.params.visible){
+    setShowSpecies(route.params.visible);
+    console.log('route params', route.params.visible);
+    } else {
+      setShowSpecies(visible);
+      console.log('Visible', visible);
+    }
+  }, [visible, route, navigation]);
+  
+  useEffect(() => {
+    setDiameter('');
+    setHeight('');
+  },[]);
   useFocusEffect(
     React.useCallback(() => {
       setSpeciesList(state.species);
       Inventory();
-    }, [state])
+    }, [state]),
   );
-
   const getAllUserSpecies = () => {
-    SpeciesListData().then((data) => {
-      console.log(data);
-      dispatch(SpeciesListAction.setSpeciesList(data));
-    }).catch((err) => {
-      console.log(err, 'hererer');
-    });
+    SpeciesListData()
+      .then((data) => {
+        console.log(data);
+        dispatch(SpeciesListAction.setSpeciesList(data));
+      })
+      .catch((err) => {
+        console.log(err, 'hererer');
+      });
   };
 
   const Inventory = () => {
@@ -112,11 +142,11 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   const Country = () => {
-    getUserInformation().then((data) =>{
-      console.log(data,'CountryData');
+    getUserInformation().then((data) => {
+      console.log(data, 'CountryData');
       setCountryCode(data.country);
-    })
-  }
+    });
+  };
 
   const onPressSpecie = (index) => {
     if (speciesList[index].treeCount) {
@@ -134,7 +164,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const onPressSpecieSingleTree = (index) => {
     setSingleTree(index);
   };
-  
+
   const onPressSaveBtn = (index) => {
     setSingleTree(index);
     setIsShowTreeMeasurementModal(true);
@@ -148,12 +178,12 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   const handleCamera = (data) => {
     setIsCamera(!isCamera);
     let specieslist = [...speciesList];
-    specieslist[imageIndex] = {...specieslist[imageIndex], image: data};
-    UpdateSpeciesImage(specieslist[imageIndex].image, specieslist[imageIndex].id).then(() => {
-      getAllUserSpecies();
-    }).catch(() => {
-
-    });
+    specieslist[imageIndex] = { ...specieslist[imageIndex], image: data };
+    UpdateSpeciesImage(specieslist[imageIndex].image, specieslist[imageIndex].id)
+      .then(() => {
+        getAllUserSpecies();
+      })
+      .catch(() => {});
     // setSpeciesList(species);
   };
   const onPressImage = (index) => {
@@ -166,7 +196,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     setSpecieIndex(index);
   };
 
-  
   const renderSpeciesCardMultiple = ({ item, index }) => {
     let isCheck = item.treeCount ? true : false;
     let onSiteCheck;
@@ -176,7 +205,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     return (
       <TouchableOpacity
         key={index}
-        onPress={ () => onPressSpecie(index) }
+        onPress={() => onPressSpecie(index)}
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
@@ -190,38 +219,40 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           <View>
             <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
           </View>
-        ) : 
+        ) : (
           <View>
             <SvgXml xml={isCheck ? checkCircleFill : checkCircle} />
           </View>
-        }
-        {item.image ? (
-          // <TouchableOpacity onPress={() =>onPressImage(index)}>
-            <Image 
-              source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} 
-              resizeMode={'cover'} 
-              style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10}} 
+        )}
+        {
+          item.image ? (
+            // <TouchableOpacity onPress={() =>onPressImage(index)}>
+            <Image
+              source={{ uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}` }}
+              resizeMode={'cover'}
+              style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10 }}
             />
-          // </TouchableOpacity>
-        ) : 
-          // <TouchableOpacity onPress={() => onPressImage(index)}>
-            <Image 
-              source={tree} 
-              resizeMode={'cover'} 
-              style={{ flex: 1, width: 130,height: 90, borderRadius:13, marginHorizontal: 10}} 
+          ) : (
+            // </TouchableOpacity>
+            // <TouchableOpacity onPress={() => onPressImage(index)}>
+            <Image
+              source={tree}
+              resizeMode={'cover'}
+              style={{ flex: 1, width: 130, height: 90, borderRadius: 13, marginHorizontal: 10 }}
             />
+          )
           // </TouchableOpacity>
         }
-        <View style={{ flex: 1, paddingLeft: 15, alignSelf:'flex-start'}}>
+        <View style={{ flex: 1, paddingLeft: 15, alignSelf: 'flex-start' }}>
           {item.aliases ? (
             <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
               {item.aliases}
             </Text>
-          ): (
+          ) : (
             <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
               Add Name
             </Text>
-          ) }
+          )}
           <Text numberOfLines={2} style={styles.speciesName}>
             {i18next.t('label.select_species_name_of_tree', { item })}
           </Text>
@@ -229,8 +260,9 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
             <Text style={styles.treeCount}>
               {i18next.t('label.select_species_tree_count', { count: item.treeCount })}
             </Text>
-            ) : [] 
-          }
+          ) : (
+            []
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -248,7 +280,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
         // onPress={ () => onPressSpecieSingleTree(item) }
         onPress={() => onPressSaveBtn(item)}
         style={{
-          flex:1,
+          flex: 1,
           flexDirection: 'row',
           justifyContent: 'flex-start',
           alignItems: 'center',
@@ -261,41 +293,56 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
           <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
         </View> */}
         <View>
-          {item.image ? (
-            // <TouchableOpacity onPress={() =>onPressImage(index)}>
-              <Image source={{uri : `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}} resizeMode={'cover'} style={{  minWidth: 130, height: 90, borderRadius: 13, marginRight: 20}} />
-            // </TouchableOpacity>
-            ) : 
-            // <TouchableOpacity onPress={() => onPressImage(index)}>
-              <Image source={tree} resizeMode={'cover'} style={{  width: 130,height: 90, borderRadius:13, marginRight: 20}} />
+          {
+            item.image ? (
+              // <TouchableOpacity onPress={() =>onPressImage(index)}>
+              <Image
+                source={{ uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}` }}
+                resizeMode={'cover'}
+                style={{ minWidth: 130, height: 90, borderRadius: 13, marginRight: 20 }}
+              />
+            ) : (
+              // </TouchableOpacity>
+              // <TouchableOpacity onPress={() => onPressImage(index)}>
+              <Image
+                source={tree}
+                resizeMode={'cover'}
+                style={{ width: 130, height: 90, borderRadius: 13, marginRight: 20 }}
+              />
+            )
             // </TouchableOpacity>
           }
         </View>
-        
-        <View style={{ flex: 1,flexDirection: 'column', justifyContent: 'flex-start', alignSelf: 'flex-start', paddingLeft: 15}}>
+
+        <View
+          style={{
+            flex: 1,
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignSelf: 'flex-start',
+            paddingLeft: 15,
+          }}>
           {item.aliases ? (
-            <Text  
-              style={styles.speciesLocalName} 
+            <Text
+              style={styles.speciesLocalName}
               // onPress={() => addName(index)}
             >
-                {item.aliases}
+              {item.aliases}
             </Text>
-          ): (
-            <Text 
-              style={styles.speciesLocalName} 
+          ) : (
+            <Text
+              style={styles.speciesLocalName}
               // onPress={() => addName(index)}
             >
               Add Name
             </Text>
-          ) }
-          <Text style={styles.speciesName}>
-            {item.scientificName}
-          </Text>
+          )}
+          <Text style={styles.speciesName}>{item.scientificName}</Text>
         </View>
       </TouchableOpacity>
     );
   };
-  
+
   const onPressTreeCountNextBtn = () => {
     // if (isNormalInteger(treeCount)){
     let speciesListClone = speciesList;
@@ -319,10 +366,8 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     let specieName = isShowTreeCountModal ? speciesList[activeSpeice].name : '';
     return (
       <Modal visible={isShowTreeCountModal} transparent={true}>
-        <View
-          style={styles.modalBackground}>
-          <View
-            style={styles.inputModal}>
+        <View style={styles.modalBackground}>
+          <View style={styles.inputModal}>
             <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
             <Header
               hideBackIcon
@@ -369,7 +414,6 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     );
   };
 
-
   const onPressSearch = () => {
     // navigation.navigate('AddSpecies');
     // closeSelectSpeciesModal();
@@ -380,65 +424,70 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
 
   const renderAddSpeciesModal = () => {
     const closeAddSpeciesModal = () => setAddSpecies(false);
-    return(
-      <AddSpeciesModal
-        visible = {addSpecies}
-        closeAddSpeciesModal = {closeAddSpeciesModal}
-      />
-    );
-  }
-  const Countries = ['US', 'LR', 'MM']
+    return <AddSpeciesModal visible={addSpecies} closeAddSpeciesModal={closeAddSpeciesModal} />;
+  };
+  const Countries = ['US', 'LR', 'MM'];
   const renderMeasurementModal = () => {
     // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
     return (
-      <Modal visible= {isShowTreeMeasurementModal} animationType={'slide'}>
+      <Modal visible={isShowTreeMeasurementModal} animationType={'slide'}>
         <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-              <View style={{flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10}}>
-                <Header
-                  headingText={'Add Measuremets'}
-                /> 
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
+                <Header headingText={'Add Measuremets'} />
               </View>
-              <View style={{flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
-                <View >
+              <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+                <View>
                   <View style={styles.inputBox}>
-                    <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <View
+                      style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
                       <TextInput
-                      value={diameter}
-                      style={styles.input}
-                      autoFocus
-                      placeholder={'Diameter'}
-                      placeholderTextColor={Colors.TEXT_COLOR}
-                      onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
-                      keyboardType={'number-pad'}
+                        value={diameter}
+                        style={styles.input}
+                        autoFocus
+                        placeholder={'Diameter'}
+                        placeholderTextColor={Colors.TEXT_COLOR}
+                        onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
+                        keyboardType={'number-pad'}
                       />
-                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20}}>
-                        {Countries.includes(countryCode)? 'inches' : 'cm'}
+                      <Text
+                        style={{
+                          fontSize: Typography.FONT_SIZE_18,
+                          padding: 10,
+                          paddingRight: 20,
+                        }}>
+                        {Countries.includes(countryCode) ? 'inches' : 'cm'}
                       </Text>
                     </View>
                   </View>
-                  
+
                   <View style={styles.inputBox}>
-                    <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <View
+                      style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
                       <TextInput
-                      value={height}
-                      style={styles.input}
-                      placeholder={'Height'}
-                      placeholderTextColor={Colors.TEXT_COLOR}
-                      onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
-                      keyboardType={'number-pad'}
+                        value={height}
+                        style={styles.input}
+                        placeholder={'Height'}
+                        placeholderTextColor={Colors.TEXT_COLOR}
+                        onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
+                        keyboardType={'number-pad'}
                       />
-                      <Text style={{fontSize: Typography.FONT_SIZE_18, padding: 10, paddingRight: 20 }}>
-                      {Countries.includes(countryCode)? 'Feet' : 'm'}
+                      <Text
+                        style={{
+                          fontSize: Typography.FONT_SIZE_18,
+                          padding: 10,
+                          paddingRight: 20,
+                        }}>
+                        {Countries.includes(countryCode) ? 'Feet' : 'm'}
                       </Text>
                     </View>
                   </View>
                 </View>
                 <View>
                   <KeyboardAvoidingView
-                  behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-                  style={styles.bgWhite}>
+                    behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+                    style={styles.bgWhite}>
                     <PrimaryButton
                       onPress={onPressMeasurementBtn}
                       btnText={'Continue'}
@@ -446,7 +495,7 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
                     />
                   </KeyboardAvoidingView>
                 </View>
-              </View>     
+              </View>
             </View>
           </SafeAreaView>
         </View>
@@ -457,15 +506,21 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
     // let specieName = isShowTreeCountModal ? speciesList[activeSpeice].nameOfTree : '';
     return (
       <Modal visible={isShowAddNameModal} transparent={true}>
-        <View
-          style={styles.modalBackground}>
-          <View
-            style={styles.inputModal}>
+        <View style={styles.modalBackground}>
+          <View style={styles.inputModal}>
             {singleTree ? (
-              <Image source={{uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`}} style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }} />
-            ): 
-              <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
-            }
+              <Image
+                source={{
+                  uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${singleTree.image}`,
+                }}
+                style={{ alignSelf: 'center', marginVertical: 20, width: 200, height: 100 }}
+              />
+            ) : (
+              <Image
+                source={placeholder_image}
+                style={{ alignSelf: 'center', marginVertical: 20 }}
+              />
+            )}
             <Header
               hideBackIcon
               subHeadingText={'Please enter the name of the plant'}
@@ -499,14 +554,34 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
   };
 
   const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter ({inventory_id: inventory.inventory_id, specie_name: data.aliases, diameter: data.diameter, height: Math.round(data.height*10)/10})
-    .then(() => {
-      setShowSpecies(false);
-      navigation.navigate('SingleTreeOverview');
-    })
-    .catch(err => {
-      console.log(err);
-    });
+    if (
+      data.diameter !== '' &&
+      data.height !== '' &&
+      Number(data.diameter) !== 0 &&
+      Number(data.height) !== 0
+    ) {
+      UpdateSpecieAndSpecieDiameter({
+        inventory_id: inventory.inventory_id,
+        specie_name: data.aliases,
+        diameter: Math.round(data.diameter * 10) / 10,
+        height: Math.round(data.height * 10) / 10,
+      })
+        .then(() => {
+          setShowSpecies(false);
+          setIsShowTreeMeasurementModal(false);
+          navigation.navigate('SingleTreeOverview');
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      Alert.alert(
+        'Error',
+        'Enter valid input',
+        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        { cancelable: false },
+      );
+    }
   };
 
   const onPressContinue = () => {
@@ -530,15 +605,19 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
 
   const onPressMeasurementBtn = () => {
     // if (isNormalInteger(height) && isNormalInteger(diameter)){
-      let speciesMeasurementList = [...speciesList];
-      for(let specie in speciesMeasurementList){
-        if (speciesMeasurementList[specie].id=== singleTree.id) {
-          let selected = {aliases: speciesMeasurementList[specie].aliases, diameter: diameter, height: height};
-          onPressSaveAndContinue(selected);
-          setIsShowTreeMeasurementModal(false);
-        }
+    let speciesMeasurementList = [...speciesList];
+    for (let specie in speciesMeasurementList) {
+      if (speciesMeasurementList[specie].id === singleTree.id) {
+        let selected = {
+          aliases: speciesMeasurementList[specie].aliases,
+          diameter: diameter,
+          height: height,
+        };
+        onPressSaveAndContinue(selected);
+        // setIsShowTreeMeasurementModal(false);
       }
-      setShowSpecies(false);
+    }
+    // setShowSpecies(false);
     // } else {
     //   Alert.alert(
     //     "Error",
@@ -551,70 +630,72 @@ const SelectSpecies = ({ visible, closeSelectSpeciesModal, speciess, route, inve
 
   const onPressAddNameBtn = () => {
     let speciesNameList = [...speciesList];
-    speciesNameList[specieIndex] = {...speciesNameList[specieIndex], aliases: name};
-    UpdateSpecies(speciesNameList[specieIndex].aliases, speciesNameList[specieIndex].id).then(() => {
-      setIsShowAddNameModal(false);
-      // setSpeciesList(species);
-      getAllUserSpecies();
-    });
+    speciesNameList[specieIndex] = { ...speciesNameList[specieIndex], aliases: name };
+    UpdateSpecies(speciesNameList[specieIndex].aliases, speciesNameList[specieIndex].id).then(
+      () => {
+        setIsShowAddNameModal(false);
+        // setSpeciesList(species);
+        getAllUserSpecies();
+      },
+    );
   };
 
   if (isCamera) {
-    return <Camera handleCamera={handleCamera}/>;
+    return <Camera handleCamera={handleCamera} />;
   } else {
     return (
-      <Modal visible= {showSpecies} animationType={'slide'}>
+      <Modal visible={showSpecies} animationType={'slide'}>
         <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 10}}>
-                
-                { numberTrees === 'single' ? (
-                  <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 10}}>
-                    <Header
-                      headingText={i18next.t('label.select_species_header')}
-                    />
-                    <TouchableOpacity
-                    onPress={onPressSearch}
-                    >
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                {numberTrees === 'single' ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginTop: 10,
+                    }}>
+                    <Header headingText={i18next.t('label.select_species_header')} />
+                    <TouchableOpacity onPress={onPressSearch}>
                       <Text style={styles.searchText}>Search</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <Header
-                  closeIcon
-                  headingText={i18next.t('label.select_species_header')}
-                  subHeadingText={i18next.t('label.select_species_sub_header')}
-                  rightText={'Search'}
-                  onPressSearch ={onPressSearch}
-                />
-                )
-                }
-                
+                    closeIcon
+                    headingText={i18next.t('label.select_species_header')}
+                    subHeadingText={i18next.t('label.select_species_sub_header')}
+                    rightText={'Search'}
+                    onPressSearch={onPressSearch}
+                  />
+                )}
               </View>
               {numberTrees === 'single' ? (
                 <FlatList
-                style={{ flex: 1, marginTop: 15 }}
-                data={speciesList}
-                showsVerticalScrollIndicator={false}
-                renderItem={renderSpeciesCardSingle}
+                  style={{ flex: 1, marginTop: 15 }}
+                  data={speciesList}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={renderSpeciesCardSingle}
                 />
-              ): (
+              ) : (
                 <FlatList
-                style={{ flex: 1 }}
-                data={speciesList}
-                showsVerticalScrollIndicator={false}
-                renderItem={renderSpeciesCardMultiple}
+                  style={{ flex: 1 }}
+                  data={speciesList}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={renderSpeciesCardMultiple}
                 />
               )}
-              {numberTrees === 'single'  ? (
+              {numberTrees === 'single' ? (
                 []
-              ) : 
+              ) : (
                 <PrimaryButton
                   onPress={onPressContinue}
                   btnText={i18next.t('label.select_species_btn_text')}
-                />  
-              }
+                />
+              )}
             </View>
           </SafeAreaView>
           {renderAddSpeciesModal()}
@@ -633,19 +714,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
   speciesLocalName: {
-    
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_18,
   },
   speciesName: {
-    
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     fontStyle: 'italic',
@@ -680,7 +759,7 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
-    paddingTop: 20
+    paddingTop: 20,
   },
   labelModal: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -696,16 +775,16 @@ const styles = StyleSheet.create({
     // lineHeight: Typography.LINE_HEIGHT_30,
     color: Colors.PRIMARY,
     paddingTop: 15,
-    paddingRight: 5
+    paddingRight: 5,
   },
   bgWhiteAdd: {
-    position: 'absolute', 
-    left: 0, 
-    right: 0, 
-    bottom: 0
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   searchDisplay: {
-    display: 'none'
+    display: 'none',
   },
   modalBackground: {
     flex: 1,
@@ -728,14 +807,13 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     width: '100%',
     borderRadius: 5,
-    height: 50
+    height: 50,
   },
   input: {
-    flex:1,
+    flex: 1,
     fontSize: Typography.FONT_SIZE_18,
     paddingLeft: 15,
-    
-  }
+  },
 });
 
 const speciesJSON = [

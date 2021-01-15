@@ -124,7 +124,7 @@ export const getAreaName = ({ coords }) => {
   });
 };
 
-export const updateSpeceiName = ({ inventory_id, speciesText }) => {
+export const updateSpecieName = ({ inventory_id, speciesText }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -145,7 +145,7 @@ export const updateSpeceiName = ({ inventory_id, speciesText }) => {
   });
 };
 
-export const updateSpeceiDiameter = ({ inventory_id, speciesDiameter }) => {
+export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -161,13 +161,13 @@ export const updateSpeceiDiameter = ({ inventory_id, speciesDiameter }) => {
   });
 };
 
-export const updateSpeceiHeight = ({ inventory_id, speceisHeight }) => {
+export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
   return new Promise((resolve, reject) => {
     Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] })
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_height = (speceisHeight*10)/10;
+          inventory.species_height = (speciesHeight*10)/10;
         });
         resolve(
           console.log('updated',inventory)
@@ -682,9 +682,14 @@ export const UpdateSpecieAndSpecieDiameter = ({inventory_id, specie_name, diamet
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = Number(diameter);
-          inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
+          // if (Countries.includes(User.country)) {
+          //   inventory.species_diameter = (parseFloat(diameter))*2.54;
+          //   inventory.species_height = Number(height);
+          // } else{
+            inventory.species_diameter = Number(diameter);
+            inventory.species_height = Number(height);
+          // } 
         });
         resolve();
       })
