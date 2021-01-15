@@ -7,7 +7,7 @@ import { getUserInformationFromServer } from '../../actions/User';
 import i18next from 'i18next';
 import { LoginDetails } from '../../actions/index';
 import jwtDecode from 'jwt-decode';
-import { SpeciesList } from '../../Services/Species';
+import { SpeciesList } from '../../services/Species';
 import { SpeciesListAction } from '../../actions/Action';
 import { store } from '../../actions/store';
 import ProfileListItem from './ProfileListItem';

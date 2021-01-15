@@ -19,7 +19,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getInventory, isLogin, auth0Login } from '../../actions';
 //import { add_image } from '../../assets';
-import { SearchSpecies } from '../../Services/Species';
+import { SearchSpecies } from '../../services/Species';
 //import Camera from '../Common/Camera';
 import { store } from '../../actions/store';
 import { createSpecies } from '../../actions/UploadInventory';
