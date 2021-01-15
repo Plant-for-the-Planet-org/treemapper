@@ -18,7 +18,7 @@ import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 import { LocalInventoryActions } from './Action';
-import getSessionData from '../Utils/sessionId';
+import getSessionData from '../utils/sessionId';
 
 const { protocol, url } = APIConfig;
 

@@ -11,7 +11,7 @@ import {
   AddSpecies,
 } from './Schemas';
 import Realm from 'realm';
-import getSessionData from '../Utils/sessionId';
+import getSessionData from '../utils/sessionId';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
@@ -70,6 +70,7 @@ export const getUserInformationFromServer = (navigation) => {
             reject(err);
           });
       });
+      realm.close();
     });
     const { protocol, url } = APIConfig;
   });

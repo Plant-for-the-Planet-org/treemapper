@@ -10,7 +10,7 @@ import {
   AddSpecies,
 } from '../actions/Schemas';
 import Realm from 'realm';
-import getSessionData from '../Utils/sessionId';
+import getSessionData from '../utils/sessionId';
 
 const { protocol, url } = APIConfig;
 export const AllSpecies = () => {

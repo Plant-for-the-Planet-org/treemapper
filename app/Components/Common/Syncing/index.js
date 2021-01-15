@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
 import { store } from '../../../actions/store';
-import { uploadInventoryData } from '../../../Utils/uploadInventory';
+import { uploadInventoryData } from '../../../utils/uploadInventory';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');

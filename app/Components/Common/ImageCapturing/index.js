@@ -23,8 +23,7 @@ import { store } from '../../../actions/store';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
-// import { APLHABETS } from '../../Utils/index';
-import { toLetters } from '../../../Utils/mapMarkingCoordinate';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 

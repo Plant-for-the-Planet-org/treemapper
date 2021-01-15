@@ -17,7 +17,7 @@ import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
-import { uploadInventoryData } from '../../Utils/uploadInventory';
+import { uploadInventoryData } from '../../utils/uploadInventory';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(store);

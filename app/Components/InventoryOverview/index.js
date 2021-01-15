@@ -24,8 +24,8 @@ import {
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';
-import { APLHABETS } from '../../Utils';
-import { bugsnag } from '../../Utils';
+import { APLHABETS } from '../../utils';
+import { bugsnag } from '../../utils';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import { Colors, Typography } from '_styles';

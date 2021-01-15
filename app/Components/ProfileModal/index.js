@@ -3,10 +3,8 @@ import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { PrimaryButton } from '../Common';
 import { getUserInformationFromServer } from '../../actions/User';
 import i18next from 'i18next';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import { LoginDetails } from '../../actions/index';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../Services/Species';

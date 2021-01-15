@@ -1,5 +1,5 @@
 import Realm from 'realm';
-import { bugsnag } from '../Utils/index';
+import { bugsnag } from '../utils/index';
 import Config from 'react-native-config';
 import Auth0 from 'react-native-auth0';
 import {
@@ -85,6 +85,7 @@ export const isLogin = () => {
       } else {
         resolve(false);
       }
+      realm.close();
     });
   });
 };
@@ -99,6 +100,7 @@ export const LoginDetails = () => {
           const User = realm.objects('User');
           resolve(JSON.parse(JSON.stringify(User)));
         });
+        realm.close();
       })
       .catch((err) => {
         reject(err);
@@ -462,6 +464,7 @@ export const getAllInventoryByStatus = (status) => {
           }
           resolve(JSON.parse(JSON.stringify(inventory)));
         });
+        realm.close();
       })
       .catch(bugsnag.notify);
   });

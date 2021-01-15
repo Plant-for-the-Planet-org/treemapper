@@ -25,7 +25,7 @@ import { Loader } from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
-import { handleFilter } from '../../Utils/CountryDataFilter';
+import { handleFilter } from '../../utils/CountryDataFilter';
 
 const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');

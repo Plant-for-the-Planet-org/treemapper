@@ -23,7 +23,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-import { toLetters } from '../../Utils/mapMarkingCoordinate';
+import { toLetters } from '../../utils/mapMarkingCoordinate';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
