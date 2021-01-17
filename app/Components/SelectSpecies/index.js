@@ -569,6 +569,8 @@ const SelectSpecies = ({
         .then(() => {
           setShowSpecies(false);
           setIsShowTreeMeasurementModal(false);
+          setDiameter('');
+          setHeight('');
           navigation.navigate('SingleTreeOverview');
         })
         .catch((err) => {

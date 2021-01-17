@@ -38,22 +38,28 @@ import { store } from '../../Actions/store';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import i18next from 'i18next';
+import {getUserInformation} from '../../Actions/User';
 // import SelectSpecies from '../SelectSpecies';
 
 const SingleTreeOverview = ({ navigation, route }) => {
   const specieDiameterRef = useRef();
 
   const { state, dispatch } = useContext(store);
-  const [inventory, setInventory] = useState(null);
+  const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isSpeciesEnable, setIsSpeciesEnable] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
   const [plantationDate, setPLantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
+  const [specieEditText, setSpecieEditText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
+  const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('2');
+  const [specieEditHeight, setSpecieEditHeight] = useState('');
   const [locateTree, setLocateTree] = useState(null);
   const [editEnable, setEditEnable] = useState('');
+  const [status, setStatus] = useState('');
+  const [countryCode, setCountryCode] = useState('');
   // const [specieCoordinates, setSpecieCoordinates] = useState('');
   //const [direction, setDirection] = useState(null);
 
@@ -66,6 +72,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
         inventory.polygons = Object.values(inventory.polygons);
         console.log(inventory, 'overview');
         setInventory(inventory);
+        console.log('Inventory Set');
+        setStatus(inventory.status);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(Math.round(inventory.species_diameter * 10) / 10);
@@ -73,20 +81,24 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
+    Country();
   }, []);
 
   const onSubmitInputFeild = (action) => {
     console.log(action, specieText, specieHeight, specieDiameter);
-    if (action === 'species' && specieText !== "") {
+    if (action === 'species' && specieEditText !== "") {
+      setSpecieText(specieEditText);
       updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieText });
       setIsOpenModal(false);
-    } else if (action === 'diameter' && specieDiameter !== "" && Number(specieDiameter) !== 0) {
+    } else if (action === 'diameter' && specieEditDiameter !== "" && Number(specieEditDiameter) !== 0) {
+      setSpecieDiameter(specieEditDiameter);
       updateSpecieDiameter({
         inventory_id: state.inventoryID,
         speciesDiameter: Number(specieDiameter),
       });
       setIsOpenModal(false);
-    } else if (action === 'height' && specieHeight !== "" && Number(specieHeight) !== 0) {
+    } else if (action === 'height' && specieEditHeight !== "" && Number(specieEditHeight) !== 0) {
+      setSpecieHeight(specieEditHeight);
       updateSpecieHeight({
         inventory_id: state.inventoryID,
         speciesDiameter: Number(specieDiameter),
@@ -120,6 +132,15 @@ const SingleTreeOverview = ({ navigation, route }) => {
     }
   };
 
+  const Country = () => {
+    getUserInformation().then((data) => {
+      console.log(data, 'CountryData');
+      setCountryCode(data.country);
+    });
+  };
+
+  const Countries = ['US', 'LR', 'MM'];
+
   const renderinputModal = () => {
     return (
       <Modal transparent={true} visible={isOpenModal}>
@@ -139,33 +160,33 @@ const SingleTreeOverview = ({ navigation, route }) => {
                 </Text>
                 {editEnable === 'species' ? (
                   <TextInput
-                    value={specieText}
+                    value={specieEditText}
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
-                    onChangeText={(text) => setSpecieText(text)}
+                    onChangeText={(text) => setSpecieEditText(text.replace(/  +/g, ' '))}
                     onSubmitEditing={() => onSubmitInputFeild(editEnable)}
                     keyboardType={'email-address'}
                   />
                 ) : editEnable === 'diameter' ? (
                   <TextInput
                     ref={specieDiameterRef}
-                    value={specieDiameter.toString()}
+                    value={specieEditDiameter.toString()}
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
-                    onChangeText={(text) => setSpecieDiameter(text.replace(/[^0-9.]/g, ''))}
+                    onChangeText={(text) => setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild(editEnable)}
                   />
                 ) :  (
                   <TextInput
-                    value={specieHeight.toString()}
+                    value={specieEditHeight.toString()}
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
-                    onChangeText={(text) => setSpecieHeight(text.replace(/[^0-9.]/g, ''))}
+                    onChangeText={(text) => setSpecieEditHeight(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputFeild('height')}
                   />
                 )}
@@ -283,7 +304,9 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  `${Math.round(specieDiameter * 10) / 10}cm`
+                  (Countries.includes(countryCode)?
+                  `${Math.round(specieDiameter * 10) / 10}inches`:
+                  `${Math.round(specieDiameter * 10) / 10}cm`)
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -301,13 +324,15 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieHeight
-                ? `${Math.round(specieHeight * 10) / 10}m`
+                ? (Countries.includes(countryCode)?
+                `${Math.round(specieHeight * 10) / 10}foot`:
+                `${Math.round(specieHeight * 10) / 10}m`)
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
-        <View>
+        <View style={{marginBottom: 15}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
@@ -464,7 +489,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         console.log(err);
       });
   };
-
+  
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderinputModal()}
@@ -530,7 +555,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
 
           />
         ) : */}
-        <View style={styles.bottomBtnsContainer}>
+        {status == 'incomplete' ? (
+          <View style={styles.bottomBtnsContainer}>
           <PrimaryButton
             onPress={onPressNextTree}
             btnText={i18next.t('label.tree_review_next_btn')}
@@ -542,8 +568,9 @@ const SingleTreeOverview = ({ navigation, route }) => {
             btnText={i18next.t('label.tree_review_Save')}
             halfWidth
           />
-        </View>
-        {/* } */}
+          </View>
+        ) : []
+        } 
       </View>
     </SafeAreaView>
   );
