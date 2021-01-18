@@ -153,7 +153,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = speciesDiameter;
+          inventory.species_diameter = Math.round(speciesDiameter*100)/100;
         });
         resolve();
       })
@@ -167,7 +167,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_height = (speciesHeight*10)/10;
+          inventory.species_height = Math.round(speciesHeight*100)/100;
         });
         resolve(
           console.log('updated',inventory)

@@ -70,14 +70,14 @@ const SingleTreeOverview = ({ navigation, route }) => {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
-        console.log(inventory, 'overview');
+        console.log(inventory, 'overview', state.inventoryID);
         setInventory(inventory);
         console.log('Inventory Set');
         setStatus(inventory.status);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
-        setSpecieDiameter(Math.round(inventory.species_diameter * 10) / 10);
-        setSpecieHeight(Math.round(inventory.species_height * 10) / 10);
+        setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
+        setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
         setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
@@ -88,32 +88,44 @@ const SingleTreeOverview = ({ navigation, route }) => {
     console.log(action, specieText, specieHeight, specieDiameter);
     if (action === 'species' && specieEditText !== "") {
       setSpecieText(specieEditText);
-      updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieText });
+      updateSpecieName({ inventory_id: state.inventoryID, speciesText: specieEditText });
       setIsOpenModal(false);
-    } else if (action === 'diameter' && specieEditDiameter !== "" && Number(specieEditDiameter) !== 0) {
-      setSpecieDiameter(specieEditDiameter);
-      updateSpecieDiameter({
-        inventory_id: state.inventoryID,
-        speciesDiameter: Number(specieDiameter),
-      });
-      setIsOpenModal(false);
-    } else if (action === 'height' && specieEditHeight !== "" && Number(specieEditHeight) !== 0) {
-      setSpecieHeight(specieEditHeight);
-      updateSpecieHeight({
-        inventory_id: state.inventoryID,
-        speciesDiameter: Number(specieDiameter),
-      });
-      setIsOpenModal(false);
-    } else {
-      console.log('Something wrong!');
-      Alert.alert(
-        "Error",
-        "This field can not be empty",
-        [{ text: "OK", onPress: () => console.log("OK Pressed") }],
-        { cancelable: false }
-      );
-      setIsOpenModal(false);
-    }
+    } else if (
+      action === 'diameter' && 
+      specieEditDiameter !== "" && 
+      Number(specieEditDiameter) !== 0 &&
+      (/^[0-9]{1,5}\.?[0-9]{0,2}$/).test(specieEditDiameter)) 
+      {
+        setSpecieDiameter(specieEditDiameter);
+        updateSpecieDiameter({
+          inventory_id: inventory.inventory_id,
+          speciesDiameter: Number(specieEditDiameter),
+        });
+        console.log('In diameter',inventory);
+        setIsOpenModal(false);
+      } else if (
+      action === 'height' && 
+      specieEditHeight !== "" && 
+      Number(specieEditHeight) !== 0 &&
+      (/^[0-9]{1,5}\.?[0-9]{0,2}$/).test(specieEditHeight)) 
+      {
+        setSpecieHeight(specieEditHeight);
+        updateSpecieHeight({
+          inventory_id: inventory.inventory_id,
+          speciesHeight: Number(specieEditHeight),
+        });
+        console.log('In height',inventory);
+        setIsOpenModal(false);
+      } else {
+        console.log('Something wrong!');
+        Alert.alert(
+          "Error",
+          "Please Enter Valid Input",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+        setIsOpenModal(false);
+      }
     setEditEnable('');
   };
 
@@ -260,11 +272,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
-    // if (inventory.locate_tree === 'off-site') {
-    //   setCoordinateEdit(true);
-    // } else {
-    //   setCoordinateEdit(false);
-    // }
     console.log('imageSource =>', imageSource);
     return (
       // <ScrollView>
@@ -305,8 +312,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
                   (Countries.includes(countryCode)?
-                  `${Math.round(specieDiameter * 10) / 10}inches`:
-                  `${Math.round(specieDiameter * 10) / 10}cm`)
+                  `${Math.round(specieDiameter * 100) / 100}inches`:
+                  `${Math.round(specieDiameter * 100) / 100}cm`)
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -325,8 +332,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
             <Text style={styles.detailText}>
               {specieHeight
                 ? (Countries.includes(countryCode)?
-                `${Math.round(specieHeight * 10) / 10}foot`:
-                `${Math.round(specieHeight * 10) / 10}m`)
+                `${Math.round(specieHeight * 100) / 100}foot`:
+                `${Math.round(specieHeight * 100) / 100}m`)
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -358,10 +365,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    // let detailHeaderStyle = !imageSource
-    //   ? [styles.detailHeader, styles.defaulFontColor]
-    //   : [styles.detailHeader];
-    // let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
+    
     return (
       <View
         style={{

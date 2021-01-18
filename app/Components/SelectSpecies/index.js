@@ -558,13 +558,15 @@ const SelectSpecies = ({
       data.diameter !== '' &&
       data.height !== '' &&
       Number(data.diameter) !== 0 &&
-      Number(data.height) !== 0
+      Number(data.height) !== 0 &&
+      (/^[0-9]{1,5}\.?[0-9]{0,2}$/).test(data.diameter) &&
+      (/^[0-9]{1,5}\.?[0-9]{0,2}$/).test(data.height)
     ) {
       UpdateSpecieAndSpecieDiameter({
         inventory_id: inventory.inventory_id,
         specie_name: data.aliases,
-        diameter: Math.round(data.diameter * 10) / 10,
-        height: Math.round(data.height * 10) / 10,
+        diameter: Math.round(data.diameter * 100) / 100,
+        height: Math.round(data.height * 100) / 100,
       })
         .then(() => {
           setShowSpecies(false);
