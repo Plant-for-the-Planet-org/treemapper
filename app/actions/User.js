@@ -64,13 +64,14 @@ export const getUserInformationFromServer = (navigation) => {
             resolve(data.data);
           })
           .catch((err) => {
+            console.error('err.response.status =>>', err);
             if (err.response.status === 303) {
               navigation.navigate('SignUp');
             }
             reject(err);
           });
       });
-      realm.close();
+      // realm.close();
     });
     const { protocol, url } = APIConfig;
   });

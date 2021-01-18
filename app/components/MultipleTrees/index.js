@@ -4,16 +4,12 @@ import { Header, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {
-  addSpeciesAction,
-  updateLastScreen,
-  getInventory,
-  updatePlantingDate,
-} from '../../actions';
-import { store } from '../../actions/store';
+import { addSpeciesAction, updateLastScreen, updatePlantingDate } from '../../actions';
+import { getInventory } from '../../repositories/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 
 const MultipleTrees = ({ navigation, route }) => {
-  const { state } = useContext(store);
+  const { state } = useContext(InventoryContext);
 
   const [plantingDate, setPlantingDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);

@@ -1,5 +1,7 @@
 // used to set the inventory id of an inventory
 export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
+export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
+export const UPDATE_LAST_SCREEN = 'UPDATE_LAST_SCREEN';
 export const ADD_INVENTORY = 'ADD_INVENTORY';
 export const UPDATE_PENDING_COUNT = 'UPDATE_PENDING_COUNT';
 export const UPDATE_UPLOAD_COUNT = 'UPDATE_UPLOAD_COUNT';

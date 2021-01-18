@@ -2,29 +2,33 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { initiateInventory } from '../../actions';
-import { store } from '../../actions/store';
+// import { initiateInventory } from '../../actions';
+import { initiateInventory } from '../../repositories/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 import { Colors } from '_styles';
 import i18next from 'i18next';
+import { initiateInventoryState } from '../../actions/inventory';
 
 const RegisterTree = ({ navigation }) => {
-  const globalState = useContext(store);
-  const { dispatch } = globalState;
+  const { dispatch } = useContext(InventoryContext);
 
   const [treeType, setTreeType] = useState('multiple');
 
   const onPressSingleTree = () => setTreeType('single');
   const onPressMultipleTree = () => setTreeType('multiple');
 
-  const onPressContinue = () => {
+  const onPressContinue = async () => {
     let data = { treeType };
-    initiateInventory(data, dispatch).then(() => {
+
+    const result = await initiateInventory(data);
+    if (result) {
+      initiateInventoryState(result)(dispatch);
       if (treeType === 'multiple') {
         navigation.navigate('LocateTree');
       } else {
         navigation.navigate('RegisterSingleTree');
       }
-    });
+    }
   };
 
   return (
@@ -51,7 +55,7 @@ const RegisterTree = ({ navigation }) => {
             active={treeType == 'multiple'}
             subHeadingStyle={treeType == 'multiple' && styles.activeTextColor}
             testID={'page_rt_multiple_trees'}
-            accessibilityLabel={'Mutiple Trees'}
+            accessibilityLabel={'Multiple Trees'}
           />
           <View style={{ flex: 1 }}></View>
         </ScrollView>

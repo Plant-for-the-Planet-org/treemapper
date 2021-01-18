@@ -15,15 +15,16 @@ import { Header, PrimaryButton, Alrighty } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
-import { addCoordinateSingleRegisterTree, getInventory } from '../../actions';
+import { addCoordinateSingleRegisterTree } from '../../actions';
+import { getInventory } from '../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
-import { store } from '../../actions/store';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
+import { InventoryContext } from '../../reducers/inventory';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -347,7 +348,7 @@ class MapMarking extends React.Component {
 
 export default function (props) {
   const navigation = useNavigation();
-  const globalState = useContext(store);
+  const globalState = useContext(InventoryContext);
   const { state } = globalState;
   return <MapMarking {...props} {...state} navigation={navigation} />;
 }

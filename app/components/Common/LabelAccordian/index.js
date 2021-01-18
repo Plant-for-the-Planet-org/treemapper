@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { Colors, Typography } from '_styles';
 import { Label } from '../';
 import { Accordian } from '../';
-import { store } from '../../../actions/store';
 import { addSpeciesAction } from '../../../actions';
+import { InventoryContext } from '../../../reducers/inventory';
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
-  const { state } = useContext(store);
+  const { state } = useContext(InventoryContext);
 
   const [species, setSpecies] = useState(data ? data : []);
 

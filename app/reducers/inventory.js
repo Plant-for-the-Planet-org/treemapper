@@ -5,10 +5,8 @@ import {
   SET_INVENTORY_ID,
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
+  INITIATE_INVENTORY_STATE,
 } from '../actions/Types';
-
-// Creates the context object for Inventory. Used by component to get the state and dispatch function of inventory
-export const InventoryContext = createContext();
 
 // stores the initial properties of the inventory state
 const initialState = {
@@ -73,10 +71,22 @@ const inventoryReducer = (state = initialState, action) => {
         ...state,
         isUploading: action.payload,
       };
+    // changes the value of isUploading by replacing with payload data
+    case INITIATE_INVENTORY_STATE:
+      return {
+        ...state,
+        allInventory: [...state.allInventory, action.payload],
+      };
     default:
       return state;
   }
 };
+
+// Creates the context object for Inventory. Used by component to get the state and dispatch function of inventory
+export const InventoryContext = createContext({
+  state: initialState,
+  dispatch: () => null,
+});
 
 // Create a provider for components to consume and subscribe to changes
 export const InventoryContextProvider = ({ children }) => {

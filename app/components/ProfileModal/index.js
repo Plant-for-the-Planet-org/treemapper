@@ -9,8 +9,8 @@ import { LoginDetails } from '../../actions/index';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../services/Species';
 import { SpeciesListAction } from '../../actions/Action';
-import { store } from '../../actions/store';
 import ProfileListItem from './ProfileListItem';
+import { InventoryContext } from '../../reducers/inventory';
 
 const ProfileModal = ({
   isUserLogin,
@@ -20,7 +20,7 @@ const ProfileModal = ({
 }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
-  const { dispatch } = useContext(store);
+  const { dispatch } = useContext(InventoryContext);
 
   useEffect(() => {
     if (isUserLogin) {

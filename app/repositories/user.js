@@ -1,3 +1,4 @@
+import Realm from 'realm';
 import { User } from '../actions/Schemas';
 import { bugsnag } from '../utils';
 
@@ -12,7 +13,7 @@ export const getUserToken = () => {
         const userToken = User.userToken;
 
         // closes the realm connection
-        realm.close();
+        // realm.close();
 
         // returns userToken
         resolve(userToken);

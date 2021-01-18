@@ -10,17 +10,18 @@ import {
 } from 'react-native';
 import { Header, InventoryCard, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { getAllInventoryByStatus, clearAllUploadedInventory } from '../../actions';
-import { store } from '../../actions/store';
+import { clearAllUploadedInventory } from '../../actions';
+import { getInventoryByStatus } from '../../repositories/inventory';
 import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
+import { InventoryContext } from '../../reducers/inventory';
 
 const UploadedInventory = ({ navigation }) => {
-  const { dispatch } = useContext(store);
+  const { dispatch } = useContext(InventoryContext);
 
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
@@ -34,7 +35,7 @@ const UploadedInventory = ({ navigation }) => {
   }, [navigation]);
 
   const initialState = () => {
-    getAllInventoryByStatus('complete').then((allInventory) => {
+    getInventoryByStatus('complete').then((allInventory) => {
       setAllInventory(Object.values(allInventory));
     });
   };

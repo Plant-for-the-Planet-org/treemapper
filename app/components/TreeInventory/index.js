@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { getAllInventoryByStatus, clearAllIncompleteInventory } from '../../actions';
-import { store } from '../../actions/store';
+import { clearAllIncompleteInventory } from '../../actions';
+import { getInventoryByStatus } from '../../repositories/inventory';
 import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
@@ -18,9 +18,10 @@ import { SvgXml } from 'react-native-svg';
 import moment from 'moment';
 import i18next from 'i18next';
 import { uploadInventoryData } from '../../utils/uploadInventory';
+import { InventoryContext } from '../../reducers/inventory';
 
 const TreeInventory = ({ navigation }) => {
-  const { dispatch } = useContext(store);
+  const { dispatch } = useContext(InventoryContext);
 
   const [allInventory, setAllInventory] = useState(null);
 
@@ -40,7 +41,8 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getAllInventoryByStatus('all').then((allInventory) => {
+    getInventoryByStatus('all').then((allInventory) => {
+      console.log('allInventory', allInventory);
       setAllInventory(Object.values(allInventory));
     });
   };
@@ -104,7 +106,7 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
-      getAllInventoryByStatus('all').then((allInventory) => {
+      getInventoryByStatus('all').then((allInventory) => {
         setAllInventory(Object.values(allInventory));
       });
     });

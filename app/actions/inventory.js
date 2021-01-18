@@ -1,4 +1,5 @@
 import { APIConfig } from './Config';
+import { INITIATE_INVENTORY_STATE, SET_INVENTORY_ID } from './Types';
 
 const { protocol, url } = APIConfig;
 
@@ -19,4 +20,15 @@ export const getUserProfile = (data) => async (dispatch) => {
     console.error(`Error at: /actions/inventory/getUserProfile -> ${JSON.stringify}`);
     return false;
   }
+};
+
+export const initiateInventoryState = (inventoryData) => (dispatch) => {
+  dispatch({
+    type: INITIATE_INVENTORY_STATE,
+    payload: inventoryData,
+  });
+  dispatch({
+    type: SET_INVENTORY_ID,
+    payload: inventoryData.inventory_id,
+  });
 };

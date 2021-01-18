@@ -3,11 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
-import { store } from '../../actions/store';
-import { updateLastScreen, getInventory } from '../../actions/';
+import { updateLastScreen } from '../../actions/';
+import { getInventory } from '../../repositories/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 
 const CreatePolygon = ({ route }) => {
-  const { state } = useContext(store);
+  const { state } = useContext(InventoryContext);
 
   const [locationText, setLocationText] = useState('');
   const [isMapMarkingState, setIsMapMarkingState] = useState(true);

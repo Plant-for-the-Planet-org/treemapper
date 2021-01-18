@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { StateProvider } from '../../actions/store';
+import { InventoryContextProvider } from '../../reducers/inventory';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import {
@@ -60,14 +60,8 @@ const MyTransition = {
 };
 
 const App = () => {
-  // useEffect(() => {
-  //   const setupAxios = async () => {
-  //     await setupAxiosInterceptor();
-  //   };
-  //   setupAxios();
-  // }, []);
   return (
-    <StateProvider>
+    <InventoryContextProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="MainScreen" headerMode={'none'}>
           <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
@@ -109,7 +103,7 @@ const App = () => {
           <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>
-    </StateProvider>
+    </InventoryContextProvider>
   );
 };
 

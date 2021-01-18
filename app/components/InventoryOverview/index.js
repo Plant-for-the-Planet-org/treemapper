@@ -13,14 +13,8 @@ import {
 } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { store } from '../../actions/store';
-import {
-  getInventory,
-  changeInventoryStatus,
-  updateLastScreen,
-  updatePlantingDate,
-  addSpeciesAction,
-} from '../../actions';
+import { updateLastScreen, updatePlantingDate, addSpeciesAction } from '../../actions';
+import { getInventory, changeInventoryStatus } from '../../repositories/inventory';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';
@@ -34,11 +28,12 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import moment from 'moment';
 import i18next from 'i18next';
 import SelectSpecies from '../SelectSpecies/index';
+import { InventoryContext } from '../../reducers/inventory';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
 
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(InventoryContext);
 
   const [inventory, setInventory] = useState(null);
   const [locationTitle, setlocationTitle] = useState('');

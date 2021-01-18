@@ -1,10 +1,10 @@
 import { APIConfig } from './Config';
 import axios from 'axios';
 import {
-  getAllInventoryByStatus,
-  changeInventoryStatus,
+  getInventoryByStatus,
   changeInventoryStatusAndResponse,
-} from '.';
+  changeInventoryStatus,
+} from '../repositories/inventory';
 import {
   Coordinates,
   OfflineMaps,
@@ -94,8 +94,8 @@ const uploadInventory = (dispatch) => {
             Geolocation.getCurrentPosition(
               async (position) => {
                 let currentCoords = position.coords;
-                const pendingInventory = await getAllInventoryByStatus('pending');
-                const uploadingInventory = await getAllInventoryByStatus('uploading');
+                const pendingInventory = await getInventoryByStatus('pending');
+                const uploadingInventory = await getInventoryByStatus('uploading');
                 let inventoryData = [...pendingInventory, ...uploadingInventory];
                 let coordinates = [];
                 let species = [];

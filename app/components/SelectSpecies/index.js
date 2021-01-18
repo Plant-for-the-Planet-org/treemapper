@@ -18,16 +18,17 @@ import { placeholder_image, checkCircleFill, checkCircle, add_image } from '../.
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
-import { getInventory, UpdateSpecieAndSpecieDiameter } from '../../actions';
+import { UpdateSpecieAndSpecieDiameter } from '../../actions';
+import { getInventory } from '../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import { store } from '../../actions/store';
 import Camera from '../Common/Camera';
 import { UpdateSpecies, SpeciesListData, UpdateSpeciesImage } from '../../actions/UploadInventory';
 import Config from 'react-native-config';
 import { APIConfig } from '../../actions/Config';
 import { SpeciesListAction } from '../../actions/Action';
 import { useIsFocused } from '@react-navigation/native';
+import { InventoryContext } from '../../reducers/inventory';
 
 const SelectSpecies = ({
   visible,
@@ -51,7 +52,7 @@ const SelectSpecies = ({
   const [showSpecies, setShowSpecies] = useState(visible);
   // const [treeType, setTreeType] = useState(null);
   const [inventory, setInventory] = useState(null);
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(InventoryContext);
   const [isCamera, setIsCamera] = useState(false);
   const [isShowAddNameModal, setIsShowAddNameModal] = useState(false);
   const [imageIndex, setImageIndex] = useState(null);

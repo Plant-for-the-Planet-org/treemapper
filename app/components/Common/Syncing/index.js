@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
-import { store } from '../../../actions/store';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
+import { InventoryContext } from '../../../reducers/inventory';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
-  const { dispatch } = useContext(store);
+  const { dispatch } = useContext(InventoryContext);
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {

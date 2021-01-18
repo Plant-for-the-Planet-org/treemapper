@@ -19,13 +19,13 @@ import { LoginDetails } from '../../actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../services/Signup';
 import Snackbar from 'react-native-snackbar';
-import { store } from '../../actions/store';
 import { LoaderActions, SignUpLoader } from '../../actions/Action';
 import { Loader } from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
+import { InventoryContext } from '../../reducers/inventory';
 
 const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');
@@ -48,7 +48,7 @@ const SignUp = ({ navigation }) => {
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
   const [country, setCountry] = useState('');
-  const { dispatch, state } = useContext(store);
+  const { dispatch, state } = useContext(InventoryContext);
   const [modalVisible, setModalVisible] = useState(false);
   const textInput = useRef(null);
   const textInputZipCode = useRef(null);

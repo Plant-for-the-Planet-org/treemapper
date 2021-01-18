@@ -3,11 +3,11 @@ import { View, StyleSheet, BackHandler } from 'react-native';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from '../Common/ImageCapturing';
-import { store } from '../../actions/store';
 import { updateLastScreen } from '../../actions';
+import { InventoryContext } from '../../reducers/inventory';
 
 const RegisterSingleTree = ({ navigation, route }) => {
-  const { state } = useContext(store);
+  const { state: inventoryState, dispatch: inventoryDispatch } = useContext(InventoryContext);
 
   const [screenState, setScreenState] = useState('MapMarking');
   useEffect(() => {
@@ -16,7 +16,7 @@ const RegisterSingleTree = ({ navigation, route }) => {
       setScreenState('ImageCapturing');
     }
     navigation.addListener('focus', () => {
-      let data = { inventory_id: state.inventoryID, last_screen: 'RegisterSingleTree' };
+      let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
       updateLastScreen(data);
     });
   }, []);

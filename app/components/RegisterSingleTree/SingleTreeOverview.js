@@ -20,32 +20,36 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   updateLastScreen,
-  getInventory,
-  changeInventoryStatus,
-  updateSpeceiName,
-  updateSpeceiDiameter,
   updatePlantingDate,
-  initiateInventory,
+  // initiateInventory,
   UpdateSpecieAndSpecieDiameter,
   DeleteInventory,
   // statusToComplete
 } from '../../actions';
-import { store } from '../../actions/store';
-// import DateTimePicker from '@react-native-community/datetimepicker';
+import {
+  updateSpecieName,
+  updateSpecieDiameter,
+  initiateInventory,
+  getInventory,
+  changeInventoryStatus,
+} from '../../repositories/inventory';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import i18next from 'i18next';
+import { initiateInventoryState } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 // import SelectSpecies from '../SelectSpecies';
 
 const SingleTreeOverview = ({ navigation, route }) => {
   const specieDiameterRef = useRef();
 
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(InventoryContext);
+  const { state: inventoryState, dispatch: inventoryDispatch } = useContext(InventoryContext);
   const [inventory, setInventory] = useState(null);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isSpeciesEnable, setIsSpeciesEnable] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
-  const [plantationDate, setPLantationDate] = useState(new Date());
+  const [plantationDate, setPlantationDate] = useState(new Date());
 
   const [specieText, setSpecieText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
@@ -53,10 +57,10 @@ const SingleTreeOverview = ({ navigation, route }) => {
   //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
-    let data = { inventory_id: state.inventoryID, last_screen: 'SingleTreeOverview' };
+    let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
         console.log(inventory, 'overview');
@@ -64,17 +68,17 @@ const SingleTreeOverview = ({ navigation, route }) => {
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(inventory.species_diameter);
-        setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
+        setPlantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
       });
     });
   }, []);
 
-  const onSubmitInputFeild = (action) => {
+  const onSubmitInputField = (action) => {
     if (action === 'specieText') {
-      updateSpeceiName({ inventory_id: inventory.inventory_id, speciesText: specieText });
+      updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieText });
     } else {
-      updateSpeceiDiameter({
-        inventory_id: state.inventoryID,
+      updateSpecieDiameter({
+        inventory_id: inventoryState.inventoryID,
         speceisDiameter: Number(specieDiameter),
       });
     }
@@ -82,20 +86,16 @@ const SingleTreeOverview = ({ navigation, route }) => {
 
   const onPressNextIcon = () => {
     if (isSpeciesEnable) {
-      onSubmitInputFeild('specieText');
-      setTimeout(() => {
-        setIsSpeciesEnable(false);
-        setTimeout(() => {
-          specieDiameterRef.current.focus();
-        }, 0);
-      }, 0);
+      onSubmitInputField('specieText');
+      setIsSpeciesEnable(false);
+      specieDiameterRef.current.focus();
     } else {
       setIsOpenModal(false);
-      onSubmitInputFeild('specieDiameter');
+      onSubmitInputField('specieDiameter');
     }
   };
 
-  const renderinputModal = () => {
+  const renderInputModal = () => {
     return (
       <Modal transparent={true} visible={isOpenModal}>
         <View style={styles.cont}>
@@ -117,7 +117,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     onChangeText={(text) => setSpecieText(text)}
-                    onSubmitEditing={() => onSubmitInputFeild('specieText')}
+                    onSubmitEditing={() => onSubmitInputField('specieText')}
                     keyboardType={'email-address'}
                   />
                 ) : (
@@ -129,7 +129,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieDiameter(text)}
-                    onSubmitEditing={() => onSubmitInputFeild('specieDiameter')}
+                    onSubmitEditing={() => onSubmitInputField('specieDiameter')}
                   />
                 )}
                 <MCIcon
@@ -159,11 +159,11 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const renderDateModal = () => {
     const onChangeDate = (e, selectedDate) => {
       updatePlantingDate({
-        inventory_id: state.inventoryID,
+        inventory_id: inventoryState.inventoryID,
         plantation_date: `${selectedDate.getTime()}`,
       });
       setIsShowDate(false);
-      setPLantationDate(selectedDate);
+      setPlantationDate(selectedDate);
     };
     const handleConfirm = (data) => onChangeDate(null, data);
     const hideDatePicker = () => setIsShowDate(false);
@@ -308,7 +308,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
       navigation.navigate('TreeInventory');
     } else {
       if (specieText) {
-        let data = { inventory_id: state.inventoryID, status: 'pending' };
+        let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
@@ -334,13 +334,16 @@ const SingleTreeOverview = ({ navigation, route }) => {
   // };
   const onPressNextTree = () => {
     if (inventory.status == 'incomplete') {
-      changeInventoryStatus({ inventory_id: state.inventoryID, status: 'pending' }, dispatch).then(
-        () => {
-          initiateInventory({ treeType: 'single' }, dispatch).then(() => {
-            navigation.push('RegisterSingleTree');
-          });
-        },
-      );
+      changeInventoryStatus(
+        { inventory_id: inventoryState.inventoryID, status: 'pending' },
+        dispatch,
+      ).then(async () => {
+        const result = await initiateInventory({ treeType: 'single' });
+        if (result) {
+          initiateInventoryState(result)(inventoryDispatch);
+          navigation.navigate('RegisterSingleTree');
+        }
+      });
     } else {
       navigation.goBack('TreeInventory');
     }
@@ -400,7 +403,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {renderinputModal()}
+      {renderInputModal()}
       {renderDateModal()}
       {/* {renderSpeciesModal()} */}
       <View style={styles.container}>

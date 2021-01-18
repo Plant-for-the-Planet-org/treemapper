@@ -5,15 +5,15 @@ import { SafeAreaView } from 'react-native';
 import { cloud_upload_gray } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { addLocateTree, updateLastScreen } from '../../actions';
-import { store } from '../../actions/store';
 import JailMonkey from 'jail-monkey';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
+import { InventoryContext } from '../../reducers/inventory';
 
 const LocateTree = ({ navigation }) => {
   const isRooted = JailMonkey.isJailBroken();
 
-  const { state } = useContext(store);
+  const { state } = useContext(InventoryContext);
 
   useEffect(() => {
     let data = { inventory_id: state.inventoryID, last_screen: 'LocateTree' };

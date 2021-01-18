@@ -13,18 +13,16 @@ import {
 } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { Header } from '../Common';
-//import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getInventory, isLogin, auth0Login } from '../../actions';
-//import { add_image } from '../../assets';
+import { isLogin } from '../../actions';
+import { getInventory } from '../../repositories/inventory';
 import { SearchSpecies } from '../../services/Species';
-//import Camera from '../Common/Camera';
-import { store } from '../../actions/store';
 import { createSpecies } from '../../actions/UploadInventory';
 import { SpecieIdFromServer } from '../../actions/Action';
 import { placeholder_image } from '../../assets';
+import { InventoryContext } from '../../reducers/inventory';
 
 export default function index({ navigation }) {
   const [imagePath, setImagePath] = useState(null);
@@ -39,7 +37,7 @@ export default function index({ navigation }) {
   //const [isAddSpecies, setIsAddSpecies] = useState(null);
   const [inventory, setInventory] = useState(null);
   //const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(InventoryContext);
 
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {

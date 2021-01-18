@@ -12,30 +12,31 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } fr
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
-import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout } from '../../actions';
+import { auth0Login, isLogin, auth0Logout } from '../../actions';
+import { getInventoryByStatus } from '../../repositories/inventory';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
-import { store } from '../../actions/store';
 import { LoaderActions, LocalInventoryActions } from '../../actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
 import jwtDecode from 'jwt-decode';
 import { LoginDetails } from '../../actions/index';
+import { InventoryContext } from '../../reducers/inventory';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(InventoryContext);
   const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
     checkIsLogin();
-    getAllInventoryByStatus('all').then((data) => {
+    getInventoryByStatus('all').then((data) => {
       let count = 0;
       for (inventory of data) {
         if (inventory.status === 'pending' || inventory.status === 'uploading') {

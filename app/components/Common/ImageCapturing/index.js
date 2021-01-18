@@ -17,15 +17,15 @@ import {
   removeLastCoord,
   completePolygon,
   insertImageSingleRegisterTree,
-  getInventory,
 } from '../../../actions';
-import { store } from '../../../actions/store';
+import { getInventory } from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
+import { InventoryContext } from '../../../reducers/inventory';
 
 const infographicText = [
   {
@@ -53,7 +53,7 @@ const ImageCapturing = ({
   const camera = useRef();
 
   const navigation = useNavigation();
-  const { state } = useContext(store);
+  const { state } = useContext(InventoryContext);
   const [imagePath, setImagePath] = useState('');
   const [APLHABETS, setAPLHABETS] = useState([]);
   const [inventory, setInventory] = useState(null);
