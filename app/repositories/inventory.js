@@ -48,13 +48,13 @@ export const initiateInventory = ({ treeType }) => {
             plantation_date: `${new Date().getTime()}`,
           };
           realm.create('Inventory', inventoryData);
-          return inventoryData;
+          resolve(inventoryData);
         });
       })
       .catch((err) => {
         console.error(`Error at /repositories/initiateInventory -> ${JSON.stringify(err)}`);
         bugsnag.notify(err);
-        return false;
+        resolve(false);
       });
   });
 };
