@@ -19,8 +19,6 @@ import {
   placeholder_image,
   checkCircleFill,
   checkCircle,
-  add_image,
-  off_site_enable_banner,
   tree,
 } from '../../assets';
 import { SvgXml } from 'react-native-svg';
@@ -161,9 +159,9 @@ const SelectSpecies = ({
     }
   };
 
-  const onPressSpecieSingleTree = (index) => {
-    setSingleTree(index);
-  };
+  // const onPressSpecieSingleTree = (index) => {
+  //   setSingleTree(index);
+  // };
 
   const onPressSaveBtn = (index) => {
     setSingleTree(index);
@@ -186,10 +184,10 @@ const SelectSpecies = ({
       .catch(() => {});
     // setSpeciesList(species);
   };
-  const onPressImage = (index) => {
-    setIsCamera(!isCamera);
-    setImageIndex(index);
-  };
+  // const onPressImage = (index) => {
+  //   setIsCamera(!isCamera);
+  //   setImageIndex(index);
+  // };
 
   const addName = (index) => {
     setIsShowAddNameModal(true);

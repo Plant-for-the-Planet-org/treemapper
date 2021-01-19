@@ -129,20 +129,20 @@ const SingleTreeOverview = ({ navigation, route }) => {
     setEditEnable('');
   };
 
-  const onPressNextIcon = () => {
-    if (isSpeciesEnable) {
-      onSubmitInputFeild('specieText');
-      setTimeout(() => {
-        setIsSpeciesEnable(false);
-        setTimeout(() => {
-          specieDiameterRef.current.focus();
-        }, 0);
-      }, 0);
-    } else {
-      setIsOpenModal(false);
-      // onSubmitInputFeild('specieDiameter');
-    }
-  };
+  // const onPressNextIcon = () => {
+  //   if (isSpeciesEnable) {
+  //     onSubmitInputFeild('specieText');
+  //     setTimeout(() => {
+  //       setIsSpeciesEnable(false);
+  //       setTimeout(() => {
+  //         specieDiameterRef.current.focus();
+  //       }, 0);
+  //     }, 0);
+  //   } else {
+  //     setIsOpenModal(false);
+  //     // onSubmitInputFeild('specieDiameter');
+  //   }
+  // };
 
   const Country = () => {
     getUserInformation().then((data) => {
@@ -360,44 +360,44 @@ const SingleTreeOverview = ({ navigation, route }) => {
     );
   };
 
-  const renderOnSite = ({ polygons }) => {
-    let coords;
-    if (polygons[0]) {
-      coords = polygons[0].coordinates[0];
-    }
+  // const renderOnSite = ({ polygons }) => {
+  //   let coords;
+  //   if (polygons[0]) {
+  //     coords = polygons[0].coordinates[0];
+  //   }
     
-    return (
-      <View
-        style={{
-          paddingTop: 20,
-          fontFamily: Typography.FONT_FAMILY_REGULAR,
-          fontSize: Typography.FONT_SIZE_18,
-        }}>
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-          <Text style={styles.detailHead}>Location</Text>
-          <Text style={styles.detailTxt}>
-            {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
-          </Text>
-        </View>
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-          <Text style={styles.detailHead}>Species</Text>
-          <Text style={styles.detailTxt}>{specieText} </Text>
-        </View>
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-          <Text style={styles.detailHead}>Diameter</Text>
-          <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
-        </View>
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-          <Text style={styles.detailHead}>Date</Text>
-          <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
-        </View>
-      </View>
-    );
-  };
+  //   return (
+  //     <View
+  //       style={{
+  //         paddingTop: 20,
+  //         fontFamily: Typography.FONT_FAMILY_REGULAR,
+  //         fontSize: Typography.FONT_SIZE_18,
+  //       }}>
+  //       <View
+  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
+  //         <Text style={styles.detailHead}>Location</Text>
+  //         <Text style={styles.detailTxt}>
+  //           {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
+  //         </Text>
+  //       </View>
+  //       <View
+  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
+  //         <Text style={styles.detailHead}>Species</Text>
+  //         <Text style={styles.detailTxt}>{specieText} </Text>
+  //       </View>
+  //       <View
+  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
+  //         <Text style={styles.detailHead}>Diameter</Text>
+  //         <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
+  //       </View>
+  //       <View
+  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
+  //         <Text style={styles.detailHead}>Date</Text>
+  //         <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
+  //       </View>
+  //     </View>
+  //   );
+  // };
   const onPressSave = () => {
     if (inventory.status == 'complete') {
       navigation.navigate('TreeInventory');

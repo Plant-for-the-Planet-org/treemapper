@@ -14,7 +14,7 @@ import { SearchSpecies } from '../../Services/Species';
 import { store } from '../../Actions/store';
 import { createSpecies } from '../../Actions/UploadInventory';
 import { SpecieIdFromServer } from '../../Actions/Action';
-import {placeholder_image, add_image, tree} from '../../assets';
+import { tree } from '../../assets';
 import { APIConfig } from '../../Actions/Config';
 
 const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
