@@ -7,7 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Header, SmallHeader, InventoryCard, PrimaryButton } from '../Common';
+import { Header, SmallHeader, InventoryCard, PrimaryButton, InventoryList } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { clearAllIncompleteInventory } from '../../actions';
 import { getInventoryByStatus } from '../../repositories/inventory';
@@ -15,7 +15,6 @@ import { Colors } from '_styles';
 import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
-import moment from 'moment';
 import i18next from 'i18next';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { InventoryContext } from '../../reducers/inventory';
@@ -33,75 +32,11 @@ const TreeInventory = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
-  const onPressInventory = (item) => {
-    setTimeout(() => {
-      dispatch(LocalInventoryActions.setInventoryId(item.inventory_id));
-      navigation.navigate(item.last_screen);
-    }, 0);
-  };
-
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
       console.log('allInventory', allInventory);
       setAllInventory(Object.values(allInventory));
     });
-  };
-
-  const renderInventoryList = (inventoryList) => {
-    return (
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={inventoryList}
-        renderItem={({ item }) => {
-          let imageURL;
-          let isOffSitePoint = false;
-          if (
-            item.polygons[0] &&
-            item.polygons[0].coordinates &&
-            Object.values(item.polygons[0].coordinates).length
-          ) {
-            imageURL = item.polygons[0].coordinates[0].imageUrl;
-            isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1;
-          }
-          let locateTreeAndType = '';
-          let title = '';
-          if (item.locate_tree === 'off-site') {
-            locateTreeAndType = 'Off Site';
-          } else {
-            locateTreeAndType = 'On Site';
-          }
-          if (item.tree_type == 'single') {
-            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`;
-            locateTreeAndType += ' - Point';
-          } else {
-            let totalTreeCount = 0;
-            let species = Object.values(item.species);
-
-            for (let i = 0; i < species.length; i++) {
-              const oneSpecies = species[i];
-              totalTreeCount += Number(oneSpecies.treeCount);
-            }
-            title = `${totalTreeCount} Trees`;
-            locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`;
-          }
-          let data = {
-            title: title,
-            subHeading: locateTreeAndType,
-            date: moment(new Date(Number(item.plantation_date))).format('ll'),
-            imageURL: imageURL,
-          };
-          return (
-            <TouchableOpacity
-              onPress={() => onPressInventory(item)}
-              accessibilityLabel="Inventory List"
-              accessible={true}
-              testID="inventory_list">
-              <InventoryCard icon={'cloud-outline'} data={data} />
-            </TouchableOpacity>
-          );
-        }}
-      />
-    );
   };
 
   const onPressClearAll = () => {
@@ -144,7 +79,10 @@ const TreeInventory = ({ navigation }) => {
               icon={'cloud-upload'}
               style={{ marginVertical: 15 }}
             />
-            {renderInventoryList(pendingInventory)}
+            <InventoryList
+              accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
+              inventoryList={pendingInventory}
+            />
           </>
         )}
         {uploadedInventory.length > 0 && (
@@ -164,7 +102,10 @@ const TreeInventory = ({ navigation }) => {
               rightTheme={'red'}
               style={{ marginVertical: 15 }}
             />
-            {renderInventoryList(inCompleteInventory)}
+            <InventoryList
+              accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
+              inventoryList={inCompleteInventory}
+            />
           </>
         )}
       </View>
