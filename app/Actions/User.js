@@ -15,51 +15,52 @@ import getSessionData from '../Utils/sessionId';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      console.log(User);
-      if (User) {
-        resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname });
-      } else {
-        resolve({ email: '', firstName: '', lastName: '' });
-      }
-    });
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
+      (realm) => {
+        const User = realm.objectForPrimaryKey('User', 'id0001');
+        console.log(User);
+        if (User) {
+          resolve({ email: User.email, firstName: User.firstname, lastName: User.lastname, country: User.country });
+        } else {
+          resolve({ email: '', firstName: '', lastName: '' });
+        }
+      },
+    );
   });
 };
 
 export const getUserInformationFromServer = (navigation) => {
   return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      let userToken = User.accessToken;
-      console.log('usertolenm', userToken);
-      getSessionData().then((sessionData) => {
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/app/profile`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-            'x-session-id': sessionData,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                },
-                'modified',
-              );
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
+      (realm) => {
+        const User = realm.objectForPrimaryKey('User', 'id0001');
+        let userToken = User.accessToken;
+        console.log(userToken, 'Token');
+        getSessionData().then((sessionData) => {
+          axios({
+            method: 'GET',
+            url: `${protocol}://${url}/app/profile`,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `OAuth ${userToken}`,
+              'x-session-id': sessionData,
+            },
+          })
+            .then((data) => {
+              realm.write(() => {
+                const { email, firstname, lastname, country } = data.data;
+                realm.create(
+                  'User',
+                  {
+                    id: 'id0001',
+                    email,
+                    firstname,
+                    lastname,
+                    country
+                  },
+                  'modified',
+                );
+              
             });
             resolve(data.data);
           })
