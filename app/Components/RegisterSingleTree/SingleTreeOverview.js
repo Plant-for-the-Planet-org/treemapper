@@ -36,7 +36,6 @@ import {
 import { store } from '../../Actions/store';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
 import i18next from 'i18next';
 import {getUserInformation} from '../../Actions/User';
 // import SelectSpecies from '../SelectSpecies';
@@ -288,7 +287,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             disabled={!shouldEdit}
             onPress={() => onPressEditSpecies('species')}
             accessible={true}
-            accessibilityLabel="Species"
+            accessibilityLabel={i18next.t('label.tree_review_specie')}
             testID="species_btn">
             <Text style={styles.detailText}>
               {specieText
@@ -304,7 +303,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
             onPress={() => onPressEditSpecies('diameter')}
-            accessibilityLabel="Diameter"
+            accessibilityLabel={i18next.t('label.tree_review_diameter')}
             testID="diameter_btn"
             accessible={true}>
             <FIcon name={'arrow-h'} style={styles.detailText} />

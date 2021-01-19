@@ -1,14 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { tree, placeholder_image } from '../../../assets';
+import { tree, placeholder_image, map_img } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import i18next from 'i18next';
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-  let imageSource = activeBtn ? placeholder_image : tree;
+  let imageSource =
+    activeBtn === true
+      ? map_img
+      : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
+      ? map_img
+      : activeBtn === false
+      ? placeholder_image
+      : tree;
   if (data.imageURL) {
     imageSource = { uri: data.imageURL };
   }

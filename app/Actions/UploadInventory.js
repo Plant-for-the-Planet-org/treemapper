@@ -19,6 +19,7 @@ import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 import { LocalInventoryActions } from './Action';
 import getSessionData from '../Utils/sessionId';
+import i18next from 'i18next';
 
 const { protocol, url } = APIConfig;
 
@@ -120,10 +121,13 @@ const uploadInventory = (dispatch) => {
                     captureMode: oneInventory.locate_tree,
                     deviceLocation: {
                       coordinates: [currentCoords.longitude, currentCoords.latitude],
-                      type: 'Point',
+                      type: i18next.t('label.tree_inventory_point'),
                     },
                     geometry: {
-                      type: coordinates.length > 1 ? 'Polygon' : 'Point',
+                      type:
+                        coordinates.length > 1
+                          ? i18next.t('label.tree_inventory_polygon')
+                          : i18next.t('label.tree_inventory_point'),
                       coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                     },
                     plantDate: new Date().toISOString(),

@@ -12,7 +12,8 @@ import Alrighty from './Alrighty';
 import AlertModal from './AlertModal';
 import FlatButton from './FlatButton';
 import Loader from './Loader/Index';
-import Sync from './Syncing'
+import Sync from './Syncing';
+import InventoryList from './InventoryList';
 // import Loader from './Loader';
 
 export {
@@ -30,5 +31,6 @@ export {
   AlertModal,
   FlatButton,
   Loader,
-  Sync
+  Sync,
+  InventoryList,
 };

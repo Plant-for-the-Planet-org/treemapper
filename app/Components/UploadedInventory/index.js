@@ -3,12 +3,11 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   ScrollView,
   ActivityIndicator,
   Text,
 } from 'react-native';
-import { Header, InventoryCard, PrimaryButton, AlertModal } from '../Common';
+import { Header, InventoryList, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { getAllInventoryByStatus, clearAllUploadedInventory } from '../../Actions';
 import { store } from '../../Actions/store';
@@ -16,7 +15,6 @@ import { Colors, Typography } from '_styles';
 import { LocalInventoryActions } from '../../Actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
-import moment from 'moment';
 import i18next from 'i18next';
 
 const UploadedInventory = ({ navigation }) => {
@@ -39,13 +37,6 @@ const UploadedInventory = ({ navigation }) => {
     });
   };
 
-  const onPressInventory = (item) => {
-    setTimeout(() => {
-      dispatch(LocalInventoryActions.setInventoryId(item.inventory_id));
-      navigation.navigate(item.last_screen);
-    }, 0);
-  };
-
   const freeUpSpace = () => {
     clearAllUploadedInventory().then(() => {
       initialState();
@@ -57,64 +48,6 @@ const UploadedInventory = ({ navigation }) => {
     setIsShowFreeUpSpaceAlert(!isShowFreeUpSpaceAlert);
   };
 
-  const renderInventoryList = (inventoryList) => {
-    return (
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={inventoryList}
-        renderItem={({ item }) => {
-          let imageURL;
-          let isOffSitePoint = false;
-          if (
-            item.polygons[0] &&
-            item.polygons[0].coordinates &&
-            Object.values(item.polygons[0].coordinates).length
-          ) {
-            imageURL = item.polygons[0].coordinates[0].imageUrl;
-            isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1;
-          }
-          let locateTreeAndType = '';
-          let title = '';
-          if (item.locate_tree === 'off-site') {
-            locateTreeAndType = 'Off Site';
-          } else {
-            locateTreeAndType = 'On Site';
-          }
-          if (item.tree_type == 'single') {
-            title = `1 ${item.specei_name ? `${item.specei_name} ` : ''}Tree`;
-            locateTreeAndType += ' - Point';
-          } else {
-            let totalTreeCount = 0;
-            let species = Object.values(item.species);
-
-            for (let i = 0; i < species.length; i++) {
-              const oneSpecies = species[i];
-              totalTreeCount += Number(oneSpecies.treeCount);
-            }
-            title = `${totalTreeCount} Trees`;
-            locateTreeAndType += ` - ${isOffSitePoint ? 'Point' : 'Polygon'}`;
-          }
-          let data = {
-            title: title,
-            subHeading: locateTreeAndType,
-            date: moment(new Date(Number(item.plantation_date))).format('ll'),
-            imageURL: imageURL,
-          };
-
-          return (
-            <TouchableOpacity
-              onPress={() => onPressInventory(item)}
-              accessible={true}
-              accessibilityLabel="Upload Inventory List"
-              testID="upload_inventory_list">
-              <InventoryCard icon={'cloud-check'} data={data} />
-            </TouchableOpacity>
-          );
-        }}
-      />
-    );
-  };
-
   const renderInventory = () => {
     return (
       <View style={styles.cont}>
@@ -123,11 +56,16 @@ const UploadedInventory = ({ navigation }) => {
             <TouchableOpacity
               onPress={toogleIsShowFreeUpSpaceAlert}
               accessible={true}
-              accessibilityLabel="Free Up Space"
+              accessibilityLabel={i18next.t('label.tree_inventory_free_up_space')}
               testID="free_up_space">
-              <Text style={styles.freeUpSpace}>Free Up Space</Text>
+              <Text style={styles.freeUpSpace}>
+                {i18next.t('label.tree_inventory_free_up_space')}
+              </Text>
             </TouchableOpacity>
-            {renderInventoryList(allInventory)}
+            <InventoryList
+              accessibilityLabel={i18next.t('label.tree_inventory_upload_inventory_list')}
+              inventoryList={allInventory}
+            />
           </>
         )}
       </View>
