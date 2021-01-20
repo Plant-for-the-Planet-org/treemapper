@@ -1,12 +1,10 @@
 {
   "select_species_local_name": "{{item.localName}}",
-  "select_species_name_of_tree": "{{item.nameOfTree}}",
   "select_species_tree_count": "{{item.treeCount}} árboles",
   "select_species_tree_count_modal_header": "¿Cuántos?",
   "select_species_tree_count_modal_sub_header": "{{specieName}}",
   "select_species_tree_count_modal_sub_header_2": "¿has plantado?",
   "select_species_modal_label": "Recuento de árboles",
-  "select_species_header": "Especies",
   "select_species_sub_header": "Por favor, selecciona la especie que se ha plantado",
   "select_species_btn_text": "Guardar y continuar"
 }
