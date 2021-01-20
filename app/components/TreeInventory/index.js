@@ -25,7 +25,6 @@ const TreeInventory = ({ navigation }) => {
 
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
-      console.log('allInventory', allInventory);
       setAllInventory(Object.values(allInventory));
     });
   };

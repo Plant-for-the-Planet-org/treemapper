@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import { Header, PrimaryButton } from '../../Common';
+import { View, StyleSheet } from 'react-native';
+import Header from '../Header';
+import PrimaryButton from '../PrimaryButton';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { alrighty_banner } from '../../../assets';

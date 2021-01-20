@@ -28,29 +28,22 @@ import {
   updatePlantingDate,
   deleteInventory,
   updateLastScreen,
-  updateSpecieAndSpecieDiameter,
   updateSpecieHeight,
 } from '../../repositories/inventory';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
 import { initiateInventoryState } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { store } from '../../Actions/store';
-// import DateTimePicker from '@react-native-community/datetimepicker';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import i18next from 'i18next';
-import { getUserInformation } from '../../Actions/User';
-// import SelectSpecies from '../SelectSpecies';
+import { getUserInformation } from '../../actions/User';
 
-const SingleTreeOverview = ({ navigation, route }) => {
+const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
 
-  const { state, dispatch } = useContext(store);
+  const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const [isSpeciesEnable, setIsSpeciesEnable] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
-  const [plantationDate, setPLantationDate] = useState(new Date());
+  const [plantationDate, setPlantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
   const [specieEditText, setSpecieEditText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('10');
@@ -61,8 +54,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const [editEnable, setEditEnable] = useState('');
   const [status, setStatus] = useState('');
   const [countryCode, setCountryCode] = useState('');
-  // const [specieCoordinates, setSpecieCoordinates] = useState('');
-  //const [direction, setDirection] = useState(null);
 
   useEffect(() => {
     let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -71,22 +62,21 @@ const SingleTreeOverview = ({ navigation, route }) => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
         inventory.species = Object.values(inventory.species);
         inventory.polygons = Object.values(inventory.polygons);
-        console.log(inventory, 'overview', state.inventoryID);
         setInventory(inventory);
-        console.log('Inventory Set');
         setStatus(inventory.status);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
         setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
         setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
-        setPLantationDate(new Date(Number(inventory.plantation_date)).toLocaleDateString());
+        setPlantationDate(new Date(Number(inventory.plantation_date)));
       });
     });
     Country();
   }, []);
 
-  const onSubmitInputFeild = (action) => {
-    console.log(action, specieText, specieHeight, specieDiameter);
+  console.log('plantationDate =>', new Date(Number(plantationDate)));
+
+  const onSubmitInputField = (action) => {
     if (action === 'species' && specieEditText !== '') {
       setSpecieText(specieEditText);
       updateSpecieName({ inventory_id: state.inventoryID, speciesText: specieEditText });
@@ -102,7 +92,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
         inventory_id: inventory.inventory_id,
         speciesDiameter: Number(specieEditDiameter),
       });
-      console.log('In diameter', inventory);
       setIsOpenModal(false);
     } else if (
       action === 'height' &&
@@ -115,7 +104,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
         inventory_id: inventory.inventory_id,
         speciesHeight: Number(specieEditHeight),
       });
-      console.log('In height', inventory);
       setIsOpenModal(false);
     } else {
       console.log('Something wrong!');
@@ -130,31 +118,15 @@ const SingleTreeOverview = ({ navigation, route }) => {
     setEditEnable('');
   };
 
-  // const onPressNextIcon = () => {
-  //   if (isSpeciesEnable) {
-  //     onSubmitInputFeild('specieText');
-  //     setTimeout(() => {
-  //       setIsSpeciesEnable(false);
-  //       setTimeout(() => {
-  //         specieDiameterRef.current.focus();
-  //       }, 0);
-  //     }, 0);
-  //   } else {
-  //     setIsOpenModal(false);
-  //     // onSubmitInputFeild('specieDiameter');
-  //   }
-  // };
-
   const Country = () => {
     getUserInformation().then((data) => {
-      console.log(data, 'CountryData');
       setCountryCode(data.country);
     });
   };
 
   const Countries = ['US', 'LR', 'MM'];
 
-  const renderinputModal = () => {
+  const renderInputModal = () => {
     return (
       <Modal transparent={true} visible={isOpenModal}>
         <View style={styles.cont}>
@@ -178,7 +150,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     onChangeText={(text) => setSpecieEditText(text.replace(/  +/g, ' '))}
-                    onSubmitEditing={() => onSubmitInputFeild(editEnable)}
+                    onSubmitEditing={() => onSubmitInputField(editEnable)}
                     keyboardType={'email-address'}
                   />
                 ) : editEnable === 'diameter' ? (
@@ -190,7 +162,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputFeild(editEnable)}
+                    onSubmitEditing={() => onSubmitInputField(editEnable)}
                   />
                 ) : (
                   <TextInput
@@ -200,11 +172,11 @@ const SingleTreeOverview = ({ navigation, route }) => {
                     placeholderTextColor={Colors.TEXT_COLOR}
                     keyboardType={'number-pad'}
                     onChangeText={(text) => setSpecieEditHeight(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputFeild('height')}
+                    onSubmitEditing={() => onSubmitInputField('height')}
                   />
                 )}
                 <MCIcon
-                  onPress={() => onSubmitInputFeild(editEnable)}
+                  onPress={() => onSubmitInputField(editEnable)}
                   name={'arrow-right'}
                   size={30}
                   color={Colors.PRIMARY}
@@ -221,11 +193,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
   const onPressEditSpecies = (action) => {
     setEditEnable(action);
     setIsOpenModal(true);
-    // if (action == 'species') {
-    //   setTimeout(() => setIsSpeciesEnable(true), 0);
-    // } else {
-    //   setTimeout(() => setIsSpeciesEnable(false), 0);
-    // }
   };
 
   const renderDateModal = () => {
@@ -235,7 +202,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         plantation_date: `${selectedDate.getTime()}`,
       });
       setIsShowDate(false);
-      setPLantationDate(selectedDate);
+      setPlantationDate(selectedDate);
     };
     const handleConfirm = (data) => onChangeDate(null, data);
     const hideDatePicker = () => setIsShowDate(false);
@@ -273,7 +240,6 @@ const SingleTreeOverview = ({ navigation, route }) => {
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
-    console.log('imageSource =>', imageSource);
     return (
       // <ScrollView>
       <View style={detailContainerStyle}>
@@ -349,8 +315,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
             accessibilityLabel="Register Planting Date"
             testID="register_planting_date">
             <Text style={styles.detailText}>
-              {i18next.t('label.tree_Review_plantation_date_text', {
-                date: moment(plantationDate).format('ll'),
+              {i18next.t('label.inventory_overview_date', {
+                date: plantationDate,
               })}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -493,7 +459,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
         navigation.navigate('TreeInventory');
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
       });
   };
 

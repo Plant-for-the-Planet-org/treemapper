@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  ImageBackground,
-  Modal,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, ImageBackground, Modal, Alert } from 'react-native';
 import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { ProfileModal } from '../';
-import { auth0Login, isLogin, auth0Logout } from '../../actions';
+import ProfileModal from '../ProfileModal';
+// import { auth0Login, isLogin, auth0Logout } from '../../actions';
 import { getInventoryByStatus } from '../../repositories/inventory';
+import { auth0Login, isLogin, auth0Logout } from '../../repositories/user';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -26,6 +19,7 @@ import { LoginDetails } from '../../actions/index';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateCount } from '../../actions/inventory';
 import { LoadingContext } from '../../reducers/loader';
+import { startLoading, stopLoading } from '../../actions/loader';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -33,7 +27,7 @@ const MainScreen = ({ navigation }) => {
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
-  const { dispatch: loadingDispatch } = useContext(LoadingContext);
+  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
@@ -64,10 +58,12 @@ const MainScreen = ({ navigation }) => {
 
   const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible);
 
-  const onPressLogin = () => {
+  const onPressLogin = async () => {
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
+      // await auth0Logout();
+
       startLoading()(loadingDispatch);
       auth0Login(navigation)
         .then((data) => {
@@ -75,6 +71,7 @@ const MainScreen = ({ navigation }) => {
           stopLoading()(loadingDispatch);
         })
         .catch((err) => {
+          console.error('err login', err);
           if (err.error !== 'a0.session.user_cancelled') {
             Alert.alert(
               'Verify your Email',
@@ -142,7 +139,7 @@ const MainScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeAreaViewCont}>
-      {state.isLoading ? (
+      {loadingState.isLoading ? (
         <Loader isLoaderShow={true} />
       ) : (
         <View style={styles.container}>

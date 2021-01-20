@@ -19,16 +19,16 @@ import { Colors, Typography } from '_styles';
 import { Header } from '../Common';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
-import { isLogin } from '../../actions';
+import { isLogin } from '../../repositories/user';
 import { getInventory } from '../../repositories/inventory';
 import { SearchSpecies } from '../../services/Species';
 import { createSpecies } from '../../actions/UploadInventory';
-import { SpecieIdFromServer } from '../../actions/Action';
 import { InventoryContext } from '../../reducers/inventory';
 import Config from 'react-native-config';
-import { isLogin } from '../../Actions';
 import { tree } from '../../assets';
-import { APIConfig } from '../../Actions/Config';
+import { APIConfig } from '../../actions/Config';
+import { setSpecieId } from '../../actions/species';
+import { SpeciesContext } from '../../reducers/species';
 
 const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   const [imagePath, setImagePath] = useState(null);
@@ -38,16 +38,15 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
   const [showAddspeciesModal, setShowAddSpeciesModal] = useState(visible);
   const [inventory, setInventory] = useState(null);
   //const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
-  const { state, dispatch } = useContext(InventoryContext);
   const [isLoading, setIsLoading] = useState(null);
   const [isLoaderShow, setIsLoaderShow] = useState(false);
+  const { state, dispatch } = useContext(InventoryContext);
+  const { dispatch: speciesDispatch } = useContext(SpeciesContext);
 
-  // console.log('visibility:', visible);
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
-      console.log(inventory, 'inventory');
       if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
         setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
       }
@@ -71,10 +70,9 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
       .then((data) => {
         setSearchList(data);
         setIsLoading(false);
-        console.log(data, 'search data');
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
       });
   };
 
@@ -89,17 +87,16 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
         setIsLoaderShow(true);
         let species = [...selectedSpecies];
         for (let specie of species) {
-          console.log(specie, 'specie');
           createSpecies(specie.id, specie.scientificName)
             .then((data) => {
-              dispatch(SpecieIdFromServer.setSpecieId(data));
+              setSpecieId(data)(speciesDispatch);
               // navigation.goBack();
               // setShowAddSpeciesModal(false);
               setIsLoaderShow(false);
               closeAddSpeciesModal();
             })
             .catch((err) => {
-              console.log(err);
+              console.error(err);
               setIsLoaderShow(false);
               Alert.alert(
                 'Error',
@@ -130,7 +127,6 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
         }
       }
     }
-    // console.log(item.name, 'insp');
     return (
       <TouchableOpacity
         style={{
@@ -218,8 +214,6 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
     );
   };
 
-  // console.log('showAddspeciesModal:::', showAddspeciesModal);
-  // console.log('Selected Species', selectedSpecies);
   return (
     <Modal visible={showAddspeciesModal} animationType={'slide'}>
       <View style={{ flex: 1 }}>

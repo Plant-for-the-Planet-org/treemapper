@@ -18,6 +18,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
     <FlatList
       showsVerticalScrollIndicator={false}
       data={inventoryList}
+      keyExtractor={(item, index) => `inventory-${index}`}
       renderItem={({ item }) => {
         let imageURL;
         let isOffSitePoint = false;

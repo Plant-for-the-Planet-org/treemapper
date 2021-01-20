@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { FlatButton } from '../../Common';
+import FlatButton from '../FlatButton';
 
 const AlertModal = ({
   visible,

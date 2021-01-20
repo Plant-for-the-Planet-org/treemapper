@@ -19,14 +19,13 @@ import { LoginDetails } from '../../actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../services/Signup';
 import Snackbar from 'react-native-snackbar';
-import { SignUpLoader } from '../../actions/Action';
 import { Loader } from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { InventoryContext } from '../../reducers/inventory';
-import { stopLoading } from '../../actions/loader';
+import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
 import { LoadingContext } from '../../reducers/loader';
 
 const SignUp = ({ navigation }) => {
@@ -50,18 +49,17 @@ const SignUp = ({ navigation }) => {
   const [nameError, setNameError] = useState(false);
   const [completeCheck, setCompleteCheck] = useState(false);
   const [country, setCountry] = useState('');
-  const { dispatch, state } = useContext(InventoryContext);
   const [modalVisible, setModalVisible] = useState(false);
   const textInput = useRef(null);
   const textInputZipCode = useRef(null);
   const textInputNameOfOrg = useRef(null);
   const textInputAddress = useRef(null);
   const textInputCity = useRef(null);
+  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
   const lang = RNLocalize.getLocales()[0];
-  const { dispatch: loadingDispatch } = useContext(LoadingContext);
   const SelectType = (type) => {
     let name;
     switch (type) {
@@ -219,16 +217,16 @@ const SignUp = ({ navigation }) => {
     }
 
     if (completeCheck) {
-      dispatch(SignUpLoader.setSignUpLoader(true));
+      startSignUpLoading()(loadingDispatch);
       SignupService(userData)
         .then(() => {
-          dispatch(SignUpLoader.setSignUpLoader(false));
+          stopSignUpLoading()(loadingDispatch);
           navigation.navigate('MainScreen');
         })
         .catch((err) => {
           alert(err.response.data.message);
-          console.log(err.response.data.message, 'err');
-          dispatch(SignUpLoader.setSignUpLoader(false));
+          console.error(err.response.data.message, 'err');
+          stopSignUpLoading()(loadingDispatch);
         });
     }
   };
@@ -237,11 +235,9 @@ const SignUp = ({ navigation }) => {
     stopLoading()(loadingDispatch);
     LoginDetails().then((User) => {
       let detail = Object.values(User);
-      console.log(detail);
       let decode = jwtDecode(detail[0].idToken);
       setAuthtAccessToken(detail[0].accessToken);
       setAuthDetails(decode);
-      console.log(decode);
       setEmail(decode.email);
       setCountry(handleFilter(lang.countryCode)[0]);
     });
@@ -261,7 +257,7 @@ const SignUp = ({ navigation }) => {
   };
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {state.isSignUpLoader ? (
+      {loadingState.isSignUpLoading ? (
         <Loader isLoaderShow={true} />
       ) : (
         <View style={styles.container}>

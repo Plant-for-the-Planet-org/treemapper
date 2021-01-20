@@ -4,14 +4,14 @@ import AsyncStorage from '@react-native-community/async-storage';
 const getSessionData = async () => {
   try {
     const sessionValue = await AsyncStorage.getItem('session-id');
-    if(sessionValue === null) {
+    if (sessionValue === null) {
       let sessionData = uuidv4();
       await AsyncStorage.setItem('session-id', sessionData);
       return sessionData;
     }
     return sessionValue;
-  } catch(e) {
-    console.log(e);
+  } catch (e) {
+    console.error(e);
   }
 };
 

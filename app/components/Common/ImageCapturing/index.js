@@ -8,7 +8,9 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { Header, PrimaryButton, Alrighty } from '../';
+import Header from '../Header';
+import PrimaryButton from '../PrimaryButton';
+import Alrighty from '../Alrighty';
 import { Colors, Typography } from '_styles';
 import {
   getInventory,
@@ -134,7 +136,6 @@ const ImageCapturing = ({
   };
 
   const onPressContinue = async () => {
-    console.log('OnPress Clicked');
     if (imagePath) {
       try {
         let data = await copyImageAndGetData();
@@ -150,9 +151,7 @@ const ImageCapturing = ({
             }
           });
         } else {
-          console.log('Inside Else');
           insertImageSingleRegisterTree(data).then(() => {
-            console.log('Image Inserted');
             navigation.navigate('SelectSpecies', {
               species: inventory.species,
               inventory: inventory,

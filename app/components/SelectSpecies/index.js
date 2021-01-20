@@ -1,36 +1,35 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
 import {
-  View,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
   StyleSheet,
   Text,
-  Image,
-  FlatList,
-  Modal,
-  TouchableOpacity,
-  KeyboardAvoidingView,
   TextInput,
-  Platform,
-  Alert,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
-import { placeholder_image, checkCircleFill, checkCircle, tree } from '../../assets';
+import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import i18next from 'i18next';
-import { getInventory, updateSpecieAndSpecieDiameter } from '../../repositories/inventory';
-import { getUserInformation } from '../../Actions';
-import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
-import Camera from '../Common/Camera';
-import { UpdateSpecies, SpeciesListData, UpdateSpeciesImage } from '../../actions/UploadInventory';
-import Config from 'react-native-config';
+import { Colors, Typography } from '_styles';
 import { APIConfig } from '../../actions/Config';
-import { SpeciesListAction } from '../../actions/Action';
-import { useIsFocused } from '@react-navigation/native';
+import { SpeciesListData, UpdateSpecies, UpdateSpeciesImage } from '../../actions/UploadInventory';
+import { getUserInformation } from '../../actions/User';
+import { checkCircle, checkCircleFill, placeholder_image, tree } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import { SpeciesContext } from '../../reducers/species';
+import { getInventory, updateSpecieAndSpecieDiameter } from '../../repositories/inventory';
 import AddSpeciesModal from '../AddSpecies';
+import { Header, PrimaryButton } from '../Common';
+import Camera from '../Common/Camera';
+import { setSpeciesList as setSpeciesListAction } from '../../actions/species';
 
 const SelectSpecies = ({
   visible,
@@ -55,16 +54,17 @@ const SelectSpecies = ({
   const [showSpecies, setShowSpecies] = useState(visible);
   const [addSpecies, setAddSpecies] = useState(false);
   const [inventory, setInventory] = useState(null);
-  const { state, dispatch } = useContext(InventoryContext);
   const [isCamera, setIsCamera] = useState(false);
   const [isShowAddNameModal, setIsShowAddNameModal] = useState(false);
   const [imageIndex, setImageIndex] = useState(null);
   const isFocused = useIsFocused();
   const [numberTrees, setNumberTrees] = useState(null);
   const [countryCode, setCountryCode] = useState('');
+  const { state } = useContext(InventoryContext);
+  const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
-    setSpeciesList(state.species);
+    setSpeciesList(speciesState.species);
     getAllUserSpecies();
     if (route !== undefined) {
       var { species, inventory } = route.params;
@@ -92,15 +92,10 @@ const SelectSpecies = ({
   }, [navigation, isFocused, addSpecies]);
 
   useEffect(() => {
-    console.log('visible =>>>>>>', visible);
-    console.log('route.params.visible =>>>>>>', route.params.visible);
-    console.log('showSpecies =>>>>>>', showSpecies);
     if (route && route.params && route.params.visible) {
       setShowSpecies(route.params.visible);
-      console.log('route params', route.params.visible);
     } else {
       setShowSpecies(visible);
-      console.log('Visible', visible);
     }
   }, [visible, route, navigation]);
 
@@ -110,18 +105,17 @@ const SelectSpecies = ({
   }, []);
   useFocusEffect(
     React.useCallback(() => {
-      setSpeciesList(state.species);
+      setSpeciesList(speciesState.species);
       Inventory();
-    }, [state]),
+    }, [speciesState]),
   );
   const getAllUserSpecies = () => {
     SpeciesListData()
       .then((data) => {
-        console.log(data);
-        dispatch(SpeciesListAction.setSpeciesList(data));
+        setSpeciesListAction(data)(speciesDispatch);
       })
       .catch((err) => {
-        console.log(err, 'hererer');
+        console.error(err, 'error');
       });
   };
 
@@ -129,7 +123,6 @@ const SelectSpecies = ({
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
-      console.log(inventory);
       // setTreeType(inventory.locate_tree);
       setNumberTrees(inventory.tree_type);
     });
@@ -137,7 +130,6 @@ const SelectSpecies = ({
 
   const Country = () => {
     getUserInformation().then((data) => {
-      console.log(data, 'CountryData');
       setCountryCode(data.country);
     });
   };
@@ -239,11 +231,11 @@ const SelectSpecies = ({
         }
         <View style={{ flex: 1, paddingLeft: 15, alignSelf: 'flex-start' }}>
           {item.aliases ? (
-            <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
+            <Text numberOfLines={2} style={styles.speciesLocalName}>
               {item.aliases}
             </Text>
           ) : (
-            <Text numberOfLines={2} style={styles.speciesLocalName} onPress={() => addName(index)}>
+            <Text numberOfLines={2} style={styles.speciesLocalName}>
               Add Name
             </Text>
           )}
@@ -338,7 +330,6 @@ const SelectSpecies = ({
   };
 
   const onPressTreeCountNextBtn = () => {
-    // if (isNormalInteger(treeCount)){
     let speciesListClone = speciesList;
     let specie = speciesListClone[activeSpeice];
     specie.treeCount = Number(treeCount) ? treeCount : undefined;
@@ -346,14 +337,6 @@ const SelectSpecies = ({
     setIsShowTreeCountModal(false);
     setTreeCount(0);
     setSpeciesList([...speciesList]);
-    // } else {
-    //   Alert.alert(
-    //     "Error",
-    //     "Enter valid input",
-    //     [{ text: "OK", onPress: () => console.log("OK Pressed") }],
-    //     {cancelable: false}
-    //   );
-    // }
   };
 
   const renderTreeCountModal = () => {

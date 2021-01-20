@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text } from 'react-native';
 import { InventoryContextProvider } from './inventory';
 import { LoadingContextProvider } from './loader';
+import { SpeciesContextProvider } from './species';
 
 export default function Provider({ children }) {
   return (
     <InventoryContextProvider>
-      <LoadingContextProvider>{children}</LoadingContextProvider>
+      <LoadingContextProvider>
+        <SpeciesContextProvider>{children}</SpeciesContextProvider>
+      </LoadingContextProvider>
     </InventoryContextProvider>
   );
 }

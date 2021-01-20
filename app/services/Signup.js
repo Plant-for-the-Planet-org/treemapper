@@ -11,11 +11,10 @@ export const SignupService = (payload) => {
         const { status, data } = res;
         if (status === 200) {
           resolve(data);
-          console.log(data);
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         reject(err);
       });
   });

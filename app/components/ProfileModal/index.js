@@ -8,9 +8,10 @@ import i18next from 'i18next';
 import { LoginDetails } from '../../actions/index';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../services/Species';
-import { SpeciesListAction } from '../../actions/Action';
 import ProfileListItem from './ProfileListItem';
 import { InventoryContext } from '../../reducers/inventory';
+import { setSpeciesList } from '../../actions/species';
+import { SpeciesContext } from '../../reducers/species';
 
 const ProfileModal = ({
   isUserLogin,
@@ -20,7 +21,7 @@ const ProfileModal = ({
 }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
-  const { dispatch } = useContext(InventoryContext);
+  const { dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     if (isUserLogin) {
@@ -28,7 +29,7 @@ const ProfileModal = ({
         .then((userInfo) => {
           setUserInfo(userInfo);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.error(err));
     }
     userImage();
   }, [isUserLogin]);
@@ -39,7 +40,7 @@ const ProfileModal = ({
       let decode = jwtDecode(detail[0].idToken);
       setUserPhoto(decode.picture);
       SpeciesList(detail[0].accessToken).then((data) => {
-        dispatch(SpeciesListAction.setSpeciesList(data));
+        setSpeciesList(data)(speciesDispatch);
       });
     });
   };

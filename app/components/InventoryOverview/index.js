@@ -96,6 +96,7 @@ const InventoryOverview = ({ navigation }) => {
                     />
                   );
                 }}
+                keyExtractor={(item, index) => `location-${index}`}
               />
             </View>
           );
@@ -320,7 +321,6 @@ const InventoryOverview = ({ navigation }) => {
   const renderSelectSpeciesModal = () => {
     const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
     if (inventory) {
-      console.log(inventory);
       return (
         <SelectSpecies
           speciess={inventory.species}

@@ -10,12 +10,9 @@ import {
   Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Typography } from '_styles';
-import { TextInput } from 'react-native-gesture-handler';
+import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';
 import Config from 'react-native-config';
-import Header from '../Header';
-import { Colors } from '_styles';
 
 export default function index({ visible, openModal, userCountry }) {
   const [countryData, setCountryData] = useState(null);
@@ -80,13 +77,7 @@ export default function index({ visible, openModal, userCountry }) {
   };
   return (
     <View style={styles.centeredView}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={visible}
-        onRequestClose={() => {
-          console.log('close');
-        }}>
+      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={() => {}}>
         <View style={styles.centeredView}>
           <View style={styles.container}>
             <TouchableOpacity style={{ paddingTop: Platform.OS === 'ios' ? 14 : null }}>

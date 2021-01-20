@@ -1,8 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { Label } from '../';
-import { Accordian } from '../';
+import Label from '../Label';
+import Accordian from '../Accordian';
 import { addSpeciesAction } from '../../../repositories/inventory';
 import { InventoryContext } from '../../../reducers/inventory';
 

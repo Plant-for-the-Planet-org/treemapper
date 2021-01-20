@@ -27,27 +27,6 @@ export const getAreaName = ({ coords }) => {
   });
 };
 
-export const updateSpecieName = ({ inventory_id, speciesText }) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          console.log('inventory id', inventory_id);
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.specei_name = speciesText;
-          console.log(inventory, 'actions');
-        });
-        resolve();
-      })
-      .catch((err) => {
-        reject(err);
-        bugsnag.notify(err);
-      });
-  });
-};
-
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
@@ -124,7 +103,6 @@ export const initiateInventory = ({ treeType }) => {
       .then((realm) => {
         realm.write(() => {
           let inventoryID = `${new Date().getTime()}`;
-          console.log('inventory id', inventoryID);
           const inventoryData = {
             inventory_id: inventoryID,
             tree_type: treeType,
@@ -224,10 +202,8 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
     })
       .then((realm) => {
         realm.write(() => {
-          console.log('inventory id', inventory_id);
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
-          console.log(inventory, 'actions');
         });
         resolve();
       })
@@ -235,22 +211,6 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
         reject(err);
         bugsnag.notify(err);
       });
-  });
-};
-
-export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = speciesDiameter;
-        });
-        resolve();
-      })
-      .catch(bugsnag.notify);
   });
 };
 

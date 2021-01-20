@@ -53,7 +53,7 @@ const Accordian = ({
     }
   };
 
-  const renderinputModal = () => {
+  const renderInputModal = () => {
     return (
       <Modal transparent={true} visible={isOpen}>
         <View style={styles.cont}>
@@ -104,7 +104,7 @@ const Accordian = ({
 
   return (
     <View style={{ marginVertical: 10 }}>
-      {renderinputModal()}
+      {renderInputModal()}
       <View style={styles.container}>
         <View style={styles.mainContainer}>
           <Text numberOfLines={1} style={styles.label}>

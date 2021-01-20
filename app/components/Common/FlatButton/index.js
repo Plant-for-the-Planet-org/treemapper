@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 const FlatButton = ({ text, style, primary, onPress }) => {

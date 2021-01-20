@@ -1,7 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { tree } from '_assets';
 
 const PrimaryButton = ({
   btnText,

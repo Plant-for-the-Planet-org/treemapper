@@ -45,6 +45,7 @@ export const auth0Login = (navigation) => {
         });
       })
       .catch((error) => {
+        console.error('auth0 error', error);
         reject(error);
       });
   });
@@ -79,7 +80,6 @@ export const isLogin = () => {
     }).then((realm) => {
       const User = realm.objects('User');
       if (User[0]) {
-        // console.log(User, 'login');
         resolve(true);
       } else {
         resolve(false);
@@ -241,7 +241,6 @@ export const insertImageForUserSpecies = ({ id, imagePath }) => {
   });
 };
 export const updateNameForUserSpecies = ({ id, aliases }) => {
-  console.log(aliases);
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],

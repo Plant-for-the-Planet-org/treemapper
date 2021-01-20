@@ -281,7 +281,7 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
-const createSpecies = ( scientificSpecies, aliases) => {
+const createSpecies = (scientificSpecies, aliases) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -289,36 +289,35 @@ const createSpecies = ( scientificSpecies, aliases) => {
       realm.write(async () => {
         const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = createSpeciesUser.accessToken;
-        console.log(userToken, 'token');
         // await RNFS.readFile(image, 'base64').then(async (base64) => {
-          let body = {
-            // imageFile: `data:image/jpeg;base64,${base64}`,
-            scientificSpecies,
-            aliases,
-          };
-          await axios({
-            method: 'POST',
-            url: `${protocol}://${url}/treemapper/species`,
-            data: body,
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `OAuth ${userToken}`,
-            },
-          })
-            .then((res) => {
-              const { status, data } = res;
+        let body = {
+          // imageFile: `data:image/jpeg;base64,${base64}`,
+          scientificSpecies,
+          aliases,
+        };
+        await axios({
+          method: 'POST',
+          url: `${protocol}://${url}/treemapper/species`,
+          data: body,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `OAuth ${userToken}`,
+          },
+        })
+          .then((res) => {
+            const { status, data } = res;
 
-              if (status === 200) {
-                resolve(data);
-              }
-            })
-            .catch((err) => {
-              console.error(err, 'create error');
-              reject(err);
-            });
-        });
+            if (status === 200) {
+              resolve(data);
+            }
+          })
+          .catch((err) => {
+            console.error(err, 'create error');
+            reject(err);
+          });
       });
     });
+  });
   // });
 };
 

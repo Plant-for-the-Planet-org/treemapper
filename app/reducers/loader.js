@@ -1,9 +1,10 @@
 import React, { createContext, useReducer } from 'react';
-import { UPDATE_LOADING } from '../actions/Types';
+import { SET_LOADING, SET_SIGNUP_LOADING } from '../actions/Types';
 
 // stores the initial properties of the loading state
 const initialState = {
   isLoading: false,
+  isSignUpLoading: false,
 };
 
 // Loading reducer function which takes the state and action param
@@ -11,10 +12,16 @@ const loadingReducer = (state = initialState, action) => {
   // used to switch between the action types
   switch (action.type) {
     // updates the isLoading state
-    case UPDATE_LOADING:
+    case SET_LOADING:
       return {
         ...state,
         isLoading: action.payload,
+      };
+    // updates the isSignUpLoading state
+    case SET_SIGNUP_LOADING:
+      return {
+        ...state,
+        isSignUpLoading: action.payload,
       };
     // changes the pending
     default:
