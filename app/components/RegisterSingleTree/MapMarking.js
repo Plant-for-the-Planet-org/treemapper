@@ -52,6 +52,7 @@ class MapMarking extends React.Component {
     loader: false,
     markedCoords: null,
     locateTree: 'on-site',
+    inventory: null
   };
 
   async UNSAFE_componentWillMount() {
@@ -64,6 +65,8 @@ class MapMarking extends React.Component {
   componentDidMount() {
     const { inventoryID } = this.props;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
+      inventory.species = Object.values(inventory.species);
+      this.setState({inventory: inventory});
       if (Object.keys(inventory.polygons).length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
         this.setState({ markedCoords: [longitude, latitude] });
@@ -257,7 +260,7 @@ class MapMarking extends React.Component {
 
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
-      navigation.navigate('SingleTreeOverview');
+      navigation.navigate('SelectSpecies', {species: this.state.inventory.species, inventory: this.state.inventory, visible: true});
       onPressClose();
     };
 

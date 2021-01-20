@@ -134,6 +134,7 @@ const ImageCapturing = ({
   };
 
   const onPressContinue = async () => {
+    console.log('OnPress Clicked');
     if (imagePath) {
       try {
         let data = await copyImageAndGetData();
@@ -149,7 +150,9 @@ const ImageCapturing = ({
             }
           });
         } else {
+          console.log('Inside Else');
           insertImageSingleRegisterTree(data).then(() => {
+            console.log('Image Inserted');
             navigation.navigate('SelectSpecies', {
               species: inventory.species,
               inventory: inventory,

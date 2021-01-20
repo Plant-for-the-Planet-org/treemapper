@@ -52,7 +52,8 @@ const Inventory = {
     species: 'Species[]',
     polygons: 'Polygons[]',
     specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    species_diameter: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    species_diameter: 'float?',
+    species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     response: 'string?',
   },
 };
@@ -67,6 +68,7 @@ const User = {
     email: 'string?',
     firstname: 'string?',
     lastname: 'string?',
+    country: 'string?'
   },
 };
 

@@ -281,7 +281,7 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
-const createSpecies = (image, scientificSpecies, aliases) => {
+const createSpecies = ( scientificSpecies, aliases) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -289,10 +289,10 @@ const createSpecies = (image, scientificSpecies, aliases) => {
       realm.write(async () => {
         const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = createSpeciesUser.accessToken;
-
-        await RNFS.readFile(image, 'base64').then(async (base64) => {
+        console.log(userToken, 'token');
+        // await RNFS.readFile(image, 'base64').then(async (base64) => {
           let body = {
-            imageFile: `data:image/jpeg;base64,${base64}`,
+            // imageFile: `data:image/jpeg;base64,${base64}`,
             scientificSpecies,
             aliases,
           };
@@ -319,8 +319,9 @@ const createSpecies = (image, scientificSpecies, aliases) => {
         });
       });
     });
-  });
+  // });
 };
+
 const UpdateSpecies = (aliases, speciesId) => {
   return new Promise((resolve, reject) => {
     Realm.open({
