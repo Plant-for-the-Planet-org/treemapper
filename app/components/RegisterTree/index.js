@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-// import { initiateInventory } from '../../actions';
 import { initiateInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { Colors } from '_styles';

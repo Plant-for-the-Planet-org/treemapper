@@ -13,8 +13,13 @@ import {
 } from 'react-native';
 import { Header, LargeButton, PrimaryButton, Label, InventoryCard } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { updateLastScreen, updatePlantingDate, addSpeciesAction } from '../../actions';
-import { getInventory, changeInventoryStatus } from '../../repositories/inventory';
+import {
+  getInventory,
+  changeInventoryStatus,
+  updatePlantingDate,
+  updateLastScreen,
+  addSpeciesAction,
+} from '../../repositories/inventory';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';

@@ -39,32 +39,35 @@ const inventoryReducer = (state = initialState, action) => {
     // if type is custom then uses the count passed in payload and replace the value
     // if decrement is passed then decrease the current value by 1 and vice versa if type is increment
     case UPDATE_PENDING_COUNT:
+      let count = state.pendingCount;
+      if (action.payload === 'increment') {
+        count = state.pendingCount + 1;
+      } else if (action.payload === 'decrement') {
+        count = state.pendingCount === 0 ? state.pendingCount : state.pendingCount - 1;
+      } else {
+        count = action.payload;
+      }
       return {
         ...state,
-        pendingCount:
-          action.payload.type === 'custom'
-            ? action.payload.count
-            : action.payload.type === 'decrement'
-            ? state.pendingCount === 0
-              ? state.pendingCount
-              : state.pendingCount - 1
-            : state.pendingCount + 1,
+        pendingCount: count,
       };
     // changes the upload count depending of the type of value passed
     // if type is custom then uses the count passed in payload and replace the value
     // if decrement is passed then decrease the current value by 1 and vice versa if type is increment
     case UPDATE_UPLOAD_COUNT:
+      count = state.uploadCount;
+      if (action.payload === 'increment') {
+        count = state.uploadCount + 1;
+      } else if (action.payload === 'decrement') {
+        count = state.uploadCount === 0 ? state.uploadCount : state.uploadCount - 1;
+      } else {
+        count = action.payload;
+      }
       return {
         ...state,
-        uploadCount:
-          action.payload.type === 'custom'
-            ? action.payload.count
-            : action.payload.type === 'decrement'
-            ? state.uploadCount === 0
-              ? state.uploadCount
-              : state.uploadCount - 1
-            : state.uploadCount + 1,
+        uploadCount: count,
       };
+
     // changes the value of isUploading by replacing with payload data
     case IS_UPLOADING:
       return {

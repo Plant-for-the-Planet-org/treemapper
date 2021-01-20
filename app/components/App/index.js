@@ -1,7 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { InventoryContextProvider } from '../../reducers/inventory';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import {
@@ -25,6 +24,7 @@ import {
 } from '../';
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import Provider from '../../reducers/provider';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -61,7 +61,7 @@ const MyTransition = {
 
 const App = () => {
   return (
-    <InventoryContextProvider>
+    <Provider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="MainScreen" headerMode={'none'}>
           <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
@@ -103,7 +103,7 @@ const App = () => {
           <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>
-    </InventoryContextProvider>
+    </Provider>
   );
 };
 

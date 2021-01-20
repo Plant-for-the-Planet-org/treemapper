@@ -9,10 +9,8 @@ import {
 } from 'react-native';
 import { Header, InventoryList, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { clearAllUploadedInventory } from '../../actions';
-import { getInventoryByStatus } from '../../repositories/inventory';
+import { getInventoryByStatus, clearAllUploadedInventory } from '../../repositories/inventory';
 import { Colors, Typography } from '_styles';
-import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';

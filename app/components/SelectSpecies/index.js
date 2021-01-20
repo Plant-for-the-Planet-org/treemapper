@@ -18,8 +18,7 @@ import { placeholder_image, checkCircleFill, checkCircle, add_image } from '../.
 import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
-import { UpdateSpecieAndSpecieDiameter } from '../../actions';
-import { getInventory } from '../../repositories/inventory';
+import { getInventory, updateSpecieAndSpecieDiameter } from '../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import Camera from '../Common/Camera';
@@ -407,7 +406,7 @@ const SelectSpecies = ({
   };
 
   const onPressSaveAndContinue = (data) => {
-    UpdateSpecieAndSpecieDiameter({
+    updateSpecieAndSpecieDiameter({
       inventory_id: inventory.inventory_id,
       specie_name: data.aliases,
       diameter: data.diameter,

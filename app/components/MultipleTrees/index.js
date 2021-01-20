@@ -4,8 +4,12 @@ import { Header, PrimaryButton, Input, Accordian } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addSpeciesAction, updateLastScreen, updatePlantingDate } from '../../actions';
-import { getInventory } from '../../repositories/inventory';
+import {
+  getInventory,
+  updatePlantingDate,
+  updateLastScreen,
+  addSpeciesAction,
+} from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 
 const MultipleTrees = ({ navigation, route }) => {

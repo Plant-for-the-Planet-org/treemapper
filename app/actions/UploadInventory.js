@@ -17,9 +17,9 @@ import {
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
-import { LocalInventoryActions } from './Action';
 import getSessionData from '../utils/sessionId';
 import i18next from 'i18next';
+import { updateCount, updateIsUploading } from './inventory';
 
 const { protocol, url } = APIConfig;
 
@@ -43,13 +43,7 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
           dispatch,
         )
           .then(async () => {
-            const result = await uploadImage(
-              oneInventory,
-              response,
-              userToken,
-              sessionData,
-              dispatch,
-            );
+            const result = await uploadImage(oneInventory, response, userToken, sessionData);
             if (result.allUploadCompleted) {
               changeInventoryStatus(
                 {
@@ -101,8 +95,8 @@ const uploadInventory = (dispatch) => {
                 let coordinates = [];
                 let species = [];
                 inventoryData = Object.values(inventoryData);
-                dispatch(LocalInventoryActions.updateUploadCount('custom', inventoryData.length));
-                dispatch(LocalInventoryActions.updateIsUploading(true));
+                updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
+                updateIsUploading(true)(dispatch);
                 for (let i = 0; i < inventoryData.length; i++) {
                   const oneInventory = inventoryData[i];
                   let polygons = Object.values(oneInventory.polygons);
@@ -152,12 +146,12 @@ const uploadInventory = (dispatch) => {
                             dispatch,
                           );
                           if (inventoryData.length - 1 === i) {
-                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            updateIsUploading(false)(dispatch);
                             resolve();
                           }
                         } catch (err) {
                           if (inventoryData.length - 1 === i) {
-                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            updateIsUploading(false)(dispatch);
                             reject();
                           }
                           console.error(err);
@@ -184,13 +178,13 @@ const uploadInventory = (dispatch) => {
                             )
                               .then(() => {
                                 if (inventoryData.length - 1 === i) {
-                                  dispatch(LocalInventoryActions.updateIsUploading(false));
+                                  updateIsUploading(false)(dispatch);
                                   resolve();
                                 }
                               })
                               .catch((err) => {
                                 if (inventoryData.length - 1 === i) {
-                                  dispatch(LocalInventoryActions.updateIsUploading(false));
+                                  updateIsUploading(false)(dispatch);
                                   reject(err);
                                 }
                                 console.error(
@@ -201,13 +195,13 @@ const uploadInventory = (dispatch) => {
                               });
                           } else {
                             if (inventoryData.length - 1 === i) {
-                              dispatch(LocalInventoryActions.updateIsUploading(false));
+                              updateIsUploading(false)(dispatch);
                               reject(err);
                             }
                           }
                         } catch (err) {
                           if (inventoryData.length - 1 === i) {
-                            dispatch(LocalInventoryActions.updateIsUploading(false));
+                            updateIsUploading(false)(dispatch);
                             reject(err);
                           }
                           console.error(
@@ -220,7 +214,7 @@ const uploadInventory = (dispatch) => {
                     })
                     .catch((err) => {
                       if (inventoryData.length - 1 === i) {
-                        dispatch(LocalInventoryActions.updateIsUploading(false));
+                        updateIsUploading(false)(dispatch);
                         reject(err);
                       }
                       console.error(
@@ -233,7 +227,7 @@ const uploadInventory = (dispatch) => {
             );
           } catch (err) {
             reject(err);
-            alert('Unable to retrive location');
+            alert('Unable to retrieve location');
           }
         });
       })
@@ -241,7 +235,7 @@ const uploadInventory = (dispatch) => {
   });
 };
 
-const uploadImage = async (oneInventory, response, userToken, sessionId, dispatch) => {
+const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   let locationId = response.id;
   let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
   let responseCoords = response.coordinates;

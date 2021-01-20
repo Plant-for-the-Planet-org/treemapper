@@ -11,14 +11,14 @@ import {
 import { Header, PrimaryButton, Alrighty } from '../';
 import { Colors, Typography } from '_styles';
 import {
+  getInventory,
+  removeLastCoord,
+  getCoordByIndex,
+  insertImageSingleRegisterTree,
   insertImageAtIndexCoordinate,
   polygonUpdate,
-  getCoordByIndex,
-  removeLastCoord,
   completePolygon,
-  insertImageSingleRegisterTree,
-} from '../../../actions';
-import { getInventory } from '../../../repositories/inventory';
+} from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RNCamera } from 'react-native-camera';

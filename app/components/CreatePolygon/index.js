@@ -3,8 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
-import { updateLastScreen } from '../../actions/';
-import { getInventory } from '../../repositories/inventory';
+import { getInventory, updateLastScreen } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 
 const CreatePolygon = ({ route }) => {

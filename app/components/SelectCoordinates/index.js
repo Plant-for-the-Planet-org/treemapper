@@ -13,7 +13,7 @@ import { Header, PrimaryButton } from '../Common';
 import { Colors } from '_styles';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { active_marker, marker_png } from '../../assets/index';
-import { addCoordinateSingleRegisterTree } from '../../actions';
+import { addCoordinateSingleRegisterTree } from '../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';

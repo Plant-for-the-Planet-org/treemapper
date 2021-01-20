@@ -19,19 +19,14 @@ import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
-  updateLastScreen,
-  updatePlantingDate,
-  // initiateInventory,
-  UpdateSpecieAndSpecieDiameter,
-  DeleteInventory,
-  // statusToComplete
-} from '../../actions';
-import {
   updateSpecieName,
   updateSpecieDiameter,
   initiateInventory,
   getInventory,
   changeInventoryStatus,
+  updatePlantingDate,
+  deleteInventory,
+  updateLastScreen,
 } from '../../repositories/inventory';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
@@ -387,8 +382,8 @@ const SingleTreeOverview = ({ navigation, route }) => {
     navigation.goBack();
   };
 
-  const deleteInventory = () => {
-    DeleteInventory(
+  const handleDeleteInventory = () => {
+    deleteInventory(
       { inventory_id: inventory.inventory_id },
       inventory.status === 'pending' ? dispatch : null,
     )
@@ -414,7 +409,7 @@ const SingleTreeOverview = ({ navigation, route }) => {
               onBackPress={onBackPressOnSite}
               headingText={i18next.t('label.tree_review_header')}
             />
-            <TouchableOpacity style={{ paddingTop: 15 }} onPress={deleteInventory}>
+            <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
               <Text
                 style={{
                   fontFamily: Typography.FONT_FAMILY_REGULAR,

@@ -3,11 +3,11 @@ import { View, StyleSheet, BackHandler } from 'react-native';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from '../Common/ImageCapturing';
-import { updateLastScreen } from '../../actions';
 import { InventoryContext } from '../../reducers/inventory';
+import { updateLastScreen } from '../../repositories/inventory';
 
 const RegisterSingleTree = ({ navigation, route }) => {
-  const { state: inventoryState, dispatch: inventoryDispatch } = useContext(InventoryContext);
+  const { state: inventoryState } = useContext(InventoryContext);
 
   const [screenState, setScreenState] = useState('MapMarking');
   useEffect(() => {
@@ -19,6 +19,7 @@ const RegisterSingleTree = ({ navigation, route }) => {
       let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
       updateLastScreen(data);
     });
+    return () => BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
   }, []);
 
   const hardBackHandler = () => {

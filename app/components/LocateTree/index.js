@@ -4,7 +4,7 @@ import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { cloud_upload_gray } from '../../assets';
 import { Colors, Typography } from '_styles';
-import { addLocateTree, updateLastScreen } from '../../actions';
+import { updateLastScreen, addLocateTree } from '../../repositories/inventory';
 import JailMonkey from 'jail-monkey';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
@@ -34,18 +34,18 @@ const LocateTree = ({ navigation }) => {
       data.locate_tree = 'off-site';
       addLocateTree(data).then(() => {
         navigation.navigate('SelectCoordinates');
-        setIsAlrightyModalShow(false);
+        // setIsAlrightyModalShow(false);
       });
       return;
     }
     addLocateTree(data).then(() => {
       navigation.navigate('CreatePolygon');
-      setIsAlrightyModalShow(false);
+      // setIsAlrightyModalShow(false);
     });
   };
 
   const onPressClose = () => {
-    setIsAlrightyModalShow(false);
+    // setIsAlrightyModalShow(false);
   };
 
   const onPressSelectCoordinates = async () => {

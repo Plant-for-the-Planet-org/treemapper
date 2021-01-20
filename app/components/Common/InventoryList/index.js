@@ -3,16 +3,15 @@ import i18next from 'i18next';
 import { TouchableOpacity, FlatList } from 'react-native';
 import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
-import { LocalInventoryActions } from '../../../Actions/Action';
-import { store } from '../../../Actions/store';
-
+import { InventoryContext } from '../../../reducers/inventory';
+import { setInventoryId } from '../../../actions/inventory';
 export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const navigation = useNavigation();
 
-  const { dispatch } = useContext(store);
+  const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
-    dispatch(LocalInventoryActions.setInventoryId(item.inventory_id));
+    setInventoryId(item.inventory_id)(dispatch);
     navigation.navigate(item.last_screen);
   };
   return (

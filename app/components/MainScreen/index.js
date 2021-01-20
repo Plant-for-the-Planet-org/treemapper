@@ -20,11 +20,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
-import { LoaderActions, LocalInventoryActions } from '../../actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
 import jwtDecode from 'jwt-decode';
 import { LoginDetails } from '../../actions/index';
 import { InventoryContext } from '../../reducers/inventory';
+import { updateCount } from '../../actions/inventory';
+import { LoadingContext } from '../../reducers/loader';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -32,6 +33,7 @@ const MainScreen = ({ navigation }) => {
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
+  const { dispatch: loadingDispatch } = useContext(LoadingContext);
   const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ const MainScreen = ({ navigation }) => {
           count++;
         }
       }
-      dispatch(LocalInventoryActions.updatePendingCount('custom', count));
+      updateCount({ type: 'pending', count })(dispatch);
       setNumberOfInventory(Object.values(data).length);
     });
   }, [navigation]);
@@ -66,11 +68,11 @@ const MainScreen = ({ navigation }) => {
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
-      dispatch(LoaderActions.setLoader(true));
+      startLoading()(loadingDispatch);
       auth0Login(navigation)
         .then((data) => {
           setIsUserLogin(data);
-          dispatch(LoaderActions.setLoader(false));
+          stopLoading()(loadingDispatch);
         })
         .catch((err) => {
           if (err.error !== 'a0.session.user_cancelled') {
@@ -81,7 +83,7 @@ const MainScreen = ({ navigation }) => {
               { cancelable: false },
             );
           }
-          dispatch(LoaderActions.setLoader(false));
+          stopLoading()(loadingDispatch);
         });
     }
   };

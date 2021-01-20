@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { Colors, Typography } from '_styles';
 import { Label } from '../';
 import { Accordian } from '../';
-import { addSpeciesAction } from '../../../actions';
+import { addSpeciesAction } from '../../../repositories/inventory';
 import { InventoryContext } from '../../../reducers/inventory';
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {

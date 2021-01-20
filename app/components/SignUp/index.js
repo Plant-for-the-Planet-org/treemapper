@@ -19,13 +19,15 @@ import { LoginDetails } from '../../actions';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../services/Signup';
 import Snackbar from 'react-native-snackbar';
-import { LoaderActions, SignUpLoader } from '../../actions/Action';
+import { SignUpLoader } from '../../actions/Action';
 import { Loader } from '../Common';
 import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { InventoryContext } from '../../reducers/inventory';
+import { stopLoading } from '../../actions/loader';
+import { LoadingContext } from '../../reducers/loader';
 
 const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');
@@ -59,6 +61,7 @@ const SignUp = ({ navigation }) => {
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
   const lang = RNLocalize.getLocales()[0];
+  const { dispatch: loadingDispatch } = useContext(LoadingContext);
   const SelectType = (type) => {
     let name;
     switch (type) {
@@ -80,6 +83,7 @@ const SignUp = ({ navigation }) => {
     }
     return name;
   };
+
   const checkValidation = (name) => {
     if (name === 'individual') {
       if (lastname && firstname && country) {
@@ -230,7 +234,7 @@ const SignUp = ({ navigation }) => {
   };
 
   useEffect(() => {
-    dispatch(LoaderActions.setLoader(false));
+    stopLoading()(loadingDispatch);
     LoginDetails().then((User) => {
       let detail = Object.values(User);
       console.log(detail);

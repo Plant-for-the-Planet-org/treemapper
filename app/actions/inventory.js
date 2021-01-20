@@ -1,5 +1,11 @@
 import { APIConfig } from './Config';
-import { INITIATE_INVENTORY_STATE, SET_INVENTORY_ID } from './Types';
+import {
+  INITIATE_INVENTORY_STATE,
+  SET_INVENTORY_ID,
+  UPDATE_PENDING_COUNT,
+  UPDATE_UPLOAD_COUNT,
+  IS_UPLOADING,
+} from './Types';
 
 const { protocol, url } = APIConfig;
 
@@ -22,13 +28,31 @@ export const getUserProfile = (data) => async (dispatch) => {
   }
 };
 
+export const setInventoryId = (payload) => (dispatch) => {
+  dispatch({
+    type: SET_INVENTORY_ID,
+    payload: payload,
+  });
+};
+
 export const initiateInventoryState = (inventoryData) => (dispatch) => {
   dispatch({
     type: INITIATE_INVENTORY_STATE,
     payload: inventoryData,
   });
+  setInventoryId(inventoryData.inventory_id)(dispatch);
+};
+
+export const updateCount = (data) => (dispatch) => {
   dispatch({
-    type: SET_INVENTORY_ID,
-    payload: inventoryData.inventory_id,
+    type: data.type === 'pending' ? UPDATE_PENDING_COUNT : UPDATE_UPLOAD_COUNT,
+    payload: data.count,
+  });
+};
+
+export const updateIsUploading = (isUploading) => (dispatch) => {
+  dispatch({
+    type: IS_UPLOADING,
+    payload: isUploading,
   });
 };

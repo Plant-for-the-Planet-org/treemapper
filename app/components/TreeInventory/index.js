@@ -1,18 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import { Header, SmallHeader, InventoryCard, PrimaryButton, InventoryList } from '../Common';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { Header, SmallHeader, PrimaryButton, InventoryList } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { clearAllIncompleteInventory } from '../../actions';
-import { getInventoryByStatus } from '../../repositories/inventory';
+import { getInventoryByStatus, clearAllIncompleteInventory } from '../../repositories/inventory';
 import { Colors } from '_styles';
-import { LocalInventoryActions } from '../../actions/Action';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';

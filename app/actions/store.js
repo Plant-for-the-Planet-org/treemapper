@@ -1,11 +1,5 @@
 import React, { createContext, useReducer } from 'react';
-import {
-  LocalInventoryActions,
-  LoaderActions,
-  SignUpLoader,
-  SpeciesListAction,
-  SpecieIdFromServer,
-} from './Action';
+import { SignUpLoader, SpeciesListAction, SpecieIdFromServer } from './Action';
 
 const initialState = {
   inventoryID: undefined,
@@ -20,15 +14,6 @@ const { Provider } = store;
 const StateProvider = ({ children }) => {
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.type) {
-      case LocalInventoryActions.SET_INVENTORY_ID:
-        const newState = state;
-        newState.inventoryID = action.payload;
-        return newState;
-      case LoaderActions.SET_LOADING:
-        return {
-          ...state,
-          isLoading: action.payload,
-        };
       case SignUpLoader.SET_SIGNUP_LOADER:
         return {
           ...state,
@@ -43,40 +28,6 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           specieId: action.payload,
-        };
-      case LocalInventoryActions.ADD_INVENTORY:
-        return {
-          ...state,
-          allInventory: [...state.allInventory, action.payload],
-        };
-      case LocalInventoryActions.UPDATE_PENDING_COUNT:
-        return {
-          ...state,
-          pendingCount:
-            action.payload.type === 'custom'
-              ? action.payload.count
-              : action.payload.type === 'decrement'
-              ? state.pendingCount === 0
-                ? state.pendingCount
-                : state.pendingCount - 1
-              : state.pendingCount + 1,
-        };
-      case LocalInventoryActions.UPDATE_UPLOAD_COUNT:
-        return {
-          ...state,
-          uploadCount:
-            action.payload.type === 'custom'
-              ? action.payload.count
-              : action.payload.type === 'decrement'
-              ? state.uploadCount === 0
-                ? state.uploadCount
-                : state.uploadCount - 1
-              : state.uploadCount + 1,
-        };
-      case LocalInventoryActions.IS_UPLOADING:
-        return {
-          ...state,
-          isUploading: action.payload,
         };
       default:
         throw new Error();
