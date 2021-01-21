@@ -350,6 +350,7 @@ class MapMarking extends React.Component {
       currentCoords: { latitude: lastCoords.latitude, longitude: lastCoords.longitude },
     }).then(() => {
       if (locateTree == 'on-site') {
+        console.log('onsite locate tree');
       } else {
         // For off site
         this.props.navigation.navigate('InventoryOverview');
@@ -419,25 +420,26 @@ class MapMarking extends React.Component {
 
   onPressBack = () => {
     //  THIS IS MODIFICATION
-    const { locateTree } = this.state;
-    const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+    // const { locateTree } = this.state;
+    // const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+    const { navigation } = this.props;
     navigation.navigate('TreeInventory');
-    return;
-    if (locateTree == 'off-site') {
-      if (activeMarkerIndex > 0) {
-        this.setState({ isAlrightyModalShow: true });
-      } else {
-        navigation.goBack();
-      }
-    } else {
-      // on-site
-      if (activeMarkerIndex > 0) {
-        updateActiveMarkerIndex(activeMarkerIndex - 1);
-        toogleState2();
-      } else {
-        navigation.goBack();
-      }
-    }
+    // return;
+    // if (locateTree == 'off-site') {
+    //   if (activeMarkerIndex > 0) {
+    //     this.setState({ isAlrightyModalShow: true });
+    //   } else {
+    //     navigation.goBack();
+    //   }
+    // } else {
+    //   // on-site
+    //   if (activeMarkerIndex > 0) {
+    //     updateActiveMarkerIndex(activeMarkerIndex - 1);
+    //     toogleState2();
+    //   } else {
+    //     navigation.goBack();
+    //   }
+    // }
   };
 
   render() {
@@ -484,7 +486,7 @@ class MapMarking extends React.Component {
   }
 }
 
-export default function (props) {
+export default function MapMarkingMain(props) {
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
   return <MapMarking {...props} {...state} navigation={navigation} />;
@@ -580,4 +582,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const polyline = { lineColor: 'red', lineWidth: 2, lineColor: Colors.BLACK };
+const polyline = { lineWidth: 2, lineColor: Colors.BLACK };

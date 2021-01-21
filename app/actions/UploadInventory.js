@@ -30,17 +30,16 @@ export const changeStatusAndUpload = async (
   sessionData,
   dispatch,
 ) => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       if (oneInventory.locate_tree == 'off-site') {
-        await changeInventoryStatus(
+        changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
           dispatch,
-        );
-        resolve();
+        ).then(() => resolve());
       } else {
         const stringifiedResponse = JSON.stringify(response);
-        await changeInventoryStatusAndResponse(
+        changeInventoryStatusAndResponse(
           {
             inventory_id: oneInventory.inventory_id,
             status: 'uploading',
@@ -202,7 +201,7 @@ export const uploadInventory = (dispatch) => {
                           } else {
                             if (inventoryData.length - 1 === i) {
                               updateIsUploading(false)(dispatch);
-                              reject(err);
+                              reject(false);
                             }
                           }
                         } catch (err) {

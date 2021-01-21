@@ -5,9 +5,12 @@ import Label from '../Label';
 import Accordian from '../Accordian';
 import { addSpeciesAction } from '../../../repositories/inventory';
 import { InventoryContext } from '../../../reducers/inventory';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
   const { state } = useContext(InventoryContext);
+  const navigation = useNavigation();
+  const route = useRoute();
 
   const [species, setSpecies] = useState(data ? data : []);
 

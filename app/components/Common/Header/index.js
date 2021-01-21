@@ -16,7 +16,7 @@ const Header = ({
   testID,
   accessibilityLabel,
   rightText,
-  onPressSearch
+  onPressSearch,
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -36,12 +36,16 @@ const Header = ({
               color={Colors.TEXT_COLOR}
             />
           </TouchableOpacity>
-        ) : []}
+        ) : (
+          []
+        )}
         <View />
-        {rightText ? ( onPressSearch ? (
-          <TouchableOpacity onPress= {() => onPressSearch()}>
-            <Text style={styles.rightText}>{rightText}</Text>
-          </TouchableOpacity>) : (
+        {rightText ? (
+          onPressSearch ? (
+            <TouchableOpacity onPress={() => onPressSearch()}>
+              <Text style={styles.rightText}>{rightText}</Text>
+            </TouchableOpacity>
+          ) : (
             <Text style={styles.rightText}>{rightText}</Text>
           )
         ) : null}
@@ -57,7 +61,9 @@ const Header = ({
             {subHeadingText}
           </Text>
         </View>
-      ) : []}
+      ) : (
+        []
+      )}
     </View>
   );
 };
@@ -84,10 +90,10 @@ const styles = StyleSheet.create({
   paddingVertical: {
     paddingVertical: 15,
   },
-  rightText:{
+  rightText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     paddingTop: 20,
-    color: Colors.PRIMARY 
-  }
+    color: Colors.PRIMARY,
+  },
 });

@@ -234,11 +234,13 @@ const SignUp = ({ navigation }) => {
     stopLoading()(loadingDispatch);
     LoginDetails().then((User) => {
       let detail = Object.values(User);
-      let decode = jwtDecode(detail[0].idToken);
-      setAuthtAccessToken(detail[0].accessToken);
-      setAuthDetails(decode);
-      setEmail(decode.email);
-      setCountry(handleFilter(lang.countryCode)[0]);
+      if (detail && detail.length > 0) {
+        let decode = jwtDecode(detail[0].idToken);
+        setAuthtAccessToken(detail[0].accessToken);
+        setAuthDetails(decode);
+        setEmail(decode.email);
+        setCountry(handleFilter(lang.countryCode)[0]);
+      }
     });
   }, []);
 

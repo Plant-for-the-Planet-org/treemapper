@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,11 +14,8 @@ import { Colors, Typography } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-import { InventoryContext } from '../../reducers/inventory';
 
 const UploadedInventory = ({ navigation }) => {
-  const { dispatch } = useContext(InventoryContext);
-
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
 
@@ -119,8 +116,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-        ? renderLoadingInventoryList()
-        : renderEmptyInventoryList()}
+          ? renderLoadingInventoryList()
+          : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

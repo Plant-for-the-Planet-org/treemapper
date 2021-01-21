@@ -52,7 +52,7 @@ class MapMarking extends React.Component {
     loader: false,
     markedCoords: null,
     locateTree: 'on-site',
-    inventory: null
+    inventory: null,
   };
 
   async UNSAFE_componentWillMount() {
@@ -66,7 +66,7 @@ class MapMarking extends React.Component {
     const { inventoryID } = this.props;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
-      this.setState({inventory: inventory});
+      this.setState({ inventory: inventory });
       if (Object.keys(inventory.polygons).length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
         this.setState({ markedCoords: [longitude, latitude] });
@@ -260,7 +260,11 @@ class MapMarking extends React.Component {
 
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
-      navigation.navigate('SelectSpecies', {species: this.state.inventory.species, inventory: this.state.inventory, visible: true});
+      navigation.navigate('SelectSpecies', {
+        species: this.state.inventory.species,
+        inventory: this.state.inventory,
+        visible: true,
+      });
       onPressClose();
     };
 
@@ -297,21 +301,21 @@ class MapMarking extends React.Component {
     const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
     navigation.navigate('TreeInventory');
     return;
-    if (locateTree == 'off-site') {
-      if (activeMarkerIndex > 0) {
-        this.setState({ isAlrightyModalShow: true });
-      } else {
-        navigation.goBack();
-      }
-    } else {
-      // on-site
-      if (activeMarkerIndex > 0) {
-        updateActiveMarkerIndex(activeMarkerIndex - 1);
-        toogleState2();
-      } else {
-        navigation.goBack();
-      }
-    }
+    // if (locateTree == 'off-site') {
+    //   if (activeMarkerIndex > 0) {
+    //     this.setState({ isAlrightyModalShow: true });
+    //   } else {
+    //     navigation.goBack();
+    //   }
+    // } else {
+    //   // on-site
+    //   if (activeMarkerIndex > 0) {
+    //     updateActiveMarkerIndex(activeMarkerIndex - 1);
+    //     toogleState2();
+    //   } else {
+    //     navigation.goBack();
+    //   }
+    // }
   };
 
   render() {
@@ -348,10 +352,9 @@ class MapMarking extends React.Component {
   }
 }
 
-export default function (props) {
+export default function MapMarkingMain(props) {
   const navigation = useNavigation();
-  const globalState = useContext(InventoryContext);
-  const { state } = globalState;
+  const { state } = useContext(InventoryContext);
   return <MapMarking {...props} {...state} navigation={navigation} />;
 }
 
@@ -444,5 +447,3 @@ const styles = StyleSheet.create({
     width: '90%',
   },
 });
-
-const polyline = { lineColor: 'red', lineWidth: 2, lineColor: Colors.BLACK };

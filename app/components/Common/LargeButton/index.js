@@ -59,7 +59,6 @@ export default LargeButton;
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: Colors.TEXT_COLOR,
     borderRadius: 10,
     marginVertical: 15,
     justifyContent: 'center',

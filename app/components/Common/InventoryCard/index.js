@@ -13,10 +13,10 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
     activeBtn === true
       ? map_img
       : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-      ? map_img
-      : activeBtn === false
-      ? placeholder_image
-      : tree;
+        ? map_img
+        : activeBtn === false
+          ? placeholder_image
+          : tree;
   if (data.imageURL) {
     imageSource = { uri: data.imageURL };
   }

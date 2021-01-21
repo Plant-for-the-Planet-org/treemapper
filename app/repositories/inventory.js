@@ -28,8 +28,8 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_height = Math.round(speciesHeight * 100) / 100;
+          resolve(console.log('updated', inventory));
         });
-        resolve(console.log('updated', inventory));
       })
       .catch(bugsnag.notify);
   });

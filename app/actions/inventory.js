@@ -6,6 +6,7 @@ import {
   UPDATE_UPLOAD_COUNT,
   IS_UPLOADING,
 } from './Types';
+import axios from 'axios';
 
 const { protocol, url } = APIConfig;
 

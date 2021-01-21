@@ -57,7 +57,7 @@ const ImageCapturing = ({
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
   const [imagePath, setImagePath] = useState('');
-  const [APLHABETS, setAPLHABETS] = useState([]);
+  const [ALPHABETS, setAPLHABETS] = useState([]);
   const [inventory, setInventory] = useState(null);
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
@@ -217,7 +217,7 @@ const ImageCapturing = ({
           onBackPress={onBackPress}
           headingText={
             inventoryType === 'multiple'
-              ? `Location ${APLHABETS[activeMarkerIndex]}`
+              ? `Location ${ALPHABETS[activeMarkerIndex]}`
               : i18next.t('label.image_capturing_header')
           }
           subHeadingText={i18next.t('label.image_capturing_sub_header')}

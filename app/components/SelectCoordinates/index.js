@@ -268,7 +268,7 @@ class SelectCoordinates extends React.Component {
   }
 }
 
-export default function (props) {
+export default function SelectCoordinatesMain(props) {
   const navigation = useNavigation();
   const globalState = useContext(InventoryContext);
   const { state } = globalState;
@@ -358,5 +358,3 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
 });
-
-const polyline = { lineColor: 'red', lineWidth: 2, lineColor: Colors.BLACK };

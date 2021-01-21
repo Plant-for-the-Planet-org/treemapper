@@ -23,7 +23,7 @@ import {
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import RNFetchBlob from 'rn-fetch-blob';
 import { marker_png, plus_icon, two_trees } from '../../assets';
-import { APLHABETS } from '../../utils';
+import { ALPHABETS } from '../../utils';
 import { bugsnag } from '../../utils';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
@@ -40,7 +40,7 @@ const InventoryOverview = ({ navigation }) => {
   const { state, dispatch } = useContext(InventoryContext);
 
   const [inventory, setInventory] = useState(null);
-  const [locationTitle, setlocationTitle] = useState('');
+  const [locationTitle, setLocationTitle] = useState('');
   const [selectedLOC, setSelectedLOC] = useState(null);
   const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
   const [showDate, setShowDate] = useState(false);
@@ -48,13 +48,13 @@ const InventoryOverview = ({ navigation }) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      initiatState();
+      initialState();
       let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' };
       updateLastScreen(data);
     });
   }, []);
 
-  const initiatState = () => {
+  const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
@@ -80,7 +80,7 @@ const InventoryOverview = ({ navigation }) => {
                 data={Object.values(item.coordinates)}
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
-                    title: `Coordinate ${APLHABETS[index]}`,
+                    title: `Coordinate ${ALPHABETS[index]}`,
                     subHeading: `${oneCoordinate.latitude.toFixed(
                       5,
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
@@ -109,7 +109,7 @@ const InventoryOverview = ({ navigation }) => {
     let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index];
     let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
     setSelectedLOC(normalCoords);
-    setlocationTitle(APLHABETS[index]);
+    setLocationTitle(ALPHABETS[index]);
     setIsLOCModalOpen(!isLOCModalOpen);
   };
 
@@ -177,33 +177,32 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const askAndroidStoragePermission = async () => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: i18next.t('label.storage_permission_android_title'),
-            message: i18next.t('label.storage_permission_android_message'),
-            buttonPositive: i18next.t('label.permission_camera_ok'),
-          },
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: i18next.t('label.storage_permission_android_title'),
+          message: i18next.t('label.storage_permission_android_message'),
+          buttonPositive: i18next.t('label.permission_camera_ok'),
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        return true;
+      } else {
+        Alert.alert(
+          i18next.t('label.storage_permission_denied_header'),
+          i18next.t('label.storage_permission_denied_sub_header'),
         );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          resolve();
-        } else {
-          Alert.alert(
-            i18next.t('label.storage_permission_denied_header'),
-            i18next.t('label.storage_permission_denied_sub_header'),
-          );
-        }
-      } catch (err) {
-        reject();
-        bugsnag.notify(err);
+        return false;
       }
-    });
+    } catch (err) {
+      bugsnag.notify(err);
+      return false;
+    }
   };
 
   const onPressExportJSON = async () => {
-    let exportgeoJSONFile = () => {
+    let exportGeoJSONFile = () => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
       if (inventory.polygons.length > 0) {
@@ -239,11 +238,13 @@ const InventoryOverview = ({ navigation }) => {
       }
     };
     if (Platform.OS == 'android') {
-      askAndroidStoragePermission().then(() => {
-        exportgeoJSONFile();
-      });
+      const permissionResult = await askAndroidStoragePermission();
+
+      if (permissionResult) {
+        exportGeoJSONFile();
+      }
     } else {
-      exportgeoJSONFile();
+      exportGeoJSONFile();
     }
   };
 
@@ -256,7 +257,7 @@ const InventoryOverview = ({ navigation }) => {
         <DateTimePickerModal
           isVisible={showDate}
           maximumDate={new Date()}
-          testID="dateTimssePicker"
+          testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
           value={new Date(Number(inventory.plantation_date))}
           mode={'date'}
@@ -311,10 +312,10 @@ const InventoryOverview = ({ navigation }) => {
     status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null;
   };
 
-  const onPressSaveAndContinueMultiple = (selectedspeciesList) => {
+  const onPressSaveAndContinueMultiple = (selectedSpeciesList) => {
     //  Add it to local Db
-    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedspeciesList }).then(() => {
-      initiatState();
+    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedSpeciesList }).then(() => {
+      initialState();
     });
   };
 
@@ -398,7 +399,7 @@ const InventoryOverview = ({ navigation }) => {
               />
             </ScrollView>
             <View>
-              <View style={styles.bottomBtnsContainer}>
+              <View style={styles.bottomButtonContainer}>
                 <PrimaryButton
                   btnText={i18next.t('label.inventory_overview_loc_next_tree')}
                   halfWidth
@@ -427,7 +428,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
-  bottomBtnsContainer: {
+  bottomButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

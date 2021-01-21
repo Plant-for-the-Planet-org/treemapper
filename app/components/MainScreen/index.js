@@ -32,7 +32,7 @@ const MainScreen = ({ navigation }) => {
     checkIsLogin();
     getInventoryByStatus('all').then((data) => {
       let count = 0;
-      for (inventory of data) {
+      for (const inventory of data) {
         if (inventory.status === 'pending' || inventory.status === 'uploading') {
           count++;
         }
@@ -103,8 +103,10 @@ const MainScreen = ({ navigation }) => {
   const userImage = () => {
     LoginDetails().then((User) => {
       let detail = Object.values(User);
-      let decode = jwtDecode(detail[0].idToken);
-      setUserPhoto(decode.picture);
+      if (detail && detail.length > 0) {
+        let decode = jwtDecode(detail[0].idToken);
+        setUserPhoto(decode.picture);
+      }
     });
   };
 
@@ -171,7 +173,6 @@ const MainScreen = ({ navigation }) => {
             <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
               <LargeButton
                 onPress={() => onPressLargeButtons('TreeInventory')}
-                notification
                 style={styles.customStyleLargeBtn}
                 heading={i18next.t('label.tree_inventory')}
                 active={false}

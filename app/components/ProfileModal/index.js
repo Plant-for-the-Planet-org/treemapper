@@ -36,11 +36,13 @@ const ProfileModal = ({
   const userImage = () => {
     LoginDetails().then((User) => {
       let detail = Object.values(User);
-      let decode = jwtDecode(detail[0].idToken);
-      setUserPhoto(decode.picture);
-      SpeciesList(detail[0].accessToken).then((data) => {
-        setSpeciesList(data)(speciesDispatch);
-      });
+      if (detail && detail.length > 0) {
+        let decode = jwtDecode(detail[0].idToken);
+        setUserPhoto(decode.picture);
+        SpeciesList(detail[0].accessToken).then((data) => {
+          setSpeciesList(data)(speciesDispatch);
+        });
+      }
     });
   };
   const onPressSupport = () => {

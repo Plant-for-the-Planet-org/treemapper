@@ -38,7 +38,7 @@ const inventoryReducer = (state = initialState, action) => {
     // changes the pending count depending of the type of value passed
     // if type is custom then uses the count passed in payload and replace the value
     // if decrement is passed then decrease the current value by 1 and vice versa if type is increment
-    case UPDATE_PENDING_COUNT:
+    case UPDATE_PENDING_COUNT: {
       let count = state.pendingCount;
       if (action.payload === 'increment') {
         count = state.pendingCount + 1;
@@ -51,11 +51,12 @@ const inventoryReducer = (state = initialState, action) => {
         ...state,
         pendingCount: count,
       };
+    }
     // changes the upload count depending of the type of value passed
     // if type is custom then uses the count passed in payload and replace the value
     // if decrement is passed then decrease the current value by 1 and vice versa if type is increment
-    case UPDATE_UPLOAD_COUNT:
-      count = state.uploadCount;
+    case UPDATE_UPLOAD_COUNT: {
+      let count = state.uploadCount;
       if (action.payload === 'increment') {
         count = state.uploadCount + 1;
       } else if (action.payload === 'decrement') {
@@ -67,6 +68,7 @@ const inventoryReducer = (state = initialState, action) => {
         ...state,
         uploadCount: count,
       };
+    }
 
     // changes the value of isUploading by replacing with payload data
     case IS_UPLOADING:

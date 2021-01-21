@@ -12,6 +12,7 @@ import {
   Platform,
   TextInput,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Header, PrimaryButton } from '../Common';
 import { Colors, Typography } from '_styles';
@@ -78,7 +79,7 @@ const SingleTreeOverview = ({ navigation }) => {
     const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
     if (action === 'species' && specieEditText !== '') {
       setSpecieText(specieEditText);
-      updateSpecieName({ inventory_id: state.inventoryID, speciesText: specieEditText });
+      updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
       setIsOpenModal(false);
     } else if (
       action === 'diameter' &&
@@ -139,8 +140,8 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'species'
                     ? i18next.t('label.tree_review_name_of_species')
                     : editEnable === 'diameter'
-                    ? i18next.t('label.tree_review_diameter')
-                    : 'Height'}
+                      ? i18next.t('label.tree_review_diameter')
+                      : 'Height'}
                 </Text>
                 {editEnable === 'species' ? (
                   <TextInput
@@ -277,7 +278,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  Countries.includes(countryCode)
+                Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}

@@ -64,17 +64,20 @@ const SelectSpecies = ({
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
+    let species;
+    let inventory;
     setSpeciesList(speciesState.species);
     getAllUserSpecies();
     if (route !== undefined) {
-      var { species, inventory } = route.params;
+      inventory = route.params.inventory;
+      species = route.params.species;
     } else {
-      var species = speciess;
-      var inventory = invent;
+      species = speciess;
+      inventory = invent;
     }
     // setTreeType(inventory.locate_tree);
     setNumberTrees(inventory.tree_type);
-    if (speciesList) {
+    if (speciesList && species) {
       for (let i = 0; i < species.length; i++) {
         const oneSpecie = species[i];
         speciesList[oneSpecie.id].treeCount = oneSpecie.treeCount;

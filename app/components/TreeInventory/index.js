@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { Header, SmallHeader, PrimaryButton, InventoryList } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { getInventoryByStatus, clearAllIncompleteInventory } from '../../repositories/inventory';
+import { StackActions } from '@react-navigation/native';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
-import { SvgXml } from 'react-native-svg';
-import i18next from 'i18next';
-import { uploadInventoryData } from '../../utils/uploadInventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { StackActions } from '@react-navigation/native';
+import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { uploadInventoryData } from '../../utils/uploadInventory';
+import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
@@ -173,8 +172,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-        ? renderLoadingInventoryList()
-        : renderEmptyInventoryList()}
+          ? renderLoadingInventoryList()
+          : renderEmptyInventoryList()}
     </View>
   );
 };
