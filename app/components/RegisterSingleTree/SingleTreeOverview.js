@@ -159,7 +159,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
-                    keyboardType={'number-pad'}
+                    keyboardType={'decimal-pad'}
                     onChangeText={(text) => setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputField(editEnable)}
                   />
@@ -169,7 +169,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     style={styles.value}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
-                    keyboardType={'number-pad'}
+                    keyboardType={'decimal-pad'}
                     onChangeText={(text) => setSpecieEditHeight(text.replace(/[^0-9.]/g, ''))}
                     onSubmitEditing={() => onSubmitInputField('height')}
                   />
@@ -401,7 +401,7 @@ const SingleTreeOverview = ({ navigation }) => {
       ).then(async () => {
         const result = await initiateInventory({ treeType: 'single' });
         if (result) {
-          initiateInventoryState(result)(inventoryDispatch);
+          initiateInventoryState(result)(dispatch);
           navigation.navigate('RegisterSingleTree');
         }
       });

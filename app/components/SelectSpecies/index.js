@@ -412,7 +412,7 @@ const SelectSpecies = ({
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
               <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
-                <Header headingText={'Add Measuremets'} />
+                <Header headingText={'Add Measurements'} />
               </View>
               <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
                 <View>
@@ -426,7 +426,7 @@ const SelectSpecies = ({
                         placeholder={'Diameter'}
                         placeholderTextColor={Colors.TEXT_COLOR}
                         onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
-                        keyboardType={'number-pad'}
+                        keyboardType={'decimal-pad'}
                       />
                       <Text
                         style={{
@@ -448,7 +448,7 @@ const SelectSpecies = ({
                         placeholder={'Height'}
                         placeholderTextColor={Colors.TEXT_COLOR}
                         onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
-                        keyboardType={'number-pad'}
+                        keyboardType={'decimal-pad'}
                       />
                       <Text
                         style={{
