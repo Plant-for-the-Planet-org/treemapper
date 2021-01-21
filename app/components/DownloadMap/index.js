@@ -3,8 +3,7 @@ import { View, StyleSheet, Text, Modal, ActivityIndicator, Image } from 'react-n
 import { Header, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { getAreaName } from '../../repositories/maps';
-import { getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
+import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
 import Geolocation from '@react-native-community/geolocation';

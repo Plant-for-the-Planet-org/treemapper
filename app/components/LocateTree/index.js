@@ -34,18 +34,18 @@ const LocateTree = ({ navigation }) => {
       data.locate_tree = 'off-site';
       addLocateTree(data).then(() => {
         navigation.navigate('SelectCoordinates');
-        // setIsAlrightyModalShow(false);
+        setIsAlrightyModalShow(false);
       });
       return;
     }
     addLocateTree(data).then(() => {
       navigation.navigate('CreatePolygon');
-      // setIsAlrightyModalShow(false);
+      setIsAlrightyModalShow(false);
     });
   };
 
   const onPressClose = () => {
-    // setIsAlrightyModalShow(false);
+    setIsAlrightyModalShow(false);
   };
 
   const onPressSelectCoordinates = async () => {

@@ -8,6 +8,7 @@ import { InventoryContext } from '../../../reducers/inventory';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
+
   const { dispatch } = useContext(InventoryContext);
 
   // checks for the pending count and updates the sync message based on the same

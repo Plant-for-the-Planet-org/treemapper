@@ -530,14 +530,16 @@ const SelectSpecies = ({
     );
   };
 
+  const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
+
   const onPressSaveAndContinue = (data) => {
     if (
       data.diameter !== '' &&
       data.height !== '' &&
       Number(data.diameter) !== 0 &&
       Number(data.height) !== 0 &&
-      /^[0-9]{1,5}\.?[0-9]{0,2}$/.test(data.diameter) &&
-      /^[0-9]{1,5}\.?[0-9]{0,2}$/.test(data.height)
+      dimensionRegex.test(data.diameter) &&
+      dimensionRegex.test(data.height)
     ) {
       updateSpecieAndSpecieDiameter({
         inventory_id: inventory.inventory_id,

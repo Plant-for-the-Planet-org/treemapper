@@ -46,9 +46,9 @@ const SingleTreeOverview = ({ navigation }) => {
   const [plantationDate, setPlantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
   const [specieEditText, setSpecieEditText] = useState('');
-  const [specieDiameter, setSpecieDiameter] = useState('10');
+  const [specieDiameter, setSpecieDiameter] = useState('');
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
-  const [specieHeight, setSpecieHeight] = useState('2');
+  const [specieHeight, setSpecieHeight] = useState('');
   const [specieEditHeight, setSpecieEditHeight] = useState('');
   const [locateTree, setLocateTree] = useState(null);
   const [editEnable, setEditEnable] = useState('');
@@ -74,9 +74,8 @@ const SingleTreeOverview = ({ navigation }) => {
     Country();
   }, []);
 
-  console.log('plantationDate =>', new Date(Number(plantationDate)));
-
   const onSubmitInputField = (action) => {
+    const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
     if (action === 'species' && specieEditText !== '') {
       setSpecieText(specieEditText);
       updateSpecieName({ inventory_id: state.inventoryID, speciesText: specieEditText });
@@ -85,7 +84,7 @@ const SingleTreeOverview = ({ navigation }) => {
       action === 'diameter' &&
       specieEditDiameter !== '' &&
       Number(specieEditDiameter) !== 0 &&
-      /^[0-9]{1,5}\.?[0-9]{0,2}$/.test(specieEditDiameter)
+      dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
       updateSpecieDiameter({
@@ -97,7 +96,7 @@ const SingleTreeOverview = ({ navigation }) => {
       action === 'height' &&
       specieEditHeight !== '' &&
       Number(specieEditHeight) !== 0 &&
-      /^[0-9]{1,5}\.?[0-9]{0,2}$/.test(specieEditHeight)
+      dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
       updateSpecieHeight({
