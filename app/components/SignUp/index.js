@@ -15,7 +15,7 @@ import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { LoginDetails } from '../../actions';
+import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../services/Signup';
 import Snackbar from 'react-native-snackbar';
@@ -24,7 +24,6 @@ import Modal from '../Common/Modal';
 import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
-import { InventoryContext } from '../../reducers/inventory';
 import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
 import { LoadingContext } from '../../reducers/loader';
 

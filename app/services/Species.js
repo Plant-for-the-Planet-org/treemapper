@@ -8,7 +8,7 @@ import {
   Species,
   Inventory,
   AddSpecies,
-} from '../actions/Schemas';
+} from '../repositories/schema';
 import Realm from 'realm';
 import getSessionData from '../utils/sessionId';
 

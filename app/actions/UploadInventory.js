@@ -13,7 +13,7 @@ import {
   Species,
   Inventory,
   AddSpecies,
-} from './Schemas';
+} from '../repositories/schema';
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
@@ -23,7 +23,13 @@ import { updateCount, updateIsUploading } from './inventory';
 
 const { protocol, url } = APIConfig;
 
-const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData, dispatch) => {
+export const changeStatusAndUpload = async (
+  response,
+  oneInventory,
+  userToken,
+  sessionData,
+  dispatch,
+) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (oneInventory.locate_tree == 'off-site') {
@@ -76,7 +82,7 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
     }
   });
 };
-const uploadInventory = (dispatch) => {
+export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -235,7 +241,7 @@ const uploadInventory = (dispatch) => {
   });
 };
 
-const uploadImage = async (oneInventory, response, userToken, sessionId) => {
+export const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   let locationId = response.id;
   let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
   let responseCoords = response.coordinates;
@@ -281,7 +287,7 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
-const createSpecies = (scientificSpecies, aliases) => {
+export const createSpecies = (scientificSpecies, aliases) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -321,7 +327,7 @@ const createSpecies = (scientificSpecies, aliases) => {
   // });
 };
 
-const UpdateSpecies = (aliases, speciesId) => {
+export const UpdateSpecies = (aliases, speciesId) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -360,7 +366,7 @@ const UpdateSpecies = (aliases, speciesId) => {
     });
   });
 };
-const UpdateSpeciesImage = (image, speciesId) => {
+export const UpdateSpeciesImage = (image, speciesId) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -385,7 +391,6 @@ const UpdateSpeciesImage = (image, speciesId) => {
               const { status, data } = res;
 
               if (status === 200) {
-                // updateStatusForUserSpecies({ id: speciesId });
                 resolve(true);
               }
             })
@@ -399,7 +404,7 @@ const UpdateSpeciesImage = (image, speciesId) => {
   });
 };
 
-const SpeciesListData = () => {
+export const SpeciesListData = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -432,7 +437,7 @@ const SpeciesListData = () => {
   });
 };
 
-const getPlantLocationDetails = (locationId, userToken) => {
+export const getPlantLocationDetails = (locationId, userToken) => {
   return new Promise((resolve, reject) => {
     axios({
       method: 'GET',
@@ -454,5 +459,3 @@ const getPlantLocationDetails = (locationId, userToken) => {
       });
   });
 };
-
-export { uploadInventory, createSpecies, UpdateSpecies, UpdateSpeciesImage, SpeciesListData };

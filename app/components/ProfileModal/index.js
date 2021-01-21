@@ -3,13 +3,12 @@ import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { getUserInformationFromServer } from '../../actions/User';
+import { getUserInformationFromServer } from '../../repositories/user';
 import i18next from 'i18next';
-import { LoginDetails } from '../../actions/index';
+import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import { SpeciesList } from '../../services/Species';
 import ProfileListItem from './ProfileListItem';
-import { InventoryContext } from '../../reducers/inventory';
 import { setSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 

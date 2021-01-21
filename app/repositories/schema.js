@@ -1,10 +1,13 @@
-// schema for storing the coordinates of an inventory
+// SCHEMAS
 const Coordinates = {
   name: 'Coordinates',
   properties: {
     latitude: 'float',
     longitude: 'float',
     imageUrl: 'string?',
+    currentloclat: 'float',
+    currentloclong: 'float',
+    isImageUploaded: 'bool?',
   },
 };
 
@@ -16,20 +19,19 @@ const Polygons = {
   },
 };
 
-const InventorySpecies = {
-  name: 'InventorySpecies',
+const Species = {
+  name: 'Species',
   properties: {
-    alias: 'string',
+    aliases: 'string',
     treeCount: 'string',
-    specieId: 'string?',
+    id: 'string?',
   },
 };
-
 const OfflineMaps = {
   name: 'OfflineMaps',
-  primaryKey: 'mapID',
+  primaryKey: 'name',
   properties: {
-    mapId: 'string',
+    areaName: 'string',
     size: 'int',
     name: 'string',
   },
@@ -37,21 +39,22 @@ const OfflineMaps = {
 
 const Inventory = {
   name: 'Inventory',
-  primaryKey: 'inventoryId',
+  primaryKey: 'inventory_id',
   properties: {
-    inventoryId: 'string',
-    plantationDate: 'string?',
-    treeType: 'string?',
+    inventory_id: 'string',
+    plantation_date: 'string?',
+    tree_type: 'string?',
     status: 'string?',
-    projectId: 'string?',
-    donationType: 'string?',
-    locationType: 'string?',
-    lastScreen: 'string?',
-    species: 'InventorySpecies[]',
+    project_id: 'string?',
+    donation_type: 'string?',
+    locate_tree: 'string?',
+    last_screen: 'string?',
+    species: 'Species[]',
     polygons: 'Polygons[]',
-    specieName: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    specieDiameter: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    specieHeight: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    species_diameter: 'float?',
+    species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    response: 'string?',
   },
 };
 
@@ -63,25 +66,23 @@ const User = {
     accessToken: 'string?',
     idToken: 'string?',
     email: 'string?',
-    firstName: 'string?',
-    lastName: 'string?',
+    firstname: 'string?',
+    lastname: 'string?',
     country: 'string?',
-    loggedInTimestamp: 'string?',
-    image: 'string?',
   },
 };
 
-const UserSpecies = {
-  name: 'UserSpecies',
+const AddSpecies = {
+  name: 'AddSpecies',
   primaryKey: 'id',
   properties: {
     id: 'string',
-    alias: 'string?',
+    aliases: 'string?',
     image: 'string?',
     scientificName: 'string',
     status: 'string?',
-    specieId: 'string',
+    speciesId: 'string',
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, InventorySpecies, Inventory, UserSpecies };
+export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies };

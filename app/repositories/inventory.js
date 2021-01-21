@@ -1,31 +1,7 @@
 import Realm from 'realm';
-import {
-  Inventory,
-  Species,
-  Polygons,
-  Coordinates,
-  OfflineMaps,
-  User,
-  AddSpecies,
-} from '../actions/Schemas';
+import { Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies } from './schema';
 import { bugsnag } from '../utils';
 import { updateCount } from '../actions/inventory';
-
-export const getAreaName = ({ coords }) => {
-  return new Promise((resolve, reject) => {
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${Config.MAPBOXGL_ACCCESS_TOKEN}`,
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        if (res && res.features && res.features[0]) {
-          resolve(res.features[0].place_name);
-        } else {
-          reject();
-        }
-      });
-  });
-};
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
@@ -54,21 +30,6 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
           inventory.species_height = Math.round(speciesHeight * 100) / 100;
         });
         resolve(console.log('updated', inventory));
-      })
-      .catch(bugsnag.notify);
-  });
-};
-
-export const getAllOfflineMaps = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          const offlineMaps = realm.objects('OfflineMaps');
-          resolve(JSON.parse(JSON.stringify(offlineMaps)));
-        });
       })
       .catch(bugsnag.notify);
   });

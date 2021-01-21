@@ -4,9 +4,8 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } fr
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ProfileModal from '../ProfileModal';
-// import { auth0Login, isLogin, auth0Logout } from '../../actions';
 import { getInventoryByStatus } from '../../repositories/inventory';
-import { auth0Login, isLogin, auth0Logout } from '../../repositories/user';
+import { auth0Login, isLogin, auth0Logout, LoginDetails } from '../../repositories/user';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,7 +14,6 @@ import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
 import { useFocusEffect } from '@react-navigation/native';
 import jwtDecode from 'jwt-decode';
-import { LoginDetails } from '../../actions/index';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateCount } from '../../actions/inventory';
 import { LoadingContext } from '../../reducers/loader';
@@ -62,8 +60,6 @@ const MainScreen = ({ navigation }) => {
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
-      // await auth0Logout();
-
       startLoading()(loadingDispatch);
       auth0Login(navigation)
         .then((data) => {

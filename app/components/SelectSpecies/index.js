@@ -21,7 +21,7 @@ import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
 import { APIConfig } from '../../actions/Config';
 import { SpeciesListData, UpdateSpecies, UpdateSpeciesImage } from '../../actions/UploadInventory';
-import { getUserInformation } from '../../actions/User';
+import { getUserInformation } from '../../repositories/user';
 import { checkCircle, checkCircleFill, placeholder_image, tree } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';

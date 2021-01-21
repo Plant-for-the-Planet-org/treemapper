@@ -34,7 +34,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
 import { initiateInventoryState } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { getUserInformation } from '../../actions/User';
+import { getUserInformation } from '../../repositories/user';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
