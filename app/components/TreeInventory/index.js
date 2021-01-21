@@ -9,6 +9,7 @@ import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { StackActions } from '@react-navigation/native';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
@@ -22,6 +23,10 @@ const TreeInventory = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+
+  const handleBackPress = () => {
+    navigation.dispatch(StackActions.popToTop());
+  };
 
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
@@ -149,6 +154,7 @@ const TreeInventory = ({ navigation }) => {
           <Header
             headingText={i18next.t('label.tree_inventory_list_header')}
             subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
+            onBackPress={handleBackPress}
           />
           {renderInventory()}
         </ScrollView>
