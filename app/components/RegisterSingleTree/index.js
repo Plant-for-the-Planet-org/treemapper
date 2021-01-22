@@ -15,9 +15,11 @@ const RegisterSingleTree = ({ navigation, route }) => {
     if (route.params?.isEdit) {
       setScreenState('ImageCapturing');
     }
+    console.log('inventoryState.inventoryID', inventoryState.inventoryID);
+    let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
+    updateLastScreen(data);
     navigation.addListener('focus', () => {
-      let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
-      updateLastScreen(data);
+      updateScreenState('MapMarking');
     });
     return () => BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
   }, []);

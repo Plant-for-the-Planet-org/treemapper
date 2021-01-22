@@ -19,9 +19,11 @@ const RegisterTree = ({ navigation }) => {
   const onPressContinue = async () => {
     let data = { treeType };
 
-    const result = await initiateInventory(data);
+    const result = await initiateInventory(data, dispatch);
     if (result) {
       initiateInventoryState(result)(dispatch);
+      navigation.navigate('RegisterSingleTree');
+
       if (treeType === 'multiple') {
         navigation.navigate('LocateTree');
       } else {

@@ -11,6 +11,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
+    console.log('item.last_screen =>', item);
     setInventoryId(item.inventory_id)(dispatch);
     navigation.navigate(item.last_screen);
   };

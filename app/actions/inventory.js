@@ -29,8 +29,8 @@ export const getUserProfile = (data) => async (dispatch) => {
   }
 };
 
-export const setInventoryId = (payload) => (dispatch) => {
-  dispatch({
+export const setInventoryId = (payload) => async (dispatch) => {
+  await dispatch({
     type: SET_INVENTORY_ID,
     payload: payload,
   });
@@ -41,7 +41,6 @@ export const initiateInventoryState = (inventoryData) => (dispatch) => {
     type: INITIATE_INVENTORY_STATE,
     payload: inventoryData,
   });
-  setInventoryId(inventoryData.inventory_id)(dispatch);
 };
 
 export const updateCount = (data) => (dispatch) => {

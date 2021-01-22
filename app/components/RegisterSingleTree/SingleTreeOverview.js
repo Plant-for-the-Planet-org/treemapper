@@ -401,7 +401,7 @@ const SingleTreeOverview = ({ navigation }) => {
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
       ).then(async () => {
-        const result = await initiateInventory({ treeType: 'single' });
+        const result = await initiateInventory({ treeType: 'single' }, dispatch);
         if (result) {
           initiateInventoryState(result)(dispatch);
           navigation.navigate('RegisterSingleTree');

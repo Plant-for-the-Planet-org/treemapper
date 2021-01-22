@@ -1,7 +1,7 @@
 import Realm from 'realm';
 import { Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies } from './schema';
 import { bugsnag } from '../utils';
-import { updateCount } from '../actions/inventory';
+import { updateCount, setInventoryId } from '../actions/inventory';
 import { INCOMPLETE_INVENTORY } from '../utils/inventoryStatuses';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
@@ -57,7 +57,7 @@ export const getInventoryByStatus = (status) => {
   });
 };
 
-export const initiateInventory = ({ treeType }) => {
+export const initiateInventory = ({ treeType }, dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
@@ -70,8 +70,10 @@ export const initiateInventory = ({ treeType }) => {
             tree_type: treeType,
             status: INCOMPLETE_INVENTORY,
             plantation_date: `${new Date().getTime()}`,
+            last_screen: treeType === 'single' ? 'RegisterSingleTree' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
+          setInventoryId(inventoryID)(dispatch);
           resolve(inventoryData);
         });
       })
@@ -221,6 +223,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
 };
 
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
+  console.log('updateLastScreen =>', last_screen, inventory_id);
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
