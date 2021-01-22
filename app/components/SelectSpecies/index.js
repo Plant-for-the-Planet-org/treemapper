@@ -416,65 +416,67 @@ const SelectSpecies = ({
               <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
                 <Header headingText={'Add Measurements'} />
               </View>
-              <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
-                <View>
-                  <View style={styles.inputBox}>
-                    <View
-                      style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <TextInput
-                        value={diameter}
-                        style={styles.input}
-                        autoFocus
-                        placeholder={'Diameter'}
-                        placeholderTextColor={Colors.TEXT_COLOR}
-                        onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
-                        keyboardType={'decimal-pad'}
-                      />
-                      <Text
-                        style={{
-                          fontSize: Typography.FONT_SIZE_18,
-                          padding: 10,
-                          paddingRight: 20,
-                        }}>
-                        {Countries.includes(countryCode) ? 'inches' : 'cm'}
-                      </Text>
+              <KeyboardAvoidingView
+                behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}>
+                <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <View>
+                    <View style={styles.inputBox}>
+                      <View
+                        style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TextInput
+                          value={diameter}
+                          style={styles.input}
+                          autoFocus
+                          placeholder={'Diameter'}
+                          placeholderTextColor={Colors.TEXT_COLOR}
+                          onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
+                          keyboardType={'decimal-pad'}
+                        />
+                        <Text
+                          style={{
+                            fontSize: Typography.FONT_SIZE_18,
+                            padding: 10,
+                            paddingRight: 20,
+                          }}>
+                          {Countries.includes(countryCode) ? 'inches' : 'cm'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.inputBox}>
+                      <View
+                        style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TextInput
+                          value={height}
+                          style={styles.input}
+                          placeholder={'Height'}
+                          placeholderTextColor={Colors.TEXT_COLOR}
+                          onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
+                          keyboardType={'decimal-pad'}
+                        />
+                        <Text
+                          style={{
+                            fontSize: Typography.FONT_SIZE_18,
+                            padding: 10,
+                            paddingRight: 20,
+                          }}>
+                          {Countries.includes(countryCode) ? 'Feet' : 'm'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
-                  <View style={styles.inputBox}>
-                    <View
-                      style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <TextInput
-                        value={height}
-                        style={styles.input}
-                        placeholder={'Height'}
-                        placeholderTextColor={Colors.TEXT_COLOR}
-                        onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
-                        keyboardType={'decimal-pad'}
-                      />
-                      <Text
-                        style={{
-                          fontSize: Typography.FONT_SIZE_18,
-                          padding: 10,
-                          paddingRight: 20,
-                        }}>
-                        {Countries.includes(countryCode) ? 'Feet' : 'm'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View>
-                  <KeyboardAvoidingView
-                    behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-                    style={styles.bgWhite}>
+                  <View>
                     <PrimaryButton
                       onPress={onPressMeasurementBtn}
                       btnText={'Continue'}
+                      style={{ marginBottom: 50 }}
                       // disabled={singleTree ? false : true}
                     />
-                  </KeyboardAvoidingView>
+                  </View>
                 </View>
-              </View>
+              </KeyboardAvoidingView>
             </View>
           </SafeAreaView>
         </View>
