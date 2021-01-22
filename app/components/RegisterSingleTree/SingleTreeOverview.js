@@ -36,6 +36,7 @@ import i18next from 'i18next';
 import { initiateInventoryState } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
+import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
@@ -140,8 +141,8 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'species'
                     ? i18next.t('label.tree_review_name_of_species')
                     : editEnable === 'diameter'
-                      ? i18next.t('label.tree_review_diameter')
-                      : 'Height'}
+                    ? i18next.t('label.tree_review_diameter')
+                    : 'Height'}
                 </Text>
                 {editEnable === 'species' ? (
                   <TextInput
@@ -235,7 +236,7 @@ const SingleTreeOverview = ({ navigation }) => {
       coords = polygons[0].coordinates[0];
     }
     let shouldEdit =
-      inventory.status == 'incomplete' ? true : inventory.status == null ? true : false;
+      inventory.status === INCOMPLETE_INVENTORY ? true : inventory.status == null ? true : false;
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];
@@ -278,7 +279,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -395,7 +396,7 @@ const SingleTreeOverview = ({ navigation }) => {
   //   }
   // };
   const onPressNextTree = () => {
-    if (inventory.status == 'incomplete') {
+    if (inventory.status === INCOMPLETE_INVENTORY) {
       changeInventoryStatus(
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
@@ -412,7 +413,7 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onBackPress = () => {
-    if (inventory.status == 'incomplete') {
+    if (inventory.status === INCOMPLETE_INVENTORY) {
       navigation.navigate('RegisterSingleTree', { isEdit: true });
     } else {
       goBack();
@@ -528,7 +529,7 @@ const SingleTreeOverview = ({ navigation }) => {
 
           />
         ) : */}
-        {status == 'incomplete' ? (
+        {status === INCOMPLETE_INVENTORY ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressNextTree}

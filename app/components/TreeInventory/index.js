@@ -9,6 +9,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
+import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
@@ -46,7 +47,7 @@ const TreeInventory = ({ navigation }) => {
   let uploadedInventory = [];
   if (allInventory) {
     pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter((x) => x.status == 'incomplete');
+    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE_INVENTORY);
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
@@ -172,8 +173,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
     </View>
   );
 };

@@ -1,38 +1,37 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  ScrollView,
+  Alert,
   FlatList,
+  ImageBackground,
   Modal,
   PermissionsAndroid,
-  ImageBackground,
-  Text,
   Platform,
-  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import { Header, LargeButton, PrimaryButton, Label, InventoryCard } from '../Common';
-import { SafeAreaView } from 'react-native';
-import {
-  getInventory,
-  changeInventoryStatus,
-  updatePlantingDate,
-  updateLastScreen,
-  addSpeciesAction,
-} from '../../repositories/inventory';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import RNFetchBlob from 'rn-fetch-blob';
-import { marker_png, plus_icon, two_trees } from '../../assets';
-import { ALPHABETS } from '../../utils';
-import { bugsnag } from '../../utils';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-
-import { Colors, Typography } from '_styles';
-import { SvgXml } from 'react-native-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import i18next from 'i18next';
-import SelectSpecies from '../SelectSpecies/index';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { SvgXml } from 'react-native-svg';
+import RNFetchBlob from 'rn-fetch-blob';
+import { Colors, Typography } from '_styles';
+import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import {
+  addSpeciesAction,
+  changeInventoryStatus,
+  getInventory,
+  updateLastScreen,
+  updatePlantingDate,
+} from '../../repositories/inventory';
+import { ALPHABETS, bugsnag } from '../../utils';
+import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
+import SelectSpecies from '../SelectSpecies/index';
+import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -114,7 +113,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status == 'incomplete') {
+    if (inventory.status === INCOMPLETE_INVENTORY) {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
@@ -281,7 +280,7 @@ const InventoryOverview = ({ navigation }) => {
 
   const renderAddSpeciesButton = (status) => {
     return (
-      status == 'incomplete' && (
+      status === INCOMPLETE_INVENTORY && (
         <TouchableOpacity
           onPress={() => setIsShowSpeciesListModal(true)}
           style={{
@@ -309,7 +308,9 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    status == 'incomplete' && inventory.locate_tree == 'off-site' ? setShowDate(true) : null;
+    status === INCOMPLETE_INVENTORY && inventory.locate_tree == 'off-site'
+      ? setShowDate(true)
+      : null;
   };
 
   const onPressSaveAndContinueMultiple = (selectedSpeciesList) => {
@@ -375,7 +376,7 @@ const InventoryOverview = ({ navigation }) => {
               )}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={status == 'incomplete' ? i18next.t('label.edit') : ''}
+                rightText={status === INCOMPLETE_INVENTORY ? i18next.t('label.edit') : ''}
                 onPressRightText={() => setIsShowSpeciesListModal(true)}
               />
               <FlatList

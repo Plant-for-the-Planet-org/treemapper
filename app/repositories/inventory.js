@@ -2,6 +2,7 @@ import Realm from 'realm';
 import { Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies } from './schema';
 import { bugsnag } from '../utils';
 import { updateCount } from '../actions/inventory';
+import { INCOMPLETE_INVENTORY } from '../utils/inventoryStatuses';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
@@ -67,7 +68,7 @@ export const initiateInventory = ({ treeType }) => {
           const inventoryData = {
             inventory_id: inventoryID,
             tree_type: treeType,
-            status: 'incomplete',
+            status: INCOMPLETE_INVENTORY,
             plantation_date: `${new Date().getTime()}`,
           };
           realm.create('Inventory', inventoryData);
@@ -248,7 +249,9 @@ export const clearAllIncompleteInventory = () => {
     })
       .then((realm) => {
         realm.write(() => {
-          let allInventory = realm.objects('Inventory').filtered('status == "incomplete"');
+          let allInventory = realm
+            .objects('Inventory')
+            .filtered(`status == "${INCOMPLETE_INVENTORY}"`);
           realm.delete(allInventory);
           resolve();
         });
