@@ -94,7 +94,6 @@ const MultipleTrees = ({ navigation, route }) => {
   };
 
   const onPressContinue = (onBlur = false) => {
-    onBlur !== true ? (onBlur = false) : null;
     let data = {
       inventory_id: state.inventoryID,
       species,

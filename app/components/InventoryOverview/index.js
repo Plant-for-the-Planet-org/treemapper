@@ -60,7 +60,7 @@ const InventoryOverview = ({ navigation }) => {
       setInventory(inventory);
     });
   };
-  `Location Type: ${locationType}`;
+
   const renderPolygon = (polygons, locationType) => {
     return (
       <FlatList
@@ -308,9 +308,9 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    status === INCOMPLETE_INVENTORY && inventory.locate_tree == 'off-site'
-      ? setShowDate(true)
-      : null;
+    if (status === INCOMPLETE_INVENTORY && inventory.locate_tree == 'off-site') {
+      setShowDate(true);
+    }
   };
 
   const onPressSaveAndContinueMultiple = (selectedSpeciesList) => {

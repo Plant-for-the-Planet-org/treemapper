@@ -142,13 +142,10 @@ const SelectSpecies = ({
   const onPressSpecie = (index) => {
     if (speciesList[index].treeCount) {
       speciesList[index].treeCount = undefined;
-      setTimeout(() => setSpeciesList([...speciesList]), 0);
+      setSpeciesList([...speciesList]);
     } else {
       setActiveSpecie(index);
       setIsShowTreeCountModal(true);
-      setTimeout(() => {
-        speciesList[index].treeCount ? setTreeCount(speciesList[index].treeCount) : null;
-      }, 0);
     }
   };
 

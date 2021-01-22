@@ -159,7 +159,7 @@ class MapMarkingComponent extends React.Component {
             let markerCoords = centerCoordinates;
 
             let isValidMarkers = true;
-            geoJSON.features[activePolygonIndex].geometry.coordinates.map((oneMarker) => {
+            for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
               let distance = distanceCalculator(
                 markerCoords[1],
                 markerCoords[0],
@@ -168,8 +168,10 @@ class MapMarkingComponent extends React.Component {
                 'K',
               );
               let distanceInMeters = distance * 1000;
-              if (distanceInMeters < 10) isValidMarkers = false;
-            });
+              if (distanceInMeters < 10) {
+                isValidMarkers = false;
+              }
+            }
 
             let distance = distanceCalculator(
               currentCoords.latitude,

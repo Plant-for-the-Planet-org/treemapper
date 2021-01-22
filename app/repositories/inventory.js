@@ -433,7 +433,9 @@ export const addCoordinateSingleRegisterTree = ({
             },
           ];
           inventory.species_diameter = 10;
-          locateTree ? (inventory.locate_tree = locateTree) : null;
+          if (locateTree) {
+            inventory.locate_tree = locateTree;
+          }
           inventory.plantation_date = `${Date.now()}`;
           resolve();
         });

@@ -42,7 +42,6 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
   };
 
   const onPressContinue = (onBlur = false) => {
-    onBlur !== true ? (onBlur = false) : null;
     let speciesData = {
       inventory_id: state.inventoryID,
       species,
