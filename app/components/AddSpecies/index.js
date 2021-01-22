@@ -31,25 +31,25 @@ import { setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 
 const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
-  const [imagePath, setImagePath] = useState(null);
+  // const [imagePath, setImagePath] = useState(null);
   const [search, setSearch] = useState(null);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchList, setSearchList] = useState(null);
   const [showAddspeciesModal, setShowAddSpeciesModal] = useState(visible);
-  const [inventory, setInventory] = useState(null);
+  // const [inventory, setInventory] = useState(null);
   //const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   const [isLoading, setIsLoading] = useState(null);
   const [isLoaderShow, setIsLoaderShow] = useState(false);
-  const { state, dispatch } = useContext(InventoryContext);
+  const { state } = useContext(InventoryContext);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
-      setInventory(inventory);
-      if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
-        setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
-      }
+      // setInventory(inventory);
+      // if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
+      //   setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
+      // }
     });
   }, []);
 
@@ -96,7 +96,6 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
               closeAddSpeciesModal();
             })
             .catch((err) => {
-              console.error(err);
               setIsLoaderShow(false);
               Alert.alert(
                 'Error',

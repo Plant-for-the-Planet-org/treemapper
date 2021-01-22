@@ -7,9 +7,8 @@ import { getUserInformationFromServer } from '../../repositories/user';
 import i18next from 'i18next';
 import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
-import { SpeciesList } from '../../services/Species';
 import ProfileListItem from './ProfileListItem';
-import { setSpeciesList } from '../../actions/species';
+import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 
 const ProfileModal = ({
@@ -39,8 +38,10 @@ const ProfileModal = ({
       if (detail && detail.length > 0) {
         let decode = jwtDecode(detail[0].idToken);
         setUserPhoto(decode.picture);
-        SpeciesList(detail[0].accessToken).then((data) => {
-          setSpeciesList(data)(speciesDispatch);
+        getSpeciesList(detail[0].accessToken).then((data) => {
+          if (data) {
+            setSpeciesList(data)(speciesDispatch);
+          }
         });
       }
     });

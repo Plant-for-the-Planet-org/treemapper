@@ -80,26 +80,3 @@ export const SearchSpecies = (payload) => {
       });
   });
 };
-
-export const SpeciesList = (userToken) => {
-  return new Promise((resolve, reject) => {
-    axios({
-      method: 'GET',
-      url: `${protocol}://${url}/treemapper/species`,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-      },
-    })
-      .then((res) => {
-        const { data, status } = res;
-        if (status === 200) {
-          resolve(data);
-        }
-      })
-      .catch((err) => {
-        reject(err);
-        console.error(err, 'error');
-      });
-  });
-};

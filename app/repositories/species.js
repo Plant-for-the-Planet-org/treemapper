@@ -82,24 +82,7 @@ export const updateNameForUserSpecies = ({ id, aliases }) => {
       });
   });
 };
-export const filterSpecies = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          const species = realm.objects('AddSpecies');
-          let filteredSpecies = species.filtered('aliases != "" && status == "pending"');
-          resolve(JSON.parse(JSON.stringify(filteredSpecies)));
-        });
-      })
-      .catch((err) => {
-        reject(err);
-        bugsnag.notify(err);
-      });
-  });
-};
+
 export const filterPendingSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open({

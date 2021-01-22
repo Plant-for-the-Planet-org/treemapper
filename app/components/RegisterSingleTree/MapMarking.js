@@ -1,47 +1,32 @@
+import Geolocation from '@react-native-community/geolocation';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
 import React, { useContext } from 'react';
 import {
-  View,
-  StyleSheet,
-  Text,
-  Platform,
-  SafeAreaView,
-  Image,
   ActivityIndicator,
-  TouchableOpacity,
   ImageBackground,
   Modal,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Header, PrimaryButton, Alrighty } from '../Common';
-import { Colors } from '_styles';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
-import { getInventory, addCoordinateSingleRegisterTree } from '../../repositories/inventory';
-import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Geolocation from '@react-native-community/geolocation';
-import LinearGradient from 'react-native-linear-gradient';
 import Config from 'react-native-config';
+import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
-import i18next from 'i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Colors } from '_styles';
+import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
+import { Alrighty, Header, PrimaryButton } from '../Common';
+import distanceCalculator from '../../utils/distanceCalculator';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-const infographicText = [
-  {
-    heading: 'Alrighty!',
-    subHeading: 'Now, please walk to the next corner and tap continue when ready',
-  },
-  {
-    heading: 'Great!',
-    subHeading: 'Now, please walk to the next corner and tap continue when ready',
-  },
-  {
-    heading: 'Great!',
-    subHeading:
-      'If the next corner is your starting point tap Complete. Otherwise please walk to the next corner.',
-  },
-];
 const IS_ANDROID = Platform.OS == 'android';
 
 class MapMarking extends React.Component {
@@ -96,7 +81,7 @@ class MapMarking extends React.Component {
 
   onUpdateUserLocation = (location) => {
     if (!location) {
-      // alert('Unable to retrive location')
+      // alert('Unable to retrieve location')
       return;
     }
     if (!this.state.isInitial) {
@@ -111,7 +96,7 @@ class MapMarking extends React.Component {
   };
 
   addMarker = async () => {
-    let { centerCoordinates, geoJSON, activePolygonIndex } = this.state;
+    let { centerCoordinates } = this.state;
     // Check distance
     try {
       Geolocation.getCurrentPosition(
@@ -119,7 +104,7 @@ class MapMarking extends React.Component {
           let currentCoords = position.coords;
           let markerCoords = centerCoordinates;
 
-          let distance = this.distanceCalculator(
+          let distance = distanceCalculator(
             currentCoords.latitude,
             currentCoords.longitude,
             markerCoords[1],
@@ -149,33 +134,6 @@ class MapMarking extends React.Component {
     this.setState({ markedCoords: centerCoordinates }, () => {
       this.onPressContinue();
     });
-  };
-
-  distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
-    if (lat1 == lat2 && lon1 == lon2) {
-      return 0;
-    } else {
-      var radlat1 = (Math.PI * lat1) / 180;
-      var radlat2 = (Math.PI * lat2) / 180;
-      var theta = lon1 - lon2;
-      var radtheta = (Math.PI * theta) / 180;
-      var dist =
-        Math.sin(radlat1) * Math.sin(radlat2) +
-        Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-      if (dist > 1) {
-        dist = 1;
-      }
-      dist = Math.acos(dist);
-      dist = (dist * 180) / Math.PI;
-      dist = dist * 60 * 1.1515;
-      if (unit == 'K') {
-        dist = dist * 1.609344;
-      }
-      if (unit == 'N') {
-        dist = dist * 0.8684;
-      }
-      return dist;
-    }
   };
 
   renderMarker = () => {
@@ -297,8 +255,9 @@ class MapMarking extends React.Component {
   };
 
   onPressBack = () => {
-    const { locateTree } = this.state;
-    const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+    // const { locateTree } = this.state;
+    // const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+    const { navigation } = this.props;
     navigation.navigate('TreeInventory');
     return;
     // if (locateTree == 'off-site') {

@@ -72,11 +72,11 @@ const ImageCapturing = ({
       );
       generateMarkers();
     } else {
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-        inventory.species = Object.values(inventory.species);
-        setInventory(inventory);
-        if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
-          setImagePath(inventory.polygons[0].coordinates[0].imageUrl);
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        inventoryData.species = Object.values(inventoryData.species);
+        setInventory(inventoryData);
+        if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
+          setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
       });
     }

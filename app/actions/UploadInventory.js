@@ -20,6 +20,7 @@ import RNFS from 'react-native-fs';
 import getSessionData from '../utils/sessionId';
 import i18next from 'i18next';
 import { updateCount, updateIsUploading } from './inventory';
+import { getSpeciesList } from './species';
 
 const { protocol, url } = APIConfig;
 
@@ -88,8 +89,8 @@ export const uploadInventory = (dispatch) => {
     })
       .then((realm) => {
         realm.write(() => {
-          const User = realm.objectForPrimaryKey('User', 'id0001');
-          let userToken = User.accessToken;
+          const user = realm.objectForPrimaryKey('User', 'id0001');
+          let userToken = user.accessToken;
           try {
             Geolocation.getCurrentPosition(
               async (position) => {
@@ -387,7 +388,7 @@ export const UpdateSpeciesImage = (image, speciesId) => {
             },
           })
             .then((res) => {
-              const { status, data } = res;
+              const { status } = res;
 
               if (status === 200) {
                 resolve(true);
@@ -404,7 +405,7 @@ export const UpdateSpeciesImage = (image, speciesId) => {
 };
 
 export const SpeciesListData = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Realm.open({
       schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
     }).then((realm) => {
@@ -412,25 +413,9 @@ export const SpeciesListData = () => {
         const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = SpeciesListDataUser.accessToken;
 
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/treemapper/species`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-          },
-        })
-          .then((res) => {
-            const { data, status } = res;
-
-            if (status === 200) {
-              resolve(data);
-            }
-          })
-          .catch((err) => {
-            reject(err);
-            console.error(err, 'error');
-          });
+        getSpeciesList(userToken).then((data) => {
+          resolve(data);
+        });
       });
     });
   });

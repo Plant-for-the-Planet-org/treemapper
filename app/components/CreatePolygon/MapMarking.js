@@ -23,6 +23,7 @@ import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { toLetters } from '../../utils/mapMarkingCoordinate';
+import distanceCalculator from '../../utils/distanceCalculator';
 import { InventoryContext } from '../../reducers/inventory';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -44,7 +45,7 @@ const infographicText = [
 const ALPHABETS = i18next.t('label.locate_tree_alphabets');
 const IS_ANDROID = Platform.OS == 'android';
 
-class MapMarking extends React.Component {
+class MapMarkingComponent extends React.Component {
   state = {
     isAlrightyModalShow: false,
     centerCoordinates: [0, 0],
@@ -159,7 +160,7 @@ class MapMarking extends React.Component {
 
             let isValidMarkers = true;
             geoJSON.features[activePolygonIndex].geometry.coordinates.map((oneMarker) => {
-              let distance = this.distanceCalculator(
+              let distance = distanceCalculator(
                 markerCoords[1],
                 markerCoords[0],
                 oneMarker[1],
@@ -170,7 +171,7 @@ class MapMarking extends React.Component {
               if (distanceInMeters < 10) isValidMarkers = false;
             });
 
-            let distance = this.distanceCalculator(
+            let distance = distanceCalculator(
               currentCoords.latitude,
               currentCoords.longitude,
               markerCoords[1],
@@ -241,33 +242,6 @@ class MapMarking extends React.Component {
     });
   };
 
-  distanceCalculator = (lat1, lon1, lat2, lon2, unit) => {
-    if (lat1 == lat2 && lon1 == lon2) {
-      return 0;
-    } else {
-      var radlat1 = (Math.PI * lat1) / 180;
-      var radlat2 = (Math.PI * lat2) / 180;
-      var theta = lon1 - lon2;
-      var radtheta = (Math.PI * theta) / 180;
-      var dist =
-        Math.sin(radlat1) * Math.sin(radlat2) +
-        Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-      if (dist > 1) {
-        dist = 1;
-      }
-      dist = Math.acos(dist);
-      dist = (dist * 180) / Math.PI;
-      dist = dist * 60 * 1.1515;
-      if (unit == 'K') {
-        dist = dist * 1.609344;
-      }
-      if (unit == 'N') {
-        dist = dist * 0.8684;
-      }
-      return dist;
-    }
-  };
-
   onChangeRegionStart = () => this.setState({ loader: true });
 
   onChangeRegionComplete = async () => {
@@ -315,7 +289,7 @@ class MapMarking extends React.Component {
     const markers = [];
     for (let i = 0; i < geoJSON.features.length; i++) {
       let onePolygon = geoJSON.features[i];
-      let coordinatesLenghtShouldBe = onePolygon.properties.isPolygonComplete
+      let coordinatesLengthShouldBe = onePolygon.properties.isPolygonComplete
         ? onePolygon.geometry.coordinates.length - 1
         : onePolygon.geometry.coordinates.length;
       for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
@@ -448,7 +422,7 @@ class MapMarking extends React.Component {
 
     let isShowCompletePolygonBtn =
       geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
-    let coordinatesLenghtShouldBe = geoJSON.features[activePolygonIndex].properties
+    let coordinatesLengthShouldBe = geoJSON.features[activePolygonIndex].properties
       .isPolygonComplete
       ? geoJSON.features[activePolygonIndex].geometry.coordinates.length - 1
       : geoJSON.features[activePolygonIndex].geometry.coordinates.length;
@@ -486,10 +460,10 @@ class MapMarking extends React.Component {
   }
 }
 
-export default function MapMarkingMain(props) {
+export default function MapMarking(props) {
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
-  return <MapMarking {...props} {...state} navigation={navigation} />;
+  return <MapMarkingComponent {...props} {...state} navigation={navigation} />;
 }
 
 const styles = StyleSheet.create({

@@ -115,7 +115,9 @@ const SelectSpecies = ({
   const getAllUserSpecies = () => {
     SpeciesListData()
       .then((data) => {
-        setSpeciesListAction(data)(speciesDispatch);
+        if (data) {
+          setSpeciesListAction(data)(speciesDispatch);
+        }
       })
       .catch((err) => {
         console.error(err, 'error');

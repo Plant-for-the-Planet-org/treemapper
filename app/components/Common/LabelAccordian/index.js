@@ -43,7 +43,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
 
   const onPressContinue = (onBlur = false) => {
     onBlur !== true ? (onBlur = false) : null;
-    let data = {
+    let speciesData = {
       inventory_id: state.inventoryID,
       species,
       plantation_date: `${plantingDate.getTime()}`,
@@ -58,7 +58,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
         return;
       }
     }
-    addSpeciesAction(data).then(() => {
+    addSpeciesAction(speciesData).then(() => {
       if (!onBlur) {
         if (route.params?.isEdit) {
           navigation.navigate('InventoryOverview');

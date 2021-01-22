@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Animated, Easing } from 'react-native';
 
 export default function RotatingView({ children }) {
-  const [spinValue, setSpinValue] = useState(new Animated.Value(0));
+  const [spinValue] = useState(new Animated.Value(0));
 
   useEffect(() => {
     Animated.loop(
