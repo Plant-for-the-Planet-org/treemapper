@@ -13,5 +13,8 @@
   "tree_inventory_alert_header": "Tem certeza?",
   "tree_inventory_alert_sub_header": "Os registos estão seguros na nuvem. Uma vez eliminados os registos, atualmente não é possível recuperá-los neste app.",
   "tree_inventory_alert_primary_btn_text": "Confirmar exclusão",
-  "tree_inventory_clear_all": "Limpar tudo"
+  "tree_inventory_clear_all": "Limpar tudo",
+  "tree_inventory_tree": "Árvore",
+  "tree_inventory_trees": "Árvores",
+  "tree_inventory_overview_date": "{{item.title}}"
 }
