@@ -70,7 +70,7 @@ const InventoryOverview = ({ navigation }) => {
           return (
             <View>
               <Label
-                leftText={i18next.t('label.tree_inventory_overview_polygon_left_text', {
+                leftText={i18next.t('label.inventory_overview_polygon_left_text', {
                   locationType,
                 })}
                 rightText={''}
@@ -79,11 +79,13 @@ const InventoryOverview = ({ navigation }) => {
                 data={Object.values(item.coordinates)}
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
-                    title: `Coordinate ${ALPHABETS[index]}`,
+                    title: i18next.t('label.inventory_overview_title_coordinates', {
+                            alphabetindex: ALPHABETS[index],
+                          }),
                     subHeading: `${oneCoordinate.latitude.toFixed(
                       5,
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
-                    date: 'View location',
+                    date: i18next.t('label.inventory_overview_view_location'),
                     imageURL: oneCoordinate.imageUrl,
                     index: index,
                   };

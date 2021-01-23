@@ -647,7 +647,7 @@ const SelectSpecies = ({
                     }}>
                     <Header headingText={i18next.t('label.select_species_header')} />
                     <TouchableOpacity onPress={onPressSearch}>
-                      <Text style={styles.searchText}>Search</Text>
+                      <Text style={styles.searchText}>{i18next.t('label.select_species_search')}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -655,7 +655,7 @@ const SelectSpecies = ({
                     closeIcon
                     headingText={i18next.t('label.select_species_header')}
                     subHeadingText={i18next.t('label.select_species_sub_header')}
-                    rightText={'Search'}
+                    rightText={i18next.t('label.select_species_search')}
                     onPressSearch={onPressSearch}
                   />
                 )}

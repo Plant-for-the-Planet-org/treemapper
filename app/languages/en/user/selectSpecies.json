@@ -8,5 +8,6 @@
   "select_species_modal_label": "Tree Count",
   "select_species_header": "Select Species",
   "select_species_sub_header": "Please select the species that has been planted",
-  "select_species_btn_text": "Save & Continue"
+  "select_species_btn_text": "Save & Continue",
+  "select_species_search": "Search"
 }
