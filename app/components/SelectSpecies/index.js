@@ -201,7 +201,7 @@ const SelectSpecies = ({
           marginVertical: 10,
         }}
         accessible={true}
-        accessibilityLabel="Species Card"
+        accessibilityLabel={i18next.t('label.select_species_card')}
         testID="species_card">
         {numberTrees === 'single' ? (
           <View>
@@ -238,7 +238,7 @@ const SelectSpecies = ({
             </Text>
           ) : (
             <Text numberOfLines={2} style={styles.speciesLocalName}>
-              Add Name
+              {i18next.t('label.select_species_add_name')}
             </Text>
           )}
           <Text numberOfLines={2} style={styles.speciesName}>
@@ -275,7 +275,7 @@ const SelectSpecies = ({
           marginVertical: 10,
         }}
         accessible={true}
-        accessibilityLabel="Species Card"
+        accessibilityLabel={i18next.t('label.select_species_card')}
         testID="species_card">
         {/* <View>
           <SvgXml xml={onSiteCheck ? checkCircleFill : checkCircle} />
@@ -414,7 +414,7 @@ const SelectSpecies = ({
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
               <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
-                <Header headingText={'Add Measurements'} />
+                <Header headingText={i18next.t('label.select_species_add_measurements')} />
               </View>
               <KeyboardAvoidingView
                 behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
@@ -428,7 +428,7 @@ const SelectSpecies = ({
                           value={diameter}
                           style={styles.input}
                           autoFocus
-                          placeholder={'Diameter'}
+                          placeholder={i18next.t('label.select_species_diameter')}
                           placeholderTextColor={Colors.TEXT_COLOR}
                           onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
                           keyboardType={'decimal-pad'}
@@ -439,7 +439,7 @@ const SelectSpecies = ({
                             padding: 10,
                             paddingRight: 20,
                           }}>
-                          {Countries.includes(countryCode) ? 'inches' : 'cm'}
+                          {Countries.includes(countryCode) ? i18next.t('label.select_species_inch') : 'cm'}
                         </Text>
                       </View>
                     </View>
@@ -450,7 +450,7 @@ const SelectSpecies = ({
                         <TextInput
                           value={height}
                           style={styles.input}
-                          placeholder={'Height'}
+                          placeholder={i18next.t('label.select_species_height')}
                           placeholderTextColor={Colors.TEXT_COLOR}
                           onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
                           keyboardType={'decimal-pad'}
@@ -461,7 +461,7 @@ const SelectSpecies = ({
                             padding: 10,
                             paddingRight: 20,
                           }}>
-                          {Countries.includes(countryCode) ? 'Feet' : 'm'}
+                          {Countries.includes(countryCode) ? i18next.t('label.select_species_feet') : 'm'}
                         </Text>
                       </View>
                     </View>
@@ -470,7 +470,7 @@ const SelectSpecies = ({
                   <View>
                     <PrimaryButton
                       onPress={onPressMeasurementBtn}
-                      btnText={'Continue'}
+                      btnText={i18next.t('label.select_species_continue')}
                       style={{ marginBottom: 50 }}
                       // disabled={singleTree ? false : true}
                     />
@@ -504,7 +504,7 @@ const SelectSpecies = ({
             )}
             <Header
               hideBackIcon
-              subHeadingText={'Please enter the name of the plant'}
+              subHeadingText={i18next.t('label.select_species_enter_name')}
               textAlignStyle={{ textAlign: 'center' }}
             />
           </View>
@@ -563,9 +563,9 @@ const SelectSpecies = ({
         });
     } else {
       Alert.alert(
-        'Error',
-        'Enter valid input',
-        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        i18next.t('label.select_species_error'),
+        i18next.t('label.select_species_enter_valid_input'),
+        [{ text: i18next.t('label.select_species_ok'), onPress: () => console.log('OK Pressed') }],
         { cancelable: false },
       );
     }
