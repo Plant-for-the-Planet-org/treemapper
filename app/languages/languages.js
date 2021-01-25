@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 // import { getLanguages } from 'react-native-i18n';
 import * as RNLocalize from 'react-native-localize';
-import moment from 'moment';
+import moment from 'moment/min/moment-with-locales';
 
 // Refer this for checking the codes and creating new folders https://developer.chrome.com/webstore/i18n
 // Step 1 - Create index.js files for each language we want to have, in this file you can import all the json files (Step 4) and export them
@@ -64,6 +64,9 @@ i18next.init({
       },
     },
   },
+});
+i18next.on('languageChanged', function (lng) {
+  moment.locale(lng);
 });
 i18next.changeLanguage(userLang);
 

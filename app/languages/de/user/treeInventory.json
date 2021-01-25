@@ -13,5 +13,15 @@
   "tree_inventory_alert_header": "Bist du sicher?",
   "tree_inventory_alert_sub_header": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen.",
   "tree_inventory_alert_primary_btn_text": "Bist du sicher?",
-  "tree_inventory_clear_all": "Alles löschen"
+  "tree_inventory_clear_all": "Alles löschen",
+  "tree_inventory_free_up_space": "Speicherplatz freigeben",
+  "tree_inventory_off_site": "Außerhalb des Standorts",
+  "tree_inventory_on_site": "Vor Ort",
+  "tree_inventory_tree": "Baum",
+  "tree_inventory_trees": "Bäume",
+  "tree_inventory_point": "Punkt",
+  "tree_inventory_polygon": "Polygon",
+  "tree_inventory_upload_inventory_list": "Inventarliste hochladen",
+  "tree_inventory_inventory_list": "Inventarliste",
+  "tree_inventory_overview_date": "{{date, ll}}"
 }

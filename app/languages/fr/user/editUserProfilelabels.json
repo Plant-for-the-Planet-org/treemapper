@@ -2,6 +2,10 @@
   "edit_profile": "Editer le profil",
   "logout": "Se déconnecter",
   "privacy_policy": "Politique de confidentialité",
-  "support": "Soutien",
-  "edit": "Éditer"
+  "terms_of_service": "Conditions d'utilisation",
+  "edit": "Éditer",
+  "manage_offline": "Gérer les cartes hors ligne",
+  "manage_species": "Gérer les espèces",
+  "back_up": "Tous les changements sauvegardés",
+  "support": "Soutien"
 }
