@@ -1,0 +1,14 @@
+// used to set the inventory id of an inventory
+export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
+export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
+export const UPDATE_LAST_SCREEN = 'UPDATE_LAST_SCREEN';
+export const ADD_INVENTORY = 'ADD_INVENTORY';
+export const UPDATE_PENDING_COUNT = 'UPDATE_PENDING_COUNT';
+export const UPDATE_UPLOAD_COUNT = 'UPDATE_UPLOAD_COUNT';
+export const IS_UPLOADING = 'IS_UPLOADING';
+
+export const SET_LOADING = 'SET_LOADING';
+export const SET_SIGNUP_LOADING = 'SET_SIGNUP_LOADING';
+
+export const SET_SPECIES_LIST = 'SET_SPECIES_LIST';
+export const SET_SPECIE_ID = 'SET_SPECIE_ID';

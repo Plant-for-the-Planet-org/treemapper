@@ -11,6 +11,6 @@
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "FECHA DE LA PLANTACIÓN",
-  "tree_Review_plantation_date_text": "{{date, ll}}",
+  "tree_review_plantation_date_text": "{{date, ll}}",
   "tree_review_alrighty": "Completar"
 }
