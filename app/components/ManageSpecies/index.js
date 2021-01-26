@@ -1,5 +1,13 @@
-import React,{ useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  ScrollView,
+} from 'react-native';
 import { Colors, Typography } from '_styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,9 +23,8 @@ import {
   Inventory,
   AddSpecies,
   ScientificSpecies,
-} from '../../Actions/Schemas';
+} from '../../repositories/schema';
 import Realm from 'realm';
-
 
 const ManageSpecies = () => {
   const navigation = useNavigation();
@@ -31,62 +38,96 @@ const ManageSpecies = () => {
   };
 
   const renderSpecieCard = ({ item, index }) => {
-    return(
+    return (
       <TouchableOpacity
         key={index}
-        style={{paddingBottom: 20, paddingRight: 10, paddingTop: 10,borderBottomWidth: 1, borderColor: '#E1E0E061', flexDirection: 'row', alignItems:'center', justifyContent:'space-between'}}
-      >
+        style={{
+          paddingBottom: 20,
+          paddingRight: 10,
+          paddingTop: 10,
+          borderBottomWidth: 1,
+          borderColor: '#E1E0E061',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
         <View>
-          <Text style={{fontSize: Typography.FONT_SIZE_16, fontFamily: Typography.FONT_FAMILY_REGULAR}}>
+          <Text
+            style={{
+              fontSize: Typography.FONT_SIZE_16,
+              fontFamily: Typography.FONT_FAMILY_REGULAR,
+            }}>
             {item.nameOfTree}
           </Text>
-          <Text style={{fontSize:Typography.FONT_SIZE_12, fontFamily: Typography.FONT_FAMILY_REGULAR, color: '#949596'}}>
+          <Text
+            style={{
+              fontSize: Typography.FONT_SIZE_12,
+              fontFamily: Typography.FONT_FAMILY_REGULAR,
+              color: '#949596',
+            }}>
             {item.localName}
           </Text>
         </View>
-        <Ionicons name='chevron-forward-outline' size={20}/>
+        <Ionicons name="chevron-forward-outline" size={20} />
       </TouchableOpacity>
     );
-  }
+  };
 
   const searchSpecies = (searchText) => {
     return new Promise((resolve, reject) => {
       Realm.open({
-        schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies, ScientificSpecies ]
-      })
-      .then((realm)=>{
+        schema: [
+          Inventory,
+          Species,
+          Polygons,
+          Coordinates,
+          OfflineMaps,
+          User,
+          AddSpecies,
+          ScientificSpecies,
+        ],
+      }).then((realm) => {
         let species = realm.objects('ScientificSpecies');
         let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${searchText}"`);
         console.log(searchedSpecies);
         setSearchList(searchedSpecies);
-      })
-
-    });  
+      });
+    });
   };
 
-  const renderSearchSpecieCard = ({item, index}) => {
-    return(
+  const renderSearchSpecieCard = ({ item, index }) => {
+    return (
       <TouchableOpacity
         key={index}
-        style={{paddingBottom: 20, 
-          paddingRight: 10, 
-          paddingTop: 10, 
-          borderBottomWidth: 1, 
-          borderColor: '#E1E0E061', 
-          flexDirection: 'row', 
-          alignItems:'center', 
-          justifyContent:'space-between'}}
-      >
+        style={{
+          paddingBottom: 20,
+          paddingRight: 10,
+          paddingTop: 10,
+          borderBottomWidth: 1,
+          borderColor: '#E1E0E061',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
         <View>
-          <Text style={{fontSize: Typography.FONT_SIZE_16, fontFamily: Typography.FONT_FAMILY_REGULAR}}>
+          <Text
+            style={{
+              fontSize: Typography.FONT_SIZE_16,
+              fontFamily: Typography.FONT_FAMILY_REGULAR,
+            }}>
             {item.scientific_name}
           </Text>
-          <Text style={{fontSize:Typography.FONT_SIZE_12, fontFamily: Typography.FONT_FAMILY_REGULAR, color: '#949596'}}>
+          <Text
+            style={{
+              fontSize: Typography.FONT_SIZE_12,
+              fontFamily: Typography.FONT_FAMILY_REGULAR,
+              color: '#949596',
+            }}>
             {item.localName}
           </Text>
         </View>
-        <Icon 
-          name='check-circle'
+        <Icon
+          name="check-circle"
           size={25}
           color={Colors.PRIMARY}
           // onPress={() => {
@@ -95,7 +136,7 @@ const ManageSpecies = () => {
         />
       </TouchableOpacity>
     );
-  }
+  };
 
   const MySpecies = () => {
     return (
@@ -124,7 +165,7 @@ const ManageSpecies = () => {
   };
 
   const SearchSpecies = () => {
-    return(
+    return (
       <View>
         <ScrollView>
           <FlatList
@@ -136,32 +177,28 @@ const ManageSpecies = () => {
         </ScrollView>
       </View>
     );
-  }
+  };
   return (
     <View style={styles.container}>
       <Header closeIcon onBackPress={onPressBack} headingText="Tree Species" />
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-        <TextInput 
-          style={styles.searchText} 
-          defaultValue="Search species" 
-          onChangeText={text => 
-            {
-              setSearchText(text);
-              !text ?
-              searchSpecies(text):
-              null;
-            }}
-          onFocus={()=> setSearchText('')}
+        <TextInput
+          style={styles.searchText}
+          defaultValue="Search species"
+          onChangeText={(text) => {
+            setSearchText(text);
+            !text ? searchSpecies(text) : null;
+          }}
+          onFocus={() => setSearchText('')}
           // autoFocus
-          value={searchText} 
+          value={searchText}
         />
       </View>
       <>
         {/* <MySpecies /> */}
         <SearchSpecies />
       </>
-
     </View>
   );
 };
@@ -239,4 +276,4 @@ const speciesJSON = [
   { localName: 'Balché', nameOfTree: 'Caterpillar' },
   { localName: 'Balché', nameOfTree: 'Cattle' },
   { localName: 'Balché', nameOfTree: 'Chamois' },
-]
+];
