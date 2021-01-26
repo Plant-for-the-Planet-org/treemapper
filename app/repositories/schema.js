@@ -104,8 +104,8 @@ const ActivityLogs = {
     message: 'string',
     // version of tree mapper app
     appVersion: 'string',
-    // error code for api request (optional)
-    errorCode: 'string?',
+    // status code for api request (optional)
+    statusCode: 'string?',
     // used to show extra details if available (optional)
     logStack: 'string?',
   },

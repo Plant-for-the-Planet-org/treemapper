@@ -18,13 +18,12 @@ import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
 import RNFS from 'react-native-fs';
 import getSessionData from '../utils/sessionId';
-import i18next from 'i18next';
 import { updateCount, updateIsUploading } from './inventory';
 import { getSpeciesList } from './species';
 
 const { protocol, url } = APIConfig;
 
-export const changeStatusAndUpload = async (
+const changeStatusAndUpload = async (
   response,
   oneInventory,
   userToken,
@@ -82,6 +81,7 @@ export const changeStatusAndUpload = async (
     }
   });
 };
+
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
@@ -92,9 +92,11 @@ export const uploadInventory = (dispatch) => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
           let userToken = user.accessToken;
           try {
+            // gets the current geo location coordinate of the user
             Geolocation.getCurrentPosition(
               async (position) => {
-                let currentCoords = position.coords;
+
+                const currentCoords = position.coords;
                 const pendingInventory = await getInventoryByStatus('pending');
                 const uploadingInventory = await getInventoryByStatus('uploading');
                 let inventoryData = [...pendingInventory, ...uploadingInventory];
@@ -241,7 +243,7 @@ export const uploadInventory = (dispatch) => {
   });
 };
 
-export const uploadImage = async (oneInventory, response, userToken, sessionId) => {
+const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   let locationId = response.id;
   let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
   let responseCoords = response.coordinates;
@@ -421,7 +423,7 @@ export const SpeciesListData = () => {
   });
 };
 
-export const getPlantLocationDetails = (locationId, userToken) => {
+const getPlantLocationDetails = (locationId, userToken) => {
   return new Promise((resolve, reject) => {
     axios({
       method: 'GET',

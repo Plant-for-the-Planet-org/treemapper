@@ -1,5 +1,5 @@
 // defines the types of logs supported by the application
-export default LogTypes = {
+export const LogTypes = {
   // log type used in single tree feature
   SINGLE_TREE: 'SINGLE_TREE',
   // log type used in multiple trees feature
@@ -15,8 +15,8 @@ export default LogTypes = {
 };
 
 // defines the log levels
-export default LogLevels = {
-  // this is used when the behaviour is correct
+export const LogLevels = {
+  // this is used when the expected behaviour is correct
   INFO: 'INFO',
   // this is used when behaviour of the app is correct but some precaution or suspicious activity needs to be attended
   WARN: 'WARN',
