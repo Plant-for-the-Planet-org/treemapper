@@ -16,7 +16,7 @@ const Header = ({
   testID,
   accessibilityLabel,
   rightText,
-  onPressSearch,
+  onPressFunction,
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -41,8 +41,8 @@ const Header = ({
         )}
         <View />
         {rightText ? (
-          onPressSearch ? (
-            <TouchableOpacity onPress={() => onPressSearch()}>
+          onPressFunction ? (
+            <TouchableOpacity onPress={() => onPressFunction()}>
               <Text style={styles.rightText}>{rightText}</Text>
             </TouchableOpacity>
           ) : (
