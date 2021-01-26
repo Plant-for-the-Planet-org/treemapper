@@ -25,12 +25,14 @@ import {
   ScientificSpecies,
 } from '../../repositories/schema';
 import Realm from 'realm';
+import { searchSpecies } from '../../repositories/species'
 
 const ManageSpecies = () => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([...speciesJSON]);
   const [searchText, setSearchText] = useState('Search species');
   const [searchList, setSearchList] = useState(null);
+  const [selectedSpecies, setSelectedSpecies] = useState([]);
 
   const onPressBack = () => {
     console.log('clicked');
@@ -73,7 +75,7 @@ const ManageSpecies = () => {
     );
   };
 
-  const searchSpecies = (searchText) => {
+  const searchSpecies = (text) => {
     return new Promise((resolve, reject) => {
       Realm.open({
         schema: [
@@ -88,14 +90,28 @@ const ManageSpecies = () => {
         ],
       }).then((realm) => {
         let species = realm.objects('ScientificSpecies');
-        let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${searchText}"`);
-        console.log(searchedSpecies);
+        let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${text}"`);
+        // console.log(searchedSpecies);
         setSearchList(searchedSpecies);
       });
     });
   };
 
+  const addSpecies = (item) => {
+    setSelectedSpecies([...selectedSpecies, item]);
+    console.log(selectedSpecies, 'selectedSPecies');
+  }
+
   const renderSearchSpecieCard = ({ item, index }) => {
+    let isCheck;
+    if (selectedSpecies !== null) {
+      let selectItem = [...selectedSpecies];
+      for (let specie of selectItem) {
+        if (specie === item) {
+          isCheck = specie.scientific_name === item.scientific_name ? true : false;
+        }
+      }
+    }
     return (
       <TouchableOpacity
         key={index}
@@ -123,17 +139,29 @@ const ManageSpecies = () => {
               fontFamily: Typography.FONT_FAMILY_REGULAR,
               color: '#949596',
             }}>
-            {item.localName}
+            {item.scientific_name}
           </Text>
         </View>
-        <Icon
-          name="check-circle"
-          size={25}
-          color={Colors.PRIMARY}
-          // onPress={() => {
-          //   // removeSpecies(item);
-          // }}
-        />
+        {isCheck ? (
+          <Icon
+            name="check-circle"
+            size={25}
+            color={Colors.PRIMARY}
+            onPress={() => {
+              // removeSpecies(item);
+            }}
+          />
+        ) : (
+          <Icon
+            name="plus-circle"
+            size={25}
+            color={Colors.TEXT_COLOR}
+            onPress={() => {
+              // Keyboard.dismiss();
+              addSpecies(item);
+            }}
+          />
+        )}
       </TouchableOpacity>
     );
   };
@@ -172,7 +200,9 @@ const ManageSpecies = () => {
             style={{ flex: 1 }}
             data={searchList}
             showsVerticalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
             renderItem={renderSearchSpecieCard}
+            extraData={selectedSpecies}
           />
         </ScrollView>
       </View>
@@ -188,7 +218,12 @@ const ManageSpecies = () => {
           defaultValue="Search species"
           onChangeText={(text) => {
             setSearchText(text);
-            !text ? searchSpecies(text) : null;
+            if (text)
+            {
+              searchSpecies(text)
+            }
+            else {}
+            // searchSpecies(text);
           }}
           onFocus={() => setSearchText('')}
           // autoFocus

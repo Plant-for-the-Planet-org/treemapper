@@ -22,6 +22,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { updateCount } from '../../actions/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { startLoading, stopLoading } from '../../actions/loader';
+import { importJSON } from '../../repositories/species'
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
