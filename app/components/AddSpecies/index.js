@@ -98,9 +98,11 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
             .catch((err) => {
               setIsLoaderShow(false);
               Alert.alert(
-                'Error',
-                `You have already added ${specie.scientificName}`,
-                [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+                i18next.t('label.select_species_error'),
+                i18next.t('label.select_species_enter_valid_input', {
+                  scientificName: specie.scientificName
+                }),
+                [{ text: i18next.t('label.select_species_ok'), onPress: () => console.log('OK Pressed') }],
                 { cancelable: false },
               );
             });
@@ -135,7 +137,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           marginVertical: 10,
         }}
         accessible={true}
-        accessibilityLabel="Species Card"
+        accessibilityLabel={i18next.t('label.select_species_card')}
         testID="species_card">
         {isCheck ? (
           <Icon
@@ -158,11 +160,11 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
           />
         )}
         {/* <TouchableOpacity onPress={() => onPressImage()} style={{flex:1}}>
-          <Image 
+          <Image
             source={
               {uri: `${APIConfig.protocol}://${Config.SPECIE_IMAGE_CDN}${item.image}`}
-            } 
-            resizeMode={'contain'} 
+            }
+            resizeMode={'contain'}
             style={{ flex: 1}}
           />
         </TouchableOpacity> */}
@@ -205,7 +207,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
         <View style={styles.dowloadModalContainer}>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ padding: 30, backgroundColor: '#fff', borderRadius: 10 }}>
-              Adding Species...
+              {i18next.t('label.select_species_adding_species')}
             </Text>
           </View>
         </View>
@@ -222,9 +224,11 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
             <Header
               onBackPress={() => closeAddSpeciesModal()}
               closeIcon
-              headingText="Add Species"
-              subHeadingText="Species list will update as you type Click + to add it to your profile"
-              rightText={`${selectedSpecies.length} Species Selected`}
+              headingText={i18next.t('label.select_species_add_species')}
+              subHeadingText={i18next.t('label.select_species_subheading')}
+              rightText={i18next.t('label.select_species_species_selected', {
+                length: selectedSpecies.length
+              })}
             />
             {isLoading ? (
               <View>
@@ -249,7 +253,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
                   value={search}
                   style={styles.value}
                   autoFocus
-                  placeholder="Search Species"
+                  placeholder={i18next.t('label.select_species_search_species')}
                   placeholderTextColor={Colors.TEXT_COLOR}
                   onChangeText={(text) => setSearch(text)}
                 />
@@ -263,7 +267,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
                   disabled={selectedSpecies.length > 0 ? false : true}
                   style={selectedSpecies.length > 0 ? styles.doneButton : styles.buttonDisabled}
                   onPress={addSelectedSpecies}>
-                  <Text style={styles.buttonText}>Done</Text>
+                  <Text style={styles.buttonText}>{i18next.t('label.select_species_done')}</Text>
                 </TouchableOpacity>
               </View>
               <SafeAreaView />
