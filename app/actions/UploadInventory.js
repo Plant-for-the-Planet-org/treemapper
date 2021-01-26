@@ -121,13 +121,13 @@ export const uploadInventory = (dispatch) => {
                     captureMode: oneInventory.locate_tree,
                     deviceLocation: {
                       coordinates: [currentCoords.longitude, currentCoords.latitude],
-                      type: i18next.t('label.tree_inventory_point'),
+                      type: 'Point',
                     },
                     geometry: {
                       type:
                         coordinates.length > 1
-                          ? i18next.t('label.tree_inventory_polygon')
-                          : i18next.t('label.tree_inventory_point'),
+                          ? 'Polygon'
+                          : 'Point',
                       coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                     },
                     plantDate: new Date().toISOString(),

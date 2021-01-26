@@ -1,5 +1,7 @@
 {
-  "tree_inventory_overview_polygon_left_text": "Standorttyp: {{locationType}}",
+  "inventory_overview_polygon_left_text": "Standorttyp: {{locationType}}",
+  "inventory_overview_title_coordinates": "Koordinaten {{alphabetindex}}",
+  "inventory_overview_view_location": "Standort anschauen",
   "inventory_overview_select_species": "Wähle mindestens eine Art",
   "inventory_overview_view_loc_modal_header": "Standort {{locationTitle}}",
   "inventory_overview_loc": "{{locationTitle}}",
