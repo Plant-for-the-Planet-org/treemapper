@@ -11,7 +11,7 @@ import {
   ScientificSpecies,
 } from './schema';
 
-export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) => {
+export const AddUserSpecies = ( scientificName, speciesId ) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
@@ -28,19 +28,22 @@ export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) =>
       .then((realm) => {
         realm.write(() => {
           let id = `${new Date().getTime()}`;
+          console.log(id, scientificName, speciesId, 'In AddUserSpwcies');
           realm.create('AddSpecies', {
             id,
-            aliases,
-            image,
+            // aliases,
+            // image,
             scientificName,
-            status: 'pending',
+            // status: 'pending',
             speciesId,
           });
           resolve(id);
+          console.log('Species added');
         });
       })
       .catch((err) => {
         reject(err);
+        console.log(err);
         bugsnag.notify(err);
       });
   });

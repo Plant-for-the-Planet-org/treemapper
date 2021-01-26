@@ -656,7 +656,7 @@ const SelectSpecies = ({
                     headingText={i18next.t('label.select_species_header')}
                     subHeadingText={i18next.t('label.select_species_sub_header')}
                     rightText={i18next.t('label.select_species_search')}
-                    onPressSearch={onPressSearch}
+                    onPressFunction={onPressSearch}
                   />
                 )}
               </View>
