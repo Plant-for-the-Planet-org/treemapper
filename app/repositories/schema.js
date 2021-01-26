@@ -90,8 +90,17 @@ const ScientificSpecies = {
   primaryKey: 'guid',
   properties: {
     guid: 'string',
-    scientific_name: {type: 'string', indexed: true},
+    scientific_name: { type: 'string', indexed: true },
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ScientificSpecies };
+export {
+  Coordinates,
+  Polygons,
+  User,
+  OfflineMaps,
+  Species,
+  Inventory,
+  AddSpecies,
+  ScientificSpecies,
+};

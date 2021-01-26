@@ -184,7 +184,7 @@ export const updateStatusForUserSpecies = ({ id }) => {
   });
 };
 
-export const importJSON = ({ objs }) => {
+export const updateLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
@@ -200,20 +200,15 @@ export const importJSON = ({ objs }) => {
     })
       .then((realm) => {
         realm.write(() => {
-          objs.forEach((specie) => {
-            // console.log(obj);
+          for (const specie of speciesData) {
             realm.create('ScientificSpecies', specie);
-          });
-          // for (const specie of objs) {
-          //   realm.create('ScientificSpecies', specie);
-          //   // console.log(specie);
-          // }
-          resolve(console.log('Species Created'));
+          }
+          resolve(true);
         });
       })
       .catch((err) => {
-        reject(err);
-        console.log(err);
+        reject(false);
+        console.error(`Error at /repositories/species/updateLocalSpecies, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
       });
   });

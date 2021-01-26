@@ -777,38 +777,3 @@ export const completePolygon = ({ inventory_id }) => {
       });
   });
 };
-
-export const importJSON = ({ objs }) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-      ],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          objs.forEach((specie) => {
-            // console.log(obj);
-            realm.create('ScientificSpecies', specie);
-          });
-          // for (const specie of objs) {
-          //   realm.create('ScientificSpecies', specie);
-          //   // console.log(specie);
-          // }
-          resolve(console.log('Species Created'));
-        });
-      })
-      .catch((err) => {
-        reject(err);
-        console.log(err);
-        bugsnag.notify(err);
-      });
-  });
-};

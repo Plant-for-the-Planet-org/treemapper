@@ -1,28 +1,30 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground, Modal, Alert } from 'react-native';
-import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
-import ProfileModal from '../ProfileModal';
-import { getInventoryByStatus } from '../../repositories/inventory';
-import { auth0Login, isLogin, auth0Logout, LoginDetails } from '../../repositories/user';
-import { map_texture, main_screen_banner } from '../../assets';
+import { useFocusEffect } from '@react-navigation/native';
+import jwtDecode from 'jwt-decode';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  Alert,
+  ImageBackground,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
-import RNFS from 'react-native-fs';
-import { SvgXml } from 'react-native-svg';
-import i18next from '../../languages/languages';
-import { useFocusEffect } from '@react-navigation/native';
-import jwtDecode from 'jwt-decode';
-// import species_zip from '../../assets';
-import { zip, unzip, unzipAssets, subscribe } from 'react-native-zip-archive';
-import { MainBundlePath, DocumentDirectoryPath } from 'react-native-fs';
-import { InventoryContext } from '../../reducers/inventory';
+import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
-import { LoadingContext } from '../../reducers/loader';
 import { startLoading, stopLoading } from '../../actions/loader';
-import { importJSON } from '../../repositories/species'
+import { main_screen_banner, map_texture } from '../../assets';
+import i18next from '../../languages/languages';
+import { InventoryContext } from '../../reducers/inventory';
+import { LoadingContext } from '../../reducers/loader';
+import { getInventoryByStatus } from '../../repositories/inventory';
+import { auth0Login, auth0Logout, isLogin, LoginDetails } from '../../repositories/user';
+import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
+import ProfileModal from '../ProfileModal';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -35,7 +37,6 @@ const MainScreen = ({ navigation }) => {
 
   useEffect(() => {
     checkIsLogin();
-    unzipSpecies();
     getInventoryByStatus('all').then((data) => {
       let count = 0;
       for (const inventory of data) {
@@ -114,67 +115,6 @@ const MainScreen = ({ navigation }) => {
         setUserPhoto(decode.picture);
       }
     });
-  };
-
-  const unzipSpecies = () => {
-    // require the module
-    // var RNFS = require('react-native-fs');
-    // const targetPath = `${DocumentDirectoryPath}/scientific_species.json` ;
-    // RNFS.readFile(targetPath,'utf8')
-    // .then((contents) => {
-    //   // log the file contents
-    //   console.log(typeof contents, 'JSON Data',);
-    //   // var myJSON = JSON.stringify(contents);
-    //   let objs = JSON.parse(contents);
-    //   // console.log(objs, 'JSON DATA', typeof objs);
-    //   importJSON({objs});
-    // })
-    // .catch((err) => {
-    //   console.log(err.message, err.code, 'JSON DATA ERROR');
-    // });
-    // get a list of files and directories in the main bundle
-    // RNFS.readDir(RNFS.DocumentDirectoryPath) // On Android, use "RNFS.DocumentDirectoryPath" (MainBundlePath is not defined)
-    //   .then((result) => {
-    //     console.log('GOT RESULT', result);
-    //     // stat the first file
-    //     return Promise.all([RNFS.stat(result[0].path), result[0].path]);
-    //   })
-    //   .then((statResult) => {
-    //     if (statResult[0].isFile()) {
-    //       // if we have a file, read it
-    //       return RNFS.readFile(statResult[1], 'utf8');
-    //     }
-    //     return 'no file';
-    //   })
-    //   .then((contents) => {
-    //     // log the file contents
-    //     // console.log(contents);
-    //   })
-    //   .catch((err) => {
-    //     console.log(err.message, err.code);
-    //   });
-    // require the module
-    // var RNFS = require('react-native-fs');
-    // const filePath = RNFS.ExternalDirectoryPath   + '/scientific_species.zip';
-    // const destPath = RNFS.DocumentDirectoryPath + '/specie.zip';
-    // RNFS.moveFile(filePath,destPath)
-    //   .then((success) => {
-    //     console.log('FILE Copied!');
-    //   })
-    //   .catch((err) => {
-    //     console.log(err.message);
-    //   });
-    // const sourcePath = `${DocumentDirectoryPath}/specie.zip`
-    // const targetPath = DocumentDirectoryPath
-    // const charset = 'UTF-8'
-    // // charset possible values: UTF-8, GBK, US-ASCII and so on. If none was passed, default value is UTF-8
-    // unzip(sourcePath, targetPath, charset)
-    // .then((path) => {
-    //   console.log(`unzip completed at ${path}`)
-    // })
-    // .catch((error) => {
-    //   console.error(error)
-    // })
   };
 
   const renderVideoModal = () => {
