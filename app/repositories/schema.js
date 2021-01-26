@@ -85,4 +85,30 @@ const AddSpecies = {
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies };
+//  used to store the logs of a feature or a flow
+const ActivityLogs = {
+  name: 'ActivityLogs',
+  primaryKey: 'id',
+  properties: {
+    // id of the log
+    id: 'string',
+    // id of the feature or flow this log is linked to. (optional)
+    referenceId: 'string?',
+    // defines the type of log. Refer to constants - LogTypes
+    logType: 'string',
+    // defines the log level. Refer constants - LogLevels
+    logLevel: 'string',
+    // time at which the log was created or modified
+    timestamp: 'date',
+    // text which is to be logged
+    message: 'string',
+    // version of tree mapper app
+    appVersion: 'string',
+    // error code for api request (optional)
+    errorCode: 'string?',
+    // used to show extra details if available (optional)
+    logStack: 'string?',
+  },
+};
+
+export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs };
