@@ -12,11 +12,12 @@ import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } fr
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { ProfileModal } from '../';
-import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout } from '../../Actions';
+import { getAllInventoryByStatus, auth0Login, isLogin, auth0Logout, importJSON } from '../../Actions';
 import { map_texture, main_screen_banner } from '../../assets';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
+import RNFS from 'react-native-fs';
 import { SvgXml } from 'react-native-svg';
 import i18next from '../../languages/languages';
 import { store } from '../../Actions/store';
@@ -24,8 +25,10 @@ import { LoaderActions, LocalInventoryActions } from '../../Actions/Action';
 import { useFocusEffect } from '@react-navigation/native';
 import jwtDecode from 'jwt-decode';
 import { LoginDetails } from '../../Actions/index';
-
+// import species_zip from '../../assets';
 const { width, height } = Dimensions.get('window');
+import { zip, unzip, unzipAssets, subscribe } from 'react-native-zip-archive'
+import { MainBundlePath, DocumentDirectoryPath } from 'react-native-fs'
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -37,6 +40,7 @@ const MainScreen = ({ navigation }) => {
 
   useEffect(() => {
     checkIsLogin();
+    unzipSpecies();
     getAllInventoryByStatus('all').then((data) => {
       let count = 0;
       for (inventory of data) {
@@ -114,6 +118,74 @@ const MainScreen = ({ navigation }) => {
     });
   };
 
+  const unzipSpecies = () => {
+    // require the module
+    // var RNFS = require('react-native-fs');
+    // const targetPath = `${DocumentDirectoryPath}/scientific_species.json` ;
+    // RNFS.readFile(targetPath,'utf8')
+    // .then((contents) => {
+    //   // log the file contents
+    //   console.log(typeof contents, 'JSON Data',);
+    //   // var myJSON = JSON.stringify(contents);
+    //   let objs = JSON.parse(contents);
+    //   // console.log(objs, 'JSON DATA', typeof objs);
+    //   importJSON({objs});
+    // })
+    // .catch((err) => {
+    //   console.log(err.message, err.code, 'JSON DATA ERROR');
+    // });
+    
+    // get a list of files and directories in the main bundle
+    // RNFS.readDir(RNFS.DocumentDirectoryPath) // On Android, use "RNFS.DocumentDirectoryPath" (MainBundlePath is not defined)
+    //   .then((result) => {
+    //     console.log('GOT RESULT', result);
+
+    //     // stat the first file
+    //     return Promise.all([RNFS.stat(result[0].path), result[0].path]);
+    //   })
+    //   .then((statResult) => {
+    //     if (statResult[0].isFile()) {
+    //       // if we have a file, read it
+    //       return RNFS.readFile(statResult[1], 'utf8');
+    //     }
+
+    //     return 'no file';
+    //   })
+    //   .then((contents) => {
+    //     // log the file contents
+    //     // console.log(contents);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err.message, err.code);
+    //   });
+
+    // require the module
+    // var RNFS = require('react-native-fs');
+    // const filePath = RNFS.ExternalDirectoryPath   + '/scientific_species.zip';
+    // const destPath = RNFS.DocumentDirectoryPath + '/specie.zip';
+    // RNFS.moveFile(filePath,destPath)
+    //   .then((success) => {
+    //     console.log('FILE Copied!');
+    //   })
+    //   .catch((err) => {
+    //     console.log(err.message);
+    //   });
+
+    // const sourcePath = `${DocumentDirectoryPath}/specie.zip`
+    // const targetPath = DocumentDirectoryPath
+    // const charset = 'UTF-8'
+    // // charset possible values: UTF-8, GBK, US-ASCII and so on. If none was passed, default value is UTF-8
+
+
+    // unzip(sourcePath, targetPath, charset)
+    // .then((path) => {
+    //   console.log(`unzip completed at ${path}`)
+    // })
+    // .catch((error) => {
+    //   console.error(error)
+    // })
+  }
+  
   const renderVideoModal = () => {
     return (
       <Modal visible={isModalVisible} animationType={'slide'}>
@@ -210,13 +282,13 @@ const MainScreen = ({ navigation }) => {
                 testID="page_learn"
               />
             </ImageBackground>
-            <PrimaryButton
+          </ScrollView>
+          <PrimaryButton
               onPress={() => onPressLargeButtons('RegisterTree')}
               btnText={i18next.t('label.register_tree')}
               testID={'btn_register_trees'}
               accessibilityLabel={'Register Tree'}
             />
-          </ScrollView>
         </View>
       )}
       {renderVideoModal()}

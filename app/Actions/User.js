@@ -9,13 +9,14 @@ import {
   Species,
   Inventory,
   AddSpecies,
+  ScientificSpecies
 } from './Schemas';
 import Realm from 'realm';
 import getSessionData from '../Utils/sessionId';
 
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies, ScientificSpecies] }).then(
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         console.log(User);
@@ -31,7 +32,7 @@ export const getUserInformation = () => {
 
 export const getUserInformationFromServer = (navigation) => {
   return new Promise((resolve, reject) => {
-    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies] }).then(
+    Realm.open({ schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies, ScientificSpecies] }).then(
       (realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         let userToken = User.accessToken;

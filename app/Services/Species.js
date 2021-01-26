@@ -10,6 +10,7 @@ import {
   Species,
   Inventory,
   AddSpecies,
+  ScientificSpecies
 } from '../Actions/Schemas';
 import Realm from 'realm';
 import getSessionData from '../Utils/sessionId';
@@ -71,7 +72,7 @@ export const AllSpecies = () => {
 export const SearchSpecies = (payload) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies, ScientificSpecies],
     })
       .then((realm) => {
         realm.write(() => {
