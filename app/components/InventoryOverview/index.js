@@ -225,22 +225,17 @@ const InventoryOverview = ({ navigation }) => {
           features: featureList,
         };
         let fileName = `Tree Mapper GeoJSON ${inventory.inventory_id}.json`;
-        let path = `${
-          Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir
-        }/${fileName}`;
+        let path = `${RNFetchBlob.fs.dirs.DocumentDir}/${fileName}`;
         RNFetchBlob.fs
-          .writeFile(path, JSON.stringify(geoJSON), 'utf88')
-          .then((success) => {
-            alert(
-              `GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`,
-            );
+          .writeFile(path, JSON.stringify(geoJSON), 'utf8')
+          .then(() => {
+            alert(i18next.t('label.inventory_overview_export_json_success'));
           })
           .catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')));
       }
     };
     if (Platform.OS == 'android') {
       const permissionResult = await askAndroidStoragePermission();
-
       if (permissionResult) {
         exportGeoJSONFile();
       }
