@@ -30,6 +30,7 @@ import AddSpeciesModal from '../AddSpecies';
 import { Header, PrimaryButton } from '../Common';
 import Camera from '../Common/Camera';
 import { setSpeciesList as setSpeciesListAction } from '../../actions/species';
+import ManageSpecies from '../ManageSpecies';
 
 const SelectSpecies = ({
   visible,
@@ -153,8 +154,9 @@ const SelectSpecies = ({
   //   setSingleTree(index);
   // };
 
-  const onPressSaveBtn = (index) => {
-    setSingleTree(index);
+  const onPressSaveBtn = (item) => {
+    setSingleTree(item);
+    console.log('onPressSpecies Save', item);
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -591,19 +593,18 @@ const SelectSpecies = ({
   };
 
   const onPressMeasurementBtn = () => {
-    // if (isNormalInteger(height) && isNormalInteger(diameter)){
-    let speciesMeasurementList = [...speciesList];
-    for (let specie in speciesMeasurementList) {
-      if (speciesMeasurementList[specie].id === singleTree.id) {
-        let selected = {
-          aliases: speciesMeasurementList[specie].aliases,
-          diameter: diameter,
-          height: height,
-        };
-        onPressSaveAndContinue(selected);
+    let speciesMeasurementList = [(speciesState.species)];
+    console.log(speciesMeasurementList,'speciesMeasurementList', singleTree);
+    console.log('inside if');
+    let selected = {
+      aliases: singleTree.scientificName,
+      diameter: diameter,
+      height: height,
+    };
+    onPressSaveAndContinue(selected);
         // setIsShowTreeMeasurementModal(false);
-      }
-    }
+      // }
+    // }
     // setShowSpecies(false);
     // } else {
     //   Alert.alert(
@@ -632,7 +633,7 @@ const SelectSpecies = ({
   } else {
     return (
       <Modal visible={showSpecies} animationType={'slide'}>
-        <View style={{ flex: 1 }}>
+        {/* <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
               <View
@@ -689,7 +690,12 @@ const SelectSpecies = ({
           {renderTreeCountModal()}
           {renderMeasurementModal()}
           {renderAddNameModal()}
-        </View>
+        </View> */}
+        <ManageSpecies
+          onPressSpecies={onPressSaveBtn}
+          onPressBack= {() => navigation.goBack()}
+        />
+        {renderMeasurementModal()}
       </Modal>
     );
   }

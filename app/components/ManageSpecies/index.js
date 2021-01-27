@@ -10,7 +10,7 @@ import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories
 import { setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 
-const ManageSpecies = () => {
+const ManageSpecies = ({onPressSpecies, onPressBack}) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -23,7 +23,7 @@ const ManageSpecies = () => {
     getAllSpecies().then((data) => setSpecieList(data));
   }, []);
 
-  const onPressBack = () => {
+  const onPressHome = () => {
     navigation.navigate('MainScreen');
   };
 
@@ -39,7 +39,9 @@ const ManageSpecies = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-        }}>
+        }}
+        onPress = {()=> onPressSpecies? onPressSpecies(item) : []}
+      >
         <View>
           <Text
             style={{
@@ -66,14 +68,15 @@ const ManageSpecies = () => {
 
   const addSelectedSpecies = () => {
     if (selectedSpecies.length === 0) {
-      onPressBack();
+      onPressBack ? setSearchBarFocused(false) : onPressHome();
     } else {
       let species = [...selectedSpecies];
       for (let specie of species) {
         AddUserSpecies(specie.scientific_name, specie.guid)
           .then((data) => {
             setSpecieId(data)(speciesDispatch);
-            onPressBack();
+            // onPressBack();
+            setSearchBarFocused(false);
           })
           .catch((err) => {
             console.log(err);
@@ -218,10 +221,12 @@ const ManageSpecies = () => {
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
     if (text) {
+      setSearchBarFocused(true);
       searchSpecies(text).then((data) => {
         setSearchList(data);
       });
     } else {
+      setSearchBarFocused(false);
       setSearchList([]);
     }
   };
@@ -230,7 +235,7 @@ const ManageSpecies = () => {
     <View style={styles.container}>
       <Header
         closeIcon
-        onBackPress={onPressBack}
+        onBackPress={() => onPressBack? onPressBack (): onPressHome()}
         headingText="Tree Species"
         rightText="Done"
         onPressFunction={addSelectedSpecies}
