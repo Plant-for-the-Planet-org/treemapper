@@ -6,5 +6,10 @@
   "select_species_tree_count_modal_sub_header_2": "Você plantou?",
   "select_species_modal_label": "Contagem de árvores",
   "select_species_sub_header": "Por favor, selecione as espécies que foram plantadas",
-  "select_species_btn_text": "Salvar e Continuar"
+  "select_species_btn_text": "Salvar e Continuar",
+  "select_species_search": "Pesquisar",
+  "select_species_diameter": "Diâmetro",
+  "select_species_continue": "Continuar",
+  "select_species_error": "Erro",
+  "select_species_ok": "OK"
 }

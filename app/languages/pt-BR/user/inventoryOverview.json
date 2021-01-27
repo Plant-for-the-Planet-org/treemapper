@@ -1,5 +1,5 @@
 {
-  "tree_inventory_overview_polygon_left_text": "Tipo de Localização: {{locationType}}",
+  "inventory_overview_polygon_left_text": "Tipo de Localização: {{locationType}}",
   "inventory_overview_select_species": "Selecione pelo menos uma espécie",
   "inventory_overview_view_loc_modal_header": "Localização {{locationTitle}}",
   "inventory_overview_loc": "{{locationTitle}}",

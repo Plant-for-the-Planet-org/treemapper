@@ -8,5 +8,10 @@
   "select_species_modal_label": "Nombre d'arbres",
   "select_species_header": "Sélectionner l'espèce",
   "select_species_sub_header": "Veuillez sélectionner les espèces qui ont été plantées.",
-  "select_species_btn_text": "Enregistrer & Continuer"
+  "select_species_btn_text": "Enregistrer & Continuer",
+  "select_species_search": "Rechercher",
+  "select_species_diameter": "Diamètre",
+  "select_species_continue": "Poursuivre",
+  "select_species_error": "Erreur",
+  "select_species_ok": "OK"
 }
