@@ -293,9 +293,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   specieListItem: {
-    paddingBottom: 20,
+    paddingVertical: 20,
     paddingRight: 10,
-    paddingTop: 10,
     borderBottomWidth: 1,
     borderColor: '#E1E0E061',
     flexDirection: 'row',
