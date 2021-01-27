@@ -3,6 +3,8 @@ import { Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecie
 import { bugsnag } from '../utils';
 import { updateCount, setInventoryId } from '../actions/inventory';
 import { INCOMPLETE_INVENTORY } from '../utils/inventoryStatuses';
+import dbLog from './logs';
+import { LogTypes } from '../utils/constants';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve, reject) => {
@@ -13,10 +15,23 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_diameter = Math.round(speciesDiameter * 100) / 100;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Updated species diameter for inventory_id: ${inventory_id}`,
+          });
         });
         resolve();
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species diameter for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -29,10 +44,23 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_height = Math.round(speciesHeight * 100) / 100;
-          resolve(console.log('updated', inventory));
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Updated species height for inventory_id: ${inventory_id}`,
+          });
+          resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species height for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -49,11 +77,24 @@ export const getInventoryByStatus = (status) => {
           } else {
             inventory = realm.objects('Inventory').filtered(`status == "${status}"`);
           }
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Fetched inventories from DB having status ${status}`,
+          });
           resolve(JSON.parse(JSON.stringify(inventory)));
         });
         // realm.close();
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventories from DB having status ${status}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -74,11 +115,22 @@ export const initiateInventory = ({ treeType }, dispatch) => {
           };
           realm.create('Inventory', inventoryData);
           setInventoryId(inventoryID)(dispatch);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Inventory initiated for tree type ${treeType} with inventory_id: ${inventoryID}`,
+          });
           resolve(inventoryData);
         });
       })
       .catch((err) => {
         console.error(`Error at /repositories/initiateInventory -> ${JSON.stringify(err)}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while initiating inventory for tree type ${treeType}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
         resolve(false);
       });
@@ -93,10 +145,21 @@ export const getInventory = ({ inventoryID }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventoryID);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Fetched inventory with inventory_id: ${inventoryID}`,
+          });
           resolve(JSON.parse(JSON.stringify(inventory)));
         });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventory with inventory_id: ${inventoryID}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
       });
   });
@@ -118,6 +181,13 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
             },
             'modified',
           );
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated status and response for inventory_id: ${inventory_id}`,
+          });
+
           if (status === 'complete') {
             updateCount({ type: 'pending', count: 'decrement' })(dispatch);
             updateCount({ type: 'upload', count: 'decrement' })(dispatch);
@@ -127,7 +197,15 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating status and response for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -146,6 +224,13 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
             },
             'modified',
           );
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated status for inventory_id: ${inventory_id}`,
+          });
+
           if (status === 'complete') {
             updateCount({ type: 'pending', count: 'decrement' })(dispatch);
             updateCount({ type: 'upload', count: 'decrement' })(dispatch);
@@ -155,7 +240,15 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating status for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -169,11 +262,23 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
         });
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully updated specie name for inventory_id: ${inventory_id}`,
+        });
         resolve();
       })
       .catch((err) => {
-        reject(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating specie name for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -188,14 +293,27 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           realm.delete(inventory);
         });
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully deleted inventory with inventory_id: ${inventory_id}`,
+        });
+
         if (dispatch) {
           updateCount({ type: 'pending', count: 'decrement' })(dispatch);
         }
         resolve(true);
       })
       .catch((err) => {
-        reject(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while deleting inventory with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -215,10 +333,25 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
             },
             'modified',
           );
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated plantation date for inventory_id: ${inventory_id}`,
+          });
+
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating plantation date for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -238,10 +371,25 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
             },
             'modified',
           );
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated last screen for inventory_id: ${inventory_id}`,
+          });
+
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating last screen for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -256,10 +404,24 @@ export const clearAllIncompleteInventory = () => {
             .objects('Inventory')
             .filtered(`status == "${INCOMPLETE_INVENTORY}"`);
           realm.delete(allInventory);
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully deleted all incomplete inventories`,
+          });
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while deleting all incomplete inventories`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -272,10 +434,25 @@ export const clearAllUploadedInventory = () => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "complete"');
           realm.delete(allInventory);
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully deleted all uploaded inventories`,
+          });
+
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while deleting all uploaded inventories`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -291,11 +468,22 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
           inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
         });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully updated specie name, height and diameter for inventory_id: ${inventory_id}`,
+        });
         resolve();
       })
       .catch((err) => {
-        reject(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating specie name, height and diameter for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -313,10 +501,24 @@ export const removeLastCoord = ({ inventory_id }) => {
           coords = coords.slice(0, coords.length - 1);
           polygons[polygons.length - 1].coordinates = coords;
           inventory.polygons = polygons;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully removed last coordinate for inventory_id: ${inventory_id}`,
+          });
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while removing last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+      });
   });
 };
 
@@ -331,10 +533,23 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
           let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
           let coords = Object.values(polygons[0].coordinates);
           let coordsLength = coords.length;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully fetched coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          });
           resolve({ coordsLength, coord: coords[index] });
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -348,19 +563,30 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
           let polygonsTemp = [];
-          let coordinatesTemp = [];
 
-          polygonsTemp = polygons.map((onePolygon, i) => {
+          polygonsTemp = polygons.map((onePolygon) => {
             let coords = Object.values(onePolygon.coordinates);
             coords[index].imageUrl = imageUrl;
             return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords };
           });
           inventory.polygons = polygonsTemp;
-
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated image url for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          });
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating image url for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -376,10 +602,10 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
             let onePolygonTemp = {};
             onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete || false;
             let coordinates = [];
-            onePolygon.geometry.coordinates.map((oneLatlong) => {
+            onePolygon.geometry.coordinates.map((coordinate) => {
               coordinates.push({
-                longitude: oneLatlong[0],
-                latitude: oneLatlong[1],
+                longitude: coordinate[0],
+                latitude: coordinate[1],
                 currentloclat: currentCoords.latitude ? currentCoords.latitude : 0,
                 currentloclong: currentCoords.longitude ? currentCoords.longitude : 0,
                 isImageUploaded: false,
@@ -396,12 +622,27 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
             },
             'modified',
           );
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully added coordinates for inventory_id: ${inventory_id}`,
+            logStack: JSON.stringify({
+              geoJSON,
+              currentCoords,
+            }),
+          });
           resolve();
         });
       })
       .catch((err) => {
-        reject(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding coordinates for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -437,10 +678,26 @@ export const addCoordinateSingleRegisterTree = ({
             inventory.locate_tree = locateTree;
           }
           inventory.plantation_date = `${Date.now()}`;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully added coordinates for single tree with inventory_id: ${inventory_id}`,
+            logStack: JSON.stringify({
+              markedCoords,
+              currentCoords,
+              locateTree,
+            }),
+          });
           resolve();
         });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding coordinates for single tree with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });
@@ -458,8 +715,19 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
           inventory.polygons[0].coordinates[0].imageUrl = imageUrl;
           resolve();
         });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully updated image url for single tree with inventory_id: ${inventory_id}`,
+        });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating image url for single tree with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });
@@ -482,10 +750,21 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
             },
             'modified',
           );
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated species and plantation date for inventory_id: ${inventory_id}`,
+          });
           resolve();
         });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species and plantation date for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });
@@ -507,10 +786,23 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
             },
             'modified',
           );
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated locate tree for inventory_id: ${inventory_id}`,
+          });
           resolve();
         });
       })
-      .catch(bugsnag.notify);
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating locate tree for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
   });
 };
 
@@ -523,10 +815,21 @@ export const polygonUpdate = ({ inventory_id }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated polygon completion for inventory_id: ${inventory_id}`,
+          });
           resolve();
         });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating polygon completion for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });
@@ -543,10 +846,21 @@ export const completePolygon = ({ inventory_id }) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
           inventory.polygons[0].coordinates.push(inventory.polygons[0].coordinates[0]);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully updated polygon completion and last coordinate for inventory_id: ${inventory_id}`,
+          });
           resolve();
         });
       })
       .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating polygon completion and last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });

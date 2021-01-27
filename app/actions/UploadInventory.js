@@ -23,13 +23,7 @@ import { getSpeciesList } from './species';
 
 const { protocol, url } = APIConfig;
 
-const changeStatusAndUpload = async (
-  response,
-  oneInventory,
-  userToken,
-  sessionData,
-  dispatch,
-) => {
+const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData, dispatch) => {
   return new Promise((resolve, reject) => {
     try {
       if (oneInventory.locate_tree == 'off-site') {
@@ -92,19 +86,25 @@ export const uploadInventory = (dispatch) => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
           let userToken = user.accessToken;
           try {
-            // gets the current geo location coordinate of the user
+            // gets the current geo location coordinate of the user and passes the position forward
             Geolocation.getCurrentPosition(
               async (position) => {
-
+                // stores the current coordinates of the user
                 const currentCoords = position.coords;
+                // get pending inventories from realm DB
                 const pendingInventory = await getInventoryByStatus('pending');
+                // get inventories whose images are pending tob be uploaded from realm DB
                 const uploadingInventory = await getInventoryByStatus('uploading');
+                // copies pending and uploading inventory
                 let inventoryData = [...pendingInventory, ...uploadingInventory];
                 let coordinates = [];
                 let species = [];
                 inventoryData = Object.values(inventoryData);
+                // updates the count of inventories that is going to be uploaded
                 updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
+                // changes the status of isUploading to true, to show that data started to sync
                 updateIsUploading(true)(dispatch);
+                // loops through the inventory data to upload the data and then the images of the same synchronously
                 for (let i = 0; i < inventoryData.length; i++) {
                   const oneInventory = inventoryData[i];
                   let polygons = Object.values(oneInventory.polygons);
@@ -119,6 +119,7 @@ export const uploadInventory = (dispatch) => {
                       treeCount: Number(x.treeCount),
                     }));
                   }
+                  // prepares the body which is to be passed to api
                   let body = {
                     captureMode: oneInventory.locate_tree,
                     deviceLocation: {
@@ -126,10 +127,7 @@ export const uploadInventory = (dispatch) => {
                       type: 'Point',
                     },
                     geometry: {
-                      type:
-                        coordinates.length > 1
-                          ? 'Polygon'
-                          : 'Point',
+                      type: coordinates.length > 1 ? 'Polygon' : 'Point',
                       coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                     },
                     plantDate: new Date().toISOString(),

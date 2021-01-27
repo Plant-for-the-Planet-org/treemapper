@@ -27,9 +27,9 @@ const logToDB = (
             id: uuidv4(),
             logType,
             logLevel,
-            timestamp,
+            timestamp: new Date(),
             message,
-            appVersion,
+            appVersion: 'TM v1.0.0',
           };
           // checks if referenceId is present then adds it to logData
           if (referenceId) {

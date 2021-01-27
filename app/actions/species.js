@@ -29,7 +29,6 @@ export const setSpecieId = (specieId) => (dispatch) => {
   });
 };
 
-
 /**
  * This function makes an axios call to GET /treemapper/species to fetch the list of species and returns
  * the result by resolving it. If there's any error then resolve false as boolean value.
@@ -52,11 +51,9 @@ export const getSpeciesList = (userToken) => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          timestamp: new Date(),
-          message:'Fetched species list, GET - /species',
-          appVersion:'TM v1.0.0',
+          message: 'Fetched species list, GET - /species',
           statusCode: status,
-        })
+        });
         // checks if the status code is 200 the resolves the promise with the fetched data
         if (status === 200) {
           resolve(data);
@@ -68,11 +65,9 @@ export const getSpeciesList = (userToken) => {
         // logs the error of the failed request in DB
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          timestamp: new Date(),
-          message:'Failed fetch of species list, GET - /species',
-          appVersion:'TM v1.0.0',
+          message: 'Failed fetch of species list, GET - /species',
           statusCode: err.status,
-        })
+        });
         resolve(false);
       });
   });
