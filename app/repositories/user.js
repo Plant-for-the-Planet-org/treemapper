@@ -3,7 +3,7 @@ import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import Realm from 'realm';
 import { APIConfig } from '../actions/Config';
-import { AddSpecies, Coordinates, Inventory, OfflineMaps, Polygons, Species, User } from './schema';
+import { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs } from './schema';
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 
@@ -13,7 +13,7 @@ const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CL
 export const getUserToken = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [User],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     })
       .then((realm) => {
         // Gets the user data from the DB
@@ -43,7 +43,7 @@ export const auth0Login = (navigation) => {
       .then((credentials) => {
         const { accessToken, idToken } = credentials;
         Realm.open({
-          schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+          schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
         }).then((realm) => {
           realm.write(() => {
             realm.create(
@@ -73,7 +73,7 @@ export const auth0Logout = () => {
       .clearSession()
       .then(() => {
         Realm.open({
-          schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+          schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
         }).then((realm) => {
           realm.write(() => {
             const user = realm.objectForPrimaryKey('User', 'id0001');
@@ -93,7 +93,7 @@ export const auth0Logout = () => {
 export const isLogin = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     }).then((realm) => {
       const User = realm.objects('User');
       if (User[0]) {
@@ -108,7 +108,7 @@ export const isLogin = () => {
 export const LoginDetails = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     })
       .then((realm) => {
         realm.write(() => {
@@ -127,7 +127,7 @@ export const LoginDetails = () => {
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     }).then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');
       if (User) {
@@ -148,7 +148,7 @@ export const getUserInformationFromServer = (navigation) => {
   const { protocol, url } = APIConfig;
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     }).then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');
       let userToken = User.accessToken;

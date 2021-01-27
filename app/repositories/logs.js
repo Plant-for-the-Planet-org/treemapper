@@ -1,5 +1,5 @@
 import Realm from 'realm';
-import { ActivityLogs } from './schema';
+import { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs } from './schema';
 import { bugsnag } from '../utils';
 import { LogLevels } from '../utils/constants';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,11 +13,11 @@ import { v4 as uuidv4 } from 'uuid';
  */
 const logToDB = (
   logLevel,
-  { referenceId, logType, timestamp, message, appVersion, errorCode, logStack },
+  { referenceId, logType, message, errorCode, logStack },
 ) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [ActivityLogs],
+      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
     })
       .then((realm) => {
         realm.write(() => {

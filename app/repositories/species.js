@@ -1,11 +1,29 @@
 import Realm from 'realm';
 import { bugsnag } from '../utils';
-import { Coordinates, OfflineMaps, Polygons, User, Species, Inventory, AddSpecies } from './schema';
+import {
+  Coordinates,
+  Polygons,
+  User,
+  OfflineMaps,
+  Species,
+  Inventory,
+  AddSpecies,
+  ActivityLogs,
+} from './schema';
 
 export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -31,7 +49,16 @@ export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) =>
 export const getAllSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -49,7 +76,16 @@ export const getAllSpecies = () => {
 export const insertImageForUserSpecies = ({ id, imagePath }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -67,7 +103,16 @@ export const insertImageForUserSpecies = ({ id, imagePath }) => {
 export const updateNameForUserSpecies = ({ id, aliases }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -86,7 +131,16 @@ export const updateNameForUserSpecies = ({ id, aliases }) => {
 export const filterPendingSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -105,7 +159,16 @@ export const filterPendingSpecies = () => {
 export const updateStatusForUserSpecies = ({ id }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {

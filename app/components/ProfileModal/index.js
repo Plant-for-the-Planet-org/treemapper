@@ -10,6 +10,7 @@ import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileModal = ({
   isUserLogin,
@@ -20,6 +21,7 @@ const ProfileModal = ({
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (isUserLogin) {
@@ -85,6 +87,15 @@ const ProfileModal = ({
       text: 'manage_offline',
     },
     {
+      media: 'map-marked',
+      mediaType: 'icon',
+      text: 'activity_logs',
+      onPressFunction: () => {
+        navigation.navigate('Logs');
+        onPressCloseProfileModal();
+      },
+    },
+    {
       media: logout,
       mediaType: 'image',
       onPressFunction: onPressLogout,
@@ -113,7 +124,6 @@ const ProfileModal = ({
                 style={{ width: 50, height: 50, marginHorizontal: 10 }}
                 source={{ uri: avatar }}
               />
-              {/* <Image source={{ uri: avatar }} style={styles.avatar} /> */}
               <View style={styles.nameAndEmailContainer}>
                 <Text style={styles.userEmail}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
                 <Text style={styles.userName}>{userInfo.email}</Text>
@@ -122,23 +132,6 @@ const ProfileModal = ({
             {profileListItems.map((item, index) => (
               <ProfileListItem key={index} {...item} />
             ))}
-            {/* <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                btnText={i18next.t('label.edit_profile')}
-                halfWidth
-                theme={'white'}
-                style={styles.primaryBtnContainer}
-                textStyle={styles.primaryBtnText}
-              />
-              <PrimaryButton
-                onPress={onPressLogout}
-                btnText={i18next.t('label.logout')}
-                theme={'white'}
-                halfWidth
-                style={styles.primaryBtnContainer}
-                textStyle={styles.primaryBtnText}
-              />
-            </View> */}
             <View style={styles.horizontalBar} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
               <Text onPress={onPressPolicy} style={styles.textAlignCenter}>

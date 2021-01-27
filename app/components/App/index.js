@@ -21,6 +21,7 @@ import {
   UploadedInventory,
   SelectSpecies,
   AddSpecies,
+  Logs,
 } from '../';
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -101,6 +102,7 @@ const App = () => {
           />
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
           <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
+          <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
