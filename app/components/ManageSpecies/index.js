@@ -1,32 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  FlatList,
-  ScrollView,
-  Alert
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert } from 'react-native';
 import { Colors, Typography } from '_styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { Header } from '../Common';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
-import {
-  Coordinates,
-  OfflineMaps,
-  Polygons,
-  User,
-  Species,
-  Inventory,
-  AddSpecies,
-  ScientificSpecies,
-} from '../../repositories/schema';
-import Realm from 'realm';
-import { isLogin } from '../../repositories/user';
 import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories/species';
 import { setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
@@ -35,25 +14,16 @@ const ManageSpecies = () => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [searchList, setSearchList] = useState(null);
+  const [searchList, setSearchList] = useState([]);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchBarFocused, setSearchBarFocused] = useState(false);
-  const [alreadyPresentSpecies, setAlreadyPresentSpecies] = useState([]);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
-    getAllSpecies()
-    .then((data) =>
-      setSpecieList(data)
-    )
-    return () => {
-      // cleanup
-    }
+    getAllSpecies().then((data) => setSpecieList(data));
   }, []);
 
-  console.log(searchBarFocused);
   const onPressBack = () => {
-    console.log('clicked');
     navigation.navigate('MainScreen');
   };
 
@@ -62,9 +32,8 @@ const ManageSpecies = () => {
       <TouchableOpacity
         key={index}
         style={{
-          paddingBottom: 20,
+          paddingVertical: 20,
           paddingRight: 10,
-          paddingTop: 10,
           borderBottomWidth: 1,
           borderColor: '#E1E0E061',
           flexDirection: 'row',
@@ -76,14 +45,6 @@ const ManageSpecies = () => {
             style={{
               fontSize: Typography.FONT_SIZE_16,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
-            }}>
-            {item.scientificName}
-          </Text>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_12,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
-              color: '#949596',
             }}>
             {item.scientificName}
           </Text>
@@ -94,38 +55,38 @@ const ManageSpecies = () => {
   };
 
   const addSpecies = (item) => {
+    console.log('addSpecies', item);
     setSelectedSpecies([...selectedSpecies, item]);
-    console.log(selectedSpecies, 'selectedSPecies');
-  }
+  };
 
   const removeSpecies = (item) => {
-    setSelectedSpecies(selectedSpecies.filter((specie) => specie.scientific_name !== item.scientific_name));
+    console.log('removeSpecies', item);
+    setSelectedSpecies(
+      selectedSpecies.filter((specie) => specie.scientific_name !== item.scientific_name),
+    );
   };
 
   const addSelectedSpecies = () => {
-    isLogin()
-      .then(() => {
-        if (selectedSpecies.length === 0) {
-          onPressBack();
-        }
-        let species = [...selectedSpecies];
-        // let alreadyPresentSpecies = [];
-        for (let specie of species) {
-          let currentSpecie;
-          for (let item of specieList) {
-            if (specie.guid === item.speciesId){
-              currentSpecie = item;
-              console.log(currentSpecie, 'current species');
-              setAlreadyPresentSpecies([...alreadyPresentSpecies, currentSpecie]);
-              // .push(currentSpecie);
-              // console.log(alreadyPresentSpecies,'already Present');
-              break;
-            } else {
-              currentSpecie = null;
-            }
+    if (selectedSpecies.length === 0) {
+      onPressBack();
+    } else {
+      let species = [...selectedSpecies];
+      let alreadyPresentSpecies = [];
+      for (let specie of species) {
+        let currentSpecie;
+        for (let item of specieList) {
+          if (specie.guid === item.speciesId) {
+            currentSpecie = item;
+            alreadyPresentSpecies.push(currentSpecie);
+            console.log(currentSpecie, 'current species');
+            console.log(alreadyPresentSpecies.length, 'alreadyPresentSpecies');
+            break;
+          } else {
+            currentSpecie = null;
           }
-          if (!currentSpecie){
-            AddUserSpecies(specie.scientific_name, specie.guid)
+        }
+        if (!currentSpecie) {
+          AddUserSpecies(specie.scientific_name, specie.guid)
             .then((data) => {
               setSpecieId(data)(speciesDispatch);
               onPressBack();
@@ -135,96 +96,121 @@ const ManageSpecies = () => {
               Alert.alert(
                 i18next.t('label.select_species_error'),
                 i18next.t('label.select_species_enter_valid_input', {
-                  scientific_name: specie.scientific_name
+                  scientific_name: specie.scientific_name,
                 }),
-                [{ text: i18next.t('label.select_species_ok'), onPress: () => console.log('OK Pressed') }],
+                [
+                  {
+                    text: i18next.t('label.select_species_ok'),
+                    onPress: () => console.log('OK Pressed'),
+                  },
+                ],
                 { cancelable: false },
               );
             });
-          }
         }
-        if (alreadyPresentSpecies.length > 0) {
-          console.log(alreadyPresentSpecies,'already Present................');
-          Alert.alert(
-            "Error",
-            `You have added ${alreadyPresentSpecies} already`,
-            [
-              { text: "OK", onPress: () => {console.log("OK Pressed"); setAlreadyPresentSpecies([]);} }
-            ],
-            { cancelable: false }
-          );
+      }
+      if (alreadyPresentSpecies.length > 0) {
+        console.log(alreadyPresentSpecies, 'already Present................');
+        Alert.alert(
+          'Error',
+          `You have added ${alreadyPresentSpecies} already`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                console.log('OK Pressed');
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      }
+    }
+  };
+
+  const checkIsSpeciePresent = ({ speciesList, specieToSearch }) => {
+    let isPresent = false;
+    if (speciesList && speciesList.length > 0) {
+      for (let specie of speciesList) {
+        if (specie.scientific_name === specieToSearch.scientific_name) {
+          isPresent = true;
+          break;
+        } else {
+          isPresent = false;
         }
-      })
-      .catch((err) => console.log(err));
+      }
+    }
+    return isPresent;
   };
 
   const renderSearchSpecieCard = ({ item, index }) => {
-    let isCheck;
-    if (selectedSpecies !== null) {
-      for (let specie of selectedSpecies) {
-        if (specie.scientific_name === item.scientific_name) {
-          isCheck =  true;
+    let isDisabled = false;
+    let isCheck = checkIsSpeciePresent(selectedSpecies, item, '');
+    let isUserSpeciePresent = false;
+    if (specieList && specieList.length > 0) {
+      for (let specie of specieList) {
+        if (specie.speciesId === item.guid) {
+          isUserSpeciePresent = true;
           break;
-        } else {isCheck = false}
+        } else {
+          isUserSpeciePresent = false;
+        }
       }
     }
-    return (
-      <TouchableOpacity
-        key={index}
-        style={{
-          paddingBottom: 20,
-          paddingRight: 10,
-          paddingTop: 10,
-          borderBottomWidth: 1,
-          borderColor: '#E1E0E061',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-        <View>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_16,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
-            }}>
-            {item.scientific_name}
-          </Text>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_12,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
-              color: '#949596',
-            }}>
-            {item.scientific_name}
-          </Text>
+    console.log('\nisUserSpeciePresent', isUserSpeciePresent);
+    if (isUserSpeciePresent) {
+      isDisabled = true;
+      isCheck = true;
+    }
+
+    const SpecieListItem = ({ item }) => {
+      return (
+        <>
+          <View>
+            <Text
+              style={{
+                fontSize: Typography.FONT_SIZE_16,
+                fontFamily: Typography.FONT_FAMILY_REGULAR,
+              }}>
+              {item.scientific_name}
+            </Text>
+          </View>
+          <Icon
+            name={isCheck ? 'check-circle' : 'plus-circle'}
+            size={25}
+            color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
+          />
+        </>
+      );
+    };
+
+    if (isDisabled) {
+      return (
+        <View style={[styles.specieListItem, { opacity: 0.5 }]}>
+          <SpecieListItem item={item} />
         </View>
-        {isCheck ? (
-          <Icon
-            name="check-circle"
-            size={25}
-            color={Colors.PRIMARY}
-            onPress={() => {
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          key={index}
+          style={styles.specieListItem}
+          onPress={() => {
+            if (isCheck) {
               removeSpecies(item);
-            }}
-          />
-        ) : (
-          <Icon
-            name="plus-circle"
-            size={25}
-            color={Colors.TEXT_COLOR}
-            onPress={() => {
-              // Keyboard.dismiss();
+            } else {
               addSpecies(item);
-            }}
-          />
-        )}
-      </TouchableOpacity>
-    );
+            }
+          }}>
+          <SpecieListItem item={item} />
+        </TouchableOpacity>
+      );
+    }
   };
 
   const MySpecies = () => {
     return (
-      <View style={{flex:1}}>
+      <View style={{ flex: 1 }}>
         <View>
           <Text
             style={{
@@ -236,7 +222,7 @@ const ManageSpecies = () => {
             My species
           </Text>
         </View>
-        <View style={{flex:1}}>
+        <View style={{ flex: 1 }}>
           <FlatList
             style={{ flex: 1 }}
             data={specieList}
@@ -251,7 +237,7 @@ const ManageSpecies = () => {
 
   const SearchSpecies = () => {
     return (
-      <View style={{flex:1, paddingTop: 15}}>
+      <View style={{ flex: 1, paddingTop: 15 }}>
         <FlatList
           style={{ flex: 1 }}
           data={searchList}
@@ -264,49 +250,39 @@ const ManageSpecies = () => {
     );
   };
 
-  function compare( a, b ) {
-    if ( a.scientific_name < b.scientific_name ){
-      return -1;
+  const handleSpeciesSearch = (text) => {
+    setSearchText(text);
+    if (text) {
+      searchSpecies(text).then((data) => {
+        setSearchList(data);
+      });
+    } else {
+      setSearchList([]);
     }
-    if ( a.scientific_name > b.scientific_name ){
-      return 1;
-    }
-    return 0;
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <Header 
+      <Header
         closeIcon
-        onBackPress={onPressBack} 
-        headingText="Tree Species" 
-        rightText='Done' 
-        onPressFunction= {addSelectedSpecies}
+        onBackPress={onPressBack}
+        headingText="Tree Species"
+        rightText="Done"
+        onPressFunction={addSelectedSpecies}
       />
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
         <TextInput
           style={styles.searchText}
-          // defaultValue="Search species"
-          placeholder= "Search species"
-          onChangeText={(text) => {
-            setSearchText(text);
-            if (text)
-            {
-              searchSpecies(text)
-              .then((data) => { console.log(typeof data, 'Dataaaaaaaaaa'); setSearchList(data); })
-            }
-            else {
-              setSearchList(null)
-            }
-          }}
+          placeholder="Search species"
+          onChangeText={handleSpeciesSearch}
           value={searchText}
-          onFocus = {() => {setSearchBarFocused(true);}}
+          onFocus={() => {
+            setSearchBarFocused(true);
+          }}
         />
       </View>
-      <>
-        { searchBarFocused ? <SearchSpecies /> : <MySpecies/>}
-      </>
+      {searchBarFocused ? <SearchSpecies /> : <MySpecies />}
     </View>
   );
 };
@@ -316,10 +292,8 @@ export default ManageSpecies;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // flexDirection: 'column',
-    // justifyContent: 'flex-start',
     paddingHorizontal: 25,
-    paddingTop: 30,
+    paddingTop: 20,
     backgroundColor: Colors.WHITE,
   },
 
@@ -351,38 +325,16 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     paddingLeft: 12,
-    flex:1
+    flex: 1,
+  },
+  specieListItem: {
+    paddingBottom: 20,
+    paddingRight: 10,
+    paddingTop: 10,
+    borderBottomWidth: 1,
+    borderColor: '#E1E0E061',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
-
-const speciesJSON = [
-  { localName: 'Balché', nameOfTree: 'Aardvark' },
-  { localName: 'Balché', nameOfTree: 'Albatross' },
-  { localName: 'Balché', nameOfTree: 'Alligator' },
-  { localName: 'Balché', nameOfTree: 'Alpaca' },
-  { localName: 'Balché', nameOfTree: 'Ant' },
-  { localName: 'Balché', nameOfTree: 'Anteater' },
-  { localName: 'Balché', nameOfTree: 'Antelope' },
-  { localName: 'Balché', nameOfTree: 'Ape' },
-  { localName: 'Balché', nameOfTree: 'Armadillo' },
-  { localName: 'Balché', nameOfTree: 'Donkey' },
-  { localName: 'Balché', nameOfTree: 'Baboon' },
-  { localName: 'Balché', nameOfTree: 'Badger' },
-  { localName: 'Balché', nameOfTree: 'Barracuda' },
-  { localName: 'Balché', nameOfTree: 'Bat' },
-  { localName: 'Balché', nameOfTree: 'Bear' },
-  { localName: 'Balché', nameOfTree: 'Beaver' },
-  { localName: 'Balché', nameOfTree: 'Bee' },
-  { localName: 'Balché', nameOfTree: 'Bison' },
-  { localName: 'Balché', nameOfTree: 'Boar' },
-  { localName: 'Balché', nameOfTree: 'Buffalo' },
-  { localName: 'Balché', nameOfTree: 'Butterfly' },
-  { localName: 'Balché', nameOfTree: 'Camel' },
-  { localName: 'Balché', nameOfTree: 'Capybara' },
-  { localName: 'Balché', nameOfTree: 'Caribou' },
-  { localName: 'Balché', nameOfTree: 'Cassowary' },
-  { localName: 'Balché', nameOfTree: 'Cat' },
-  { localName: 'Balché', nameOfTree: 'Caterpillar' },
-  { localName: 'Balché', nameOfTree: 'Cattle' },
-  { localName: 'Balché', nameOfTree: 'Chamois' },
-];

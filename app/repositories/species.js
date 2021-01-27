@@ -66,9 +66,8 @@ export const getAllSpecies = () => {
       .then((realm) => {
         realm.write(() => {
           const species = realm.objects('AddSpecies');
-          let data = JSON.parse(JSON.stringify(species));
-          console.log(data);
-          resolve(data);
+          const sortedSpecies = species.sorted('scientificName');
+          resolve(sortedSpecies);
         });
       })
       .catch((err) => {
@@ -235,7 +234,7 @@ export const searchSpecies = (text) => {
     })
     .then((realm) => {
       let species = realm.objects('ScientificSpecies');
-      let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${text}"`);
+      let searchedSpecies = species.filtered(`scientific_name CONTAINS "${text}"`);
       resolve(searchedSpecies);
     })
     .catch((err) => {
