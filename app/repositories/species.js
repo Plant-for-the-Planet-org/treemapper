@@ -234,7 +234,7 @@ export const searchSpecies = (text) => {
     })
     .then((realm) => {
       let species = realm.objects('ScientificSpecies');
-      let searchedSpecies = species.filtered(`scientific_name CONTAINS "${text}"`);
+      let searchedSpecies = species.filtered(`scientific_name contains[c] '${text}'`);
       searchedSpecies = searchedSpecies.sorted('scientific_name')
       resolve(searchedSpecies);
     })
