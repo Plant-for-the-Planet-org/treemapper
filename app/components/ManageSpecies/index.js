@@ -55,12 +55,10 @@ const ManageSpecies = () => {
   };
 
   const addSpecies = (item) => {
-    console.log('addSpecies', item);
     setSelectedSpecies([...selectedSpecies, item]);
   };
 
   const removeSpecies = (item) => {
-    console.log('removeSpecies', item);
     setSelectedSpecies(
       selectedSpecies.filter((specie) => specie.scientific_name !== item.scientific_name),
     );
@@ -71,64 +69,33 @@ const ManageSpecies = () => {
       onPressBack();
     } else {
       let species = [...selectedSpecies];
-      let alreadyPresentSpecies = [];
       for (let specie of species) {
-        let currentSpecie;
-        for (let item of specieList) {
-          if (specie.guid === item.speciesId) {
-            currentSpecie = item;
-            alreadyPresentSpecies.push(currentSpecie);
-            console.log(currentSpecie, 'current species');
-            console.log(alreadyPresentSpecies.length, 'alreadyPresentSpecies');
-            break;
-          } else {
-            currentSpecie = null;
-          }
-        }
-        if (!currentSpecie) {
-          AddUserSpecies(specie.scientific_name, specie.guid)
-            .then((data) => {
-              setSpecieId(data)(speciesDispatch);
-              onPressBack();
-            })
-            .catch((err) => {
-              console.log(err);
-              Alert.alert(
-                i18next.t('label.select_species_error'),
-                i18next.t('label.select_species_enter_valid_input', {
-                  scientific_name: specie.scientific_name,
-                }),
-                [
-                  {
-                    text: i18next.t('label.select_species_ok'),
-                    onPress: () => console.log('OK Pressed'),
-                  },
-                ],
-                { cancelable: false },
-              );
-            });
-        }
-      }
-      if (alreadyPresentSpecies.length > 0) {
-        console.log(alreadyPresentSpecies, 'already Present................');
-        Alert.alert(
-          'Error',
-          `You have added ${alreadyPresentSpecies} already`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                console.log('OK Pressed');
-              },
-            },
-          ],
-          { cancelable: false },
-        );
+        AddUserSpecies(specie.scientific_name, specie.guid)
+          .then((data) => {
+            setSpecieId(data)(speciesDispatch);
+            onPressBack();
+          })
+          .catch((err) => {
+            console.log(err);
+            Alert.alert(
+              i18next.t('label.select_species_error'),
+              i18next.t('label.select_species_enter_valid_input', {
+                scientific_name: specie.scientific_name,
+              }),
+              [
+                {
+                  text: i18next.t('label.select_species_ok'),
+                  onPress: () => console.log('OK Pressed'),
+                },
+              ],
+              { cancelable: false },
+            );
+          });
       }
     }
   };
 
-  const checkIsSpeciePresent = ({ speciesList, specieToSearch }) => {
+  const checkIsSpeciePresent = (speciesList, specieToSearch) => {
     let isPresent = false;
     if (speciesList && speciesList.length > 0) {
       for (let specie of speciesList) {
@@ -145,7 +112,7 @@ const ManageSpecies = () => {
 
   const renderSearchSpecieCard = ({ item, index }) => {
     let isDisabled = false;
-    let isCheck = checkIsSpeciePresent(selectedSpecies, item, '');
+    let isCheck = checkIsSpeciePresent(selectedSpecies, item);
     let isUserSpeciePresent = false;
     if (specieList && specieList.length > 0) {
       for (let specie of specieList) {
@@ -157,7 +124,6 @@ const ManageSpecies = () => {
         }
       }
     }
-    console.log('\nisUserSpeciePresent', isUserSpeciePresent);
     if (isUserSpeciePresent) {
       isDisabled = true;
       isCheck = true;
@@ -227,7 +193,7 @@ const ManageSpecies = () => {
             style={{ flex: 1 }}
             data={specieList}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.nameOfTree}
+            keyExtractor={(item) => item.speciesId}
             renderItem={renderSpecieCard}
           />
         </View>
@@ -244,7 +210,6 @@ const ManageSpecies = () => {
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.guid}
           renderItem={renderSearchSpecieCard}
-          extraData={selectedSpecies}
         />
       </View>
     );
