@@ -486,7 +486,7 @@ const SingleTreeOverview = ({ navigation }) => {
                     fontSize: Typography.FONT_SIZE_18,
                     lineHeight: Typography.LINE_HEIGHT_24,
                   }}>
-                  Delete
+                  {i18next.t('label.tree_review_delete')}
                 </Text>
               </TouchableOpacity>
             </View>

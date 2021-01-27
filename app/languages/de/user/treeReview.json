@@ -13,5 +13,6 @@
   "tree_review_plantation_date": "PFLANZDATUM",
   "tree_review_plantation_date_text": "{{date, ll}}",
   "tree_review_alrighty": "Vervollständige",
-  "tree_review_register_planting_date": "Registriere Pflanzdatum"
+  "tree_review_register_planting_date": "Registriere Pflanzdatum",
+  "tree_review_delete": "Löschen"
 }
