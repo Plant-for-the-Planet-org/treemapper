@@ -66,7 +66,9 @@ export const getAllSpecies = () => {
       .then((realm) => {
         realm.write(() => {
           const species = realm.objects('AddSpecies');
-          resolve(JSON.parse(JSON.stringify(species)));
+          let data = JSON.parse(JSON.stringify(species));
+          console.log(data);
+          resolve(data);
         });
       })
       .catch((err) => {
