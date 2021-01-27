@@ -38,6 +38,7 @@ const ManageSpecies = () => {
   const [searchList, setSearchList] = useState(null);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchBarFocused, setSearchBarFocused] = useState(false);
+  const [alreadyPresentSpecies, setAlreadyPresentSpecies] = useState([]);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
@@ -92,28 +93,6 @@ const ManageSpecies = () => {
     );
   };
 
-  const searchSpecies = (text) => {
-    return new Promise((resolve, reject) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-        ],
-      }).then((realm) => {
-        let species = realm.objects('ScientificSpecies');
-        let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${text}"`);
-        // console.log(searchedSpecies);
-        setSearchList(searchedSpecies);
-      });
-    });
-  };
-
   const addSpecies = (item) => {
     setSelectedSpecies([...selectedSpecies, item]);
     console.log(selectedSpecies, 'selectedSPecies');
@@ -130,14 +109,16 @@ const ManageSpecies = () => {
           onPressBack();
         }
         let species = [...selectedSpecies];
-        let alreadyPresentSpecies = [];
+        // let alreadyPresentSpecies = [];
         for (let specie of species) {
           let currentSpecie;
           for (let item of specieList) {
             if (specie.guid === item.speciesId){
-              currentSpecie = item.scientificName;
-              alreadyPresentSpecies.push(currentSpecie);
-              console.log(alreadyPresentSpecies,'already Present');
+              currentSpecie = item;
+              console.log(currentSpecie, 'current species');
+              setAlreadyPresentSpecies([...alreadyPresentSpecies, currentSpecie]);
+              // .push(currentSpecie);
+              // console.log(alreadyPresentSpecies,'already Present');
               break;
             } else {
               currentSpecie = null;
@@ -163,11 +144,12 @@ const ManageSpecies = () => {
           }
         }
         if (alreadyPresentSpecies.length > 0) {
+          console.log(alreadyPresentSpecies,'already Present................');
           Alert.alert(
             "Error",
             `You have added ${alreadyPresentSpecies} already`,
             [
-              { text: "OK", onPress: () => console.log("OK Pressed") }
+              { text: "OK", onPress: () => {console.log("OK Pressed"); setAlreadyPresentSpecies([]);} }
             ],
             { cancelable: false }
           );
@@ -282,6 +264,16 @@ const ManageSpecies = () => {
     );
   };
 
+  function compare( a, b ) {
+    if ( a.scientific_name < b.scientific_name ){
+      return -1;
+    }
+    if ( a.scientific_name > b.scientific_name ){
+      return 1;
+    }
+    return 0;
+  }
+
   return (
     <View style={styles.container}>
       <Header 
@@ -302,13 +294,14 @@ const ManageSpecies = () => {
             if (text)
             {
               searchSpecies(text)
+              .then((data) => { console.log(typeof data, 'Dataaaaaaaaaa'); setSearchList(data); })
             }
             else {
               setSearchList(null)
             }
           }}
           value={searchText}
-          onFocus = {() => {setSearchBarFocused(true); console.log(searchBarFocused);}}
+          onFocus = {() => {setSearchBarFocused(true);}}
         />
       </View>
       <>

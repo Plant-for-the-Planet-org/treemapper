@@ -219,24 +219,29 @@ export const updateLocalSpecies = (speciesData) => {
   });
 };
 
-// export const searchSpecies = (text) => {
-//   return new Promise((resolve, reject) => {
-//     Realm.open({
-//       schema: [
-//         Inventory,
-//         Species,
-//         Polygons,
-//         Coordinates,
-//         OfflineMaps,
-//         User,
-//         AddSpecies,
-//         ScientificSpecies,
-//       ],
-//     }).then((realm) => {
-//       let species = realm.objects('ScientificSpecies');
-//       let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${text}"`);
-//       // console.log(searchedSpecies);
-//       setSearchList(searchedSpecies);
-//     });
-//   });
-// };
+export const searchSpecies = (text) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+      ],
+    })
+    .then((realm) => {
+      let species = realm.objects('ScientificSpecies');
+      let searchedSpecies = species.filtered(`scientific_name BEGINSWITH "${text}"`);
+      resolve(searchedSpecies);
+    })
+    .catch((err) => {
+      reject(err);
+      console.error(`Error at /repositories/species/searchSpecies, ${JSON.stringify(err)}`);
+      bugsnag.notify(err);
+    })
+  });
+};
