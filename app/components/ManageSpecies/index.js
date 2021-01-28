@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert } from 'react-native';
-import { Colors, Typography } from '_styles';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { Header } from '../Common';
 import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories/species';
-import { setSpecieId, addMultipleTreesSpecie } from '../../actions/species';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Colors, Typography } from '_styles';
+import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
+import { AddUserSpecies, getAllSpecies, searchSpecies } from '../../repositories/species';
+import { Header } from '../Common';
 import PrimaryButton from '../Common/PrimaryButton';
 
 const ManageSpecies = ({
@@ -128,8 +128,6 @@ const ManageSpecies = ({
         if (specie.scientific_name === specieToSearch.scientific_name) {
           isPresent = true;
           break;
-        } else {
-          isPresent = false;
         }
       }
     }
@@ -145,8 +143,6 @@ const ManageSpecies = ({
         if (specie.speciesId === item.guid) {
           isUserSpeciePresent = true;
           break;
-        } else {
-          isUserSpeciePresent = false;
         }
       }
     }
@@ -155,7 +151,7 @@ const ManageSpecies = ({
       isCheck = true;
     }
 
-    const SpecieListItem = ({ item }) => {
+    const SpecieListItem = () => {
       return (
         <>
           <View>
@@ -179,7 +175,7 @@ const ManageSpecies = ({
     if (isDisabled) {
       return (
         <View style={[styles.specieListItem, { opacity: 0.5 }]}>
-          <SpecieListItem item={item} />
+          <SpecieListItem />
         </View>
       );
     } else {
@@ -194,7 +190,7 @@ const ManageSpecies = ({
               addSpecies(item);
             }
           }}>
-          <SpecieListItem item={item} />
+          <SpecieListItem />
         </TouchableOpacity>
       );
     }

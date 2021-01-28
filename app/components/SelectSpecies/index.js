@@ -1,9 +1,8 @@
-import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
-  FlatList,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -12,26 +11,19 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import Config from 'react-native-config';
-import { SvgXml } from 'react-native-svg';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
-import { APIConfig } from '../../actions/Config';
-import { SpeciesListData, UpdateSpecies, UpdateSpeciesImage } from '../../actions/UploadInventory';
-import { getUserInformation } from '../../repositories/user';
-import { checkCircle, checkCircleFill, placeholder_image, tree } from '../../assets';
+import { setMultipleTreesSpeciesList } from '../../actions/species';
+import { placeholder_image } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
 import { getInventory, updateSpecieAndSpecieDiameter } from '../../repositories/inventory';
-import AddSpeciesModal from '../AddSpecies';
-import { Header, PrimaryButton } from '../Common';
-import Camera from '../Common/Camera';
-import { setMultipleTreesSpeciesList } from '../../actions/species';
-import ManageSpecies from '../ManageSpecies';
 import { getAllSpecies } from '../../repositories/species';
+import { getUserInformation } from '../../repositories/user';
+import { Header, PrimaryButton } from '../Common';
+import ManageSpecies from '../ManageSpecies';
 
 const SelectSpecies = ({
   visible,
@@ -47,7 +39,6 @@ const SelectSpecies = ({
   const [isShowTreeMeasurementModal, setIsShowTreeMeasurementModal] = useState(false);
   const [diameter, setDiameter] = useState(null);
   const [height, setHeight] = useState(null);
-  const [speciesList, setSpeciesList] = useState(null);
   const navigation = useNavigation();
   const [showSpecies, setShowSpecies] = useState(visible);
   const [inventory, setInventory] = useState(null);
@@ -112,15 +103,15 @@ const SelectSpecies = ({
     });
   };
 
-  const onPressSpecie = (item, index) => {
+  const onPressSpecie = (item, specieIndex) => {
     if (item.treeCount) {
       let list = speciesState.multipleTreesSpecies;
-      list[index].treeCount = undefined;
+      list[specieIndex].treeCount = undefined;
 
       setMultipleTreesSpeciesList(list)(speciesDispatch);
     } else {
       setActiveSpecie(item);
-      setIndex(index);
+      setIndex(specieIndex);
       setIsShowTreeCountModal(true);
     }
   };
