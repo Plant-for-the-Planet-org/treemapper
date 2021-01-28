@@ -7,17 +7,26 @@ import { Header } from '../Common';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories/species';
-import { setSpecieId } from '../../actions/species';
+import {
+  setSpecieId,
+  setMultipleTreesSpeciesList,
+  addMultipleTreesSpecie,
+} from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 
-const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultiple, registrationType}) => {
+const ManageSpecies = ({
+  onPressSpeciesSingle,
+  onPressBack,
+  onPressSpeciesMultiple,
+  registrationType,
+}) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchBarFocused, setSearchBarFocused] = useState(false);
-  const { dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     getAllSpecies().then((data) => setSpecieList(data));
@@ -40,8 +49,13 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
-        onPress = {()=> registrationType == 'single'? onPressSpeciesSingle(item) : registrationType == 'multiple' ? onPressSpeciesMultiple(item, index): {}}
-      >
+        onPress={() =>
+          registrationType == 'single'
+            ? onPressSpeciesSingle(item)
+            : registrationType == 'multiple'
+            ? onPressSpeciesMultiple(item, index)
+            : {}
+        }>
         <View>
           <Text
             style={{
@@ -51,7 +65,11 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
             {item.scientificName}
           </Text>
         </View>
-        <Ionicons name="chevron-forward-outline" size={20} />
+        {registrationType == 'multiple' ? (
+          <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
+        ) : (
+          <Ionicons name="chevron-forward-outline" size={20} />
+        )}
       </TouchableOpacity>
     );
   };
@@ -70,11 +88,20 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
     if (selectedSpecies.length === 0) {
       onPressBack ? setSearchBarFocused(false) : onPressHome();
     } else {
+      console.log('\n\nadding addSelectedSpecies');
       let species = [...selectedSpecies];
       for (let specie of species) {
         AddUserSpecies(specie.scientific_name, specie.guid)
           .then((data) => {
             setSpecieId(data)(speciesDispatch);
+            setSelectedSpecies([]);
+            if (registrationType === 'multiple') {
+              addMultipleTreesSpecie({
+                id: data,
+                scientificName: specie.scientific_name,
+                speciesId: specie.guid,
+              })(speciesDispatch);
+            }
             // onPressBack();
             setSearchBarFocused(false);
           })
@@ -194,7 +221,7 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
         <View style={{ flex: 1 }}>
           <FlatList
             style={{ flex: 1 }}
-            data={specieList}
+            data={registrationType === 'multiple' ? speciesState.multipleTreesSpecies : specieList}
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.speciesId}
             renderItem={renderSpecieCard}
@@ -235,8 +262,8 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
     <View style={styles.container}>
       <Header
         closeIcon
-        onBackPress={() => onPressBack? onPressBack (): onPressHome()}
-        headingText="Tree Species"
+        onBackPress={() => (onPressBack ? onPressBack() : onPressHome())}
+        headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
         rightText="Done"
         onPressFunction={addSelectedSpecies}
       />
@@ -244,7 +271,7 @@ const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultipl
         <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
         <TextInput
           style={styles.searchText}
-          placeholder="Search species"
+          placeholder={i18next.t('label.select_species_search_species')}
           onChangeText={handleSpeciesSearch}
           value={searchText}
           onFocus={() => {

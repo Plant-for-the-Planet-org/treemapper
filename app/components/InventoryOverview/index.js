@@ -80,8 +80,8 @@ const InventoryOverview = ({ navigation }) => {
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
                     title: i18next.t('label.inventory_overview_title_coordinates', {
-                            alphabetindex: ALPHABETS[index],
-                          }),
+                      alphabetindex: ALPHABETS[index],
+                    }),
                     subHeading: `${oneCoordinate.latitude.toFixed(
                       5,
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
@@ -327,7 +327,6 @@ const InventoryOverview = ({ navigation }) => {
     if (inventory) {
       return (
         <SelectSpecies
-          speciess={inventory.species}
           invent={inventory}
           visible={isShowSpeciesListModal}
           closeSelectSpeciesModal={closeSelectSpeciesModal}

@@ -425,6 +425,7 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
           inventory.species_diameter = Number(diameter);
           inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
+          console.log('updateSpecieAndSpecieDiameter', inventory);
         });
         resolve();
       })

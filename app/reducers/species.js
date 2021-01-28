@@ -1,10 +1,16 @@
 import React, { createContext, useReducer } from 'react';
-import { SET_SPECIES_LIST, SET_SPECIE_ID } from '../actions/Types';
+import {
+  SET_SPECIES_LIST,
+  SET_SPECIE_ID,
+  SET_MULTIPLE_TREES_SPECIES_LIST,
+  ADD_MULTIPLE_TREE_SPECIE,
+} from '../actions/Types';
 
 // stores the initial properties of the species state
 const initialState = {
   species: [],
   specieId: null,
+  multipleTreesSpecies: [],
 };
 
 // Species reducer function which takes the state and action param
@@ -22,6 +28,18 @@ const speciesReducer = (state = initialState, action) => {
       return {
         ...state,
         specieId: action.payload,
+      };
+    // updates the species list for multiple trees registration
+    case SET_MULTIPLE_TREES_SPECIES_LIST:
+      return {
+        ...state,
+        multipleTreesSpecies: action.payload,
+      };
+    // adds new specie in multipleTreesSpecies for multiple trees registration
+    case ADD_MULTIPLE_TREE_SPECIE:
+      return {
+        ...state,
+        multipleTreesSpecies: [...state.multipleTreesSpecies, action.payload],
       };
     // returns the state as is if no type is found
     default:

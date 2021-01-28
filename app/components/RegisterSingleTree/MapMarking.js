@@ -219,7 +219,6 @@ class MapMarking extends React.Component {
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
       navigation.navigate('SelectSpecies', {
-        species: this.state.inventory.species,
         inventory: this.state.inventory,
         visible: true,
       });
