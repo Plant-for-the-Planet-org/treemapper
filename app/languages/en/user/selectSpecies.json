@@ -28,5 +28,6 @@
   "select_species_species_selected": "{{length}} species selected",
   "select_species_search_species": "Search species",
   "select_species_done": "Done",
-  "select_species_add_name": "Add Name"
+  "select_species_add_name": "Add Name",
+  "select_species_my_species": "My Species"
 }

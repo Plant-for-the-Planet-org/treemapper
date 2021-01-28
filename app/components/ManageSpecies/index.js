@@ -7,18 +7,16 @@ import { Header } from '../Common';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories/species';
-import {
-  setSpecieId,
-  setMultipleTreesSpeciesList,
-  addMultipleTreesSpecie,
-} from '../../actions/species';
+import { setSpecieId, addMultipleTreesSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
+import PrimaryButton from '../Common/PrimaryButton';
 
 const ManageSpecies = ({
   onPressSpeciesSingle,
   onPressBack,
   onPressSpeciesMultiple,
   registrationType,
+  onSaveMultipleSpecies,
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
@@ -215,7 +213,7 @@ const ManageSpecies = ({
               fontFamily: Typography.FONT_FAMILY_BOLD,
               fontSize: Typography.FONT_SIZE_16,
             }}>
-            My species
+            {i18next.t('label.select_species_my_species')}
           </Text>
         </View>
         <View style={{ flex: 1 }}>
@@ -227,6 +225,14 @@ const ManageSpecies = ({
             renderItem={renderSpecieCard}
           />
         </View>
+        {registrationType === 'multiple' && (
+          <PrimaryButton
+            onPress={onSaveMultipleSpecies}
+            btnText={i18next.t('label.select_species_btn_text')}
+            testID={'btn_save_and_continue_species'}
+            accessibilityLabel={'Save and Continue Species'}
+          />
+        )}
       </View>
     );
   };

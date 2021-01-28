@@ -36,7 +36,6 @@ import { getAllSpecies } from '../../repositories/species';
 const SelectSpecies = ({
   visible,
   closeSelectSpeciesModal,
-  speciess,
   route,
   invent,
   onPressSaveAndContinueMultiple,
@@ -141,6 +140,28 @@ const SelectSpecies = ({
     setIsShowTreeCountModal(false);
     setTreeCount(0);
     setMultipleTreesSpeciesList([...speciesListClone])(speciesDispatch);
+  };
+
+  const onPressContinue = () => {
+    console.log('onPressContinue called');
+    let selectedSpeciesList = [];
+    for (let i = 0; i < speciesState.multipleTreesSpecies.length; i++) {
+      const oneSpecie = speciesState.multipleTreesSpecies[i];
+      console.log('oneSpecie', oneSpecie);
+      if (oneSpecie.treeCount) {
+        oneSpecie.id = i.toString();
+        selectedSpeciesList.push(oneSpecie);
+      }
+    }
+    console.log('\n\n');
+    console.log('selectedSpeciesList =>>', selectedSpeciesList);
+    console.log('\n\n');
+    onPressSaveAndContinueMultiple(selectedSpeciesList);
+
+    setActiveSpecie(undefined);
+    setIsShowTreeCountModal(false);
+    setTreeCount('');
+    closeSelectSpeciesModal();
   };
 
   const renderTreeCountModal = () => {
@@ -331,6 +352,7 @@ const SelectSpecies = ({
         onPressBack={() => navigation.goBack()}
         registrationType={registrationType}
         onPressSpeciesMultiple={onPressSpecie}
+        onSaveMultipleSpecies={onPressContinue}
       />
       {renderTreeCountModal()}
       {renderMeasurementModal()}
