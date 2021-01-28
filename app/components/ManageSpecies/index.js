@@ -47,13 +47,13 @@ const ManageSpecies = ({
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
-        onPress={() =>
-          registrationType == 'single'
-            ? onPressSpeciesSingle(item)
-            : registrationType == 'multiple'
-            ? onPressSpeciesMultiple(item, index)
-            : {}
-        }>
+        onPress={() => {
+          if (registrationType == 'single') {
+            onPressSpeciesSingle(item);
+          } else if (registrationType == 'multiple') {
+            onPressSpeciesMultiple(item, index);
+          }
+        }}>
         <View>
           <Text
             style={{
@@ -86,7 +86,6 @@ const ManageSpecies = ({
     if (selectedSpecies.length === 0) {
       onPressBack ? setSearchBarFocused(false) : onPressHome();
     } else {
-      console.log('\n\nadding addSelectedSpecies');
       let species = [...selectedSpecies];
       for (let specie of species) {
         AddUserSpecies(specie.scientific_name, specie.guid)
@@ -100,11 +99,11 @@ const ManageSpecies = ({
                 speciesId: specie.guid,
               })(speciesDispatch);
             }
-            // onPressBack();
+
             setSearchBarFocused(false);
           })
           .catch((err) => {
-            console.log(err);
+            console.error(err);
             Alert.alert(
               i18next.t('label.select_species_error'),
               i18next.t('label.select_species_enter_valid_input', {
@@ -113,7 +112,6 @@ const ManageSpecies = ({
               [
                 {
                   text: i18next.t('label.select_species_ok'),
-                  onPress: () => console.log('OK Pressed'),
                 },
               ],
               { cancelable: false },
@@ -268,9 +266,9 @@ const ManageSpecies = ({
     <View style={styles.container}>
       <Header
         closeIcon
-        onBackPress={() => (onPressBack ? onPressBack() : onPressHome())}
+        onBackPress={onPressBack ? onPressBack : onPressHome}
         headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
-        rightText="Done"
+        rightText={i18next.t('label.select_species_done')}
         onPressFunction={addSelectedSpecies}
       />
       <View style={styles.searchBar}>
@@ -280,9 +278,7 @@ const ManageSpecies = ({
           placeholder={i18next.t('label.select_species_search_species')}
           onChangeText={handleSpeciesSearch}
           value={searchText}
-          onFocus={() => {
-            setSearchBarFocused(true);
-          }}
+          onFocus={() => setSearchBarFocused(true)}
         />
       </View>
       {searchBarFocused ? <SearchSpecies /> : <MySpecies />}

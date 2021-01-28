@@ -101,7 +101,7 @@ const SelectSpecies = ({
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
-      // setTreeType(inventory.locate_tree);
+
       setRegistrationType(inventory.tree_type);
     });
   };
@@ -116,7 +116,7 @@ const SelectSpecies = ({
     if (item.treeCount) {
       let list = speciesState.multipleTreesSpecies;
       list[index].treeCount = undefined;
-      console.log('\n\nonPressSpecie list', list);
+
       setMultipleTreesSpeciesList(list)(speciesDispatch);
     } else {
       setActiveSpecie(item);
@@ -127,7 +127,7 @@ const SelectSpecies = ({
 
   const onPressSaveBtn = (item) => {
     setSingleTree(item);
-    console.log('onPressSpecies Save', item);
+
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -153,9 +153,7 @@ const SelectSpecies = ({
         selectedSpeciesList.push(oneSpecie);
       }
     }
-    console.log('\n\n');
-    console.log('selectedSpeciesList =>>', selectedSpeciesList);
-    console.log('\n\n');
+
     onPressSaveAndContinueMultiple(selectedSpeciesList);
 
     setActiveSpecie(undefined);
@@ -287,7 +285,6 @@ const SelectSpecies = ({
                       onPress={onPressMeasurementBtn}
                       btnText={i18next.t('label.select_species_continue')}
                       style={{ marginBottom: 50 }}
-                      // disabled={singleTree ? false : true}
                     />
                   </View>
                 </View>
@@ -324,13 +321,13 @@ const SelectSpecies = ({
           navigation.navigate('SingleTreeOverview');
         })
         .catch((err) => {
-          console.log(err);
+          console.error(err);
         });
     } else {
       Alert.alert(
         i18next.t('label.select_species_error'),
         i18next.t('label.select_species_enter_valid_input'),
-        [{ text: i18next.t('label.select_species_ok'), onPress: () => console.log('OK Pressed') }],
+        [{ text: i18next.t('label.select_species_ok') }],
         { cancelable: false },
       );
     }
@@ -372,27 +369,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  speciesLocalName: {
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_18,
-  },
-  speciesName: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_14,
-    fontStyle: 'italic',
-  },
-  treeCount: {
-    flex: 1,
-    color: Colors.PRIMARY,
-    fontSize: Typography.FONT_SIZE_16,
-  },
   externalInputContainer: {
     flexDirection: 'row',
     height: 65,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    // paddingHorizontal: 20,
     borderTopWidth: 0.5,
     borderColor: Colors.TEXT_COLOR,
   },
@@ -404,15 +386,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
   },
-  valueAddspcies: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-    paddingTop: 20,
-  },
   labelModal: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
@@ -420,23 +393,6 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     marginRight: 10,
     paddingHorizontal: 10,
-  },
-  searchText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_14,
-    // lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.PRIMARY,
-    paddingTop: 15,
-    paddingRight: 5,
-  },
-  bgWhiteAdd: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  searchDisplay: {
-    display: 'none',
   },
   modalBackground: {
     flex: 1,
