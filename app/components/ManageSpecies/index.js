@@ -10,7 +10,7 @@ import { searchSpecies, AddUserSpecies, getAllSpecies } from '../../repositories
 import { setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 
-const ManageSpecies = ({onPressSpecies, onPressBack}) => {
+const ManageSpecies = ({onPressSpeciesSingle, onPressBack, onPressSpeciesMultiple, registrationType}) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -40,7 +40,7 @@ const ManageSpecies = ({onPressSpecies, onPressBack}) => {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
-        onPress = {()=> onPressSpecies? onPressSpecies(item) : []}
+        onPress = {()=> registrationType == 'single'? onPressSpeciesSingle(item) : registrationType == 'multiple' ? onPressSpeciesMultiple(item, index): {}}
       >
         <View>
           <Text

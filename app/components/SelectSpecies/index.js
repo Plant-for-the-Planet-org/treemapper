@@ -31,6 +31,7 @@ import { Header, PrimaryButton } from '../Common';
 import Camera from '../Common/Camera';
 import { setSpeciesList as setSpeciesListAction } from '../../actions/species';
 import ManageSpecies from '../ManageSpecies';
+import { getAllSpecies } from '../../repositories/species';
 
 const SelectSpecies = ({
   visible,
@@ -61,13 +62,15 @@ const SelectSpecies = ({
   const isFocused = useIsFocused();
   const [numberTrees, setNumberTrees] = useState(null);
   const [countryCode, setCountryCode] = useState('');
+  const [index, setIndex] = useState(undefined);
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     let species;
     let inventory;
-    setSpeciesList(speciesState.species);
+    // setSpeciesList(speciesState.species);
+    getAllSpecies().then((data) => setSpeciesList(data));
     getAllUserSpecies();
     if (route !== undefined) {
       inventory = route.params.inventory;
@@ -109,7 +112,8 @@ const SelectSpecies = ({
   }, []);
   useFocusEffect(
     React.useCallback(() => {
-      setSpeciesList(speciesState.species);
+      // setSpeciesList(speciesState.species);
+      getAllSpecies().then((data) => setSpeciesList(data));
       Inventory();
     }, [speciesState]),
   );
@@ -140,12 +144,13 @@ const SelectSpecies = ({
     });
   };
 
-  const onPressSpecie = (index) => {
-    if (speciesList[index].treeCount) {
-      speciesList[index].treeCount = undefined;
+  const onPressSpecie = (item, index) => {
+    if (item.treeCount) {
+      item.treeCount = undefined;
       setSpeciesList([...speciesList]);
     } else {
-      setActiveSpecie(index);
+      setActiveSpecie(item);
+      setIndex(index);
       setIsShowTreeCountModal(true);
     }
   };
@@ -335,16 +340,21 @@ const SelectSpecies = ({
 
   const onPressTreeCountNextBtn = () => {
     let speciesListClone = speciesList;
-    let specie = speciesListClone[activeSpeice];
+    console.log(typeof speciesList, 'speciesList Type')
+    let specie = speciesListClone[index];
     specie.treeCount = Number(treeCount) ? treeCount : undefined;
-    speciesListClone.splice(activeSpeice, 1, specie);
+    console.log(speciesListClone,specie.treeCount,'specie.treeCount', index, specie.scientificName);
+    speciesListClone.splice(index, 1, specie);
+    // speciesListClone.filter((item)=> item.scientificName !== specie.scientificName);
+    console.log(typeof speciesListClone,'========>', index,'=======>', specie);
     setIsShowTreeCountModal(false);
     setTreeCount(0);
     setSpeciesList([...speciesList]);
+    console.log(typeof speciesList,'onPressTreeCountNextBtn2');
   };
 
   const renderTreeCountModal = () => {
-    let specieName = isShowTreeCountModal ? speciesList[activeSpeice].name : '';
+    let specieName = isShowTreeCountModal ? activeSpeice.scientificName : '';
     return (
       <Modal visible={isShowTreeCountModal} transparent={true}>
         <View style={styles.modalBackground}>
@@ -585,6 +595,7 @@ const SelectSpecies = ({
     onPressSaveAndContinueMultiple(selectedspeciesList);
     // setTimeout(() => {
     setActiveSpecie(undefined);
+    setIndex(undefined);
     setIsShowTreeCountModal(false);
     setTreeCount('');
     closeSelectSpeciesModal();
@@ -692,9 +703,12 @@ const SelectSpecies = ({
           {renderAddNameModal()}
         </View> */}
         <ManageSpecies
-          onPressSpecies={onPressSaveBtn}
+          onPressSpeciesSingle={onPressSaveBtn}
           onPressBack= {() => navigation.goBack()}
+          registrationType = {numberTrees}
+          onPressSpeciesMultiple= {onPressSpecie}
         />
+        {renderTreeCountModal()}
         {renderMeasurementModal()}
       </Modal>
     );
