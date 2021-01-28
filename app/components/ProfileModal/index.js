@@ -38,8 +38,8 @@ const ProfileModal = ({
     setVisibility(isProfileModalVisible);
     return () => {
       // cleanup
-    }
-  }, [navigation, visibility])
+    };
+  }, [navigation, visibility]);
   const userImage = () => {
     LoginDetails().then((User) => {
       let detail = Object.values(User);
@@ -71,8 +71,8 @@ const ProfileModal = ({
   }
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
-    navigation.navigate('ManageSpecies')
-  }
+    navigation.navigate('ManageSpecies');
+  };
 
   const profileListItems = [
     {

@@ -232,16 +232,16 @@ export const searchSpecies = (text) => {
         ScientificSpecies,
       ],
     })
-    .then((realm) => {
-      let species = realm.objects('ScientificSpecies');
-      let searchedSpecies = species.filtered(`scientific_name contains[c] '${text}'`);
-      searchedSpecies = searchedSpecies.sorted('scientific_name')
-      resolve(searchedSpecies);
-    })
-    .catch((err) => {
-      reject(err);
-      console.error(`Error at /repositories/species/searchSpecies, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-    })
+      .then((realm) => {
+        let species = realm.objects('ScientificSpecies');
+        let searchedSpecies = species.filtered(`scientific_name contains[c] '${text}'`);
+        searchedSpecies = searchedSpecies.sorted('scientific_name');
+        resolve(searchedSpecies);
+      })
+      .catch((err) => {
+        reject(err);
+        console.error(`Error at /repositories/species/searchSpecies, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+      });
   });
 };
