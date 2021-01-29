@@ -12,7 +12,7 @@ import {
   ActivityLogs
 } from './schema';
 import { LogTypes } from '../utils/constants';
-import dbLog from '../repositories/logs'
+import dbLog from '../repositories/logs';
 
 export const AddUserSpecies = ( scientificName, speciesId ) => {
   return new Promise((resolve, reject) => {
@@ -84,7 +84,7 @@ export const getAllSpecies = () => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Successfully retrieved all User Species`,
+            message: 'Successfully retrieved all User Species',
           });
           const sortedSpecies = species.sorted('scientificName');
           resolve(sortedSpecies);
@@ -93,7 +93,7 @@ export const getAllSpecies = () => {
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while retrieving all User Species`,
+          message: 'Error while retrieving all User Species',
           logStack: JSON.stringify(err),
         });
         reject(err);

@@ -2,15 +2,15 @@ import axios from 'axios';
 import Realm from 'realm';
 import { APIConfig } from '../actions/Config';
 import {
-    Inventory,
-    Species,
-    Polygons,
-    Coordinates,
-    OfflineMaps,
-    User,
-    AddSpecies,
-    ScientificSpecies,
-    ActivityLogs
+  Inventory,
+  Species,
+  Polygons,
+  Coordinates,
+  OfflineMaps,
+  User,
+  AddSpecies,
+  ScientificSpecies,
+  ActivityLogs
 } from '../repositories/schema';
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
@@ -63,9 +63,9 @@ export const getUserInformationFromServer = (navigation) => {
             });
             // logging the success in to the db
             dbLog.info({
-                logType: LogTypes.USER,
-                message: 'Successfully retrieved User Information from Server',
-                statusCode: data.status,
+              logType: LogTypes.USER,
+              message: 'Successfully retrieved User Information from Server',
+              statusCode: data.status,
             });
             resolve(data.data);
           })

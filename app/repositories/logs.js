@@ -111,11 +111,11 @@ export const getLogs = (type) => {
           let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
           resolve( errorLogs );
           // console.log(errorLogs, 'errorLogs');
-        }
+          }
+        });
       });
-    })
   });
-}
+};
 
 // export to access the logging object
 export default dbLog ;

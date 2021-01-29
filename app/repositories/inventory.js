@@ -538,7 +538,7 @@ export const clearAllIncompleteInventory = () => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully deleted all incomplete inventories`,
+            message: 'Successfully deleted all incomplete inventories',
           });
           resolve();
         });
@@ -547,7 +547,7 @@ export const clearAllIncompleteInventory = () => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while deleting all incomplete inventories`,
+          message: 'Error while deleting all incomplete inventories',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -578,7 +578,7 @@ export const clearAllUploadedInventory = () => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully deleted all uploaded inventories`,
+            message: 'Successfully deleted all uploaded inventories',
           });
 
           resolve();
@@ -588,7 +588,7 @@ export const clearAllUploadedInventory = () => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while deleting all uploaded inventories`,
+          message: 'Error while deleting all uploaded inventories',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
