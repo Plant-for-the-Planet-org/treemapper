@@ -98,23 +98,23 @@ export const getLogs = (type) => {
         ActivityLogs
       ],
     })
-    .then((realm) => {
-      realm.write(() => {
-        if (type === 'all'){
-          const allLogs = realm.objects ('ActivityLogs');
-          resolve( JSON.parse ( JSON.stringify (allLogs) ) );
+      .then((realm) => {
+        realm.write(() => {
+          if (type === 'all'){
+            const allLogs = realm.objects ('ActivityLogs');
+            resolve( JSON.parse ( JSON.stringify (allLogs) ) );
           // console.log(allLogs, 'allLogs');
-        } 
-        else if (type === 'error') {
-          const allLogs = realm.objects ('ActivityLogs');
-          let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
-          resolve( JSON.parse ( JSON.stringify (errorLogs) ) );
+          } 
+          else if (type === 'error') {
+            const allLogs = realm.objects ('ActivityLogs');
+            let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
+            resolve( JSON.parse ( JSON.stringify (errorLogs) ) );
           // console.log(errorLogs, 'errorLogs');
-        }
+          }
+        });
       });
-    })
   });
-}
+};
 
 // export to access the logging object
 export default dbLog ;

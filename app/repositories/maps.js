@@ -72,7 +72,7 @@ export const getAllOfflineMaps = () => {
           // logging the error in to the db
           dbLog.info({
             logType: LogTypes.MAPS,
-            message: `Fetched offline maps`,
+            message: 'Fetched offline maps',
           });
           resolve(JSON.parse(JSON.stringify(offlineMaps)));
         });
@@ -81,7 +81,7 @@ export const getAllOfflineMaps = () => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.MAPS,
-          message: `Error while fetching the offline maps`,
+          message: 'Error while fetching the offline maps',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -111,7 +111,7 @@ export const deleteOfflineMap = ({ name }) => {
           // logging the error in to the db
           dbLog.info({
             logType: LogTypes.MAPS,
-            message: `Deleted offline maps`,
+            message: 'Deleted offline maps',
           });
           resolve();
         });
@@ -120,7 +120,7 @@ export const deleteOfflineMap = ({ name }) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.MAPS,
-          message: `Error while deleting offline maps`,
+          message: 'Error while deleting offline maps',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);

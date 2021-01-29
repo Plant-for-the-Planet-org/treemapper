@@ -3,6 +3,7 @@ import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import Realm from 'realm';
 import { APIConfig } from '../actions/Config';
+import { getUserInformationFromServer } from '../actions/user';
 import {
   AddSpecies,
   Coordinates,
@@ -17,7 +18,7 @@ import {
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
-import dbLog from './logs'
+import dbLog from './logs';
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -50,14 +51,14 @@ export const getUserToken = () => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
-          message: `Successfully retrieved User Token`,
+          message: 'Successfully retrieved User Token',
         });
       })
       .catch((err) => {
         console.error(`Error: /repositories/getUserToken -> ${JSON.stringify(err)}`);
         dbLog.error({
           logType: LogTypes.USER,
-          message: `Error while retrieving User Token`,
+          message: 'Error while retrieving User Token',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -101,20 +102,20 @@ export const auth0Login = (navigation) => {
               // logging the success in to the db
               dbLog.info({
                 logType: LogTypes.USER,
-                message: `Successfully Logged In`,
+                message: 'Successfully Logged In',
               });
               resolve(true);
             });
           });
         });
       })
-      .catch((error) => {
+      .catch((err) => {
         dbLog.error({
           logType: LogTypes.USER,
-          message: `Error while Logging In`,
+          message: 'Error while Logging In',
           logStack: JSON.stringify(err),
         });
-        reject(error);
+        reject(err);
       });
   });
 };
@@ -143,21 +144,21 @@ export const auth0Logout = () => {
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.USER,
-              message: `Successfully Logged Out`,
+              message: 'Successfully Logged Out',
             });
             resolve(true);
           });
         });
       })
-      .catch((error) => {
+      .catch((err) => {
         dbLog.error({
           logType: LogTypes.USER,
-          message: `Error while Logging Out`,
+          message: 'Error while Logging Out',
           logStack: JSON.stringify(err),
         });
-        alert('error');
-        console.error(error);
-        reject(error);
+        // alert('error');
+        console.error(err);
+        reject(err);
       });
   });
 };
@@ -208,7 +209,7 @@ export const LoginDetails = () => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.USER,
-            message: `Successfully retrieved User details`,
+            message: 'Successfully retrieved User details',
           });
           resolve(JSON.parse(JSON.stringify(User)));
         });
@@ -216,7 +217,7 @@ export const LoginDetails = () => {
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.USER,
-          message: `Error while retrieving User details`,
+          message: 'Error while retrieving User details',
           logStack: JSON.stringify(err),
         });
         reject(err);
@@ -246,7 +247,7 @@ export const getUserInformation = () => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
-          message: `Successfully retrieved User Information`,
+          message: 'Successfully retrieved User Information',
         });
         resolve({
           email: User.email,
@@ -335,18 +336,18 @@ export const setActivityLog = (bool) => {
         ScientificSpecies,
         ActivityLogs],
     })
-    .then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      realm.write(() => {
-        realm.create('User', {id: 'id0001', logActivity: bool}, 'modified');
+      .then((realm) => {
+        const User = realm.objectForPrimaryKey('User', 'id0001');
+        realm.write(() => {
+          realm.create('User', {id: 'id0001', logActivity: bool}, 'modified');
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: `Successfully toggled ${bool? 'on': 'off'} Activity Log`,
+        });
+        resolve();
       });
-      // logging the success in to the db
-      dbLog.info({
-        logType: LogTypes.USER,
-        message: `Successfully toggled ${bool? 'on': 'off'} Activity Log`,
-      });
-      resolve();
-    })
-  
-  })
-}
+
+  });
+};

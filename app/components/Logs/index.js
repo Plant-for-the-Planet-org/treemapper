@@ -6,7 +6,7 @@ import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/native';
 import LogsTabBar from './LogsTabBar';
 // import { FlatList } from 'react-native-gesture-handler';
-import {getLogs} from '../../repositories/logs'
+import {getLogs} from '../../repositories/logs';
 import { Colors, Typography } from '_styles';
 
 const renderLog = ({ item }) => (
@@ -21,10 +21,10 @@ const AllLogs = () => {
   const[allData, setAllData] = useState(null);
   useEffect(() => {
     getLogs('all')
-    .then((data)=> setAllData(data))
+      .then((data)=> setAllData(data));
     return () => {
       // cleanup
-    }
+    };
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>
@@ -35,17 +35,17 @@ const AllLogs = () => {
         keyExtractor={item => item.id}
       />
     </View>
-  )
+  );
 };
 
 const ErrorLogs = () => {
   const[errorData, setErrorData] = useState(null);
   useEffect(() => {
     getLogs('error')
-    .then((data)=> setErrorData(data))
+      .then((data)=> setErrorData(data));
     return () => {
       // cleanup
-    }
+    };
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>
@@ -56,7 +56,7 @@ const ErrorLogs = () => {
         keyExtractor={item => item.id}
       />
     </View>
-  )
+  );
 };
 const initialLayout = { width: Dimensions.get('window').width };
 
