@@ -29,16 +29,10 @@ Steps to reproduce the behavior:
 **Screenshots**
 *If applicable, add screenshots to help explain your problem.*
 
-**Desktop (please complete the following information):**
-- OS: [e.g. MacOS]
-- Browser [e.g. Chrome, Safari]
-- Tree Mapper App Version [e.g. 0.0.1]
-
 **Smartphone (please complete the following information):**
-- Device: [e.g. iPhone12]
-- OS: [e.g. iOS13.5]
-- Browser [e.g. Chrome, Safari]
-- Tree Mapper App Version [e.g. 0.0.1]
+- Device: [e.g. iPhone]
+- OS: [e.g. latest iOS]
+- Tree Mapper App Version: [e.g. 1.0.0]
 
 **Additional context**
 *Add any other context about the problem here.*

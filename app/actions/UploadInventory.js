@@ -6,7 +6,15 @@ import {
   changeInventoryStatus,
 } from '../repositories/inventory';
 import {
-  Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs
+  Inventory,
+  Species,
+  Polygons,
+  Coordinates,
+  OfflineMaps,
+  User,
+  AddSpecies,
+  ScientificSpecies,
+  ActivityLogs
 } from '../repositories/schema';
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
@@ -73,7 +81,15 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs],
     })
       .then((realm) => {
         realm.write(() => {
@@ -284,7 +300,15 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
 export const createSpecies = (scientificSpecies, aliases) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs],
     }).then((realm) => {
       realm.write(async () => {
         const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
@@ -324,7 +348,15 @@ export const createSpecies = (scientificSpecies, aliases) => {
 export const UpdateSpecies = (aliases, speciesId) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs],
     }).then((realm) => {
       realm.write(async () => {
         const UpdateSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
@@ -363,7 +395,15 @@ export const UpdateSpecies = (aliases, speciesId) => {
 export const UpdateSpeciesImage = (image, speciesId) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs],
     }).then((realm) => {
       realm.write(async () => {
         const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
@@ -401,7 +441,15 @@ export const UpdateSpeciesImage = (image, speciesId) => {
 export const SpeciesListData = () => {
   return new Promise((resolve) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs],
     }).then((realm) => {
       realm.write(async () => {
         const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');

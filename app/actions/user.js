@@ -2,14 +2,15 @@ import axios from 'axios';
 import Realm from 'realm';
 import { APIConfig } from '../actions/Config';
 import {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
-  AddSpecies,
-  ActivityLogs,
+    Inventory,
+    Species,
+    Polygons,
+    Coordinates,
+    OfflineMaps,
+    User,
+    AddSpecies,
+    ScientificSpecies,
+    ActivityLogs
 } from '../repositories/schema';
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
@@ -21,14 +22,15 @@ export const getUserInformationFromServer = (navigation) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     }).then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');

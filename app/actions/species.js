@@ -2,7 +2,12 @@ import axios from 'axios';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { APIConfig } from './Config';
-import { SET_SPECIES_LIST, SET_SPECIE_ID } from './Types';
+import {
+  SET_SPECIES_LIST,
+  SET_SPECIE_ID,
+  SET_MULTIPLE_TREES_SPECIES_LIST,
+  ADD_MULTIPLE_TREE_SPECIE,
+} from './Types';
 const { protocol, url } = APIConfig;
 
 /**
@@ -35,6 +40,20 @@ export const setSpecieId = (specieId) => (dispatch) => {
  * It requires the following param
  * @param {string} userToken - user token, required to pass in authorization header
  */
+export const setMultipleTreesSpeciesList = (speciesList) => (dispatch) => {
+  dispatch({
+    type: SET_MULTIPLE_TREES_SPECIES_LIST,
+    payload: speciesList,
+  });
+};
+
+export const addMultipleTreesSpecie = (specie) => (dispatch) => {
+  dispatch({
+    type: ADD_MULTIPLE_TREE_SPECIE,
+    payload: specie,
+  });
+};
+
 export const getSpeciesList = (userToken) => {
   return new Promise((resolve) => {
     // makes an authorized GET request on /species to get the species list.

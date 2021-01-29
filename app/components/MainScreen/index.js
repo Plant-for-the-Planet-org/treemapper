@@ -1,23 +1,30 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground, Modal, Alert } from 'react-native';
-import { PrimaryButton, LargeButton, Header, MainScreenHeader, Loader, Sync } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
-import ProfileModal from '../ProfileModal';
-import { getInventoryByStatus } from '../../repositories/inventory';
-import { auth0Login, isLogin, auth0Logout, LoginDetails } from '../../repositories/user';
-import { map_texture, main_screen_banner } from '../../assets';
+import { useFocusEffect } from '@react-navigation/native';
+import jwtDecode from 'jwt-decode';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  Alert,
+  ImageBackground,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
-import { SvgXml } from 'react-native-svg';
-import i18next from '../../languages/languages';
-import { useFocusEffect } from '@react-navigation/native';
-import jwtDecode from 'jwt-decode';
-import { InventoryContext } from '../../reducers/inventory';
+import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
-import { LoadingContext } from '../../reducers/loader';
 import { startLoading, stopLoading } from '../../actions/loader';
+import { main_screen_banner, map_texture } from '../../assets';
+import i18next from '../../languages/languages';
+import { InventoryContext } from '../../reducers/inventory';
+import { LoadingContext } from '../../reducers/loader';
+import { getInventoryByStatus } from '../../repositories/inventory';
+import { auth0Login, auth0Logout, isLogin, LoginDetails } from '../../repositories/user';
+import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
+import ProfileModal from '../ProfileModal';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -205,13 +212,13 @@ const MainScreen = ({ navigation }) => {
                 testID="page_learn"
               />
             </ImageBackground>
-            <PrimaryButton
-              onPress={() => onPressLargeButtons('RegisterTree')}
-              btnText={i18next.t('label.register_tree')}
-              testID={'btn_register_trees'}
-              accessibilityLabel={'Register Tree'}
-            />
           </ScrollView>
+          <PrimaryButton
+            onPress={() => onPressLargeButtons('RegisterTree')}
+            btnText={i18next.t('label.register_tree')}
+            testID={'btn_register_trees'}
+            accessibilityLabel={'Register Tree'}
+          />
         </View>
       )}
       {renderVideoModal()}

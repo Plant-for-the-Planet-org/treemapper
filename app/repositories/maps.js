@@ -1,5 +1,15 @@
 import Config from 'react-native-config';
-import { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs } from './schema';
+import {
+  Inventory,
+  Species,
+  Polygons,
+  Coordinates,
+  OfflineMaps,
+  User,
+  AddSpecies,
+  ScientificSpecies,
+  ActivityLogs
+} from './schema';
 import Realm from 'realm';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
@@ -44,7 +54,17 @@ export const getAreaName = ({ coords }) => {
 export const getAllOfflineMaps = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -72,7 +92,17 @@ export const getAllOfflineMaps = () => {
 export const deleteOfflineMap = ({ name }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -101,7 +131,17 @@ export const deleteOfflineMap = ({ name }) => {
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs],
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
     })
       .then((realm) => {
         realm.write(() => {

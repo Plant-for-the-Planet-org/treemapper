@@ -153,7 +153,6 @@ const ImageCapturing = ({
         } else {
           insertImageSingleRegisterTree(data).then(() => {
             navigation.navigate('SelectSpecies', {
-              species: inventory.species,
               inventory: inventory,
               visible: true,
             });

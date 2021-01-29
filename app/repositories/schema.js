@@ -112,4 +112,23 @@ const ActivityLogs = {
   },
 };
 
-export { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecies, ActivityLogs };
+const ScientificSpecies = {
+  name: 'ScientificSpecies',
+  primaryKey: 'guid',
+  properties: {
+    guid: 'string',
+    scientific_name: { type: 'string', indexed: true },
+  },
+};
+
+export {
+  Coordinates,
+  Polygons,
+  User,
+  OfflineMaps,
+  Species,
+  Inventory,
+  AddSpecies,
+  ScientificSpecies,
+  ActivityLogs
+};

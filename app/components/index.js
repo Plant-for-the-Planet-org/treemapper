@@ -19,6 +19,7 @@ import ProfileModal from './ProfileModal';
 import UploadedInventory from './UploadedInventory';
 import AddSpecies from './AddSpecies';
 import Logs from './Logs';
+import ManageSpecies from './ManageSpecies';
 export {
   RegisterTree,
   MultipleTrees,
@@ -41,4 +42,5 @@ export {
   UploadedInventory,
   AddSpecies,
   Logs,
+  ManageSpecies
 };

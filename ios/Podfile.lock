@@ -262,9 +262,9 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.40.0):
     - React-Core
-  - react-native-config (1.4.2):
-    - react-native-config/App (= 1.4.2)
-  - react-native-config/App (1.4.2):
+  - react-native-config (1.4.1):
+    - react-native-config/App (= 1.4.1)
+  - react-native-config/App (1.4.1):
     - React-Core
   - react-native-document-picker (3.5.4):
     - React
@@ -380,6 +380,14 @@ PODS:
     - React
   - RNVectorIcons (6.7.0):
     - React
+  - RNZipArchive (5.0.6):
+    - React
+    - RNZipArchive/Core (= 5.0.6)
+    - SSZipArchive (= 2.2.2)
+  - RNZipArchive/Core (5.0.6):
+    - React
+    - SSZipArchive (= 2.2.2)
+  - SSZipArchive (2.2.2)
   - toolbar-android (0.1.0-rc.2):
     - React
   - Yoga (1.14.0)
@@ -458,6 +466,7 @@ DEPENDENCIES:
   - RNSnackbar (from `../node_modules/react-native-snackbar`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
+  - RNZipArchive (from `../node_modules/react-native-zip-archive`)
   - "toolbar-android (from `../node_modules/@react-native-community/toolbar-android`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -478,6 +487,7 @@ SPEC REPOS:
     - Mapbox-iOS-SDK
     - MapboxMobileEvents
     - OpenSSL-Universal
+    - SSZipArchive
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -581,6 +591,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
+  RNZipArchive:
+    :path: "../node_modules/react-native-zip-archive"
   toolbar-android:
     :path: "../node_modules/@react-native-community/toolbar-android"
   Yoga:
@@ -622,7 +634,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
   react-native-camera: 5c1fbfecf63b802b8ca4a71c60d30a71550fb348
-  react-native-config: c98128a72bc2c3a1ca72caec0b021f0fa944aa29
+  react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: c5752781fbc0c126c627c1549b037c139444a4cf
   react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
   react-native-get-random-values: 41f0c91ac0da870e47b307e07752e9e54bc2dc7e
@@ -652,6 +664,8 @@ SPEC CHECKSUMS:
   RNSnackbar: 57932b2527096e609a86b1da2a2dfa46d624dc7c
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
+  RNZipArchive: 0c9463e46a56d93b29cd8a306e051f24397f5dfa
+  SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   toolbar-android: 404f4450b203597e7b417f714ff417bed562a1be
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

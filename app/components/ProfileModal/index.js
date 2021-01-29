@@ -8,6 +8,7 @@ import i18next from 'i18next';
 import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
+import { useNavigation } from '@react-navigation/native';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +21,8 @@ const ProfileModal = ({
 }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
+  const [visibility, setVisibility] = useState(isProfileModalVisible);
+  const navigation = useNavigation();
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
 
@@ -33,7 +36,12 @@ const ProfileModal = ({
     }
     userImage();
   }, [isUserLogin]);
-
+  useEffect(() => {
+    setVisibility(isProfileModalVisible);
+    return () => {
+      // cleanup
+    };
+  }, [navigation, visibility]);
   const userImage = () => {
     LoginDetails().then((User) => {
       let detail = Object.values(User);
@@ -63,6 +71,10 @@ const ProfileModal = ({
       ? userPhoto
       : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
   }
+  const onPressManageSpecies = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('ManageSpecies');
+  };
 
   const profileListItems = [
     {
@@ -74,6 +86,7 @@ const ProfileModal = ({
     {
       media: 'leaf',
       mediaType: 'icon',
+      onPressFunction: onPressManageSpecies,
       text: 'manage_species',
     },
     {

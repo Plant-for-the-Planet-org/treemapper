@@ -1,41 +1,44 @@
 import Realm from 'realm';
 import { bugsnag } from '../utils';
 import {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
   AddSpecies,
-  ActivityLogs,
+  Coordinates,
+  Inventory,
+  OfflineMaps,
+  Polygons,
+  Species,
+  User,
+  ScientificSpecies,
+  ActivityLogs
 } from './schema';
 import { LogTypes } from '../utils/constants';
 import { dbLog } from '../repositories/logs'
 
-export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) => {
+export const AddUserSpecies = ( scientificName, speciesId ) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
         realm.write(() => {
           let id = `${new Date().getTime()}`;
+          console.log(id, scientificName, speciesId, 'In AddUserSpwcies');
           realm.create('AddSpecies', {
             id,
-            aliases,
-            image,
+            // aliases,
+            // image,
             scientificName,
-            status: 'pending',
+            // status: 'pending',
             speciesId,
           });
           // logging the success in to the db
@@ -44,6 +47,7 @@ export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) =>
             message: `Successfully added User Species: ${scientificName}`,
           });
           resolve(id);
+          console.log('Species added');
         });
       })
       .catch((err) => {
@@ -53,6 +57,7 @@ export const AddUserSpecies = ({ aliases, image, scientificName, speciesId }) =>
           logStack: JSON.stringify(err),
         });
         reject(err);
+        console.log(err);
         bugsnag.notify(err);
       });
   });
@@ -62,14 +67,15 @@ export const getAllSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -80,7 +86,8 @@ export const getAllSpecies = () => {
             logType: LogTypes.MANAGE_SPECIES,
             message: `Successfully retrieved all User Species`,
           });
-          resolve(JSON.parse(JSON.stringify(species)));
+          const sortedSpecies = species.sorted('scientificName');
+          resolve(sortedSpecies);
         });
       })
       .catch((err) => {
@@ -99,14 +106,15 @@ export const insertImageForUserSpecies = ({ id, imagePath }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -136,14 +144,15 @@ export const updateNameForUserSpecies = ({ id, aliases }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -174,14 +183,15 @@ export const filterPendingSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -202,14 +212,15 @@ export const updateStatusForUserSpecies = ({ id }) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        Coordinates,
-        Polygons,
-        User,
-        OfflineMaps,
-        Species,
         Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
         AddSpecies,
-        ActivityLogs,
+        ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -221,6 +232,66 @@ export const updateStatusForUserSpecies = ({ id }) => {
       })
       .catch((err) => {
         reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+export const updateLocalSpecies = (speciesData) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
+    })
+      .then((realm) => {
+        realm.write(() => {
+          for (const specie of speciesData) {
+            realm.create('ScientificSpecies', specie);
+          }
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        reject(false);
+        console.error(`Error at /repositories/species/updateLocalSpecies, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+export const searchSpecies = (text) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
+    })
+      .then((realm) => {
+        let species = realm.objects('ScientificSpecies');
+        let searchedSpecies = species.filtered(`scientific_name contains[c] '${text}'`);
+        searchedSpecies = searchedSpecies.sorted('scientific_name');
+        resolve(searchedSpecies);
+      })
+      .catch((err) => {
+        reject(err);
+        console.error(`Error at /repositories/species/searchSpecies, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
       });
   });
