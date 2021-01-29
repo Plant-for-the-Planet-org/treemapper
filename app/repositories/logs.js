@@ -72,5 +72,38 @@ const dbLog = {
   error: (data) => logToDB(LogLevels.ERROR, data),
 };
 
+// Reading log data from the database
+const getLogs = (type) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Coordinates,
+        Polygons,
+        User,
+        OfflineMaps,
+        Species,
+        Inventory,
+        AddSpecies,
+        ActivityLogs,
+      ],
+    })
+    .then((realm) => {
+      realm.write(() => {
+        if (type === 'all'){
+          const allLogs = realm.objects ('ActivityLogs');
+          resolve( JSON.parse ( JSON.stringify (allLogs) ) );
+          // console.log(allLogs, 'allLogs');
+        } 
+        else if (type === 'error') {
+          const allLogs = realm.objects ('ActivityLogs');
+          let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
+          resolve( JSON.parse ( JSON.stringify (errorLogs) ) );
+          // console.log(errorLogs, 'errorLogs');
+        }
+      });
+    })
+  });
+}
+
 // export to access the logging object
-export default dbLog;
+export{ dbLog, getLogs} ;

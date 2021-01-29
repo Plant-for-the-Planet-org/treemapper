@@ -77,17 +77,21 @@ const ProfileModal = ({
       text: 'manage_species',
     },
     {
-      media: 'cloud-upload-alt',
-      mediaType: 'icon',
-      text: 'back_up',
-    },
-    {
       media: 'map-marked',
       mediaType: 'icon',
       text: 'manage_offline',
     },
     {
-      media: 'map-marked',
+      media: 'pulse-outline',
+      text: 'activity_logging',
+      mediaType: 'ionicon',
+      // onPressFunction: () => {
+      //   navigation.navigate('Logs');
+      //   onPressCloseProfileModal();
+      // },
+    },
+    {
+      media: 'history',
       mediaType: 'icon',
       text: 'activity_logs',
       onPressFunction: () => {

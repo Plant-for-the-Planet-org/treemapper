@@ -1,14 +1,63 @@
-import React from 'react';
-import { View, Dimensions, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useState }from 'react';
+import { View, Dimensions, StyleSheet, Text, FlatList } from 'react-native';
 import { TabView, SceneMap } from 'react-native-tab-view';
 import Header from '../Common/Header';
 import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/native';
 import LogsTabBar from './LogsTabBar';
+// import { FlatList } from 'react-native-gesture-handler';
+import {getLogs} from '../../repositories/logs'
+import { Colors, Typography } from '_styles';
 
-const AllLogs = () => <View style={[styles.scene, styles.defaultSpacing]} />;
+const renderLog = ({ item }) => (
+  <View>
+    <Text style={styles.logStyle}>
+      {`${item.timestamp} ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
+    </Text>
+  </View>
+);
 
-const ErrorLogs = () => <View style={[styles.scene, styles.defaultSpacing]} />;
+const AllLogs = () => {
+  const[allData, setAllData] = useState(null);
+  useEffect(() => {
+    getLogs('all')
+    .then((data)=> setAllData(data))
+    return () => {
+      // cleanup
+    }
+  }, []);
+  return(
+    <View style={[styles.scene, styles.defaultSpacing]}>
+      <FlatList
+        style={{ flex: 1 }}
+        data={allData}
+        renderItem={renderLog}
+        keyExtractor={item => item.id}
+      />
+    </View>
+  )
+};
+
+const ErrorLogs = () => {
+  const[errorData, setErrorData] = useState(null);
+  useEffect(() => {
+    getLogs('error')
+    .then((data)=> setErrorData(data))
+    return () => {
+      // cleanup
+    }
+  }, []);
+  return(
+    <View style={[styles.scene, styles.defaultSpacing]}>
+      <FlatList
+        style={{ flex: 1 }}
+        data={errorData}
+        renderItem={renderLog}
+        keyExtractor={item => item.id}
+      />
+    </View>
+  )
+};
 const initialLayout = { width: Dimensions.get('window').width };
 
 export default function Logs() {
@@ -58,4 +107,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 10,
   },
+  logStyle: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    lineHeight: Typography.LINE_HEIGHT_20,
+    color: Colors.TEXT_COLOR,
+    paddingVertical: 5
+  }
 });
