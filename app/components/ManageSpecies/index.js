@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert,  StyleSheet,  TextInput,  View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, Keyboard } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
@@ -27,9 +27,14 @@ const ManageSpecies = ({
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
+    // fetches all the species already added by user when component mount
     getAllSpecies().then((data) => setSpecieList(data));
+
+    // hides the keyboard when component unmount
+    return () => Keyboard.dismiss();
   }, []);
 
+  // used to navigate to main screen
   const onPressHome = () => {
     navigation.navigate('MainScreen');
   };
@@ -70,7 +75,47 @@ const ManageSpecies = ({
             );
           });
       }
+      setSearchText('');
     }
+  };
+
+  /**
+   * checks if the list of species passed as [speciesList] param includes the specie passed as [specieToSearch] param
+   * and returns the result of the same
+   * @param {speciesList} speciesList - list of species used to search from
+   * @param {specieToSearch} specieToSearch - used to find this specie in the passed list of species
+   */
+  const checkIsSpeciePresent = (speciesList, specieToSearch) => {
+    let isPresent = false;
+    if (speciesList && speciesList.length > 0) {
+      // iterates through the list of species passed and checks if the specie to search for is present in it.
+      for (let specie of speciesList) {
+        if (specie.scientific_name === specieToSearch.scientific_name) {
+          isPresent = true;
+          break;
+        }
+      }
+    }
+    return isPresent;
+  };
+
+  /**
+   * checks if the user species list includes the specie passed as [specieToSearch] param
+   * and returns the result of the same
+   * @param {specieToSearch} specieToSearch - used to find this specie in the user species list
+   */
+  const shouldDisable = (specieToSearch) => {
+    let isUserSpeciePresent = false;
+    if (specieList && specieList.length > 0) {
+      // iterates through the user species list and checks if the specie to search for is present in it.
+      for (let specie of specieList) {
+        if (specie.speciesId === specieToSearch.guid) {
+          isUserSpeciePresent = true;
+          break;
+        }
+      }
+    }
+    return isUserSpeciePresent;
   };
 
   const handleSpeciesSearch = (text) => {
@@ -78,12 +123,29 @@ const ManageSpecies = ({
     if (text) {
       setSearchBarFocused(true);
       searchSpecies(text).then((data) => {
-        setSearchList(data);
+        let newList = [];
+        for (let specie of data) {
+          const isDisabled = shouldDisable(specie);
+          newList.push({
+            guid: specie.guid,
+            scientific_name: specie.scientific_name,
+            isCheck: isDisabled ? isDisabled : checkIsSpeciePresent(selectedSpecies, specie),
+            isDisabled,
+          });
+        }
+        setSearchList(newList);
       });
     } else {
       setSearchBarFocused(false);
       setSearchList([]);
     }
+  };
+
+  const changeSearchSpecieCheck = (index, isCheck) => {
+    setSearchList((list) => {
+      list[index].isCheck = isCheck;
+      return list;
+    });
   };
 
   return (
@@ -105,9 +167,24 @@ const ManageSpecies = ({
           onFocus={() => setSearchBarFocused(true)}
         />
       </View>
-      {searchBarFocused ? 
-        <SearchSpecies setSelectedSpecies={setSelectedSpecies} selectedSpecies={selectedSpecies} specieList={specieList} searchList={searchList} /> : 
-        <MySpecies onSaveMultipleSpecies={onSaveMultipleSpecies}  registrationType={registrationType}  speciesState={speciesState} onPressSpeciesSingle={onPressSpeciesSingle} onPressSpeciesMultiple={onPressSpeciesMultiple} specieList={specieList} />}
+      {searchBarFocused ? (
+        <SearchSpecies
+          setSelectedSpecies={setSelectedSpecies}
+          selectedSpecies={selectedSpecies}
+          specieList={specieList}
+          searchList={searchList}
+          changeSearchSpecieCheck={changeSearchSpecieCheck}
+        />
+      ) : (
+        <MySpecies
+          onSaveMultipleSpecies={onSaveMultipleSpecies}
+          registrationType={registrationType}
+          speciesState={speciesState}
+          onPressSpeciesSingle={onPressSpeciesSingle}
+          onPressSpeciesMultiple={onPressSpeciesMultiple}
+          specieList={specieList}
+        />
+      )}
     </View>
   );
 };
