@@ -43,7 +43,6 @@ export default function ProfileListItem({
             borderRadius: 10,
             borderWidth: 1,
             bottom: -80,
-            zIndex: 200
           }}>
           <TouchableOpacity onPress={() => setModalVisible(false)}>
             <Icon name={'times'} size={20} color={Colors.PRIMARY} />
@@ -51,7 +50,6 @@ export default function ProfileListItem({
           <Text>{i18next.t('label.logs_daily_activity')}</Text>
         </View>
       </Modal>
-      
     );
   };
 
@@ -65,8 +63,14 @@ export default function ProfileListItem({
         <Ionicons name={media} size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
       )}
       <TouchableOpacity
-        onPress={onPressFunction ? onPressFunction : () => {toggleSwitch()}}
-        style={[styles.nameAndEmailContainer, {position: 'relative'}]}>
+        onPress={
+          onPressFunction
+            ? onPressFunction
+            : () => {
+                toggleSwitch();
+              }
+        }
+        style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
         <Text style={styles.userName}>{i18next.t(`label.${text}`)}</Text>
         {mediaType === 'ionicon' ? (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -88,7 +92,6 @@ export default function ProfileListItem({
               onValueChange={toggleSwitch}
               value={isEnabled}
             />
-            
           </View>
         ) : (
           []

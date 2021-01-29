@@ -3,7 +3,7 @@ import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { getUserInformationFromServer } from '../../repositories/user';
+import { getUserInformationFromServer } from '../../actions/user';
 import i18next from 'i18next';
 import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
