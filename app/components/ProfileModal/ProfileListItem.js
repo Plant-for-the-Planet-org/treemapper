@@ -18,8 +18,8 @@ export default function ProfileListItem({
   const [modalVisible, setModalVisible] = useState(false);
   useEffect(() => {
     getUserInformation().then((data) => {
-      setIsEnabled(data.logActivity);
-      console.log(data.logActivity, 'data.logActivity');
+      setIsEnabled(data.IsLogEnabled);
+      console.log(data.IsLogEnabled, 'data.IsLogEnabled');
     });
     return () => {
       // cleanup

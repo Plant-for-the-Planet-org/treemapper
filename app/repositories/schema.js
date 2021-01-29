@@ -69,7 +69,7 @@ const User = {
     firstname: 'string?',
     lastname: 'string?',
     country: 'string?',
-    logActivity: 'bool?',
+    IsLogEnabled: 'bool?',
   },
 };
 

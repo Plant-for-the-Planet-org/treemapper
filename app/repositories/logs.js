@@ -101,14 +101,15 @@ export const getLogs = (type) => {
     .then((realm) => {
       realm.write(() => {
         if (type === 'all'){
-          const allLogs = realm.objects ('ActivityLogs');
-          resolve( JSON.parse ( JSON.stringify (allLogs) ) );
+          let logs = realm.objects ('ActivityLogs');
+          let allLogs = logs.filtered( 'TRUEPREDICATE SORT (timestamp DESC)');
+          resolve( allLogs );
           // console.log(allLogs, 'allLogs');
         } 
         else if (type === 'error') {
           const allLogs = realm.objects ('ActivityLogs');
           let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
-          resolve( JSON.parse ( JSON.stringify (errorLogs) ) );
+          resolve( errorLogs );
           // console.log(errorLogs, 'errorLogs');
         }
       });

@@ -12,7 +12,7 @@ import { Colors, Typography } from '_styles';
 const renderLog = ({ item }) => (
   <View>
     <Text style={styles.logStyle}>
-      {`${item.timestamp} ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
+      {`${(item.timestamp).toLocaleString()} ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
     </Text>
   </View>
 );

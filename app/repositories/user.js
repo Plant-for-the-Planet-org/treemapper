@@ -17,7 +17,8 @@ import {
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
-import dbLog from './logs'
+import dbLog from './logs';
+import { getUserInformationFromServer } from '../actions/user';
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -253,7 +254,7 @@ export const getUserInformation = () => {
           firstName: User.firstname,
           lastName: User.lastname,
           country: User.country,
-          logActivity: User.logActivity,
+          IsLogEnabled: User.IsLogEnabled,
         });
       } else {
         resolve({ email: '', firstName: '', lastName: '' });
@@ -338,7 +339,7 @@ export const setActivityLog = (bool) => {
     .then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');
       realm.write(() => {
-        realm.create('User', {id: 'id0001', logActivity: bool}, 'modified');
+        realm.create('User', {id: 'id0001', IsLogEnabled: bool}, 'modified');
       });
       // logging the success in to the db
       dbLog.info({
