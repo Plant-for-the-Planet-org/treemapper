@@ -1,13 +1,14 @@
 import axios from 'axios';
 import { APIConfig } from '../actions/Config';
 import {
+  AddSpecies,
   Coordinates,
+  Inventory,
   OfflineMaps,
   Polygons,
-  User,
   Species,
-  Inventory,
-  AddSpecies,
+  User,
+  ScientificSpecies,
 } from '../repositories/schema';
 import Realm from 'realm';
 import getSessionData from '../utils/sessionId';
@@ -36,7 +37,16 @@ export const AllSpecies = () => {
 export const SearchSpecies = (payload) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory, Species, Polygons, Coordinates, OfflineMaps, User, AddSpecies],
+      schema: [
+        AddSpecies,
+        Coordinates,
+        Inventory,
+        OfflineMaps,
+        Polygons,
+        Species,
+        User,
+        ScientificSpecies,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
