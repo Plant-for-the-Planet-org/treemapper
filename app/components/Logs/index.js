@@ -1,5 +1,5 @@
 import React, { useEffect, useState }from 'react';
-import { View, Dimensions, StyleSheet, Text, FlatList } from 'react-native';
+import { View, Dimensions, StyleSheet, Text, FlatList, SafeAreaView } from 'react-native';
 import { TabView, SceneMap } from 'react-native-tab-view';
 import Header from '../Common/Header';
 import i18next from 'i18next';
@@ -73,7 +73,7 @@ export default function Logs() {
     errorLogs: ErrorLogs,
   });
   return (
-    <View style={styles.mainContainer}>
+    <SafeAreaView style={styles.mainContainer}>
       <View style={styles.defaultSpacing}>
         <Header
           closeIcon
@@ -92,7 +92,7 @@ export default function Logs() {
           )}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

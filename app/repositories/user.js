@@ -19,7 +19,6 @@ import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
-import { getUserInformationFromServer } from '../actions/user';
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
