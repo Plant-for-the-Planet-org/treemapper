@@ -13,6 +13,8 @@ import {
 } from '../repositories/schema';
 import Realm from 'realm';
 import getSessionData from '../utils/sessionId';
+import dbLog from '../repositories/logs';
+import { LogTypes } from '../utils/constants';
 
 const { protocol, url } = APIConfig;
 export const AllSpecies = () => {
@@ -26,10 +28,20 @@ export const AllSpecies = () => {
       .then((res) => {
         const { data, status } = res;
         if (status === 200) {
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Fetched all scientific species, GET - /scientificSpecies',
+            statusCode: status,
+          });
           resolve(data);
         }
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Failed to fetch all scientific species, GET - /scientificSpecies',
+          statusCode: err.status,
+        });
         console.error(err, 'error');
       });
   });
@@ -72,10 +84,22 @@ export const SearchSpecies = (payload) => {
                 .then((res) => {
                   const { data, status } = res;
                   if (status === 200) {
+                    // logging the success in to the db
+                    dbLog.info({
+                      logType: LogTypes.MANAGE_SPECIES,
+                      message: 'Searched species, POST - /suggest.php',
+                      statusCode: status,
+                    });
                     resolve(data);
                   }
                 })
                 .catch((err) => {
+                  // logs the error of the failed request in DB
+                  dbLog.error({
+                    logType: LogTypes.MANAGE_SPECIES,
+                    message: 'Failed to search species, POST - /suggest.php',
+                    statusCode: err.status,
+                  });
                   reject(err);
                   console.error(err, 'error');
                 });

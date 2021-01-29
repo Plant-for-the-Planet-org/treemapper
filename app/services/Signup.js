@@ -14,7 +14,7 @@ export const SignupService = (payload) => {
         if (status === 200) {
           // logging the success in to the db
           dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
+            logType: LogTypes.USER,
             message: 'Successfully Signed up',
             statusCode: status,
           });
@@ -23,6 +23,12 @@ export const SignupService = (payload) => {
       })
       .catch((err) => {
         console.error(err);
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Failed to Sign up',
+          statusCode: err.status,
+        });
         reject(err);
       });
   });
