@@ -17,7 +17,7 @@ import {
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
-import { dbLog } from './logs'
+import dbLog from './logs'
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -262,64 +262,64 @@ export const getUserInformation = () => {
   });
 };
 
-export const getUserInformationFromServer = (navigation) => {
-  const { protocol, url } = APIConfig;
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        AddSpecies,
-        Coordinates,
-        Inventory,
-        OfflineMaps,
-        Polygons,
-        Species,
-        User,
-        ScientificSpecies,
-        ActivityLogs
-      ],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      let userToken = User.accessToken;
-      console.log(userToken, 'Token');
-      getSessionData().then((sessionData) => {
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/app/profile`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-            'x-session-id': sessionData,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname, country } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                  country,
-                },
-                'modified',
-              );
-            });
-            resolve(data.data);
-          })
-          .catch((err) => {
-            console.error('err.response.status =>>', err);
-            if (err.response.status === 303) {
-              navigation.navigate('SignUp');
-            }
-            reject(err);
-          });
-      });
-      // realm.close();
-    });
-  });
-};
+// export const getUserInformationFromServer = (navigation) => {
+//   const { protocol, url } = APIConfig;
+//   return new Promise((resolve, reject) => {
+//     Realm.open({
+//       schema: [
+//         AddSpecies,
+//         Coordinates,
+//         Inventory,
+//         OfflineMaps,
+//         Polygons,
+//         Species,
+//         User,
+//         ScientificSpecies,
+//         ActivityLogs
+//       ],
+//     }).then((realm) => {
+//       const User = realm.objectForPrimaryKey('User', 'id0001');
+//       let userToken = User.accessToken;
+//       console.log(userToken, 'Token');
+//       getSessionData().then((sessionData) => {
+//         axios({
+//           method: 'GET',
+//           url: `${protocol}://${url}/app/profile`,
+//           headers: {
+//             'Content-Type': 'application/json',
+//             Authorization: `OAuth ${userToken}`,
+//             'x-session-id': sessionData,
+//           },
+//         })
+//           .then((data) => {
+//             realm.write(() => {
+//               const { email, firstname, lastname, country } = data.data;
+//               realm.create(
+//                 'User',
+//                 {
+//                   id: 'id0001',
+//                   email,
+//                   firstname,
+//                   lastname,
+//                   country,
+//                 },
+//                 'modified',
+//               );
+//             });
+//             resolve(data.data);
+//           })
+//           .catch((err) => {
+//             console.error('err.response.status =>>', err);
+//             if (err.response.status === 303) {
+//               navigation.navigate('SignUp');
+//             }
+//             reject(err);
+//           });
+//       });
+//       // realm.close();
+//     });
+//   });
+// };
 
 export const setActivityLog = (bool) => {
   return new Promise((resolve, reject) => {

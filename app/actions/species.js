@@ -82,7 +82,7 @@ export const getSpeciesList = (userToken) => {
         // logs the error
         console.error(`Error at /actions/species/getSpeciesList, ${JSON.stringify(err)}`);
         // logs the error of the failed request in DB
-        dbLog.info({
+        dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
           statusCode: err.status,

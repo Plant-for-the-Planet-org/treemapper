@@ -12,7 +12,7 @@ import {
   ActivityLogs
 } from './schema';
 import { LogTypes } from '../utils/constants';
-import { dbLog } from '../repositories/logs'
+import dbLog from '../repositories/logs'
 
 export const AddUserSpecies = ( scientificName, speciesId ) => {
   return new Promise((resolve, reject) => {

@@ -15,7 +15,7 @@ import {
 import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
-import { dbLog } from '../repositories/logs';
+import dbLog from '../repositories/logs';
 
 export const getUserInformationFromServer = (navigation) => {
   const { protocol, url } = APIConfig;

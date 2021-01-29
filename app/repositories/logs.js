@@ -83,7 +83,7 @@ const dbLog = {
 };
 
 // Reading log data from the database
-const getLogs = (type) => {
+export const getLogs = (type) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
@@ -117,4 +117,4 @@ const getLogs = (type) => {
 }
 
 // export to access the logging object
-export{ dbLog, getLogs} ;
+export default dbLog ;
