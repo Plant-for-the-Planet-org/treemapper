@@ -12,7 +12,9 @@ import { Colors, Typography } from '_styles';
 const renderLog = ({ item }) => (
   <View>
     <Text style={styles.logStyle}>
-      {`${(item.timestamp).toLocaleString()} ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
+      {i18next.t('label.logs_date', {
+            date: new Date(Number(item.timestamp)),
+      }) + ` ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
     </Text>
   </View>
 );
@@ -63,8 +65,8 @@ const initialLayout = { width: Dimensions.get('window').width };
 export default function Logs() {
   const [routeIndex, setRouteIndex] = React.useState(0);
   const [tabRoutes] = React.useState([
-    { key: 'allLogs', title: i18next.t('logs_all') },
-    { key: 'errorLogs', title: i18next.t('logs_errors') },
+    { key: 'allLogs', title: i18next.t('label.logs_all') },
+    { key: 'errorLogs', title: i18next.t('label.logs_errors') },
   ]);
   const navigation = useNavigation();
 
