@@ -98,18 +98,18 @@ export const getLogs = (type) => {
         ActivityLogs
       ],
     })
-    .then((realm) => {
-      realm.write(() => {
-        if (type === 'all'){
-          let logs = realm.objects ('ActivityLogs');
-          let allLogs = logs.filtered( 'TRUEPREDICATE SORT (timestamp DESC)');
-          resolve( allLogs );
+      .then((realm) => {
+        realm.write(() => {
+          if (type === 'all'){
+            let logs = realm.objects ('ActivityLogs');
+            let allLogs = logs.filtered( 'TRUEPREDICATE SORT (timestamp DESC)');
+            resolve( allLogs );
           // console.log(allLogs, 'allLogs');
-        } 
-        else if (type === 'error') {
-          const allLogs = realm.objects ('ActivityLogs');
-          let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
-          resolve( errorLogs );
+          } 
+          else if (type === 'error') {
+            const allLogs = realm.objects ('ActivityLogs');
+            let errorLogs = allLogs.filtered ('logLevel = "ERROR"');
+            resolve( errorLogs );
           // console.log(errorLogs, 'errorLogs');
           }
         });

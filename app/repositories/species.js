@@ -260,7 +260,7 @@ export const updateLocalSpecies = (speciesData) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Successfully updated the Local Scientific species`,
+            message: 'Successfully updated the Local Scientific species',
           });
           resolve(true);
         });
@@ -268,7 +268,7 @@ export const updateLocalSpecies = (speciesData) => {
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while updating the Local Scientific species`,
+          message: 'Error while updating the Local Scientific species',
           logStack: JSON.stringify(err),
         });
         reject(false);
@@ -300,14 +300,14 @@ export const searchSpecies = (text) => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Searching with Local Scientific species`,
+          message: 'Searching with Local Scientific species',
         });
         resolve(searchedSpecies);
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while searching with Local Scientific species`,
+          message: 'Error while searching with Local Scientific species',
           logStack: JSON.stringify(err),
         });
         reject(err);
