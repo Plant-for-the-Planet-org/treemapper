@@ -51,14 +51,15 @@ const ProfileModal = ({
       }
     });
   };
+  const onPressLegals = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('Legals');
+  };
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org');
   };
-  const onPressPolicy = () => {
-    Linking.openURL('https://www.trilliontreecampaign.org/data-protection-policy');
-  };
   const onPressEdit = () => {
-    Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
+    Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
   let avatar;
   if (userPhoto) {
@@ -84,11 +85,11 @@ const ProfileModal = ({
       onPressFunction: onPressManageSpecies,
       text: 'manage_species',
     },
-    {
-      media: 'map-marked',
-      mediaType: 'icon',
-      text: 'manage_offline',
-    },
+    // {
+    //   media: 'map-marked',
+    //   mediaType: 'icon',
+    //   text: 'manage_offline',
+    // },
     // {
     //   media: 'pulse-outline',
     //   text: 'activity_logging',
@@ -145,13 +146,13 @@ const ProfileModal = ({
               <ProfileListItem key={index} {...item} />
             ))}
             <View style={styles.horizontalBar} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
-              <Text onPress={onPressPolicy} style={styles.textAlignCenter}>
-                {i18next.t('label.privacy_policy')}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+              <Text onPress={onPressLegals} style={styles.textAlignCenter}>
+                {i18next.t('label.legal_docs')}
               </Text>
               <Text>•</Text>
               <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-                {i18next.t('label.terms_of_service')}
+                {i18next.t('label.support')}
               </Text>
             </View>
           </View>
