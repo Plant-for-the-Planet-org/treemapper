@@ -83,7 +83,11 @@ const dbLog = {
   error: (data) => logToDB(LogLevels.ERROR, data),
 };
 
-// Reading log data from the database
+/**
+ * This function is used to retrieve all logs or error logs from database, depending upon the parameter 
+ * @param {string} type 
+ * @returns {Array} allLogs/errorLogs
+ */
 export const getLogs = (type) => {
   return new Promise((resolve, reject) => {
     Realm.open({
@@ -119,7 +123,7 @@ export const getLogs = (type) => {
 };
 
 //Deleting older logs
-const deleteOldLogs = (data) => {
+const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
@@ -143,32 +147,50 @@ const deleteOldLogs = (data) => {
         let month = oldDate.getMonth();
         let year = oldDate.getFullYear();
         console.log(date, month, year,'date, month, year');
-        let deleteLogs = logs.filtered(`timestamp < ${year}-${month}-${date}T12:00:00`);
+        let deleteLogs = logs.filtered(`timestamp < ${year}-${month}-${date}T12:00:00`);  //filter older logs to delete
         console.log('==========deleteLogs========',deleteLogs);
         realm.delete(deleteLogs);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.OTHER,
+          message: 'Deleted older logs',
+        });
+        resolve();
       })
+    })
+    .catch((err)=> {
+      // logs the error
+      console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
+      // logs the error of the failed request in DB
+      dbLog.error({
+        logType: LogTypes.ERROR,
+        message: 'Failed to delete older logs',
+      });
+      reject(err);
     })
   })
 }
 
+//This function checks everyday if there are any older logs stored in the db which needs to be deleted
 export const dailyCheck = async () => {
-  let date = new Date().toLocaleDateString();
-  getDate().then((data) => {
-    if (data === date){
-      console.log('No older logs to delete');
+  let currentDate = new Date().toLocaleDateString();
+  let previousLogUpdateDate = await getLogUpdateDate();
+  console.log(previousLogUpdateDate,'previousLogUpdateDate');
+  if (previousLogUpdateDate !== currentDate){
+    console.log('No older logs to delete');
+  }
+  else if (previousLogUpdateDate === undefined){
+    setLogUpdateDate(currentDate);
+  } else {
+    console.log('Deleting logs...');
+    deleteOldLogs().then(()=> setLogUpdateDate(currentDate));
     }
-    else if (data === undefined){
-      setDate(date);
-    } else {
-      console.log('Deleting logs...', data, date);
-      deleteOldLogs(data).then(()=> setDate(date));
-    }
-  } )
 }
 
-const getDate = async () => {
+//to retrieve the LogUpdateDate from AsyncStorage
+const getLogUpdateDate = async () => {
   try {
-    const value = await AsyncStorage.getItem('Date');
+    const value = await AsyncStorage.getItem('LogUpdateDate');
     if(value !== null) {
       // value previously stored
       return value;
@@ -179,10 +201,11 @@ const getDate = async () => {
   }
 }
 
-const setDate = async (date) => {
+//to set the LogUpdateDate in the AsyncStorage
+const setLogUpdateDate = async (date) => {
   try {
     console.log(date, 'CurrentDate');
-    await AsyncStorage.setItem('Date',`${date}`);
+    await AsyncStorage.setItem('LogUpdateDate',`${date}`);
   } catch (err) {
     // saving error
     console.log(err);

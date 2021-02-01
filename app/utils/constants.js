@@ -10,6 +10,8 @@ export const LogTypes = {
   DATA_SYNC: 'DATA_SYNC',
   // log type used for user based functionality
   USER: 'USER',
+  // log type used for other functionality 
+  OTHER: 'OTHER',
 };
 
 // defines the log levels
