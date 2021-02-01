@@ -23,10 +23,7 @@ const AllLogs = () => {
   const[allData, setAllData] = useState(null);
   useEffect(() => {
     getLogs('all')
-      .then((data)=> setAllData(data));
-    return () => {
-      // cleanup
-    };
+    .then((data)=> setAllData(data));
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>
@@ -44,10 +41,7 @@ const ErrorLogs = () => {
   const[errorData, setErrorData] = useState(null);
   useEffect(() => {
     getLogs('error')
-      .then((data)=> setErrorData(data));
-    return () => {
-      // cleanup
-    };
+    .then((data)=> setErrorData(data));
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>

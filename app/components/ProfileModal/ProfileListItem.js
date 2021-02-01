@@ -21,9 +21,6 @@ export default function ProfileListItem({
       setIsEnabled(data.IsLogEnabled);
       console.log(data.IsLogEnabled, 'data.IsLogEnabled');
     });
-    return () => {
-      // cleanup
-    };
   }, []);
 
   // const toggleSwitch = () => {

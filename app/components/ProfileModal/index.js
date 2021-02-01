@@ -36,9 +36,6 @@ const ProfileModal = ({
   }, [isUserLogin]);
   useEffect(() => {
     setVisibility(isProfileModalVisible);
-    return () => {
-      // cleanup
-    };
   }, [navigation, visibility]);
   const userImage = () => {
     LoginDetails().then((User) => {
