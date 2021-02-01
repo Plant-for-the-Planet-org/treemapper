@@ -14,7 +14,7 @@ import {
   User,
   AddSpecies,
   ScientificSpecies,
-  ActivityLogs
+  ActivityLogs,
 } from '../repositories/schema';
 import Realm from 'realm';
 import Geolocation from '@react-native-community/geolocation';
@@ -22,6 +22,8 @@ import RNFS from 'react-native-fs';
 import getSessionData from '../utils/sessionId';
 import { updateCount, updateIsUploading } from './inventory';
 import { getSpeciesList } from './species';
+import dbLog from '../repositories/logs';
+import { LogTypes } from '../utils/constants';
 
 const { protocol, url } = APIConfig;
 
@@ -32,7 +34,14 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
         changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
           dispatch,
-        ).then(() => resolve());
+        ).then(() => {
+          dbLog.info({
+            logType: LogTypes.DATA_SYNC,
+            message: `Successfully synced off-site inventory with id ${oneInventory.inventory_id}`,
+            referenceId: oneInventory.inventory_id,
+          });
+          resolve();
+        });
       } else {
         const stringifiedResponse = JSON.stringify(response);
         changeInventoryStatusAndResponse(
@@ -81,7 +90,8 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory,
+      schema: [
+        Inventory,
         Species,
         Polygons,
         Coordinates,
@@ -89,7 +99,8 @@ export const uploadInventory = (dispatch) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs],
+        ActivityLogs,
+      ],
     })
       .then((realm) => {
         realm.write(() => {
@@ -99,6 +110,11 @@ export const uploadInventory = (dispatch) => {
             // gets the current geo location coordinate of the user and passes the position forward
             Geolocation.getCurrentPosition(
               async (position) => {
+                dbLog.info({
+                  logType: LogTypes.DATA_SYNC,
+                  message: `Fetched user current coordinates.`,
+                  logStack: JSON.stringify(position),
+                });
                 // stores the current coordinates of the user
                 const currentCoords = position.coords;
                 // get pending inventories from realm DB
@@ -215,6 +231,11 @@ export const uploadInventory = (dispatch) => {
                               reject(false);
                             }
                           }
+                          dbLog.info({
+                            logType: LogTypes.DATA_SYNC,
+                            message: `Successfully added plant location, POST - /treemapper/plantLocation`,
+                            referenceId: oneInventory.inventory_id,
+                          });
                         } catch (err) {
                           if (inventoryData.length - 1 === i) {
                             updateIsUploading(false)(dispatch);
@@ -225,6 +246,11 @@ export const uploadInventory = (dispatch) => {
                               err,
                             )}`,
                           );
+                          dbLog.error({
+                            logType: LogTypes.DATA_SYNC,
+                            message: `Error while add plant location, POST - /treemapper/plantLocations`,
+                            logStack: JSON.stringify(err),
+                          });
                         }
                       }
                     })
@@ -236,10 +262,21 @@ export const uploadInventory = (dispatch) => {
                       console.error(
                         `Error at: /action/upload, getSessionData -> ${JSON.stringify(err)}`,
                       );
+                      dbLog.error({
+                        logType: LogTypes.DATA_SYNC,
+                        message: `Error while getting session data`,
+                        logStack: JSON.stringify(err),
+                      });
                     });
                 }
               },
-              (err) => alert(err.message),
+              (err) => {
+                dbLog.error({
+                  logType: LogTypes.DATA_SYNC,
+                  message: `Error while getting current coordinates`,
+                  logStack: JSON.stringify(err),
+                });
+              },
             );
           } catch (err) {
             reject(err);
@@ -265,33 +302,60 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
     }
     let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
 
-    const bas64Image = await RNFS.readFile(inventoryObject.imageUrl, 'base64');
-
-    let body = {
-      imageFile: `data:image/png;base64,${bas64Image}`,
-    };
-    let headers = {
-      'Content-Type': 'application/json',
-      Authorization: `OAuth ${userToken}`,
-      'x-session-id': sessionId,
-    };
     try {
-      const result = await axios({
-        method: 'PUT',
-        url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
-        data: body,
-        headers: headers,
-      });
+      const bas64Image = await RNFS.readFile(inventoryObject.imageUrl, 'base64');
 
-      if (result.status === 200) {
-        completedUploadCount++;
+      let body = {
+        imageFile: `data:image/png;base64,${bas64Image}`,
+      };
+      let headers = {
+        'Content-Type': 'application/json',
+        Authorization: `OAuth ${userToken}`,
+        'x-session-id': sessionId,
+      };
+      try {
+        const result = await axios({
+          method: 'PUT',
+          url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
+          data: body,
+          headers: headers,
+        });
+
+        if (result.status === 200) {
+          completedUploadCount++;
+          dbLog.info({
+            logType: LogTypes.DATA_SYNC,
+            message: `Successfully uploaded image for inventory id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
+            logStack: JSON.stringify({
+              inventoryId: oneInventory.inventory_id,
+              locationId,
+              coordinateId: oneResponseCoords.id,
+              imageUrl: inventoryObject.imageUrl,
+            }),
+            referenceId: oneInventory.inventory_id,
+          });
+        }
+      } catch (err) {
+        console.error(
+          `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${
+            oneResponseCoords.id
+          } -> ${JSON.stringify(err)}`,
+        );
+        dbLog.error({
+          logType: LogTypes.DATA_SYNC,
+          message: `Error while uploading image for inventory id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
+          logStack: JSON.stringify(err),
+          referenceId: oneInventory.inventory_id,
+        });
       }
     } catch (err) {
-      console.error(
-        `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${
-          oneResponseCoords.id
-        } -> ${JSON.stringify(err)}`,
-      );
+      console.error(`Error at: action/upload/uploadImage, base64 image -> ${JSON.stringify(err)}`);
+      dbLog.error({
+        logType: LogTypes.DATA_SYNC,
+        message: `Error while fetching base64 image from file system for id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
+        logStack: JSON.stringify(err),
+        referenceId: oneInventory.inventory_id,
+      });
     }
   }
   return { allUploadCompleted: completedUploadCount === responseCoords.length };
@@ -300,7 +364,8 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
 export const createSpecies = (scientificSpecies, aliases) => {
   return new Promise((resolve, reject) => {
     Realm.open({
-      schema: [Inventory,
+      schema: [
+        Inventory,
         Species,
         Polygons,
         Coordinates,
@@ -308,7 +373,8 @@ export const createSpecies = (scientificSpecies, aliases) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs],
+        ActivityLogs,
+      ],
     }).then((realm) => {
       realm.write(async () => {
         const createSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
@@ -345,103 +411,11 @@ export const createSpecies = (scientificSpecies, aliases) => {
   // });
 };
 
-export const UpdateSpecies = (aliases, speciesId) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs],
-    }).then((realm) => {
-      realm.write(async () => {
-        const UpdateSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = UpdateSpeciesUser.accessToken;
-
-        // await RNFS.readFile(image, 'base64').then(async (base64) => {
-        let body = {
-          // imageFile: `data:image/jpeg;base64,${base64}`,
-          aliases,
-        };
-        await axios({
-          method: 'PUT',
-          url: `${protocol}://${url}/treemapper/species/${speciesId}`,
-          data: body,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-          },
-        })
-          .then((res) => {
-            const { status } = res;
-
-            if (status === 200) {
-              resolve(true);
-            }
-          })
-          .catch((err) => {
-            console.error(err, 'create error');
-            reject(err);
-          });
-        // });
-      });
-    });
-  });
-};
-export const UpdateSpeciesImage = (image, speciesId) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs],
-    }).then((realm) => {
-      realm.write(async () => {
-        const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
-        let userToken = UpdateSpeciesImageUser.accessToken;
-        await RNFS.readFile(image, 'base64').then(async (base64) => {
-          let body = {
-            imageFile: `data:image/jpeg;base64,${base64}`,
-          };
-          await axios({
-            method: 'PUT',
-            url: `${protocol}://${url}/treemapper/species/${speciesId}`,
-            data: body,
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `OAuth ${userToken}`,
-            },
-          })
-            .then((res) => {
-              const { status } = res;
-
-              if (status === 200) {
-                resolve(true);
-              }
-            })
-            .catch((err) => {
-              console.error(err, 'create error');
-              reject(err);
-            });
-        });
-      });
-    });
-  });
-};
-
 export const SpeciesListData = () => {
   return new Promise((resolve) => {
     Realm.open({
-      schema: [Inventory,
+      schema: [
+        Inventory,
         Species,
         Polygons,
         Coordinates,
@@ -449,7 +423,8 @@ export const SpeciesListData = () => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs],
+        ActivityLogs,
+      ],
     }).then((realm) => {
       realm.write(async () => {
         const SpeciesListDataUser = realm.objectForPrimaryKey('User', 'id0001');
@@ -478,10 +453,19 @@ const getPlantLocationDetails = (locationId, userToken) => {
         if (status === 200) {
           resolve(data);
         }
+        dbLog.info({
+          logType: LogTypes.DATA_SYNC,
+          message: `Fetched planted location details, GET - /treemapper/plantLocations/${locationId}.`,
+        });
       })
       .catch((err) => {
         reject(err);
         console.error(err, 'error');
+        dbLog.error({
+          logType: LogTypes.DATA_SYNC,
+          message: `Failed to fetch planted location details, GET - /treemapper/plantLocations/${locationId}.`,
+          logStack: JSON.stringify(err),
+        });
       });
   });
 };
