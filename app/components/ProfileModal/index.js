@@ -92,15 +92,15 @@ const ProfileModal = ({
       mediaType: 'icon',
       text: 'manage_offline',
     },
-    {
-      media: 'pulse-outline',
-      text: 'activity_logging',
-      mediaType: 'ionicon',
-      // onPressFunction: () => {
-      //   navigation.navigate('Logs');
-      //   onPressCloseProfileModal();
-      // },
-    },
+    // {
+    //   media: 'pulse-outline',
+    //   text: 'activity_logging',
+    //   mediaType: 'ionicon',
+    //   // onPressFunction: () => {
+    //   //   navigation.navigate('Logs');
+    //   //   onPressCloseProfileModal();
+    //   // },
+    // },
     {
       media: 'history',
       mediaType: 'icon',

@@ -157,10 +157,11 @@ export const dailyCheck = async () => {
     if (data === date){
       console.log('No older logs to delete');
     }
-    else{
-      console.log('Deleting logs...', data, date);
-      deleteOldLogs(data);
+    else if (data === undefined){
       setDate(date);
+    } else {
+      console.log('Deleting logs...', data, date);
+      deleteOldLogs(data).then(()=> setDate(date));
     }
   } )
 }

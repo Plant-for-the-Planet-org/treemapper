@@ -26,11 +26,11 @@ export default function ProfileListItem({
     };
   }, []);
 
-  const toggleSwitch = () => {
-    setIsEnabled((previousState) => !previousState);
-    console.log(!isEnabled);
-    setActivityLog(!isEnabled);
-  };
+  // const toggleSwitch = () => {
+  //   setIsEnabled((previousState) => !previousState);
+  //   console.log(!isEnabled);
+  //   setActivityLog(!isEnabled);
+  // };
 
   const ActivityLogInfo = () => {
     return (
