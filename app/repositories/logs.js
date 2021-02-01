@@ -3,6 +3,7 @@ import { Coordinates, Polygons, User, OfflineMaps, Species, Inventory, AddSpecie
 import { bugsnag } from '../utils';
 import { LogLevels } from '../utils/constants';
 import { v4 as uuidv4 } from 'uuid';
+import AsyncStorage from '@react-native-community/async-storage';
 
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
@@ -117,5 +118,74 @@ export const getLogs = (type) => {
   });
 };
 
+//Deleting older logs
+const deleteOldLogs = (data) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
+    })
+    .then ((realm)=> {
+      realm.write(() => {
+        let logs = realm.objects('ActivityLogs');
+        let oldDate= new Date(Date.now() - 12096e5);     //14 days older date
+        console.log(oldDate, 'OldDate');
+        let date = oldDate.getDate();
+        let month = oldDate.getMonth();
+        let year = oldDate.getFullYear();
+        console.log(date, month, year,'date, month, year');
+        let deleteLogs = logs.filtered(`timestamp < ${year}-${month}-${date}T12:00:00`);
+        console.log('==========deleteLogs========',deleteLogs);
+        realm.delete(deleteLogs);
+      })
+    })
+  })
+}
+
+export const dailyCheck = async () => {
+  let date = new Date().toLocaleDateString();
+  getDate().then((data) => {
+    if (data === date){
+      console.log('No older logs to delete');
+    }
+    else{
+      console.log('Deleting logs...', data, date);
+      deleteOldLogs(data);
+      setDate(date);
+    }
+  } )
+}
+
+const getDate = async () => {
+  try {
+    const value = await AsyncStorage.getItem('Date');
+    if(value !== null) {
+      // value previously stored
+      return value;
+    }
+  } catch(err) {
+    // error reading value
+    console.log(err);
+  }
+}
+
+const setDate = async (date) => {
+  try {
+    console.log(date, 'CurrentDate');
+    await AsyncStorage.setItem('Date',`${date}`);
+  } catch (err) {
+    // saving error
+    console.log(err);
+  }
+}
 // export to access the logging object
 export default dbLog ;

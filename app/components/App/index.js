@@ -28,6 +28,7 @@ import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Provider from '../../reducers/provider';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
+import { dailyCheck } from '../../repositories/logs';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -65,6 +66,7 @@ const MyTransition = {
 const App = () => {
   React.useEffect(() => {
     updateLocalSpecies();
+    dailyCheck();
   }, []);
   return (
     <Provider>
