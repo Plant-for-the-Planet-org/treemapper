@@ -12,7 +12,7 @@ import {
   ScientificSpecies,
   ActivityLogs
 } from '../repositories/schema';
-import { bugsnag } from '../utils';
+// import { bugsnag } from '../utils';
 import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';

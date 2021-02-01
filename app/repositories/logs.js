@@ -139,38 +139,38 @@ const deleteOldLogs = () => {
         ActivityLogs
       ],
     })
-    .then ((realm)=> {
-      realm.write(() => {
-        let logs = realm.objects('ActivityLogs');
-        let oldDate= new Date(Date.now() - 12096e5);     //14 days older date
-        console.log(oldDate, 'OldDate');
-        let date = oldDate.getDate();
-        let month = oldDate.getMonth();
-        let year = oldDate.getFullYear();
-        console.log(date, month, year,'date, month, year');
-        let deleteLogs = logs.filtered(`timestamp < ${year}-${month}-${date}T12:00:00`);  //filter older logs to delete
-        console.log('==========deleteLogs========',deleteLogs);
-        realm.delete(deleteLogs);
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.OTHER,
-          message: 'Deleted older logs',
+      .then ((realm)=> {
+        realm.write(() => {
+          let logs = realm.objects('ActivityLogs');
+          let oldDate= new Date(Date.now() - 12096e5);     //14 days older date
+          console.log(oldDate, 'OldDate');
+          let date = oldDate.getDate();
+          let month = oldDate.getMonth();
+          let year = oldDate.getFullYear();
+          console.log(date, month, year,'date, month, year');
+          let deleteLogs = logs.filtered(`timestamp < ${year}-${month}-${date}T12:00:00`);  //filter older logs to delete
+          console.log('==========deleteLogs========',deleteLogs);
+          realm.delete(deleteLogs);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.OTHER,
+            message: 'Deleted older logs',
+          });
+          resolve();
         });
-        resolve();
       })
-    })
-    .catch((err)=> {
+      .catch((err)=> {
       // logs the error
-      console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
-      // logs the error of the failed request in DB
-      dbLog.error({
-        logType: LogTypes.ERROR,
-        message: 'Failed to delete older logs',
+        console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.ERROR,
+          message: 'Failed to delete older logs',
+        });
+        reject(err);
       });
-      reject(err);
-    })
-  })
-}
+  });
+};
 
 //This function checks everyday if there are any older logs stored in the db which needs to be deleted
 export const dailyCheck = async () => {
@@ -185,8 +185,8 @@ export const dailyCheck = async () => {
   } else {
     console.log('Deleting logs...');
     deleteOldLogs().then(()=> setLogUpdateDate(currentDate));
-    }
-}
+  }
+};
 
 //to retrieve the LogUpdateDate from AsyncStorage
 const getLogUpdateDate = async () => {
@@ -200,7 +200,7 @@ const getLogUpdateDate = async () => {
     // error reading value
     console.log(err);
   }
-}
+};
 
 //to set the LogUpdateDate in the AsyncStorage
 const setLogUpdateDate = async (date) => {
@@ -211,6 +211,6 @@ const setLogUpdateDate = async (date) => {
     // saving error
     console.log(err);
   }
-}
+};
 // export to access the logging object
 export default dbLog ;

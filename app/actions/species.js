@@ -105,7 +105,7 @@ export const getSpeciesList = (userToken) => {
   });
 };
 
-export const searchSpecies = (payload) => {
+export const searchSpeciesFromServer = (payload) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [

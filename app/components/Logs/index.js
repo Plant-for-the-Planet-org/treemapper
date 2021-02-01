@@ -13,7 +13,7 @@ const renderLog = ({ item }) => (
   <View>
     <Text style={styles.logStyle}>
       {i18next.t('label.logs_date', {
-            date: new Date(Number(item.timestamp)),
+        date: new Date(Number(item.timestamp)),
       }) + ` ${item.appVersion} > ${item.referenceID? item.referenceID: ''} ${item.statusCode? item.statusCode: ''} ${item.message}`}
     </Text>
   </View>
@@ -23,7 +23,7 @@ const AllLogs = () => {
   const[allData, setAllData] = useState(null);
   useEffect(() => {
     getLogs('all')
-    .then((data)=> setAllData(data));
+      .then((data)=> setAllData(data));
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>
@@ -41,7 +41,7 @@ const ErrorLogs = () => {
   const[errorData, setErrorData] = useState(null);
   useEffect(() => {
     getLogs('error')
-    .then((data)=> setErrorData(data));
+      .then((data)=> setErrorData(data));
   }, []);
   return(
     <View style={[styles.scene, styles.defaultSpacing]}>

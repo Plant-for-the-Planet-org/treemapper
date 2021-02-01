@@ -1,8 +1,6 @@
-import axios from 'axios';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import Realm from 'realm';
-import { APIConfig } from '../actions/Config';
 import { getUserInformationFromServer } from '../actions/user';
 import {
   AddSpecies,
@@ -16,7 +14,6 @@ import {
   ActivityLogs
 } from './schema';
 import { bugsnag } from '../utils';
-import getSessionData from '../utils/sessionId';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
 
@@ -337,7 +334,7 @@ export const setActivityLog = (bool) => {
         ActivityLogs],
     })
       .then((realm) => {
-        const User = realm.objectForPrimaryKey('User', 'id0001');
+        // const User = realm.objectForPrimaryKey('User', 'id0001');
         realm.write(() => {
           realm.create('User', {id: 'id0001', IsLogEnabled: bool}, 'modified');
         });

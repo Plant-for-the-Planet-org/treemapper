@@ -8,7 +8,7 @@ import MySpecies from './MySpecies';
 import { Colors, Typography } from '_styles';
 import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
-import { AddUserSpecies, getAllSpecies, searchSpecies } from '../../repositories/species';
+import { AddUserSpecies, getAllSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { Header } from '../Common';
 
 const ManageSpecies = ({
@@ -122,7 +122,7 @@ const ManageSpecies = ({
     setSearchText(text);
     if (text) {
       setSearchBarFocused(true);
-      searchSpecies(text).then((data) => {
+      searchSpeciesFromLocal(text).then((data) => {
         let newList = [];
         for (let specie of data) {
           const isDisabled = shouldDisable(specie);

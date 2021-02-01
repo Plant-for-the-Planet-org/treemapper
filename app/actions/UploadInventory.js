@@ -112,7 +112,7 @@ export const uploadInventory = (dispatch) => {
               async (position) => {
                 dbLog.info({
                   logType: LogTypes.DATA_SYNC,
-                  message: `Fetched user current coordinates.`,
+                  message: 'Fetched user current coordinates.',
                   logStack: JSON.stringify(position),
                 });
                 // stores the current coordinates of the user
@@ -233,7 +233,7 @@ export const uploadInventory = (dispatch) => {
                           }
                           dbLog.info({
                             logType: LogTypes.DATA_SYNC,
-                            message: `Successfully added plant location, POST - /treemapper/plantLocation`,
+                            message: 'Successfully added plant location, POST - /treemapper/plantLocation',
                             referenceId: oneInventory.inventory_id,
                           });
                         } catch (err) {
@@ -248,7 +248,7 @@ export const uploadInventory = (dispatch) => {
                           );
                           dbLog.error({
                             logType: LogTypes.DATA_SYNC,
-                            message: `Error while add plant location, POST - /treemapper/plantLocations`,
+                            message: 'Error while add plant location, POST - /treemapper/plantLocations',
                             logStack: JSON.stringify(err),
                           });
                         }
@@ -264,7 +264,7 @@ export const uploadInventory = (dispatch) => {
                       );
                       dbLog.error({
                         logType: LogTypes.DATA_SYNC,
-                        message: `Error while getting session data`,
+                        message: 'Error while getting session data',
                         logStack: JSON.stringify(err),
                       });
                     });
@@ -273,7 +273,7 @@ export const uploadInventory = (dispatch) => {
               (err) => {
                 dbLog.error({
                   logType: LogTypes.DATA_SYNC,
-                  message: `Error while getting current coordinates`,
+                  message: 'Error while getting current coordinates',
                   logStack: JSON.stringify(err),
                 });
               },

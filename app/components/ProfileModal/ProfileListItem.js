@@ -64,7 +64,7 @@ export default function ProfileListItem({
           onPressFunction
             ? onPressFunction
             : () => {
-              toggleSwitch();
+              // toggleSwitch();
             }
         }
         style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
@@ -86,7 +86,7 @@ export default function ProfileListItem({
               trackColor={{ false: '#767577', true: '#d4e7b1' }}
               thumbColor={isEnabled ? Colors.PRIMARY : '#f4f3f4'}
               ios_backgroundColor="#3e3e3e"
-              onValueChange={toggleSwitch}
+              // onValueChange={toggleSwitch}
               value={isEnabled}
             />
           </View>

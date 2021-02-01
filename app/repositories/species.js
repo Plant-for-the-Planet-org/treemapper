@@ -278,7 +278,7 @@ export const updateLocalSpecies = (speciesData) => {
   });
 };
 
-export const searchSpecies = (text) => {
+export const searchSpeciesFromLocal = (text) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
@@ -311,7 +311,7 @@ export const searchSpecies = (text) => {
           logStack: JSON.stringify(err),
         });
         reject(err);
-        console.error(`Error at /repositories/species/searchSpecies, ${JSON.stringify(err)}`);
+        console.error(`Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
       });
   });
