@@ -75,9 +75,9 @@ export const getUserInformationFromServer = (navigation) => {
               navigation.navigate('SignUp');
             }
             dbLog.error({
-                logType: LogTypes.USER,
-                message: 'Failed to retrieve User Information from Server',
-                statusCode: err.data.status,
+              logType: LogTypes.USER,
+              message: 'Failed to retrieve User Information from Server',
+              statusCode: err.data.status,
             });
             reject(err);
           });
