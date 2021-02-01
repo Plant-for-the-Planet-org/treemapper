@@ -6,6 +6,8 @@
   "edit": "Bearbeiten",
   "manage_offline": "Offline Maps verwalten",
   "manage_species": "Arten verwalten",
-  "back_up": "Alle Änderungen gesichert",
+  "all_backed_up": "Alle Änderungen gesichert",
+  "upload_pending": "{{count}} ausstehend",
+  "sync_remaining": "Synchronisiere - {{count}} verbleidend",
   "support": "Unterstützen"
 }
