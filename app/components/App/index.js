@@ -21,12 +21,14 @@ import {
   UploadedInventory,
   SelectSpecies,
   AddSpecies,
+  Logs,
   ManageSpecies,
 } from '../';
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Provider from '../../reducers/provider';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
+import { dailyCheck } from '../../repositories/logs';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -64,6 +66,7 @@ const MyTransition = {
 const App = () => {
   React.useEffect(() => {
     updateLocalSpecies();
+    dailyCheck();
   }, []);
   return (
     <Provider>
@@ -106,6 +109,7 @@ const App = () => {
           />
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
           <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
+          <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
           <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>

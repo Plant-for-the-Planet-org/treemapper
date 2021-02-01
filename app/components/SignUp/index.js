@@ -17,7 +17,7 @@ import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
-import { SignupService } from '../../services/Signup';
+import { SignupService } from '../../actions/user';
 import Snackbar from 'react-native-snackbar';
 import { Loader } from '../Common';
 import Modal from '../Common/Modal';

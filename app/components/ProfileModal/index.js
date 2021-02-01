@@ -3,14 +3,14 @@ import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { getUserInformationFromServer } from '../../repositories/user';
+import { getUserInformationFromServer } from '../../actions/user';
 import i18next from 'i18next';
 import { LoginDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
-import { useNavigation } from '@react-navigation/native';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileModal = ({
   isUserLogin,
@@ -21,8 +21,8 @@ const ProfileModal = ({
   const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
-  const navigation = useNavigation();
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (isUserLogin) {
@@ -36,9 +36,6 @@ const ProfileModal = ({
   }, [isUserLogin]);
   useEffect(() => {
     setVisibility(isProfileModalVisible);
-    return () => {
-      // cleanup
-    };
   }, [navigation, visibility]);
   const userImage = () => {
     LoginDetails().then((User) => {
@@ -88,14 +85,27 @@ const ProfileModal = ({
       text: 'manage_species',
     },
     {
-      media: 'cloud-upload-alt',
-      mediaType: 'icon',
-      text: 'back_up',
-    },
-    {
       media: 'map-marked',
       mediaType: 'icon',
       text: 'manage_offline',
+    },
+    // {
+    //   media: 'pulse-outline',
+    //   text: 'activity_logging',
+    //   mediaType: 'ionicon',
+    //   // onPressFunction: () => {
+    //   //   navigation.navigate('Logs');
+    //   //   onPressCloseProfileModal();
+    //   // },
+    // },
+    {
+      media: 'history',
+      mediaType: 'icon',
+      text: 'activity_logs',
+      onPressFunction: () => {
+        navigation.navigate('Logs');
+        onPressCloseProfileModal();
+      },
     },
     {
       media: logout,
@@ -126,7 +136,6 @@ const ProfileModal = ({
                 style={{ width: 50, height: 50, marginHorizontal: 10 }}
                 source={{ uri: avatar }}
               />
-              {/* <Image source={{ uri: avatar }} style={styles.avatar} /> */}
               <View style={styles.nameAndEmailContainer}>
                 <Text style={styles.userEmail}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
                 <Text style={styles.userName}>{userInfo.email}</Text>
@@ -135,23 +144,6 @@ const ProfileModal = ({
             {profileListItems.map((item, index) => (
               <ProfileListItem key={index} {...item} />
             ))}
-            {/* <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                btnText={i18next.t('label.edit_profile')}
-                halfWidth
-                theme={'white'}
-                style={styles.primaryBtnContainer}
-                textStyle={styles.primaryBtnText}
-              />
-              <PrimaryButton
-                onPress={onPressLogout}
-                btnText={i18next.t('label.logout')}
-                theme={'white'}
-                halfWidth
-                style={styles.primaryBtnContainer}
-                textStyle={styles.primaryBtnText}
-              />
-            </View> */}
             <View style={styles.horizontalBar} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
               <Text onPress={onPressPolicy} style={styles.textAlignCenter}>

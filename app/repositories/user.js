@@ -1,8 +1,7 @@
-import axios from 'axios';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import Realm from 'realm';
-import { APIConfig } from '../actions/Config';
+import { getUserInformationFromServer } from '../actions/user';
 import {
   AddSpecies,
   Coordinates,
@@ -12,9 +11,11 @@ import {
   Species,
   User,
   ScientificSpecies,
+  ActivityLogs
 } from './schema';
 import { bugsnag } from '../utils';
-import getSessionData from '../utils/sessionId';
+import { LogTypes } from '../utils/constants';
+import dbLog from './logs';
 
 // AUTH0 CONFIG
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -31,6 +32,7 @@ export const getUserToken = () => {
         Species,
         User,
         ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
@@ -43,9 +45,19 @@ export const getUserToken = () => {
 
         // returns userToken
         resolve(userToken);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: 'Successfully retrieved User Token',
+        });
       })
       .catch((err) => {
         console.error(`Error: /repositories/getUserToken -> ${JSON.stringify(err)}`);
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while retrieving User Token',
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
         reject();
       });
@@ -70,6 +82,7 @@ export const auth0Login = (navigation) => {
             Species,
             User,
             ScientificSpecies,
+            ActivityLogs
           ],
         }).then((realm) => {
           realm.write(() => {
@@ -83,13 +96,23 @@ export const auth0Login = (navigation) => {
               'modified',
             );
             getUserInformationFromServer(navigation).then(() => {
+              // logging the success in to the db
+              dbLog.info({
+                logType: LogTypes.USER,
+                message: 'Successfully Logged In',
+              });
               resolve(true);
             });
           });
         });
       })
-      .catch((error) => {
-        reject(error);
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while Logging In',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
       });
   });
 };
@@ -109,19 +132,30 @@ export const auth0Logout = () => {
             Species,
             User,
             ScientificSpecies,
+            ActivityLogs
           ],
         }).then((realm) => {
           realm.write(() => {
             const user = realm.objectForPrimaryKey('User', 'id0001');
             realm.delete(user);
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.USER,
+              message: 'Successfully Logged Out',
+            });
             resolve(true);
           });
         });
       })
-      .catch((error) => {
-        alert('error');
-        console.error(error);
-        reject(error);
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while Logging Out',
+          logStack: JSON.stringify(err),
+        });
+        // alert('error');
+        console.error(err);
+        reject(err);
       });
   });
 };
@@ -138,6 +172,7 @@ export const isLogin = () => {
         Species,
         User,
         ScientificSpecies,
+        ActivityLogs
       ],
     }).then((realm) => {
       const User = realm.objects('User');
@@ -162,15 +197,26 @@ export const LoginDetails = () => {
         Species,
         User,
         ScientificSpecies,
+        ActivityLogs
       ],
     })
       .then((realm) => {
         realm.write(() => {
           const User = realm.objects('User');
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Successfully retrieved User details',
+          });
           resolve(JSON.parse(JSON.stringify(User)));
         });
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while retrieving User details',
+          logStack: JSON.stringify(err),
+        });
         reject(err);
       });
   });
@@ -190,15 +236,22 @@ export const getUserInformation = () => {
         Species,
         User,
         ScientificSpecies,
+        ActivityLogs
       ],
     }).then((realm) => {
       const User = realm.objectForPrimaryKey('User', 'id0001');
       if (User) {
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: 'Successfully retrieved User Information',
+        });
         resolve({
           email: User.email,
           firstName: User.firstname,
           lastName: User.lastname,
           country: User.country,
+          IsLogEnabled: User.IsLogEnabled,
         });
       } else {
         resolve({ email: '', firstName: '', lastName: '' });
@@ -207,60 +260,91 @@ export const getUserInformation = () => {
   });
 };
 
-export const getUserInformationFromServer = (navigation) => {
-  const { protocol, url } = APIConfig;
+// export const getUserInformationFromServer = (navigation) => {
+//   const { protocol, url } = APIConfig;
+//   return new Promise((resolve, reject) => {
+//     Realm.open({
+//       schema: [
+//         AddSpecies,
+//         Coordinates,
+//         Inventory,
+//         OfflineMaps,
+//         Polygons,
+//         Species,
+//         User,
+//         ScientificSpecies,
+//         ActivityLogs
+//       ],
+//     }).then((realm) => {
+//       const User = realm.objectForPrimaryKey('User', 'id0001');
+//       let userToken = User.accessToken;
+//       console.log(userToken, 'Token');
+//       getSessionData().then((sessionData) => {
+//         axios({
+//           method: 'GET',
+//           url: `${protocol}://${url}/app/profile`,
+//           headers: {
+//             'Content-Type': 'application/json',
+//             Authorization: `OAuth ${userToken}`,
+//             'x-session-id': sessionData,
+//           },
+//         })
+//           .then((data) => {
+//             realm.write(() => {
+//               const { email, firstname, lastname, country } = data.data;
+//               realm.create(
+//                 'User',
+//                 {
+//                   id: 'id0001',
+//                   email,
+//                   firstname,
+//                   lastname,
+//                   country,
+//                 },
+//                 'modified',
+//               );
+//             });
+//             resolve(data.data);
+//           })
+//           .catch((err) => {
+//             console.error('err.response.status =>>', err);
+//             if (err.response.status === 303) {
+//               navigation.navigate('SignUp');
+//             }
+//             reject(err);
+//           });
+//       });
+//       // realm.close();
+//     });
+//   });
+// };
+
+export const setActivityLog = (bool) => {
   return new Promise((resolve, reject) => {
     Realm.open({
       schema: [
-        AddSpecies,
-        Coordinates,
         Inventory,
-        OfflineMaps,
-        Polygons,
         Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
         User,
+        AddSpecies,
         ScientificSpecies,
-      ],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      let userToken = User.accessToken;
-      console.log(userToken, 'Token');
-      getSessionData().then((sessionData) => {
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/app/profile`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-            'x-session-id': sessionData,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname, country } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                  country,
-                },
-                'modified',
-              );
-            });
-            resolve(data.data);
-          })
-          .catch((err) => {
-            console.error('err.response.status =>>', err);
-            if (err.response.status === 303) {
-              navigation.navigate('SignUp');
-            }
-            reject(err);
-          });
+        ActivityLogs],
+    })
+      .then((realm) => {
+        // const User = realm.objectForPrimaryKey('User', 'id0001');
+        realm.write(() => {
+          realm.create('User', {id: 'id0001', IsLogEnabled: bool}, 'modified');
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: `Successfully toggled ${bool? 'on': 'off'} Activity Log`,
+        });
+        resolve();
       });
-      // realm.close();
-    });
+
   });
 };

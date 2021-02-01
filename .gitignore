@@ -60,3 +60,4 @@ buck-out/
 
 #.env file
 .env
+.env*

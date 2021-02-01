@@ -1,0 +1,6 @@
+{
+    "logs_page_title":"View Activity Logs",
+    "logs_all":"All",
+    "logs_errors":"Errors",
+    "logs_date": "{{date, YYYY-MM-DD hh:mm:ss}}"
+}

@@ -9,5 +9,7 @@
   "all_backed_up": "Alle Änderungen gesichert",
   "upload_pending": "{{count}} ausstehend",
   "sync_remaining": "Synchronisiere - {{count}} verbleidend",
+  "activity_logging": "Aktivität aufzeichnen",
+  "activity_logs": "Aktivitätsaufzeichungen",
   "support": "Unterstützen"
 }

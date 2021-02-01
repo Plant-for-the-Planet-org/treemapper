@@ -6,6 +6,8 @@
   "edit": "Edit",
   "manage_offline": "Manage Offline Maps",
   "manage_species": "Manage Species",
+  "activity_logging": "Activity Logging",
+  "activity_logs": "Activity Logs",
   "all_backed_up": "All changes backed up",
   "upload_pending": "{{count}} pending",
   "sync_remaining": "Syncing - {{count}} remaining",

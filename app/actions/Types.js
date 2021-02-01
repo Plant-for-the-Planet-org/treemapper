@@ -1,10 +1,19 @@
 // used to set the inventory id of an inventory
 export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
+
+// used when the inventory is initiated
 export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
-export const UPDATE_LAST_SCREEN = 'UPDATE_LAST_SCREEN';
+
+// used to add a new inventory
 export const ADD_INVENTORY = 'ADD_INVENTORY';
+
+// used to update the value of pending count whenever a new registration is done or data of a tree is synced
 export const UPDATE_PENDING_COUNT = 'UPDATE_PENDING_COUNT';
+
+// used to update the value of upload count whenever the data of tree registration is synced
 export const UPDATE_UPLOAD_COUNT = 'UPDATE_UPLOAD_COUNT';
+
+// used to update the value of uploading in the state whenever the data sync to server starts or stops
 export const IS_UPLOADING = 'IS_UPLOADING';
 
 export const SET_LOADING = 'SET_LOADING';
