@@ -21,7 +21,7 @@ import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/Feather';
 import { isLogin } from '../../repositories/user';
 import { getInventory } from '../../repositories/inventory';
-import { SearchSpecies } from '../../services/Species';
+import { searchSpecies } from '../../actions/species';
 import { createSpecies } from '../../actions/UploadInventory';
 import { InventoryContext } from '../../reducers/inventory';
 import Config from 'react-native-config';
@@ -66,7 +66,7 @@ const AddSpeciesModal = ({ visible, closeAddSpeciesModal }) => {
 
   const searchSpecies = () => {
     setIsLoading(true);
-    SearchSpecies(search)
+    searchSpecies(search)
       .then((data) => {
         setSearchList(data);
         setIsLoading(false);

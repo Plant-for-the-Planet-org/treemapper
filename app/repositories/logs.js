@@ -4,6 +4,7 @@ import { bugsnag } from '../utils';
 import { LogLevels } from '../utils/constants';
 import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-community/async-storage';
+import {LogTypes} from '../utils/constants';
 
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
