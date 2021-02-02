@@ -1,11 +1,12 @@
 import { uploadInventory } from '../actions/UploadInventory';
-import { auth0Login, isLogin } from '../repositories/user';
+import { isLogin } from '../repositories/user';
+import { auth0Login } from '../actions/user';
 
-export const uploadInventoryData = (dispatch) => {
+export const uploadInventoryData = (dispatch, userDispatch) => {
   return new Promise((resolve, reject) => {
     isLogin().then((isUserLogin) => {
       if (!isUserLogin) {
-        auth0Login()
+        auth0Login()(userDispatch)
           .then((isUserLogin) => {
             isUserLogin ? resolve() : reject();
           })

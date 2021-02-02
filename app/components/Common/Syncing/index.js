@@ -6,18 +6,22 @@ import RotatingView from '../RotatingView';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
 import { InventoryContext } from '../../../reducers/inventory';
 import i18next from 'i18next';
+import { UserContext } from '../../../reducers/user';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
 
   const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {
     if (pendingCount !== 0) {
-      setSyncText(i18next.t('label.upload_pending', {
-        count: pendingCount
-      }));
+      setSyncText(
+        i18next.t('label.upload_pending', {
+          count: pendingCount,
+        }),
+      );
     } else {
       setSyncText(i18next.t('label.all_backed_up'));
     }
@@ -25,16 +29,18 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
 
   useEffect(() => {
     if (isUploading) {
-      setSyncText(i18next.t('label.sync_remaining', {
-        count: uploadCount
-      }));
+      setSyncText(
+        i18next.t('label.sync_remaining', {
+          count: uploadCount,
+        }),
+      );
     } else {
       checkPendingCount();
     }
   }, [pendingCount, uploadCount, isUploading]);
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch)
+    uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('uploaded successfully');
       })

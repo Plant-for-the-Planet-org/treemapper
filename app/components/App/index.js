@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
@@ -28,7 +28,10 @@ import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Provider from '../../reducers/provider';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
-import { dailyCheck } from '../../repositories/logs';
+import { dailyLogUpdateCheck } from '../../utils/logs';
+import { getUserDetails } from '../../repositories/user';
+import { UserContext } from '../../reducers/user';
+import { setUserDetails, clearUserDetails } from '../../actions/user';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -64,9 +67,21 @@ const MyTransition = {
 };
 
 const App = () => {
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+
+  const checkIsUserLogin = async () => {
+    const userDetails = await getUserDetails();
+    if (userDetails && userDetails.accessToken) {
+      console.log('userDetails =>', userDetails);
+      setUserDetails(userDetails)(userDispatch);
+    } else {
+      clearUserDetails()(userDispatch);
+    }
+  };
   React.useEffect(() => {
     updateLocalSpecies();
-    dailyCheck();
+    dailyLogUpdateCheck();
+    checkIsUserLogin();
   }, []);
   return (
     <Provider>

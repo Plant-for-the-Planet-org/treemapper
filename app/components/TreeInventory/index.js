@@ -10,9 +10,11 @@ import { clearAllIncompleteInventory, getInventoryByStatus } from '../../reposit
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { UserContext } from '../../reducers/user';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
 
@@ -52,7 +54,7 @@ const TreeInventory = ({ navigation }) => {
   }
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch)
+    uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('upload inventory successfully');
       })
@@ -173,8 +175,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
     </View>
   );
 };

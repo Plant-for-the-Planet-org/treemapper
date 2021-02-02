@@ -15,7 +15,7 @@ import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { LoginDetails } from '../../repositories/user';
+import { getUserDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import { SignupService } from '../../actions/user';
 import Snackbar from 'react-native-snackbar';
@@ -217,6 +217,7 @@ const SignUp = ({ navigation }) => {
 
     if (completeCheck) {
       startSignUpLoading()(loadingDispatch);
+      console.log('userData=>', userData);
       SignupService(userData)
         .then(() => {
           stopSignUpLoading()(loadingDispatch);
@@ -232,11 +233,11 @@ const SignUp = ({ navigation }) => {
 
   useEffect(() => {
     stopLoading()(loadingDispatch);
-    LoginDetails().then((User) => {
-      let detail = Object.values(User);
-      if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail[0].idToken);
-        setAuthtAccessToken(detail[0].accessToken);
+    getUserDetails().then((User) => {
+      console.log('usrerrrr =>', User);
+      if (User) {
+        let decode = jwtDecode(User.idToken);
+        setAuthtAccessToken(User.accessToken);
         setAuthDetails(decode);
         setEmail(decode.email);
         setCountry(handleFilter(lang.countryCode)[0]);

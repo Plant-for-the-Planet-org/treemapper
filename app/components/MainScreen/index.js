@@ -22,9 +22,11 @@ import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { getInventoryByStatus } from '../../repositories/inventory';
-import { auth0Login, auth0Logout, isLogin, LoginDetails } from '../../repositories/user';
+import { isLogin, getUserDetails } from '../../repositories/user';
+import { auth0Logout, auth0Login } from '../../actions/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
+import { UserContext } from '../../reducers/user';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -33,10 +35,9 @@ const MainScreen = ({ navigation }) => {
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const [userPhoto, setUserPhoto] = useState(null);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   useEffect(() => {
-    checkIsLogin();
     getInventoryByStatus('all').then((data) => {
       let count = 0;
       for (const inventory of data) {
@@ -49,11 +50,11 @@ const MainScreen = ({ navigation }) => {
     });
   }, [navigation]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      checkIsLogin();
-    }, []),
-  );
+  useEffect(() => {
+    setIsUserLogin(userState.accessToken ? true : false);
+  }, [userState.accessToken]);
+
+  console.log('isUserLogin =>', isUserLogin, userState.accessToken);
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
@@ -68,14 +69,14 @@ const MainScreen = ({ navigation }) => {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
-      auth0Login(navigation)
-        .then((data) => {
-          setIsUserLogin(data);
+      auth0Login()(userDispatch)
+        .then(() => {
           stopLoading()(loadingDispatch);
         })
         .catch((err) => {
-          console.error('err login', err);
-          if (err.error !== 'a0.session.user_cancelled') {
+          if (err.response.status === 303) {
+            navigation.navigate('SignUp');
+          } else if (err.error !== 'a0.session.user_cancelled') {
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
@@ -88,33 +89,9 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
-  const checkIsLogin = () => {
-    isLogin()
-      .then((data) => {
-        setIsUserLogin(data);
-        userImage();
-      })
-      .catch((err) => {
-        onPressCloseProfileModal();
-        setIsUserLogin(false);
-      });
-  };
-
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout().then(() => {
-      checkIsLogin();
-    });
-  };
-
-  const userImage = () => {
-    LoginDetails().then((User) => {
-      let detail = Object.values(User);
-      if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail[0].idToken);
-        setUserPhoto(decode.picture);
-      }
-    });
+    auth0Logout()(userDispatch);
   };
 
   const renderVideoModal = () => {
@@ -166,9 +143,10 @@ const MainScreen = ({ navigation }) => {
                 isUserLogin={isUserLogin}
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
-                photo={userPhoto}
+                photo={userState.image}
               />
             </View>
+            {/* <View> */}
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -177,30 +155,32 @@ const MainScreen = ({ navigation }) => {
               hideBackIcon
               textAlignStyle={{ textAlign: 'center' }}
             />
-            <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-              <LargeButton
-                onPress={() => onPressLargeButtons('TreeInventory')}
-                style={styles.customStyleLargeBtn}
-                heading={i18next.t('label.tree_inventory')}
-                active={false}
-                subHeading={i18next.t('label.tree_inventory_sub_header')}
-                notification={numberOfInventory > 0 && numberOfInventory}
-                testID="page_tree_inventory"
-                accessibilityLabel="Tree Inventory"
-              />
-            </ImageBackground>
-            <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
-              <LargeButton
-                onPress={() => onPressLargeButtons('DownloadMap')}
-                style={styles.customStyleLargeBtn}
-                heading={i18next.t('label.download_maps')}
-                active={false}
-                subHeading={i18next.t('label.download_maps_sub_header')}
-                testID="page_map"
-                accessibilityLabel="Download Map"
-              />
-            </ImageBackground>
-            <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
+            {/* </View> */}
+            <View>
+              <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
+                <LargeButton
+                  onPress={() => onPressLargeButtons('TreeInventory')}
+                  style={styles.customStyleLargeBtn}
+                  heading={i18next.t('label.tree_inventory')}
+                  active={false}
+                  subHeading={i18next.t('label.tree_inventory_sub_header')}
+                  notification={numberOfInventory > 0 && numberOfInventory}
+                  testID="page_tree_inventory"
+                  accessibilityLabel="Tree Inventory"
+                />
+              </ImageBackground>
+              <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
+                <LargeButton
+                  onPress={() => onPressLargeButtons('DownloadMap')}
+                  style={styles.customStyleLargeBtn}
+                  heading={i18next.t('label.download_maps')}
+                  active={false}
+                  subHeading={i18next.t('label.download_maps_sub_header')}
+                  testID="page_map"
+                  accessibilityLabel="Download Map"
+                />
+              </ImageBackground>
+              {/* <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
               <LargeButton
                 onPress={onPressLearn}
                 rightIcon={rightIcon}
@@ -211,7 +191,8 @@ const MainScreen = ({ navigation }) => {
                 accessibilityLabel="Learn"
                 testID="page_learn"
               />
-            </ImageBackground>
+            </ImageBackground> */}
+            </View>
           </ScrollView>
           <PrimaryButton
             onPress={() => onPressLargeButtons('RegisterTree')}

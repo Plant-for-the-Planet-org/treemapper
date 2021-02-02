@@ -66,10 +66,12 @@ const User = {
     accessToken: 'string?',
     idToken: 'string?',
     email: 'string?',
-    firstname: 'string?',
-    lastname: 'string?',
+    firstName: 'string?',
+    lastName: 'string?',
+    image: 'string?',
     country: 'string?',
     IsLogEnabled: 'bool?',
+    tpoId: 'string?',
   },
 };
 
@@ -130,5 +132,5 @@ export {
   Inventory,
   AddSpecies,
   ScientificSpecies,
-  ActivityLogs
+  ActivityLogs,
 };

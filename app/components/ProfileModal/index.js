@@ -5,12 +5,13 @@ import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import { getUserInformationFromServer } from '../../actions/user';
 import i18next from 'i18next';
-import { LoginDetails } from '../../repositories/user';
+import { getUserDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
+import { UserContext } from '../../reducers/user';
 
 const ProfileModal = ({
   isUserLogin,
@@ -22,6 +23,7 @@ const ProfileModal = ({
   const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const { state: userState } = useContext(UserContext);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -38,12 +40,13 @@ const ProfileModal = ({
     setVisibility(isProfileModalVisible);
   }, [navigation, visibility]);
   const userImage = () => {
-    LoginDetails().then((User) => {
+    getUserDetails().then((User) => {
       let detail = Object.values(User);
       if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail[0].idToken);
+        let decode = jwtDecode(detail.idToken);
+        console.log('jwtDecode=>', decode);
         setUserPhoto(decode.picture);
-        getSpeciesList(detail[0].accessToken).then((data) => {
+        getSpeciesList(detail.accessToken).then((data) => {
           if (data) {
             setSpeciesList(data)(speciesDispatch);
           }
@@ -60,12 +63,10 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
   };
-  let avatar;
-  if (userPhoto) {
-    avatar = userPhoto
-      ? userPhoto
-      : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
-  }
+  let avatar = userState.image
+    ? userState.image
+    : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
+
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
     navigation.navigate('ManageSpecies');
@@ -137,8 +138,9 @@ const ProfileModal = ({
                 source={{ uri: avatar }}
               />
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userEmail}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
-                <Text style={styles.userName}>{userInfo.email}</Text>
+                <Text
+                  style={styles.userEmail}>{`${userState.firstName} ${userState.lastName}`}</Text>
+                <Text style={styles.userName}>{userState.email}</Text>
               </View>
             </View>
             {profileListItems.map((item, index) => (
