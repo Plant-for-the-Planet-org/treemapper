@@ -6,6 +6,10 @@
   "edit": "Éditer",
   "manage_offline": "Gérer les cartes hors ligne",
   "manage_species": "Gérer les espèces",
-  "back_up": "Tous les changements sauvegardés",
+  "activity_logging": "Enregistrement des activités",
+  "activity_logs": "Journaux d'activité",
+  "all_backed_up": "Tous les changements sauvegardés",
+  "upload_pending": "{{count}} en attente",
+  "sync_remaining": "Synchronisation - {{count}} restant(s)",
   "support": "Soutien"
 }
