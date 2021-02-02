@@ -16,5 +16,9 @@
   "tree_inventory_clear_all": "Limpar tudo",
   "tree_inventory_tree": "Árvore",
   "tree_inventory_trees": "Árvores",
+  "tree_inventory_point": "Ponto",
+  "tree_inventory_polygon": "Polígono",
+  "tree_inventory_upload_inventory_list": "Faça Upload do inventário",
+  "tree_inventory_inventory_list": "Inventário",
   "tree_inventory_overview_date": "{{item.title}}"
 }
