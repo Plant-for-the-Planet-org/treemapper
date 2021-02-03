@@ -72,7 +72,7 @@ const MySpecies = ({
             style={{ flex: 1 }}
             data={registrationType === 'multiple' ? speciesState.multipleTreesSpecies : specieList}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.speciesId}
+            keyExtractor={(item) => item.guid}
             renderItem={renderSpecieCard}
             keyboardShouldPersistTaps="always"
           />

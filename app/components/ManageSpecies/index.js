@@ -37,7 +37,6 @@ const ManageSpecies = ({
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
-  // const [searchBarFocused, setSearchBarFocused] = useState(false);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
@@ -107,13 +106,11 @@ const ManageSpecies = ({
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
     if (text) {
-      // setSearchBarFocused(true);
       setShowSearchSpecies(true);
       searchSpeciesFromLocal(text).then((data) => {
         setSearchList([...data]);
       });
     } else {
-      // setSearchBarFocused(false);
       setShowSearchSpecies(false);
       setSearchList([]);
     }
@@ -134,7 +131,6 @@ const ManageSpecies = ({
           onChangeText={handleSpeciesSearch}
           value={searchText}
           returnKeyType = {'search'}
-          // onFocus={() => setSearchBarFocused(true)}
         />
         {showSearchSpecies ? (
           <TouchableOpacity onPress={() => setSearchText('')}>
@@ -148,7 +144,7 @@ const ManageSpecies = ({
         searchList && searchList.length > 0 ? (
           <SearchSpecies searchList={searchList} toggleUserSpecies={toggleUserSpecies} />
         ) : (
-          <Text style={styles.notPresentText}>The '{searchText}' specie is not present</Text>
+          <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
         )
       ) : (
         <MySpecies
