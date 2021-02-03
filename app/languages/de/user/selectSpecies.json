@@ -28,5 +28,6 @@
   "select_species_species_selected": "{{length}} Arten ausgewählt",
   "select_species_search_species": "Arten suchen",
   "select_species_done": "Fertig",
-  "select_species_add_name": "Name hinzufügen"
+  "select_species_add_name": "Name hinzufügen",
+  "select_species_my_species": "Meine Arten"
 }
