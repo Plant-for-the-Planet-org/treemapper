@@ -15,7 +15,6 @@ const MySpecies = ({
   onPressSpeciesMultiple,
   specieList,
 }) => {
-  console.log(specieList.length, 'specieList');
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -68,27 +67,29 @@ const MySpecies = ({
         </Text>
       </View>
       <View style={{ flex: 1 }}>
-        {specieList && specieList.length !== 0  ? 
+        {specieList && specieList.length !== 0 ? (
           <FlatList
-          style={{ flex: 1 }}
-          data={registrationType === 'multiple' ? speciesState.multipleTreesSpecies : specieList}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.speciesId}
-          renderItem={renderSpecieCard}
-          /> :
-          <View style = {{flex: 1, alignItems: 'center',}}>
-            <SvgXml xml= {empty} 
-              style= {{
+            style={{ flex: 1 }}
+            data={registrationType === 'multiple' ? speciesState.multipleTreesSpecies : specieList}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item) => item.speciesId}
+            renderItem={renderSpecieCard}
+            keyboardShouldPersistTaps="always"
+          />
+        ) : (
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <SvgXml
+              xml={empty}
+              style={{
                 top: 10,
-                bottom: 10
+                bottom: 10,
               }}
             />
             <Text style={styles.headerText}>Looks Empty Here!</Text>
             <Text style={styles.subHeadingText}>Add species to your list by </Text>
             <Text style={styles.subHeadingText}>searching the species. </Text>
           </View>
-        }
-        
+        )}
       </View>
       {registrationType === 'multiple' && (
         <PrimaryButton
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_27,
     lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
-    paddingVertical: 15
+    paddingVertical: 15,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
@@ -116,6 +117,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
-})
+});
 
 export default MySpecies;

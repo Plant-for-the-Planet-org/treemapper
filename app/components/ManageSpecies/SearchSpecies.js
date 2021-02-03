@@ -1,71 +1,12 @@
-import React, { useEffect } from 'react';
-import Realm from 'realm';
-import { bugsnag } from '../../utils';
+import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
-// import { toggleUserSpecies } from '../../repositories/species';
-import {
-  AddSpecies,
-  Coordinates,
-  Inventory,
-  OfflineMaps,
-  Polygons,
-  Species,
-  User,
-  ScientificSpecies,
-  ActivityLogs
-} from '../../repositories/schema';
-import { LogTypes } from '../../utils/constants';
-import dbLog from '../../repositories/logs';
 
-const SearchSpecies = ({
-  searchList,
-  toggleSpecies,
-  setSearchList
-}) => {
-
-  const handleSpecieOnClick = (item, index) => {
-    toggleUserSpecies(item.guid)
-    toggleSpecies(index);
-  }
-
-  const toggleUserSpecies = (guid) => {
-    return new Promise((resolve, reject) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-          ActivityLogs
-        ],
-      })
-      .then((realm) => {
-        realm.write(() => {
-          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-          specieToToggle.isUserSpecies= !(specieToToggle.isUserSpecies);
-          console.log(`Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`);
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
-          })
-        });
-        resolve();
-      })
-    })
-  };
-
+const SearchSpecies = ({ searchList, toggleUserSpecies }) => {
   const renderSearchSpecieCard = ({ item, index }) => {
-    // const isDisabled = item.isDisabled;
     const isCheck = item.isUserSpecies;
-    // console.log(item.isUserSpecies,'isCheck');
-  
+
     const SpecieListItem = () => {
       return (
         <>
@@ -87,34 +28,19 @@ const SearchSpecies = ({
       );
     };
 
-    // if (isDisabled) {
-    //   return (
-    //     <View style={[styles.specieListItem, { opacity: 0.5 }]}>
-    //       <SpecieListItem />
-    //     </View>
-    //   );
-    // } else {
-      return (
-        <TouchableOpacity
-          key={index}
-          style={styles.specieListItem}
-          onPress={() => {
-            // if (isCheck) {
-            //   removeSpecies(item, index);
-            // } else {
-            //   addSpecies(item, index);
-            // }
-            handleSpecieOnClick(item, index);
-          }}>
-          <SpecieListItem />
-        </TouchableOpacity>
-      );
-    // }
+    return (
+      <TouchableOpacity
+        key={index}
+        style={styles.specieListItem}
+        onPress={() => {
+          toggleUserSpecies(item.guid);
+        }}>
+        <SpecieListItem />
+      </TouchableOpacity>
+    );
   };
 
-  // const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [
-  //   selectedSpecies,
-  // ]);
+  const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [searchList]);
 
   return (
     <View style={{ flex: 1, paddingTop: 15 }}>
@@ -123,7 +49,8 @@ const SearchSpecies = ({
         data={searchList}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.guid}
-        renderItem={renderSearchSpecieCard}
+        renderItem={memoizedRenderSearchSpecieCard}
+        keyboardShouldPersistTaps="always"
       />
     </View>
   );

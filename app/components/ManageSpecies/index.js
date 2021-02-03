@@ -10,7 +10,7 @@ import MySpecies from './MySpecies';
 import { Colors, Typography } from '_styles';
 import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
-import { AddUserSpecies, getAllSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { searchSpeciesFromLocal } from '../../repositories/species';
 import { Header } from '../Common';
 import {
   AddSpecies,
@@ -21,7 +21,7 @@ import {
   Species,
   User,
   ScientificSpecies,
-  ActivityLogs
+  ActivityLogs,
 } from '../../repositories/schema';
 import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
@@ -38,9 +38,8 @@ const ManageSpecies = ({
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
-  const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchBarFocused, setSearchBarFocused] = useState(false);
-  const [showSearchSpecies,setShowSearchSpecies] = useState(false);
+  const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
@@ -51,138 +50,17 @@ const ManageSpecies = ({
     return () => Keyboard.dismiss();
   }, []);
 
+  useEffect(() => {
+    if (searchText) {
+      setShowSearchSpecies(true);
+    } else {
+      setShowSearchSpecies(false);
+    }
+  }, [searchText]);
+
   // used to navigate to main screen
   const onPressHome = () => {
     navigation.navigate('MainScreen');
-  };
-
-  const toggleSpecies = (index) => {
-    // setSearchList(currentSearchList => {
-    //   currentSearchList[index].isUserSpecies= !currentSearchList[index].isUserSpecies;
-    //   return currentSearchList;
-    // })
-    searchSpeciesFromLocal(searchText).then((data) => {
-      setSearchList([...data]);
-    });
-  }
-
-  const addSelectedSpecies = () => {
-    if (selectedSpecies.length === 0) {
-      onPressBack ? setSearchBarFocused(false) : onPressHome();
-    } else {
-      let species = [...selectedSpecies];
-      for (let specie of species) {
-        AddUserSpecies(specie.scientific_name, specie.guid)
-          .then((data) => {
-            setSpecieId(data)(speciesDispatch);
-            setSelectedSpecies([]);
-            if (registrationType === 'multiple') {
-              addMultipleTreesSpecie({
-                id: data,
-                scientificName: specie.scientific_name,
-                speciesId: specie.guid,
-              })(speciesDispatch);
-            }
-
-            setSearchBarFocused(false);
-          })
-          .catch((err) => {
-            console.error(err);
-            Alert.alert(
-              i18next.t('label.select_species_error'),
-              i18next.t('label.select_species_enter_valid_input', {
-                scientific_name: specie.scientific_name,
-              }),
-              [
-                {
-                  text: i18next.t('label.select_species_ok'),
-                },
-              ],
-              { cancelable: false },
-            );
-          });
-      }
-      setSearchText('');
-    }
-  };
-
-  /**
-   * checks if the list of species passed as [speciesList] param includes the specie passed as [specieToSearch] param
-   * and returns the result of the same
-   * @param {speciesList} speciesList - list of species used to search from
-   * @param {specieToSearch} specieToSearch - used to find this specie in the passed list of species
-   */
-  const checkIsSpeciePresent = (speciesList, specieToSearch) => {
-    let isPresent = false;
-    if (speciesList && speciesList.length > 0) {
-      // iterates through the list of species passed and checks if the specie to search for is present in it.
-      for (let specie of speciesList) {
-        if (specie.scientific_name === specieToSearch.scientific_name) {
-          isPresent = true;
-          break;
-        }
-      }
-    }
-    return isPresent;
-  };
-
-  /**
-   * checks if the user species list includes the specie passed as [specieToSearch] param
-   * and returns the result of the same
-   * @param {specieToSearch} specieToSearch - used to find this specie in the user species list
-   */
-  const shouldDisable = (specieToSearch) => {
-    let isUserSpeciePresent = false;
-    if (specieList && specieList.length > 0) {
-      // iterates through the user species list and checks if the specie to search for is present in it.
-      for (let specie of specieList) {
-        if (specie.speciesId === specieToSearch.guid) {
-          isUserSpeciePresent = true;
-          break;
-        }
-      }
-    }
-    return isUserSpeciePresent;
-  };
-
-  const searchSpeciesFromLocal = (text) => {
-    return new Promise((resolve, reject) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-          ActivityLogs
-        ],
-      })
-        .then((realm) => {
-          let species = realm.objects('ScientificSpecies');
-          let searchedSpecies = species.filtered(`scientific_name BEGINSWITH[c] '${text}'`);
-          searchedSpecies = searchedSpecies.sorted('scientific_name');
-          setSearchList(searchedSpecies);
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: 'Searching with Local Scientific species',
-          });
-          resolve(searchedSpecies);
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: 'Error while searching with Local Scientific species',
-            logStack: JSON.stringify(err),
-          });
-          reject(err);
-          console.error(`Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`);
-          bugsnag.notify(err);
-        });
-    });
   };
 
   const getUserSpecies = () => {
@@ -197,7 +75,7 @@ const ManageSpecies = ({
           User,
           AddSpecies,
           ScientificSpecies,
-          ActivityLogs
+          ActivityLogs,
         ],
       })
         .then((realm) => {
@@ -219,9 +97,51 @@ const ManageSpecies = ({
             logStack: JSON.stringify(err),
           });
           reject(err);
-          console.error(`Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`);
+          console.error(
+            `Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`,
+          );
           bugsnag.notify(err);
         });
+    });
+  };
+
+  const toggleUserSpecies = (guid) => {
+    return new Promise((resolve, reject) => {
+      Realm.open({
+        schema: [
+          Inventory,
+          Species,
+          Polygons,
+          Coordinates,
+          OfflineMaps,
+          User,
+          AddSpecies,
+          ScientificSpecies,
+          ActivityLogs,
+        ],
+      }).then((realm) => {
+        realm.write(() => {
+          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+          specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+
+          // copies the current search list in variable currentSearchList
+          const currentSearchList = [...searchList];
+
+          // sets the changes done by realm into the state
+          setSearchList(currentSearchList);
+          console.log(
+            `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
+          );
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Specie with guid ${guid} is toggled ${
+              specieToToggle.isUserSpecies ? 'on' : 'off'
+            }`,
+          });
+        });
+        resolve();
+      });
     });
   };
 
@@ -230,22 +150,14 @@ const ManageSpecies = ({
     if (text) {
       setSearchBarFocused(true);
       setShowSearchSpecies(true);
-      searchSpeciesFromLocal(text)
-      // .then((data) => {
-      //   setSearchList([...data]);
-      // });
+      searchSpeciesFromLocal(text).then((data) => {
+        setSearchList([...data]);
+      });
     } else {
       setSearchBarFocused(false);
       setShowSearchSpecies(false);
       setSearchList([]);
     }
-  };
-
-  const changeSearchSpecieCheck = (index, isCheck) => {
-    setSearchList((list) => {
-      list[index].isCheck = isCheck;
-      return list;
-    });
   };
 
   return (
@@ -266,11 +178,9 @@ const ManageSpecies = ({
           value={searchText}
           onFocus={() => setSearchBarFocused(true)}
         />
-        {showSearchSpecies? (
-          <TouchableOpacity
-            onPress= {() => setSearchText('')}
-          >
-            <Ionicons name='md-close' size={20} style={styles.closeIcon}/>
+        {showSearchSpecies ? (
+          <TouchableOpacity onPress={() => setSearchText('')}>
+            <Ionicons name="md-close" size={20} style={styles.closeIcon} />
           </TouchableOpacity>
         ) : (
           []
@@ -278,13 +188,9 @@ const ManageSpecies = ({
       </View>
       {showSearchSpecies ? (
         searchList && searchList.length > 0 ? (
-          <SearchSpecies
-            searchList={searchList}
-            toggleSpecies= {toggleSpecies}
-            setSearchList= {setSearchList}
-          />
+          <SearchSpecies searchList={searchList} toggleUserSpecies={toggleUserSpecies} />
         ) : (
-          <Text style={styles.notPresentText}>The '{searchText}' is not present</Text>
+          <Text style={styles.notPresentText}>The '{searchText}' specie is not present</Text>
         )
       ) : (
         <MySpecies
@@ -353,11 +259,11 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     paddingVertical: 20,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   closeIcon: {
     justifyContent: 'flex-end',
     color: Colors.TEXT_COLOR,
-    paddingRight: 20
-  }
+    paddingRight: 20,
+  },
 });
