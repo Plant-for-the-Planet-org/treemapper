@@ -37,6 +37,7 @@ import { initiateInventoryState } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import RNFS from 'react-native-fs';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
@@ -227,8 +228,11 @@ const SingleTreeOverview = ({ navigation }) => {
   };
   let filePath, imageSource;
   if (inventory) {
+    const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
-    imageSource = filePath ? { uri: filePath } : false;
+    imageSource = filePath
+      ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
+      : false;
   }
   const renderDetails = ({ polygons }) => {
     let coords;

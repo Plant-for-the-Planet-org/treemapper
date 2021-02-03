@@ -1,13 +1,5 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  Image,
-  TouchableOpacity,
-  Modal,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';
@@ -57,7 +49,7 @@ const ImageCapturing = ({
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
   const [imagePath, setImagePath] = useState('');
-  const [ALPHABETS, setAPLHABETS] = useState([]);
+  const [ALPHABETS, setALPHABETS] = useState([]);
   const [inventory, setInventory] = useState(null);
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
@@ -88,7 +80,7 @@ const ImageCapturing = ({
       y = toLetters(x);
       array.push(y);
     }
-    setAPLHABETS(array);
+    setALPHABETS(array);
   };
 
   const copyImageAndGetData = async () => {
@@ -97,7 +89,7 @@ const ImageCapturing = ({
     // splits and stores the file name and extension which is present on last index
     let fileName = splittedPath.pop();
     // splits and stores the file parent directory which is present on last index after pop
-    const inbox = splittedPath.pop();
+    const parentDirectory = splittedPath.pop();
     // splits and stores the file extension
     const fileExtension = fileName.split('.').pop();
     // splits and stores the file name
@@ -107,13 +99,13 @@ const ImageCapturing = ({
     const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
 
     // stores the path from which the image should be copied
-    const inputPath = `${RNFS.CachesDirectoryPath}/${inbox}/${fileName}.${fileExtension}`;
+    const inputPath = `${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
     try {
       // copies the image to destination folder
       await RNFS.copyFile(inputPath, outputPath);
       let data = {
         inventory_id: state.inventoryID,
-        imageUrl: Platform.OS === 'android' ? `file://${outputPath}` : outputPath,
+        imageUrl: `${fileName}.${fileExtension}`,
       };
       return data;
     } catch (err) {

@@ -24,6 +24,7 @@ import { updateCount, updateIsUploading } from './inventory';
 import { getSpeciesList } from './species';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
+import { bugsnag } from '_utils';
 
 const { protocol, url } = APIConfig;
 
@@ -233,7 +234,8 @@ export const uploadInventory = (dispatch) => {
                           }
                           dbLog.info({
                             logType: LogTypes.DATA_SYNC,
-                            message: 'Successfully added plant location, POST - /treemapper/plantLocation',
+                            message:
+                              'Successfully added plant location, POST - /treemapper/plantLocation',
                             referenceId: oneInventory.inventory_id,
                           });
                         } catch (err) {
@@ -248,7 +250,8 @@ export const uploadInventory = (dispatch) => {
                           );
                           dbLog.error({
                             logType: LogTypes.DATA_SYNC,
-                            message: 'Error while add plant location, POST - /treemapper/plantLocations',
+                            message:
+                              'Error while add plant location, POST - /treemapper/plantLocations',
                             logStack: JSON.stringify(err),
                           });
                         }
@@ -303,17 +306,25 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
     let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
 
     try {
-      const bas64Image = await RNFS.readFile(inventoryObject.imageUrl, 'base64');
+      // fetches the image from device file system and stores it in base64 format which is used for uploading
+      const base64Image = await RNFS.readFile(
+        `${RNFS.DocumentDirectoryPath}/${inventoryObject.imageUrl}`,
+        'base64',
+      );
 
-      let body = {
-        imageFile: `data:image/png;base64,${bas64Image}`,
+      // attaches the image file to body of the request
+      const body = {
+        imageFile: `data:image/png;base64,${base64Image}`,
       };
-      let headers = {
+
+      // defines the headers which is to be passed with the request
+      const headers = {
         'Content-Type': 'application/json',
         Authorization: `OAuth ${userToken}`,
         'x-session-id': sessionId,
       };
       try {
+        // makes the PUT request to upload the image and stores the result of the same
         const result = await axios({
           method: 'PUT',
           url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
@@ -321,6 +332,7 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
           headers: headers,
         });
 
+        // if status is 200 then increments the completed upload count by 1 and logs the success of api request in DB
         if (result.status === 200) {
           completedUploadCount++;
           dbLog.info({
@@ -339,14 +351,15 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
         console.error(
           `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${
             oneResponseCoords.id
-          } -> ${JSON.stringify(err)}`,
+          } -> ${JSON.stringify(err.response)}`,
         );
         dbLog.error({
           logType: LogTypes.DATA_SYNC,
           message: `Error while uploading image for inventory id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
-          logStack: JSON.stringify(err),
+          logStack: JSON.stringify(err.response),
           referenceId: oneInventory.inventory_id,
         });
+        bugsnag.notify(err);
       }
     } catch (err) {
       console.error(`Error at: action/upload/uploadImage, base64 image -> ${JSON.stringify(err)}`);
@@ -356,8 +369,11 @@ const uploadImage = async (oneInventory, response, userToken, sessionId) => {
         logStack: JSON.stringify(err),
         referenceId: oneInventory.inventory_id,
       });
+      bugsnag.notify(err);
     }
   }
+  // returns boolean value of whether all the images were uploaded successfully or not by comparing
+  // the length of coordinates of an inventory registration with the upload count of successfully completed upload
   return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
