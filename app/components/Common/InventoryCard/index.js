@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { tree, placeholder_image, map_img } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,10 +14,10 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
     activeBtn === true
       ? map_img
       : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-      ? map_img
-      : activeBtn === false
-      ? placeholder_image
-      : tree;
+        ? map_img
+        : activeBtn === false
+          ? placeholder_image
+          : tree;
   if (data.imageURL) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     imageSource = { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}` };
