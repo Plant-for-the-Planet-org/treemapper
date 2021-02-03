@@ -20,7 +20,6 @@ import {
   SignUp,
   UploadedInventory,
   SelectSpecies,
-  AddSpecies,
   Logs,
   ManageSpecies,
 } from '../';
@@ -108,7 +107,6 @@ const App = () => {
             options={MyTransition}
           />
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
-          <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
           <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
           <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
         </Stack.Navigator>

@@ -1,3 +1,9 @@
 {
-  "select_species_local_name": "{{item.localName}}"
+  "select_species_local_name": "{{item.localName}}",
+  "select_species_search": "Ricerca",
+  "select_species_diameter": "Diametro",
+  "select_species_height": "Altezza",
+  "select_species_continue": "CONTINUA",
+  "select_species_error": "Errore",
+  "select_species_ok": "OK"
 }
