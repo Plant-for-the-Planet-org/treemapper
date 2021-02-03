@@ -7,7 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
 import { Colors, Typography } from '_styles';
-import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
+// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
 import { Header } from '../Common';
@@ -37,7 +37,7 @@ const ManageSpecies = ({
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
-  const [searchBarFocused, setSearchBarFocused] = useState(false);
+  // const [searchBarFocused, setSearchBarFocused] = useState(false);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
@@ -107,13 +107,13 @@ const ManageSpecies = ({
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
     if (text) {
-      setSearchBarFocused(true);
+      // setSearchBarFocused(true);
       setShowSearchSpecies(true);
       searchSpeciesFromLocal(text).then((data) => {
         setSearchList([...data]);
       });
     } else {
-      setSearchBarFocused(false);
+      // setSearchBarFocused(false);
       setShowSearchSpecies(false);
       setSearchList([]);
     }
@@ -134,7 +134,7 @@ const ManageSpecies = ({
           onChangeText={handleSpeciesSearch}
           value={searchText}
           returnKeyType = {'search'}
-          onFocus={() => setSearchBarFocused(true)}
+          // onFocus={() => setSearchBarFocused(true)}
         />
         {showSearchSpecies ? (
           <TouchableOpacity onPress={() => setSearchText('')}>
