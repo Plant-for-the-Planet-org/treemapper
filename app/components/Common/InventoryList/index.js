@@ -5,6 +5,7 @@ import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
+
 export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const navigation = useNavigation();
 
@@ -64,7 +65,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
           date: i18next.t('label.inventory_overview_date', {
             date: new Date(Number(item.plantation_date)),
           }),
-          imageURL: imageURL,
+          imageURL,
         };
 
         return (
