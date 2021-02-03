@@ -1,7 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
+import Realm from 'realm';
+import { bugsnag } from '../../utils';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Keyboard } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, Keyboard, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
@@ -10,6 +12,20 @@ import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { AddUserSpecies, getAllSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { Header } from '../Common';
+import {
+  AddSpecies,
+  Coordinates,
+  Inventory,
+  OfflineMaps,
+  Polygons,
+  Species,
+  User,
+  ScientificSpecies,
+  ActivityLogs
+} from '../../repositories/schema';
+import { LogTypes } from '../../utils/constants';
+import dbLog from '../../repositories/logs';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const ManageSpecies = ({
   onPressSpeciesSingle,
@@ -24,11 +40,12 @@ const ManageSpecies = ({
   const [searchList, setSearchList] = useState([]);
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [searchBarFocused, setSearchBarFocused] = useState(false);
+  const [showSearchSpecies,setShowSearchSpecies] = useState(false);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
-    getAllSpecies().then((data) => setSpecieList(data));
+    getUserSpecies();
 
     // hides the keyboard when component unmount
     return () => Keyboard.dismiss();
@@ -38,6 +55,16 @@ const ManageSpecies = ({
   const onPressHome = () => {
     navigation.navigate('MainScreen');
   };
+
+  const toggleSpecies = (index) => {
+    // setSearchList(currentSearchList => {
+    //   currentSearchList[index].isUserSpecies= !currentSearchList[index].isUserSpecies;
+    //   return currentSearchList;
+    // })
+    searchSpeciesFromLocal(searchText).then((data) => {
+      setSearchList([...data]);
+    });
+  }
 
   const addSelectedSpecies = () => {
     if (selectedSpecies.length === 0) {
@@ -118,25 +145,98 @@ const ManageSpecies = ({
     return isUserSpeciePresent;
   };
 
+  const searchSpeciesFromLocal = (text) => {
+    return new Promise((resolve, reject) => {
+      Realm.open({
+        schema: [
+          Inventory,
+          Species,
+          Polygons,
+          Coordinates,
+          OfflineMaps,
+          User,
+          AddSpecies,
+          ScientificSpecies,
+          ActivityLogs
+        ],
+      })
+        .then((realm) => {
+          let species = realm.objects('ScientificSpecies');
+          let searchedSpecies = species.filtered(`scientific_name BEGINSWITH[c] '${text}'`);
+          searchedSpecies = searchedSpecies.sorted('scientific_name');
+          setSearchList(searchedSpecies);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Searching with Local Scientific species',
+          });
+          resolve(searchedSpecies);
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Error while searching with Local Scientific species',
+            logStack: JSON.stringify(err),
+          });
+          reject(err);
+          console.error(`Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`);
+          bugsnag.notify(err);
+        });
+    });
+  };
+
+  const getUserSpecies = () => {
+    return new Promise((resolve, reject) => {
+      Realm.open({
+        schema: [
+          Inventory,
+          Species,
+          Polygons,
+          Coordinates,
+          OfflineMaps,
+          User,
+          AddSpecies,
+          ScientificSpecies,
+          ActivityLogs
+        ],
+      })
+        .then((realm) => {
+          let species = realm.objects('ScientificSpecies');
+          let userSpecies = species.filtered(`isUserSpecies = true`);
+          userSpecies = userSpecies.sorted('scientific_name');
+          setSpecieList(userSpecies);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Searching with Local Scientific species',
+          });
+          resolve(userSpecies);
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Error while searching with Local Scientific species',
+            logStack: JSON.stringify(err),
+          });
+          reject(err);
+          console.error(`Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`);
+          bugsnag.notify(err);
+        });
+    });
+  };
+
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
     if (text) {
       setSearchBarFocused(true);
-      searchSpeciesFromLocal(text).then((data) => {
-        let newList = [];
-        for (let specie of data) {
-          const isDisabled = shouldDisable(specie);
-          newList.push({
-            guid: specie.guid,
-            scientific_name: specie.scientific_name,
-            isCheck: isDisabled ? isDisabled : checkIsSpeciePresent(selectedSpecies, specie),
-            isDisabled,
-          });
-        }
-        setSearchList(newList);
-      });
+      setShowSearchSpecies(true);
+      searchSpeciesFromLocal(text)
+      // .then((data) => {
+      //   setSearchList([...data]);
+      // });
     } else {
       setSearchBarFocused(false);
+      setShowSearchSpecies(false);
       setSearchList([]);
     }
   };
@@ -154,8 +254,8 @@ const ManageSpecies = ({
         closeIcon
         onBackPress={onPressBack ? onPressBack : onPressHome}
         headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
-        rightText={i18next.t('label.select_species_done')}
-        onPressFunction={addSelectedSpecies}
+        // rightText={i18next.t('label.select_species_done')}
+        // onPressFunction={addSelectedSpecies}
       />
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
@@ -166,15 +266,26 @@ const ManageSpecies = ({
           value={searchText}
           onFocus={() => setSearchBarFocused(true)}
         />
+        {showSearchSpecies? (
+          <TouchableOpacity
+            onPress= {() => setSearchText('')}
+          >
+            <Ionicons name='md-close' size={20} style={styles.closeIcon}/>
+          </TouchableOpacity>
+        ) : (
+          []
+        )}
       </View>
-      {searchBarFocused ? (
-        <SearchSpecies
-          setSelectedSpecies={setSelectedSpecies}
-          selectedSpecies={selectedSpecies}
-          specieList={specieList}
-          searchList={searchList}
-          changeSearchSpecieCheck={changeSearchSpecieCheck}
-        />
+      {showSearchSpecies ? (
+        searchList && searchList.length > 0 ? (
+          <SearchSpecies
+            searchList={searchList}
+            toggleSpecies= {toggleSpecies}
+            setSearchList= {setSearchList}
+          />
+        ) : (
+          <Text style={styles.notPresentText}>The '{searchText}' is not present</Text>
+        )
       ) : (
         <MySpecies
           onSaveMultipleSpecies={onSaveMultipleSpecies}
@@ -201,7 +312,7 @@ const styles = StyleSheet.create({
 
   searchBar: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     borderWidth: 1,
     height: 48,
     borderRadius: 5,
@@ -219,7 +330,6 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     color: Colors.PRIMARY,
-    paddingVertical: 12,
     paddingLeft: 19,
   },
   searchText: {
@@ -238,4 +348,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  notPresentText: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    paddingVertical: 20,
+    alignSelf: 'center'
+  },
+  closeIcon: {
+    justifyContent: 'flex-end',
+    color: Colors.TEXT_COLOR,
+    paddingRight: 20
+  }
 });

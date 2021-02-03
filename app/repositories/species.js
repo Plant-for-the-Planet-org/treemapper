@@ -295,7 +295,7 @@ export const searchSpeciesFromLocal = (text) => {
     })
       .then((realm) => {
         let species = realm.objects('ScientificSpecies');
-        let searchedSpecies = species.filtered(`scientific_name contains[c] '${text}'`);
+        let searchedSpecies = species.filtered(`scientific_name BEGINSWITH[c] '${text}'`);
         searchedSpecies = searchedSpecies.sorted('scientific_name');
         // logging the success in to the db
         dbLog.info({
@@ -315,4 +315,36 @@ export const searchSpeciesFromLocal = (text) => {
         bugsnag.notify(err);
       });
   });
+};
+
+
+export const toggleUserSpecies = (guid) => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs
+      ],
+    })
+    .then((realm) => {
+      realm.write(() => {
+        let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+        specieToToggle.isUserSpecies= !(specieToToggle.isUserSpecies);
+        console.log(`Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
+        })
+      });
+      resolve();
+    })
+  })
 };
