@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import Realm from 'realm';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View, Keyboard, Text } from 'react-native';
+import { StyleSheet, TextInput, View, Keyboard, Text, TouchableWithoutFeedback } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
@@ -25,6 +25,14 @@ import {
 import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+
+const DismissKeyBoard = ({children}) => {
+  return (
+    <TouchableWithoutFeedback onPress= {()=> Keyboard.dismiss()}>
+      {children}
+    </TouchableWithoutFeedback>
+  );
+};
 
 const ManageSpecies = ({
   onPressSpeciesSingle,
@@ -117,46 +125,49 @@ const ManageSpecies = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Header
-        closeIcon
-        onBackPress={onPressBack ? onPressBack : onPressHome}
-        headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
-      />
-      <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchText}
-          placeholder={i18next.t('label.select_species_search_species')}
-          onChangeText={handleSpeciesSearch}
-          value={searchText}
-          returnKeyType = {'search'}
+    <DismissKeyBoard>
+      <View style={styles.container}>
+        <Header
+          closeIcon
+          onBackPress={onPressBack ? onPressBack : onPressHome}
+          headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
         />
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchText}
+            placeholder={i18next.t('label.select_species_search_species')}
+            onChangeText={handleSpeciesSearch}
+            value={searchText}
+            returnKeyType = {'search'}
+          />
+          {showSearchSpecies ? (
+            <TouchableOpacity onPress={() => setSearchText('')}>
+              <Ionicons name="md-close" size={20} style={styles.closeIcon} />
+            </TouchableOpacity>
+          ) : (
+            []
+          )}
+        </View>
         {showSearchSpecies ? (
-          <TouchableOpacity onPress={() => setSearchText('')}>
-            <Ionicons name="md-close" size={20} style={styles.closeIcon} />
-          </TouchableOpacity>
+          searchList && searchList.length > 0 ? (
+            <SearchSpecies searchList={searchList} toggleUserSpecies={toggleUserSpecies} />
+          ) : (
+            <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
+          )
         ) : (
-          []
+          <MySpecies
+            onSaveMultipleSpecies={onSaveMultipleSpecies}
+            registrationType={registrationType}
+            speciesState={speciesState}
+            onPressSpeciesSingle={onPressSpeciesSingle}
+            onPressSpeciesMultiple={onPressSpeciesMultiple}
+            specieList={specieList}
+          />
         )}
       </View>
-      {showSearchSpecies ? (
-        searchList && searchList.length > 0 ? (
-          <SearchSpecies searchList={searchList} toggleUserSpecies={toggleUserSpecies} />
-        ) : (
-          <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
-        )
-      ) : (
-        <MySpecies
-          onSaveMultipleSpecies={onSaveMultipleSpecies}
-          registrationType={registrationType}
-          speciesState={speciesState}
-          onPressSpeciesSingle={onPressSpeciesSingle}
-          onPressSpeciesMultiple={onPressSpeciesMultiple}
-          specieList={specieList}
-        />
-      )}
-    </View>
+    </DismissKeyBoard>
+    
   );
 };
 
