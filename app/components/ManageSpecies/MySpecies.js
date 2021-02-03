@@ -81,7 +81,6 @@ const MySpecies = ({
             <SvgXml
               xml={empty}
               style={{
-                top: 10,
                 bottom: 10,
               }}
             />
@@ -109,7 +108,8 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_27,
     lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
-    paddingVertical: 15,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

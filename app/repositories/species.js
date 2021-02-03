@@ -333,18 +333,59 @@ export const toggleUserSpecies = (guid) => {
         ActivityLogs
       ],
     })
-    .then((realm) => {
-      realm.write(() => {
-        let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-        specieToToggle.isUserSpecies= !(specieToToggle.isUserSpecies);
-        console.log(`Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`);
+      .then((realm) => {
+        realm.write(() => {
+          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+          specieToToggle.isUserSpecies= !(specieToToggle.isUserSpecies);
+          console.log(`Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
+          });
+        });
+        resolve();
+      });
+  });
+};
+
+export const getUserSpecies = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open({
+      schema: [
+        Inventory,
+        Species,
+        Polygons,
+        Coordinates,
+        OfflineMaps,
+        User,
+        AddSpecies,
+        ScientificSpecies,
+        ActivityLogs,
+      ],
+    })
+      .then((realm) => {
+        let species = realm.objects('ScientificSpecies');
+        let userSpecies = species.filtered('isUserSpecies = true');
+        userSpecies = userSpecies.sorted('scientific_name');
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
-        })
+          message: 'Retrieved User Species from Local',
+        });
+        resolve(userSpecies);
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while retrieving User Species from Local',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        console.error(
+          `Error at /repositories/species/getUserSpecies, ${JSON.stringify(err)}`,
+        );
+        bugsnag.notify(err);
       });
-      resolve();
-    })
-  })
+  });
 };

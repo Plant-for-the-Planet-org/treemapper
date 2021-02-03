@@ -1,16 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import Realm from 'realm';
-import { bugsnag } from '../../utils';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Keyboard, Text } from 'react-native';
+import { StyleSheet, TextInput, View, Keyboard, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
 import { Colors, Typography } from '_styles';
 import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
-import { searchSpeciesFromLocal } from '../../repositories/species';
+import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
 import { Header } from '../Common';
 import {
   AddSpecies,
@@ -44,8 +43,7 @@ const ManageSpecies = ({
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
-    getUserSpecies();
-
+    getUserSpecies().then((userSpecies)=> setSpecieList(userSpecies));
     // hides the keyboard when component unmount
     return () => Keyboard.dismiss();
   }, []);
@@ -63,48 +61,8 @@ const ManageSpecies = ({
     navigation.navigate('MainScreen');
   };
 
-  const getUserSpecies = () => {
-    return new Promise((resolve, reject) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-          ActivityLogs,
-        ],
-      })
-        .then((realm) => {
-          let species = realm.objects('ScientificSpecies');
-          let userSpecies = species.filtered(`isUserSpecies = true`);
-          userSpecies = userSpecies.sorted('scientific_name');
-          setSpecieList(userSpecies);
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: 'Searching with Local Scientific species',
-          });
-          resolve(userSpecies);
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: 'Error while searching with Local Scientific species',
-            logStack: JSON.stringify(err),
-          });
-          reject(err);
-          console.error(
-            `Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`,
-          );
-          bugsnag.notify(err);
-        });
-    });
-  };
-
+  //This function adds or removes the specie from User Species
+  //Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid) => {
     return new Promise((resolve, reject) => {
       Realm.open({
@@ -145,6 +103,7 @@ const ManageSpecies = ({
     });
   };
 
+  //This function handles search whenever any search text is entered
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
     if (text) {
@@ -166,8 +125,6 @@ const ManageSpecies = ({
         closeIcon
         onBackPress={onPressBack ? onPressBack : onPressHome}
         headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
-        // rightText={i18next.t('label.select_species_done')}
-        // onPressFunction={addSelectedSpecies}
       />
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
@@ -176,6 +133,7 @@ const ManageSpecies = ({
           placeholder={i18next.t('label.select_species_search_species')}
           onChangeText={handleSpeciesSearch}
           value={searchText}
+          returnKeyType = {'search'}
           onFocus={() => setSearchBarFocused(true)}
         />
         {showSearchSpecies ? (
