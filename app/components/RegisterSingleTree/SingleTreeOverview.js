@@ -38,7 +38,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import RNFS from 'react-native-fs';
-import ManageSpecies from '../ManageSpecies'
+import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
@@ -199,26 +199,26 @@ const SingleTreeOverview = ({ navigation }) => {
   const onPressEditSpecies = (action) => {
     // setEditEnable(action);
     // setIsOpenModal(true);
-    setIsShowManageSpecies(true)
+    setIsShowManageSpecies(true);
   };
 
   const addSpecieNameToInventory = (specieName) => {
     updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName});
     setSpecieText(specieName);
-  }
+  };
 
   const renderManageSpeciesModal= () => {
     return (
-        <Modal visible={isShowManageSpecies}>
-          <ManageSpecies
-            onPressBack = {()=> setIsShowManageSpecies(false)}
-            registrationType= {registrationType}
-            addSpecieNameToInventory={addSpecieNameToInventory}
-            editOnlySpecieName={true}
-          />
-        </Modal>
-    )
-  }
+      <Modal visible={isShowManageSpecies}>
+        <ManageSpecies
+          onPressBack = {()=> setIsShowManageSpecies(false)}
+          registrationType= {registrationType}
+          addSpecieNameToInventory={addSpecieNameToInventory}
+          editOnlySpecieName={true}
+        />
+      </Modal>
+    );
+  };
 
   const renderDateModal = () => {
     const onChangeDate = (e, selectedDate) => {

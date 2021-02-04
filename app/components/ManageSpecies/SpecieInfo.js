@@ -5,43 +5,43 @@ import { Colors, Typography } from '_styles';
 import { add_image } from '../../assets';
 
 const SpecieInfo = ({route}) => {
-    useEffect(() => {
+  useEffect(() => {
 
-    }, [])
-    const specieName = route.params.SpecieName;
-    return(
-        <Modal> 
-            <View style={styles.container}>
-                <Header
-                    headingText={specieName}
-                />
-                <View style={styles.scrollViewContainer}>
-                    <Image source={add_image} style={styles.bgImage} />
-                </View>
-            </View>
+  }, []);
+  const specieName = route.params.SpecieName;
+  return(
+    <Modal> 
+      <View style={styles.container}>
+        <Header
+          headingText={specieName}
+        />
+        <View style={styles.scrollViewContainer}>
+          <Image source={add_image} style={styles.bgImage} />
+        </View>
+      </View>
             
-        </Modal>
+    </Modal>
         
-    )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingHorizontal: 25,
-      // paddingTop: 20,
-      backgroundColor: Colors.WHITE,
-    },
-    bgImage: {
-        margin: 10,
-        width: '90%',
-        height: '30%',
-        borderRadius: 10
-    },
-    scrollViewContainer: {
-        flex: 1,
-        marginTop: 0,
-    },
+  container: {
+    flex: 1,
+    paddingHorizontal: 25,
+    // paddingTop: 20,
+    backgroundColor: Colors.WHITE,
+  },
+  bgImage: {
+    margin: 10,
+    width: '90%',
+    height: '30%',
+    borderRadius: 10
+  },
+  scrollViewContainer: {
+    flex: 1,
+    marginTop: 0,
+  },
 });
 
 export default SpecieInfo;

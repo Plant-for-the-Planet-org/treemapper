@@ -73,13 +73,13 @@ const MySpecies = ({
       if(registrationType === 'multiple'){
         return(speciesState.multipleTreesSpecies);
       } else {
-        let specieListWithUnknown = [...specieList,{"guid": "abc","isUserSpecies": true, "scientific_name": "Unknown"}];
-        return specieListWithUnknown
+        let specieListWithUnknown = [...specieList,{'guid': 'abc','isUserSpecies': true, 'scientific_name': 'Unknown'}];
+        return specieListWithUnknown;
       }
     } else {
       return registrationType === 'multiple'? speciesState.multipleTreesSpecies: specieList;
     }
-  }
+  };
 
   return (
     <View style={{ flex: 1 }}>

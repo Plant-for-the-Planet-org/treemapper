@@ -335,7 +335,7 @@ const SelectSpecies = ({
 
   const addSpecieNameToInventory = (specieName) => {
     updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName});
-  }
+  };
 
   return (
     <Modal visible={showSpecies} animationType={'slide'}>
