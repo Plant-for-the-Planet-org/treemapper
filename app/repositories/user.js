@@ -1,5 +1,3 @@
-import Auth0 from 'react-native-auth0';
-import Config from 'react-native-config';
 import Realm from 'realm';
 import {
   AddSpecies,
@@ -15,9 +13,6 @@ import {
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
-
-// AUTH0 CONFIG
-const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
 
 export const getUserToken = () => {
   return new Promise((resolve, reject) => {
@@ -37,13 +32,11 @@ export const getUserToken = () => {
       .then((realm) => {
         // Gets the user data from the DB
         const User = realm.objectForPrimaryKey('User', 'id0001');
-        const userToken = User.userToken;
+        const accessToken = User.accessToken;
 
-        // closes the realm connection
-        // realm.close();
+        // returns accessToken
+        resolve(accessToken);
 
-        // returns userToken
-        resolve(userToken);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
@@ -126,13 +119,12 @@ export const getUserDetails = () => {
   });
 };
 
-//  ---------------- AUTH0 ACTIONS END----------------
-
 /**
- * Deletes the user from the database.
+ * Creates or modifies the accessToken, idToken and refreshToken of user in the database.
+ * @param {object} tokenData - should have accessToken, idToken, refreshToken to update in user's data
  * @returns {boolean} - can be used to check if the operation was successful or not
  */
-export const createUser = ({ accessToken, idToken }) => {
+export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken }) => {
   return new Promise((resolve) => {
     Realm.open({
       schema: [
@@ -155,6 +147,7 @@ export const createUser = ({ accessToken, idToken }) => {
               id: 'id0001',
               accessToken,
               idToken,
+              refreshToken,
             },
             'modified',
           );
@@ -167,7 +160,9 @@ export const createUser = ({ accessToken, idToken }) => {
         });
       })
       .catch((err) => {
-        console.error(`Error at /repositories/user/createUser, ${JSON.stringify(err)}`);
+        console.error(
+          `Error at /repositories/user/createOrModifyUserToken, ${JSON.stringify(err)}`,
+        );
 
         dbLog.error({
           logType: LogTypes.USER,
@@ -227,7 +222,12 @@ export const deleteUser = () => {
   });
 };
 
-export const modifyUserDetails = ({ email, firstname, lastname, country, image, id }) => {
+/**
+ * Modifies the details passed to update in user's data.
+ * @param {object} userDetails - should only have User schema data to update user's data
+ * @returns {boolean} - can be used to check if the operation was successful or not
+ */
+export const modifyUserDetails = (userDetails) => {
   return new Promise((resolve) => {
     Realm.open({
       schema: [
@@ -248,12 +248,7 @@ export const modifyUserDetails = ({ email, firstname, lastname, country, image, 
             'User',
             {
               id: 'id0001',
-              email,
-              firstName: firstname,
-              lastName: lastname,
-              country,
-              tpoId: id,
-              image,
+              ...userDetails,
             },
             'modified',
           );

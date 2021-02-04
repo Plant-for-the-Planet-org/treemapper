@@ -72,6 +72,7 @@ const User = {
     country: 'string?',
     IsLogEnabled: 'bool?',
     tpoId: 'string?',
+    refreshToken: 'string?',
   },
 };
 

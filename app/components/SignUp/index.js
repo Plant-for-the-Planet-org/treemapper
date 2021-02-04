@@ -26,6 +26,8 @@ import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
 import { LoadingContext } from '../../reducers/loader';
+import { UserContext } from '../../reducers/user';
+import { StackActions } from '@react-navigation/native';
 
 const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');
@@ -55,6 +57,7 @@ const SignUp = ({ navigation }) => {
   const textInputAddress = useRef(null);
   const textInputCity = useRef(null);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
@@ -218,7 +221,7 @@ const SignUp = ({ navigation }) => {
     if (completeCheck) {
       startSignUpLoading()(loadingDispatch);
       console.log('userData=>', userData);
-      SignupService(userData)
+      SignupService(userData, userDispatch)
         .then(() => {
           stopSignUpLoading()(loadingDispatch);
           navigation.navigate('MainScreen');
@@ -227,6 +230,7 @@ const SignUp = ({ navigation }) => {
           alert(err.response.data.message);
           console.error(err.response.data.message, 'err');
           stopSignUpLoading()(loadingDispatch);
+          navigation.dispatch(StackActions.popToTop());
         });
     }
   };

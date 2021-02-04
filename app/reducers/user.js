@@ -20,7 +20,6 @@ const userReducer = (state = initialState, action) => {
   switch (action.type) {
     // adds the accessToken, idToken
     case SET_INITIAL_USER_STATE:
-      console.log('SET_INITIAL_USER_STATE red', action.payload);
       return {
         ...state,
         accessToken: action.payload.accessToken,
@@ -32,6 +31,9 @@ const userReducer = (state = initialState, action) => {
         ...state,
         ...action.payload,
       };
+    // resets the user state to initialState
+    case CLEAR_USER_DETAILS:
+      return initialState;
     // returns the state as is if no type is found
     default:
       return state;

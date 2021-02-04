@@ -1,21 +1,9 @@
-import { createUser, deleteUser, modifyUserDetails } from '../repositories/user';
+import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import axios from 'axios';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
-import Realm from 'realm';
 import { APIConfig } from '../actions/Config';
 import dbLog from '../repositories/logs';
-import {
-  ActivityLogs,
-  AddSpecies,
-  Coordinates,
-  Inventory,
-  OfflineMaps,
-  Polygons,
-  ScientificSpecies,
-  Species,
-  User,
-} from '../repositories/schema';
 import { LogTypes } from '../utils/constants';
 import getSessionData from '../utils/sessionId';
 import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
@@ -27,33 +15,59 @@ const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CL
 // stores the protocol and url used for api request
 const { protocol, url } = APIConfig;
 
+/* ============================== *\
+      Auth0 functions - STARTS
+\* ============================== */
+
 /**
  * Used to login or signup into the app. After the user is authorized successfully the auth0 returns token
- * which is used in the app to authenticate the api calls. It also creates a new user or replace the existing
- * accessToken and idToken in the realm DB
+ * which is used in the app to authenticate the api calls. Then it creates a new user or replace the existing
+ * accessToken, idToken and refreshToken in the realm DB using func [createOrModifyUserToken]. Followed by calling
+ * func [setUserInitialState] to update the app's user state. Followed by calling func [getUserDetailsFromServer]
+ * to get the user details.
+ * @param {ActionDispatch} dispatch - requires dispatch function of user context to pass it to func [setUserInitialState]
  */
-export const auth0Login = () => (dispatch) => {
+export const auth0Login = (dispatch) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
-      .authorize({ scope: 'openid email profile' }, { ephemeralSession: true })
-      .then((loginData) => {
+      .authorize({ scope: 'openid email profile offline_access' }, { ephemeralSession: true })
+      .then((credentials) => {
+        console.log('\n\nloginData=>', credentials);
         // logs success info in DB
         dbLog.info({
           logType: LogTypes.USER,
           message: 'Login successful from auth0',
         });
 
-        console.log('auth0 loginData', loginData);
+        // creates the user after successful login by passing the credentials having accessToken, idToken
+        // and refreshToken to store in DB
+        createOrModifyUserToken(credentials);
 
-        // creates the user after successful login by passing the loginData having accessToken and idToken to store in DB
-        createUser(loginData);
-
-        // sets the token in the user state of the app
-        setUserInitialState(loginData)(dispatch);
+        // sets the accessToken and idToken in the user state of the app
+        setUserInitialState(credentials)(dispatch);
 
         // fetches the user details from server by passing the accessToken which is used while requesting the API
-        getUserDetailsFromServer(loginData.accessToken)
-          .then(() => {
+        getUserDetailsFromServer(credentials.accessToken, dispatch)
+          .then((userDetails) => {
+            // destructured and modified variable names which is used to set user state
+            const {
+              email,
+              firstname: firstName,
+              lastname: lastName,
+              image,
+              country,
+              id: tpoId,
+            } = userDetails;
+
+            // dispatch function sets the passed user details into the user state
+            setUserDetails({
+              email,
+              firstName,
+              lastName,
+              image,
+              country,
+              tpoId,
+            })(dispatch);
             resolve(true);
           })
           .catch((err) => {
@@ -76,17 +90,23 @@ export const auth0Login = () => (dispatch) => {
 };
 
 /**
- * Logs out the user by clearing the session from auth0 and calls the deleteUser function to delete the user from DB
+ * Logs out the user by clearing the session from auth0 then calls the deleteUser function to delete the user from DB
+ * also calls the function [clearUserDetails] which dispatches type to clear the app's user state
+ * @param {ActionDispatch} userDispatch - dispatch function of user context to pass it to func [clearUserDetails]
+ * @returns {boolean} - returns true after all the operations are successful else returns false
  */
-export const auth0Logout = () => (dispatch) => {
+export const auth0Logout = (userDispatch = null) => {
   return new Promise((resolve) => {
     auth0.webAuth
       .clearSession()
       .then(() => {
+        // deletes the user from DB
         deleteUser();
 
-        // clear the user details from the user state
-        clearUserDetails()(dispatch);
+        if (userDispatch) {
+          // clear the user details from the user state
+          clearUserDetails()(userDispatch);
+        }
 
         // logging the success in to the db
         dbLog.info({
@@ -108,11 +128,59 @@ export const auth0Logout = () => (dispatch) => {
   });
 };
 
+export const getNewAccessToken = async (refreshToken) => {
+  return new Promise((resolve) => {
+    auth0.auth
+      .refreshToken({ refreshToken })
+      .then((data) => {
+        createOrModifyUserToken(data);
+        console.log('getNewAccessToken data', data);
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: 'New access token fetched successfully',
+        });
+        resolve(data.accessToken);
+      })
+      .catch((err) => {
+        console.error(`Error at /actions/user/getNewAccessToken, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while fetching new access token',
+          logStack: JSON.stringify(err),
+        });
+        resolve(false);
+      });
+  });
+};
+
+/* === Auth0 functions - ENDS === */
+
+/* =================================== *\
+      API server functions - STARTS
+\* =================================== */
+
+/**
+ * This function is used to call the logout function if status code of api is 401 and returns a boolean value.
+ * @param {Error} error - error of api response to check for 401 error code.
+ * @returns {boolean} - returns true if user is logged out else returns false
+ */
+export const checkErrorCode = async (error, userDispatch) => {
+  if (error?.response?.status === 401) {
+    return await auth0Logout(userDispatch);
+  }
+  if (err?.response?.status === 303) {
+    // navigation.navigate('SignUp');
+    console.log('error 303');
+  }
+  return false;
+};
+
 /**
  * Fetches the detail of the user from the server using the accessToken and requesting the GET api - /app/profile
  * @param {string} userToken - used to pass in authorization header of the api
  */
-export const getUserDetailsFromServer = (userToken) => {
+export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
   return new Promise((resolve, reject) => {
     getSessionData().then((sessionData) => {
       axios({
@@ -125,8 +193,25 @@ export const getUserDetailsFromServer = (userToken) => {
         },
       })
         .then((data) => {
-          // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image and country in DB
-          modifyUserDetails(data.data);
+          // destructured and modified variable names which is used to set user state
+          const {
+            email,
+            firstname: firstName,
+            lastname: lastName,
+            image,
+            country,
+            id: tpoId,
+          } = data.data;
+
+          // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
+          modifyUserDetails({
+            email,
+            firstName,
+            lastName,
+            image,
+            country,
+            tpoId,
+          });
           console.log('getUserDetailsFromServer', data.data);
 
           // logging the success in to the db
@@ -137,7 +222,8 @@ export const getUserDetailsFromServer = (userToken) => {
           });
           resolve(data.data);
         })
-        .catch((err) => {
+        .catch(async (err) => {
+          await checkErrorCode(err, userDispatch);
           console.error(
             `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile, ${JSON.stringify(
               err.response,
@@ -147,7 +233,7 @@ export const getUserDetailsFromServer = (userToken) => {
           dbLog.error({
             logType: LogTypes.USER,
             message: 'Failed to retrieve User Information from Server',
-            statusCode: err.response.status,
+            statusCode: err?.response?.status,
             logStack: JSON.stringify(err.response),
           });
           reject(err);
@@ -156,109 +242,7 @@ export const getUserDetailsFromServer = (userToken) => {
   });
 };
 
-export const getUserInformationFromServer = (navigation) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs,
-      ],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      let userToken = User.accessToken;
-
-      getSessionData().then((sessionData) => {
-        axios({
-          method: 'GET',
-          url: `${protocol}://${url}/app/profile`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `OAuth ${userToken}`,
-            'x-session-id': sessionData,
-          },
-        })
-          .then((data) => {
-            realm.write(() => {
-              const { email, firstname, lastname, country } = data.data;
-              realm.create(
-                'User',
-                {
-                  id: 'id0001',
-                  email,
-                  firstname,
-                  lastname,
-                  country,
-                },
-                'modified',
-              );
-            });
-            // logging the success in to the db
-            dbLog.info({
-              logType: LogTypes.USER,
-              message: 'Successfully retrieved User Information from Server',
-              statusCode: data.status,
-            });
-            resolve(data.data);
-          })
-          .catch((err) => {
-            console.error('err.response.status =>> getUserInformationFromServer', err);
-            if (err.response.status === 303) {
-              navigation.navigate('SignUp');
-            }
-            dbLog.error({
-              logType: LogTypes.USER,
-              message: 'Failed to retrieve User Information from Server',
-              statusCode: err.data.status,
-            });
-            reject(err);
-          });
-      });
-      // realm.close();
-    });
-  });
-};
-
-/**
- * dispatches type SET_INITIAL_USER_STATE with payload as loginData to add user tokens in the user state of the app
- * @param {object} loginData - used to add the tokens in the user state of the app. The object should have accessToken and idToken
- */
-export const setUserInitialState = (loginData) => (dispatch) => {
-  console.log("SET_INITIAL_USER_STATE act", loginData)
-  dispatch({
-    type: SET_INITIAL_USER_STATE,
-    payload: loginData,
-  });
-};
-
-/**
- * dispatches type SET_USER_DETAILS with payload as userDetails to add user details in the user state of the app
- * @param {object} userDetails - used to add details of user in the app state. The object should have
- *                               accessToken, idToken, firstName, lastName, image, tpoId, email, country
- */
-export const setUserDetails = (userDetails) => (dispatch) => {
-  dispatch({
-    type: SET_USER_DETAILS,
-    payload: userDetails,
-  });
-};
-
-/**
- * dispatches type CLEAR_USER_DETAILS to clear user details and reset to initial state from the user state of the app
- */
-export const clearUserDetails = () => (dispatch) => {
-  dispatch({
-    type: CLEAR_USER_DETAILS,
-  });
-};
-
-export const SignupService = (payload) => {
+export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
     const { protocol, url } = APIConfig;
@@ -277,14 +261,61 @@ export const SignupService = (payload) => {
         }
       })
       .catch((err) => {
-        console.error('SignupService =>', err.response);
+        console.error(
+          `Error at /actions/user/SignupService: POST - /app/profile, ${JSON.stringify(
+            err.response,
+          )}`,
+        );
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Failed to Sign up',
-          statusCode: err.response.status,
+          statusCode: err?.response?.status,
         });
+        // if any error is found then deletes the user and clear the user app state
+        deleteUser();
+        clearUserDetails()(dispatch);
         reject(err);
       });
   });
 };
+
+/* === API server functions - ENDS === */
+
+/* ================================== *\
+      Dispatch functions - STARTS
+\* ================================== */
+
+/**
+ * dispatches type SET_INITIAL_USER_STATE with payload as loginData to add user tokens in the user state of the app
+ * @param {object} loginData - used to add the tokens in the user state of the app. The object should have accessToken and idToken
+ */
+export const setUserInitialState = (loginData) => (dispatch) => {
+  dispatch({
+    type: SET_INITIAL_USER_STATE,
+    payload: loginData,
+  });
+};
+
+/**
+ * dispatches type SET_USER_DETAILS with payload as userDetails to add user details in the user state of the app
+ * @param {object} userDetails - used to add details of user in the app state. The object should include
+ *                               accessToken?, idToken?, firstName, lastName, image, tpoId, email, country
+ */
+export const setUserDetails = (userDetails) => (dispatch) => {
+  dispatch({
+    type: SET_USER_DETAILS,
+    payload: userDetails,
+  });
+};
+
+/**
+ * dispatches type CLEAR_USER_DETAILS to clear user details and reset to initial state from the user state of the app
+ */
+export const clearUserDetails = () => (dispatch) => {
+  dispatch({
+    type: CLEAR_USER_DETAILS,
+  });
+};
+
+/* === Dispatch functions - ENDS === */

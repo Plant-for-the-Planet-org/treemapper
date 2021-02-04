@@ -1,37 +1,47 @@
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import {
+  createStackNavigator,
+  HeaderStyleInterpolators,
+  TransitionSpecs,
+} from '@react-navigation/stack';
 import React, { useContext } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { NavigationContainer } from '@react-navigation/native';
-import { TransitionSpecs, HeaderStyleInterpolators } from '@react-navigation/stack';
+import Config from 'react-native-config';
 import 'react-native-gesture-handler';
 import {
-  RegisterTree,
-  SelectProject,
-  LocateTree,
-  CreatePolygon,
-  TreeInventory,
-  InventoryOverview,
-  MainScreen,
-  SavedAreas,
-  DownloadMap,
-  RegisterSingleTree,
-  SingleTreeOverview,
-  SelectCoordinates,
-  ManageUsers,
-  SignUp,
-  UploadedInventory,
-  SelectSpecies,
   AddSpecies,
+  CreatePolygon,
+  DownloadMap,
+  InventoryOverview,
+  LocateTree,
   Logs,
+  MainScreen,
   ManageSpecies,
+  ManageUsers,
+  RegisterSingleTree,
+  RegisterTree,
+  SavedAreas,
+  SelectCoordinates,
+  SelectProject,
+  SelectSpecies,
+  SignUp,
+  SingleTreeOverview,
+  TreeInventory,
+  UploadedInventory,
 } from '../';
-import Config from 'react-native-config';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import {
+  checkErrorCode,
+  clearUserDetails,
+  getUserDetailsFromServer,
+  setUserDetails,
+  getNewAccessToken,
+  auth0Logout,
+} from '../../actions/user';
 import Provider from '../../reducers/provider';
-import updateLocalSpecies from '../../utils/updateLocalSpecies';
-import { dailyLogUpdateCheck } from '../../utils/logs';
-import { getUserDetails } from '../../repositories/user';
 import { UserContext } from '../../reducers/user';
-import { setUserDetails, clearUserDetails } from '../../actions/user';
+import { getUserDetails } from '../../repositories/user';
+import { dailyLogUpdateCheck } from '../../utils/logs';
+import updateLocalSpecies from '../../utils/updateLocalSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -67,21 +77,25 @@ const MyTransition = {
 };
 
 const App = () => {
-  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
-
   const checkIsUserLogin = async () => {
-    const userDetails = await getUserDetails();
-    if (userDetails && userDetails.accessToken) {
-      console.log('userDetails =>', userDetails);
-      setUserDetails(userDetails)(userDispatch);
-    } else {
-      clearUserDetails()(userDispatch);
+    console.log('checkIsUserLogin =>');
+
+    const dbUserDetails = await getUserDetails();
+    console.log('dbUserDetails =>', dbUserDetails);
+    if (dbUserDetails && dbUserDetails.refreshToken) {
+      const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
+      if (newAccessToken) {
+        // fetches the user details from server by passing the accessToken which is used while requesting the API
+        getUserDetailsFromServer(newAccessToken);
+      } else {
+        auth0Logout();
+      }
     }
   };
   React.useEffect(() => {
+    checkIsUserLogin();
     updateLocalSpecies();
     dailyLogUpdateCheck();
-    checkIsUserLogin();
   }, []);
   return (
     <Provider>

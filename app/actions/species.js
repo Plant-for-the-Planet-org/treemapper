@@ -17,7 +17,7 @@ import {
   User,
   AddSpecies,
   ScientificSpecies,
-  ActivityLogs
+  ActivityLogs,
 } from '../repositories/schema';
 import Realm from 'realm';
 import getSessionData from '../utils/sessionId';
@@ -48,10 +48,10 @@ export const setSpecieId = (specieId) => (dispatch) => {
 };
 
 /**
- * This function makes an axios call to GET /treemapper/species to fetch the list of species and returns
- * the result by resolving it. If there's any error then resolve false as boolean value.
+ * This function dispatches type SET_MULTIPLE_TREES_SPECIES_LIST with payload having list of species selected during
+ * multiple trees registration to add in species state.
  * It requires the following param
- * @param {string} userToken - user token, required to pass in authorization header
+ * @param {string} speciesList - List of species selected for multiple tree registration to set in app's species state
  */
 export const setMultipleTreesSpeciesList = (speciesList) => (dispatch) => {
   dispatch({
@@ -117,7 +117,7 @@ export const searchSpeciesFromServer = (payload) => {
         Species,
         User,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {

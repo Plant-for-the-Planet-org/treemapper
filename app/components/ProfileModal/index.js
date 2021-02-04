@@ -18,22 +18,14 @@ const ProfileModal = ({
   onPressCloseProfileModal,
   isProfileModalVisible,
   onPressLogout,
+  userInfo,
 }) => {
-  const [userInfo, setUserInfo] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
-  const { state: userState } = useContext(UserContext);
   const navigation = useNavigation();
-
+  console.log('userInfo -=>', userInfo);
   useEffect(() => {
-    if (isUserLogin) {
-      getUserInformationFromServer()
-        .then((userInfo) => {
-          setUserInfo(userInfo);
-        })
-        .catch((err) => console.error(err));
-    }
     userImage();
   }, [isUserLogin]);
   useEffect(() => {
@@ -63,8 +55,8 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
   };
-  let avatar = userState.image
-    ? userState.image
+  let avatar = userInfo.image
+    ? userInfo.image
     : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
 
   const onPressManageSpecies = () => {
@@ -119,7 +111,7 @@ const ProfileModal = ({
   return (
     <Modal visible={isProfileModalVisible} transparent>
       <View style={styles.container}>
-        {userInfo && (
+        {userInfo.email && (
           <View style={styles.subContainer}>
             <View style={styles.headerContainer}>
               <TouchableOpacity
@@ -138,9 +130,8 @@ const ProfileModal = ({
                 source={{ uri: avatar }}
               />
               <View style={styles.nameAndEmailContainer}>
-                <Text
-                  style={styles.userEmail}>{`${userState.firstName} ${userState.lastName}`}</Text>
-                <Text style={styles.userName}>{userState.email}</Text>
+                <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>
             {profileListItems.map((item, index) => (

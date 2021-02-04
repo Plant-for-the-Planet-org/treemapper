@@ -22,11 +22,12 @@ import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { getInventoryByStatus } from '../../repositories/inventory';
-import { isLogin, getUserDetails } from '../../repositories/user';
-import { auth0Logout, auth0Login } from '../../actions/user';
+import { getUserDetails } from '../../repositories/user';
+import { auth0Logout, auth0Login, setUserDetails } from '../../actions/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
 import { UserContext } from '../../reducers/user';
+import Realm from 'realm';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -35,26 +36,78 @@ const MainScreen = ({ navigation }) => {
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
+  const [userInfo, setUserInfo] = useState({});
 
   useEffect(() => {
-    getInventoryByStatus('all').then((data) => {
-      let count = 0;
-      for (const inventory of data) {
-        if (inventory.status === 'pending' || inventory.status === 'uploading') {
-          count++;
+    let realm;
+    // stores the listener to later unsubscribe when screen is unmounted
+    const unsubscribe = navigation.addListener('focus', async () => {
+      getInventoryByStatus('all').then((data) => {
+        let count = 0;
+        for (const inventory of data) {
+          if (inventory.status === 'pending' || inventory.status === 'uploading') {
+            count++;
+          }
         }
-      }
-      updateCount({ type: 'pending', count })(dispatch);
-      setNumberOfInventory(Object.values(data).length);
+        updateCount({ type: 'pending', count })(dispatch);
+        setNumberOfInventory(Object.values(data).length);
+      });
+      realm = await Realm.open();
+      initializeRealm(realm);
     });
+
+    // Return the function to unsubscribe from the event so it gets removed on unmount
+    return () => {
+      unsubscribe();
+      if (realm) {
+        // Unregister all realm listeners
+        realm.removeAllListeners();
+      }
+    };
   }, [navigation]);
 
   useEffect(() => {
-    setIsUserLogin(userState.accessToken ? true : false);
-  }, [userState.accessToken]);
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        setUserInfo(userDetails);
+      }
+    });
+  }, []);
 
-  console.log('isUserLogin =>', isUserLogin, userState.accessToken);
+  const initializeRealm = async (realm) => {
+    const userObject = realm.objects('User');
+
+    // Define the collection notification listener
+    function listener(userObject, changes) {
+      if (changes.deletions.length > 0) {
+        clearUserDetails()(userDispatch);
+        setUserInfo({});
+      }
+      // Update UI in response to inserted objects
+      changes.insertions.forEach((index) => {
+        console.log('insertions', userObject[index]);
+        if (userObject[index].id === 'id0001') {
+          // dispatch function sets the passed user details into the user state
+          setUserDetails(userObject[index])(userDispatch);
+          setUserInfo(userObject[index]);
+          setIsUserLogin(userObject[index].accessToken ? true : false);
+        }
+      });
+      // Update UI in response to modified objects
+      changes.modifications.forEach((index) => {
+        console.log('modifications', userObject[index]);
+        if (userObject[index].id === 'id0001') {
+          // dispatch function sets the passed user details into the user state
+          setUserDetails(userObject[index])(userDispatch);
+          setUserInfo(userObject[index]);
+          setIsUserLogin(userObject[index].accessToken ? true : false);
+        }
+      });
+    }
+    // Observe collection notifications.
+    userObject.addListener(listener);
+  };
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
@@ -69,12 +122,12 @@ const MainScreen = ({ navigation }) => {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
-      auth0Login()(userDispatch)
+      auth0Login(userDispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
         })
         .catch((err) => {
-          if (err.response.status === 303) {
+          if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (err.error !== 'a0.session.user_cancelled') {
             Alert.alert(
@@ -91,7 +144,7 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout()(userDispatch);
+    auth0Logout(userDispatch);
   };
 
   const renderVideoModal = () => {
@@ -143,7 +196,7 @@ const MainScreen = ({ navigation }) => {
                 isUserLogin={isUserLogin}
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
-                photo={userState.image}
+                photo={userInfo.image}
               />
             </View>
             {/* <View> */}
@@ -208,6 +261,7 @@ const MainScreen = ({ navigation }) => {
         isProfileModalVisible={isProfileModalVisible}
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
+        userInfo={userInfo}
       />
     </SafeAreaView>
   );
