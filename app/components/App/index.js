@@ -23,6 +23,7 @@ import {
   Logs,
   ManageSpecies,
 } from '../';
+import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import Config from 'react-native-config';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Provider from '../../reducers/provider';
@@ -109,6 +110,7 @@ const App = () => {
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
           <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
           <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
+          <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

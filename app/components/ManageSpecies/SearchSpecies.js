@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
 
-const SearchSpecies = ({ searchList, toggleUserSpecies }) => {
+const SearchSpecies = ({ searchList, toggleUserSpecies, registrationType, onPressSpeciesSingle, onPressSpeciesMultiple, addSpecieNameToInventory, editOnlySpecieName, onPressBack}) => {
   const renderSearchSpecieCard = ({ item, index }) => {
     const isCheck = item.isUserSpecies;
 
@@ -19,11 +19,18 @@ const SearchSpecies = ({ searchList, toggleUserSpecies }) => {
               {item.scientific_name}
             </Text>
           </View>
-          <Icon
-            name={isCheck ? 'check-circle' : 'plus-circle'}
-            size={25}
-            color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
-          />
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              toggleUserSpecies(item.guid);
+            }}>
+            <Icon
+              name={isCheck ? 'check-circle' : 'plus-circle'}
+              size={25}
+              color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+          
         </>
       );
     };
@@ -33,7 +40,17 @@ const SearchSpecies = ({ searchList, toggleUserSpecies }) => {
         key={index}
         style={styles.specieListItem}
         onPress={() => {
-          toggleUserSpecies(item.guid);
+          if (registrationType == 'single') {
+            addSpecieNameToInventory(item.scientific_name);
+            toggleUserSpecies(item.guid, 'add');
+            if (editOnlySpecieName){
+              onPressBack();
+            } else{
+              onPressSpeciesSingle(item);
+            }
+          } else if (registrationType == 'multiple') {
+            onPressSpeciesMultiple(item, index);
+          }
         }}>
         <SpecieListItem />
       </TouchableOpacity>

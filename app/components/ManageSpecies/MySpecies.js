@@ -6,6 +6,7 @@ import i18next from 'i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
+import { useNavigation } from '@react-navigation/native';
 
 const MySpecies = ({
   onSaveMultipleSpecies,
@@ -14,7 +15,12 @@ const MySpecies = ({
   onPressSpeciesSingle,
   onPressSpeciesMultiple,
   specieList,
+  addSpecieNameToInventory,
+  editOnlySpecieName,
+  onPressBack
 }) => {
+  const navigation = useNavigation();
+
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -30,7 +36,12 @@ const MySpecies = ({
         }}
         onPress={() => {
           if (registrationType == 'single') {
-            onPressSpeciesSingle(item);
+            addSpecieNameToInventory(item.scientific_name);
+            if (editOnlySpecieName){
+              onPressBack();
+            } else {
+              onPressSpeciesSingle(item);
+            }
           } else if (registrationType == 'multiple') {
             onPressSpeciesMultiple(item, index);
           }
@@ -47,11 +58,28 @@ const MySpecies = ({
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
         ) : (
-          <Ionicons name="chevron-forward-outline" size={20} />
+          <TouchableOpacity 
+            onPress= {()=> navigation.navigate('SpecieInfo', {SpecieName: item.scientific_name})}
+          >
+            <Ionicons name="information-circle-outline" size={20} />
+          </TouchableOpacity>
         )}
       </TouchableOpacity>
     );
   };
+
+  const specieData = () => {
+    if (registrationType){
+      if(registrationType === 'multiple'){
+        return(speciesState.multipleTreesSpecies);
+      } else {
+        let specieListWithUnknown = [...specieList,{"guid": "abc","isUserSpecies": true, "scientific_name": "Unknown"}];
+        return specieListWithUnknown
+      }
+    } else {
+      return registrationType === 'multiple'? speciesState.multipleTreesSpecies: specieList;
+    }
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -70,7 +98,7 @@ const MySpecies = ({
         {specieList && specieList.length !== 0 ? (
           <FlatList
             style={{ flex: 1 }}
-            data={registrationType === 'multiple' ? speciesState.multipleTreesSpecies : specieList}
+            data={specieData()}
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.guid}
             renderItem={renderSpecieCard}

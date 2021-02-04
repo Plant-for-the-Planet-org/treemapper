@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import Realm from 'realm';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View, Keyboard, Text, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TextInput, View, Keyboard, Text, TouchableWithoutFeedback, SafeAreaView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
@@ -24,7 +24,7 @@ import {
 } from '../../repositories/schema';
 import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import SpecieInfo from './SpecieInfo';
 
 const DismissKeyBoard = ({children}) => {
   return (
@@ -40,6 +40,8 @@ const ManageSpecies = ({
   onPressSpeciesMultiple,
   registrationType,
   onSaveMultipleSpecies,
+  addSpecieNameToInventory,
+  editOnlySpecieName
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
@@ -70,7 +72,7 @@ const ManageSpecies = ({
 
   //This function adds or removes the specie from User Species
   //Do not move this function to repository as state change is happening here to increase the performance
-  const toggleUserSpecies = (guid) => {
+  const toggleUserSpecies = (guid, add) => {
     return new Promise((resolve, reject) => {
       Realm.open({
         schema: [
@@ -87,8 +89,11 @@ const ManageSpecies = ({
       }).then((realm) => {
         realm.write(() => {
           let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-          specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-
+          if (add){
+            specieToToggle.isUserSpecies = true;
+          } else {
+            specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+          }
           // copies the current search list in variable currentSearchList
           const currentSearchList = [...searchList];
 
@@ -125,48 +130,63 @@ const ManageSpecies = ({
   };
 
   return (
-    <DismissKeyBoard>
-      <View style={styles.container}>
-        <Header
-          closeIcon
-          onBackPress={onPressBack ? onPressBack : onPressHome}
-          headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
-        />
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchText}
-            placeholder={i18next.t('label.select_species_search_species')}
-            onChangeText={handleSpeciesSearch}
-            value={searchText}
-            returnKeyType = {'search'}
+    <SafeAreaView style={styles.mainContainer}>
+      <DismissKeyBoard>
+        <View style={styles.container}>
+          <Header
+            closeIcon
+            onBackPress={onPressBack ? onPressBack : onPressHome}
+            headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
           />
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchText}
+              placeholder={i18next.t('label.select_species_search_species')}
+              onChangeText={handleSpeciesSearch}
+              value={searchText}
+              returnKeyType = {'search'}
+            />
+            {searchText ? (
+              <TouchableOpacity onPress={() => {console.log('in onpress'); setSearchText('');}}>
+                <Ionicons name="md-close" size={20} style={styles.closeIcon} />
+              </TouchableOpacity>
+            ) : (
+              []
+            )}
+          </View>
           {showSearchSpecies ? (
-            <TouchableOpacity onPress={() => setSearchText('')}>
-              <Ionicons name="md-close" size={20} style={styles.closeIcon} />
-            </TouchableOpacity>
+            searchList && searchList.length > 0 ? (
+              <SearchSpecies 
+                searchList={searchList} 
+                registrationType={registrationType}
+                onPressSpeciesSingle={onPressSpeciesSingle}
+                onPressSpeciesMultiple={onPressSpeciesMultiple}
+                toggleUserSpecies={toggleUserSpecies} 
+                addSpecieNameToInventory= {addSpecieNameToInventory}
+                editOnlySpecieName={editOnlySpecieName}
+                onPressBack= {onPressBack}
+              />
+            ) : (
+              <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
+            )
           ) : (
-            []
+            <MySpecies
+              onSaveMultipleSpecies={onSaveMultipleSpecies}
+              registrationType={registrationType}
+              speciesState={speciesState}
+              onPressSpeciesSingle={onPressSpeciesSingle}
+              onPressSpeciesMultiple={onPressSpeciesMultiple}
+              specieList={specieList}
+              addSpecieNameToInventory= {addSpecieNameToInventory}
+              editOnlySpecieName={editOnlySpecieName}
+              onPressBack={onPressBack}
+            />
           )}
         </View>
-        {showSearchSpecies ? (
-          searchList && searchList.length > 0 ? (
-            <SearchSpecies searchList={searchList} toggleUserSpecies={toggleUserSpecies} />
-          ) : (
-            <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
-          )
-        ) : (
-          <MySpecies
-            onSaveMultipleSpecies={onSaveMultipleSpecies}
-            registrationType={registrationType}
-            speciesState={speciesState}
-            onPressSpeciesSingle={onPressSpeciesSingle}
-            onPressSpeciesMultiple={onPressSpeciesMultiple}
-            specieList={specieList}
-          />
-        )}
-      </View>
-    </DismissKeyBoard>
+      </DismissKeyBoard>
+    </SafeAreaView>
+    
     
   );
 };
@@ -177,19 +197,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    paddingTop: 20,
     backgroundColor: Colors.WHITE,
   },
-
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    // borderWidth: 1,
     height: 48,
     borderRadius: 5,
     marginTop: 24,
     backgroundColor: Colors.WHITE,
-    borderColor: '#00000024',
+    // borderColor: '#00000024',
     shadowColor: '#00000024',
     shadowOffset: {
       width: 0,
@@ -200,7 +222,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   searchIcon: {
-    color: Colors.PRIMARY,
+    color: '#949596',
     paddingLeft: 19,
   },
   searchText: {
