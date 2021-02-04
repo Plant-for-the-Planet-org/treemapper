@@ -1,12 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Colors, Typography } from '_styles';
 import i18next from '../../../languages/languages';
 
 const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testID, photo }) => {
+  const navigation = useNavigation();
+  const onPressLegals = () => {
+    navigation.navigate('Legals');
+  };
+
   return (
     <View style={styles.container}>
-      <View />
+      {!isUserLogin ? (<View>
+        <Text onPress={onPressLegals} style={styles.legalText}>
+          {i18next.t('label.legal_docs')}
+        </Text>
+        </View>) : <View/> }
       <TouchableOpacity
         onPress={onPressLogin}
         testID={testID}
@@ -35,6 +45,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flex: 1,
+  },
+  legalText: {
+    color: Colors.TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_10,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   loginText: {
     color: Colors.PRIMARY,
