@@ -5,6 +5,7 @@ import Header from '../Common/Header';
 import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, Typography } from '_styles';
+import { version } from '../../../package';
 
 export default function Legals() {
   const navigation = useNavigation();
@@ -30,6 +31,15 @@ export default function Legals() {
         />
       </View>
       <View style={styles.defaultSpacing}>
+        <TouchableOpacity
+          key='version'
+          style={styles.touchable}>
+          <View>
+            <Text style={styles.itemText}>
+              {version}
+            </Text>
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity
           key='privacy_policy'
           style={styles.touchable}

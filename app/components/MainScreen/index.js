@@ -4,11 +4,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
   ImageBackground,
+  Linking,
   Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   View,
+  Text,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -142,6 +144,14 @@ const MainScreen = ({ navigation }) => {
     );
   };
 
+  const onPressLegals = () => {
+    navigation.navigate('Legals');
+  };
+
+  const onPressSupport = () => {
+    Linking.openURL('mailto:support@plant-for-the-planet.org');
+  };
+
   return (
     <SafeAreaView style={styles.safeAreaViewCont}>
       {loadingState.isLoading ? (
@@ -219,6 +229,16 @@ const MainScreen = ({ navigation }) => {
             testID={'btn_register_trees'}
             accessibilityLabel={'Register Tree'}
           />
+          {!isUserLogin ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+            <Text onPress={onPressLegals} style={styles.textAlignCenter}>
+              {i18next.t('label.legal_docs')}
+            </Text>
+            <Text>•</Text>
+            <Text onPress={onPressSupport} style={styles.textAlignCenter}>
+              {i18next.t('label.support')}
+            </Text>
+          </View>) : <View/>}
         </View>
       )}
       {renderVideoModal()}
@@ -288,5 +308,10 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     zIndex: 100,
+  },
+  textAlignCenter: {
+    color: Colors.TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_10,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });
