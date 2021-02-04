@@ -1,15 +1,14 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   HeaderStyleInterpolators,
   TransitionSpecs,
 } from '@react-navigation/stack';
-import React, { useContext } from 'react';
+import React from 'react';
 import Config from 'react-native-config';
 import 'react-native-gesture-handler';
 import {
-  AddSpecies,
   CreatePolygon,
   DownloadMap,
   InventoryOverview,
@@ -29,16 +28,8 @@ import {
   TreeInventory,
   UploadedInventory,
 } from '../';
-import {
-  checkErrorCode,
-  clearUserDetails,
-  getUserDetailsFromServer,
-  setUserDetails,
-  getNewAccessToken,
-  auth0Logout,
-} from '../../actions/user';
+import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
 import Provider from '../../reducers/provider';
-import { UserContext } from '../../reducers/user';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
@@ -137,7 +128,6 @@ const App = () => {
             options={MyTransition}
           />
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
-          <Stack.Screen name="AddSpecies" component={AddSpecies} options={MyTransition} />
           <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
           <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
         </Stack.Navigator>
