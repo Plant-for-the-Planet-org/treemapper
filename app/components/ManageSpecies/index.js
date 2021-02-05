@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import Realm from 'realm';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -17,7 +17,6 @@ import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
 import { Colors, Typography } from '_styles';
 // import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
-import { SpeciesContext } from '../../reducers/species';
 import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
 import { Header } from '../Common';
 import {

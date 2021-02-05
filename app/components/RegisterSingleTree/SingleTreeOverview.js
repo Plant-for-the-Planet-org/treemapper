@@ -49,7 +49,7 @@ const SingleTreeOverview = ({ navigation }) => {
   const [isShowDate, setIsShowDate] = useState(false);
   const [plantationDate, setPlantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
-  const [specieEditText, setSpecieEditText] = useState('');
+  // const [specieEditText, setSpecieEditText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('');
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('');
@@ -85,11 +85,12 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
-    if (action === 'species' && specieEditText !== '') {
-      setSpecieText(specieEditText);
-      updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
-      setIsOpenModal(false);
-    } else if (
+    // if (action === 'species' && specieEditText !== '') {
+    //   setSpecieText(specieEditText);
+    //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
+    //   setIsOpenModal(false);
+    // } else
+    if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
       Number(specieEditDiameter) !== 0 &&
@@ -200,19 +201,6 @@ const SingleTreeOverview = ({ navigation }) => {
     setSpecieText(specieName);
   };
 
-  const renderManageSpeciesModal = () => {
-    return (
-      <Modal visible={isShowManageSpecies}>
-        <ManageSpecies
-          onPressBack={() => setIsShowManageSpecies(false)}
-          registrationType={registrationType}
-          addSpecieNameToInventory={addSpecieNameToInventory}
-          editOnlySpecieName={true}
-        />
-      </Modal>
-    );
-  };
-
   const renderDateModal = () => {
     const onChangeDate = (e, selectedDate) => {
       updatePlantingDate({
@@ -299,7 +287,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  Countries.includes(countryCode)
+                Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -426,7 +414,6 @@ const SingleTreeOverview = ({ navigation }) => {
     <SafeAreaView style={styles.mainContainer}>
       {renderInputModal()}
       {renderDateModal()}
-      {/* {renderManageSpeciesModal()} */}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {locateTree === 'on-site' ? (

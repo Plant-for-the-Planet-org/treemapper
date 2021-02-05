@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, SafeAreaView } from 'react-native';
 import { Header } from '../Common';
 import { Colors } from '_styles';
 import { add_image } from '../../assets';
@@ -7,18 +7,22 @@ import { add_image } from '../../assets';
 const SpecieInfo = ({ route }) => {
   const specieName = route.params.SpecieName;
   return (
-    // <Modal>
-    <View style={styles.container}>
-      <Header headingText={specieName} />
-      <View style={styles.scrollViewContainer}>
-        <Image source={add_image} style={styles.bgImage} />
+    <SafeAreaView style={styles.mainContainer}>
+      <View style={styles.container}>
+        <Header headingText={specieName} />
+        <View style={styles.scrollViewContainer}>
+          <Image source={add_image} style={styles.bgImage} />
+        </View>
       </View>
-    </View>
-    // </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
