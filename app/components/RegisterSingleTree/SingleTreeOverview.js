@@ -81,7 +81,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
     });
     Country();
-  }, []);
+  }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
@@ -299,7 +299,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -415,11 +415,18 @@ const SingleTreeOverview = ({ navigation }) => {
       });
   };
 
-  return (
+  return isShowManageSpecies ? (
+    <ManageSpecies
+      onPressBack={() => setIsShowManageSpecies(false)}
+      registrationType={registrationType}
+      addSpecieNameToInventory={addSpecieNameToInventory}
+      editOnlySpecieName={true}
+    />
+  ) : (
     <SafeAreaView style={styles.mainContainer}>
       {renderInputModal()}
       {renderDateModal()}
-      {renderManageSpeciesModal()}
+      {/* {renderManageSpeciesModal()} */}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {locateTree === 'on-site' ? (

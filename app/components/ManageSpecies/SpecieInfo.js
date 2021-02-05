@@ -7,14 +7,14 @@ import { add_image } from '../../assets';
 const SpecieInfo = ({ route }) => {
   const specieName = route.params.SpecieName;
   return (
-    <Modal>
-      <View style={styles.container}>
-        <Header headingText={specieName} />
-        <View style={styles.scrollViewContainer}>
-          <Image source={add_image} style={styles.bgImage} />
-        </View>
+    // <Modal>
+    <View style={styles.container}>
+      <Header headingText={specieName} />
+      <View style={styles.scrollViewContainer}>
+        <Image source={add_image} style={styles.bgImage} />
       </View>
-    </Modal>
+    </View>
+    // </Modal>
   );
 };
 

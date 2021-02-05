@@ -338,7 +338,7 @@ const SelectSpecies = ({
   };
 
   return (
-    <Modal visible={showSpecies} animationType={'slide'}>
+    <>
       <ManageSpecies
         onPressSpeciesSingle={onPressSaveBtn}
         onPressBack={() => navigation.goBack()}
@@ -349,7 +349,7 @@ const SelectSpecies = ({
       />
       {renderTreeCountModal()}
       {renderMeasurementModal()}
-    </Modal>
+    </>
   );
 };
 export default SelectSpecies;
