@@ -81,8 +81,8 @@ const ManageSpecies = ({
       }
     });
     // hides the keyboard when component unmount
-    return () => Keyboard.dismiss();
-  }, [registrationType]);
+    // return () => Keyboard.dismiss();
+  }, [registrationType, searchList]);
 
   useEffect(() => {
     if (searchText) {
