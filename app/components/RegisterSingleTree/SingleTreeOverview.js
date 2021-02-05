@@ -74,7 +74,9 @@ const SingleTreeOverview = ({ navigation }) => {
         setLocateTree(inventory.locate_tree);
         setRegistrationType(inventory.tree_type);
         setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
+        setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
         setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
+        setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
         setPlantationDate(new Date(Number(inventory.plantation_date)));
       });
     });
@@ -143,23 +145,11 @@ const SingleTreeOverview = ({ navigation }) => {
               style={styles.bgWhite}>
               <View style={styles.externalInputContainer}>
                 <Text style={styles.labelModal}>
-                  {editEnable === 'species'
-                    ? i18next.t('label.tree_review_name_of_species')
-                    : editEnable === 'diameter'
-                      ? i18next.t('label.tree_review_diameter')
-                      : 'Height'}
+                  {editEnable === 'diameter'
+                    ? i18next.t('label.tree_review_diameter')
+                    : i18next.t('label.tree_review_height')}
                 </Text>
-                {editEnable === 'species' ? (
-                  <TextInput
-                    value={specieEditText}
-                    style={styles.value}
-                    autoFocus
-                    placeholderTextColor={Colors.TEXT_COLOR}
-                    onChangeText={(text) => setSpecieEditText(text.replace(/  +/g, ' '))}
-                    onSubmitEditing={() => onSubmitInputField(editEnable)}
-                    keyboardType={'email-address'}
-                  />
-                ) : editEnable === 'diameter' ? (
+                {editEnable === 'diameter' ? (
                   <TextInput
                     ref={specieDiameterRef}
                     value={specieEditDiameter.toString()}
@@ -197,22 +187,25 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressEditSpecies = (action) => {
-    // setEditEnable(action);
-    // setIsOpenModal(true);
-    setIsShowManageSpecies(true);
+    if (action === 'species') {
+      setIsShowManageSpecies(true);
+    } else {
+      setEditEnable(action);
+      setIsOpenModal(true);
+    }
   };
 
   const addSpecieNameToInventory = (specieName) => {
-    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName});
+    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName });
     setSpecieText(specieName);
   };
 
-  const renderManageSpeciesModal= () => {
+  const renderManageSpeciesModal = () => {
     return (
       <Modal visible={isShowManageSpecies}>
         <ManageSpecies
-          onPressBack = {()=> setIsShowManageSpecies(false)}
-          registrationType= {registrationType}
+          onPressBack={() => setIsShowManageSpecies(false)}
+          registrationType={registrationType}
           addSpecieNameToInventory={addSpecieNameToInventory}
           editOnlySpecieName={true}
         />
@@ -306,7 +299,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -404,7 +397,6 @@ const SingleTreeOverview = ({ navigation }) => {
     // navigation.goBack();
     // }
   };
-
 
   const goBack = () => {
     navigation.goBack();

@@ -11,15 +11,16 @@ import { useNavigation } from '@react-navigation/native';
 const MySpecies = ({
   onSaveMultipleSpecies,
   registrationType,
-  speciesState,
   onPressSpeciesSingle,
   onPressSpeciesMultiple,
   specieList,
   addSpecieNameToInventory,
   editOnlySpecieName,
-  onPressBack
+  onPressBack,
 }) => {
   const navigation = useNavigation();
+
+  console.log('specieList =>', specieList);
 
   const renderSpecieCard = ({ item, index }) => {
     return (
@@ -37,7 +38,7 @@ const MySpecies = ({
         onPress={() => {
           if (registrationType == 'single') {
             addSpecieNameToInventory(item.scientific_name);
-            if (editOnlySpecieName){
+            if (editOnlySpecieName) {
               onPressBack();
             } else {
               onPressSpeciesSingle(item);
@@ -57,28 +58,16 @@ const MySpecies = ({
         </View>
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : (
-          <TouchableOpacity 
-            onPress= {()=> navigation.navigate('SpecieInfo', {SpecieName: item.scientific_name})}
-          >
+        ) : item.scientific_name !== 'Unknown' ? (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientific_name })}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
+        ) : (
+          []
         )}
       </TouchableOpacity>
     );
-  };
-
-  const specieData = () => {
-    if (registrationType){
-      if(registrationType === 'multiple'){
-        return(speciesState.multipleTreesSpecies);
-      } else {
-        let specieListWithUnknown = [...specieList,{'guid': 'abc','isUserSpecies': true, 'scientific_name': 'Unknown'}];
-        return specieListWithUnknown;
-      }
-    } else {
-      return registrationType === 'multiple'? speciesState.multipleTreesSpecies: specieList;
-    }
   };
 
   return (
@@ -98,7 +87,7 @@ const MySpecies = ({
         {specieList && specieList.length !== 0 ? (
           <FlatList
             style={{ flex: 1 }}
-            data={specieData()}
+            data={specieList}
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.guid}
             renderItem={renderSpecieCard}

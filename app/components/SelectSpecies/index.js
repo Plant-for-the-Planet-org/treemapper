@@ -334,7 +334,7 @@ const SelectSpecies = ({
   };
 
   const addSpecieNameToInventory = (specieName) => {
-    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName});
+    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName });
   };
 
   return (

@@ -2,7 +2,16 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import Realm from 'realm';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View, Keyboard, Text, TouchableWithoutFeedback, SafeAreaView, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  Keyboard,
+  Text,
+  TouchableWithoutFeedback,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchSpecies from './SearchSpecies';
 import MySpecies from './MySpecies';
@@ -24,11 +33,10 @@ import {
 } from '../../repositories/schema';
 import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
-import SpecieInfo from './SpecieInfo';
 
-const DismissKeyBoard = ({children}) => {
+const DismissKeyBoard = ({ children }) => {
   return (
-    <TouchableWithoutFeedback onPress= {()=> Keyboard.dismiss()}>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       {children}
     </TouchableWithoutFeedback>
   );
@@ -41,21 +49,40 @@ const ManageSpecies = ({
   registrationType,
   onSaveMultipleSpecies,
   addSpecieNameToInventory,
-  editOnlySpecieName
+  editOnlySpecieName,
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
-  const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
-    getUserSpecies().then((userSpecies)=> setSpecieList(userSpecies));
+    getUserSpecies().then((userSpecies) => {
+      console.log('has type', registrationType);
+      if (registrationType) {
+        let specieListWithUnknown = [];
+        if (userSpecies && userSpecies.length > 0) {
+          console.log('if known');
+          specieListWithUnknown = [
+            ...userSpecies,
+            { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
+          ];
+        } else {
+          console.log('else unknown');
+          specieListWithUnknown = [
+            { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
+          ];
+        }
+        setSpecieList(specieListWithUnknown);
+      } else {
+        setSpecieList(userSpecies);
+      }
+    });
     // hides the keyboard when component unmount
     return () => Keyboard.dismiss();
-  }, []);
+  }, [registrationType]);
 
   useEffect(() => {
     if (searchText) {
@@ -70,10 +97,10 @@ const ManageSpecies = ({
     navigation.navigate('MainScreen');
   };
 
-  //This function adds or removes the specie from User Species
-  //Do not move this function to repository as state change is happening here to increase the performance
+  // This function adds or removes the specie from User Species
+  // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid, add) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       Realm.open({
         schema: [
           Inventory,
@@ -86,32 +113,40 @@ const ManageSpecies = ({
           ScientificSpecies,
           ActivityLogs,
         ],
-      }).then((realm) => {
-        realm.write(() => {
-          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-          if (add){
-            specieToToggle.isUserSpecies = true;
-          } else {
-            specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-          }
-          // copies the current search list in variable currentSearchList
-          const currentSearchList = [...searchList];
+      })
+        .then((realm) => {
+          realm.write(() => {
+            let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+            if (add) {
+              specieToToggle.isUserSpecies = true;
+            } else {
+              specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+            }
+            // copies the current search list in variable currentSearchList
+            const currentSearchList = [...searchList];
 
-          // sets the changes done by realm into the state
-          setSearchList(currentSearchList);
-          console.log(
-            `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
-          );
-          // logging the success in to the db
-          dbLog.info({
+            // sets the changes done by realm into the state
+            setSearchList(currentSearchList);
+
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.MANAGE_SPECIES,
+              message: `Specie with guid ${guid} is toggled ${
+                specieToToggle.isUserSpecies ? 'on' : 'off'
+              }`,
+            });
+          });
+          resolve();
+        })
+        .catch((err) => {
+          console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+          // logging the error in to the db
+          dbLog.error({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Specie with guid ${guid} is toggled ${
-              specieToToggle.isUserSpecies ? 'on' : 'off'
-            }`,
+            message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
+            logStack: JSON.stringify(err),
           });
         });
-        resolve();
-      });
     });
   };
 
@@ -136,7 +171,9 @@ const ManageSpecies = ({
           <Header
             closeIcon
             onBackPress={onPressBack ? onPressBack : onPressHome}
-            headingText={registrationType ? i18next.t('label.select_species_header') : 'Tree Species'}
+            headingText={
+              registrationType ? i18next.t('label.select_species_header') : 'Tree Species'
+            }
           />
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
@@ -145,10 +182,14 @@ const ManageSpecies = ({
               placeholder={i18next.t('label.select_species_search_species')}
               onChangeText={handleSpeciesSearch}
               value={searchText}
-              returnKeyType = {'search'}
+              returnKeyType={'search'}
             />
             {searchText ? (
-              <TouchableOpacity onPress={() => {console.log('in onpress'); setSearchText('');}}>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log('in onpress');
+                  setSearchText('');
+                }}>
                 <Ionicons name="md-close" size={20} style={styles.closeIcon} />
               </TouchableOpacity>
             ) : (
@@ -157,28 +198,29 @@ const ManageSpecies = ({
           </View>
           {showSearchSpecies ? (
             searchList && searchList.length > 0 ? (
-              <SearchSpecies 
-                searchList={searchList} 
+              <SearchSpecies
+                searchList={searchList}
                 registrationType={registrationType}
                 onPressSpeciesSingle={onPressSpeciesSingle}
                 onPressSpeciesMultiple={onPressSpeciesMultiple}
-                toggleUserSpecies={toggleUserSpecies} 
-                addSpecieNameToInventory= {addSpecieNameToInventory}
+                toggleUserSpecies={toggleUserSpecies}
+                addSpecieNameToInventory={addSpecieNameToInventory}
                 editOnlySpecieName={editOnlySpecieName}
-                onPressBack= {onPressBack}
+                onPressBack={onPressBack}
               />
             ) : (
-              <Text style={styles.notPresentText}>The &apos;{searchText}&apos; specie is not present</Text>
+              <Text style={styles.notPresentText}>
+                The &apos;{searchText}&apos; specie is not present
+              </Text>
             )
           ) : (
             <MySpecies
               onSaveMultipleSpecies={onSaveMultipleSpecies}
               registrationType={registrationType}
-              speciesState={speciesState}
               onPressSpeciesSingle={onPressSpeciesSingle}
               onPressSpeciesMultiple={onPressSpeciesMultiple}
               specieList={specieList}
-              addSpecieNameToInventory= {addSpecieNameToInventory}
+              addSpecieNameToInventory={addSpecieNameToInventory}
               editOnlySpecieName={editOnlySpecieName}
               onPressBack={onPressBack}
             />
@@ -186,8 +228,6 @@ const ManageSpecies = ({
         </View>
       </DismissKeyBoard>
     </SafeAreaView>
-    
-    
   );
 };
 
