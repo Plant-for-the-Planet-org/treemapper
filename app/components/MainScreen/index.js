@@ -21,7 +21,13 @@ import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import { auth0Logout, auth0Login, setUserDetails, clearUserDetails } from '../../actions/user';
+import {
+  auth0Logout,
+  auth0Login,
+  setUserDetails,
+  clearUserDetails,
+  getCdnUrls,
+} from '../../actions/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
 import { UserContext } from '../../reducers/user';
@@ -36,6 +42,7 @@ const MainScreen = ({ navigation }) => {
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
+  const [cdnUrls, setCdnUrls] = useState({});
 
   useEffect(() => {
     let realm;
@@ -71,6 +78,9 @@ const MainScreen = ({ navigation }) => {
         setUserInfo(userDetails);
         setIsUserLogin(userDetails.accessToken ? true : false);
       }
+    });
+    getCdnUrls().then((cdnMedia) => {
+      setCdnUrls(cdnMedia);
     });
   }, []);
 
@@ -199,7 +209,11 @@ const MainScreen = ({ navigation }) => {
                 isUserLogin={isUserLogin}
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
-                photo={userInfo.image}
+                photo={
+                  cdnUrls && cdnUrls.cache && userInfo.image
+                    ? `${cdnUrls}/profile/avatar/${userInfo.image}`
+                    : ''
+                }
               />
             </View>
             {/* <View> */}
@@ -265,6 +279,7 @@ const MainScreen = ({ navigation }) => {
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
+        cdnUrls={cdnUrls}
       />
     </SafeAreaView>
   );

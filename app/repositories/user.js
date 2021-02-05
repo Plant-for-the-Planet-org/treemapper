@@ -197,7 +197,6 @@ export const deleteUser = () => {
       .then((realm) => {
         realm.write(() => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
-          console.log('userrrrrr', user);
           if (user) {
             realm.delete(user);
             // logging the success in to the db

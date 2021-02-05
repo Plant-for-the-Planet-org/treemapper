@@ -18,6 +18,7 @@ const ProfileModal = ({
   isProfileModalVisible,
   onPressLogout,
   userInfo,
+  cdnUrls,
 }) => {
   const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
@@ -52,7 +53,7 @@ const ProfileModal = ({
     Linking.openURL('https://www.trilliontreecampaign.org/edit-profile');
   };
   let avatar = userInfo.image
-    ? userInfo.image
+    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
     : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
 
   const onPressManageSpecies = () => {

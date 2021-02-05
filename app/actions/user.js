@@ -30,7 +30,10 @@ const { protocol, url } = APIConfig;
 export const auth0Login = (dispatch) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
-      .authorize({ scope: 'openid email profile offline_access' }, { ephemeralSession: true })
+      .authorize(
+        { scope: 'openid email profile offline_access', federated: true, prompt: 'login' },
+        { ephemeralSession: true },
+      )
       .then((credentials) => {
         console.log('\n\nloginData=>', credentials);
         // logs success info in DB
@@ -107,7 +110,6 @@ export const auth0Logout = (userDispatch = null) => {
           // clear the user details from the user state
           clearUserDetails()(userDispatch);
         }
-        console.log('successful');
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
@@ -164,17 +166,17 @@ export const getNewAccessToken = async (refreshToken) => {
  * @param {Error} error - error of api response to check for 401 error code.
  * @returns {boolean} - returns true if user is logged out else returns false
  */
-export const checkErrorCode = async (error, userDispatch, navigation = null) => {
+export const checkErrorCode = async (error, userDispatch) => {
   if (error?.response?.status === 401) {
     return await auth0Logout(userDispatch);
   }
   if (error?.response?.status === 303) {
-    if (navigation) {
-      navigation.navigate('SignUp');
-      modifyUserDetails({
-        isSignUpRequired: true,
-      });
-    }
+    // if (navigation) {
+    //   navigation.navigate('SignUp');
+    // }
+    modifyUserDetails({
+      isSignUpRequired: true,
+    });
   }
   return false;
 };
@@ -196,6 +198,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
         },
       })
         .then((data) => {
+          console.log('data.data', data.data);
           // destructured and modified variable names which is used to set user state
           const {
             email,
@@ -281,6 +284,39 @@ export const SignupService = (payload, dispatch) => {
         deleteUser();
         clearUserDetails()(dispatch);
         reject(err);
+      });
+  });
+};
+
+export const getCdnUrls = () => {
+  return new Promise((resolve) => {
+    axios
+      .get(`${protocol}://${url}/public/v1.2/en/config`)
+      .then((res) => {
+        const { status, data } = res;
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Fetched CDN URL',
+            statusCode: status,
+          });
+          resolve(data.cdnMedia);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          `Error at /actions/user/getCdnUrls: GET - /public/v1.2/en/config, ${JSON.stringify(
+            err.response,
+          )}`,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Failed to fetch CDN URL',
+          statusCode: err?.response?.status,
+        });
+        resolve(false);
       });
   });
 };
