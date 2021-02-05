@@ -27,6 +27,7 @@ import { active_marker } from './images/active_marker';
 import { logo } from './images/logo';
 import { cloud_upload_gray } from './images/cloud_upload_gray';
 import { off_site_enable_banner } from './images/off_site_enable_banner';
+import { empty } from './images/empty';
 
 export {
   arrow_up,
@@ -54,4 +55,5 @@ export {
   map_img,
   logout,
   add_image,
+  empty
 };

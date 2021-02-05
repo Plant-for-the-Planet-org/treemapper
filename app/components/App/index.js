@@ -29,6 +29,7 @@ import {
   UploadedInventory,
 } from '../';
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
+import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
@@ -127,6 +128,7 @@ const App = () => {
           <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
           <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
           <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
+          <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

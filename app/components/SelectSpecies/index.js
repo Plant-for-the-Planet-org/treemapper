@@ -24,6 +24,7 @@ import { getAllSpecies } from '../../repositories/species';
 import { getUserInformation } from '../../repositories/user';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
+import { updateSpecieName } from '../../repositories/inventory';
 
 const SelectSpecies = ({
   visible,
@@ -118,7 +119,6 @@ const SelectSpecies = ({
 
   const onPressSaveBtn = (item) => {
     setSingleTree(item);
-
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -326,25 +326,30 @@ const SelectSpecies = ({
 
   const onPressMeasurementBtn = () => {
     let selected = {
-      aliases: singleTree.scientificName,
+      aliases: singleTree.scientific_name,
       diameter: diameter,
       height: height,
     };
     onPressSaveAndContinue(selected);
   };
 
+  const addSpecieNameToInventory = (specieName) => {
+    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName });
+  };
+
   return (
-    <Modal visible={showSpecies} animationType={'slide'}>
+    <>
       <ManageSpecies
         onPressSpeciesSingle={onPressSaveBtn}
         onPressBack={() => navigation.goBack()}
         registrationType={registrationType}
         onPressSpeciesMultiple={onPressSpecie}
         onSaveMultipleSpecies={onPressContinue}
+        addSpecieNameToInventory={addSpecieNameToInventory}
       />
       {renderTreeCountModal()}
       {renderMeasurementModal()}
-    </Modal>
+    </>
   );
 };
 export default SelectSpecies;

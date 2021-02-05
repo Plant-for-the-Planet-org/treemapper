@@ -122,6 +122,7 @@ const ScientificSpecies = {
   properties: {
     guid: 'string',
     scientific_name: { type: 'string', indexed: true },
+    isUserSpecies: { type: 'bool', default: false},
   },
 };
 
