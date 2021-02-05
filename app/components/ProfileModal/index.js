@@ -11,7 +11,6 @@ import ProfileListItem from './ProfileListItem';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
-import { UserContext } from '../../reducers/user';
 
 const ProfileModal = ({
   isUserLogin,
@@ -24,7 +23,6 @@ const ProfileModal = ({
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const { dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
-  console.log('userInfo -=>', userInfo);
   useEffect(() => {
     userImage();
   }, [isUserLogin]);
@@ -32,13 +30,12 @@ const ProfileModal = ({
     setVisibility(isProfileModalVisible);
   }, [navigation, visibility]);
   const userImage = () => {
-    getUserDetails().then((User) => {
-      let detail = Object.values(User);
-      if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail.idToken);
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        let decode = jwtDecode(userDetails.idToken);
         console.log('jwtDecode=>', decode);
         setUserPhoto(decode.picture);
-        getSpeciesList(detail.accessToken).then((data) => {
+        getSpeciesList(userDetails.accessToken).then((data) => {
           if (data) {
             setSpeciesList(data)(speciesDispatch);
           }
@@ -86,10 +83,10 @@ const ProfileModal = ({
     //   media: 'pulse-outline',
     //   text: 'activity_logging',
     //   mediaType: 'ionicon',
-    //   // onPressFunction: () => {
-    //   //   navigation.navigate('Logs');
-    //   //   onPressCloseProfileModal();
-    //   // },
+    // onPressFunction: () => {
+    //   navigation.navigate('Logs');
+    //   onPressCloseProfileModal();
+    // },
     // },
     {
       media: 'history',

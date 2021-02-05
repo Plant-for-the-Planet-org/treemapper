@@ -1,5 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
-import jwtDecode from 'jwt-decode';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
@@ -51,7 +49,7 @@ const MainScreen = ({ navigation }) => {
           }
         }
         updateCount({ type: 'pending', count })(dispatch);
-        setNumberOfInventory(Object.values(data).length);
+        setNumberOfInventory(data ? Object.values(data).length : 0);
       });
       realm = await Realm.open();
       initializeRealm(realm);
@@ -71,6 +69,7 @@ const MainScreen = ({ navigation }) => {
     getUserDetails().then((userDetails) => {
       if (userDetails) {
         setUserInfo(userDetails);
+        setIsUserLogin(userDetails.accessToken ? true : false);
       }
     });
   }, []);
@@ -81,12 +80,11 @@ const MainScreen = ({ navigation }) => {
     // Define the collection notification listener
     function listener(userObject, changes) {
       if (changes.deletions.length > 0) {
-        clearUserDetails()(userDispatch);
         setUserInfo({});
+        setIsUserLogin(false);
       }
       // Update UI in response to inserted objects
       changes.insertions.forEach((index) => {
-        console.log('insertions', userObject[index]);
         if (userObject[index].id === 'id0001') {
           // dispatch function sets the passed user details into the user state
           setUserDetails(userObject[index])(userDispatch);
@@ -96,7 +94,6 @@ const MainScreen = ({ navigation }) => {
       });
       // Update UI in response to modified objects
       changes.modifications.forEach((index) => {
-        console.log('modifications', userObject[index]);
         if (userObject[index].id === 'id0001') {
           // dispatch function sets the passed user details into the user state
           setUserDetails(userObject[index])(userDispatch);

@@ -107,7 +107,7 @@ export const auth0Logout = (userDispatch = null) => {
           // clear the user details from the user state
           clearUserDetails()(userDispatch);
         }
-
+        console.log('successful');
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
@@ -116,12 +116,12 @@ export const auth0Logout = (userDispatch = null) => {
         resolve(true);
       })
       .catch((err) => {
+        console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while Logging Out',
           logStack: JSON.stringify(err),
         });
-        console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
         resolve(false);
       });
@@ -134,7 +134,6 @@ export const getNewAccessToken = async (refreshToken) => {
       .refreshToken({ refreshToken })
       .then((data) => {
         createOrModifyUserToken(data);
-        console.log('getNewAccessToken data', data);
         dbLog.info({
           logType: LogTypes.USER,
           message: 'New access token fetched successfully',
@@ -169,7 +168,7 @@ export const checkErrorCode = async (error, userDispatch) => {
   if (error?.response?.status === 401) {
     return await auth0Logout(userDispatch);
   }
-  if (err?.response?.status === 303) {
+  if (error?.response?.status === 303) {
     // navigation.navigate('SignUp');
     console.log('error 303');
   }

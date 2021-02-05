@@ -197,6 +197,7 @@ export const deleteUser = () => {
       .then((realm) => {
         realm.write(() => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
+          console.log('userrrrrr', user);
           if (user) {
             realm.delete(user);
             // logging the success in to the db
@@ -288,25 +289,33 @@ export const getUserInformation = () => {
         ScientificSpecies,
         ActivityLogs,
       ],
-    }).then((realm) => {
-      const User = realm.objectForPrimaryKey('User', 'id0001');
-      if (User) {
-        // logging the success in to the db
-        dbLog.info({
+    })
+      .then((realm) => {
+        const User = realm.objectForPrimaryKey('User', 'id0001');
+        if (User) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Successfully retrieved User Information',
+          });
+          resolve({
+            email: User.email,
+            firstName: User.firstName,
+            lastName: User.lastName,
+            country: User.country,
+            idLogEnabled: User.idLogEnabled,
+          });
+        } else {
+          resolve({ email: '', firstName: '', lastName: '' });
+        }
+      })
+      .catch((err) => {
+        dbLog.error({
           logType: LogTypes.USER,
-          message: 'Successfully retrieved User Information',
+          message: 'Error while retrieving user details',
+          logStack: JSON.stringify(err),
         });
-        resolve({
-          email: User.email,
-          firstName: User.firstname,
-          lastName: User.lastname,
-          country: User.country,
-          IsLogEnabled: User.IsLogEnabled,
-        });
-      } else {
-        resolve({ email: '', firstName: '', lastName: '' });
-      }
-    });
+      });
   });
 };
 
@@ -324,17 +333,25 @@ export const setActivityLog = (bool) => {
         ScientificSpecies,
         ActivityLogs,
       ],
-    }).then((realm) => {
-      // const User = realm.objectForPrimaryKey('User', 'id0001');
-      realm.write(() => {
-        realm.create('User', { id: 'id0001', IsLogEnabled: bool }, 'modified');
+    })
+      .then((realm) => {
+        // const User = realm.objectForPrimaryKey('User', 'id0001');
+        realm.write(() => {
+          realm.create('User', { id: 'id0001', idLogEnabled: bool }, 'modified');
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: `Successfully toggled ${bool ? 'on' : 'off'} Activity Log`,
+        });
+        resolve();
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while changing isLogEnabled value',
+          logStack: JSON.stringify(err),
+        });
       });
-      // logging the success in to the db
-      dbLog.info({
-        logType: LogTypes.USER,
-        message: `Successfully toggled ${bool ? 'on' : 'off'} Activity Log`,
-      });
-      resolve();
-    });
   });
 };

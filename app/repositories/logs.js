@@ -23,7 +23,7 @@ import { LogTypes } from '../utils/constants';
  * @returns {boolean} - returns a promise with boolean value on whether the operation was successful or not.
  */
 const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Realm.open({
       schema: [
         Inventory,
@@ -78,7 +78,7 @@ const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack 
       .catch((err) => {
         console.error(`Error while creating log, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
-        reject(false);
+        resolve(false);
       });
   });
 };

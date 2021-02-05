@@ -70,7 +70,7 @@ const User = {
     lastName: 'string?',
     image: 'string?',
     country: 'string?',
-    IsLogEnabled: 'bool?',
+    isLogEnabled: 'bool?',
     tpoId: 'string?',
     refreshToken: 'string?',
   },

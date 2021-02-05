@@ -10,7 +10,7 @@ const initialState = {
   lastName: null,
   image: null,
   country: null,
-  IsLogEnabled: null,
+  idLogEnabled: null,
   tpoId: null,
 };
 
@@ -25,7 +25,7 @@ const userReducer = (state = initialState, action) => {
         accessToken: action.payload.accessToken,
         idToken: action.payload.idToken,
       };
-    // adds accessToken, idToken, email, firstName, lastName, image, country, IsLogEnabled and tpoId
+    // adds accessToken, idToken, email, firstName, lastName, image, country, idLogEnabled and tpoId
     case SET_USER_DETAILS:
       return {
         ...state,
