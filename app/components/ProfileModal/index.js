@@ -33,7 +33,6 @@ const ProfileModal = ({
     getUserDetails().then((userDetails) => {
       if (userDetails) {
         let decode = jwtDecode(userDetails.idToken);
-        console.log('jwtDecode=>', decode);
         setUserPhoto(decode.picture);
         getSpeciesList(userDetails.accessToken).then((data) => {
           if (data) {

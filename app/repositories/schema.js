@@ -73,6 +73,7 @@ const User = {
     isLogEnabled: 'bool?',
     tpoId: 'string?',
     refreshToken: 'string?',
+    isSignUpRequired: 'bool?',
   },
 };
 

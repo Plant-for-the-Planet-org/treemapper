@@ -164,13 +164,17 @@ export const getNewAccessToken = async (refreshToken) => {
  * @param {Error} error - error of api response to check for 401 error code.
  * @returns {boolean} - returns true if user is logged out else returns false
  */
-export const checkErrorCode = async (error, userDispatch) => {
+export const checkErrorCode = async (error, userDispatch, navigation = null) => {
   if (error?.response?.status === 401) {
     return await auth0Logout(userDispatch);
   }
   if (error?.response?.status === 303) {
-    // navigation.navigate('SignUp');
-    console.log('error 303');
+    if (navigation) {
+      navigation.navigate('SignUp');
+      modifyUserDetails({
+        isSignUpRequired: true,
+      });
+    }
   }
   return false;
 };
@@ -211,7 +215,6 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
             country,
             tpoId,
           });
-          console.log('getUserDetailsFromServer', data.data);
 
           // logging the success in to the db
           dbLog.info({
@@ -250,6 +253,9 @@ export const SignupService = (payload, dispatch) => {
       .then((res) => {
         const { status, data } = res;
         if (status === 200) {
+          modifyUserDetails({
+            isSignUpRequired: false,
+          });
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.USER,

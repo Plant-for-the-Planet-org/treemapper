@@ -21,7 +21,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import { auth0Logout, auth0Login, setUserDetails } from '../../actions/user';
+import { auth0Logout, auth0Login, setUserDetails, clearUserDetails } from '../../actions/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
 import { UserContext } from '../../reducers/user';
@@ -82,28 +82,34 @@ const MainScreen = ({ navigation }) => {
       if (changes.deletions.length > 0) {
         setUserInfo({});
         setIsUserLogin(false);
+        clearUserDetails()(userDispatch);
       }
       // Update UI in response to inserted objects
       changes.insertions.forEach((index) => {
         if (userObject[index].id === 'id0001') {
-          // dispatch function sets the passed user details into the user state
-          setUserDetails(userObject[index])(userDispatch);
-          setUserInfo(userObject[index]);
-          setIsUserLogin(userObject[index].accessToken ? true : false);
+          checkIsSignedInAndUpdate(userObject[index]);
         }
       });
       // Update UI in response to modified objects
       changes.modifications.forEach((index) => {
         if (userObject[index].id === 'id0001') {
-          // dispatch function sets the passed user details into the user state
-          setUserDetails(userObject[index])(userDispatch);
-          setUserInfo(userObject[index]);
-          setIsUserLogin(userObject[index].accessToken ? true : false);
+          checkIsSignedInAndUpdate(userObject[index]);
         }
       });
     }
     // Observe collection notifications.
     userObject.addListener(listener);
+  };
+
+  const checkIsSignedInAndUpdate = (userDetail) => {
+    if (userDetail.isSignUpRequired) {
+      navigation.navigate('SignUp');
+    } else {
+      // dispatch function sets the passed user details into the user state
+      setUserDetails(userDetail)(userDispatch);
+      setUserInfo(userDetail);
+      setIsUserLogin(userDetail.accessToken ? true : false);
+    }
   };
 
   let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
