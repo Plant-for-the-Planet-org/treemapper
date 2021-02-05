@@ -38,6 +38,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import RNFS from 'react-native-fs';
+import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = ({ navigation }) => {
   const specieDiameterRef = useRef();
@@ -48,7 +49,7 @@ const SingleTreeOverview = ({ navigation }) => {
   const [isShowDate, setIsShowDate] = useState(false);
   const [plantationDate, setPlantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
-  const [specieEditText, setSpecieEditText] = useState('');
+  // const [specieEditText, setSpecieEditText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('');
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('');
@@ -57,6 +58,8 @@ const SingleTreeOverview = ({ navigation }) => {
   const [editEnable, setEditEnable] = useState('');
   const [status, setStatus] = useState('');
   const [countryCode, setCountryCode] = useState('');
+  const [isShowManageSpecies, setIsShowManageSpecies] = useState(false);
+  const [registrationType, setRegistrationType] = useState(null);
 
   useEffect(() => {
     let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -69,21 +72,25 @@ const SingleTreeOverview = ({ navigation }) => {
         setStatus(inventory.status);
         setSpecieText(inventory.specei_name);
         setLocateTree(inventory.locate_tree);
+        setRegistrationType(inventory.tree_type);
         setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
+        setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
         setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
+        setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
         setPlantationDate(new Date(Number(inventory.plantation_date)));
       });
     });
     Country();
-  }, []);
+  }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
-    if (action === 'species' && specieEditText !== '') {
-      setSpecieText(specieEditText);
-      updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
-      setIsOpenModal(false);
-    } else if (
+    // if (action === 'species' && specieEditText !== '') {
+    //   setSpecieText(specieEditText);
+    //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
+    //   setIsOpenModal(false);
+    // } else
+    if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
       Number(specieEditDiameter) !== 0 &&
@@ -139,23 +146,11 @@ const SingleTreeOverview = ({ navigation }) => {
               style={styles.bgWhite}>
               <View style={styles.externalInputContainer}>
                 <Text style={styles.labelModal}>
-                  {editEnable === 'species'
-                    ? i18next.t('label.tree_review_name_of_species')
-                    : editEnable === 'diameter'
-                      ? i18next.t('label.tree_review_diameter')
-                      : 'Height'}
+                  {editEnable === 'diameter'
+                    ? i18next.t('label.tree_review_diameter')
+                    : i18next.t('label.tree_review_height')}
                 </Text>
-                {editEnable === 'species' ? (
-                  <TextInput
-                    value={specieEditText}
-                    style={styles.value}
-                    autoFocus
-                    placeholderTextColor={Colors.TEXT_COLOR}
-                    onChangeText={(text) => setSpecieEditText(text.replace(/  +/g, ' '))}
-                    onSubmitEditing={() => onSubmitInputField(editEnable)}
-                    keyboardType={'email-address'}
-                  />
-                ) : editEnable === 'diameter' ? (
+                {editEnable === 'diameter' ? (
                   <TextInput
                     ref={specieDiameterRef}
                     value={specieEditDiameter.toString()}
@@ -193,8 +188,17 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressEditSpecies = (action) => {
-    setEditEnable(action);
-    setIsOpenModal(true);
+    if (action === 'species') {
+      setIsShowManageSpecies(true);
+    } else {
+      setEditEnable(action);
+      setIsOpenModal(true);
+    }
+  };
+
+  const addSpecieNameToInventory = (specieName) => {
+    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName });
+    setSpecieText(specieName);
   };
 
   const renderDateModal = () => {
@@ -332,44 +336,6 @@ const SingleTreeOverview = ({ navigation }) => {
     );
   };
 
-  // const renderOnSite = ({ polygons }) => {
-  //   let coords;
-  //   if (polygons[0]) {
-  //     coords = polygons[0].coordinates[0];
-  //   }
-
-  //   return (
-  //     <View
-  //       style={{
-  //         paddingTop: 20,
-  //         fontFamily: Typography.FONT_FAMILY_REGULAR,
-  //         fontSize: Typography.FONT_SIZE_18,
-  //       }}>
-  //       <View
-  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-  //         <Text style={styles.detailHead}>Location</Text>
-  //         <Text style={styles.detailTxt}>
-  //           {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
-  //         </Text>
-  //       </View>
-  //       <View
-  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-  //         <Text style={styles.detailHead}>Species</Text>
-  //         <Text style={styles.detailTxt}>{specieText} </Text>
-  //       </View>
-  //       <View
-  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-  //         <Text style={styles.detailHead}>Diameter</Text>
-  //         <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
-  //       </View>
-  //       <View
-  //         style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 }}>
-  //         <Text style={styles.detailHead}>Date</Text>
-  //         <Text style={styles.detailTxt}>{`${specieDiameter}cm`} </Text>
-  //       </View>
-  //     </View>
-  //   );
-  // };
   const onPressSave = () => {
     if (inventory.status == 'complete') {
       navigation.navigate('TreeInventory');
@@ -385,20 +351,6 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
-  // const onPressSaveOnSite = () => {
-  //   if (inventory.status == 'complete') {
-  //     navigation.navigate('TreeInventory');
-  //   } else {
-  //     if (specieText) {
-  //       let data = { inventory_id: state.inventoryID };
-  //       statusToComplete(data).then(() => {
-  //         navigation.navigate('RegisterSingleTree');
-  //       });
-  //     } else {
-  //       alert('Species Name  is required');
-  //     }
-  //   }
-  // };
   const onPressNextTree = () => {
     if (inventory.status === INCOMPLETE_INVENTORY) {
       changeInventoryStatus(
@@ -434,23 +386,6 @@ const SingleTreeOverview = ({ navigation }) => {
     // }
   };
 
-  // const renderSpeciesModal = () => {
-  //   const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-  //   if(inventory) {
-  //     return (
-  //       <SelectSpecies
-  //         species={inventory.species}
-  //         visible={isShowSpeciesListModal}
-  //         closeSelectSpeciesModal={closeSelectSpeciesModal}
-  //         treeType={inventory.locate_tree}
-  //         onPressSaveAndContinue={onPressSaveAndContinue}
-  //       />
-  //     );
-  //   } else {
-  //     return;
-  //   }
-  // };
-
   const goBack = () => {
     navigation.goBack();
   };
@@ -468,11 +403,17 @@ const SingleTreeOverview = ({ navigation }) => {
       });
   };
 
-  return (
+  return isShowManageSpecies ? (
+    <ManageSpecies
+      onPressBack={() => setIsShowManageSpecies(false)}
+      registrationType={registrationType}
+      addSpecieNameToInventory={addSpecieNameToInventory}
+      editOnlySpecieName={true}
+    />
+  ) : (
     <SafeAreaView style={styles.mainContainer}>
       {renderInputModal()}
       {renderDateModal()}
-      {/* {renderSpeciesModal()} */}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {locateTree === 'on-site' ? (
