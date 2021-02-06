@@ -211,7 +211,7 @@ const MainScreen = ({ navigation }) => {
                 accessibilityLabel={'Login/Sign Up'}
                 photo={
                   cdnUrls && cdnUrls.cache && userInfo.image
-                    ? `${cdnUrls}/profile/avatar/${userInfo.image}`
+                    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
                     : ''
                 }
               />
