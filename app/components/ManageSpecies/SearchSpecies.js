@@ -3,27 +3,9 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
 
-const SearchSpecies = ({
-  setSelectedSpecies,
-  selectedSpecies,
-  searchList,
-  changeSearchSpecieCheck,
-}) => {
-  const addSpecies = (item, index) => {
-    setSelectedSpecies([...selectedSpecies, item]);
-    changeSearchSpecieCheck(index, true);
-  };
-
-  const removeSpecies = (item, index) => {
-    setSelectedSpecies(
-      selectedSpecies.filter((specie) => specie.scientific_name !== item.scientific_name),
-    );
-    changeSearchSpecieCheck(index, false);
-  };
-
+const SearchSpecies = ({ searchList, toggleUserSpecies, registrationType, onPressSpeciesSingle, onPressSpeciesMultiple, addSpecieNameToInventory, editOnlySpecieName, onPressBack}) => {
   const renderSearchSpecieCard = ({ item, index }) => {
-    const isDisabled = item.isDisabled;
-    const isCheck = item.isCheck;
+    const isCheck = item.isUserSpecies;
 
     const SpecieListItem = () => {
       return (
@@ -37,42 +19,45 @@ const SearchSpecies = ({
               {item.scientific_name}
             </Text>
           </View>
-          <Icon
-            name={isCheck ? 'check-circle' : 'plus-circle'}
-            size={25}
-            color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
-          />
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              toggleUserSpecies(item.guid);
+            }}>
+            <Icon
+              name={isCheck ? 'check-circle' : 'plus-circle'}
+              size={25}
+              color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+          
         </>
       );
     };
 
-    if (isDisabled) {
-      return (
-        <View style={[styles.specieListItem, { opacity: 0.5 }]}>
-          <SpecieListItem />
-        </View>
-      );
-    } else {
-      return (
-        <TouchableOpacity
-          key={index}
-          style={styles.specieListItem}
-          onPress={() => {
-            if (isCheck) {
-              removeSpecies(item, index);
-            } else {
-              addSpecies(item, index);
+    return (
+      <TouchableOpacity
+        key={index}
+        style={styles.specieListItem}
+        onPress={() => {
+          if (registrationType == 'single') {
+            addSpecieNameToInventory(item.scientific_name);
+            toggleUserSpecies(item.guid, 'add');
+            if (editOnlySpecieName){
+              onPressBack();
+            } else{
+              onPressSpeciesSingle(item);
             }
-          }}>
-          <SpecieListItem />
-        </TouchableOpacity>
-      );
-    }
+          } else if (registrationType == 'multiple') {
+            onPressSpeciesMultiple(item, index);
+          }
+        }}>
+        <SpecieListItem />
+      </TouchableOpacity>
+    );
   };
 
-  const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [
-    selectedSpecies,
-  ]);
+  const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [searchList]);
 
   return (
     <View style={{ flex: 1, paddingTop: 15 }}>
@@ -82,6 +67,7 @@ const SearchSpecies = ({
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.guid}
         renderItem={memoizedRenderSearchSpecieCard}
+        keyboardShouldPersistTaps="always"
       />
     </View>
   );

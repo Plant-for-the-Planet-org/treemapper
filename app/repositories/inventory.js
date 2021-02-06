@@ -351,8 +351,8 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
+          console.log(inventory, 'Updated Inventory');
         });
-
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,

@@ -69,7 +69,7 @@ export const getUserToken = () => {
 export const auth0Login = (navigation) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
-      .authorize({ scope: 'openid email profile' }, { ephemeralSession: true })
+      .authorize({ scope: 'openid email profile' }, { ephemeralSession: false })
       .then((credentials) => {
         const { accessToken, idToken } = credentials;
         Realm.open({
