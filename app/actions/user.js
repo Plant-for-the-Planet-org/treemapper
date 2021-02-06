@@ -288,10 +288,11 @@ export const SignupService = (payload, dispatch) => {
   });
 };
 
-export const getCdnUrls = () => {
+export const getCdnUrls = (language = 'en') => {
+  //console.log(`${protocol}://${url}/public/v1.2/${language}/config`);
   return new Promise((resolve) => {
     axios
-      .get(`${protocol}://${url}/public/v1.2/en/config`)
+      .get(`${protocol}://${url}/public/v1.2/${language}/config`)
       .then((res) => {
         const { status, data } = res;
         if (status === 200) {
@@ -306,7 +307,7 @@ export const getCdnUrls = () => {
       })
       .catch((err) => {
         console.error(
-          `Error at /actions/user/getCdnUrls: GET - /public/v1.2/en/config, ${JSON.stringify(
+          `Error at /actions/user/getCdnUrls: GET - /public/v1.2/${language}/config, ${JSON.stringify(
             err.response,
           )}`,
         );

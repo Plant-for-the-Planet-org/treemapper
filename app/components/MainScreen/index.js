@@ -79,7 +79,7 @@ const MainScreen = ({ navigation }) => {
         setIsUserLogin(userDetails.accessToken ? true : false);
       }
     });
-    getCdnUrls().then((cdnMedia) => {
+    getCdnUrls(i18next.language).then((cdnMedia) => {
       setCdnUrls(cdnMedia);
     });
   }, []);
