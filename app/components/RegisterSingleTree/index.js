@@ -18,9 +18,9 @@ const RegisterSingleTree = ({ navigation, route }) => {
     console.log('inventoryState.inventoryID', inventoryState.inventoryID);
     let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
     updateLastScreen(data);
-    // navigation.addListener('focus', () => {
-    // updateScreenState('MapMarking');
-    // });
+    navigation.addListener('focus', () => {
+      updateScreenState('MapMarking');
+    });
     // getInventory({inventoryState: inventoryID}).then((InventoryData) => {
     //   // if (InventoryData.polygons[0])
     //   console.log('-----------------InventoryData-----------------',InventoryData.species );

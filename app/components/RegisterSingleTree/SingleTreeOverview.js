@@ -287,7 +287,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -421,7 +421,7 @@ const SingleTreeOverview = ({ navigation }) => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
               <Header
                 closeIcon
-                onBackPress={onBackPressOnSite}
+                onBackPress={onPressSave}
                 headingText={i18next.t('label.tree_review_header')}
               />
               <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
@@ -438,7 +438,7 @@ const SingleTreeOverview = ({ navigation }) => {
           ) : (
             <Header
               closeIcon
-              onBackPress={onBackPress}
+              onBackPress={onPressSave}
               headingText={
                 locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
               }
@@ -479,14 +479,14 @@ const SingleTreeOverview = ({ navigation }) => {
             <PrimaryButton
               onPress={onPressNextTree}
               btnText={i18next.t('label.tree_review_next_btn')}
-              halfWidth
-              theme={'white'}
+              // halfWidth
+              // theme={'white'}
             />
-            <PrimaryButton
+            {/* <PrimaryButton
               onPress={onPressSave}
               btnText={i18next.t('label.tree_review_Save')}
               halfWidth
-            />
+            /> */}
           </View>
         ) : (
           []
