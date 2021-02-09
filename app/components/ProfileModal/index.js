@@ -11,6 +11,7 @@ import ProfileListItem from './ProfileListItem';
 import { setSpeciesList, getSpeciesList } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ProfileModal = ({
   isUserLogin,
@@ -126,7 +127,7 @@ const ProfileModal = ({
                 accessible={true}
                 accessibilityLabel="Profile Modal"
                 testID="profile_modal">
-                <Image source={close} />
+                <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
               </TouchableOpacity>
               <SvgXml xml={logo} />
               <View />

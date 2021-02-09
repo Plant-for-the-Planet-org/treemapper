@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
 
-export default function InventoryList({ inventoryList, accessibilityLabel }) {
+export default function InventoryList({ inventoryList, accessibilityLabel, inventoryType }) {
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
@@ -74,7 +74,13 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
             accessible={true}
             accessibilityLabel={accessibilityLabel}
             testID="upload_inventory_list">
-            <InventoryCard icon={'cloud-check'} data={data} />
+            <InventoryCard
+              icon={
+                inventoryType == 'incomplete' ? [] : 'pending' ? 'cloud-outline' : 'cloud-check'
+              }
+              data={data}
+              inventoryType={inventoryType}
+            />
           </TouchableOpacity>
         );
       }}

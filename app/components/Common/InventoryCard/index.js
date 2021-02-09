@@ -6,7 +6,7 @@ import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 
-const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
+const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, inventoryType }) => {
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
@@ -14,10 +14,10 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
     activeBtn === true
       ? map_img
       : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-        ? map_img
-        : activeBtn === false
-          ? placeholder_image
-          : tree;
+      ? map_img
+      : activeBtn === false
+      ? placeholder_image
+      : tree;
   if (data.imageURL) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     imageSource = { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}` };
@@ -36,7 +36,9 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
             onPress={onPressActiveButton}>
             {data.date}
           </Text>
-          {icon && <MCIcons name={icon} size={22} style={styles.activeText} />}
+          {icon && inventoryType != 'incomplete' && (
+            <MCIcons name={icon} size={22} style={styles.activeText} />
+          )}
         </View>
       </View>
     </View>
