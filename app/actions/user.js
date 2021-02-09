@@ -20,7 +20,7 @@ const { protocol, url } = APIConfig;
 \* ============================== */
 
 /**
- * Used to login or signup into the app. After the user is authorized successfully the auth0 returns token
+ * Used to login or signup into the app. After the user is authorized successfully the auth0 returns an access token
  * which is used in the app to authenticate the api calls. Then it creates a new user or replace the existing
  * accessToken, idToken and refreshToken in the realm DB using func [createOrModifyUserToken]. Followed by calling
  * func [setUserInitialState] to update the app's user state. Followed by calling func [getUserDetailsFromServer]
@@ -130,19 +130,29 @@ export const auth0Logout = (userDispatch = null) => {
   });
 };
 
+/**
+ * Calls the refreshToken function of auth module of auth0 by passing refreshToken and the calls the
+ * function [createOrModifyUserToken] to store the updated tokens fetched from auth0
+ * @param {string} refreshToken - used to fetch a new access token
+ */
 export const getNewAccessToken = async (refreshToken) => {
   return new Promise((resolve) => {
+    // calls the refreshToken function of auth0 by passing the refreshToken
     auth0.auth
       .refreshToken({ refreshToken })
       .then((data) => {
+        // calls the repo function which modifies the accessToken, idToken and refreshToken from the fetched data
         createOrModifyUserToken(data);
+        // logs the success to DB
         dbLog.info({
           logType: LogTypes.USER,
           message: 'New access token fetched successfully',
         });
+        // resolves the access token
         resolve(data.accessToken);
       })
       .catch((err) => {
+        // logs the error in Db and notifies the same to bugsnag
         console.error(`Error at /actions/user/getNewAccessToken, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
         dbLog.error({
@@ -171,9 +181,6 @@ export const checkErrorCode = async (error, userDispatch) => {
     return await auth0Logout(userDispatch);
   }
   if (error?.response?.status === 303) {
-    // if (navigation) {
-    //   navigation.navigate('SignUp');
-    // }
     modifyUserDetails({
       isSignUpRequired: true,
     });
@@ -228,6 +235,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
           resolve(data.data);
         })
         .catch(async (err) => {
+          // calls this function to check for the error code and either logout the user or ask to signup
           await checkErrorCode(err, userDispatch);
           console.error(
             `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile, ${JSON.stringify(
@@ -288,6 +296,10 @@ export const SignupService = (payload, dispatch) => {
   });
 };
 
+/**
+ * Request for config details and returns the CDN URLs object containing media URLs
+ * @param {string} language - used to call the config API based on the language of the app
+ */
 export const getCdnUrls = (language = 'en') => {
   //console.log(`${protocol}://${url}/public/v1.2/${language}/config`);
   return new Promise((resolve) => {
@@ -295,6 +307,7 @@ export const getCdnUrls = (language = 'en') => {
       .get(`${protocol}://${url}/public/v1.2/${language}/config`)
       .then((res) => {
         const { status, data } = res;
+        // checks if status is 200 then returns the CDN media URLs else returns false
         if (status === 200) {
           // logging the success in to the db
           dbLog.info({
@@ -303,12 +316,14 @@ export const getCdnUrls = (language = 'en') => {
             statusCode: status,
           });
           resolve(data.cdnMedia);
+        } else {
+          resolve(false);
         }
       })
       .catch((err) => {
         console.error(
           `Error at /actions/user/getCdnUrls: GET - /public/v1.2/${language}/config, ${JSON.stringify(
-            err.response,
+            err?.response,
           )}`,
         );
         // logs the error of the failed request in DB
@@ -316,6 +331,7 @@ export const getCdnUrls = (language = 'en') => {
           logType: LogTypes.USER,
           message: 'Failed to fetch CDN URL',
           statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
         });
         resolve(false);
       });

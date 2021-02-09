@@ -1,19 +1,10 @@
-import Realm from 'realm';
-import {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
-  AddSpecies,
-  ActivityLogs,
-  ScientificSpecies,
-} from './schema';
 import { bugsnag } from '../utils';
 import { LogLevels } from '../utils/constants';
 import { v4 as uuidv4 } from 'uuid';
 import { LogTypes } from '../utils/constants';
+import getRealmConnection from './default';
+
+const realm = getRealmConnection();
 
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
@@ -24,62 +15,48 @@ import { LogTypes } from '../utils/constants';
  */
 const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
   return new Promise((resolve) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs,
-      ],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          // defines and stores the log data which is to be added in DB
-          let logData = {
-            // uses uuid v4 to create a unique id i.e. primary key
-            id: uuidv4(),
-            logType,
-            logLevel,
-            timestamp: new Date(),
-            message,
-            appVersion: 'TM v1.0.0',
+    try {
+      realm.write(() => {
+        // defines and stores the log data which is to be added in DB
+        let logData = {
+          // uses uuid v4 to create a unique id i.e. primary key
+          id: uuidv4(),
+          logType,
+          logLevel,
+          timestamp: new Date(),
+          message,
+          appVersion: 'TM v1.0.0',
+        };
+        // checks if referenceId is present then adds it to logData
+        if (referenceId) {
+          logData = {
+            ...logData,
+            referenceId,
           };
-          // checks if referenceId is present then adds it to logData
-          if (referenceId) {
-            logData = {
-              ...logData,
-              referenceId,
-            };
-          }
-          // checks if errorCode is present then adds it to logData
-          if (errorCode) {
-            logData = {
-              ...logData,
-              errorCode,
-            };
-          }
-          // checks if logStack is present then adds it to logData
-          if (logStack) {
-            logData = {
-              ...logData,
-              logStack,
-            };
-          }
-          // create log in ActivityLogs using logData which is passed
-          realm.create('ActivityLogs', logData);
-        });
-        resolve(true);
-      })
-      .catch((err) => {
-        console.error(`Error while creating log, ${JSON.stringify(err)}`);
-        bugsnag.notify(err);
-        resolve(false);
+        }
+        // checks if errorCode is present then adds it to logData
+        if (errorCode) {
+          logData = {
+            ...logData,
+            errorCode,
+          };
+        }
+        // checks if logStack is present then adds it to logData
+        if (logStack) {
+          logData = {
+            ...logData,
+            logStack,
+          };
+        }
+        // create log in ActivityLogs using logData which is passed
+        realm.create('ActivityLogs', logData);
       });
+      resolve(true);
+    } catch (err) {
+      console.error(`Error while creating log, ${JSON.stringify(err)}`);
+      bugsnag.notify(err);
+      resolve(false);
+    }
   });
 };
 
@@ -96,94 +73,70 @@ const dbLog = {
  * @returns {Array} allLogs/errorLogs
  */
 export const getLogs = (type) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs,
-      ],
-    }).then((realm) => {
-      realm.write(() => {
-        if (type === 'all') {
-          let logs = realm.objects('ActivityLogs');
-          let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
-          resolve(allLogs);
-          // console.log(allLogs, 'allLogs');
-        } else if (type === 'error') {
-          const allLogs = realm.objects('ActivityLogs');
-          let errorLogs = allLogs.filtered('logLevel = "ERROR"');
-          resolve(errorLogs);
-          // console.log(errorLogs, 'errorLogs');
-        }
-      });
-    });
+  return new Promise((resolve) => {
+    try {
+      if (type === 'all') {
+        let logs = realm.objects('ActivityLogs');
+        let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
+        resolve(allLogs);
+        // console.log(allLogs, 'allLogs');
+      } else if (type === 'error') {
+        const allLogs = realm.objects('ActivityLogs');
+        let errorLogs = allLogs.filtered('logLevel = "ERROR"');
+        resolve(errorLogs);
+        // console.log(errorLogs, 'errorLogs');
+      }
+    } catch (err) {
+      console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
+      bugsnag.notify(err);
+      resolve(false);
+    }
   });
 };
 
 //Deleting older logs
 export const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs,
-      ],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          let logs = realm.objects('ActivityLogs');
-          const currentDate = new Date();
-          // number of days to before the log should be deleted
-          const numberOfDays = 14;
+    try {
+      realm.write(() => {
+        let logs = realm.objects('ActivityLogs');
+        const currentDate = new Date();
+        // number of days to before the log should be deleted
+        const numberOfDays = 14;
 
-          // calculates the old date using the number of days
-          let oldDate = currentDate - 1000 * 60 * 60 * 24 * numberOfDays;
+        // calculates the old date using the number of days
+        let oldDate = currentDate - 1000 * 60 * 60 * 24 * numberOfDays;
 
-          oldDate = new Date(oldDate);
+        oldDate = new Date(oldDate);
 
-          // sets the date hours, mins, seconds and nanoseconds to zero
-          oldDate.setUTCHours(0, 0, 0, 0);
+        // sets the date hours, mins, seconds and nanoseconds to zero
+        oldDate.setUTCHours(0, 0, 0, 0);
 
-          // converts to ISO string and removes the Z characters from last
-          oldDate = oldDate.toISOString().slice(0, -1);
+        // converts to ISO string and removes the Z characters from last
+        oldDate = oldDate.toISOString().slice(0, -1);
 
-          // filters and stores all the logs before 14 days
-          let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);
+        // filters and stores all the logs before 14 days
+        let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);
 
-          // deletes the filtered logs from DB
-          realm.delete(deleteLogs);
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.OTHER,
-            message: 'Deleted older logs',
-          });
-          resolve();
+        // deletes the filtered logs from DB
+        realm.delete(deleteLogs);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.OTHER,
+          message: 'Deleted older logs',
         });
-      })
-      .catch((err) => {
-        // logs the error
-        console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
-        // logs the error of the failed request in DB
-        dbLog.error({
-          logType: LogTypes.ERROR,
-          message: 'Failed to delete older logs',
-        });
-        reject(err);
+        resolve();
       });
+    } catch (err) {
+      // logs the error
+      console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
+      // logs the error of the failed request in DB
+      dbLog.error({
+        logType: LogTypes.ERROR,
+        message: 'Failed to delete older logs',
+      });
+      reject(err);
+    }
   });
 };
 

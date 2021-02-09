@@ -123,7 +123,7 @@ const ProfileModal = ({
             </View>
             <View style={styles.profileSection1}>
               <Image
-                style={{ width: 50, height: 50, marginHorizontal: 10 }}
+                style={{ width: 50, height: 50, marginHorizontal: 10, borderRadius: 50 }}
                 source={{ uri: avatar }}
               />
               <View style={styles.nameAndEmailContainer}>
