@@ -1,22 +1,9 @@
 import Config from 'react-native-config';
-import {
-  Inventory,
-  Species,
-  Polygons,
-  Coordinates,
-  OfflineMaps,
-  User,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs,
-} from './schema';
-import Realm from 'realm';
+
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
 import getRealmConnection from './default';
-
-const realm = getRealmConnection();
 
 export const getAreaName = ({ coords }) => {
   return new Promise((resolve, reject) => {
@@ -57,13 +44,15 @@ export const getAreaName = ({ coords }) => {
 export const getAllOfflineMaps = () => {
   return new Promise((resolve) => {
     try {
-      const offlineMaps = realm.objects('OfflineMaps');
-      // logging the error in to the db
-      dbLog.info({
-        logType: LogTypes.MAPS,
-        message: 'Fetched offline maps',
+      getRealmConnection().then((realm) => {
+        const offlineMaps = realm.objects('OfflineMaps');
+        // logging the error in to the db
+        dbLog.info({
+          logType: LogTypes.MAPS,
+          message: 'Fetched offline maps',
+        });
+        resolve(JSON.parse(JSON.stringify(offlineMaps)));
       });
-      resolve(JSON.parse(JSON.stringify(offlineMaps)));
     } catch (err) {
       // logging the error in to the db
       dbLog.error({
@@ -80,15 +69,17 @@ export const getAllOfflineMaps = () => {
 export const deleteOfflineMap = ({ name }) => {
   return new Promise((resolve) => {
     try {
-      realm.write(() => {
-        const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
-        realm.delete(offlineMaps);
-        // logging the error in to the db
-        dbLog.info({
-          logType: LogTypes.MAPS,
-          message: 'Deleted offline maps',
+      getRealmConnection().then((realm) => {
+        realm.write(() => {
+          const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
+          realm.delete(offlineMaps);
+          // logging the error in to the db
+          dbLog.info({
+            logType: LogTypes.MAPS,
+            message: 'Deleted offline maps',
+          });
+          resolve();
         });
-        resolve();
       });
     } catch (err) {
       // logging the error in to the db
@@ -106,22 +97,24 @@ export const deleteOfflineMap = ({ name }) => {
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
     try {
-      realm.write(() => {
-        realm.create('OfflineMaps', {
-          name: name,
-          size: size,
-          areaName: areaName,
+      getRealmConnection().then((realm) => {
+        realm.write(() => {
+          realm.create('OfflineMaps', {
+            name: name,
+            size: size,
+            areaName: areaName,
+          });
+          // logging the error in to the db
+          dbLog.info({
+            logType: LogTypes.MAPS,
+            message: `Created offline map for area: ${areaName}`,
+            logStack: JSON.stringify({
+              name,
+              size,
+            }),
+          });
+          resolve(name);
         });
-        // logging the error in to the db
-        dbLog.info({
-          logType: LogTypes.MAPS,
-          message: `Created offline map for area: ${areaName}`,
-          logStack: JSON.stringify({
-            name,
-            size,
-          }),
-        });
-        resolve(name);
       });
     } catch (err) {
       // logging the error in to the db

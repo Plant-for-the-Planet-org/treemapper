@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { LogTypes } from '../utils/constants';
 import getRealmConnection from './default';
 
-const realm = getRealmConnection();
-
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
  * It writes to realm while creating a log
@@ -16,40 +14,42 @@ const realm = getRealmConnection();
 const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
   return new Promise((resolve) => {
     try {
-      realm.write(() => {
-        // defines and stores the log data which is to be added in DB
-        let logData = {
-          // uses uuid v4 to create a unique id i.e. primary key
-          id: uuidv4(),
-          logType,
-          logLevel,
-          timestamp: new Date(),
-          message,
-          appVersion: 'TM v1.0.0',
-        };
-        // checks if referenceId is present then adds it to logData
-        if (referenceId) {
-          logData = {
-            ...logData,
-            referenceId,
+      getRealmConnection().then((realm) => {
+        realm.write(() => {
+          // defines and stores the log data which is to be added in DB
+          let logData = {
+            // uses uuid v4 to create a unique id i.e. primary key
+            id: uuidv4(),
+            logType,
+            logLevel,
+            timestamp: new Date(),
+            message,
+            appVersion: 'TM v1.0.0',
           };
-        }
-        // checks if errorCode is present then adds it to logData
-        if (errorCode) {
-          logData = {
-            ...logData,
-            errorCode,
-          };
-        }
-        // checks if logStack is present then adds it to logData
-        if (logStack) {
-          logData = {
-            ...logData,
-            logStack,
-          };
-        }
-        // create log in ActivityLogs using logData which is passed
-        realm.create('ActivityLogs', logData);
+          // checks if referenceId is present then adds it to logData
+          if (referenceId) {
+            logData = {
+              ...logData,
+              referenceId,
+            };
+          }
+          // checks if errorCode is present then adds it to logData
+          if (errorCode) {
+            logData = {
+              ...logData,
+              errorCode,
+            };
+          }
+          // checks if logStack is present then adds it to logData
+          if (logStack) {
+            logData = {
+              ...logData,
+              logStack,
+            };
+          }
+          // create log in ActivityLogs using logData which is passed
+          realm.create('ActivityLogs', logData);
+        });
       });
       resolve(true);
     } catch (err) {
@@ -75,17 +75,19 @@ const dbLog = {
 export const getLogs = (type) => {
   return new Promise((resolve) => {
     try {
-      if (type === 'all') {
-        let logs = realm.objects('ActivityLogs');
-        let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
-        resolve(allLogs);
-        // console.log(allLogs, 'allLogs');
-      } else if (type === 'error') {
-        const allLogs = realm.objects('ActivityLogs');
-        let errorLogs = allLogs.filtered('logLevel = "ERROR"');
-        resolve(errorLogs);
-        // console.log(errorLogs, 'errorLogs');
-      }
+      getRealmConnection().then((realm) => {
+        if (type === 'all') {
+          let logs = realm.objects('ActivityLogs');
+          let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
+          resolve(allLogs);
+          // console.log(allLogs, 'allLogs');
+        } else if (type === 'error') {
+          const allLogs = realm.objects('ActivityLogs');
+          let errorLogs = allLogs.filtered('logLevel = "ERROR"');
+          resolve(errorLogs);
+          // console.log(errorLogs, 'errorLogs');
+        }
+      });
     } catch (err) {
       console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
       bugsnag.notify(err);
@@ -98,34 +100,36 @@ export const getLogs = (type) => {
 export const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
     try {
-      realm.write(() => {
-        let logs = realm.objects('ActivityLogs');
-        const currentDate = new Date();
-        // number of days to before the log should be deleted
-        const numberOfDays = 14;
+      getRealmConnection().then((realm) => {
+        realm.write(() => {
+          let logs = realm.objects('ActivityLogs');
+          const currentDate = new Date();
+          // number of days to before the log should be deleted
+          const numberOfDays = 14;
 
-        // calculates the old date using the number of days
-        let oldDate = currentDate - 1000 * 60 * 60 * 24 * numberOfDays;
+          // calculates the old date using the number of days
+          let oldDate = currentDate - 1000 * 60 * 60 * 24 * numberOfDays;
 
-        oldDate = new Date(oldDate);
+          oldDate = new Date(oldDate);
 
-        // sets the date hours, mins, seconds and nanoseconds to zero
-        oldDate.setUTCHours(0, 0, 0, 0);
+          // sets the date hours, mins, seconds and nanoseconds to zero
+          oldDate.setUTCHours(0, 0, 0, 0);
 
-        // converts to ISO string and removes the Z characters from last
-        oldDate = oldDate.toISOString().slice(0, -1);
+          // converts to ISO string and removes the Z characters from last
+          oldDate = oldDate.toISOString().slice(0, -1);
 
-        // filters and stores all the logs before 14 days
-        let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);
+          // filters and stores all the logs before 14 days
+          let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);
 
-        // deletes the filtered logs from DB
-        realm.delete(deleteLogs);
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.OTHER,
-          message: 'Deleted older logs',
+          // deletes the filtered logs from DB
+          realm.delete(deleteLogs);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.OTHER,
+            message: 'Deleted older logs',
+          });
+          resolve();
         });
-        resolve();
       });
     } catch (err) {
       // logs the error

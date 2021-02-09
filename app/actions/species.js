@@ -8,19 +8,6 @@ import {
   SET_MULTIPLE_TREES_SPECIES_LIST,
   ADD_MULTIPLE_TREE_SPECIE,
 } from './Types';
-import {
-  Inventory,
-  Species,
-  Polygons,
-  Coordinates,
-  OfflineMaps,
-  User,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs,
-} from '../repositories/schema';
-import Realm from 'realm';
-import getSessionData from '../utils/sessionId';
 const { protocol, url } = APIConfig;
 
 /**
@@ -101,76 +88,6 @@ export const getSpeciesList = (userToken) => {
           statusCode: err.status,
         });
         resolve(false);
-      });
-  });
-};
-
-export const searchSpeciesFromServer = (payload) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        AddSpecies,
-        Coordinates,
-        Inventory,
-        OfflineMaps,
-        Polygons,
-        Species,
-        User,
-        ScientificSpecies,
-        ActivityLogs,
-      ],
-    })
-      .then((realm) => {
-        realm.write(() => {
-          const SearchSpeciesUser = realm.objectForPrimaryKey('User', 'id0001');
-          let userToken = SearchSpeciesUser.accessToken;
-          let formData = new FormData();
-          formData.append('q', payload);
-          formData.append('t', 'species');
-          getSessionData()
-            .then(async (sessionData) => {
-              await axios({
-                method: 'POST',
-                url: `${protocol}://${url}/suggest.php`,
-                data: formData,
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `OAuth ${userToken}`,
-                  'x-session-id': sessionData,
-                },
-              })
-                .then((res) => {
-                  const { data, status } = res;
-                  if (status === 200) {
-                    // logging the success in to the db
-                    dbLog.info({
-                      logType: LogTypes.MANAGE_SPECIES,
-                      message: 'Searched species, POST - /suggest.php',
-                      statusCode: status,
-                    });
-                    resolve(data);
-                  }
-                })
-                .catch((err) => {
-                  // logs the error of the failed request in DB
-                  dbLog.error({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: 'Failed to search species, POST - /suggest.php',
-                    statusCode: err.status,
-                  });
-                  reject(err);
-                  console.error(err, 'error');
-                });
-            })
-            .catch((err) => {
-              console.error(err);
-              reject(err);
-            });
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        reject(err);
       });
   });
 };

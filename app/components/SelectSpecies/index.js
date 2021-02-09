@@ -20,7 +20,6 @@ import { placeholder_image } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
 import { getInventory, updateSpecieAndSpecieDiameter } from '../../repositories/inventory';
-import { getAllSpecies } from '../../repositories/species';
 import { getUserInformation } from '../../repositories/user';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
@@ -61,14 +60,15 @@ const SelectSpecies = ({
       species = invent.species;
     }
 
-    getAllSpecies().then((data) => {
-      if (data && species) {
-        for (const specie of species) {
-          data[specie.id].treeCount = specie.treeCount;
-        }
-        setMultipleTreesSpeciesList(data)(speciesDispatch);
-      }
-    });
+    // TODO: Needs to be replaced with different function to get user species
+    // getAllSpecies().then((data) => {
+    //   if (data && species) {
+    //     for (const specie of species) {
+    //       data[specie.id].treeCount = specie.treeCount;
+    //     }
+    //     setMultipleTreesSpeciesList(data)(speciesDispatch);
+    //   }
+    // });
 
     setRegistrationType(inventory.tree_type);
 

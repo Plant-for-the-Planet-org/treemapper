@@ -73,19 +73,6 @@ const User = {
   },
 };
 
-const AddSpecies = {
-  name: 'AddSpecies',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    aliases: 'string?',
-    image: 'string?',
-    scientificName: 'string',
-    status: 'string?',
-    speciesId: 'string',
-  },
-};
-
 //  used to store the logs of a feature or a flow
 const ActivityLogs = {
   name: 'ActivityLogs',
@@ -122,18 +109,6 @@ const ScientificSpecies = {
   },
 };
 
-export {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs,
-};
-
 export default {
   schema: [
     Coordinates,
@@ -142,7 +117,6 @@ export default {
     OfflineMaps,
     Species,
     Inventory,
-    AddSpecies,
     ScientificSpecies,
     ActivityLogs,
   ],

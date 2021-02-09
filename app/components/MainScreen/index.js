@@ -31,7 +31,7 @@ import {
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
 import { UserContext } from '../../reducers/user';
-import Realm from 'realm';
+import getRealmConnection from '../../repositories/default';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -43,9 +43,9 @@ const MainScreen = ({ navigation }) => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
   const [cdnUrls, setCdnUrls] = useState({});
+  const [realmConn, setRealmConn] = useState();
 
   useEffect(() => {
-    let realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
       getInventoryByStatus('all').then((data) => {
@@ -58,16 +58,20 @@ const MainScreen = ({ navigation }) => {
         updateCount({ type: 'pending', count })(dispatch);
         setNumberOfInventory(data ? Object.values(data).length : 0);
       });
-      realm = await Realm.open();
-      initializeRealm(realm);
+      getRealmConnection().then((realm) => {
+        initializeRealm(realm);
+        setRealmConn(realm);
+      });
+      // realm = await getRealmConnection();
+      // initializeRealm(realm);
     });
 
     // Return the function to unsubscribe from the event so it gets removed on unmount
     return () => {
       unsubscribe();
-      if (realm) {
+      if (realmConn) {
         // Unregister all realm listeners
-        realm.removeAllListeners();
+        realmConn.removeAllListeners();
       }
     };
   }, [navigation]);

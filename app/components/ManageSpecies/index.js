@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import Realm from 'realm';
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
@@ -19,19 +18,10 @@ import { Colors, Typography } from '_styles';
 // import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
 import { Header } from '../Common';
-import {
-  AddSpecies,
-  Coordinates,
-  Inventory,
-  OfflineMaps,
-  Polygons,
-  Species,
-  User,
-  ScientificSpecies,
-  ActivityLogs,
-} from '../../repositories/schema';
+
 import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
+import getRealmConnection from '../../repositories/default';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -100,20 +90,8 @@ const ManageSpecies = ({
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid, add) => {
     return new Promise((resolve) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-          ActivityLogs,
-        ],
-      })
-        .then((realm) => {
+      try {
+        getRealmConnection().then((realm) => {
           realm.write(() => {
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (add) {
@@ -136,16 +114,16 @@ const ManageSpecies = ({
             });
           });
           resolve();
-        })
-        .catch((err) => {
-          console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
-          // logging the error in to the db
-          dbLog.error({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
-            logStack: JSON.stringify(err),
-          });
         });
+      } catch (err) {
+        console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
+          logStack: JSON.stringify(err),
+        });
+      }
     });
   };
 
