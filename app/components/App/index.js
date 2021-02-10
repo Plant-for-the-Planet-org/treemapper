@@ -6,7 +6,6 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 import React from 'react';
-import { View, Text } from 'react-native';
 import Config from 'react-native-config';
 import 'react-native-gesture-handler';
 import {
@@ -31,6 +30,7 @@ import {
 } from '../';
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
+import MigratingDB from '../MigratingDB';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
@@ -70,20 +70,12 @@ const MyTransition = {
   },
 };
 
-const MigratingDB = () => {
-  return (
-    <View style={{ flex: 1 }}>
-      <Text>DB is migrating</Text>
-    </View>
-  );
-};
-
 const App = () => {
   const [isDBMigrating, setIsDBMigrating] = React.useState(false);
 
   const checkIsUserLogin = async () => {
     const dbUserDetails = await getUserDetails();
-    console.log('dbUserDetails', dbUserDetails);
+
     if (dbUserDetails && dbUserDetails.refreshToken) {
       const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
       if (newAccessToken) {
