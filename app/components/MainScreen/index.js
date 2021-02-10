@@ -12,26 +12,27 @@ import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
+import Realm from 'realm';
 import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
+import {
+  auth0Login,
+  auth0Logout,
+  clearUserDetails,
+  getCdnUrls,
+  setUserDetails,
+} from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
 import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
+import { UserContext } from '../../reducers/user';
+import { getSchema } from '../../repositories/default';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import {
-  auth0Logout,
-  auth0Login,
-  setUserDetails,
-  clearUserDetails,
-  getCdnUrls,
-} from '../../actions/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
-import { UserContext } from '../../reducers/user';
-import getRealmConnection from '../../repositories/default';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -43,9 +44,9 @@ const MainScreen = ({ navigation }) => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
   const [cdnUrls, setCdnUrls] = useState({});
-  const [realmConn, setRealmConn] = useState();
 
   useEffect(() => {
+    let realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
       getInventoryByStatus('all').then((data) => {
@@ -58,20 +59,17 @@ const MainScreen = ({ navigation }) => {
         updateCount({ type: 'pending', count })(dispatch);
         setNumberOfInventory(data ? Object.values(data).length : 0);
       });
-      getRealmConnection().then((realm) => {
-        initializeRealm(realm);
-        setRealmConn(realm);
-      });
-      // realm = await getRealmConnection();
-      // initializeRealm(realm);
+
+      realm = await Realm.open(getSchema());
+      initializeRealm(realm);
     });
 
     // Return the function to unsubscribe from the event so it gets removed on unmount
     return () => {
       unsubscribe();
-      if (realmConn) {
+      if (realm) {
         // Unregister all realm listeners
-        realmConn.removeAllListeners();
+        realm.removeAllListeners();
       }
     };
   }, [navigation]);

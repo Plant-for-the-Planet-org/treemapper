@@ -59,7 +59,6 @@ export default async function updateLocalSpecies() {
         });
     } catch (err) {
       console.error(`Error at /utils/updateLocalSpecies, ${JSON.stringify(err)}`);
-      console.log(Object.keys(err));
     }
   }
 }

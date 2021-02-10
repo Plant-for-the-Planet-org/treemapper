@@ -2,7 +2,8 @@ import { bugsnag } from '../utils';
 import { LogLevels } from '../utils/constants';
 import { v4 as uuidv4 } from 'uuid';
 import { LogTypes } from '../utils/constants';
-import getRealmConnection from './default';
+import { getSchema } from './default';
+import Realm from 'realm';
 
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
@@ -14,7 +15,7 @@ import getRealmConnection from './default';
 const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           // defines and stores the log data which is to be added in DB
           let logData = {
@@ -75,17 +76,15 @@ const dbLog = {
 export const getLogs = (type) => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         if (type === 'all') {
           let logs = realm.objects('ActivityLogs');
           let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
           resolve(allLogs);
-          // console.log(allLogs, 'allLogs');
         } else if (type === 'error') {
           const allLogs = realm.objects('ActivityLogs');
           let errorLogs = allLogs.filtered('logLevel = "ERROR"');
           resolve(errorLogs);
-          // console.log(errorLogs, 'errorLogs');
         }
       });
     } catch (err) {
@@ -100,7 +99,7 @@ export const getLogs = (type) => {
 export const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           let logs = realm.objects('ActivityLogs');
           const currentDate = new Date();

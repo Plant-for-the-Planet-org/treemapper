@@ -11,7 +11,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
             isUserLogin ? resolve() : reject();
           })
           .catch((err) => {
-            alert(err.error_description);
+            reject(err);
           });
       } else {
         uploadInventory(dispatch)

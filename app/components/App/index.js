@@ -6,6 +6,7 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 import React from 'react';
+import { View, Text } from 'react-native';
 import Config from 'react-native-config';
 import 'react-native-gesture-handler';
 import {
@@ -34,6 +35,7 @@ import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
+import { migrateRealm } from '../../repositories/default';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -68,9 +70,20 @@ const MyTransition = {
   },
 };
 
+const MigratingDB = () => {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text>DB is migrating</Text>
+    </View>
+  );
+};
+
 const App = () => {
+  const [isDBMigrating, setIsDBMigrating] = React.useState(false);
+
   const checkIsUserLogin = async () => {
     const dbUserDetails = await getUserDetails();
+    console.log('dbUserDetails', dbUserDetails);
     if (dbUserDetails && dbUserDetails.refreshToken) {
       const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
       if (newAccessToken) {
@@ -81,54 +94,69 @@ const App = () => {
       }
     }
   };
+
   React.useEffect(() => {
-    checkIsUserLogin();
-    updateLocalSpecies();
-    dailyLogUpdateCheck();
+    migrateRealm((isMigrationRequired) => {
+      setIsDBMigrating(isMigrationRequired);
+    }).then(() => {
+      setIsDBMigrating(false);
+      checkIsUserLogin();
+      updateLocalSpecies();
+      dailyLogUpdateCheck();
+    });
   }, []);
+
   return (
     <Provider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="MainScreen" headerMode={'none'}>
-          <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
-          <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
-          <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
-          <Stack.Screen name="SelectProject" component={SelectProject} options={MyTransition} />
-          <Stack.Screen name="LocateTree" component={LocateTree} options={MyTransition} />
-          <Stack.Screen name="CreatePolygon" component={CreatePolygon} options={MyTransition} />
-          <Stack.Screen
-            name="InventoryOverview"
-            component={InventoryOverview}
-            options={MyTransition}
-          />
-          <Stack.Screen name="SavedAreas" component={SavedAreas} options={MyTransition} />
-          <Stack.Screen name="DownloadMap" component={DownloadMap} options={MyTransition} />
-          <Stack.Screen
-            name="RegisterSingleTree"
-            component={RegisterSingleTree}
-            options={MyTransition}
-          />
-          <Stack.Screen
-            name="SingleTreeOverview"
-            component={SingleTreeOverview}
-            options={MyTransition}
-          />
-          <Stack.Screen
-            name="SelectCoordinates"
-            component={SelectCoordinates}
-            options={MyTransition}
-          />
-          <Stack.Screen name="ManageUsers" component={ManageUsers} options={MyTransition} />
-          <Stack.Screen name="SignUp" component={SignUp} options={MyTransition} />
-          <Stack.Screen
-            name="UploadedInventory"
-            component={UploadedInventory}
-            options={MyTransition}
-          />
-          <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
-          <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
-          <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
-          <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
+        <Stack.Navigator
+          initialRouteName={isDBMigrating ? 'MigratingDB' : 'MainScreen'}
+          headerMode={'none'}>
+          {isDBMigrating ? (
+            <Stack.Screen name="MigratingDB" component={MigratingDB} options={MyTransition} />
+          ) : (
+            <>
+              <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
+              <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
+              <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
+              <Stack.Screen name="SelectProject" component={SelectProject} options={MyTransition} />
+              <Stack.Screen name="LocateTree" component={LocateTree} options={MyTransition} />
+              <Stack.Screen name="CreatePolygon" component={CreatePolygon} options={MyTransition} />
+              <Stack.Screen
+                name="InventoryOverview"
+                component={InventoryOverview}
+                options={MyTransition}
+              />
+              <Stack.Screen name="SavedAreas" component={SavedAreas} options={MyTransition} />
+              <Stack.Screen name="DownloadMap" component={DownloadMap} options={MyTransition} />
+              <Stack.Screen
+                name="RegisterSingleTree"
+                component={RegisterSingleTree}
+                options={MyTransition}
+              />
+              <Stack.Screen
+                name="SingleTreeOverview"
+                component={SingleTreeOverview}
+                options={MyTransition}
+              />
+              <Stack.Screen
+                name="SelectCoordinates"
+                component={SelectCoordinates}
+                options={MyTransition}
+              />
+              <Stack.Screen name="ManageUsers" component={ManageUsers} options={MyTransition} />
+              <Stack.Screen name="SignUp" component={SignUp} options={MyTransition} />
+              <Stack.Screen
+                name="UploadedInventory"
+                component={UploadedInventory}
+                options={MyTransition}
+              />
+              <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
+              <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
+              <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
+              <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
+            </>
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

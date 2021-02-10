@@ -78,15 +78,23 @@ export const auth0Login = (dispatch) => {
           });
       })
       .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.USER,
-          message: 'Error while logging in from auth0',
-          logStack: JSON.stringify(err),
-        });
-        bugsnag.notify(err);
-        // if any error is found then deletes the user and clear the user app state
-        deleteUser();
-        clearUserDetails()(dispatch);
+        if (err?.error !== 'a0.session.user_cancelled') {
+          dbLog.error({
+            logType: LogTypes.USER,
+            message: 'Error while logging in from auth0',
+            logStack: JSON.stringify(err),
+          });
+          bugsnag.notify(err);
+          // if any error is found then deletes the user and clear the user app state
+          deleteUser();
+          clearUserDetails()(dispatch);
+        } else {
+          dbLog.error({
+            logType: LogTypes.USER,
+            message: 'User cancelled auth0 login',
+            logStack: JSON.stringify(err),
+          });
+        }
         reject(err);
       });
   });

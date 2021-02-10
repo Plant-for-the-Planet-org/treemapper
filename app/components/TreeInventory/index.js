@@ -1,7 +1,7 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
@@ -59,7 +59,16 @@ const TreeInventory = ({ navigation }) => {
         console.log('upload inventory successfully');
       })
       .catch((err) => {
-        console.error(err);
+        if (err?.response?.status === 303) {
+          navigation.navigate('SignUp');
+        } else if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+        }
       });
     navigation.navigate('MainScreen');
   };

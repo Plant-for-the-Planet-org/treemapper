@@ -1,9 +1,9 @@
 import Config from 'react-native-config';
-
+import Realm from 'realm';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
-import getRealmConnection from './default';
+import { getSchema } from './default';
 
 export const getAreaName = ({ coords }) => {
   return new Promise((resolve, reject) => {
@@ -44,7 +44,7 @@ export const getAreaName = ({ coords }) => {
 export const getAllOfflineMaps = () => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         const offlineMaps = realm.objects('OfflineMaps');
         // logging the error in to the db
         dbLog.info({
@@ -69,7 +69,7 @@ export const getAllOfflineMaps = () => {
 export const deleteOfflineMap = ({ name }) => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
           realm.delete(offlineMaps);
@@ -97,7 +97,7 @@ export const deleteOfflineMap = ({ name }) => {
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           realm.create('OfflineMaps', {
             name: name,

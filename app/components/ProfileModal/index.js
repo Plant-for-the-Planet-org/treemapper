@@ -1,15 +1,10 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { getUserInformationFromServer } from '../../actions/user';
 import i18next from 'i18next';
-import { getUserDetails } from '../../repositories/user';
-import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
-import { setSpeciesList, getSpeciesList } from '../../actions/species';
-import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
 
 const ProfileModal = ({
@@ -20,29 +15,13 @@ const ProfileModal = ({
   userInfo,
   cdnUrls,
 }) => {
-  const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
-  const { dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
-  useEffect(() => {
-    userImage();
-  }, [isUserLogin]);
+
   useEffect(() => {
     setVisibility(isProfileModalVisible);
   }, [navigation, visibility]);
-  const userImage = () => {
-    getUserDetails().then((userDetails) => {
-      if (userDetails) {
-        let decode = jwtDecode(userDetails.idToken);
-        setUserPhoto(decode.picture);
-        getSpeciesList(userDetails.accessToken).then((data) => {
-          if (data) {
-            setSpeciesList(data)(speciesDispatch);
-          }
-        });
-      }
-    });
-  };
+
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org');
   };

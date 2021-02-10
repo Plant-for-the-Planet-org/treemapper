@@ -1,23 +1,25 @@
 import { bugsnag } from '../utils';
-
+import Realm from 'realm';
 import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
-import getRealmConnection from './default';
+import { getSchema } from './default';
 
 export const updateLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
-          for (const specie of speciesData) {
+          speciesData.forEach((specie, index) => {
             realm.create('ScientificSpecies', specie);
-          }
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: 'Successfully updated the Local Scientific species',
+            if (index === speciesData.length - 1) {
+              // logging the success in to the db
+              dbLog.info({
+                logType: LogTypes.MANAGE_SPECIES,
+                message: 'Successfully updated the Local Scientific species',
+              });
+              resolve(true);
+            }
           });
-          resolve(true);
         });
       });
     } catch (err) {
@@ -36,7 +38,7 @@ export const updateLocalSpecies = (speciesData) => {
 export const searchSpeciesFromLocal = (text) => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         let species = realm.objects('ScientificSpecies');
         let searchedSpecies = species.filtered(`scientific_name BEGINSWITH[c] '${text}'`);
         searchedSpecies = searchedSpecies.sorted('scientific_name');
@@ -65,7 +67,7 @@ export const searchSpeciesFromLocal = (text) => {
 export const toggleUserSpecies = (guid) => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
           specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
@@ -98,7 +100,7 @@ export const toggleUserSpecies = (guid) => {
 export const getUserSpecies = () => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         let species = realm.objects('ScientificSpecies');
         let userSpecies = species.filtered('isUserSpecies = true');
         userSpecies = userSpecies.sorted('scientific_name');

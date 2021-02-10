@@ -2,26 +2,26 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  TextInput,
-  View,
   Keyboard,
-  Text,
-  TouchableWithoutFeedback,
   SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import SearchSpecies from './SearchSpecies';
-import MySpecies from './MySpecies';
+import Realm from 'realm';
 import { Colors, Typography } from '_styles';
-// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
-import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
-import { Header } from '../Common';
-
-import { LogTypes } from '../../utils/constants';
+import { getSchema } from '../../repositories/default';
 import dbLog from '../../repositories/logs';
-import getRealmConnection from '../../repositories/default';
+// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
+import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { LogTypes } from '../../utils/constants';
+import { Header } from '../Common';
+import MySpecies from './MySpecies';
+import SearchSpecies from './SearchSpecies';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -91,7 +91,7 @@ const ManageSpecies = ({
   const toggleUserSpecies = (guid, add) => {
     return new Promise((resolve) => {
       try {
-        getRealmConnection().then((realm) => {
+        Realm.open(getSchema()).then((realm) => {
           realm.write(() => {
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (add) {

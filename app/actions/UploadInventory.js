@@ -78,7 +78,7 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
 
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
-    getUserToken.then((userToken) => {
+    getUserToken().then((userToken) => {
       try {
         // gets the current geo location coordinate of the user and passes the position forward
         Geolocation.getCurrentPosition(

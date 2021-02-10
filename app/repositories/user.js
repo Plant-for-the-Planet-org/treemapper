@@ -1,12 +1,13 @@
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
-import getRealmConnection from './default';
+import { getSchema } from './default';
+import Realm from 'realm';
 
 export const getUserToken = () => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         // Gets the user data from the DB
         const User = realm.objectForPrimaryKey('User', 'id0001');
         if (User) {
@@ -40,7 +41,7 @@ export const getUserToken = () => {
 export const isLogin = () => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         console.log('user login', User);
         if (User) {
@@ -58,11 +59,8 @@ export const isLogin = () => {
 export const getUserDetails = () => {
   return new Promise((resolve) => {
     try {
-      console.log('getUserDetails entered');
-      getRealmConnection().then((realm) => {
-        console.log('getUserDetails realm', realm);
+      Realm.open(getSchema()).then((realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
-        console.log('getUserDetails user', User);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,
@@ -89,8 +87,7 @@ export const getUserDetails = () => {
 export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken }) => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
-        console.log('createOrModifyUserToken realm', realm);
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           realm.create(
             'User',
@@ -131,7 +128,7 @@ export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken }) 
 export const deleteUser = () => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
           if (user) {
@@ -167,7 +164,7 @@ export const deleteUser = () => {
 export const modifyUserDetails = (userDetails) => {
   return new Promise((resolve) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         realm.write(() => {
           realm.create(
             'User',
@@ -202,7 +199,7 @@ export const modifyUserDetails = (userDetails) => {
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         if (User) {
           // logging the success in to the db
@@ -234,7 +231,7 @@ export const getUserInformation = () => {
 export const setActivityLog = (bool) => {
   return new Promise((resolve, reject) => {
     try {
-      getRealmConnection().then((realm) => {
+      Realm.open(getSchema()).then((realm) => {
         // const User = realm.objectForPrimaryKey('User', 'id0001');
         realm.write(() => {
           realm.create('User', { id: 'id0001', idLogEnabled: bool }, 'modified');
