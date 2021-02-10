@@ -21,6 +21,10 @@ const RegisterSingleTree = ({ navigation, route }) => {
     navigation.addListener('focus', () => {
       updateScreenState('MapMarking');
     });
+    // getInventory({inventoryState: inventoryID}).then((InventoryData) => {
+    //   // if (InventoryData.polygons[0])
+    //   console.log('-----------------InventoryData-----------------',InventoryData.species );
+    // });
     return () => BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
   }, []);
 

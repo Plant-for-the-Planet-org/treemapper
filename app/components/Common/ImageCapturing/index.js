@@ -12,6 +12,7 @@ import {
   insertImageAtIndexCoordinate,
   polygonUpdate,
   completePolygon,
+  updateLastScreen,
 } from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -143,6 +144,7 @@ const ImageCapturing = ({
             }
           });
         } else {
+          updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
           insertImageSingleRegisterTree(data).then(() => {
             navigation.navigate('SelectSpecies', {
               inventory: inventory,

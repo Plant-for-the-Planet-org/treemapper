@@ -8,7 +8,7 @@ import {
   User,
   AddSpecies,
   ScientificSpecies,
-  ActivityLogs
+  ActivityLogs,
 } from './schema';
 import { bugsnag } from '../utils';
 import { updateCount, setInventoryId } from '../actions/inventory';
@@ -28,7 +28,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -67,7 +67,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -106,7 +106,7 @@ export const getInventoryByStatus = (status) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -150,7 +150,7 @@ export const initiateInventory = ({ treeType }, dispatch) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -199,7 +199,7 @@ export const getInventory = ({ inventoryID }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -237,7 +237,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -291,7 +291,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -344,7 +344,7 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -385,7 +385,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -430,7 +430,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -478,7 +478,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -497,7 +497,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
             logType: LogTypes.INVENTORY,
             message: `Successfully updated last screen for inventory_id: ${inventory_id}`,
           });
-
+          console.log(`Successfully updated last screen for inventory_id: ${inventory_id}`);
           resolve();
         });
       })
@@ -525,7 +525,7 @@ export const clearAllIncompleteInventory = () => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -567,7 +567,7 @@ export const clearAllUploadedInventory = () => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -608,7 +608,7 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -651,7 +651,7 @@ export const removeLastCoord = ({ inventory_id }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -695,7 +695,7 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -736,7 +736,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -783,7 +783,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -855,7 +855,7 @@ export const addCoordinateSingleRegisterTree = ({
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -917,7 +917,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -957,7 +957,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -1004,7 +1004,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -1049,7 +1049,7 @@ export const polygonUpdate = ({ inventory_id }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {
@@ -1089,7 +1089,7 @@ export const completePolygon = ({ inventory_id }) => {
         User,
         AddSpecies,
         ScientificSpecies,
-        ActivityLogs
+        ActivityLogs,
       ],
     })
       .then((realm) => {

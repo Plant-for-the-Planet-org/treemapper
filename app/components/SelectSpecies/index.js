@@ -41,7 +41,7 @@ const SelectSpecies = ({
   const [diameter, setDiameter] = useState(null);
   const [height, setHeight] = useState(null);
   const navigation = useNavigation();
-  const [showSpecies, setShowSpecies] = useState(visible);
+  // const [showSpecies, setShowSpecies] = useState(visible);
   const [inventory, setInventory] = useState(null);
   const isFocused = useIsFocused();
   const [registrationType, setRegistrationType] = useState(null);
@@ -49,40 +49,41 @@ const SelectSpecies = ({
   const [index, setIndex] = useState(undefined);
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const { state: inventoryState } = useContext(InventoryContext);
 
   useEffect(() => {
-    let species;
-    let inventory;
-    if (route !== undefined) {
-      inventory = route.params.inventory;
-      species = route.params.inventory.species;
-    } else {
-      inventory = invent;
-      species = invent.species;
-    }
+    // let species;
+    // let inventory;
+    // if (route !== undefined) {
+    //   inventory = route.params.inventory;
+    //   species = route.params.inventory.species;
+    // } else {
+    //   inventory = invent;
+    //   species = invent.species;
+    // }
 
-    getAllSpecies().then((data) => {
-      if (data && species) {
-        for (const specie of species) {
-          data[specie.id].treeCount = specie.treeCount;
-        }
-        setMultipleTreesSpeciesList(data)(speciesDispatch);
-      }
-    });
-
-    setRegistrationType(inventory.tree_type);
-
+    // getAllSpecies().then((data) => {
+    //   if (data && species) {
+    //     for (const specie of species) {
+    //       data[specie.id].treeCount = specie.treeCount;
+    //     }
+    //     setMultipleTreesSpeciesList(data)(speciesDispatch);
+    //   }
+    // });
     Inventory();
+
+    // setRegistrationType(inventory.tree_type);
+
     Country();
   }, [navigation, isFocused]);
 
-  useEffect(() => {
-    if (route && route.params && route.params.visible) {
-      setShowSpecies(route.params.visible);
-    } else {
-      setShowSpecies(visible);
-    }
-  }, [visible, route, navigation]);
+  // useEffect(() => {
+  //   if (route && route.params && route.params.visible) {
+  //     setShowSpecies(route.params.visible);
+  //   } else {
+  //     setShowSpecies(visible);
+  //   }
+  // }, [visible, route, navigation]);
 
   useEffect(() => {
     setDiameter('');
@@ -214,7 +215,12 @@ const SelectSpecies = ({
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
               <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
-                <Header headingText={i18next.t('label.select_species_add_measurements')} />
+                <Header
+                  headingText={i18next.t('label.select_species_add_measurements')}
+                  onBackPress={() => {
+                    setIsShowTreeMeasurementModal(false);
+                  }}
+                />
               </View>
               <KeyboardAvoidingView
                 behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
@@ -305,7 +311,7 @@ const SelectSpecies = ({
         height: Math.round(data.height * 100) / 100,
       })
         .then(() => {
-          setShowSpecies(false);
+          // setShowSpecies(false);
           setIsShowTreeMeasurementModal(false);
           setDiameter('');
           setHeight('');
