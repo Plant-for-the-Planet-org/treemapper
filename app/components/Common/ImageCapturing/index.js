@@ -242,9 +242,9 @@ const ImageCapturing = ({
           style={styles.cameraIconContainer}
           accessibilityLabel={inventoryType === 'multiple' ? 'Camera' : 'Register Tree Camera'}
           testID={inventoryType === 'multiple' ? 'camera_icon' : 'register_tree_camera'}>
-          <View style={styles.cameraIconCont}>
+          {/* <View style={styles.cameraIconCont}>
             <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
-          </View>
+          </View> */}
         </TouchableOpacity>
       </View>
       <View
@@ -252,23 +252,30 @@ const ImageCapturing = ({
           styles.bottomBtnsContainer,
           inventoryType === 'single' ? { justifyContent: 'space-between' } : {},
         ]}>
-        {inventoryType === 'single' && (
+        {inventoryType === 'single' ? (
           <PrimaryButton
-            onPress={onBackPress}
-            btnText={i18next.t('label.back')}
-            theme={'white'}
-            halfWidth
+            onPress={onPressCamera}
+            // btnText={i18next.t('label.back')}
+            btnText={imagePath ? 'Reclick' : 'Click Picture'}
+            theme={imagePath ? 'white' : null}
+            halfWidth={imagePath}
           />
+        ) : (
+          []
         )}
-        <PrimaryButton
-          disabled={imagePath ? false : true}
-          onPress={
-            inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
-          }
-          btnText={i18next.t('label.continue')}
-          style={inventoryType === 'multiple' ? styles.bottomBtnsWidth : {}}
-          halfWidth={inventoryType === 'single'}
-        />
+        {imagePath ? (
+          <PrimaryButton
+            disabled={imagePath ? false : true}
+            onPress={
+              inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
+            }
+            btnText={i18next.t('label.continue')}
+            style={inventoryType === 'multiple' ? styles.bottomBtnsWidth : {}}
+            halfWidth={inventoryType === 'single'}
+          />
+        ) : (
+          []
+        )}
       </View>
       {inventoryType === 'multiple' && renderAlrightyModal()}
     </SafeAreaView>

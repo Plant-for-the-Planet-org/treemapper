@@ -14,7 +14,11 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const onPressInventory = (item) => {
     console.log('item.last_screen =>', item);
     setInventoryId(item.inventory_id)(dispatch);
-    navigation.navigate(item.last_screen);
+    if (item.status == 'pending') {
+      navigation.navigate('SingleTreeOverview');
+    } else {
+      navigation.navigate(item.last_screen);
+    }
   };
   return (
     <FlatList

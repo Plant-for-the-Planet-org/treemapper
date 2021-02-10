@@ -84,7 +84,7 @@ const SingleTreeOverview = ({ navigation }) => {
   }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
-    const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
+    const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
     // if (action === 'species' && specieEditText !== '') {
     //   setSpecieText(specieEditText);
     //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });

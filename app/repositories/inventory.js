@@ -497,7 +497,9 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
             logType: LogTypes.INVENTORY,
             message: `Successfully updated last screen for inventory_id: ${inventory_id}`,
           });
-          console.log(`Successfully updated last screen for inventory_id: ${inventory_id}`);
+          console.log(
+            `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
+          );
           resolve();
         });
       })
@@ -874,7 +876,7 @@ export const addCoordinateSingleRegisterTree = ({
               ],
             },
           ];
-          inventory.species_diameter = 10;
+          // inventory.species_diameter = 10;
           if (locateTree) {
             inventory.locate_tree = locateTree;
           }

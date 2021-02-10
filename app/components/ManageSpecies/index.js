@@ -182,11 +182,11 @@ const ManageSpecies = ({
               onChangeText={handleSpeciesSearch}
               value={searchText}
               returnKeyType={'search'}
+              autoCorrect={false}
             />
             {searchText ? (
               <TouchableOpacity
                 onPress={() => {
-                  console.log('in onpress');
                   setSearchText('');
                 }}>
                 <Ionicons name="md-close" size={20} style={styles.closeIcon} />
@@ -206,6 +206,7 @@ const ManageSpecies = ({
                 addSpecieNameToInventory={addSpecieNameToInventory}
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
+                clearSearchText={() => setSearchText('')}
               />
             ) : (
               <Text style={styles.notPresentText}>
