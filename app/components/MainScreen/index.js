@@ -90,7 +90,7 @@ const MainScreen = ({ navigation }) => {
     const userObject = realm.objects('User');
 
     // Define the collection notification listener
-    function listener(userObject, changes) {
+    function listener(userData, changes) {
       if (changes.deletions.length > 0) {
         setUserInfo({});
         setIsUserLogin(false);
@@ -98,14 +98,14 @@ const MainScreen = ({ navigation }) => {
       }
       // Update UI in response to inserted objects
       changes.insertions.forEach((index) => {
-        if (userObject[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userObject[index]);
+        if (userData[index].id === 'id0001') {
+          checkIsSignedInAndUpdate(userData[index]);
         }
       });
       // Update UI in response to modified objects
       changes.modifications.forEach((index) => {
-        if (userObject[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userObject[index]);
+        if (userData[index].id === 'id0001') {
+          checkIsSignedInAndUpdate(userData[index]);
         }
       });
     }
@@ -124,7 +124,7 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
-  let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
+  // let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
   const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
 

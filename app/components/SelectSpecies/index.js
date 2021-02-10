@@ -50,14 +50,14 @@ const SelectSpecies = ({
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
-    let species;
+    // let species;
     let inventory;
     if (route !== undefined) {
       inventory = route.params.inventory;
-      species = route.params.inventory.species;
+      // species = route.params.inventory.species;
     } else {
       inventory = invent;
-      species = invent.species;
+      // species = invent.species;
     }
 
     // TODO: Needs to be replaced with different function to get user species

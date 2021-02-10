@@ -266,7 +266,6 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
 export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
-    const { protocol, url } = APIConfig;
     axios
       .post(`${protocol}://${url}/app/profile`, payload)
       .then((res) => {
