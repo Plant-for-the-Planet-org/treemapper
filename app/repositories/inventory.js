@@ -62,6 +62,34 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
   });
 };
 
+export const updateTreeTag = ({ inventoryId, treeTag }) => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+          inventory.tree_tag = treeTag;
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Updated tree tag for inventory_id: ${inventoryId}`,
+          });
+          resolve();
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating tree tag for inventory_id: ${inventoryId}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
 export const getInventoryByStatus = (status) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
@@ -99,7 +127,7 @@ export const initiateInventory = ({ treeType }, dispatch) => {
             inventory_id: inventoryID,
             tree_type: treeType,
             status: INCOMPLETE_INVENTORY,
-            plantation_date: `${new Date().getTime()}`,
+            plantation_date: new Date(),
             last_screen: treeType === 'single' ? 'RegisterSingleTree' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
@@ -200,15 +228,16 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
+        let inventoryObject = {
+          inventory_id: `${inventory_id}`,
+          status,
+        };
+        // adds registration date if the status is pending
+        if (status === 'pending') {
+          inventoryObject.registration_date = new Date();
+        }
         realm.write(() => {
-          realm.create(
-            'Inventory',
-            {
-              inventory_id: `${inventory_id}`,
-              status,
-            },
-            'modified',
-          );
+          realm.create('Inventory', inventoryObject, 'modified');
 
           // logging the success in to the db
           dbLog.info({
@@ -238,13 +267,13 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
   });
 };
 
-export const updateSpecieName = ({ inventory_id, speciesText }) => {
+export const updateSingleTreeSpecie = ({ inventory_id, species }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.specei_name = speciesText;
+          inventory.species = species;
         });
         // logging the success in to the db
         dbLog.info({
@@ -432,20 +461,27 @@ export const clearAllUploadedInventory = () => {
   });
 };
 
-export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diameter, height }) => {
+export const updateSpecieAndMeasurements = ({
+  inventoryId,
+  species,
+  diameter,
+  height,
+  treeTag,
+}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
           inventory.species_diameter = Number(diameter);
           inventory.species_height = Number(height);
-          inventory.specei_name = specie_name;
+          inventory.species = species;
+          inventory.tree_tag = treeTag;
         });
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Successfully updated specie name, height and diameter for inventory_id: ${inventory_id}`,
+          message: `Successfully updated specie name, height and diameter for inventory_id: ${inventoryId}`,
         });
         resolve();
       })
@@ -453,7 +489,7 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while updating specie name, height and diameter for inventory_id: ${inventory_id}`,
+          message: `Error while updating specie name, height and diameter for inventory_id: ${inventoryId}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -639,7 +675,7 @@ export const addCoordinateSingleRegisterTree = ({
           if (locateTree) {
             inventory.locate_tree = locateTree;
           }
-          inventory.plantation_date = `${Date.now()}`;
+          inventory.plantation_date = new Date();
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,

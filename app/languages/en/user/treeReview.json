@@ -9,6 +9,8 @@
   "tree_review_specie": "SPECIES",
   "tree_review_unable": "Unable to identify",
   "tree_review_diameter_header": "DIAMETER (in cm)",
+  "tree_review_height_header": "HEIGHT (in m)",
+  "tree_review_tree_tag_header": "TREE TAG",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "PLANTATION DATE",

@@ -256,7 +256,7 @@ const InventoryOverview = ({ navigation }) => {
           maximumDate={new Date()}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          value={new Date(Number(inventory.plantation_date))}
+          value={inventory.plantation_date}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -269,10 +269,10 @@ const InventoryOverview = ({ navigation }) => {
 
   const onChangeDate = (event, selectedDate) => {
     setShowDate(false);
-    setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
+    setInventory({ ...inventory, plantation_date: selectedDate });
     updatePlantingDate({
       inventory_id: state.inventoryID,
-      plantation_date: `${selectedDate.getTime()}`,
+      plantation_date: selectedDate,
     });
   };
 
@@ -364,7 +364,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: new Date(Number(inventory.plantation_date)),
+                  date: inventory.plantation_date,
                 })}
                 onPressRightText={() => onPressDate(status)}
               />

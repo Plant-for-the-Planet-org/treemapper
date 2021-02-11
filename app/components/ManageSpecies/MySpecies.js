@@ -35,7 +35,7 @@ const MySpecies = ({
         }}
         onPress={() => {
           if (registrationType == 'single') {
-            addSpecieNameToInventory(item.scientific_name);
+            addSpecieNameToInventory(item);
             if (editOnlySpecieName) {
               onPressBack();
             } else {

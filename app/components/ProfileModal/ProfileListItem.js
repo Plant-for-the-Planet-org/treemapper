@@ -61,8 +61,8 @@ export default function ProfileListItem({
           onPressFunction
             ? onPressFunction
             : () => {
-                // toggleSwitch();
-              }
+              // toggleSwitch();
+            }
         }
         style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
         <Text style={styles.userName}>{i18next.t(`label.${text}`)}</Text>

@@ -110,7 +110,8 @@ export const uploadInventory = (dispatch) => {
               let coords = onePolygon.coordinates;
               coordinates = coords.map((x) => [x.longitude, x.latitude]);
               if (oneInventory.tree_type == 'single') {
-                species = [{ otherSpecies: String(oneInventory.specei_name), treeCount: 1 }];
+                species =
+                  oneInventory.species[0].id === 'unknown' ? null : oneInventory.species[0].id;
               } else {
                 species = oneInventory.species.map((x) => ({
                   otherSpecies: x.nameOfTree,
@@ -119,6 +120,7 @@ export const uploadInventory = (dispatch) => {
               }
               // prepares the body which is to be passed to api
               let body = {
+                type: oneInventory.tree_type,
                 captureMode: oneInventory.locate_tree,
                 deviceLocation: {
                   coordinates: [currentCoords.longitude, currentCoords.latitude],
@@ -128,11 +130,20 @@ export const uploadInventory = (dispatch) => {
                   type: coordinates.length > 1 ? 'Polygon' : 'Point',
                   coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
                 },
-                plantDate: new Date().toISOString(),
-                registrationDate: new Date().toISOString(),
+                plantDate: oneInventory.plantation_date.toISOString().split('T')[0],
+                registrationDate: oneInventory.registration_date.toISOString().split('T')[0],
                 plantProject: null,
-                plantedSpecies: species,
+                measurements: {
+                  height: oneInventory.species_height,
+                  width: oneInventory.species_diameter,
+                },
               };
+              if (species) {
+                body.species = species;
+              }
+              if (oneInventory.tree_tag) {
+                body.tag = oneInventory.tree_tag;
+              }
               await getSessionData()
                 .then(async (sessionData) => {
                   if (oneInventory.response !== null && oneInventory.status === 'uploading') {

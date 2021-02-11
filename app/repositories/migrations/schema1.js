@@ -23,7 +23,7 @@ const Species = {
   name: 'Species',
   properties: {
     aliases: 'string',
-    treeCount: 'string',
+    treeCount: 'int',
     id: 'string?',
   },
 };
@@ -42,7 +42,7 @@ const Inventory = {
   primaryKey: 'inventory_id',
   properties: {
     inventory_id: 'string',
-    plantation_date: 'string?',
+    plantation_date: 'date?',
     tree_type: 'string?',
     status: 'string?',
     project_id: 'string?',
@@ -55,6 +55,8 @@ const Inventory = {
     species_diameter: 'float?',
     species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     response: 'string?',
+    tree_tag: 'string?',
+    registration_date: 'date?',
   },
 };
 
