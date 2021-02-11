@@ -95,6 +95,10 @@ const SelectSpecies = ({
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
 
+      if (inventory.specei_name != null && inventory.species_diameter == null) {
+        setIsShowTreeMeasurementModal(true);
+        setSingleTree(inventory.specei_name);
+      }
       setRegistrationType(inventory.tree_type);
     });
   };
@@ -119,7 +123,7 @@ const SelectSpecies = ({
   };
 
   const onPressSaveBtn = (item) => {
-    setSingleTree(item);
+    setSingleTree(item.scientific_name);
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -135,11 +139,10 @@ const SelectSpecies = ({
   };
 
   const onPressContinue = () => {
-    console.log('onPressContinue called');
     let selectedSpeciesList = [];
     for (let i = 0; i < speciesState.multipleTreesSpecies.length; i++) {
       const oneSpecie = speciesState.multipleTreesSpecies[i];
-      console.log('oneSpecie', oneSpecie);
+
       if (oneSpecie.treeCount) {
         oneSpecie.id = i.toString();
         selectedSpeciesList.push(oneSpecie);
@@ -293,7 +296,7 @@ const SelectSpecies = ({
     );
   };
 
-  const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
+  const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
 
   const onPressSaveAndContinue = (data) => {
     if (
@@ -332,7 +335,7 @@ const SelectSpecies = ({
 
   const onPressMeasurementBtn = () => {
     let selected = {
-      aliases: singleTree.scientific_name,
+      aliases: singleTree,
       diameter: diameter,
       height: height,
     };
