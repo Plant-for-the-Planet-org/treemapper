@@ -51,7 +51,6 @@ const MainScreen = ({ navigation }) => {
     const unsubscribe = navigation.addListener('focus', async () => {
       getInventoryByStatus('all').then((data) => {
         let count = 0;
-        console.log('inventory data', data.length);
         for (const inventory of data) {
           if (inventory.status === 'pending' || inventory.status === 'uploading') {
             count++;
@@ -149,7 +148,7 @@ const MainScreen = ({ navigation }) => {
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
-              [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+              [{ text: 'OK' }],
               { cancelable: false },
             );
           }

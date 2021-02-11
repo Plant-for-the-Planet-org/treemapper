@@ -29,5 +29,9 @@
   "select_species_search_species": "Search species",
   "select_species_done": "Done",
   "select_species_add_name": "Add Name",
-  "select_species_my_species": "My Species"
+  "select_species_my_species": "My Species",
+  "select_species_diameter_more_than_error":"Diameter should be more than 0.1",
+  "select_species_height_more_than_error":"Height should be more than 0.1",
+  "select_species_diameter_invalid":"Diameter is invalid",
+  "select_species_height_invalid":"Height is invalid"
 }

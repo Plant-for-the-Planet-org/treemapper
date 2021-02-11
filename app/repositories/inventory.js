@@ -242,7 +242,6 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
-          console.log(inventory, 'Updated Inventory');
         });
         // logging the success in to the db
         dbLog.info({
@@ -335,7 +334,6 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
 };
 
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
-  console.log('updateLastScreen =>', last_screen, inventory_id);
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {

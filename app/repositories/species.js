@@ -71,9 +71,7 @@ export const toggleUserSpecies = (guid) => {
         realm.write(() => {
           let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
           specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-          console.log(
-            `Specie with guid ${guid} is toggled ${specieToToggle.isUserSpecies ? 'on' : 'off'}`,
-          );
+
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,

@@ -220,7 +220,6 @@ const SignUp = ({ navigation }) => {
 
     if (completeCheck) {
       startSignUpLoading()(loadingDispatch);
-      console.log('userData=>', userData);
       SignupService(userData, userDispatch)
         .then(() => {
           stopSignUpLoading()(loadingDispatch);
@@ -238,7 +237,6 @@ const SignUp = ({ navigation }) => {
   useEffect(() => {
     stopLoading()(loadingDispatch);
     getUserDetails().then((User) => {
-      console.log('usrerrrr =>', User);
       if (User) {
         let decode = jwtDecode(User.idToken);
         setAuthtAccessToken(User.accessToken);

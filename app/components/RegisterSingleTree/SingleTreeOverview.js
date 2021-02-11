@@ -66,16 +66,18 @@ const SingleTreeOverview = ({ navigation }) => {
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        setInventory(inventory);
-        setStatus(inventory.status);
-        setSpecieText(inventory.specei_name);
-        setLocateTree(inventory.locate_tree);
-        setRegistrationType(inventory.tree_type);
-        setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
-        setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
-        setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
-        setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
-        setPlantationDate(new Date(Number(inventory.plantation_date)));
+        if (inventory) {
+          setInventory(inventory);
+          setStatus(inventory.status);
+          setSpecieText(inventory.specei_name);
+          setLocateTree(inventory.locate_tree);
+          setRegistrationType(inventory.tree_type);
+          setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
+          setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
+          setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
+          setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
+          setPlantationDate(new Date(Number(inventory.plantation_date)));
+        }
       });
     });
     Country();
@@ -84,11 +86,6 @@ const SingleTreeOverview = ({ navigation }) => {
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
-    // if (action === 'species' && specieEditText !== '') {
-    //   setSpecieText(specieEditText);
-    //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
-    //   setIsOpenModal(false);
-    // } else
     if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
@@ -239,8 +236,12 @@ const SingleTreeOverview = ({ navigation }) => {
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    let shouldEdit =
-      inventory.status === INCOMPLETE_INVENTORY ? true : inventory.status == null ? true : false;
+    let shouldEdit;
+    if (inventory && (inventory.status === INCOMPLETE_INVENTORY || inventory.status == null)) {
+      shouldEdit = true;
+    } else {
+      shouldEdit = false;
+    }
     let detailHeaderStyle = !imageSource
       ? [styles.detailHeader, styles.defaulFontColor]
       : [styles.detailHeader];

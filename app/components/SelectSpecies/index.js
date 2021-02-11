@@ -2,7 +2,6 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -35,7 +34,7 @@ const SelectSpecies = ({
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpecie, setActiveSpecie] = useState(undefined);
-  const [singleTree, setSingleTree] = useState(null);
+  const [singleTreeSpecieName, setSingleTreeSpecieName] = useState(null);
   const [isShowTreeMeasurementModal, setIsShowTreeMeasurementModal] = useState(false);
   const [diameter, setDiameter] = useState(null);
   const [height, setHeight] = useState(null);
@@ -48,7 +47,8 @@ const SelectSpecies = ({
   const [index, setIndex] = useState(undefined);
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
-  const { state: inventoryState } = useContext(InventoryContext);
+  const [diameterError, setDiameterError] = useState('');
+  const [heightError, setHeightError] = useState('');
 
   useEffect(() => {
     // let species;
@@ -74,7 +74,14 @@ const SelectSpecies = ({
     // setRegistrationType(inventory.tree_type);
 
     Country();
-  }, [navigation, isFocused]);
+  }, []);
+
+  useEffect(() => {
+    if (isShowTreeMeasurementModal) {
+      setDiameterError('');
+      setHeightError('');
+    }
+  }, [isShowTreeMeasurementModal]);
 
   // useEffect(() => {
   //   if (route && route.params && route.params.visible) {
@@ -95,7 +102,7 @@ const SelectSpecies = ({
 
       if (inventory.specei_name != null && inventory.species_diameter == null) {
         setIsShowTreeMeasurementModal(true);
-        setSingleTree(inventory.specei_name);
+        setSingleTreeSpecieName(inventory.specei_name);
       }
       setRegistrationType(inventory.tree_type);
     });
@@ -121,7 +128,7 @@ const SelectSpecies = ({
   };
 
   const onPressSaveBtn = (item) => {
-    setSingleTree(item.scientific_name);
+    setSingleTreeSpecieName(item.scientific_name);
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -230,7 +237,11 @@ const SelectSpecies = ({
                   <View>
                     <View style={styles.inputBox}>
                       <View
-                        style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
                         <TextInput
                           value={diameter}
                           style={styles.input}
@@ -252,10 +263,15 @@ const SelectSpecies = ({
                         </Text>
                       </View>
                     </View>
+                    {diameterError ? <Text style={styles.errorText}>{diameterError}</Text> : []}
 
                     <View style={styles.inputBox}>
                       <View
-                        style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
                         <TextInput
                           value={height}
                           style={styles.input}
@@ -276,6 +292,7 @@ const SelectSpecies = ({
                         </Text>
                       </View>
                     </View>
+                    {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
                   </View>
 
                   <View>
@@ -296,23 +313,46 @@ const SelectSpecies = ({
 
   const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
 
-  const onPressSaveAndContinue = (data) => {
-    if (
-      data.diameter !== '' &&
-      data.height !== '' &&
-      Number(data.diameter) !== 0 &&
-      Number(data.height) !== 0 &&
-      dimensionRegex.test(data.diameter) &&
-      dimensionRegex.test(data.height)
-    ) {
+  const onPressMeasurementBtn = () => {
+    console.log('diameter', diameter);
+    console.log('height', height);
+    let isDiameterValid = false;
+    let isHeightValid = false;
+    // sets diameter error if diameter less than 0.1 or is invalid input
+    if (!diameter || Number(diameter) < 0.1) {
+      setDiameterError(i18next.t('label.select_species_diameter_more_than_error'));
+      isDiameterValid = false;
+    } else if (!dimensionRegex.test(diameter)) {
+      setDiameterError(i18next.t('label.select_species_diameter_invalid'));
+      isDiameterValid = false;
+    } else {
+      setDiameterError('');
+      isDiameterValid = true;
+    }
+
+    // sets height error if height less than 0.1 or is invalid input
+    if (!height || Number(height) < 0.1) {
+      setHeightError(i18next.t('label.select_species_height_more_than_error'));
+      isHeightValid = false;
+    } else if (!dimensionRegex.test(height)) {
+      setHeightError(i18next.t('label.select_species_height_invalid'));
+      isHeightValid = false;
+    } else {
+      setHeightError('');
+      isHeightValid = true;
+    }
+
+    // if all fields are valid then updates the specie data in DB
+    if (isDiameterValid && isHeightValid) {
+      setDiameterError('');
+      setHeightError('');
       updateSpecieAndSpecieDiameter({
         inventory_id: inventory.inventory_id,
-        specie_name: data.aliases,
-        diameter: Math.round(data.diameter * 100) / 100,
-        height: Math.round(data.height * 100) / 100,
+        specie_name: singleTreeSpecieName,
+        diameter: Math.round(diameter * 100) / 100,
+        height: Math.round(height * 100) / 100,
       })
         .then(() => {
-          // setShowSpecies(false);
           setIsShowTreeMeasurementModal(false);
           setDiameter('');
           setHeight('');
@@ -321,23 +361,7 @@ const SelectSpecies = ({
         .catch((err) => {
           console.error(err);
         });
-    } else {
-      Alert.alert(
-        i18next.t('label.select_species_error'),
-        i18next.t('label.select_species_enter_valid_input'),
-        [{ text: i18next.t('label.select_species_ok') }],
-        { cancelable: false },
-      );
     }
-  };
-
-  const onPressMeasurementBtn = () => {
-    let selected = {
-      aliases: singleTree,
-      diameter: diameter,
-      height: height,
-    };
-    onPressSaveAndContinue(selected);
   };
 
   const addSpecieNameToInventory = (specieName) => {
@@ -424,5 +448,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: Typography.FONT_SIZE_18,
     paddingLeft: 15,
+  },
+  errorText: {
+    color: Colors.ALERT,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });

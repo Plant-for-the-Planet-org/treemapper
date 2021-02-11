@@ -13,7 +13,6 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
-    console.log('item.last_screen =>', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE_INVENTORY) {
       navigation.navigate('SingleTreeOverview');
@@ -29,7 +28,6 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
       renderItem={({ item }) => {
         let imageURL;
         let isOffSitePoint = false;
-        console.log('item.polygons[0].coordinates', item.polygons[0].coordinates.length);
         if (
           item.polygons[0] &&
           item.polygons[0].coordinates &&

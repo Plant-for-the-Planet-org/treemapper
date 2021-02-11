@@ -35,7 +35,6 @@ export const auth0Login = (dispatch) => {
         { ephemeralSession: true },
       )
       .then((credentials) => {
-        console.log('\n\nloginData=>', credentials);
         // logs success info in DB
         dbLog.info({
           logType: LogTypes.USER,
@@ -213,7 +212,6 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
         },
       })
         .then((data) => {
-          console.log('data.data', data.data);
           // destructured and modified variable names which is used to set user state
           const {
             email,
@@ -308,7 +306,6 @@ export const SignupService = (payload, dispatch) => {
  * @param {string} language - used to call the config API based on the language of the app
  */
 export const getCdnUrls = (language = 'en') => {
-  //console.log(`${protocol}://${url}/public/v1.2/${language}/config`);
   return new Promise((resolve) => {
     axios
       .get(`${protocol}://${url}/public/v1.2/${language}/config`)

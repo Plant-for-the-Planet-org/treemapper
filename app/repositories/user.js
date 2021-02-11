@@ -43,7 +43,6 @@ export const isLogin = () => {
     Realm.open(getSchema())
       .then((realm) => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
-        console.log('user login', User);
         if (User) {
           resolve(true);
         } else {

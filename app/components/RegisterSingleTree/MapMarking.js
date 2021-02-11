@@ -53,7 +53,6 @@ class MapMarking extends React.Component {
       this.setState({ inventory: inventory });
       if (inventory.polygons.length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
-        console.log([longitude, latitude], 'lat-long');
         // this.onUpdateUserLocation([longitude, latitude]);
         this.setState({ markedCoords: [longitude, latitude] });
       }
@@ -87,9 +86,7 @@ class MapMarking extends React.Component {
     }
     if (!this.state.isInitial) {
       const currentCoords = [location.coords.longitude, location.coords.latitude];
-      // console.log(location, 'location');
       // const currentCoords = location;
-      // console.log(currentCoords);
       this.setState({ centerCoordinates: currentCoords, isInitial: true });
       this._camera.setCamera({
         centerCoordinate: currentCoords,
@@ -189,7 +186,6 @@ class MapMarking extends React.Component {
   onPressMyLocationIcon = () => {
     Geolocation.getCurrentPosition(
       (position) => {
-        console.log(position, 'position');
         this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
       },
       (err) => alert(err.message),

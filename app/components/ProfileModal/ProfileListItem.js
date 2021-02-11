@@ -18,13 +18,11 @@ export default function ProfileListItem({
   // useEffect(() => {
   //   getUserInformation().then((data) => {
   //     setIsEnabled(data.idLogEnabled);
-  //     console.log(data.idLogEnabled, 'data.idLogEnabled');
   //   });
   // }, []);
 
   // const toggleSwitch = () => {
   //   setIsEnabled((previousState) => !previousState);
-  //   console.log(!isEnabled);
   //   setActivityLog(!isEnabled);
   // };
 
@@ -63,8 +61,8 @@ export default function ProfileListItem({
           onPressFunction
             ? onPressFunction
             : () => {
-              // toggleSwitch();
-            }
+                // toggleSwitch();
+              }
         }
         style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
         <Text style={styles.userName}>{i18next.t(`label.${text}`)}</Text>
