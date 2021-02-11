@@ -12,7 +12,7 @@ import Realm from 'realm';
  * @param {object} param1 - required properties which is to be stored in db
  * @returns {boolean} - returns a promise with boolean value on whether the operation was successful or not.
  */
-const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
+const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack }) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -34,11 +34,11 @@ const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack 
               referenceId,
             };
           }
-          // checks if errorCode is present then adds it to logData
-          if (errorCode) {
+          // checks if statusCode is present then adds it to logData
+          if (statusCode) {
             logData = {
               ...logData,
-              errorCode,
+              statusCode: statusCode.toString(),
             };
           }
           // checks if logStack is present then adds it to logData

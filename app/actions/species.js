@@ -85,7 +85,7 @@ export const getSpeciesList = (userToken) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
-          statusCode: err.status,
+          statusCode: err?.response?.status,
         });
         resolve(false);
       });

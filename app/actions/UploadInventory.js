@@ -227,14 +227,15 @@ export const uploadInventory = (dispatch) => {
                       }
                       console.error(
                         `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
-                          err,
+                          err.response,
                         )}`,
                       );
                       dbLog.error({
                         logType: LogTypes.DATA_SYNC,
                         message:
                           'Error while add plant location, POST - /treemapper/plantLocations',
-                        logStack: JSON.stringify(err),
+                        statusCode: err?.response?.status,
+                        logStack: JSON.stringify(err.response),
                       });
                     }
                   }
@@ -245,12 +246,13 @@ export const uploadInventory = (dispatch) => {
                     reject(err);
                   }
                   console.error(
-                    `Error at: /action/upload, getSessionData -> ${JSON.stringify(err)}`,
+                    `Error at: /action/upload, getSessionData -> ${JSON.stringify(err.response)}`,
                   );
                   dbLog.error({
                     logType: LogTypes.DATA_SYNC,
                     message: 'Error while getting session data',
-                    logStack: JSON.stringify(err),
+                    statusCode: err?.response?.status,
+                    logStack: JSON.stringify(err.response),
                   });
                 });
             }
