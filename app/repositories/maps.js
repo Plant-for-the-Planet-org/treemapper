@@ -51,7 +51,7 @@ export const getAllOfflineMaps = () => {
           logType: LogTypes.MAPS,
           message: 'Fetched offline maps',
         });
-        resolve(JSON.parse(JSON.stringify(offlineMaps)));
+        resolve(offlineMaps);
       })
       .catch((err) => {
         // logging the error in to the db

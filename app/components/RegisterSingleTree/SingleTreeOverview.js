@@ -66,8 +66,6 @@ const SingleTreeOverview = ({ navigation }) => {
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        inventory.species = Object.values(inventory.species);
-        inventory.polygons = Object.values(inventory.polygons);
         setInventory(inventory);
         setStatus(inventory.status);
         setSpecieText(inventory.specei_name);
@@ -285,7 +283,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}

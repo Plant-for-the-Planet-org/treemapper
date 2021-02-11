@@ -55,8 +55,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
       setInventory(inventory);
     });
   };
@@ -76,7 +74,7 @@ const InventoryOverview = ({ navigation }) => {
                 rightText={''}
               />
               <FlatList
-                data={Object.values(item.coordinates)}
+                data={item.coordinates}
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
                     title: i18next.t('label.inventory_overview_title_coordinates', {
@@ -107,7 +105,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressViewLOC = (index) => {
-    let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index];
+    let selectedCoords = inventory.polygons[0].coordinates[index];
     let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
     setSelectedLOC(normalCoords);
     setLocationTitle(ALPHABETS[index]);
@@ -204,8 +202,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const onPressExportJSON = async () => {
     let exportGeoJSONFile = () => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
       if (inventory.polygons.length > 0) {
         let featureList = inventory.polygons.map((onePolygon) => {
           return {
@@ -213,7 +209,7 @@ const InventoryOverview = ({ navigation }) => {
             properties: {},
             geometry: {
               type: 'LineString',
-              coordinates: Object.values(onePolygon.coordinates).map((oneCoordinate) => [
+              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
                 oneCoordinate.longitude,
                 oneCoordinate.latitude,
               ]),
@@ -341,7 +337,7 @@ const InventoryOverview = ({ navigation }) => {
   let locationType;
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
     locationType = isSingleCoordinate
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');

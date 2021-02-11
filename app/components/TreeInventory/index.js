@@ -32,14 +32,14 @@ const TreeInventory = ({ navigation }) => {
 
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
-      setAllInventory(Object.values(allInventory));
+      setAllInventory(allInventory);
     });
   };
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
       getInventoryByStatus('all').then((allInventory) => {
-        setAllInventory(Object.values(allInventory));
+        setAllInventory(allInventory);
       });
     });
   };
@@ -186,8 +186,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
     </View>
   );
 };

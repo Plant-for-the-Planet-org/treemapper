@@ -51,13 +51,14 @@ const MainScreen = ({ navigation }) => {
     const unsubscribe = navigation.addListener('focus', async () => {
       getInventoryByStatus('all').then((data) => {
         let count = 0;
+        console.log('inventory data', data.length);
         for (const inventory of data) {
           if (inventory.status === 'pending' || inventory.status === 'uploading') {
             count++;
           }
         }
         updateCount({ type: 'pending', count })(dispatch);
-        setNumberOfInventory(data ? Object.values(data).length : 0);
+        setNumberOfInventory(data ? data.length : 0);
       });
 
       realm = await Realm.open(getSchema());

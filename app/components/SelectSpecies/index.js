@@ -91,7 +91,6 @@ const SelectSpecies = ({
 
   const Inventory = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      inventory.species = Object.values(inventory.species);
       setInventory(inventory);
 
       if (inventory.specei_name != null && inventory.species_diameter == null) {

@@ -29,7 +29,7 @@ const MultipleTrees = ({ navigation, route }) => {
     getInventory({ inventoryID: state.inventoryID }).then((data) => {
       if (data.plantation_date) {
         setPlantingDate(new Date(Number(data.plantation_date)));
-        setSpecies(Object.values(data.species));
+        setSpecies(data.species);
       }
     });
   };

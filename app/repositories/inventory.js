@@ -136,7 +136,7 @@ export const getInventory = ({ inventoryID }) => {
           logType: LogTypes.INVENTORY,
           message: `Fetched inventory with inventory_id: ${inventoryID}`,
         });
-        resolve(JSON.parse(JSON.stringify(inventory)));
+        resolve(inventory);
       })
       .catch((err) => {
         // logging the error in to the db
@@ -465,8 +465,8 @@ export const removeLastCoord = ({ inventory_id }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
-          let coords = Object.values(polygons[polygons.length - 1].coordinates);
+          let polygons = inventory.polygons;
+          let coords = polygons[polygons.length - 1].coordinates;
           coords = coords.slice(0, coords.length - 1);
           polygons[polygons.length - 1].coordinates = coords;
           inventory.polygons = polygons;
@@ -496,8 +496,8 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
     Realm.open(getSchema())
       .then((realm) => {
         let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-        let polygons = Object.values(inventory.polygons);
-        let coords = Object.values(polygons[0].coordinates);
+        let polygons = inventory.polygons;
+        let coords = polygons[0].coordinates;
         let coordsLength = coords.length;
         // logging the success in to the db
         dbLog.info({
@@ -524,11 +524,11 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          let polygons = Object.values(inventory.polygons);
+          let polygons = inventory.polygons;
           let polygonsTemp = [];
 
           polygonsTemp = polygons.map((onePolygon) => {
-            let coords = Object.values(onePolygon.coordinates);
+            let coords = onePolygon.coordinates;
             coords[index].imageUrl = imageUrl;
             return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords };
           });

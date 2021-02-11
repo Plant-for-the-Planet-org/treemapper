@@ -98,7 +98,6 @@ export const uploadInventory = (dispatch) => {
             let inventoryData = [...pendingInventory, ...uploadingInventory];
             let coordinates = [];
             let species = [];
-            inventoryData = Object.values(inventoryData);
             // updates the count of inventories that is going to be uploaded
             updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
             // changes the status of isUploading to true, to show that data started to sync
@@ -106,14 +105,14 @@ export const uploadInventory = (dispatch) => {
             // loops through the inventory data to upload the data and then the images of the same synchronously
             for (let i = 0; i < inventoryData.length; i++) {
               const oneInventory = inventoryData[i];
-              let polygons = Object.values(oneInventory.polygons);
+              let polygons = oneInventory.polygons;
               const onePolygon = polygons[0];
-              let coords = Object.values(onePolygon.coordinates);
+              let coords = onePolygon.coordinates;
               coordinates = coords.map((x) => [x.longitude, x.latitude]);
               if (oneInventory.tree_type == 'single') {
                 species = [{ otherSpecies: String(oneInventory.specei_name), treeCount: 1 }];
               } else {
-                species = Object.values(oneInventory.species).map((x) => ({
+                species = oneInventory.species.map((x) => ({
                   otherSpecies: x.nameOfTree,
                   treeCount: Number(x.treeCount),
                 }));
@@ -263,7 +262,7 @@ export const uploadInventory = (dispatch) => {
 
 const uploadImage = async (oneInventory, response, userToken, sessionId) => {
   let locationId = response.id;
-  let coordinatesList = Object.values(oneInventory.polygons[0].coordinates);
+  let coordinatesList = oneInventory.polygons[0].coordinates;
   let responseCoords = response.coordinates;
   let completedUploadCount = 0;
   for (let i = 0; i < responseCoords.length; i++) {

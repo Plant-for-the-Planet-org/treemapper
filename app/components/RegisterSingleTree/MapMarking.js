@@ -50,9 +50,8 @@ class MapMarking extends React.Component {
   componentDidMount() {
     const { inventoryID } = this.props;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
-      inventory.species = Object.values(inventory.species);
       this.setState({ inventory: inventory });
-      if (Object.keys(inventory.polygons).length !== 0) {
+      if (inventory.polygons.length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
         console.log([longitude, latitude], 'lat-long');
         // this.onUpdateUserLocation([longitude, latitude]);

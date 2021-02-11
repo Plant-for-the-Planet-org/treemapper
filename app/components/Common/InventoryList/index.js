@@ -29,13 +29,14 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
       renderItem={({ item }) => {
         let imageURL;
         let isOffSitePoint = false;
+        console.log('item.polygons[0].coordinates', item.polygons[0].coordinates.length);
         if (
           item.polygons[0] &&
           item.polygons[0].coordinates &&
-          Object.values(item.polygons[0].coordinates).length
+          item.polygons[0].coordinates.length
         ) {
           imageURL = item.polygons[0].coordinates[0].imageUrl;
-          isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1;
+          isOffSitePoint = item.polygons[0].coordinates.length === 1;
         }
         let locateTreeAndType = '';
         let title = '';
@@ -51,7 +52,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
           locateTreeAndType += ' - ' + i18next.t('label.tree_inventory_point');
         } else {
           let totalTreeCount = 0;
-          let species = Object.values(item.species);
+          let species = item.species;
 
           for (let i = 0; i < species.length; i++) {
             const oneSpecies = species[i];
@@ -84,8 +85,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
                 inventoryStatus === INCOMPLETE_INVENTORY
                   ? null
                   : inventoryStatus === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
               inventoryStatus={inventoryStatus}
