@@ -6,8 +6,8 @@ import { getSchema } from './default';
 
 export const updateLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           speciesData.forEach((specie, index) => {
             realm.create('ScientificSpecies', specie);
@@ -21,24 +21,24 @@ export const updateLocalSpecies = (speciesData) => {
             }
           });
         });
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while updating the Local Scientific species',
+          logStack: JSON.stringify(err),
+        });
+        reject(false);
+        console.error(`Error at /repositories/species/updateLocalSpecies, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      dbLog.error({
-        logType: LogTypes.MANAGE_SPECIES,
-        message: 'Error while updating the Local Scientific species',
-        logStack: JSON.stringify(err),
-      });
-      reject(false);
-      console.error(`Error at /repositories/species/updateLocalSpecies, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const searchSpeciesFromLocal = (text) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         let species = realm.objects('ScientificSpecies');
         let searchedSpecies = species.filtered(`scientific_name BEGINSWITH[c] '${text}'`);
         searchedSpecies = searchedSpecies.sorted('scientific_name');
@@ -48,26 +48,26 @@ export const searchSpeciesFromLocal = (text) => {
           message: 'Searching with Local Scientific species',
         });
         resolve(searchedSpecies);
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while searching with Local Scientific species',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        console.error(
+          `Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`,
+        );
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      dbLog.error({
-        logType: LogTypes.MANAGE_SPECIES,
-        message: 'Error while searching with Local Scientific species',
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      console.error(
-        `Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`,
-      );
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const toggleUserSpecies = (guid) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
           specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
@@ -83,24 +83,24 @@ export const toggleUserSpecies = (guid) => {
           });
         });
         resolve();
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Error while modifying user specie with id ${guid}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        console.error(`Error at /repositories/species/toggleUserSpecies, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      dbLog.error({
-        logType: LogTypes.MANAGE_SPECIES,
-        message: `Error while modifying user specie with id ${guid}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      console.error(`Error at /repositories/species/toggleUserSpecies, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const getUserSpecies = () => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         let species = realm.objects('ScientificSpecies');
         let userSpecies = species.filtered('isUserSpecies = true');
         userSpecies = userSpecies.sorted('scientific_name');
@@ -110,16 +110,16 @@ export const getUserSpecies = () => {
           message: 'Retrieved User Species from Local',
         });
         resolve(userSpecies);
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while retrieving User Species from Local',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        console.error(`Error at /repositories/species/getUserSpecies, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      dbLog.error({
-        logType: LogTypes.MANAGE_SPECIES,
-        message: 'Error while retrieving User Species from Local',
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      console.error(`Error at /repositories/species/getUserSpecies, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-    }
   });
 };

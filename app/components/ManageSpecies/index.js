@@ -87,8 +87,8 @@ const ManageSpecies = ({
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid, add) => {
     return new Promise((resolve) => {
-      try {
-        Realm.open(getSchema()).then((realm) => {
+      Realm.open(getSchema())
+        .then((realm) => {
           realm.write(() => {
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (add) {
@@ -111,16 +111,16 @@ const ManageSpecies = ({
             });
           });
           resolve();
+        })
+        .catch((err) => {
+          console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+          // logging the error in to the db
+          dbLog.error({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
+            logStack: JSON.stringify(err),
+          });
         });
-      } catch (err) {
-        console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
-        // logging the error in to the db
-        dbLog.error({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
-          logStack: JSON.stringify(err),
-        });
-      }
     });
   };
 

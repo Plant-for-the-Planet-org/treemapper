@@ -14,8 +14,8 @@ import Realm from 'realm';
  */
 const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           // defines and stores the log data which is to be added in DB
           let logData = {
@@ -51,13 +51,13 @@ const logToDB = (logLevel, { referenceId, logType, message, errorCode, logStack 
           // create log in ActivityLogs using logData which is passed
           realm.create('ActivityLogs', logData);
         });
+        resolve(true);
+      })
+      .catch((err) => {
+        console.error(`Error while creating log, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+        resolve(false);
       });
-      resolve(true);
-    } catch (err) {
-      console.error(`Error while creating log, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
@@ -75,8 +75,8 @@ const dbLog = {
  */
 export const getLogs = (type) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         if (type === 'all') {
           let logs = realm.objects('ActivityLogs');
           let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
@@ -86,20 +86,20 @@ export const getLogs = (type) => {
           let errorLogs = allLogs.filtered('logLevel = "ERROR"');
           resolve(errorLogs);
         }
+      })
+      .catch((err) => {
+        console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 //Deleting older logs
 export const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let logs = realm.objects('ActivityLogs');
           const currentDate = new Date();
@@ -129,17 +129,17 @@ export const deleteOldLogs = () => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logs the error
+        console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.ERROR,
+          message: 'Failed to delete older logs',
+        });
+        reject(err);
       });
-    } catch (err) {
-      // logs the error
-      console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
-      // logs the error of the failed request in DB
-      dbLog.error({
-        logType: LogTypes.ERROR,
-        message: 'Failed to delete older logs',
-      });
-      reject(err);
-    }
   });
 };
 

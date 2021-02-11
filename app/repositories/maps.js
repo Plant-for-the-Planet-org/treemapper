@@ -43,8 +43,8 @@ export const getAreaName = ({ coords }) => {
 
 export const getAllOfflineMaps = () => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         const offlineMaps = realm.objects('OfflineMaps');
         // logging the error in to the db
         dbLog.info({
@@ -52,24 +52,24 @@ export const getAllOfflineMaps = () => {
           message: 'Fetched offline maps',
         });
         resolve(JSON.parse(JSON.stringify(offlineMaps)));
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MAPS,
+          message: 'Error while fetching the offline maps',
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.MAPS,
-        message: 'Error while fetching the offline maps',
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const deleteOfflineMap = ({ name }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
           realm.delete(offlineMaps);
@@ -80,24 +80,24 @@ export const deleteOfflineMap = ({ name }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MAPS,
+          message: 'Error while deleting offline maps',
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.MAPS,
-        message: 'Error while deleting offline maps',
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create('OfflineMaps', {
             name: name,
@@ -115,16 +115,16 @@ export const createOfflineMap = ({ name, size, areaName }) => {
           });
           resolve(name);
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MAPS,
+          message: `Error while creating offline map for area: ${areaName}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.MAPS,
-        message: `Error while creating offline map for area: ${areaName}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };
