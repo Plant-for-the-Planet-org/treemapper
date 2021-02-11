@@ -77,7 +77,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
-              inventoryType={'pending'}
+              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -101,7 +101,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
-              inventoryType={'incomplete'}
+              inventoryStatus={INCOMPLETE_INVENTORY}
             />
           </>
         )}

@@ -94,7 +94,7 @@ const SelectSpecies = ({
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
-      console.log(inventory, 'inventory');
+
       if (inventory.specei_name != null && inventory.species_diameter == null) {
         setIsShowTreeMeasurementModal(true);
         setSingleTree(inventory.specei_name);
@@ -139,11 +139,10 @@ const SelectSpecies = ({
   };
 
   const onPressContinue = () => {
-    console.log('onPressContinue called');
     let selectedSpeciesList = [];
     for (let i = 0; i < speciesState.multipleTreesSpecies.length; i++) {
       const oneSpecie = speciesState.multipleTreesSpecies[i];
-      console.log('oneSpecie', oneSpecie);
+
       if (oneSpecie.treeCount) {
         oneSpecie.id = i.toString();
         selectedSpeciesList.push(oneSpecie);

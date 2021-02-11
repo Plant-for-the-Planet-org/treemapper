@@ -255,7 +255,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status and response for inventory_id: ${inventory_id}`,
+            message: `Successfully updated status and response for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -308,7 +308,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status for inventory_id: ${inventory_id}`,
+            message: `Successfully updated status for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -495,11 +495,8 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated last screen for inventory_id: ${inventory_id}`,
+            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
           });
-          console.log(
-            `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
-          );
           resolve();
         });
       })
@@ -619,7 +616,6 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
           inventory.species_diameter = Number(diameter);
           inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
-          console.log('updateSpecieAndSpecieDiameter', inventory);
         });
         // logging the success in to the db
         dbLog.info({

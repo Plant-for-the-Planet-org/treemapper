@@ -81,6 +81,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
     });
     Country();
+    return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
@@ -115,13 +116,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
-      console.log('Something wrong!');
-      Alert.alert(
-        'Error',
-        'Please Enter Valid Input',
-        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        { cancelable: false },
-      );
+      Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
     setEditEnable('');
@@ -202,7 +197,7 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const renderDateModal = () => {
-    const onChangeDate = (e, selectedDate) => {
+    const onChangeDate = (selectedDate) => {
       updatePlantingDate({
         inventory_id: inventoryState.inventoryID,
         plantation_date: `${selectedDate.getTime()}`,
@@ -210,7 +205,7 @@ const SingleTreeOverview = ({ navigation }) => {
       setIsShowDate(false);
       setPlantationDate(selectedDate);
     };
-    const handleConfirm = (data) => onChangeDate(null, data);
+    const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
     return (
@@ -230,7 +225,9 @@ const SingleTreeOverview = ({ navigation }) => {
       )
     );
   };
+
   let filePath, imageSource;
+
   if (inventory) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
@@ -238,6 +235,7 @@ const SingleTreeOverview = ({ navigation }) => {
       ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
       : false;
   }
+
   const renderDetails = ({ polygons }) => {
     let coords;
     if (polygons[0]) {
@@ -366,28 +364,6 @@ const SingleTreeOverview = ({ navigation }) => {
     } else {
       navigation.goBack('TreeInventory');
     }
-  };
-
-  const onBackPress = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
-      navigation.navigate('RegisterSingleTree', { isEdit: true });
-    } else {
-      goBack();
-    }
-  };
-
-  const onBackPressOnSite = () => {
-    navigation.navigate('TreeInventory');
-    // setIsShowSpeciesListModal(true);
-    // if (direction){
-    //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
-    // }else {
-    // navigation.goBack();
-    // }
-  };
-
-  const goBack = () => {
-    navigation.goBack();
   };
 
   const handleDeleteInventory = () => {
