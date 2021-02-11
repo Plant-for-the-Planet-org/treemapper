@@ -314,8 +314,6 @@ const SelectSpecies = ({
   const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
 
   const onPressMeasurementBtn = () => {
-    console.log('diameter', diameter);
-    console.log('height', height);
     let isDiameterValid = false;
     let isHeightValid = false;
     // sets diameter error if diameter less than 0.1 or is invalid input

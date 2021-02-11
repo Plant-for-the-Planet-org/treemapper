@@ -136,7 +136,10 @@ export const getInventory = ({ inventoryID }) => {
           logType: LogTypes.INVENTORY,
           message: `Fetched inventory with inventory_id: ${inventoryID}`,
         });
-        resolve(inventory);
+        // by doing stringify and parsing of inventory result it removes the
+        // reference of realm type Inventory from the result this helps to
+        // avoid any conflicts when data is modified outside the realm scope
+        resolve(JSON.parse(JSON.stringify(inventory)));
       })
       .catch((err) => {
         // logging the error in to the db
@@ -270,7 +273,9 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          console.log('inventory delete', inventory);
           realm.delete(inventory);
+          setInventoryId('')(dispatch);
         });
 
         // logging the success in to the db

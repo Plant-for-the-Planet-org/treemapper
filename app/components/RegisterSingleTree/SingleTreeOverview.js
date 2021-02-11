@@ -66,18 +66,16 @@ const SingleTreeOverview = ({ navigation }) => {
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        if (inventory) {
-          setInventory(inventory);
-          setStatus(inventory.status);
-          setSpecieText(inventory.specei_name);
-          setLocateTree(inventory.locate_tree);
-          setRegistrationType(inventory.tree_type);
-          setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
-          setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
-          setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
-          setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
-          setPlantationDate(new Date(Number(inventory.plantation_date)));
-        }
+        setInventory(inventory);
+        setStatus(inventory.status);
+        setSpecieText(inventory.specei_name);
+        setLocateTree(inventory.locate_tree);
+        setRegistrationType(inventory.tree_type);
+        setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
+        setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
+        setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
+        setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
+        setPlantationDate(new Date(Number(inventory.plantation_date)));
       });
     });
     Country();
@@ -284,7 +282,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -391,26 +389,8 @@ const SingleTreeOverview = ({ navigation }) => {
       {renderDateModal()}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {locateTree === 'on-site' ? (
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
-              <Header
-                closeIcon
-                onBackPress={onPressSave}
-                headingText={i18next.t('label.tree_review_header')}
-              />
-              <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
-                <Text
-                  style={{
-                    fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    fontSize: Typography.FONT_SIZE_18,
-                    lineHeight: Typography.LINE_HEIGHT_24,
-                  }}>
-                  {i18next.t('label.tree_review_delete')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
             <Header
               closeIcon
               onBackPress={onPressSave}
@@ -418,7 +398,17 @@ const SingleTreeOverview = ({ navigation }) => {
                 locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
               }
             />
-          )}
+            <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
+              <Text
+                style={{
+                  fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  fontSize: Typography.FONT_SIZE_18,
+                  lineHeight: Typography.LINE_HEIGHT_24,
+                }}>
+                {i18next.t('label.tree_review_delete')}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.scrollViewContainer}>
             {inventory && locateTree !== 'on-site' && (

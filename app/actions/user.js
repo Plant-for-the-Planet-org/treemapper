@@ -88,7 +88,7 @@ export const auth0Login = (dispatch) => {
           deleteUser();
           clearUserDetails()(dispatch);
         } else {
-          dbLog.error({
+          dbLog.info({
             logType: LogTypes.USER,
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
@@ -125,14 +125,22 @@ export const auth0Logout = (userDispatch = null) => {
         resolve(true);
       })
       .catch((err) => {
-        console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
-        dbLog.error({
-          logType: LogTypes.USER,
-          message: 'Error while Logging Out',
-          logStack: JSON.stringify(err),
-        });
-        bugsnag.notify(err);
-        resolve(false);
+        if (err?.error !== 'a0.session.user_cancelled') {
+          console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
+          dbLog.error({
+            logType: LogTypes.USER,
+            message: 'Error while Logging Out',
+            logStack: JSON.stringify(err),
+          });
+          bugsnag.notify(err);
+          resolve(false);
+        } else {
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'User cancelled auth0 login',
+            logStack: JSON.stringify(err),
+          });
+        }
       });
   });
 };

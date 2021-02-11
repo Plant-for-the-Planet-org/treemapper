@@ -67,6 +67,7 @@ const ImageCapturing = ({
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
+        console.log('inventory data', inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
