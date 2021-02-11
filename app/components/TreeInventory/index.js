@@ -88,6 +88,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
+              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -111,6 +112,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
+              inventoryStatus={INCOMPLETE_INVENTORY}
             />
           </>
         )}
@@ -140,7 +142,7 @@ const TreeInventory = ({ navigation }) => {
           style={{ marginHorizontal: 25 }}
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
-        <View style={styles.parimaryBtnCont}>
+        <View style={styles.primaryBtnCont}>
           {uploadedInventory.length > 0 && (
             <PrimaryButton
               onPress={() => navigation.navigate('UploadedInventory')}
@@ -206,7 +208,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
     bottom: -10,
   },
-  parimaryBtnCont: {
+  primaryBtnCont: {
     position: 'absolute',
     width: '100%',
     justifyContent: 'center',

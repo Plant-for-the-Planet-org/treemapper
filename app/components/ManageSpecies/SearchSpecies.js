@@ -3,7 +3,17 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
 
-const SearchSpecies = ({ searchList, toggleUserSpecies, registrationType, onPressSpeciesSingle, onPressSpeciesMultiple, addSpecieNameToInventory, editOnlySpecieName, onPressBack}) => {
+const SearchSpecies = ({
+  searchList,
+  toggleUserSpecies,
+  registrationType,
+  onPressSpeciesSingle,
+  onPressSpeciesMultiple,
+  addSpecieNameToInventory,
+  editOnlySpecieName,
+  onPressBack,
+  clearSearchText,
+}) => {
   const renderSearchSpecieCard = ({ item, index }) => {
     const isCheck = item.isUserSpecies;
 
@@ -30,7 +40,6 @@ const SearchSpecies = ({ searchList, toggleUserSpecies, registrationType, onPres
               color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
             />
           </TouchableOpacity>
-          
         </>
       );
     };
@@ -43,9 +52,10 @@ const SearchSpecies = ({ searchList, toggleUserSpecies, registrationType, onPres
           if (registrationType == 'single') {
             addSpecieNameToInventory(item.scientific_name);
             toggleUserSpecies(item.guid, 'add');
-            if (editOnlySpecieName){
+            clearSearchText();
+            if (editOnlySpecieName) {
               onPressBack();
-            } else{
+            } else {
               onPressSpeciesSingle(item);
             }
           } else if (registrationType == 'multiple') {

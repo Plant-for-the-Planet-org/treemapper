@@ -17,7 +17,7 @@ import {
 import Config from 'react-native-config';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '_styles';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
@@ -33,7 +33,7 @@ class MapMarking extends React.Component {
   state = {
     isAlrightyModalShow: false,
     centerCoordinates: [0, 0],
-    activePolygonIndex: 0,
+    // activePolygonIndex: 0,
     loader: false,
     markedCoords: null,
     locateTree: 'on-site',
@@ -54,6 +54,8 @@ class MapMarking extends React.Component {
       this.setState({ inventory: inventory });
       if (Object.keys(inventory.polygons).length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
+        console.log([longitude, latitude], 'lat-long');
+        // this.onUpdateUserLocation([longitude, latitude]);
         this.setState({ markedCoords: [longitude, latitude] });
       }
     });
@@ -63,11 +65,11 @@ class MapMarking extends React.Component {
     return (
       <View style={styles.fakeMarkerCont}>
         <SvgXml xml={active_marker} style={styles.markerImage} />
-        {this.state.loader ? (
+        {/* {this.state.loader ? (
           <ActivityIndicator color={Colors.WHITE} style={styles.loader} />
         ) : (
           <Text style={styles.activeMarkerLocation}>{'A'}</Text>
-        )}
+        )} */}
       </View>
     );
   };
@@ -86,6 +88,9 @@ class MapMarking extends React.Component {
     }
     if (!this.state.isInitial) {
       const currentCoords = [location.coords.longitude, location.coords.latitude];
+      // console.log(location, 'location');
+      // const currentCoords = location;
+      // console.log(currentCoords);
       this.setState({ centerCoordinates: currentCoords, isInitial: true });
       this._camera.setCamera({
         centerCoordinate: currentCoords,
@@ -144,9 +149,9 @@ class MapMarking extends React.Component {
           key={'markerCoordskey'}
           id={'markerCoordsid'}
           coordinate={markedCoords}>
-          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+          {/* <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
             <Text style={styles.markerText}>{'A'}</Text>
-          </ImageBackground>
+          </ImageBackground> */}
         </MapboxGL.PointAnnotation>
       )
     );
@@ -160,7 +165,7 @@ class MapMarking extends React.Component {
         ref={(ref) => (this._map = ref)}
         onRegionWillChange={this.onChangeRegionStart}
         onRegionDidChange={this.onChangeRegionComplete}>
-        {this.renderMarker()}
+        {/* {this.renderMarker()} */}
         <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
         <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
       </MapboxGL.MapView>
@@ -176,7 +181,7 @@ class MapMarking extends React.Component {
         accessible={true}
         testID="register_tree_camera">
         <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
-          <Ionicons name={'md-locate'} size={22} />
+          <Icon name={'my-location'} size={22} />
         </View>
       </TouchableOpacity>
     );
@@ -185,6 +190,7 @@ class MapMarking extends React.Component {
   onPressMyLocationIcon = () => {
     Geolocation.getCurrentPosition(
       (position) => {
+        console.log(position, 'position');
         this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
       },
       (err) => alert(err.message),

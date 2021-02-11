@@ -20,7 +20,7 @@ const MySpecies = ({
 }) => {
   const navigation = useNavigation();
 
-  console.log('specieList =>', specieList);
+  // console.log('specieList =>', specieList);
 
   const renderSpecieCard = ({ item, index }) => {
     return (

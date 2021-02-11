@@ -81,10 +81,11 @@ const SingleTreeOverview = ({ navigation }) => {
       });
     });
     Country();
+    return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
-    const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
+    const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
     // if (action === 'species' && specieEditText !== '') {
     //   setSpecieText(specieEditText);
     //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
@@ -115,13 +116,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
-      console.log('Something wrong!');
-      Alert.alert(
-        'Error',
-        'Please Enter Valid Input',
-        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        { cancelable: false },
-      );
+      Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
     setEditEnable('');
@@ -202,7 +197,7 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const renderDateModal = () => {
-    const onChangeDate = (e, selectedDate) => {
+    const onChangeDate = (selectedDate) => {
       updatePlantingDate({
         inventory_id: inventoryState.inventoryID,
         plantation_date: `${selectedDate.getTime()}`,
@@ -210,7 +205,7 @@ const SingleTreeOverview = ({ navigation }) => {
       setIsShowDate(false);
       setPlantationDate(selectedDate);
     };
-    const handleConfirm = (data) => onChangeDate(null, data);
+    const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
     return (
@@ -230,7 +225,9 @@ const SingleTreeOverview = ({ navigation }) => {
       )
     );
   };
+
   let filePath, imageSource;
+
   if (inventory) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
@@ -238,6 +235,7 @@ const SingleTreeOverview = ({ navigation }) => {
       ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
       : false;
   }
+
   const renderDetails = ({ polygons }) => {
     let coords;
     if (polygons[0]) {
@@ -368,28 +366,6 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
-  const onBackPress = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
-      navigation.navigate('RegisterSingleTree', { isEdit: true });
-    } else {
-      goBack();
-    }
-  };
-
-  const onBackPressOnSite = () => {
-    navigation.navigate('TreeInventory');
-    // setIsShowSpeciesListModal(true);
-    // if (direction){
-    //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
-    // }else {
-    // navigation.goBack();
-    // }
-  };
-
-  const goBack = () => {
-    navigation.goBack();
-  };
-
   const handleDeleteInventory = () => {
     deleteInventory(
       { inventory_id: inventory.inventory_id },
@@ -421,7 +397,7 @@ const SingleTreeOverview = ({ navigation }) => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
               <Header
                 closeIcon
-                onBackPress={onBackPressOnSite}
+                onBackPress={onPressSave}
                 headingText={i18next.t('label.tree_review_header')}
               />
               <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
@@ -438,7 +414,7 @@ const SingleTreeOverview = ({ navigation }) => {
           ) : (
             <Header
               closeIcon
-              onBackPress={onBackPress}
+              onBackPress={onPressSave}
               headingText={
                 locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
               }
@@ -479,14 +455,14 @@ const SingleTreeOverview = ({ navigation }) => {
             <PrimaryButton
               onPress={onPressNextTree}
               btnText={i18next.t('label.tree_review_next_btn')}
-              halfWidth
-              theme={'white'}
+              // halfWidth
+              // theme={'white'}
             />
-            <PrimaryButton
+            {/* <PrimaryButton
               onPress={onPressSave}
               btnText={i18next.t('label.tree_review_Save')}
               halfWidth
-            />
+            /> */}
           </View>
         ) : (
           []

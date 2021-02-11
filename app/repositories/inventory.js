@@ -8,8 +8,8 @@ import Realm from 'realm';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_diameter = Math.round(speciesDiameter * 100) / 100;
@@ -20,24 +20,24 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species diameter for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating species diameter for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_height = Math.round(speciesHeight * 100) / 100;
@@ -48,24 +48,24 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species height for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating species height for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const getInventoryByStatus = (status) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         let inventory = realm.objects('Inventory');
         if (status !== 'all') {
           inventory = inventory.filtered(`status == "${status}"`);
@@ -76,23 +76,23 @@ export const getInventoryByStatus = (status) => {
           message: `Fetched inventories from DB having status ${status}`,
         });
         resolve(inventory);
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventories from DB having status ${status}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while fetching inventories from DB having status ${status}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const initiateInventory = ({ treeType }, dispatch) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
@@ -111,25 +111,25 @@ export const initiateInventory = ({ treeType }, dispatch) => {
           });
           resolve(inventoryData);
         });
+      })
+      .catch((err) => {
+        console.error(`Error at /repositories/initiateInventory -> ${JSON.stringify(err)}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while initiating inventory for tree type ${treeType}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      console.error(`Error at /repositories/initiateInventory -> ${JSON.stringify(err)}`);
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while initiating inventory for tree type ${treeType}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const getInventory = ({ inventoryID }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         let inventory = realm.objectForPrimaryKey('Inventory', inventoryID);
         // logging the success in to the db
         dbLog.info({
@@ -137,23 +137,23 @@ export const getInventory = ({ inventoryID }) => {
           message: `Fetched inventory with inventory_id: ${inventoryID}`,
         });
         resolve(JSON.parse(JSON.stringify(inventory)));
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventory with inventory_id: ${inventoryID}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while fetching inventory with inventory_id: ${inventoryID}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const changeInventoryStatusAndResponse = ({ inventory_id, status, response }, dispatch) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -168,7 +168,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status and response for inventory_id: ${inventory_id}`,
+            message: `Successfully updated status and response for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -179,24 +179,24 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           }
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating status and response for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating status and response for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -210,7 +210,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status for inventory_id: ${inventory_id}`,
+            message: `Successfully updated status for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -221,24 +221,24 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
           }
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating status for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating status for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const updateSpecieName = ({ inventory_id, speciesText }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.specei_name = speciesText;
@@ -250,25 +250,25 @@ export const updateSpecieName = ({ inventory_id, speciesText }) => {
           message: `Successfully updated specie name for inventory_id: ${inventory_id}`,
         });
         resolve();
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating specie name for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating specie name for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      reject(err);
-      resolve(false);
-    }
   });
 };
 
 export const deleteInventory = ({ inventory_id }, dispatch) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           realm.delete(inventory);
@@ -284,24 +284,24 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
           updateCount({ type: 'pending', count: 'decrement' })(dispatch);
         }
         resolve(true);
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while deleting inventory with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while deleting inventory with inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      reject(err);
-    }
   });
 };
 
 export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -320,25 +320,25 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
 
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating plantation date for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating plantation date for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const updateLastScreen = ({ last_screen, inventory_id }) => {
   console.log('updateLastScreen =>', last_screen, inventory_id);
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -352,28 +352,27 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated last screen for inventory_id: ${inventory_id}`,
+            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
           });
-
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating last screen for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating last screen for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const clearAllIncompleteInventory = () => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let allInventory = realm
             .objects('Inventory')
@@ -387,23 +386,23 @@ export const clearAllIncompleteInventory = () => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Error while deleting all incomplete inventories',
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: 'Error while deleting all incomplete inventories',
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const clearAllUploadedInventory = () => {
   return new Promise((resolve) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "complete"');
           realm.delete(allInventory);
@@ -416,30 +415,29 @@ export const clearAllUploadedInventory = () => {
 
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Error while deleting all uploaded inventories',
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: 'Error while deleting all uploaded inventories',
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      resolve(false);
-    }
   });
 };
 
 export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diameter, height }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.species_diameter = Number(diameter);
           inventory.species_height = Number(height);
           inventory.specei_name = specie_name;
-          console.log('updateSpecieAndSpecieDiameter', inventory);
         });
         // logging the success in to the db
         dbLog.info({
@@ -447,24 +445,24 @@ export const updateSpecieAndSpecieDiameter = ({ inventory_id, specie_name, diame
           message: `Successfully updated specie name, height and diameter for inventory_id: ${inventory_id}`,
         });
         resolve();
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating specie name, height and diameter for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating specie name, height and diameter for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      reject(err);
-    }
   });
 };
 
 export const removeLastCoord = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           let polygons = Object.values(JSON.parse(JSON.stringify(inventory.polygons)));
@@ -479,24 +477,24 @@ export const removeLastCoord = ({ inventory_id }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while removing last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while removing last coordinate for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      reject(err);
-    }
   });
 };
 
 export const getCoordByIndex = ({ inventory_id, index }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
         let polygons = Object.values(inventory.polygons);
         let coords = Object.values(polygons[0].coordinates);
@@ -507,23 +505,23 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
           message: `Successfully fetched coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
         });
         resolve({ coordsLength, coord: coords[index] });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while fetching coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           let polygons = Object.values(inventory.polygons);
@@ -542,23 +540,23 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating image url for inventory_id: ${inventory_id} with coordinate index: ${index}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating image url for inventory_id: ${inventory_id} with coordinate index: ${index}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let polygons = [];
           geoJSON.features.map((onePolygon) => {
@@ -596,17 +594,17 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding coordinates for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while adding coordinates for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-      reject(err);
-    }
   });
 };
 
@@ -617,8 +615,8 @@ export const addCoordinateSingleRegisterTree = ({
   locateTree,
 }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventory_id);
           inventory.polygons = [
@@ -634,7 +632,7 @@ export const addCoordinateSingleRegisterTree = ({
               ],
             },
           ];
-          inventory.species_diameter = 10;
+          // inventory.species_diameter = 10;
           if (locateTree) {
             inventory.locate_tree = locateTree;
           }
@@ -651,24 +649,24 @@ export const addCoordinateSingleRegisterTree = ({
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding coordinates for single tree with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while adding coordinates for single tree with inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', inventory_id);
           inventory.polygons[0].coordinates[0].imageUrl = imageUrl;
@@ -679,24 +677,24 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
           logType: LogTypes.INVENTORY,
           message: `Successfully updated image url for single tree with inventory_id: ${inventory_id}`,
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating image url for single tree with inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating image url for single tree with inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -714,24 +712,24 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating species and plantation date for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating species and plantation date for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const addLocateTree = ({ locate_tree, inventory_id }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           realm.create(
             'Inventory',
@@ -748,23 +746,23 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating locate tree for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating locate tree for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const polygonUpdate = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
@@ -775,24 +773,24 @@ export const polygonUpdate = ({ inventory_id }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating polygon completion for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating polygon completion for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };
 
 export const completePolygon = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
-    try {
-      Realm.open(getSchema()).then((realm) => {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
@@ -804,16 +802,16 @@ export const completePolygon = ({ inventory_id }) => {
           });
           resolve();
         });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating polygon completion and last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
       });
-    } catch (err) {
-      // logging the error in to the db
-      dbLog.error({
-        logType: LogTypes.INVENTORY,
-        message: `Error while updating polygon completion and last coordinate for inventory_id: ${inventory_id}`,
-        logStack: JSON.stringify(err),
-      });
-      reject(err);
-      bugsnag.notify(err);
-    }
   });
 };

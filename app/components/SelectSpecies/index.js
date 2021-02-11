@@ -40,7 +40,7 @@ const SelectSpecies = ({
   const [diameter, setDiameter] = useState(null);
   const [height, setHeight] = useState(null);
   const navigation = useNavigation();
-  const [showSpecies, setShowSpecies] = useState(visible);
+  // const [showSpecies, setShowSpecies] = useState(visible);
   const [inventory, setInventory] = useState(null);
   const isFocused = useIsFocused();
   const [registrationType, setRegistrationType] = useState(null);
@@ -48,19 +48,19 @@ const SelectSpecies = ({
   const [index, setIndex] = useState(undefined);
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
+  const { state: inventoryState } = useContext(InventoryContext);
 
   useEffect(() => {
     // let species;
-    let inventory;
-    if (route !== undefined) {
-      inventory = route.params.inventory;
-      // species = route.params.inventory.species;
-    } else {
-      inventory = invent;
-      // species = invent.species;
-    }
+    // let inventory;
+    // if (route !== undefined) {
+    //   inventory = route.params.inventory;
+    //   species = route.params.inventory.species;
+    // } else {
+    //   inventory = invent;
+    //   species = invent.species;
+    // }
 
-    // TODO: Needs to be replaced with different function to get user species
     // getAllSpecies().then((data) => {
     //   if (data && species) {
     //     for (const specie of species) {
@@ -69,20 +69,20 @@ const SelectSpecies = ({
     //     setMultipleTreesSpeciesList(data)(speciesDispatch);
     //   }
     // });
-
-    setRegistrationType(inventory.tree_type);
-
     Inventory();
+
+    // setRegistrationType(inventory.tree_type);
+
     Country();
   }, [navigation, isFocused]);
 
-  useEffect(() => {
-    if (route && route.params && route.params.visible) {
-      setShowSpecies(route.params.visible);
-    } else {
-      setShowSpecies(visible);
-    }
-  }, [visible, route, navigation]);
+  // useEffect(() => {
+  //   if (route && route.params && route.params.visible) {
+  //     setShowSpecies(route.params.visible);
+  //   } else {
+  //     setShowSpecies(visible);
+  //   }
+  // }, [visible, route, navigation]);
 
   useEffect(() => {
     setDiameter('');
@@ -94,6 +94,10 @@ const SelectSpecies = ({
       inventory.species = Object.values(inventory.species);
       setInventory(inventory);
 
+      if (inventory.specei_name != null && inventory.species_diameter == null) {
+        setIsShowTreeMeasurementModal(true);
+        setSingleTree(inventory.specei_name);
+      }
       setRegistrationType(inventory.tree_type);
     });
   };
@@ -118,7 +122,7 @@ const SelectSpecies = ({
   };
 
   const onPressSaveBtn = (item) => {
-    setSingleTree(item);
+    setSingleTree(item.scientific_name);
     setIsShowTreeMeasurementModal(true);
   };
 
@@ -134,11 +138,10 @@ const SelectSpecies = ({
   };
 
   const onPressContinue = () => {
-    console.log('onPressContinue called');
     let selectedSpeciesList = [];
     for (let i = 0; i < speciesState.multipleTreesSpecies.length; i++) {
       const oneSpecie = speciesState.multipleTreesSpecies[i];
-      console.log('oneSpecie', oneSpecie);
+
       if (oneSpecie.treeCount) {
         oneSpecie.id = i.toString();
         selectedSpeciesList.push(oneSpecie);
@@ -214,7 +217,12 @@ const SelectSpecies = ({
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
               <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
-                <Header headingText={i18next.t('label.select_species_add_measurements')} />
+                <Header
+                  headingText={i18next.t('label.select_species_add_measurements')}
+                  onBackPress={() => {
+                    setIsShowTreeMeasurementModal(false);
+                  }}
+                />
               </View>
               <KeyboardAvoidingView
                 behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
@@ -287,7 +295,7 @@ const SelectSpecies = ({
     );
   };
 
-  const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
+  const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
 
   const onPressSaveAndContinue = (data) => {
     if (
@@ -305,7 +313,7 @@ const SelectSpecies = ({
         height: Math.round(data.height * 100) / 100,
       })
         .then(() => {
-          setShowSpecies(false);
+          // setShowSpecies(false);
           setIsShowTreeMeasurementModal(false);
           setDiameter('');
           setHeight('');
@@ -326,7 +334,7 @@ const SelectSpecies = ({
 
   const onPressMeasurementBtn = () => {
     let selected = {
-      aliases: singleTree.scientific_name,
+      aliases: singleTree,
       diameter: diameter,
       height: height,
     };

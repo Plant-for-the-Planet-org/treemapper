@@ -49,17 +49,14 @@ const ManageSpecies = ({
   useEffect(() => {
     // fetches all the species already added by user when component mount
     getUserSpecies().then((userSpecies) => {
-      console.log('has type', registrationType);
       if (registrationType) {
         let specieListWithUnknown = [];
         if (userSpecies && userSpecies.length > 0) {
-          console.log('if known');
           specieListWithUnknown = [
             ...userSpecies,
             { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
           ];
         } else {
-          console.log('else unknown');
           specieListWithUnknown = [
             { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
           ];
@@ -70,7 +67,7 @@ const ManageSpecies = ({
       }
     });
     // hides the keyboard when component unmount
-    // return () => Keyboard.dismiss();
+    return () => Keyboard.dismiss();
   }, [registrationType, searchList]);
 
   useEffect(() => {
@@ -160,11 +157,11 @@ const ManageSpecies = ({
               onChangeText={handleSpeciesSearch}
               value={searchText}
               returnKeyType={'search'}
+              autoCorrect={false}
             />
             {searchText ? (
               <TouchableOpacity
                 onPress={() => {
-                  console.log('in onpress');
                   setSearchText('');
                 }}>
                 <Ionicons name="md-close" size={20} style={styles.closeIcon} />
@@ -184,6 +181,7 @@ const ManageSpecies = ({
                 addSpecieNameToInventory={addSpecieNameToInventory}
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
+                clearSearchText={() => setSearchText('')}
               />
             ) : (
               <Text style={styles.notPresentText}>
