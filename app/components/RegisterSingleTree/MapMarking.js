@@ -1,4 +1,4 @@
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  PermissionsAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -43,7 +44,33 @@ class MapMarking extends React.Component {
   async UNSAFE_componentWillMount() {
     if (IS_ANDROID) {
       MapboxGL.setTelemetryEnabled(false);
-      await MapboxGL.requestAndroidLocationPermissions().then(() => {});
+      await MapboxGL.requestAndroidLocationPermissions().then(async () => {
+        // try {
+        //   console.log('Asking permission');
+        //   const granted = await PermissionsAndroid.request(
+        //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        //     {
+        //       title: 'Location Permission',
+        //       message: 'App needs access to High accuracy location',
+        //       buttonPositive: 'Ok',
+        //     },
+        //   );
+        //   if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        //     console.log('Permission granted');
+        //     return true;
+        //   } else {
+        //     Alert.alert(
+        //       'Permission Denied!',
+        //       'You need to give location permission to register on-site tree',
+        //     );
+        //     return false;
+        //   }
+        // } catch (err) {
+        //   bugsnag.notify(err);
+        //   console.log(err);
+        //   return false;
+        // }
+      });
     }
   }
 
@@ -108,7 +135,7 @@ class MapMarking extends React.Component {
         (position) => {
           let currentCoords = position.coords;
           let markerCoords = centerCoordinates;
-
+          console.log(position, 'position addMarker');
           let distance = distanceCalculator(
             currentCoords.latitude,
             currentCoords.longitude,
@@ -127,7 +154,11 @@ class MapMarking extends React.Component {
             });
           }
         },
-        (err) => alert(err.message),
+        (err) => {
+          console.log(err, 'addMarker');
+          alert(err.message);
+        },
+        // { enableHighAccuracy: true },
       );
     } catch (err) {
       alert(JSON.stringify(err));
@@ -190,10 +221,22 @@ class MapMarking extends React.Component {
   onPressMyLocationIcon = () => {
     Geolocation.getCurrentPosition(
       (position) => {
-        console.log(position, 'position');
+        console.log(position, 'position onPressMyLocationIcon');
         this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
       },
-      (err) => alert(err.message),
+      (err) => {
+        console.log(err, 'onPressMyLocationIcon');
+        alert(err.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 2000,
+        maximumAge: 20000,
+        accuracy: {
+          android: 'high',
+          ios: 'bestForNavigation',
+        },
+      },
     );
   };
 
@@ -202,6 +245,7 @@ class MapMarking extends React.Component {
     const { markedCoords, locateTree } = this.state;
     Geolocation.getCurrentPosition(
       (position) => {
+        console.log(position, 'position onPressContinue');
         let currentCoords = position.coords;
         addCoordinateSingleRegisterTree({
           inventory_id: inventoryID,
@@ -212,7 +256,11 @@ class MapMarking extends React.Component {
           this.setState({ isAlrightyModalShow: true });
         });
       },
-      (err) => alert(err.message),
+      (err) => {
+        console.log(err, 'onPressContinue');
+        alert(err.message);
+      },
+      // { enableHighAccuracy: true },
     );
   };
 
