@@ -204,7 +204,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressExportJSON = async () => {
-    let exportGeoJSONFile = () => {
+    const exportGeoJSONFile = () => {
       inventory.species = Object.values(inventory.species);
       inventory.polygons = Object.values(inventory.polygons);
       if (inventory.polygons.length > 0) {
@@ -226,7 +226,7 @@ const InventoryOverview = ({ navigation }) => {
           features: featureList,
         };
         const options = {
-          url: `data:application/json;name=treemapper-geojson-${inventory.inventory_id}.json;base64,` + toBase64(JSON.stringify(geoJSON)),
+          url: `data:application/json;base64,` + toBase64(JSON.stringify(geoJSON)),
           message: i18next.t('label.inventory_overview_export_json_message'),
           title: i18next.t('label.inventory_overview_export_json_title'),
           filename: `Tree Mapper GeoJSON ${inventory.inventory_id}`,
