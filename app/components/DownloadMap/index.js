@@ -15,6 +15,7 @@ const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
   const [areaName, setAreaName] = useState('');
   const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(0);
 
   const MapBoxGLRef = useRef();
   const MapBoxGLCameraRef = useRef();
@@ -44,12 +45,16 @@ const DownloadMap = ({ navigation }) => {
     );
   };
 
+  const zoomLevelChanged = async ()=>{
+    setZoomLevel( await MapBoxGLRef.current.getZoom());
+  }
+
   const onPressDownloadArea = async () => {
     let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
-
     setIsLoaderShow(true);
     let coords = await MapBoxGLRef.current.getCenter();
     let bounds = await MapBoxGLRef.current.getVisibleBounds();
+    
     getAreaName({ coords }).then(async (areaName) => {
       setAreaName(areaName);
       const progressListener = (offlineRegion, status) => {
@@ -112,6 +117,7 @@ const DownloadMap = ({ navigation }) => {
         <View style={styles.mapViewContainer}>
           <MapboxGL.MapView
             onDidFinishRenderingMapFully={initialMapCamera}
+            onWillStartRenderingFrame={zoomLevelChanged}
             ref={MapBoxGLRef}
             style={styles.cont}
             styleURL={MapboxGL.StyleURL.Street}
@@ -122,7 +128,7 @@ const DownloadMap = ({ navigation }) => {
           </MapboxGL.MapView>
         </View>
         {numberOfOfflineMaps == 0 ? (
-          <PrimaryButton onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
+          <PrimaryButton disabled={zoomLevel > 11 ? false : true} onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
         ) : (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
@@ -132,6 +138,7 @@ const DownloadMap = ({ navigation }) => {
               theme={'white'}
             />
             <PrimaryButton
+              disabled={zoomLevel > 11 ? false : true}
               onPress={onPressDownloadArea}
               btnText={i18next.t('label.download_map')}
               halfWidth
