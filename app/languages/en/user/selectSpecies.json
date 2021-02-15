@@ -36,6 +36,6 @@
   "select_species_diameter_invalid":"Diameter is invalid",
   "select_species_height_invalid":"Height is invalid",
   "select_species_tag_id_required":"Tag id is required",
-  "select_species_tagged_for_identification":"This tree has been tagged for identification",
+  "select_species_tagged_for_identification":"This tree has been tagged for identification.",
   "select_species_unknown":"Unknown"
 }

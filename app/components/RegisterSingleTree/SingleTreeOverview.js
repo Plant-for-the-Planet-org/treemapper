@@ -431,7 +431,7 @@ const SingleTreeOverview = ({ navigation }) => {
               closeIcon
               onBackPress={onPressSave}
               headingText={
-                locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
+                locateTree === 'off-site' ? i18next.t('label.tree_review_details') : i18next.t('label.tree_review_header')
               }
             />
             <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>

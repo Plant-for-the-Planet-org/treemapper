@@ -65,7 +65,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label:select_species_unknown'),
+              scientific_name: i18next.t('label.select_species_unknown'),
             },
           ];
         }

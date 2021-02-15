@@ -4,15 +4,19 @@
   "tree_review_Save": "Speichern",
   "tree_review_name_of_species": "Name der Art",
   "tree_review_diameter": "Durchmesser",
+  "tree_review_height": "Höhe",
   "tree_review_location": "STANDORT",
   "tree_review_specie": "ART",
   "tree_review_unable": "Nicht identifizierbar",
   "tree_review_diameter_header": "BAUMDURCHMESSER (cm)",
+  "tree_review_height_header": "HÖHE (in m)",
+  "tree_review_tree_tag_header": "BAUM TAG",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "PFLANZDATUM",
   "tree_review_plantation_date_text": "{{date, ll}}",
   "tree_review_alrighty": "Vervollständige",
   "tree_review_register_planting_date": "Registriere Pflanzdatum",
-  "tree_review_delete": "Löschen"
+  "tree_review_delete": "Löschen",
+  "tree_review_details": "Baumdetails"
 }
