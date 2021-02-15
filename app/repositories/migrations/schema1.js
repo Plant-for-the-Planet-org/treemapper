@@ -55,7 +55,7 @@ const Inventory = {
     species_diameter: 'float?',
     species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     response: 'string?',
-    tree_tag: 'string?',
+    tag_id: 'string?',
     registration_date: 'date?',
   },
 };

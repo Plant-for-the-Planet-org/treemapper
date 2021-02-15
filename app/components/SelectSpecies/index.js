@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   View,
+  Switch,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
@@ -40,11 +41,13 @@ const SelectSpecies = ({
   const [diameterError, setDiameterError] = useState('');
   const [height, setHeight] = useState(null);
   const [heightError, setHeightError] = useState('');
-  const [treeTag, setTreeTag] = useState('');
+  const [tagId, setTagId] = useState('');
   const [inventory, setInventory] = useState(null);
   const [registrationType, setRegistrationType] = useState(null);
   const [countryCode, setCountryCode] = useState('');
   const [index, setIndex] = useState(undefined);
+  const [isTagIdPresent, setIsTagIdPresent] = useState(false);
+  const [tagIdError, setTagIdError] = useState('');
 
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
@@ -94,7 +97,7 @@ const SelectSpecies = ({
   useEffect(() => {
     setDiameter('');
     setHeight('');
-    setTreeTag('');
+    setTagId('');
   }, []);
 
   const Inventory = () => {
@@ -298,22 +301,43 @@ const SelectSpecies = ({
                       </View>
                     </View>
                     {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
-                    <View style={styles.inputBox}>
-                      <View
-                        style={{
-                          flex: 1,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
-                          value={treeTag}
-                          style={styles.input}
-                          placeholder={i18next.t('label.select_species_tree_tag')}
-                          placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) => setTreeTag(text)}
-                        />
-                      </View>
+
+                    <View style={styles.switchContainer}>
+                      <Text style={styles.switchText}>
+                        {i18next.t('label.select_species_tagged_for_identification')}
+                      </Text>
+                      <Switch
+                        trackColor={{ false: '#767577', true: '#d4e7b1' }}
+                        thumbColor={isTagIdPresent ? Colors.PRIMARY : '#f4f3f4'}
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={() => setIsTagIdPresent(!isTagIdPresent)}
+                        value={isTagIdPresent}
+                      />
                     </View>
+
+                    {isTagIdPresent ? (
+                      <>
+                        <View style={styles.inputBox}>
+                          <View
+                            style={{
+                              flex: 1,
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                            }}>
+                            <TextInput
+                              value={tagId}
+                              style={styles.input}
+                              placeholder={i18next.t('label.select_species_tree_tag')}
+                              placeholderTextColor={Colors.TEXT_COLOR}
+                              onChangeText={(text) => setTagId(text)}
+                            />
+                          </View>
+                        </View>
+                        {tagIdError ? <Text style={styles.errorText}>{tagIdError}</Text> : []}
+                      </>
+                    ) : (
+                      []
+                    )}
                   </View>
 
                   <View>
@@ -337,6 +361,7 @@ const SelectSpecies = ({
   const onPressMeasurementBtn = () => {
     let isDiameterValid = false;
     let isHeightValid = false;
+    let isTagIdValid = !isTagIdPresent;
     // sets diameter error if diameter less than 0.1 or is invalid input
     if (!diameter || Number(diameter) < 0.1) {
       setDiameterError(i18next.t('label.select_species_diameter_more_than_error'));
@@ -361,22 +386,31 @@ const SelectSpecies = ({
       isHeightValid = true;
     }
 
+    if (isTagIdPresent && !tagId) {
+      setTagIdError(i18next.t('label.select_species_tag_id_required'));
+      isTagIdValid = false;
+    } else {
+      setTagIdError('');
+      isTagIdValid = true;
+    }
+
     // if all fields are valid then updates the specie data in DB
-    if (isDiameterValid && isHeightValid) {
+    if (isDiameterValid && isHeightValid && isTagIdValid) {
       setDiameterError('');
       setHeightError('');
+      setTagIdError('');
       updateSpecieAndMeasurements({
         inventoryId: inventory.inventory_id,
         species: [singleTreeSpecie],
         diameter: Math.round(diameter * 100) / 100,
         height: Math.round(height * 100) / 100,
-        treeTag,
+        tagId,
       })
         .then(() => {
           setIsShowTreeMeasurementModal(false);
           setDiameter('');
           setHeight('');
-          setTreeTag('');
+          setTagId('');
           navigation.navigate('SingleTreeOverview');
         })
         .catch((err) => {
@@ -482,5 +516,17 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.ALERT,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  switchText: {
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginRight: 10,
+    flex: 1,
   },
 });

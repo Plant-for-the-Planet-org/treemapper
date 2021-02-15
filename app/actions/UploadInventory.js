@@ -41,27 +41,36 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
           },
           dispatch,
         )
-          .then(async () => {
-            const result = await uploadImage(oneInventory, response, userToken, sessionData);
-            if (result.allUploadCompleted) {
-              changeInventoryStatus(
-                {
-                  inventory_id: oneInventory.inventory_id,
-                  status: 'complete',
-                },
-                dispatch,
-              )
-                .then(() => resolve())
-                .catch((err) => {
-                  console.error(
-                    `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
-                  );
-                  reject();
-                });
+          .then(async (isSucceed) => {
+            if (isSucceed) {
+              const result = await checkAndUploadImage(
+                oneInventory,
+                response,
+                userToken,
+                sessionData,
+              );
+              if (result.allUploadCompleted) {
+                changeInventoryStatus(
+                  {
+                    inventory_id: oneInventory.inventory_id,
+                    status: 'complete',
+                  },
+                  dispatch,
+                )
+                  .then(() => resolve())
+                  .catch((err) => {
+                    console.error(
+                      `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
+                    );
+                    reject();
+                  });
+              } else {
+                reject();
+              }
             }
           })
           .catch((err) => {
-            reject();
+            reject(err);
             console.error(
               `Error at: /action/upload/changeInventoryStatusAndResponse, -> ${JSON.stringify(
                 err,
@@ -70,7 +79,7 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
           });
       }
     } catch (err) {
-      reject();
+      reject(err);
       console.error(`Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
     }
   });
@@ -139,20 +148,22 @@ export const uploadInventory = (dispatch) => {
                 },
               };
               if (species) {
-                body.species = species;
+                body.scientificSpecies = species;
               }
-              if (oneInventory.tree_tag) {
-                body.tag = oneInventory.tree_tag;
+              if (oneInventory.tag_id) {
+                body.tag = oneInventory.tag_id;
               }
               await getSessionData()
                 .then(async (sessionData) => {
                   if (oneInventory.response !== null && oneInventory.status === 'uploading') {
                     const inventoryResponse = JSON.parse(oneInventory.response);
+                    console.log('userToken', userToken);
                     try {
                       const response = await getPlantLocationDetails(
                         inventoryResponse.id,
                         userToken,
                       );
+                      console.log('response api', response);
                       await changeStatusAndUpload(
                         response,
                         oneInventory,
@@ -273,92 +284,131 @@ export const uploadInventory = (dispatch) => {
   });
 };
 
-const uploadImage = async (oneInventory, response, userToken, sessionId) => {
-  let locationId = response.id;
-  let coordinatesList = oneInventory.polygons[0].coordinates;
-  let responseCoords = response.coordinates;
-  let completedUploadCount = 0;
-  for (let i = 0; i < responseCoords.length; i++) {
-    const oneResponseCoords = responseCoords[i];
-
-    if (oneResponseCoords.status === 'complete') {
-      completedUploadCount++;
-      continue;
-    }
-    let inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-
-    try {
-      // fetches the image from device file system and stores it in base64 format which is used for uploading
-      const base64Image = await RNFS.readFile(
-        `${RNFS.DocumentDirectoryPath}/${inventoryObject.imageUrl}`,
-        'base64',
+const checkAndUploadImage = async (oneInventory, response, userToken, sessionId) => {
+  try {
+    let locationId = response.id;
+    let coordinatesList = oneInventory.polygons[0].coordinates;
+    if (response.type === 'single' && response.captureStatus === 'complete') {
+      return { allUploadCompleted: true };
+    } else if (response.type === 'single' && response.captureStatus === 'partial') {
+      const isUploaded = await uploadImage(
+        isUploaded[0].imageUrl,
+        userToken,
+        sessionId,
+        locationId,
+        response.coordinateId,
+        oneInventory.inventory_id,
       );
+      return { allUploadCompleted: isUploaded };
+    } else {
+      const responseCoords = response.coordinates;
+      let completedUploadCount = 0;
+      for (let i = 0; i < responseCoords.length; i++) {
+        const oneResponseCoords = responseCoords[i];
 
-      // attaches the image file to body of the request
-      const body = {
-        imageFile: `data:image/png;base64,${base64Image}`,
-      };
-
-      // defines the headers which is to be passed with the request
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-        'x-session-id': sessionId,
-      };
-      try {
-        // makes the PUT request to upload the image and stores the result of the same
-        const result = await axios({
-          method: 'PUT',
-          url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${oneResponseCoords.id}`,
-          data: body,
-          headers: headers,
-        });
-
-        // if status is 200 then increments the completed upload count by 1 and logs the success of api request in DB
-        if (result.status === 200) {
+        if (oneResponseCoords.status === 'complete') {
           completedUploadCount++;
-          dbLog.info({
-            logType: LogTypes.DATA_SYNC,
-            message: `Successfully uploaded image for inventory id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
-            logStack: JSON.stringify({
-              inventoryId: oneInventory.inventory_id,
-              locationId,
-              coordinateId: oneResponseCoords.id,
-              imageUrl: inventoryObject.imageUrl,
-            }),
-            referenceId: oneInventory.inventory_id,
-          });
+          continue;
         }
-      } catch (err) {
-        console.error(
-          `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${
-            oneResponseCoords.id
-          } -> ${JSON.stringify(err.response)}`,
+
+        const inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
+
+        const isUploaded = await uploadImage(
+          inventoryObject.imageUrl,
+          userToken,
+          sessionId,
+          locationId,
+          oneResponseCoords.id,
+          oneInventory.inventory_id,
         );
-        dbLog.error({
-          logType: LogTypes.DATA_SYNC,
-          message: `Error while uploading image for inventory id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
-          logStack: JSON.stringify(err.response),
-          referenceId: oneInventory.inventory_id,
-        });
-        bugsnag.notify(err);
+        if (isUploaded) {
+          completedUploadCount++;
+        }
       }
-    } catch (err) {
-      console.error(`Error at: action/upload/uploadImage, base64 image -> ${JSON.stringify(err)}`);
-      dbLog.error({
-        logType: LogTypes.DATA_SYNC,
-        message: `Error while fetching base64 image from file system for id: ${oneInventory.inventory_id} and coordinate id: ${oneResponseCoords.id}`,
-        logStack: JSON.stringify(err),
-        referenceId: oneInventory.inventory_id,
-      });
-      bugsnag.notify(err);
+      // returns boolean value of whether all the images were uploaded successfully or not by comparing
+      // the length of coordinates of an inventory registration with the upload count of successfully completed upload
+      return { allUploadCompleted: completedUploadCount === responseCoords.length };
     }
+  } catch (err) {
+    console.error(`Error at /actions/upload/checkAndUploadImage, ${JSON.stringify(err)}`);
+    return { allUploadCompleted: false };
   }
-  // returns boolean value of whether all the images were uploaded successfully or not by comparing
-  // the length of coordinates of an inventory registration with the upload count of successfully completed upload
-  return { allUploadCompleted: completedUploadCount === responseCoords.length };
 };
 
+const uploadImage = async (
+  imageUrl,
+  userToken,
+  sessionId,
+  locationId,
+  coordinateId,
+  inventoryId,
+) => {
+  try {
+    // fetches the image from device file system and stores it in base64 format which is used for uploading
+    const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');
+
+    // attaches the image file to body of the request
+    const body = {
+      imageFile: `data:image/png;base64,${base64Image}`,
+    };
+
+    // defines the headers which is to be passed with the request
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `OAuth ${userToken}`,
+      'x-session-id': sessionId,
+    };
+    try {
+      // makes the PUT request to upload the image and stores the result of the same
+      const result = await axios({
+        method: 'PUT',
+        url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${coordinateId}`,
+        data: body,
+        headers: headers,
+      });
+
+      // if status is 200 then increments the completed upload count by 1 and logs the success of api request in DB
+      if (result.status === 200) {
+        dbLog.info({
+          logType: LogTypes.DATA_SYNC,
+          message: `Successfully uploaded image for inventory id: ${inventoryId} and coordinate id: ${coordinateId}`,
+          logStack: JSON.stringify({
+            inventoryId,
+            locationId,
+            coordinateId,
+            imageUrl,
+          }),
+          referenceId: inventoryId,
+        });
+        return true;
+      }
+    } catch (err) {
+      console.error(
+        `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${coordinateId} -> ${JSON.stringify(
+          err.response,
+        )}`,
+      );
+      dbLog.error({
+        logType: LogTypes.DATA_SYNC,
+        message: `Error while uploading image for inventory id: ${inventoryId} and coordinate id: ${coordinateId}`,
+        logStack: JSON.stringify(err.response),
+        referenceId: inventoryId,
+      });
+      bugsnag.notify(err);
+      return false;
+    }
+  } catch (err) {
+    console.error(`Error at: action/upload/uploadImage, base64 image -> ${JSON.stringify(err)}`);
+    dbLog.error({
+      logType: LogTypes.DATA_SYNC,
+      message: `Error while fetching base64 image from file system for id: ${inventoryId} and coordinate id: ${oneResponseCoords.id}`,
+      logStack: JSON.stringify(err),
+      referenceId: inventoryId,
+    });
+    bugsnag.notify(err);
+    return false;
+  }
+};
 const getPlantLocationDetails = (locationId, userToken) => {
   return new Promise((resolve, reject) => {
     axios({

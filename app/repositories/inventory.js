@@ -62,13 +62,13 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
   });
 };
 
-export const updateTreeTag = ({ inventoryId, treeTag }) => {
+export const updateTreeTag = ({ inventoryId, tagId }) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
-          inventory.tree_tag = treeTag;
+          inventory.tag_id = tagId;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -208,7 +208,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           } else if (status === 'pending') {
             updateCount({ type: 'pending', count: 'increment' })(dispatch);
           }
-          resolve();
+          resolve(true);
         });
       })
       .catch((err) => {
@@ -466,7 +466,7 @@ export const updateSpecieAndMeasurements = ({
   species,
   diameter,
   height,
-  treeTag,
+  tagId,
 }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
@@ -476,7 +476,7 @@ export const updateSpecieAndMeasurements = ({
           inventory.species_diameter = Number(diameter);
           inventory.species_height = Number(height);
           inventory.species = species;
-          inventory.tree_tag = treeTag;
+          inventory.tag_id = tagId;
         });
         // logging the success in to the db
         dbLog.info({

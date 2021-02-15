@@ -54,8 +54,8 @@ const SingleTreeOverview = ({ navigation }) => {
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('');
   const [specieEditHeight, setSpecieEditHeight] = useState('');
-  const [editedTreeTag, setEditedTreeTag] = useState('');
-  const [treeTag, setTreeTag] = useState('');
+  const [editedTagId, setEditedTagId] = useState('');
+  const [tagId, setTagId] = useState('');
   const [locateTree, setLocateTree] = useState(null);
   const [editEnable, setEditEnable] = useState('');
   const [status, setStatus] = useState('');
@@ -78,8 +78,8 @@ const SingleTreeOverview = ({ navigation }) => {
         setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
         setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
         setPlantationDate(inventory.plantation_date);
-        setTreeTag(inventory.tree_tag);
-        setEditedTreeTag(inventory.tree_tag);
+        setTagId(inventory.tag_id);
+        setEditedTagId(inventory.tag_id);
       });
     });
     Country();
@@ -112,11 +112,11 @@ const SingleTreeOverview = ({ navigation }) => {
         speciesHeight: Number(specieEditHeight),
       });
       setIsOpenModal(false);
-    } else if (action === 'treeTag') {
-      setTreeTag(editedTreeTag);
+    } else if (action === 'tagId') {
+      setTagId(editedTagId);
       updateTreeTag({
         inventoryId: inventory.inventory_id,
-        treeTag: editedTreeTag,
+        tagId: editedTagId,
       });
       setIsOpenModal(false);
     } else {
@@ -148,28 +148,28 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTreeTag
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={styles.value}
                   autoFocus
                   placeholderTextColor={Colors.TEXT_COLOR}
-                  keyboardType={editEnable === 'treeTag' ? 'default' : 'decimal-pad'}
+                  keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
                   onChangeText={(text) => {
                     if (editEnable === 'diameter') {
                       setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
                     } else if (editEnable === 'height') {
                       setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
                     } else {
-                      setEditedTreeTag(text);
+                      setEditedTagId(text);
                     }
                   }}
                   onSubmitEditing={() => onSubmitInputField(editEnable)}
@@ -305,7 +305,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -354,12 +354,12 @@ const SingleTreeOverview = ({ navigation }) => {
           <TouchableOpacity
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => onPressEditSpecies('treeTag')}
+            onPress={() => onPressEditSpecies('tagId')}
             accessibilityLabel={i18next.t('label.tree_review_tree_tag_header')}
             testID="tree-tag-btn"
             accessible={true}>
             <Text style={styles.detailText}>
-              {treeTag ? treeTag : 'NA'} {shouldEdit && <MIcon name={'edit'} size={20} />}
+              {tagId ? tagId : 'NA'} {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
