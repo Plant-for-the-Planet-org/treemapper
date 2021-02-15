@@ -401,7 +401,7 @@ const uploadImage = async (
     console.error(`Error at: action/upload/uploadImage, base64 image -> ${JSON.stringify(err)}`);
     dbLog.error({
       logType: LogTypes.DATA_SYNC,
-      message: `Error while fetching base64 image from file system for id: ${inventoryId} and coordinate id: ${oneResponseCoords.id}`,
+      message: `Error while fetching base64 image from file system for id: ${inventoryId} and coordinate id: ${coordinateId}`,
       logStack: JSON.stringify(err),
       referenceId: inventoryId,
     });
