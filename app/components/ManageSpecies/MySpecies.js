@@ -56,7 +56,7 @@ const MySpecies = ({
         </View>
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : item.scientific_name !== 'Unknown' ? (
+        ) : item.guid !== 'unknown' ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientific_name })}>
             <Ionicons name="information-circle-outline" size={20} />

@@ -54,11 +54,19 @@ const ManageSpecies = ({
         if (userSpecies && userSpecies.length > 0) {
           specieListWithUnknown = [
             ...userSpecies,
-            { guid: 'unknown', isUserSpecies: true, scientific_name: 'Unknown' },
+            {
+              guid: 'unknown',
+              isUserSpecies: true,
+              scientific_name: i18next.t('label.select_species_unknown'),
+            },
           ];
         } else {
           specieListWithUnknown = [
-            { guid: 'unknown', isUserSpecies: true, scientific_name: 'Unknown' },
+            {
+              guid: 'unknown',
+              isUserSpecies: true,
+              scientific_name: i18next.t('label:select_species_unknown'),
+            },
           ];
         }
         setSpecieList(specieListWithUnknown);
