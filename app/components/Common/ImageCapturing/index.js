@@ -256,7 +256,7 @@ const ImageCapturing = ({
           <PrimaryButton
             onPress={onPressCamera}
             // btnText={i18next.t('label.back')}
-            btnText={imagePath ? 'Reclick' : 'Click Picture'}
+            btnText={imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')}
             theme={imagePath ? 'white' : null}
             halfWidth={imagePath}
           />
