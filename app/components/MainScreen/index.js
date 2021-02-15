@@ -1,5 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
-import jwtDecode from 'jwt-decode';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
@@ -13,18 +11,27 @@ import {
   Text,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
+import Realm from 'realm';
 import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
+import {
+  auth0Login,
+  auth0Logout,
+  clearUserDetails,
+  getCdnUrls,
+  setUserDetails,
+} from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
 import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
+import { UserContext } from '../../reducers/user';
+import { getSchema } from '../../repositories/default';
 import { getInventoryByStatus } from '../../repositories/inventory';
-import { auth0Login, auth0Logout, isLogin, LoginDetails } from '../../repositories/user';
+import { getUserDetails } from '../../repositories/user';
 import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
 
@@ -35,29 +42,90 @@ const MainScreen = ({ navigation }) => {
   const [isUserLogin, setIsUserLogin] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const [userPhoto, setUserPhoto] = useState(null);
+  const { dispatch: userDispatch } = useContext(UserContext);
+  const [userInfo, setUserInfo] = useState({});
+  const [cdnUrls, setCdnUrls] = useState({});
 
   useEffect(() => {
-    checkIsLogin();
-    getInventoryByStatus('all').then((data) => {
-      let count = 0;
-      for (const inventory of data) {
-        if (inventory.status === 'pending' || inventory.status === 'uploading') {
-          count++;
+    let realm;
+    // stores the listener to later unsubscribe when screen is unmounted
+    const unsubscribe = navigation.addListener('focus', async () => {
+      getInventoryByStatus('all').then((data) => {
+        let count = 0;
+        for (const inventory of data) {
+          if (inventory.status === 'pending' || inventory.status === 'uploading') {
+            count++;
+          }
         }
-      }
-      updateCount({ type: 'pending', count })(dispatch);
-      setNumberOfInventory(Object.values(data).length);
+        updateCount({ type: 'pending', count })(dispatch);
+        setNumberOfInventory(data ? data.length : 0);
+      });
+
+      realm = await Realm.open(getSchema());
+      initializeRealm(realm);
     });
+
+    // Return the function to unsubscribe from the event so it gets removed on unmount
+    return () => {
+      unsubscribe();
+      if (realm) {
+        // Unregister all realm listeners
+        realm.removeAllListeners();
+      }
+    };
   }, [navigation]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      checkIsLogin();
-    }, []),
-  );
+  useEffect(() => {
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        setUserInfo(userDetails);
+        setIsUserLogin(userDetails.accessToken ? true : false);
+      }
+    });
+    getCdnUrls(i18next.language).then((cdnMedia) => {
+      setCdnUrls(cdnMedia);
+    });
+  }, []);
 
-  let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
+  const initializeRealm = async (realm) => {
+    const userObject = realm.objects('User');
+
+    // Define the collection notification listener
+    function listener(userData, changes) {
+      if (changes.deletions.length > 0) {
+        setUserInfo({});
+        setIsUserLogin(false);
+        clearUserDetails()(userDispatch);
+      }
+      // Update UI in response to inserted objects
+      changes.insertions.forEach((index) => {
+        if (userData[index].id === 'id0001') {
+          checkIsSignedInAndUpdate(userData[index]);
+        }
+      });
+      // Update UI in response to modified objects
+      changes.modifications.forEach((index) => {
+        if (userData[index].id === 'id0001') {
+          checkIsSignedInAndUpdate(userData[index]);
+        }
+      });
+    }
+    // Observe collection notifications.
+    userObject.addListener(listener);
+  };
+
+  const checkIsSignedInAndUpdate = (userDetail) => {
+    if (userDetail.isSignUpRequired) {
+      navigation.navigate('SignUp');
+    } else {
+      // dispatch function sets the passed user details into the user state
+      setUserDetails(userDetail)(userDispatch);
+      setUserInfo(userDetail);
+      setIsUserLogin(userDetail.accessToken ? true : false);
+    }
+  };
+
+  // let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
   const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
 
@@ -70,18 +138,18 @@ const MainScreen = ({ navigation }) => {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
-      auth0Login(navigation)
-        .then((data) => {
-          setIsUserLogin(data);
+      auth0Login(userDispatch)
+        .then(() => {
           stopLoading()(loadingDispatch);
         })
         .catch((err) => {
-          console.error('err login', err);
-          if (err.error !== 'a0.session.user_cancelled') {
+          if (err?.response?.status === 303) {
+            navigation.navigate('SignUp');
+          } else if (err.error !== 'a0.session.user_cancelled') {
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
-              [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+              [{ text: 'OK' }],
               { cancelable: false },
             );
           }
@@ -90,33 +158,9 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
-  const checkIsLogin = () => {
-    isLogin()
-      .then((data) => {
-        setIsUserLogin(data);
-        userImage();
-      })
-      .catch((err) => {
-        onPressCloseProfileModal();
-        setIsUserLogin(false);
-      });
-  };
-
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout().then(() => {
-      checkIsLogin();
-    });
-  };
-
-  const userImage = () => {
-    LoginDetails().then((User) => {
-      let detail = Object.values(User);
-      if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail[0].idToken);
-        setUserPhoto(decode.picture);
-      }
-    });
+    auth0Logout(userDispatch);
   };
 
   const renderVideoModal = () => {
@@ -176,9 +220,14 @@ const MainScreen = ({ navigation }) => {
                 isUserLogin={isUserLogin}
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
-                photo={userPhoto}
+                photo={
+                  cdnUrls && cdnUrls.cache && userInfo.image
+                    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
+                    : ''
+                }
               />
             </View>
+            {/* <View> */}
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -187,30 +236,32 @@ const MainScreen = ({ navigation }) => {
               hideBackIcon
               textAlignStyle={{ textAlign: 'center' }}
             />
-            <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
-              <LargeButton
-                onPress={() => onPressLargeButtons('TreeInventory')}
-                style={styles.customStyleLargeBtn}
-                heading={i18next.t('label.tree_inventory')}
-                active={false}
-                subHeading={i18next.t('label.tree_inventory_sub_header')}
-                notification={numberOfInventory > 0 && numberOfInventory}
-                testID="page_tree_inventory"
-                accessibilityLabel="Tree Inventory"
-              />
-            </ImageBackground>
-            <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
-              <LargeButton
-                onPress={() => onPressLargeButtons('DownloadMap')}
-                style={styles.customStyleLargeBtn}
-                heading={i18next.t('label.download_maps')}
-                active={false}
-                subHeading={i18next.t('label.download_maps_sub_header')}
-                testID="page_map"
-                accessibilityLabel="Download Map"
-              />
-            </ImageBackground>
-            <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
+            {/* </View> */}
+            <View>
+              <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
+                <LargeButton
+                  onPress={() => onPressLargeButtons('TreeInventory')}
+                  style={styles.customStyleLargeBtn}
+                  heading={i18next.t('label.tree_inventory')}
+                  active={false}
+                  subHeading={i18next.t('label.tree_inventory_sub_header')}
+                  notification={numberOfInventory > 0 && numberOfInventory}
+                  testID="page_tree_inventory"
+                  accessibilityLabel="Tree Inventory"
+                />
+              </ImageBackground>
+              <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
+                <LargeButton
+                  onPress={() => onPressLargeButtons('DownloadMap')}
+                  style={styles.customStyleLargeBtn}
+                  heading={i18next.t('label.download_maps')}
+                  active={false}
+                  subHeading={i18next.t('label.download_maps_sub_header')}
+                  testID="page_map"
+                  accessibilityLabel="Download Map"
+                />
+              </ImageBackground>
+              {/* <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
               <LargeButton
                 onPress={onPressLearn}
                 rightIcon={rightIcon}
@@ -221,7 +272,8 @@ const MainScreen = ({ navigation }) => {
                 accessibilityLabel="Learn"
                 testID="page_learn"
               />
-            </ImageBackground>
+            </ImageBackground> */}
+            </View>
           </ScrollView>
           <PrimaryButton
             onPress={() => onPressLargeButtons('RegisterTree')}
@@ -230,15 +282,15 @@ const MainScreen = ({ navigation }) => {
             accessibilityLabel={'Register Tree'}
           />
           {!isUserLogin ? (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
-            <Text onPress={onPressLegals} style={styles.textAlignCenter}>
-              {i18next.t('label.legal_docs')}
-            </Text>
-            <Text>•</Text>
-            <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-              {i18next.t('label.support')}
-            </Text>
-          </View>) : <View/>}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+              <Text onPress={onPressLegals} style={styles.textAlignCenter}>
+                {i18next.t('label.legal_docs')}
+              </Text>
+              <Text>•</Text>
+              <Text onPress={onPressSupport} style={styles.textAlignCenter}>
+                {i18next.t('label.support')}
+              </Text>
+            </View>) : <View/>}
         </View>
       )}
       {renderVideoModal()}
@@ -247,6 +299,8 @@ const MainScreen = ({ navigation }) => {
         isProfileModalVisible={isProfileModalVisible}
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
+        userInfo={userInfo}
+        cdnUrls={cdnUrls}
       />
     </SafeAreaView>
   );

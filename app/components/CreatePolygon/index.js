@@ -25,8 +25,7 @@ const CreatePolygon = ({ route }) => {
     if (route.params?.isEdit) {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         setIsMapMarkingState(false);
-        console.log(inventory.polygons[0].coordinates, 'marker');
-        setActiveMarkerIndex(Object.keys(inventory.polygons[0].coordinates).length - 1);
+        setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
       });
     }
   };

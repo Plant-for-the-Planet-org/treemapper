@@ -1,56 +1,28 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { close, logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
-import { getUserInformationFromServer } from '../../actions/user';
 import i18next from 'i18next';
-import { LoginDetails } from '../../repositories/user';
-import jwtDecode from 'jwt-decode';
 import ProfileListItem from './ProfileListItem';
-import { setSpeciesList, getSpeciesList } from '../../actions/species';
-import { SpeciesContext } from '../../reducers/species';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ProfileModal = ({
   isUserLogin,
   onPressCloseProfileModal,
   isProfileModalVisible,
   onPressLogout,
+  userInfo,
+  cdnUrls,
 }) => {
-  const [userInfo, setUserInfo] = useState(null);
-  const [userPhoto, setUserPhoto] = useState(null);
   const [visibility, setVisibility] = useState(isProfileModalVisible);
-  const { dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (isUserLogin) {
-      getUserInformationFromServer()
-        .then((userInfo) => {
-          setUserInfo(userInfo);
-        })
-        .catch((err) => console.error(err));
-    }
-    userImage();
-  }, [isUserLogin]);
-  useEffect(() => {
     setVisibility(isProfileModalVisible);
   }, [navigation, visibility]);
-  const userImage = () => {
-    LoginDetails().then((User) => {
-      let detail = Object.values(User);
-      if (detail && detail.length > 0) {
-        let decode = jwtDecode(detail[0].idToken);
-        setUserPhoto(decode.picture);
-        getSpeciesList(detail[0].accessToken).then((data) => {
-          if (data) {
-            setSpeciesList(data)(speciesDispatch);
-          }
-        });
-      }
-    });
-  };
+
   const onPressLegals = () => {
     onPressCloseProfileModal();
     navigation.navigate('Legals');
@@ -61,12 +33,10 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar;
-  if (userPhoto) {
-    avatar = userPhoto
-      ? userPhoto
-      : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
-  }
+  let avatar = userInfo.image
+    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
+    : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
+
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
     navigation.navigate('ManageSpecies');
@@ -94,10 +64,10 @@ const ProfileModal = ({
     //   media: 'pulse-outline',
     //   text: 'activity_logging',
     //   mediaType: 'ionicon',
-    //   // onPressFunction: () => {
-    //   //   navigation.navigate('Logs');
-    //   //   onPressCloseProfileModal();
-    //   // },
+    // onPressFunction: () => {
+    //   navigation.navigate('Logs');
+    //   onPressCloseProfileModal();
+    // },
     // },
     {
       media: 'history',
@@ -119,7 +89,7 @@ const ProfileModal = ({
   return (
     <Modal visible={isProfileModalVisible} transparent>
       <View style={styles.container}>
-        {userInfo && (
+        {userInfo.email && (
           <View style={styles.subContainer}>
             <View style={styles.headerContainer}>
               <TouchableOpacity
@@ -127,18 +97,18 @@ const ProfileModal = ({
                 accessible={true}
                 accessibilityLabel="Profile Modal"
                 testID="profile_modal">
-                <Image source={close} />
+                <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
               </TouchableOpacity>
               <SvgXml xml={logo} />
               <View />
             </View>
             <View style={styles.profileSection1}>
               <Image
-                style={{ width: 50, height: 50, marginHorizontal: 10 }}
+                style={{ width: 50, height: 50, marginHorizontal: 10, borderRadius: 50 }}
                 source={{ uri: avatar }}
               />
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userEmail}>{`${userInfo.firstname} ${userInfo.lastname}`}</Text>
+                <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
                 <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>

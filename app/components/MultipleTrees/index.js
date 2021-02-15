@@ -28,8 +28,8 @@ const MultipleTrees = ({ navigation, route }) => {
     updateLastScreen(data);
     getInventory({ inventoryID: state.inventoryID }).then((data) => {
       if (data.plantation_date) {
-        setPlantingDate(new Date(Number(data.plantation_date)));
-        setSpecies(Object.values(data.species));
+        setPlantingDate(data.plantation_date);
+        setSpecies(data.species);
       }
     });
   };
@@ -39,7 +39,7 @@ const MultipleTrees = ({ navigation, route }) => {
     setPlantingDate(selectedDate);
     updatePlantingDate({
       inventory_id: state.inventoryID,
-      plantation_date: `${selectedDate.getTime()}`,
+      plantation_date: selectedDate,
     });
   };
 
@@ -97,7 +97,7 @@ const MultipleTrees = ({ navigation, route }) => {
     let data = {
       inventory_id: state.inventoryID,
       species,
-      plantation_date: `${plantingDate.getTime()}`,
+      plantation_date: plantingDate,
     };
     if (!onBlur) {
       let totalTreeCount = 0;

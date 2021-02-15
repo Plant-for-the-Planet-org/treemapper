@@ -55,5 +55,5 @@ export {
   map_img,
   logout,
   add_image,
-  empty
+  empty,
 };

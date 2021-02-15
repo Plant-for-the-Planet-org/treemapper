@@ -27,7 +27,7 @@ const DownloadMap = ({ navigation }) => {
 
   const getAllOfflineMapslocal = async () => {
     getAllOfflineMaps().then((offlineMaps) => {
-      setNumberOfOfflineMaps(Object.values(offlineMaps).length);
+      setNumberOfOfflineMaps(offlineMaps.length);
     });
   };
 
