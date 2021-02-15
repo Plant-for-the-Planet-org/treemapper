@@ -24,3 +24,12 @@ export const SET_SPECIE_ID = 'SET_SPECIE_ID';
 
 export const SET_MULTIPLE_TREES_SPECIES_LIST = 'SET_MULTIPLE_TREES_SPECIES_LIST';
 export const ADD_MULTIPLE_TREE_SPECIE = 'ADD_MULTIPLE_TREE_SPECIE';
+
+// used when user is successfully logged in into the app this type is used to add tokens and set user as logged in
+export const SET_INITIAL_USER_STATE = 'SET_INITIAL_USER_STATE';
+
+// Type to set user details in user state of app. Used when the app starts and when there is no user data available in DB.
+export const SET_USER_DETAILS = 'SET_USER_DETAILS';
+
+// Type to reset the user state to initialState. Used when user is logged out or no user data is present
+export const CLEAR_USER_DETAILS = 'CLEAR_USER_DETAILS';

@@ -1,48 +1,47 @@
-import React, { useEffect, useContext, useState, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Text,
-  TouchableOpacity,
-  Modal,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Platform,
-  TextInput,
-  Dimensions,
-  Alert,
-} from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { Colors, Typography } from '_styles';
-import LinearGradient from 'react-native-linear-gradient';
-import FIcon from 'react-native-vector-icons/Fontisto';
-import MIcon from 'react-native-vector-icons/MaterialIcons';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {
-  updateSpecieName,
-  updateSpecieDiameter,
-  initiateInventory,
-  getInventory,
-  changeInventoryStatus,
-  updatePlantingDate,
-  deleteInventory,
-  updateLastScreen,
-  updateSpecieHeight,
-} from '../../repositories/inventory';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import RNFS from 'react-native-fs';
+import LinearGradient from 'react-native-linear-gradient';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import FIcon from 'react-native-vector-icons/Fontisto';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
+import { Colors, Typography } from '_styles';
 import { initiateInventoryState } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import {
+  changeInventoryStatus,
+  deleteInventory,
+  getInventory,
+  initiateInventory,
+  updateLastScreen,
+  updatePlantingDate,
+  updateSingleTreeSpecie,
+  updateSpecieDiameter,
+  updateSpecieHeight,
+  updateTreeTag,
+} from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
-import RNFS from 'react-native-fs';
+import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = ({ navigation }) => {
-  const specieDiameterRef = useRef();
-
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -54,6 +53,8 @@ const SingleTreeOverview = ({ navigation }) => {
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('');
   const [specieEditHeight, setSpecieEditHeight] = useState('');
+  const [editedTagId, setEditedTagId] = useState('');
+  const [tagId, setTagId] = useState('');
   const [locateTree, setLocateTree] = useState(null);
   const [editEnable, setEditEnable] = useState('');
   const [status, setStatus] = useState('');
@@ -66,30 +67,26 @@ const SingleTreeOverview = ({ navigation }) => {
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        inventory.species = Object.values(inventory.species);
-        inventory.polygons = Object.values(inventory.polygons);
         setInventory(inventory);
         setStatus(inventory.status);
-        setSpecieText(inventory.specei_name);
+        setSpecieText(inventory.species[0].aliases);
         setLocateTree(inventory.locate_tree);
         setRegistrationType(inventory.tree_type);
         setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
         setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
         setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
         setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
-        setPlantationDate(new Date(Number(inventory.plantation_date)));
+        setPlantationDate(inventory.plantation_date);
+        setTagId(inventory.tag_id);
+        setEditedTagId(inventory.tag_id);
       });
     });
     Country();
+    return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
   const onSubmitInputField = (action) => {
-    const dimensionRegex = /^[0-9]{1,5}\.?[0-9]{0,2}$/;
-    // if (action === 'species' && specieEditText !== '') {
-    //   setSpecieText(specieEditText);
-    //   updateSpecieName({ inventory_id: inventoryState.inventoryID, speciesText: specieEditText });
-    //   setIsOpenModal(false);
-    // } else
+    const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
     if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
@@ -114,14 +111,15 @@ const SingleTreeOverview = ({ navigation }) => {
         speciesHeight: Number(specieEditHeight),
       });
       setIsOpenModal(false);
+    } else if (action === 'tagId') {
+      setTagId(editedTagId);
+      updateTreeTag({
+        inventoryId: inventory.inventory_id,
+        tagId: editedTagId,
+      });
+      setIsOpenModal(false);
     } else {
-      console.log('Something wrong!');
-      Alert.alert(
-        'Error',
-        'Please Enter Valid Input',
-        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        { cancelable: false },
-      );
+      Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
     setEditEnable('');
@@ -148,30 +146,33 @@ const SingleTreeOverview = ({ navigation }) => {
                 <Text style={styles.labelModal}>
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
-                    : i18next.t('label.tree_review_height')}
+                    : editEnable === 'height'
+                      ? i18next.t('label.tree_review_height')
+                      : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
-                {editEnable === 'diameter' ? (
-                  <TextInput
-                    ref={specieDiameterRef}
-                    value={specieEditDiameter.toString()}
-                    style={styles.value}
-                    autoFocus
-                    placeholderTextColor={Colors.TEXT_COLOR}
-                    keyboardType={'decimal-pad'}
-                    onChangeText={(text) => setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputField(editEnable)}
-                  />
-                ) : (
-                  <TextInput
-                    value={specieEditHeight.toString()}
-                    style={styles.value}
-                    autoFocus
-                    placeholderTextColor={Colors.TEXT_COLOR}
-                    keyboardType={'decimal-pad'}
-                    onChangeText={(text) => setSpecieEditHeight(text.replace(/[^0-9.]/g, ''))}
-                    onSubmitEditing={() => onSubmitInputField('height')}
-                  />
-                )}
+                <TextInput
+                  value={
+                    editEnable === 'diameter'
+                      ? specieEditDiameter.toString()
+                      : editEnable === 'height'
+                        ? specieEditHeight.toString()
+                        : editedTagId
+                  }
+                  style={styles.value}
+                  autoFocus
+                  placeholderTextColor={Colors.TEXT_COLOR}
+                  keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
+                  onChangeText={(text) => {
+                    if (editEnable === 'diameter') {
+                      setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
+                    } else if (editEnable === 'height') {
+                      setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
+                    } else {
+                      setEditedTagId(text);
+                    }
+                  }}
+                  onSubmitEditing={() => onSubmitInputField(editEnable)}
+                />
                 <MCIcon
                   onPress={() => onSubmitInputField(editEnable)}
                   name={'arrow-right'}
@@ -196,21 +197,30 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
-  const addSpecieNameToInventory = (specieName) => {
-    updateSpecieName({ inventory_id: inventory.inventory_id, speciesText: specieName });
-    setSpecieText(specieName);
+  const addSpecieNameToInventory = (specie) => {
+    updateSingleTreeSpecie({
+      inventory_id: inventory.inventory_id,
+      species: [
+        {
+          id: specie.guid,
+          treeCount: 1,
+          aliases: specie.scientific_name,
+        },
+      ],
+    });
+    setSpecieText(specie.scientific_name);
   };
 
   const renderDateModal = () => {
-    const onChangeDate = (e, selectedDate) => {
+    const onChangeDate = (selectedDate) => {
       updatePlantingDate({
         inventory_id: inventoryState.inventoryID,
-        plantation_date: `${selectedDate.getTime()}`,
+        plantation_date: selectedDate,
       });
       setIsShowDate(false);
       setPlantationDate(selectedDate);
     };
-    const handleConfirm = (data) => onChangeDate(null, data);
+    const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
     return (
@@ -230,7 +240,9 @@ const SingleTreeOverview = ({ navigation }) => {
       )
     );
   };
+
   let filePath, imageSource;
+
   if (inventory) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
@@ -238,15 +250,20 @@ const SingleTreeOverview = ({ navigation }) => {
       ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
       : false;
   }
+
   const renderDetails = ({ polygons }) => {
     let coords;
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
     }
-    let shouldEdit =
-      inventory.status === INCOMPLETE_INVENTORY ? true : inventory.status == null ? true : false;
+    let shouldEdit;
+    if (inventory && (inventory.status === INCOMPLETE_INVENTORY || inventory.status == null)) {
+      shouldEdit = true;
+    } else {
+      shouldEdit = false;
+    }
     let detailHeaderStyle = !imageSource
-      ? [styles.detailHeader, styles.defaulFontColor]
+      ? [styles.detailHeader, styles.defaultFontColor]
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
     return (
@@ -296,7 +313,7 @@ const SingleTreeOverview = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={{ marginVertical: 5 }}>
-          <Text style={detailHeaderStyle}>Height (in m)</Text>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_height_header')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -325,9 +342,23 @@ const SingleTreeOverview = ({ navigation }) => {
             testID="register_planting_date">
             <Text style={styles.detailText}>
               {i18next.t('label.inventory_overview_date', {
-                date: plantationDate,
+                date: new Date(plantationDate),
               })}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ marginVertical: 5 }}>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_tree_tag_header')}</Text>
+          <TouchableOpacity
+            disabled={!shouldEdit}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => onPressEditSpecies('tagId')}
+            accessibilityLabel={i18next.t('label.tree_review_tree_tag_header')}
+            testID="tree-tag-btn"
+            accessible={true}>
+            <Text style={styles.detailText}>
+              {tagId ? tagId : 'NA'} {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
@@ -368,28 +399,6 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
-  const onBackPress = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
-      navigation.navigate('RegisterSingleTree', { isEdit: true });
-    } else {
-      goBack();
-    }
-  };
-
-  const onBackPressOnSite = () => {
-    navigation.navigate('TreeInventory');
-    // setIsShowSpeciesListModal(true);
-    // if (direction){
-    //   navigation.navigate('SelectSpecies', {species: inventory.species, inventory: inventory});
-    // }else {
-    // navigation.goBack();
-    // }
-  };
-
-  const goBack = () => {
-    navigation.goBack();
-  };
-
   const handleDeleteInventory = () => {
     deleteInventory(
       { inventory_id: inventory.inventory_id },
@@ -416,34 +425,26 @@ const SingleTreeOverview = ({ navigation }) => {
       {renderDateModal()}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {locateTree === 'on-site' ? (
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
-              <Header
-                closeIcon
-                onBackPress={onBackPressOnSite}
-                headingText={i18next.t('label.tree_review_header')}
-              />
-              <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
-                <Text
-                  style={{
-                    fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    fontSize: Typography.FONT_SIZE_18,
-                    lineHeight: Typography.LINE_HEIGHT_24,
-                  }}>
-                  {i18next.t('label.tree_review_delete')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
             <Header
               closeIcon
-              onBackPress={onBackPress}
+              onBackPress={onPressSave}
               headingText={
-                locateTree === 'off-site' ? 'Tree Details' : i18next.t('label.tree_review_header')
+                locateTree === 'off-site' ? i18next.t('label.tree_review_details') : i18next.t('label.tree_review_header')
               }
             />
-          )}
+            <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
+              <Text
+                style={{
+                  fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  fontSize: Typography.FONT_SIZE_18,
+                  lineHeight: Typography.LINE_HEIGHT_24,
+                }}>
+                {i18next.t('label.tree_review_delete')}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.scrollViewContainer}>
             {inventory && locateTree !== 'on-site' && (
@@ -479,14 +480,14 @@ const SingleTreeOverview = ({ navigation }) => {
             <PrimaryButton
               onPress={onPressNextTree}
               btnText={i18next.t('label.tree_review_next_btn')}
-              halfWidth
-              theme={'white'}
+              // halfWidth
+              // theme={'white'}
             />
-            <PrimaryButton
+            {/* <PrimaryButton
               onPress={onPressSave}
               btnText={i18next.t('label.tree_review_Save')}
               halfWidth
-            />
+            /> */}
           </View>
         ) : (
           []
@@ -584,7 +585,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     marginRight: 10,
   },
-  defaulFontColor: {
+  defaultFontColor: {
     color: Colors.TEXT_COLOR,
   },
   detailSubContainer: {

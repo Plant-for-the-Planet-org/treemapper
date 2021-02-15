@@ -14,6 +14,7 @@
   "select_species_add_measurements": "Messung hinzufügen",
   "select_species_diameter": "Durchmesser",
   "select_species_height": "Höhe",
+  "select_species_tree_tag": "Baum-Tag",
   "select_species_inches": "Zoll",
   "select_species_feet": "Fuß",
   "select_species_continue": "Weiter",
@@ -29,5 +30,12 @@
   "select_species_search_species": "Arten suchen",
   "select_species_done": "Fertig",
   "select_species_add_name": "Name hinzufügen",
-  "select_species_my_species": "Meine Arten"
+  "select_species_my_species": "Meine Arten",
+  "select_species_diameter_more_than_error":"Durchmesser muss größer als 0.1 sein",
+  "select_species_height_more_than_error":"Höhe muss größer als 0.1 sein",
+  "select_species_diameter_invalid":"Durchmesser ist ungültig",
+  "select_species_height_invalid":"Höhe ist ungültig",
+  "select_species_tag_id_required":"Tag-ID wird benötigt",
+  "select_species_tagged_for_identification":"Dieser Baum wurde zur Identifizierung getaggt.",
+  "select_species_unknown":"Unbekannt"
 }

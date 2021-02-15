@@ -56,8 +56,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
       setInventory(inventory);
     });
   };
@@ -77,7 +75,7 @@ const InventoryOverview = ({ navigation }) => {
                 rightText={''}
               />
               <FlatList
-                data={Object.values(item.coordinates)}
+                data={item.coordinates}
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
                     title: i18next.t('label.inventory_overview_title_coordinates', {
@@ -108,7 +106,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressViewLOC = (index) => {
-    let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index];
+    let selectedCoords = inventory.polygons[0].coordinates[index];
     let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
     setSelectedLOC(normalCoords);
     setLocationTitle(ALPHABETS[index]);
@@ -214,7 +212,7 @@ const InventoryOverview = ({ navigation }) => {
             properties: {},
             geometry: {
               type: 'LineString',
-              coordinates: Object.values(onePolygon.coordinates).map((oneCoordinate) => [
+              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
                 oneCoordinate.longitude,
                 oneCoordinate.latitude,
               ]),
@@ -260,7 +258,7 @@ const InventoryOverview = ({ navigation }) => {
           maximumDate={new Date()}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          value={new Date(Number(inventory.plantation_date))}
+          value={inventory.plantation_date}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -273,10 +271,10 @@ const InventoryOverview = ({ navigation }) => {
 
   const onChangeDate = (event, selectedDate) => {
     setShowDate(false);
-    setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
+    setInventory({ ...inventory, plantation_date: selectedDate });
     updatePlantingDate({
       inventory_id: state.inventoryID,
-      plantation_date: `${selectedDate.getTime()}`,
+      plantation_date: selectedDate,
     });
   };
 
@@ -341,7 +339,7 @@ const InventoryOverview = ({ navigation }) => {
   let locationType;
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
     locationType = isSingleCoordinate
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');
@@ -368,7 +366,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: new Date(Number(inventory.plantation_date)),
+                  date: inventory.plantation_date,
                 })}
                 onPressRightText={() => onPressDate(status)}
               />

@@ -5,16 +5,20 @@ import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
+import { INCOMPLETE_INVENTORY } from '../../../utils/inventoryStatuses';
 
-export default function InventoryList({ inventoryList, accessibilityLabel }) {
+export default function InventoryList({ inventoryList, accessibilityLabel, inventoryStatus }) {
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
-    console.log('item.last_screen =>', item);
     setInventoryId(item.inventory_id)(dispatch);
-    navigation.navigate(item.last_screen);
+    if (item.status !== INCOMPLETE_INVENTORY) {
+      navigation.navigate('SingleTreeOverview');
+    } else {
+      navigation.navigate(item.last_screen);
+    }
   };
   return (
     <FlatList
@@ -27,10 +31,10 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
         if (
           item.polygons[0] &&
           item.polygons[0].coordinates &&
-          Object.values(item.polygons[0].coordinates).length
+          item.polygons[0].coordinates.length
         ) {
           imageURL = item.polygons[0].coordinates[0].imageUrl;
-          isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1;
+          isOffSitePoint = item.polygons[0].coordinates.length === 1;
         }
         let locateTreeAndType = '';
         let title = '';
@@ -41,12 +45,12 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
         }
         if (item.tree_type == 'single') {
           title =
-            `1 ${item.specei_name ? `${item.specei_name} ` : ''}` +
+            `1 ${item.species.length > 0 ? `${item.species[0].aliases} ` : ''}` +
             i18next.t('label.tree_inventory_tree');
           locateTreeAndType += ' - ' + i18next.t('label.tree_inventory_point');
         } else {
           let totalTreeCount = 0;
-          let species = Object.values(item.species);
+          let species = item.species;
 
           for (let i = 0; i < species.length; i++) {
             const oneSpecies = species[i];
@@ -63,7 +67,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
           title: title,
           subHeading: locateTreeAndType,
           date: i18next.t('label.inventory_overview_date', {
-            date: new Date(Number(item.plantation_date)),
+            date: item.plantation_date,
           }),
           imageURL,
         };
@@ -74,7 +78,17 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
             accessible={true}
             accessibilityLabel={accessibilityLabel}
             testID="upload_inventory_list">
-            <InventoryCard icon={'cloud-check'} data={data} />
+            <InventoryCard
+              icon={
+                inventoryStatus === INCOMPLETE_INVENTORY
+                  ? null
+                  : inventoryStatus === 'pending'
+                    ? 'cloud-outline'
+                    : 'cloud-check'
+              }
+              data={data}
+              inventoryStatus={inventoryStatus}
+            />
           </TouchableOpacity>
         );
       }}

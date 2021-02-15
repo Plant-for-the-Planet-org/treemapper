@@ -12,6 +12,7 @@ import {
   insertImageAtIndexCoordinate,
   polygonUpdate,
   completePolygon,
+  updateLastScreen,
 } from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -65,8 +66,8 @@ const ImageCapturing = ({
       generateMarkers();
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-        inventoryData.species = Object.values(inventoryData.species);
         setInventory(inventoryData);
+        console.log('inventory data', inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
@@ -143,6 +144,7 @@ const ImageCapturing = ({
             }
           });
         } else {
+          updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
           insertImageSingleRegisterTree(data).then(() => {
             navigation.navigate('SelectSpecies', {
               inventory: inventory,
@@ -240,9 +242,9 @@ const ImageCapturing = ({
           style={styles.cameraIconContainer}
           accessibilityLabel={inventoryType === 'multiple' ? 'Camera' : 'Register Tree Camera'}
           testID={inventoryType === 'multiple' ? 'camera_icon' : 'register_tree_camera'}>
-          <View style={styles.cameraIconCont}>
+          {/* <View style={styles.cameraIconCont}>
             <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
-          </View>
+          </View> */}
         </TouchableOpacity>
       </View>
       <View
@@ -250,23 +252,30 @@ const ImageCapturing = ({
           styles.bottomBtnsContainer,
           inventoryType === 'single' ? { justifyContent: 'space-between' } : {},
         ]}>
-        {inventoryType === 'single' && (
+        {inventoryType === 'single' ? (
           <PrimaryButton
-            onPress={onBackPress}
-            btnText={i18next.t('label.back')}
-            theme={'white'}
-            halfWidth
+            onPress={onPressCamera}
+            // btnText={i18next.t('label.back')}
+            btnText={imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')}
+            theme={imagePath ? 'white' : null}
+            halfWidth={imagePath}
           />
+        ) : (
+          []
         )}
-        <PrimaryButton
-          disabled={imagePath ? false : true}
-          onPress={
-            inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
-          }
-          btnText={i18next.t('label.continue')}
-          style={inventoryType === 'multiple' ? styles.bottomBtnsWidth : {}}
-          halfWidth={inventoryType === 'single'}
-        />
+        {imagePath ? (
+          <PrimaryButton
+            disabled={imagePath ? false : true}
+            onPress={
+              inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
+            }
+            btnText={i18next.t('label.continue')}
+            style={inventoryType === 'multiple' ? styles.bottomBtnsWidth : {}}
+            halfWidth={inventoryType === 'single'}
+          />
+        ) : (
+          []
+        )}
       </View>
       {inventoryType === 'multiple' && renderAlrightyModal()}
     </SafeAreaView>
