@@ -203,8 +203,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const onPressExportJSON = async () => {
     const exportGeoJSONFile = () => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
       if (inventory.polygons.length > 0) {
         const featureList = inventory.polygons.map((onePolygon) => {
           return {
