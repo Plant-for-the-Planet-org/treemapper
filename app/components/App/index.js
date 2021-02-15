@@ -12,6 +12,7 @@ import {
   CreatePolygon,
   DownloadMap,
   InventoryOverview,
+  Legals,
   LocateTree,
   Logs,
   MainScreen,
@@ -147,6 +148,7 @@ const App = () => {
               <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
               <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
               <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
+              <Stack.Screen name="Legals" component={Legals} options={MyTransition} />
             </>
           )}
         </Stack.Navigator>
