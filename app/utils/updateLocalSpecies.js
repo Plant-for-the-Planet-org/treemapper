@@ -45,10 +45,8 @@ export default async function updateLocalSpecies() {
         toFile: zipFilePath,
       })
         .promise.then(async (response) => {
-          console.log('download file response', response);
           if (response.statusCode === 200) {
-            const path = await unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8');
-            console.log('unzip path >', path);
+            await unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8');
             updateSpeciesFromFile(targetPath);
           }
         })
@@ -59,7 +57,6 @@ export default async function updateLocalSpecies() {
         });
     } catch (err) {
       console.error(`Error at /utils/updateLocalSpecies, ${JSON.stringify(err)}`);
-      console.log(Object.keys(err));
     }
   }
 }

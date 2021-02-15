@@ -20,8 +20,6 @@ const MySpecies = ({
 }) => {
   const navigation = useNavigation();
 
-  // console.log('specieList =>', specieList);
-
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -37,7 +35,7 @@ const MySpecies = ({
         }}
         onPress={() => {
           if (registrationType == 'single') {
-            addSpecieNameToInventory(item.scientific_name);
+            addSpecieNameToInventory(item);
             if (editOnlySpecieName) {
               onPressBack();
             } else {
@@ -58,7 +56,7 @@ const MySpecies = ({
         </View>
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : item.scientific_name !== 'Unknown' ? (
+        ) : item.guid !== 'unknown' ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientific_name })}>
             <Ionicons name="information-circle-outline" size={20} />

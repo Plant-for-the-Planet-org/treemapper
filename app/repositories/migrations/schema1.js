@@ -23,7 +23,7 @@ const Species = {
   name: 'Species',
   properties: {
     aliases: 'string',
-    treeCount: 'string',
+    treeCount: 'int',
     id: 'string?',
   },
 };
@@ -42,7 +42,7 @@ const Inventory = {
   primaryKey: 'inventory_id',
   properties: {
     inventory_id: 'string',
-    plantation_date: 'string?',
+    plantation_date: 'date?',
     tree_type: 'string?',
     status: 'string?',
     project_id: 'string?',
@@ -55,6 +55,8 @@ const Inventory = {
     species_diameter: 'float?',
     species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     response: 'string?',
+    tag_id: 'string?',
+    registration_date: 'date?',
   },
 };
 
@@ -66,23 +68,14 @@ const User = {
     accessToken: 'string?',
     idToken: 'string?',
     email: 'string?',
-    firstname: 'string?',
-    lastname: 'string?',
-    country: 'string?',
-    IsLogEnabled: 'bool?',
-  },
-};
-
-const AddSpecies = {
-  name: 'AddSpecies',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    aliases: 'string?',
+    firstName: 'string?',
+    lastName: 'string?',
     image: 'string?',
-    scientificName: 'string',
-    status: 'string?',
-    speciesId: 'string',
+    country: 'string?',
+    isLogEnabled: 'bool?',
+    tpoId: 'string?',
+    refreshToken: 'string?',
+    isSignUpRequired: 'bool?',
   },
 };
 
@@ -118,18 +111,33 @@ const ScientificSpecies = {
   properties: {
     guid: 'string',
     scientific_name: { type: 'string', indexed: true },
-    isUserSpecies: { type: 'bool', default: false},
+    isUserSpecies: { type: 'bool', default: false },
   },
 };
 
-export {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs
+const migration = (oldRealm, newRealm) => {
+  if (oldRealm.schemaVersion < 1) {
+    const oldUserObject = oldRealm.objects('User');
+    const newUserObject = newRealm.objects('User');
+    for (const index in oldUserObject) {
+      newUserObject[index].firstName = oldUserObject[index].firstname;
+      newUserObject[index].lastName = oldUserObject[index].lastname;
+      newUserObject[index].isLogEnabled = oldUserObject[index].IsLogEnabled;
+    }
+  }
+};
+
+export default {
+  schema: [
+    Coordinates,
+    Polygons,
+    User,
+    OfflineMaps,
+    Species,
+    Inventory,
+    ScientificSpecies,
+    ActivityLogs,
+  ],
+  schemaVersion: 1,
+  migration,
 };

@@ -1,7 +1,7 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
@@ -10,9 +10,11 @@ import { clearAllIncompleteInventory, getInventoryByStatus } from '../../reposit
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { UserContext } from '../../reducers/user';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
 
@@ -30,14 +32,14 @@ const TreeInventory = ({ navigation }) => {
 
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
-      setAllInventory(Object.values(allInventory));
+      setAllInventory(allInventory);
     });
   };
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
       getInventoryByStatus('all').then((allInventory) => {
-        setAllInventory(Object.values(allInventory));
+        setAllInventory(allInventory);
       });
     });
   };
@@ -52,12 +54,21 @@ const TreeInventory = ({ navigation }) => {
   }
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch)
+    uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('upload inventory successfully');
       })
       .catch((err) => {
-        console.error(err);
+        if (err?.response?.status === 303) {
+          navigation.navigate('SignUp');
+        } else if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+        }
       });
     navigation.navigate('MainScreen');
   };

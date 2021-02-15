@@ -29,7 +29,7 @@ const UploadedInventory = ({ navigation }) => {
 
   const initialState = () => {
     getInventoryByStatus('complete').then((allInventory) => {
-      setAllInventory(Object.values(allInventory));
+      setAllInventory(allInventory);
     });
   };
 

@@ -25,7 +25,7 @@ const SavedAreas = ({ navigation }) => {
 
   const loadAreas = async () => {
     getAllOfflineMaps().then((offlineMaps) => {
-      setAreas(Object.values(offlineMaps));
+      setAreas(offlineMaps);
     });
   };
 

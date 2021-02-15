@@ -1,19 +1,9 @@
 import Config from 'react-native-config';
-import {
-  Inventory,
-  Species,
-  Polygons,
-  Coordinates,
-  OfflineMaps,
-  User,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs
-} from './schema';
 import Realm from 'realm';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import dbLog from './logs';
+import { getSchema } from './default';
 
 export const getAreaName = ({ coords }) => {
   return new Promise((resolve, reject) => {
@@ -52,30 +42,16 @@ export const getAreaName = ({ coords }) => {
 };
 
 export const getAllOfflineMaps = () => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs
-      ],
-    })
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
       .then((realm) => {
-        realm.write(() => {
-          const offlineMaps = realm.objects('OfflineMaps');
-          // logging the error in to the db
-          dbLog.info({
-            logType: LogTypes.MAPS,
-            message: 'Fetched offline maps',
-          });
-          resolve(JSON.parse(JSON.stringify(offlineMaps)));
+        const offlineMaps = realm.objects('OfflineMaps');
+        // logging the error in to the db
+        dbLog.info({
+          logType: LogTypes.MAPS,
+          message: 'Fetched offline maps',
         });
+        resolve(offlineMaps);
       })
       .catch((err) => {
         // logging the error in to the db
@@ -85,25 +61,14 @@ export const getAllOfflineMaps = () => {
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
+        resolve(false);
       });
   });
 };
 
 export const deleteOfflineMap = ({ name }) => {
-  return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs
-      ],
-    })
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           const offlineMaps = realm.objectForPrimaryKey('OfflineMaps', `${name}`);
@@ -124,25 +89,14 @@ export const deleteOfflineMap = ({ name }) => {
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
+        resolve(false);
       });
   });
 };
 
 export const createOfflineMap = ({ name, size, areaName }) => {
   return new Promise((resolve, reject) => {
-    Realm.open({
-      schema: [
-        Inventory,
-        Species,
-        Polygons,
-        Coordinates,
-        OfflineMaps,
-        User,
-        AddSpecies,
-        ScientificSpecies,
-        ActivityLogs
-      ],
-    })
+    Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           realm.create('OfflineMaps', {

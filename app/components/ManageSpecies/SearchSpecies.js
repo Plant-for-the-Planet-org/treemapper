@@ -50,7 +50,7 @@ const SearchSpecies = ({
         style={styles.specieListItem}
         onPress={() => {
           if (registrationType == 'single') {
-            addSpecieNameToInventory(item.scientific_name);
+            addSpecieNameToInventory(item);
             toggleUserSpecies(item.guid, 'add');
             clearSearchText();
             if (editOnlySpecieName) {
