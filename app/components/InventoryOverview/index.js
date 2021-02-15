@@ -17,7 +17,7 @@ import {
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SvgXml } from 'react-native-svg';
-import RNFetchBlob from 'rn-fetch-blob';
+import Share from 'react-native-share';
 import { Colors, Typography } from '_styles';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
@@ -32,6 +32,7 @@ import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import SelectSpecies from '../SelectSpecies/index';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { toBase64 } from '../../utils/base64';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -201,9 +202,9 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressExportJSON = async () => {
-    let exportGeoJSONFile = () => {
+    const exportGeoJSONFile = () => {
       if (inventory.polygons.length > 0) {
-        let featureList = inventory.polygons.map((onePolygon) => {
+        const featureList = inventory.polygons.map((onePolygon) => {
           return {
             type: 'Feature',
             properties: {},
@@ -216,27 +217,26 @@ const InventoryOverview = ({ navigation }) => {
             },
           };
         });
-        let geoJSON = {
+        const geoJSON = {
           type: 'FeatureCollection',
           features: featureList,
         };
-        let fileName = `Tree Mapper GeoJSON ${inventory.inventory_id}.json`;
-        let path = `${
-          Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir
-        }/${fileName}`;
-        RNFetchBlob.fs
-          .writeFile(path, JSON.stringify(geoJSON), 'utf88')
-          .then((success) => {
-            alert(
-              `GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`,
-            );
+        const options = {
+          url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
+          message: i18next.t('label.inventory_overview_export_json_message'),
+          title: i18next.t('label.inventory_overview_export_json_title'),
+          filename: `Tree Mapper GeoJSON ${inventory.inventory_id}`,
+          saveToFiles: true,
+        };
+        Share.open(options)
+          .then(() => {
+            alert(i18next.t('label.inventory_overview_export_json_success'));
           })
-          .catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')));
+          .catch(() => alert(i18next.t('label.inventory_overview_export_json_error')));
       }
     };
     if (Platform.OS == 'android') {
       const permissionResult = await askAndroidStoragePermission();
-
       if (permissionResult) {
         exportGeoJSONFile();
       }
