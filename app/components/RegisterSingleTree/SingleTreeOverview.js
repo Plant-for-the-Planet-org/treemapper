@@ -1,45 +1,44 @@
-import React, { useEffect, useContext, useState, useRef } from 'react';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Text,
-  TouchableOpacity,
-  Modal,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Platform,
-  TextInput,
-  Dimensions,
   Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { Colors, Typography } from '_styles';
+import RNFS from 'react-native-fs';
 import LinearGradient from 'react-native-linear-gradient';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
-import MIcon from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
+import { Colors, Typography } from '_styles';
+import { initiateInventoryState } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 import {
+  changeInventoryStatus,
+  deleteInventory,
+  getInventory,
+  initiateInventory,
+  updateLastScreen,
+  updatePlantingDate,
   updateSingleTreeSpecie,
   updateSpecieDiameter,
-  initiateInventory,
-  getInventory,
-  changeInventoryStatus,
-  updatePlantingDate,
-  deleteInventory,
-  updateLastScreen,
   updateSpecieHeight,
   updateTreeTag,
 } from '../../repositories/inventory';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import i18next from 'i18next';
-import { initiateInventoryState } from '../../actions/inventory';
-import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
-import RNFS from 'react-native-fs';
+import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = ({ navigation }) => {

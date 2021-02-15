@@ -157,13 +157,11 @@ export const uploadInventory = (dispatch) => {
                 .then(async (sessionData) => {
                   if (oneInventory.response !== null && oneInventory.status === 'uploading') {
                     const inventoryResponse = JSON.parse(oneInventory.response);
-                    console.log('userToken', userToken);
                     try {
                       const response = await getPlantLocationDetails(
                         inventoryResponse.id,
                         userToken,
                       );
-                      console.log('response api', response);
                       await changeStatusAndUpload(
                         response,
                         oneInventory,
@@ -288,47 +286,33 @@ const checkAndUploadImage = async (oneInventory, response, userToken, sessionId)
   try {
     let locationId = response.id;
     let coordinatesList = oneInventory.polygons[0].coordinates;
-    if (response.type === 'single' && response.captureStatus === 'complete') {
-      return { allUploadCompleted: true };
-    } else if (response.type === 'single' && response.captureStatus === 'partial') {
+    const responseCoords = response.coordinates;
+    let completedUploadCount = 0;
+    for (let i = 0; i < responseCoords.length; i++) {
+      const oneResponseCoords = responseCoords[i];
+
+      if (oneResponseCoords.status === 'complete') {
+        completedUploadCount++;
+        continue;
+      }
+
+      const inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
+
       const isUploaded = await uploadImage(
-        isUploaded[0].imageUrl,
+        inventoryObject.imageUrl,
         userToken,
         sessionId,
         locationId,
-        response.coordinateId,
+        oneResponseCoords.id,
         oneInventory.inventory_id,
       );
-      return { allUploadCompleted: isUploaded };
-    } else {
-      const responseCoords = response.coordinates;
-      let completedUploadCount = 0;
-      for (let i = 0; i < responseCoords.length; i++) {
-        const oneResponseCoords = responseCoords[i];
-
-        if (oneResponseCoords.status === 'complete') {
-          completedUploadCount++;
-          continue;
-        }
-
-        const inventoryObject = coordinatesList[oneResponseCoords.coordinateIndex];
-
-        const isUploaded = await uploadImage(
-          inventoryObject.imageUrl,
-          userToken,
-          sessionId,
-          locationId,
-          oneResponseCoords.id,
-          oneInventory.inventory_id,
-        );
-        if (isUploaded) {
-          completedUploadCount++;
-        }
+      if (isUploaded) {
+        completedUploadCount++;
       }
-      // returns boolean value of whether all the images were uploaded successfully or not by comparing
-      // the length of coordinates of an inventory registration with the upload count of successfully completed upload
-      return { allUploadCompleted: completedUploadCount === responseCoords.length };
     }
+    // returns boolean value of whether all the images were uploaded successfully or not by comparing
+    // the length of coordinates of an inventory registration with the upload count of successfully completed upload
+    return { allUploadCompleted: completedUploadCount === responseCoords.length };
   } catch (err) {
     console.error(`Error at /actions/upload/checkAndUploadImage, ${JSON.stringify(err)}`);
     return { allUploadCompleted: false };
@@ -409,6 +393,7 @@ const uploadImage = async (
     return false;
   }
 };
+
 const getPlantLocationDetails = (locationId, userToken) => {
   return new Promise((resolve, reject) => {
     axios({

@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';

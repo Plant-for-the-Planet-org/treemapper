@@ -361,14 +361,12 @@ const SelectSpecies = ({
   const onPressMeasurementBtn = () => {
     let isDiameterValid = false;
     let isHeightValid = false;
-    let isTagIdValid = !isTagIdPresent;
+    let isTagIdValid = false;
     // sets diameter error if diameter less than 0.1 or is invalid input
     if (!diameter || Number(diameter) < 0.1) {
       setDiameterError(i18next.t('label.select_species_diameter_more_than_error'));
-      isDiameterValid = false;
     } else if (!dimensionRegex.test(diameter)) {
       setDiameterError(i18next.t('label.select_species_diameter_invalid'));
-      isDiameterValid = false;
     } else {
       setDiameterError('');
       isDiameterValid = true;
@@ -377,10 +375,8 @@ const SelectSpecies = ({
     // sets height error if height less than 0.1 or is invalid input
     if (!height || Number(height) < 0.1) {
       setHeightError(i18next.t('label.select_species_height_more_than_error'));
-      isHeightValid = false;
     } else if (!dimensionRegex.test(height)) {
       setHeightError(i18next.t('label.select_species_height_invalid'));
-      isHeightValid = false;
     } else {
       setHeightError('');
       isHeightValid = true;
@@ -388,7 +384,6 @@ const SelectSpecies = ({
 
     if (isTagIdPresent && !tagId) {
       setTagIdError(i18next.t('label.select_species_tag_id_required'));
-      isTagIdValid = false;
     } else {
       setTagIdError('');
       isTagIdValid = true;

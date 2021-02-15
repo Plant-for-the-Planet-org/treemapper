@@ -60,6 +60,7 @@ const RegisterTree = ({ navigation }) => {
             testID={'page_rt_multiple_trees'}
             accessibilityLabel={'Multiple Trees'}
             disabled
+            style={{ backgroundColor: Colors.GRAY_LIGHT }}
           />
           <View style={{ flex: 1 }}></View>
         </ScrollView>
