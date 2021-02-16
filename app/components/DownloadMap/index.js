@@ -64,7 +64,12 @@ const DownloadMap = ({ navigation }) => {
             getAllOfflineMapslocal();
 
             setAreaName('');
+          }).catch((err) => {
+            setIsLoaderShow(false);
+            setAreaName('');
+            alert(i18next.t('label.download_map_area_exists'));
           });
+          ;
         }
       };
       const errorListener = (offlineRegion, err) => {
