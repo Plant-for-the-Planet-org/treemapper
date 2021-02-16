@@ -46,7 +46,7 @@ class MapMarking extends React.Component {
     isAlertShow: false,
   };
 
-  componentDidMount() {
+  async UNSAFE_componentWillMount() {
     if (IS_ANDROID) {
       MapboxGL.requestAndroidLocationPermissions().then((permission) => {
         console.log(permission, 'permission');
@@ -415,7 +415,9 @@ class MapMarking extends React.Component {
       <AlertModal
         visible={isAlertShow}
         heading={'Poor Accuracy'}
-        message={`Your location accuracy is POOR, which is not recommended. Are you sure you want to continue?`}
+        message={
+          'Your location accuracy is POOR, which is not recommended. Are you sure you want to continue?'
+        }
         primaryBtnText={'Try Again'}
         secondaryBtnText={'Continue'}
         onPressPrimaryBtn={this.onPressTryAgain}
@@ -442,8 +444,8 @@ class MapMarking extends React.Component {
           accuracy == 'Good'
             ? { backgroundColor: '#1CE003' }
             : accuracy == 'Fair'
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => this.setState({ isAccuracyModalShow: true })}>
         <Text style={styles.gpsText}>GPS Accuracy</Text>
