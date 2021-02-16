@@ -111,8 +111,8 @@ const ManageSpecies = ({
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
-              message: `Specie with guid ${guid} is toggled ${
-                specieToToggle.isUserSpecies ? 'on' : 'off'
+              message: `Specie with guid ${guid} ${
+                specieToToggle.isUserSpecies ? 'added' : 'removed'
               }`,
             });
           });

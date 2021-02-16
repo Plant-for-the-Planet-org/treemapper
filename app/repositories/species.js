@@ -4,8 +4,8 @@ import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import { getSchema } from './default';
 
-export const updateLocalSpecies = (speciesData) => {
-  return new Promise((resolve, reject) => {
+export const updateAndSyncLocalSpecies = (speciesData) => {
+  return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
@@ -28,9 +28,11 @@ export const updateLocalSpecies = (speciesData) => {
           message: 'Error while updating the Local Scientific species',
           logStack: JSON.stringify(err),
         });
-        reject(false);
-        console.error(`Error at /repositories/species/updateLocalSpecies, ${JSON.stringify(err)}`);
+        console.error(
+          `Error at /repositories/species/updateAndSyncLocalSpecies, ${JSON.stringify(err)}`,
+        );
         bugsnag.notify(err);
+        resolve(false);
       });
   });
 };
@@ -45,52 +47,21 @@ export const searchSpeciesFromLocal = (text) => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          message: 'Searching with Local Scientific species',
+          message: `Searching in Local Scientific species with text:${text}`,
         });
         resolve(searchedSpecies);
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: 'Error while searching with Local Scientific species',
+          message: `Error while searching in Local Scientific species with text:${text}`,
           logStack: JSON.stringify(err),
         });
-        reject(err);
         console.error(
           `Error at /repositories/species/searchSpeciesFromLocal, ${JSON.stringify(err)}`,
         );
         bugsnag.notify(err);
-      });
-  });
-};
-
-export const toggleUserSpecies = (guid) => {
-  return new Promise((resolve, reject) => {
-    Realm.open(getSchema())
-      .then((realm) => {
-        realm.write(() => {
-          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-          specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: `Specie with guid ${guid} is toggled ${
-              specieToToggle.isUserSpecies ? 'on' : 'off'
-            }`,
-          });
-        });
-        resolve();
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while modifying user specie with id ${guid}`,
-          logStack: JSON.stringify(err),
-        });
         reject(err);
-        console.error(`Error at /repositories/species/toggleUserSpecies, ${JSON.stringify(err)}`);
-        bugsnag.notify(err);
       });
   });
 };
@@ -134,17 +105,23 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
       .then((realm) => {
         if (alreadySyncedSpecies) {
           // iterates through all the user preferred species which are already synced and updates the same in DB
-          for (const specie of alreadySyncedSpecies) {
-            console.log('specie already synced', specie);
-            // find the scientific specie using scientific specie guid and update the properties to
-            // [isUploaded = true] and [isUserSpecies = true]
-            let specieResult = realm.objectForPrimaryKey(
-              'ScientificSpecies',
-              specie.scientificSpecies,
-            );
-            specieResult.isUploaded = true;
-            specieResult.isUserSpecies = true;
-          }
+          realm.write(() => {
+            for (const specie of alreadySyncedSpecies) {
+              // find the scientific specie using scientific specie guid and update the properties to
+              // [isUploaded = true] and [isUserSpecies = true]
+              let specieResult = realm.objectForPrimaryKey(
+                'ScientificSpecies',
+                specie.scientificSpecies,
+              );
+              specieResult.isUploaded = true;
+              specieResult.isUserSpecies = true;
+              // logging the success in to the db
+              dbLog.info({
+                logType: LogTypes.MANAGE_SPECIES,
+                message: `Marked local specie with guid: ${specie.scientificSpecies} as isUserSpecies and isUploaded`,
+              });
+            }
+          });
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
@@ -167,7 +144,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          message: 'Retrieved not uploaded user species',
+          message: 'Fetched not uploaded user species',
         });
         resolve(userSpeciesToSync);
       })
