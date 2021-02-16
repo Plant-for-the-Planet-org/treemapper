@@ -17,6 +17,7 @@ const Header = ({
   accessibilityLabel,
   rightText,
   onPressFunction,
+  topRightComponent,
 }) => {
   const navigation = useNavigation();
   const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
@@ -48,6 +49,8 @@ const Header = ({
           ) : (
             <Text style={styles.rightText}>{rightText}</Text>
           )
+        ) : topRightComponent ? (
+          topRightComponent()
         ) : null}
       </View>
       {headingText ? (

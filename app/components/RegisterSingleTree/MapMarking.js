@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext } from 'react';
 import {
-  ActivityIndicator,
   ImageBackground,
   Modal,
   Platform,
@@ -23,54 +22,67 @@ import { Colors } from '_styles';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
-import { Alrighty, Header, PrimaryButton } from '../Common';
+import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { Typography } from '_styles';
+import { bugsnag } from '_utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-const IS_ANDROID = Platform.OS == 'android';
+const IS_ANDROID = Platform.OS === 'android';
 
 class MapMarking extends React.Component {
   state = {
     isAlrightyModalShow: false,
     centerCoordinates: [0, 0],
     // activePolygonIndex: 0,
+    isAccuracyModalShow: false,
     loader: false,
     markedCoords: null,
     locateTree: 'on-site',
     inventory: null,
+    accuracy: null,
+    isGranted: false,
+    isAlertShow: false,
   };
 
-  async UNSAFE_componentWillMount() {
+  componentDidMount() {
     if (IS_ANDROID) {
-      MapboxGL.setTelemetryEnabled(false);
-      await MapboxGL.requestAndroidLocationPermissions().then(async () => {
-        // try {
-        //   console.log('Asking permission');
-        //   const granted = await PermissionsAndroid.request(
-        //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        //     {
-        //       title: 'Location Permission',
-        //       message: 'App needs access to High accuracy location',
-        //       buttonPositive: 'Ok',
-        //     },
-        //   );
-        //   if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        //     console.log('Permission granted');
-        //     return true;
-        //   } else {
-        //     Alert.alert(
-        //       'Permission Denied!',
-        //       'You need to give location permission to register on-site tree',
-        //     );
-        //     return false;
-        //   }
-        // } catch (err) {
-        //   bugsnag.notify(err);
-        //   console.log(err);
-        //   return false;
-        // }
+      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+        console.log(permission, 'permission');
+        this.setState({ isGranted: permission });
+        if (permission) {
+          MapboxGL.setTelemetryEnabled(false);
+        }
       });
+      // await MapboxGL.requestAndroidLocationPermissions().then(async () => {
+      //   try {
+      //     console.log('Asking permission');
+      //     const granted = await PermissionsAndroid.request(
+      //       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      //       {
+      //         title: 'Location Permission',
+      //         message: 'App needs access to High accuracy location',
+      //         buttonPositive: 'Ok',
+      //       },
+      //     );
+      //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      //       console.log('Permission granted');
+      //       this.setState({ isGranted: true });
+      //       return true;
+      //     } else {
+      //       Alert.alert(
+      //         'Permission Denied!',
+      //         'You need to give location permission to register on-site tree',
+      //       );
+      //       return false;
+      //     }
+      //   } catch (err) {
+      //     bugsnag.notify(err);
+      //     console.log(err, 'Permission error');
+      //     return false;
+      //   }
+      // });
     }
   }
 
@@ -130,38 +142,43 @@ class MapMarking extends React.Component {
   addMarker = async () => {
     let { centerCoordinates } = this.state;
     // Check distance
-    try {
-      Geolocation.getCurrentPosition(
-        (position) => {
-          let currentCoords = position.coords;
-          let markerCoords = centerCoordinates;
-          console.log(position, 'position addMarker');
-          let distance = distanceCalculator(
-            currentCoords.latitude,
-            currentCoords.longitude,
-            markerCoords[1],
-            centerCoordinates[0],
-            'K',
-          );
-          let distanceInMeters = distance * 1000;
-          if (distanceInMeters < 100) {
-            this.setState({ locateTree: 'on-site' }, () => {
-              this.pushMaker(currentCoords);
-            });
-          } else {
-            this.setState({ locateTree: 'off-site' }, () => {
-              this.pushMaker(currentCoords);
-            });
-          }
-        },
-        (err) => {
-          console.log(err, 'addMarker');
-          alert(err.message);
-        },
-        // { enableHighAccuracy: true },
-      );
-    } catch (err) {
-      alert(JSON.stringify(err));
+    console.log(this.state.accuracy, 'this.state.accuracy');
+    if (this.state.accuracy !== 'Bad') {
+      try {
+        Geolocation.getCurrentPosition(
+          (position) => {
+            let currentCoords = position.coords;
+            let markerCoords = centerCoordinates;
+            console.log(position, 'position addMarker');
+            let distance = distanceCalculator(
+              currentCoords.latitude,
+              currentCoords.longitude,
+              markerCoords[1],
+              centerCoordinates[0],
+              'K',
+            );
+            let distanceInMeters = distance * 1000;
+            if (distanceInMeters < 100) {
+              this.setState({ locateTree: 'on-site' }, () => {
+                this.pushMaker(currentCoords);
+              });
+            } else {
+              this.setState({ locateTree: 'off-site' }, () => {
+                this.pushMaker(currentCoords);
+              });
+            }
+          },
+          (err) => {
+            console.log(err, 'addMarker');
+            alert(err.message);
+          },
+          // { enableHighAccuracy: true },
+        );
+      } catch (err) {
+        alert(JSON.stringify(err));
+      }
+    } else {
+      this.setState({ isAlertShow: true });
     }
   };
 
@@ -198,7 +215,7 @@ class MapMarking extends React.Component {
         onRegionDidChange={this.onChangeRegionComplete}>
         {/* {this.renderMarker()} */}
         <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
-        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
+        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onPressMyLocationIcon} />
       </MapboxGL.MapView>
     );
   };
@@ -222,7 +239,16 @@ class MapMarking extends React.Component {
     Geolocation.getCurrentPosition(
       (position) => {
         console.log(position, 'position onPressMyLocationIcon');
+        let accuracy = position.coords.accuracy;
+        // alert(position.coords.accuracy, 'position onPressMyLocationIcon');
         this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
+        if (accuracy < 10) {
+          this.setState({ accuracy: 'Good' });
+        } else if (accuracy < 31) {
+          this.setState({ accuracy: 'Fair' });
+        } else {
+          this.setState({ accuracy: 'Bad' });
+        }
       },
       (err) => {
         console.log(err, 'onPressMyLocationIcon');
@@ -329,6 +355,105 @@ class MapMarking extends React.Component {
     //   }
     // }
   };
+  renderAccuracyModal = () => {
+    const { isAccuracyModalShow } = this.state;
+
+    return (
+      <Modal transparent visible={isAccuracyModalShow}>
+        <View style={styles.modalContainer}>
+          <View style={styles.contentContainer}>
+            <Text
+              style={{
+                color: '#000000',
+                fontFamily: Typography.FONT_FAMILY_BOLD,
+                fontSize: Typography.FONT_SIZE_18,
+                paddingBottom: 18,
+              }}>
+              GPS Accuracy
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              You can use the GPS data to determine accuracy of a location. Tree Mapper only allows
+              on site registration if location is accurate to 25 meter
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                Green
+              </Text>{' '}
+              = Accurate to 5 meter
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                Yellow
+              </Text>{' '}
+              = Accurate to 25 meter
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>Red</Text>{' '}
+              = Greater than 25 meter
+            </Text>
+            <TouchableOpacity
+              style={{
+                alignSelf: 'center',
+                paddingTop: 25,
+              }}>
+              <Text
+                style={{
+                  color: '#87B738',
+                  fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  fontSize: Typography.FONT_SIZE_14,
+                }}
+                onPress={() => this.setState({ isAccuracyModalShow: false })}>
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  renderConfirmationModal = () => {
+    const { isAlertShow } = this.state;
+    console.log(isAlertShow, 'isAlertShow');
+    return (
+      <AlertModal
+        visible={isAlertShow}
+        heading={'Poor Accuracy'}
+        message={`Your location accuracy is POOR, which is not recommended. Are you sure you want to continue?`}
+        primaryBtnText={'Try Again'}
+        secondaryBtnText={'Continue'}
+        onPressPrimaryBtn={this.onPressTryAgain}
+        onPressSecondaryBtn={this.onPressAlertContinue}
+      />
+    );
+  };
+
+  onPressTryAgain = () => {
+    this.setState({ isAlertShow: false });
+  };
+
+  onPressAlertContinue = () => {
+    this.setState({ accuracy: 'ForceContinue', isAlertShow: false });
+    this.addMarker();
+  };
+
+  renderAccuracyInfo = () => {
+    let { accuracy } = this.state;
+    return (
+      <TouchableOpacity
+        style={[
+          styles.gpsContainer,
+          accuracy == 'Good'
+            ? { backgroundColor: '#1CE003' }
+            : accuracy == 'Fair'
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
+        ]}
+        onPress={() => this.setState({ isAccuracyModalShow: true })}>
+        <Text style={styles.gpsText}>GPS Accuracy</Text>
+      </TouchableOpacity>
+    );
+  };
 
   render() {
     const { loader } = this.state;
@@ -355,9 +480,12 @@ class MapMarking extends React.Component {
             onBackPress={this.onPressBack}
             closeIcon
             headingText={i18next.t('label.tree_map_marking_header')}
+            topRightComponent={this.renderAccuracyInfo}
           />
         </LinearGradient>
         <View></View>
+        {this.renderAccuracyModal()}
+        {this.renderConfirmationModal()}
         {this.renderAlrightyModal()}
       </View>
     );
@@ -400,6 +528,43 @@ const styles = StyleSheet.create({
     top: 0,
     backgroundColor: 'rgba(255, 255, 255, 0)',
     width: '100%',
+  },
+  gpsContainer: {
+    marginTop: 20,
+    width: 96,
+    height: 24,
+    backgroundColor: '#FFC400',
+    borderRadius: 25,
+  },
+  gpsText: {
+    color: '#FFFFFF',
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  contentContainer: {
+    backgroundColor: Colors.WHITE,
+    width: 300,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    borderRadius: 10,
+    paddingLeft: 25,
+    paddingRight: 15,
+    paddingVertical: 25,
+  },
+  accuracyModalText: {
+    color: '#000000',
+    lineHeight: 26,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
   },
   fakeMarkerCont: {
     position: 'absolute',
