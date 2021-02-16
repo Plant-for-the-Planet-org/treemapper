@@ -47,7 +47,7 @@ const DownloadMap = ({ navigation }) => {
 
   const zoomLevelChanged = async ()=>{
     setZoomLevel( await MapBoxGLRef.current.getZoom());
-  }
+  };
 
   const onPressDownloadArea = async () => {
     let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
