@@ -67,15 +67,17 @@ export const getSpeciesList = (userToken) => {
     })
       .then((res) => {
         const { data, status } = res;
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: 'Fetched species list, GET - /species',
-          statusCode: status,
-        });
         // checks if the status code is 200 the resolves the promise with the fetched data
         if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Fetched species list, GET - /species',
+            statusCode: status,
+          });
           resolve(data);
+        } else {
+          resolve(false);
         }
       })
       .catch((err) => {
@@ -86,6 +88,55 @@ export const getSpeciesList = (userToken) => {
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
           statusCode: err?.response?.status,
+        });
+        resolve(false);
+      });
+  });
+};
+
+/**
+ * Adds a scientific specie to user's preferred species
+ * @param {string} userToken - used to authorize the request
+ * @param {object} specieData - contains scientificSpecies as property having scientific specie id and
+ *                              aliases as property (a name given by user to that scientific specie)
+ */
+export const addUserSpecie = (userToken, specieData) => {
+  return new Promise((resolve) => {
+    // makes an authorized POST request on /species to add a specie of user.
+    axios({
+      method: 'POST',
+      url: `${protocol}://${url}/treemapper/species`,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `OAuth ${userToken}`,
+      },
+      data: specieData,
+    })
+      .then((res) => {
+        const { data, status } = res;
+
+        // checks if the status code is 200 the resolves the promise with the fetched data
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Added scientific species having id ${specieData.scientificSpecies}, POST - /species`,
+            statusCode: status,
+          });
+          resolve(data);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        // logs the error
+        console.error(`Error at /actions/species/addUserSpecie, ${JSON.stringify(err)}`);
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to add scientific species having id ${specieData.scientificSpecies}, POST - /species`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
         });
         resolve(false);
       });

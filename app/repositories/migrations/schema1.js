@@ -105,13 +105,20 @@ const ActivityLogs = {
   },
 };
 
+// used to store all the available scientific species extracted from zip
 const ScientificSpecies = {
   name: 'ScientificSpecies',
   primaryKey: 'guid',
   properties: {
+    // stores the guid of scientific specie
     guid: 'string',
+    // stores the name of scientific specie and indexed for better search
     scientific_name: { type: 'string', indexed: true },
+    // used to check if this specie is preferred by user or not. Default to [false]
     isUserSpecies: { type: 'bool', default: false },
+    // used to check whether this specie is synced to server or not. Defaults to [false]
+    // This property is used with [isUserSpecies]
+    isUploaded: { type: 'bool', default: false },
   },
 };
 

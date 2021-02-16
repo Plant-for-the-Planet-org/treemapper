@@ -121,3 +121,67 @@ export const getUserSpecies = () => {
       });
   });
 };
+
+/**
+ * Gets all the user preferred species which are not synced with server.
+ * It filters the [ScientificSpecies] model with conditions [isUserSpecies = true]
+ * and [isUploaded = false]
+ * @param {Array} alreadySyncedSpecies - contains the list of already synced user's preferred species
+ */
+export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        if (alreadySyncedSpecies) {
+          // iterates through all the user preferred species which are already synced and updates the same in DB
+          for (const specie of alreadySyncedSpecies) {
+            console.log('specie already synced', specie);
+            // find the scientific specie using scientific specie guid and update the properties to
+            // [isUploaded = true] and [isUserSpecies = true]
+            let specieResult = realm.objectForPrimaryKey(
+              'ScientificSpecies',
+              specie.scientificSpecies,
+            );
+            specieResult.isUploaded = true;
+            specieResult.isUserSpecies = true;
+          }
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Updated all the local species with already synced species from server',
+          });
+        } else {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'No synced species found from server',
+          });
+        }
+
+        // fetches all the scientific species
+        let species = realm.objects('ScientificSpecies');
+
+        // filters by [isUserSpecies = true] and [isUploaded = false] to get species to sync to server
+        let userSpeciesToSync = species.filtered('isUserSpecies = true AND isUploaded = false');
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Retrieved not uploaded user species',
+        });
+        resolve(userSpeciesToSync);
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while retrieving not uploaded user Species',
+          logStack: JSON.stringify(err),
+        });
+        console.error(
+          `Error at /repositories/species/updateAndGetUserSpeciesToSync, ${JSON.stringify(err)}`,
+        );
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};

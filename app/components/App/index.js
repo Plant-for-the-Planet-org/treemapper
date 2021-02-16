@@ -36,6 +36,7 @@ import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
 import updateLocalSpecies from '../../utils/updateLocalSpecies';
 import { migrateRealm } from '../../repositories/default';
+import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -79,8 +80,11 @@ const App = () => {
     if (dbUserDetails && dbUserDetails.refreshToken) {
       const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
       if (newAccessToken) {
+        console.log('newAccessToken', newAccessToken);
         // fetches the user details from server by passing the accessToken which is used while requesting the API
         getUserDetailsFromServer(newAccessToken);
+
+        checkAndAddUserSpecies(newAccessToken);
       } else {
         auth0Logout();
       }
