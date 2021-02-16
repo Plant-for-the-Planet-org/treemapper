@@ -72,9 +72,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper2-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treemapper-
+          ${{ runner.os }}-node-treemapper2-
 
     - name: Install npm
       run : |
