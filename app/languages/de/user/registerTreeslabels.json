@@ -14,5 +14,7 @@
   "alright_modal_off_site_header": "Off Site aktiviert!",
   "image_capturing_header": "Bild",
   "image_capturing_sub_header": "Bitte nehme ein Bild des gepflanzten Baumes auf.",
-  "image_capturing_required": "Bild ist erforderlich"
+  "image_capturing_required": "Bild ist erforderlich",
+  "image_click_picture": "Bild aufnehmen",
+  "image_reclick": "Nochmal"
 }
