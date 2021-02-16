@@ -2,5 +2,6 @@
   "download_map_complete": "Karten-Download abgeschlossen",
   "download_map_area": "Diesen Bereich herunterladen?",
   "download_map": "Herunterladen",
-  "download_map_view": "Alle anzeigen"
+  "download_map_view": "Alle anzeigen",
+  "download_map_area_failed": "Die Karte konnte nicht geladen werden. Bitte versuche es später noch einmal."
 }

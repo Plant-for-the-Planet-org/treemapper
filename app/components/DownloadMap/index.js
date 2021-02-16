@@ -85,6 +85,11 @@ const DownloadMap = ({ navigation }) => {
         progressListener,
         errorListener,
       );
+    })
+    .catch((err) => {
+      setIsLoaderShow(false);
+      setAreaName('');
+      alert(i18next.t('label.download_map_area_failed'));
     });
   };
 
