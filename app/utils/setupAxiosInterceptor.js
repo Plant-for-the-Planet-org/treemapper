@@ -34,7 +34,6 @@ export default function (userToken = null) {
         console.error('Error while getting user token from realm DB', err);
       }
 
-      console.log('\n\nconfig  from app', config);
       return config;
     });
     resolve();
