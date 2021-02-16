@@ -1,37 +1,27 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import Realm from 'realm';
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  TextInput,
-  View,
   Keyboard,
-  Text,
-  TouchableWithoutFeedback,
   SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import SearchSpecies from './SearchSpecies';
-import MySpecies from './MySpecies';
+import Realm from 'realm';
 import { Colors, Typography } from '_styles';
-// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
-import { searchSpeciesFromLocal, getUserSpecies } from '../../repositories/species';
-import { Header } from '../Common';
-import {
-  AddSpecies,
-  Coordinates,
-  Inventory,
-  OfflineMaps,
-  Polygons,
-  Species,
-  User,
-  ScientificSpecies,
-  ActivityLogs,
-} from '../../repositories/schema';
-import { LogTypes } from '../../utils/constants';
+import { getSchema } from '../../repositories/default';
 import dbLog from '../../repositories/logs';
+// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
+import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { LogTypes } from '../../utils/constants';
+import { Header } from '../Common';
+import MySpecies from './MySpecies';
+import SearchSpecies from './SearchSpecies';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -64,11 +54,19 @@ const ManageSpecies = ({
         if (userSpecies && userSpecies.length > 0) {
           specieListWithUnknown = [
             ...userSpecies,
-            { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
+            {
+              guid: 'unknown',
+              isUserSpecies: true,
+              scientific_name: i18next.t('label.select_species_unknown'),
+            },
           ];
         } else {
           specieListWithUnknown = [
-            { guid: 'abc', isUserSpecies: true, scientific_name: 'Unknown' },
+            {
+              guid: 'unknown',
+              isUserSpecies: true,
+              scientific_name: i18next.t('label.select_species_unknown'),
+            },
           ];
         }
         setSpecieList(specieListWithUnknown);
@@ -76,8 +74,6 @@ const ManageSpecies = ({
         setSpecieList(userSpecies);
       }
     });
-    // hides the keyboard when component unmount
-    return () => Keyboard.dismiss();
   }, [registrationType, searchList]);
 
   useEffect(() => {
@@ -97,19 +93,7 @@ const ManageSpecies = ({
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid, add) => {
     return new Promise((resolve) => {
-      Realm.open({
-        schema: [
-          Inventory,
-          Species,
-          Polygons,
-          Coordinates,
-          OfflineMaps,
-          User,
-          AddSpecies,
-          ScientificSpecies,
-          ActivityLogs,
-        ],
-      })
+      Realm.open(getSchema())
         .then((realm) => {
           realm.write(() => {
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);

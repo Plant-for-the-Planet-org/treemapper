@@ -66,8 +66,8 @@ const ImageCapturing = ({
       generateMarkers();
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-        inventoryData.species = Object.values(inventoryData.species);
         setInventory(inventoryData);
+        console.log('inventory data', inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
@@ -256,7 +256,7 @@ const ImageCapturing = ({
           <PrimaryButton
             onPress={onPressCamera}
             // btnText={i18next.t('label.back')}
-            btnText={imagePath ? 'Reclick' : 'Click Picture'}
+            btnText={imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')}
             theme={imagePath ? 'white' : null}
             halfWidth={imagePath}
           />

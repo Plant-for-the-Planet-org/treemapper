@@ -13,7 +13,6 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
-    console.log('item.last_screen =>', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE_INVENTORY) {
       navigation.navigate('SingleTreeOverview');
@@ -32,10 +31,10 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
         if (
           item.polygons[0] &&
           item.polygons[0].coordinates &&
-          Object.values(item.polygons[0].coordinates).length
+          item.polygons[0].coordinates.length
         ) {
           imageURL = item.polygons[0].coordinates[0].imageUrl;
-          isOffSitePoint = Object.values(item.polygons[0].coordinates).length == 1;
+          isOffSitePoint = item.polygons[0].coordinates.length === 1;
         }
         let locateTreeAndType = '';
         let title = '';
@@ -46,12 +45,12 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
         }
         if (item.tree_type == 'single') {
           title =
-            `1 ${item.specei_name ? `${item.specei_name} ` : ''}` +
+            `1 ${item.species.length > 0 ? `${item.species[0].aliases} ` : ''}` +
             i18next.t('label.tree_inventory_tree');
           locateTreeAndType += ' - ' + i18next.t('label.tree_inventory_point');
         } else {
           let totalTreeCount = 0;
-          let species = Object.values(item.species);
+          let species = item.species;
 
           for (let i = 0; i < species.length; i++) {
             const oneSpecies = species[i];
@@ -68,7 +67,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
           title: title,
           subHeading: locateTreeAndType,
           date: i18next.t('label.inventory_overview_date', {
-            date: new Date(Number(item.plantation_date)),
+            date: item.plantation_date,
           }),
           imageURL,
         };
