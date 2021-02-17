@@ -101,7 +101,7 @@ export const getSpeciesList = (userToken) => {
  *                              aliases as property (a name given by user to that scientific specie)
  */
 export const addUserSpecie = (userToken, specieData) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // makes an authorized POST request on /species to add a specie of user.
     axios({
       method: 'POST',
@@ -125,12 +125,18 @@ export const addUserSpecie = (userToken, specieData) => {
           });
           resolve(data);
         } else {
+          // logging the success in to the db
+          dbLog.warn({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Got success response from server other than status code 200, POST - /species',
+            statusCode: status,
+          });
           resolve(false);
         }
       })
       .catch((err) => {
         // logs the error
-        console.error(`Error at /actions/species/addUserSpecie, ${JSON.stringify(err)}`);
+        console.error(`Error at /actions/species/addUserSpecie, ${JSON.stringify(err?.response)}`);
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
@@ -138,7 +144,56 @@ export const addUserSpecie = (userToken, specieData) => {
           statusCode: err?.response?.status,
           logStack: JSON.stringify(err?.response),
         });
-        resolve(false);
+        reject(err);
+      });
+  });
+};
+
+/**
+ * Adds a scientific specie to user's preferred species
+ * @param {string} userToken - used to authorize the request
+ * @param {object} specieId - specie id of user saved species which is use to delete specie from server
+ */
+export const deleteUserSpecie = (userToken, specieId) => {
+  return new Promise((resolve, reject) => {
+    // makes an authorized DELETE request on /species to delete a specie of user.
+    axios({
+      method: 'DELETE',
+      url: `${protocol}://${url}/treemapper/species/${specieId}`,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `OAuth ${userToken}`,
+      },
+    })
+      .then((res) => {
+        const { status } = res;
+
+        // checks if the status code is 204 then resolves the promise
+        if (status === 204) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Deleted user species having id ${specieId}, DELETE - /species`,
+            statusCode: status,
+          });
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        // logs the error
+        console.error(
+          `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}`,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to delete user species having id ${specieId}, DELETE - /species`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+        reject(err);
       });
   });
 };

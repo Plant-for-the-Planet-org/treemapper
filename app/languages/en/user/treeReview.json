@@ -18,5 +18,6 @@
   "tree_review_alrighty": "Complete",
   "tree_review_register_planting_date": "Register Planting Date",
   "tree_review_delete": "Delete",
-  "tree_review_details": "Tree Details"
+  "tree_review_details": "Tree Details",
+  "tree_review_not_tagged": "Not Tagged"
 }

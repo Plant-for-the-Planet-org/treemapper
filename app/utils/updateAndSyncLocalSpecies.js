@@ -1,5 +1,5 @@
 import RNFS, { DocumentDirectoryPath } from 'react-native-fs';
-import { updateAndSyncLocalSpecies as updateLocalSpeciesRepo } from '../repositories/species';
+import { updateAndSyncLocalSpecies as updateAndSyncLocalSpeciesRepo } from '../repositories/species';
 import { unzip } from 'react-native-zip-archive';
 import { APIConfig } from '../actions/Config';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -23,7 +23,7 @@ const updateSpeciesFromFile = (targetPath, accessToken) => {
         speciesContent = JSON.parse(speciesContent);
 
         // calls the function and pass the parsed content to update the species in local DB
-        updateLocalSpeciesRepo(speciesContent)
+        updateAndSyncLocalSpeciesRepo(speciesContent)
           .then(async () => {
             // adds an AsyncStorage item [isLocalSpeciesUpdated] with value [true], which helps to determine
             // whether species were already updated in local DB or not
@@ -31,7 +31,7 @@ const updateSpeciesFromFile = (targetPath, accessToken) => {
 
             // if [accessToken] is present then start syncing of species from and to the server
             if (accessToken) {
-              checkAndAddUserSpecies(accessToken);
+              checkAndAddUserSpecies(accessToken, true);
             }
             resolve(true);
           })
@@ -116,7 +116,8 @@ export default async function updateAndSyncLocalSpecies(accessToken = null) {
             updateSpeciesFromFile(targetPath, accessToken);
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
-              message: 'Scientific Species zip downloaded successfully, GET - /scientificSpeciesArchive',
+              message:
+                'Scientific Species zip downloaded successfully, GET - /scientificSpeciesArchive',
               statusCode: response.statusCode,
             });
           }
@@ -128,7 +129,8 @@ export default async function updateAndSyncLocalSpecies(accessToken = null) {
           );
           dbLog.error({
             logType: LogTypes.MANAGE_SPECIES,
-            message: 'Error while downloading scientific species zip, GET - /scientificSpeciesArchive',
+            message:
+              'Error while downloading scientific species zip, GET - /scientificSpeciesArchive',
             logStack: JSON.stringify(err),
           });
         });

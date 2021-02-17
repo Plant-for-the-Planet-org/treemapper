@@ -26,7 +26,7 @@ const SearchSpecies = ({
                 fontSize: Typography.FONT_SIZE_16,
                 fontFamily: Typography.FONT_FAMILY_REGULAR,
               }}>
-              {item.scientific_name}
+              {item.scientificName}
             </Text>
           </View>
           <TouchableOpacity

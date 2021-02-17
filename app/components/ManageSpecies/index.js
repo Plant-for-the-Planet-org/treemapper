@@ -57,7 +57,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         } else {
@@ -65,7 +65,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         }
@@ -191,7 +191,9 @@ const ManageSpecies = ({
               />
             ) : (
               <Text style={styles.notPresentText}>
-                The &apos;{searchText}&apos; specie is not present
+                {i18next.t('label.select_species_search_specie_not_present', {
+                  searchText,
+                })}
               </Text>
             )
           ) : (
