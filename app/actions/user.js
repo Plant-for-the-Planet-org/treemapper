@@ -233,8 +233,6 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
             id: tpoId,
           } = data.data;
 
-          console.log('data', data.data);
-
           // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
           modifyUserDetails({
             email,

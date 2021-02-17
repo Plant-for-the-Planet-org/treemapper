@@ -137,7 +137,7 @@ export const checkAndAddUserSpecies = async (userToken, isFirstUpdate = false) =
       });
     }
   } catch (err) {
-    console.log(`Error at /utils/addUserSpecies/checkAndAddUserSpecies, ${JSON.stringify(err)}`);
+    console.error(`Error at /utils/addUserSpecies/checkAndAddUserSpecies, ${JSON.stringify(err)}`);
     dbLog.error({
       logType: LogTypes.MANAGE_SPECIES,
       message: 'Error while syncing user species to server',

@@ -80,7 +80,6 @@ const App = () => {
     if (dbUserDetails && dbUserDetails.refreshToken) {
       const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
       if (newAccessToken) {
-        console.log('newAccessToken', newAccessToken);
         // fetches the user details from server by passing the accessToken which is used while requesting the API
         getUserDetailsFromServer(newAccessToken);
       } else {
