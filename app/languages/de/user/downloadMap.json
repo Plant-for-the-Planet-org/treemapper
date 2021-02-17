@@ -3,5 +3,6 @@
   "download_map_area": "Diesen Bereich herunterladen?",
   "download_map": "Herunterladen",
   "download_map_view": "Alle anzeigen",
-  "download_map_area_failed": "Die Karte konnte nicht geladen werden. Bitte versuche es später noch einmal."
+  "download_map_area_failed": "Die Karte konnte nicht geladen werden. Bitte versuche es später noch einmal.",
+  "download_map_area_exists": "Diese Karte wurde bereits heruntergeladen."
 }
