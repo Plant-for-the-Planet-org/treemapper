@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
-import { Colors } from '../../../styles/colors';
+import { Colors } from '_styles';
 
 export default function Loader({ isLoaderShow }) {
   return (
