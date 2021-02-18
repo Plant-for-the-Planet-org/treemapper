@@ -89,9 +89,9 @@ export const getUserSpecies = () => {
           message: 'Error while retrieving User Species from Local',
           logStack: JSON.stringify(err),
         });
-        reject(err);
         console.error(`Error at /repositories/species/getUserSpecies, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -103,7 +103,7 @@ export const getUserSpecies = () => {
  * @param {Array} alreadySyncedSpecies - contains the list of already synced user's preferred species
  */
 export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         if (alreadySyncedSpecies) {
@@ -162,7 +162,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
           `Error at /repositories/species/updateAndGetUserSpeciesToSync, ${JSON.stringify(err)}`,
         );
         bugsnag.notify(err);
-        resolve(false);
+        reject(err);
       });
   });
 };
@@ -174,7 +174,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
  * @param {string} specieId - specie id which is to be updated
  */
 export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specieId) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
@@ -202,7 +202,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specieId) => {
           `Error at /repositories/species/addSpecieIdFromSyncedSpecie, ${JSON.stringify(err)}`,
         );
         bugsnag.notify(err);
-        resolve(false);
+        reject(err);
       });
   });
 };
@@ -214,7 +214,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specieId) => {
  * @param {string} scientificSpecieGuid - scientific specie guid to search from and update the specie id
  */
 export const removeSpecieId = (scientificSpecieGuid) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
@@ -240,7 +240,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
         });
         console.error(`Error at /repositories/species/removeSpecieId, ${JSON.stringify(err)}`);
         bugsnag.notify(err);
-        resolve(false);
+        reject(err);
       });
   });
 };

@@ -28,107 +28,45 @@ export const checkAndAddUserSpecies = async (userToken, isFirstUpdate = false) =
     // checks and sync the species only if the local species are updated
     if (isSpeciesLoaded === 'true') {
       // gets all the user species synced on the server
-      const alreadySyncedSpecies = await getSpeciesList(userToken);
+      getSpeciesList(userToken)
+        .then(async (alreadySyncedSpecies) => {
+          // passes already synced species fetched from server to update the local species and gets the
+          // local species which are not uploaded to server
+          updateAndGetUserSpeciesToSync(isFirstUpdate ? alreadySyncedSpecies : null)
+            .then((speciesToSync) => {
+              // checks if [speciesToSync] is present and has data to iterate
+              if (speciesToSync && speciesToSync.length > 0) {
+                // adds or deletes the species
+                addOrDeleteUserSpecies(speciesToSync, userToken, alreadySyncedSpecies);
 
-      // passes already synced species fetched from server to update the local species and gets the
-      // local species which are not uploaded to server
-      const speciesToSync = await updateAndGetUserSpeciesToSync(
-        isFirstUpdate ? alreadySyncedSpecies : null,
-      );
-
-      // checks if [speciesToSync] is present and has data to iterate
-      if (speciesToSync && speciesToSync.length > 0) {
-        // iterates through the list of [speciesToSync] to add the specie on server and if result is success
-        // then updates the [isUploaded] property in local DB to [true] else logs the error
-        for (const specie of speciesToSync) {
-          if (specie.isUserSpecies && !specie.isUploaded) {
-            addUserSpecie(userToken, {
-              scientificSpecies: specie.guid,
-              aliases: specie.scientificName,
+                // logging the success in to the db after all the species are synced
+                dbLog.info({
+                  logType: LogTypes.MANAGE_SPECIES,
+                  message: 'Syncing of all user species to server completed',
+                });
+              } else {
+                // logging the success in to the db
+                dbLog.info({
+                  logType: LogTypes.MANAGE_SPECIES,
+                  message: 'No new user species present to sync with server',
+                });
+              }
             })
-              .then((result) => {
-                if (result) {
-                  addSpecieIdFromSyncedSpecie(specie.guid, result.id);
-                  // logging the success in to the db
-                  dbLog.info({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Successfully added user specie to server with scientific specie guid: ${specie.guid}`,
-                  });
-                } else {
-                  // logging the warn in to the db
-                  dbLog.warn({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Got false result while trying to add specie with scientific specie guid: ${specie.guid}`,
-                  });
-                }
-              })
-              .catch((err) => {
-                if (
-                  err?.response?.status === 400 &&
-                  err.response.data?.errors &&
-                  err.response.data?.errors?.errors?.includes(
-                    'you already have defined a species based on the provided scientificSpecies id',
-                  )
-                ) {
-                  dbLog.info({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Scientific specie guid: ${specie.guid} is already present on server.`,
-                  });
-                  // used to find the already synced species using the scientific species and update the same in DB
-                  addFromAlreadySyncedSpecies(specie.guid, alreadySyncedSpecies);
-                } else {
-                  dbLog.error({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Failed to add user specie to server with scientific specie guid: ${specie.guid}`,
-                  });
-                }
-              });
-          } else if (!specie.isUserSpecies && specie.isUploaded) {
-            deleteUserSpecie(userToken, specie.specieId)
-              .then((result) => {
-                if (result) {
-                  // logging the success in to the db
-                  dbLog.info({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Successfully deleted user specie from server with specie id: ${specie.specieId}`,
-                  });
-                  removeSpecieId(specie.guid);
-                } else {
-                  // logging the warn in to the db
-                  dbLog.warn({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Got false result while trying to delete specie from server with specie guid: ${specie.specieId}`,
-                  });
-                }
-              })
-              .catch((err) => {
-                if (err?.response?.status === 404) {
-                  dbLog.info({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `User specie with specie id: ${specie.specieId} is already deleted from server`,
-                  });
-                  removeSpecieId(specie.guid);
-                } else {
-                  dbLog.error({
-                    logType: LogTypes.MANAGE_SPECIES,
-                    message: `Failed to delete user specie from server with specie id: ${specie.specieId}`,
-                  });
-                }
-              });
-          }
-        }
-        // logging the success in to the db after all the species are synced
-        dbLog.info({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: 'Syncing of all user species to server completed',
+            .catch((err) => {
+              console.error(
+                `Error at /utils/addUserSpecies/checkAndAddUserSpecies - getSpeciesList/updateAndGetUserSpeciesToSync, ${JSON.stringify(
+                  err,
+                )}`,
+              );
+            });
+        })
+        .catch((err) => {
+          console.error(
+            `Error at /utils/addUserSpecies/checkAndAddUserSpecies - getSpeciesList, ${JSON.stringify(
+              err,
+            )}`,
+          );
         });
-      } else {
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: 'No new user species present to sync with server',
-        });
-      }
     } else {
       // logging the success in to the db
       dbLog.info({
@@ -157,9 +95,148 @@ const addFromAlreadySyncedSpecies = (scientificSpecieGuid, alreadySyncedSpecies)
   // if scientific specie guid matches with already synced specie scientific species
   for (const specie of alreadySyncedSpecies) {
     if (specie.scientificSpecies === scientificSpecieGuid) {
-      // updates specie id in DB
-      addSpecieIdFromSyncedSpecie(scientificSpecieGuid, specie.id);
+      try {
+        // updates specie id in DB
+        addSpecieIdFromSyncedSpecie(scientificSpecieGuid, specie.id);
+      } catch (err) {
+        console.error(
+          `Error at /utils/addUserSpecies/addFromAlreadySyncedSpecies, ${JSON.stringify(err)}`,
+        );
+      }
       break;
     }
   }
+};
+
+/**
+ * Iterates through the list of [speciesToSync] to add or delete the specie on server and
+ * update the status of the same in local DB
+ * @param {Array} speciesToSync  - array of species that are not synced on the server
+ * @param {string} userToken - used to pass to api functions to authenticate the route
+ * @param {Array} alreadySyncedSpecies - array of species which are already synced on the server
+ */
+const addOrDeleteUserSpecies = (speciesToSync, userToken, alreadySyncedSpecies) => {
+  // iterates through the list of [speciesToSync] to add the specie on server and if result is success
+  // then updates the [isUploaded] property in local DB to [true] else logs the error
+  for (const specie of speciesToSync) {
+    if (specie.isUserSpecies && !specie.isUploaded) {
+      addUserSpecieToServer(specie, userToken, alreadySyncedSpecies);
+    } else if (!specie.isUserSpecies && specie.isUploaded) {
+      deleteUserSpecieFromServer(specie, userToken);
+    }
+  }
+};
+
+/**
+ * Adds the specie to the server and if the specie is already present in the server
+ * then updates in local DB using the [alreadySyncedSpecies] array
+ *
+ * @param {Object} specie - specie which is to be added to the server
+ * @param {string} userToken - used to authenticate the api request
+ * @param {Array} alreadySyncedSpecies - array of already synced species present on server
+ */
+const addUserSpecieToServer = (specie, userToken, alreadySyncedSpecies) => {
+  // calls the api function with user token and specie to add specie on the server
+  addUserSpecie(userToken, {
+    scientificSpecies: specie.guid,
+    aliases: specie.scientificName,
+  })
+    .then((result) => {
+      if (result) {
+        try {
+          addSpecieIdFromSyncedSpecie(specie.guid, result.id);
+        } catch (err) {
+          console.error(
+            `Error at /utils/addUserSpecies/addUserSpecieToServer, ${JSON.stringify(err)}`,
+          );
+        }
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Successfully added user specie to server with scientific specie guid: ${specie.guid}`,
+        });
+      } else {
+        // logging the warn in to the db
+        dbLog.warn({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Got false result while trying to add specie with scientific specie guid: ${specie.guid}`,
+        });
+      }
+    })
+    .catch((err) => {
+      if (
+        err?.response?.status === 400 &&
+        err.response.data?.errors &&
+        err.response.data?.errors?.errors?.includes(
+          'you already have defined a species based on the provided scientificSpecies id',
+        )
+      ) {
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Scientific specie guid: ${specie.guid} is already present on server.`,
+        });
+        if (alreadySyncedSpecies) {
+          // used to find the already synced species using the scientific species and update the same in DB
+          addFromAlreadySyncedSpecies(specie.guid, alreadySyncedSpecies);
+        }
+      } else {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to add user specie to server with scientific specie guid: ${specie.guid}`,
+        });
+      }
+    });
+};
+
+/**
+ * Calls the delete api function to delete the specie and if already present then updates the same in local DB
+ *
+ * @param {object} specie - user specie which is to be deleted from the server
+ * @param {string} userToken - used to authenticate the api request
+ */
+const deleteUserSpecieFromServer = (specie, userToken) => {
+  // calls the api function with user token and specie to delete the specie from the server
+  deleteUserSpecie(userToken, specie.specieId)
+    .then((result) => {
+      if (result) {
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Successfully deleted user specie from server with specie id: ${specie.specieId}`,
+        });
+        try {
+          removeSpecieId(specie.guid);
+        } catch (err) {
+          console.error(
+            `Error at /utils/addUserSpecies/deleteUserSpecieFromServer, ${JSON.stringify(err)}`,
+          );
+        }
+      } else {
+        // logging the warn in to the db
+        dbLog.warn({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Got false result while trying to delete specie from server with specie guid: ${specie.specieId}`,
+        });
+      }
+    })
+    .catch((err) => {
+      if (err?.response?.status === 404) {
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `User specie with specie id: ${specie.specieId} is already deleted from server`,
+        });
+        try {
+          removeSpecieId(specie.guid);
+        } catch (err) {
+          console.error(
+            `Error at /utils/addUserSpecies/deleteUserSpecieFromServer, ${JSON.stringify(err)}`,
+          );
+        }
+      } else {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to delete user specie from server with specie id: ${specie.specieId}`,
+        });
+      }
+    });
 };

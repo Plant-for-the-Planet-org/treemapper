@@ -15,7 +15,7 @@ import { LogTypes } from './constants';
  * @param {string} accessToken - used to sync the species with the server if available
  */
 const updateSpeciesFromFile = (targetPath, accessToken) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // reads the file content using the passed target path in utf-8 format
     RNFS.readFile(targetPath, 'utf8')
       .then((speciesContent) => {
@@ -36,8 +36,12 @@ const updateSpeciesFromFile = (targetPath, accessToken) => {
             resolve(true);
           })
           .catch((err) => {
-            console.error(err);
-            resolve(false);
+            console.error(
+              `Error at /utils/updateSpeciesFromFile/updateAndSyncLocalSpeciesRepo while updating local species, ${JSON.stringify(
+                err,
+              )}`,
+            );
+            reject(err);
           });
       })
       .catch((err) => {
@@ -52,7 +56,7 @@ const updateSpeciesFromFile = (targetPath, accessToken) => {
           message: `Error while reading file at path ${targetPath} for updating local species`,
           logStack: JSON.stringify(err),
         });
-        resolve(false);
+        reject(err);
       });
   });
 };
@@ -89,7 +93,13 @@ export default async function updateAndSyncLocalSpecies(accessToken = null) {
       logType: LogTypes.MANAGE_SPECIES,
       message: 'Species are not updated but archive file is already present',
     });
-    updateSpeciesFromFile(targetPath, accessToken);
+
+    // this function updates the species in DB after reading the content of the file
+    try {
+      updateSpeciesFromFile(targetPath, accessToken);
+    } catch (err) {
+      console.error(`Error at /utils/updateAndSyncLocalSpecies, ${JSON.stringify(err)}`);
+    }
   } else if (isSpeciesLoaded !== 'true' && !doesPathExist) {
     dbLog.info({
       logType: LogTypes.MANAGE_SPECIES,
@@ -112,8 +122,16 @@ export default async function updateAndSyncLocalSpecies(accessToken = null) {
           if (response.statusCode === 200) {
             // unzips the downloaded file in document directory
             await unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8');
+
             // this function updates the species in DB after reading the content of the file
-            updateSpeciesFromFile(targetPath, accessToken);
+            try {
+              updateSpeciesFromFile(targetPath, accessToken);
+            } catch (err) {
+              console.error(
+                `Error at /utils/updateAndSyncLocalSpecies - downloadFile, ${JSON.stringify(err)}`,
+              );
+            }
+
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
               message:

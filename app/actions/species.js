@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { bugsnag } from '../utils';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { APIConfig } from './Config';
@@ -54,8 +55,12 @@ export const addMultipleTreesSpecie = (specie) => (dispatch) => {
   });
 };
 
+/**
+ * Fetches all the species of the user
+ * @param {string} userToken - used to authenticate the API request
+ */
 export const getSpeciesList = (userToken) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // makes an authorized GET request on /species to get the species list.
     axios({
       method: 'GET',
@@ -82,14 +87,15 @@ export const getSpeciesList = (userToken) => {
       })
       .catch((err) => {
         // logs the error
-        console.error(`Error at /actions/species/getSpeciesList, ${JSON.stringify(err)}`);
+        console.error(`Error at /actions/species/getSpeciesList, ${JSON.stringify(err.response)}`);
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
           statusCode: err?.response?.status,
         });
-        resolve(false);
+        bugsnag.notify(err);
+        reject(err);
       });
   });
 };
@@ -150,7 +156,7 @@ export const addUserSpecie = (userToken, specieData) => {
 };
 
 /**
- * Adds a scientific specie to user's preferred species
+ * Delete the user specie from the server using the specie id
  * @param {string} userToken - used to authorize the request
  * @param {object} specieId - specie id of user saved species which is use to delete specie from server
  */
