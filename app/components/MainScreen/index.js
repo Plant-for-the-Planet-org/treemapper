@@ -87,31 +87,39 @@ const MainScreen = ({ navigation }) => {
     });
   }, []);
 
-  const initializeRealm = async (realm) => {
-    const userObject = realm.objects('User');
-
-    // Define the collection notification listener
-    function listener(userData, changes) {
-      if (changes.deletions.length > 0) {
-        setUserInfo({});
-        setIsUserLogin(false);
-        clearUserDetails()(userDispatch);
-      }
-      // Update UI in response to inserted objects
-      changes.insertions.forEach((index) => {
-        if (userData[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userData[index]);
-        }
-      });
-      // Update UI in response to modified objects
-      changes.modifications.forEach((index) => {
-        if (userData[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userData[index]);
-        }
-      });
+  // Define the collection notification listener
+  function listener(userData, changes) {
+    if (changes.deletions.length > 0) {
+      setUserInfo({});
+      setIsUserLogin(false);
+      clearUserDetails()(userDispatch);
     }
-    // Observe collection notifications.
-    userObject.addListener(listener);
+    // Update UI in response to inserted objects
+    changes.insertions.forEach((index) => {
+      if (userData[index].id === 'id0001') {
+        checkIsSignedInAndUpdate(userData[index]);
+      }
+    });
+    // Update UI in response to modified objects
+    changes.modifications.forEach((index) => {
+      if (userData[index].id === 'id0001') {
+        checkIsSignedInAndUpdate(userData[index]);
+      }
+    });
+  }
+
+  // initializes the realm by adding listener to user object of realm to listen
+  // the modifications and update the application state
+  const initializeRealm = async (realm) => {
+    try {
+      // gets the user object from realm
+      const userObject = realm.objects('User');
+
+      // Observe collection notifications.
+      userObject.addListener(listener);
+    } catch (err) {
+      console.error(`Error at /components/MainScreen/initializeRealm, ${JSON.stringify(err)}`);
+    }
   };
 
   const checkIsSignedInAndUpdate = (userDetail) => {
@@ -282,7 +290,12 @@ const MainScreen = ({ navigation }) => {
             accessibilityLabel={'Register Tree'}
           />
           {!isUserLogin ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                marginHorizontal: 50,
+              }}>
               <Text onPress={onPressLegals} style={styles.textAlignCenter}>
                 {i18next.t('label.legal_docs')}
               </Text>
@@ -290,7 +303,10 @@ const MainScreen = ({ navigation }) => {
               <Text onPress={onPressSupport} style={styles.textAlignCenter}>
                 {i18next.t('label.support')}
               </Text>
-            </View>) : <View/>}
+            </View>
+          ) : (
+            <View />
+          )}
         </View>
       )}
       {renderVideoModal()}

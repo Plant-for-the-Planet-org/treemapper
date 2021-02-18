@@ -57,7 +57,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         } else {
@@ -65,7 +65,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         }
@@ -111,8 +111,8 @@ const ManageSpecies = ({
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
-              message: `Specie with guid ${guid} is toggled ${
-                specieToToggle.isUserSpecies ? 'on' : 'off'
+              message: `Specie with guid ${guid} ${
+                specieToToggle.isUserSpecies ? 'added' : 'removed'
               }`,
             });
           });
@@ -191,7 +191,9 @@ const ManageSpecies = ({
               />
             ) : (
               <Text style={styles.notPresentText}>
-                The &apos;{searchText}&apos; specie is not present
+                {i18next.t('label.select_species_search_specie_not_present', {
+                  searchText,
+                })}
               </Text>
             )
           ) : (

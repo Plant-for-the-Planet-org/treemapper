@@ -1,8 +1,10 @@
 import Realm from 'realm';
+import { bugsnag } from '../utils';
 import schema0 from './migrations/schema0';
 import schema1 from './migrations/schema1';
+import schema2 from './migrations/schema2';
 
-export const schemas = [schema0, schema1];
+export const schemas = [schema0, schema1, schema2];
 
 export const getSchema = () => schemas[schemas.length - 1];
 
@@ -29,6 +31,7 @@ export function migrateRealm(isMigrationRequired) {
       resolve();
     } catch (err) {
       console.error(`Error while setting up realm connection, ${JSON.stringify(err)}`);
+      bugsnag.notify(err);
     }
   });
 }

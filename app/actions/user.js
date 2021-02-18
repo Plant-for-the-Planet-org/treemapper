@@ -8,6 +8,7 @@ import { LogTypes } from '../utils/constants';
 import getSessionData from '../utils/sessionId';
 import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
 import { bugsnag } from '../utils';
+import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -70,6 +71,8 @@ export const auth0Login = (dispatch) => {
               country,
               tpoId,
             })(dispatch);
+
+            checkAndAddUserSpecies(credentials.accessToken, true);
             resolve(true);
           })
           .catch((err) => {

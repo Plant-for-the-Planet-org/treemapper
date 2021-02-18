@@ -51,14 +51,14 @@ const MySpecies = ({
               fontSize: Typography.FONT_SIZE_16,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
             }}>
-            {item.scientific_name}
+            {item.scientificName}
           </Text>
         </View>
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
         ) : item.guid !== 'unknown' ? (
           <TouchableOpacity
-            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientific_name })}>
+            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
         ) : (

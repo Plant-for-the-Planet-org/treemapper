@@ -23,8 +23,7 @@ const AlertModal = ({
             <FlatButton
               onPress={onPressPrimaryBtn}
               text={primaryBtnText}
-              style={styles.marginHorizontal}
-              primary
+              style={styles.primaryButtonStyle}
             />
           </View>
         </View>
@@ -49,6 +48,7 @@ const styles = StyleSheet.create({
   bottomBtnContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    marginTop: 24,
   },
   alertHeader: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
@@ -62,10 +62,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_16,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.BLACK,
-    marginVertical: 5,
   },
-  marginHorizontal: {
-    marginHorizontal: 20,
+  primaryButtonStyle: {
+    marginLeft: 20,
+    color: Colors.ALERT,
   },
 });
 
