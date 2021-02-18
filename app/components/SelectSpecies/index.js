@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -25,13 +25,7 @@ import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
 
-const SelectSpecies = ({
-  visible,
-  closeSelectSpeciesModal,
-  route,
-  invent,
-  onPressSaveAndContinueMultiple,
-}) => {
+const SelectSpecies = () => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpecie, setActiveSpecie] = useState(undefined);
@@ -52,6 +46,7 @@ const SelectSpecies = ({
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
     // let species;
@@ -162,12 +157,14 @@ const SelectSpecies = ({
       }
     }
 
-    onPressSaveAndContinueMultiple(selectedSpeciesList);
+    if (route?.params?.onPressSaveAndContinueMultiple) {
+      route.params.onPressSaveAndContinueMultiple(selectedSpeciesList);
+    }
 
     setActiveSpecie(undefined);
     setIsShowTreeCountModal(false);
     setTreeCount('');
-    closeSelectSpeciesModal();
+    navigation.goBack();
   };
 
   const renderTreeCountModal = () => {

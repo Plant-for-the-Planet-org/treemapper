@@ -89,6 +89,7 @@ const LocateTree = ({ navigation }) => {
             heading={i18next.t('label.locate_tree_geo_json')}
             subHeadingStyle={{ fontStyle: 'italic' }}
             rightIcon={<SvgXml xml={cloud_upload_gray} />}
+            disabled
           />
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}

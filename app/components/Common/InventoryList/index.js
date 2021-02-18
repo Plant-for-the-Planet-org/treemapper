@@ -13,6 +13,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
+    console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE_INVENTORY) {
       navigation.navigate('SingleTreeOverview');
@@ -83,8 +84,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
                 inventoryStatus === INCOMPLETE_INVENTORY
                   ? null
                   : inventoryStatus === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
               inventoryStatus={inventoryStatus}

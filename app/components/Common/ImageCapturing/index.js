@@ -1,5 +1,13 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+  Modal,
+  BackHandler,
+} from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';
@@ -55,6 +63,7 @@ const ImageCapturing = ({
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
   useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
     if (inventoryType === 'multiple') {
       getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(
         ({ coordsLength, coord }) => {
@@ -72,6 +81,7 @@ const ImageCapturing = ({
         }
       });
     }
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
 
   const generateMarkers = () => {
@@ -236,34 +246,16 @@ const ImageCapturing = ({
             </View>
           )}
         </View>
-        <TouchableOpacity
-          onPress={onPressCamera}
-          style={styles.cameraIconContainer}
-          accessibilityLabel={inventoryType === 'multiple' ? 'Camera' : 'Register Tree Camera'}
-          testID={inventoryType === 'multiple' ? 'camera_icon' : 'register_tree_camera'}>
-          {/* <View style={styles.cameraIconCont}>
-            <Ionicons name={imagePath ? 'md-camera-reverse' : 'md-camera'} size={25} />
-          </View> */}
-        </TouchableOpacity>
       </View>
-      <View
-        style={[
-          styles.bottomBtnsContainer,
-          inventoryType === 'single' ? { justifyContent: 'space-between' } : {},
-        ]}>
-        {inventoryType === 'single' ? (
-          <PrimaryButton
-            onPress={onPressCamera}
-            // btnText={i18next.t('label.back')}
-            btnText={
-              imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')
-            }
-            theme={imagePath ? 'white' : null}
-            halfWidth={imagePath}
-          />
-        ) : (
-          []
-        )}
+      <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
+        <PrimaryButton
+          onPress={onPressCamera}
+          btnText={
+            imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')
+          }
+          theme={imagePath ? 'white' : null}
+          halfWidth={imagePath}
+        />
         {imagePath ? (
           <PrimaryButton
             disabled={imagePath ? false : true}
@@ -271,8 +263,7 @@ const ImageCapturing = ({
               inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
             }
             btnText={i18next.t('label.continue')}
-            style={inventoryType === 'multiple' ? styles.bottomBtnsWidth : {}}
-            halfWidth={inventoryType === 'single'}
+            halfWidth={true}
           />
         ) : (
           []

@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Text,
   View,
+  BackHandler,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -47,12 +48,23 @@ const InventoryOverview = ({ navigation }) => {
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
 
   useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
+
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
       let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' };
       updateLastScreen(data);
     });
+    return () => {
+      unsubscribe();
+      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+    };
   }, []);
+
+  const hardBackHandler = () => {
+    navigation.navigate('TreeInventory');
+    return true;
+  };
 
   const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
@@ -246,7 +258,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const renderDatePicker = () => {
-    const handleConfirm = (data) => onChangeDate(null, data);
+    const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setShowDate(false);
 
     return (
@@ -267,7 +279,7 @@ const InventoryOverview = ({ navigation }) => {
     );
   };
 
-  const onChangeDate = (event, selectedDate) => {
+  const onChangeDate = (selectedDate) => {
     setShowDate(false);
     setInventory({ ...inventory, plantation_date: selectedDate });
     updatePlantingDate({
@@ -280,7 +292,7 @@ const InventoryOverview = ({ navigation }) => {
     return (
       status === INCOMPLETE_INVENTORY && (
         <TouchableOpacity
-          onPress={() => setIsShowSpeciesListModal(true)}
+          onPress={handleSelectSpecies}
           style={{
             flexDirection: 'row',
             justifyContent: 'space-around',
@@ -306,7 +318,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    if (status === INCOMPLETE_INVENTORY && inventory.locate_tree == 'off-site') {
+    if (status === INCOMPLETE_INVENTORY && inventory.locate_tree === 'off-site') {
       setShowDate(true);
     }
   };
@@ -318,20 +330,11 @@ const InventoryOverview = ({ navigation }) => {
     });
   };
 
-  const renderSelectSpeciesModal = () => {
-    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-    if (inventory) {
-      return (
-        <SelectSpecies
-          invent={inventory}
-          visible={isShowSpeciesListModal}
-          closeSelectSpeciesModal={closeSelectSpeciesModal}
-          onPressSaveAndContinueMultiple={onPressSaveAndContinueMultiple}
-        />
-      );
-    } else {
-      return;
-    }
+  const handleSelectSpecies = () => {
+    navigation.navigate('SelectSpecies', {
+      closeSelectSpeciesModal: () => setIsShowSpeciesListModal(false),
+      onPressSaveAndContinueMultiple,
+    });
   };
 
   let locationType;
@@ -374,7 +377,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={status === INCOMPLETE_INVENTORY ? i18next.t('label.edit') : ''}
-                onPressRightText={() => setIsShowSpeciesListModal(true)}
+                onPressRightText={handleSelectSpecies}
               />
               <FlatList
                 data={inventory.species}
@@ -414,7 +417,6 @@ const InventoryOverview = ({ navigation }) => {
         ) : null}
       </View>
       {renderDatePicker()}
-      {renderSelectSpeciesModal()}
     </SafeAreaView>
   );
 };
