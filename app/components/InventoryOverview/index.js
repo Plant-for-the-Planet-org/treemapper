@@ -367,7 +367,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: inventory.plantation_date,
+                  date: new Date(inventory.plantation_date),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />

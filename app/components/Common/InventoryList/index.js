@@ -84,8 +84,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
                 inventoryStatus === INCOMPLETE_INVENTORY
                   ? null
                   : inventoryStatus === 'pending'
-                  ? 'cloud-outline'
-                  : 'cloud-check'
+                    ? 'cloud-outline'
+                    : 'cloud-check'
               }
               data={data}
               inventoryStatus={inventoryStatus}
