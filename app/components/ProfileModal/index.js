@@ -28,7 +28,7 @@ const ProfileModal = ({
     navigation.navigate('Legals');
   };
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org');
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => alert('Can write mail to support@plant-for-the-planet.org'));
   };
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
