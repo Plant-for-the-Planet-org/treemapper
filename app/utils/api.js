@@ -1,20 +1,31 @@
 import axios from 'axios';
-import { protocol, url } from '../actions/Config';
+import { APIConfig } from '../actions/Config';
 import dbLog from '../repositories/logs';
 import { getUserToken } from '../repositories/user';
 import { LogTypes } from './constants';
 import { bugsnag } from './index';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import AsyncStorage from '@react-native-community/async-storage';
+
+const { protocol, url: baseURL } = APIConfig;
 
 // creates and axios instance with base url
 const axiosInstance = axios.create({
-  baseURL: `${protocol}://${url}`,
+  baseURL: `${protocol}://${baseURL}`,
 });
 
 // Add a request interceptor which adds the configuration in all the requests
 axiosInstance.interceptors.request.use(
   async (config) => {
-    // gets the session id from async storage
-    const sessionId = await getSessionData();
+    // stores the session id present in AsyncStorage
+    let sessionId = await AsyncStorage.getItem('session-id');
+
+    // if session ID is empty in AsyncStorage then creates a new unique session ID and and sores in AsyncStorage
+    if (!sessionId) {
+      sessionId = uuidv4();
+      await AsyncStorage.setItem('session-id', sessionId);
+    }
 
     // if there's session id then adds the same into the header
     if (sessionId) {
@@ -108,7 +119,7 @@ export const putRequest = (url, data) => request(url, 'PUT', false, data);
 export const putAuthenticatedRequest = (url, data) => request(url, 'PUT', true, data);
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = false]
-export const deleteRequest = (url, data) => request(url, 'DELETE', false, data);
+export const deleteRequest = (url, data = null) => request(url, 'DELETE', false, data);
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = true]
-export const deleteAuthenticatedRequest = (url, data) => request(url, 'DELETE', true, data);
+export const deleteAuthenticatedRequest = (url, data = null) => request(url, 'DELETE', true, data);
