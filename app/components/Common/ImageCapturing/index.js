@@ -232,7 +232,14 @@ const ImageCapturing = ({
                 captureAudio={false}
                 ref={camera}
                 style={styles.container}
-                notAuthorizedView={(<View><Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text></View>)}
+                notAuthorizedView={
+                  <View
+                    style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <Text style={styles.message}>
+                      {i18next.t('label.permission_camera_message')}
+                    </Text>
+                  </View>
+                }
                 androidCameraPermissionOptions={{
                   title: i18next.t('label.permission_camera_title'),
                   message: i18next.t('label.permission_camera_message'),
