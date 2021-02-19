@@ -458,8 +458,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracy == 'Good'
             ? { backgroundColor: '#1CE003' }
             : accuracy == 'Fair'
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
