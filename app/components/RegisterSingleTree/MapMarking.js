@@ -100,24 +100,41 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     //   setCenterCoordinates(currentCoords);
     // }
     if (!isInitial) {
-      const currentCoords = [location.coords.longitude, location.coords.latitude];
-      console.log(currentCoords, 'currentCoords');
-      setCenterCoordinates(currentCoords);
-      setIsInitial(true);
-      camera.current.setCamera({
-        centerCoordinate: currentCoords,
-        zoomLevel: 18,
-        animationDuration: 2000,
-      });
+      // const currentCoords = [location.coords.longitude, location.coords.latitude];
+      // console.log(currentCoords, 'currentCoords');
+      // setCenterCoordinates(currentCoords);
+      // setIsInitial(true);
+      // camera.current.setCamera({
+      //   centerCoordinate: currentCoords,
+      //   zoomLevel: 18,
+      //   animationDuration: 2000,
+      // });
+      onPressMyLocationIcon(location);
     }
   };
-
+  const onPressMyLocationIcon = (position) => {
+    console.log(position, 'position onPressMyLocationIcon');
+    if (position) {
+      var recenterCoords = [position.coords.longitude, position.coords.latitude];
+    } else {
+      var recenterCoords = [location.coords.longitude, location.coords.latitude];
+    }
+    console.log(recenterCoords, 'recenterCoords');
+    setCenterCoordinates(recenterCoords);
+    setIsInitial(true);
+    camera.current.setCamera({
+      centerCoordinate: recenterCoords,
+      zoomLevel: 18,
+      animationDuration: 2000,
+    });
+  };
   const addMarker = async () => {
     // Check distance
     console.log(accuracy, 'accuracy');
     if (accuracy !== 'Bad') {
-      try {
-        updateCurrentPosition().then(() => {
+      // try {
+      updateCurrentPosition()
+        .then(() => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           console.log(currentCoords, 'currentCoords addMarker');
           let markerCoords = centerCoordinates;
@@ -139,10 +156,11 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             setLocateTree('off-site');
           }
           onPressContinue(currentCoords);
+        })
+        // }
+        .catch((err) => {
+          alert(JSON.stringify(err), 'Alert');
         });
-      } catch (err) {
-        alert(JSON.stringify(err), 'Alert');
-      }
     } else {
       setIsAlertShow(true);
     }
@@ -194,8 +212,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          setIsInitial(false);
-          onUpdateUserLocation(location);
+          // setIsInitial(false);
+          // onUpdateUserLocation(location);
+          onPressMyLocationIcon(location);
         }}
         style={[styles.myLocationIcon]}
         accessibilityLabel="Register Tree Camera"
@@ -209,29 +228,34 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   };
 
   const updateCurrentPosition = async () => {
-    Geolocation.getCurrentPosition(
-      (position) => {
-        // console.log(refresh, 'refresh');
-        setAccuracyInMeters(position.coords.accuracy);
-        accuracyRating();
-        onUpdateUserLocation(position);
-        setLocation(position);
-        setIsLocation(true);
-      },
-      (err) => {
-        console.log(err, 'updateCurrentPosition');
-        setIsLocationAlertShow(true);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 2000,
-        maximumAge: 20000,
-        accuracy: {
-          android: 'high',
-          ios: 'bestForNavigation',
+    console.log('In updateCurrentPosition');
+    return new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          // console.log(refresh, 'refresh');
+          console.log('In Geolocation');
+          setAccuracyInMeters(position.coords.accuracy);
+          accuracyRating();
+          onUpdateUserLocation(position);
+          setLocation(position);
+          setIsLocation(true);
+          resolve(true);
         },
-      },
-    );
+        (err) => {
+          console.log(err, 'updateCurrentPosition');
+          setIsLocationAlertShow(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 2000,
+          maximumAge: 20000,
+          accuracy: {
+            android: 'high',
+            ios: 'bestForNavigation',
+          },
+        },
+      );
+    });
   };
   const accuracyRating = () => {
     if (accuracyInMeters < 10) {
@@ -247,25 +271,27 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     const inventoryID = inventoryState.inventoryID;
     console.log(markedCoords, inventoryID, 'inventoryID');
     setMarkedCoords(centerCoordinates);
-    Geolocation.getCurrentPosition(
-      (position) => {
-        console.log(position, 'position onPressContinue');
-        let currentCoords = position.coords;
-        addCoordinateSingleRegisterTree({
-          inventory_id: inventoryID,
-          markedCoords: centerCoordinates,
-          locateTree: locateTree,
-          currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
-        }).then(() => {
-          setIsAlrightyModalShow(true);
-        });
-      },
-      (err) => {
-        console.log(err, 'onPressContinue');
-        alert(err.message);
-      },
-      // { enableHighAccuracy: true },
-    );
+    // Geolocation.getCurrentPosition(
+    //   (position) =>
+    // updateCurrentPosition().then(() => {
+    console.log(location, 'position onPressContinue', currentCoords, 'currentCoords');
+    // let currentCoords = location.coords;
+    addCoordinateSingleRegisterTree({
+      inventory_id: inventoryID,
+      markedCoords: centerCoordinates,
+      locateTree: locateTree,
+      currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
+    }).then(() => {
+      setIsAlrightyModalShow(true);
+    });
+    // });
+    //   ,
+    //   (err) => {
+    //     console.log(err, 'onPressContinue');
+    //     alert(err.message);
+    //   },
+    //   // { enableHighAccuracy: true },
+    // );
   };
 
   const renderAlrightyModal = () => {
@@ -432,8 +458,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracy == 'Good'
             ? { backgroundColor: '#1CE003' }
             : accuracy == 'Fair'
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
