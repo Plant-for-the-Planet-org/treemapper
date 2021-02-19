@@ -11,8 +11,8 @@ const getSessionData = async () => {
       return sessionData;
     }
     return sessionValue;
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(`Error while getting session id, ${JSON.stringify(err)}`);
   }
 };
 
