@@ -22,6 +22,11 @@ export const getUserToken = () => {
             message: 'Successfully retrieved User Token',
           });
         } else {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'No user present to get the token',
+          });
           resolve(false);
         }
       })

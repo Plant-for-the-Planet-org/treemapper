@@ -1,15 +1,17 @@
-import axios from 'axios';
 import { bugsnag } from '../utils';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
-import { APIConfig } from './Config';
 import {
   SET_SPECIES_LIST,
   SET_SPECIE_ID,
   SET_MULTIPLE_TREES_SPECIES_LIST,
   ADD_MULTIPLE_TREE_SPECIE,
 } from './Types';
-const { protocol, url } = APIConfig;
+import {
+  deleteAuthenticatedRequest,
+  getAuthenticatedRequest,
+  postAuthenticatedRequest,
+} from '../utils/api';
 
 /**
  * This function dispatches type SET_SPECIES_LIST with payload list of species to add in species state
@@ -57,19 +59,11 @@ export const addMultipleTreesSpecie = (specie) => (dispatch) => {
 
 /**
  * Fetches all the species of the user
- * @param {string} userToken - used to authenticate the API request
  */
-export const getSpeciesList = (userToken) => {
+export const getSpeciesList = () => {
   return new Promise((resolve, reject) => {
     // makes an authorized GET request on /species to get the species list.
-    axios({
-      method: 'GET',
-      url: `${protocol}://${url}/treemapper/species`,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-      },
-    })
+    getAuthenticatedRequest('/treemapper/species')
       .then((res) => {
         const { data, status } = res;
         // checks if the status code is 200 the resolves the promise with the fetched data
@@ -102,22 +96,13 @@ export const getSpeciesList = (userToken) => {
 
 /**
  * Adds a scientific specie to user's preferred species
- * @param {string} userToken - used to authorize the request
  * @param {object} specieData - contains scientificSpecies as property having scientific specie id and
  *                              aliases as property (a name given by user to that scientific specie)
  */
-export const addUserSpecie = (userToken, specieData) => {
+export const addUserSpecie = (specieData) => {
   return new Promise((resolve, reject) => {
     // makes an authorized POST request on /species to add a specie of user.
-    axios({
-      method: 'POST',
-      url: `${protocol}://${url}/treemapper/species`,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-      },
-      data: specieData,
-    })
+    postAuthenticatedRequest('/treemapper/species', specieData)
       .then((res) => {
         const { data, status } = res;
 
@@ -157,20 +142,12 @@ export const addUserSpecie = (userToken, specieData) => {
 
 /**
  * Delete the user specie from the server using the specie id
- * @param {string} userToken - used to authorize the request
  * @param {object} specieId - specie id of user saved species which is use to delete specie from server
  */
-export const deleteUserSpecie = (userToken, specieId) => {
+export const deleteUserSpecie = (specieId) => {
   return new Promise((resolve, reject) => {
     // makes an authorized DELETE request on /species to delete a specie of user.
-    axios({
-      method: 'DELETE',
-      url: `${protocol}://${url}/treemapper/species/${specieId}`,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-      },
-    })
+    deleteAuthenticatedRequest(`/treemapper/species/${specieId}`)
       .then((res) => {
         const { status } = res;
 
