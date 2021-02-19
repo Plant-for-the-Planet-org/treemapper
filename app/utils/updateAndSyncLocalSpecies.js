@@ -31,7 +31,7 @@ const updateSpeciesFromFile = (targetPath, accessToken) => {
 
             // if [accessToken] is present then start syncing of species from and to the server
             if (accessToken) {
-              checkAndAddUserSpecies(accessToken, true);
+              checkAndAddUserSpecies(true);
             }
             resolve(true);
           })
@@ -162,6 +162,6 @@ export default async function updateAndSyncLocalSpecies(accessToken = null) {
       });
     }
   } else if (accessToken) {
-    checkAndAddUserSpecies(accessToken);
+    checkAndAddUserSpecies();
   }
 }
