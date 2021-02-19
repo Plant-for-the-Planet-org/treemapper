@@ -2,7 +2,7 @@ import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useContext } from 'react';
 import {
   ImageBackground,
   Modal,
@@ -31,80 +31,105 @@ MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const IS_ANDROID = Platform.OS === 'android';
 
-const MapMarking = ({ updateScreenState, inventoryState }) => {
-  const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
-  const [centerCoordinates, setCenterCoordinates] = useState([0, 0]);
-  const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
-  const [loader, setLoader] = useState(false);
-  const [markedCoords, setMarkedCoords] = useState(null);
-  const [locateTree, setLocateTree] = useState('on-site');
-  const [inventory, setInventory] = useState(null);
-  const [accuracy, setAccuracy] = useState(null);
-  const [accuracyInMeters, setAccuracyInMeters] = useState('');
-  const [isAlertShow, setIsAlertShow] = useState(false);
-  const [isInitial, setIsInitial] = useState(false);
-  const [isLocation, setIsLocation] = useState(false);
-  const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
-  const [location, setLocation] = useState(null);
-  const camera = useRef(null);
-  const map = useRef(null);
-  const navigation = useNavigation();
-  useEffect(() => {
+class MapMarking extends React.Component {
+  state = {
+    isAlrightyModalShow: false,
+    centerCoordinates: [0, 0],
+    // activePolygonIndex: 0,
+    isAccuracyModalShow: false,
+    loader: false,
+    markedCoords: null,
+    locateTree: 'on-site',
+    inventory: null,
+    accuracy: null,
+    isGranted: false,
+    isAlertShow: false,
+    isInitial: false,
+  };
+
+  async UNSAFE_componentWillMount() {
     if (IS_ANDROID) {
       MapboxGL.requestAndroidLocationPermissions().then((permission) => {
         console.log(permission, 'permission');
+        this.setState({ isGranted: permission });
         if (permission) {
           MapboxGL.setTelemetryEnabled(false);
-          updateCurrentPosition();
         }
       });
+      // await MapboxGL.requestAndroidLocationPermissions().then(async () => {
+      //   try {
+      //     console.log('Asking permission');
+      //     const granted = await PermissionsAndroid.request(
+      //       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      //       {
+      //         title: 'Location Permission',
+      //         message: 'App needs access to High accuracy location',
+      //         buttonPositive: 'Ok',
+      //       },
+      //     );
+      //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      //       console.log('Permission granted');
+      //       this.setState({ isGranted: true });
+      //       return true;
+      //     } else {
+      //       Alert.alert(
+      //         'Permission Denied!',
+      //         'You need to give location permission to register on-site tree',
+      //       );
+      //       return false;
+      //     }
+      //   } catch (err) {
+      //     bugsnag.notify(err);
+      //     console.log(err, 'Permission error');
+      //     return false;
+      //   }
+      // });
     }
-    console.log(inventoryState, 'inventoryState');
-    const { inventoryID } = inventoryState.inventoryID;
-    console.log(inventoryID, 'inventoryID');
+  }
+
+  componentDidMount() {
+    const { inventoryID } = this.props;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
-      setInventory(inventory);
+      this.setState({ inventory: inventory });
       if (inventory.polygons.length !== 0) {
         const { latitude, longitude } = inventory.polygons[0].coordinates[0];
         // this.onUpdateUserLocation([longitude, latitude]);
-        console.log([longitude, latitude], 'setMarkedCoords already present');
-        setMarkedCoords([longitude, latitude]);
+        this.setState({ markedCoords: [longitude, latitude] });
       }
     });
-  }, []);
+  }
 
-  const renderFakeMarker = () => {
+  renderFakeMarker = () => {
     return (
       <View style={styles.fakeMarkerCont}>
         <SvgXml xml={active_marker} style={styles.markerImage} />
+        {/* {this.state.loader ? (
+          <ActivityIndicator color={Colors.WHITE} style={styles.loader} />
+        ) : (
+          <Text style={styles.activeMarkerLocation}>{'A'}</Text>
+        )} */}
       </View>
     );
   };
 
-  const onChangeRegionStart = () => setLoader(true);
+  onChangeRegionStart = () => this.setState({ loader: true });
 
-  const onChangeRegionComplete = async () => {
-    const center = await map.current.getCenter();
-    console.log(center, 'center onChangeRegionComplete');
-    setCenterCoordinates(center);
-    setLoader(false);
+  onChangeRegionComplete = async () => {
+    const center = await this._map.getCenter();
+    this.setState({ centerCoordinates: center, loader: false });
   };
 
-  const onUpdateUserLocation = (location) => {
+  onUpdateUserLocation = (location) => {
+    console.log(this.state.isInitial, 'this.state.isInitial');
     if (!location) {
       // alert('Unable to retrieve location')
       return;
     }
-    // else {
-    //   const currentCoords = [location.coords.longitude, location.coords.latitude];
-    //   setCenterCoordinates(currentCoords);
-    // }
-    if (!isInitial) {
+    if (!this.state.isInitial) {
       const currentCoords = [location.coords.longitude, location.coords.latitude];
-      console.log(currentCoords, 'currentCoords');
-      setCenterCoordinates(currentCoords);
-      setIsInitial(true);
-      camera.current.setCamera({
+      // const currentCoords = location;
+      this.setState({ centerCoordinates: currentCoords, isInitial: true });
+      this._camera.setCamera({
         centerCoordinate: currentCoords,
         zoomLevel: 18,
         animationDuration: 2000,
@@ -112,49 +137,58 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     }
   };
 
-  const addMarker = async () => {
+  addMarker = async () => {
+    let { centerCoordinates } = this.state;
     // Check distance
-    console.log(accuracy, 'accuracy');
-    if (accuracy !== 'Bad') {
+    console.log(this.state.accuracy, 'this.state.accuracy');
+    if (this.state.accuracy !== 'Bad') {
       try {
-        updateCurrentPosition().then(() => {
-          let currentCoords = [location.coords.latitude, location.coords.longitude];
-          console.log(currentCoords, 'currentCoords addMarker');
-          let markerCoords = centerCoordinates;
-          console.log(location, 'location addMarker');
-          console.log(centerCoordinates, 'centerCoordinates addMarker');
-          let distance = distanceCalculator(
-            currentCoords[0],
-            currentCoords[1],
-            centerCoordinates[1],
-            centerCoordinates[0],
-            'K',
-          );
-
-          let distanceInMeters = distance * 1000;
-          console.log(distanceInMeters, 'distanceInMeters');
-          if (distanceInMeters < 100) {
-            setLocateTree('on-site');
-          } else {
-            setLocateTree('off-site');
-          }
-          onPressContinue(currentCoords);
-        });
+        Geolocation.getCurrentPosition(
+          (position) => {
+            let currentCoords = position.coords;
+            let markerCoords = centerCoordinates;
+            console.log(position, 'position addMarker');
+            let distance = distanceCalculator(
+              currentCoords.latitude,
+              currentCoords.longitude,
+              markerCoords[1],
+              centerCoordinates[0],
+              'K',
+            );
+            let distanceInMeters = distance * 1000;
+            if (distanceInMeters < 100) {
+              this.setState({ locateTree: 'on-site' }, () => {
+                this.pushMaker(currentCoords);
+              });
+            } else {
+              this.setState({ locateTree: 'off-site' }, () => {
+                this.pushMaker(currentCoords);
+              });
+            }
+          },
+          (err) => {
+            console.log(err, 'addMarker');
+            alert(err.message);
+          },
+          // { enableHighAccuracy: true },
+        );
       } catch (err) {
-        alert(JSON.stringify(err), 'Alert');
+        alert(JSON.stringify(err));
       }
     } else {
-      setIsAlertShow(true);
+      this.setState({ isAlertShow: true });
     }
   };
 
-  const pushMaker = (currentCoords) => {
-    console.log(centerCoordinates, 'centerCoordinates pushMaker');
-    setMarkedCoords(centerCoordinates);
-    onPressContinue();
+  pushMaker = (currentCoords) => {
+    let { centerCoordinates } = this.state;
+    this.setState({ markedCoords: centerCoordinates }, () => {
+      this.onPressContinue();
+    });
   };
 
-  const renderMarker = () => {
+  renderMarker = () => {
+    const { markedCoords } = this.state;
     return (
       markedCoords && (
         <MapboxGL.PointAnnotation
@@ -169,34 +203,31 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     );
   };
 
-  const renderMapView = () => {
+  renderMapView = () => {
     return (
       <MapboxGL.MapView
         showUserLocation={true}
         style={styles.container}
-        ref={map}
-        onRegionWillChange={onChangeRegionStart}
-        onRegionDidChange={onChangeRegionComplete}>
-        <MapboxGL.Camera ref={camera} />
-        {isLocation && (
-          <MapboxGL.UserLocation
-            showsUserHeadingIndicator
-            onUpdate={() => {
-              updateCurrentPosition();
-            }}
-          />
-        )}
+        ref={(ref) => (this._map = ref)}
+        onRegionWillChange={this.onChangeRegionStart}
+        onRegionDidChange={this.onChangeRegionComplete}>
+        {/* {this.renderMarker()} */}
+        <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
+        <MapboxGL.UserLocation
+          showsUserHeadingIndicator
+          onUpdate={(location) => {
+            console.log('onUpdate Called', location);
+            this.onPressMyLocationIcon();
+          }}
+        />
       </MapboxGL.MapView>
     );
   };
 
-  const renderMyLocationIcon = () => {
+  renderMyLocationIcon = () => {
     return (
       <TouchableOpacity
-        onPress={() => {
-          setIsInitial(false);
-          onUpdateUserLocation(location);
-        }}
+        onPress={() => this.onPressMyLocationIcon({ refresh: true })}
         style={[styles.myLocationIcon]}
         accessibilityLabel="Register Tree Camera"
         accessible={true}
@@ -208,19 +239,23 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     );
   };
 
-  const updateCurrentPosition = async () => {
+  onPressMyLocationIcon = (refresh) => {
+    console.log(refresh, 'refresh');
     Geolocation.getCurrentPosition(
       (position) => {
-        // console.log(refresh, 'refresh');
-        setAccuracyInMeters(position.coords.accuracy);
-        accuracyRating();
-        onUpdateUserLocation(position);
-        setLocation(position);
-        setIsLocation(true);
+        console.log(position, 'position onPressMyLocationIcon');
+        let accuracy = position.coords.accuracy;
+        this.setAccuracy(accuracy);
+        // alert(position.coords.accuracy, 'position onPressMyLocationIcon');
+        if (refresh) {
+          this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
+        } else {
+          this.onUpdateUserLocation(position);
+        }
       },
       (err) => {
-        console.log(err, 'updateCurrentPosition');
-        setIsLocationAlertShow(true);
+        console.log(err, 'onPressMyLocationIcon');
+        alert(err.message);
       },
       {
         enableHighAccuracy: true,
@@ -233,31 +268,29 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
       },
     );
   };
-  const accuracyRating = () => {
-    if (accuracyInMeters < 10) {
-      setAccuracy('Good');
-    } else if (accuracyInMeters < 31) {
-      setAccuracy('Fair');
+  setAccuracy = (accuracy) => {
+    if (accuracy < 10) {
+      this.setState({ accuracy: 'Good' });
+    } else if (accuracy < 31) {
+      this.setState({ accuracy: 'Fair' });
     } else {
-      setAccuracy('Bad');
+      this.setState({ accuracy: 'Bad' });
     }
   };
-
-  const onPressContinue = (currentCoords) => {
-    const inventoryID = inventoryState.inventoryID;
-    console.log(markedCoords, inventoryID, 'inventoryID');
-    setMarkedCoords(centerCoordinates);
+  onPressContinue = () => {
+    const { inventoryID } = this.props;
+    const { markedCoords, locateTree } = this.state;
     Geolocation.getCurrentPosition(
       (position) => {
         console.log(position, 'position onPressContinue');
         let currentCoords = position.coords;
         addCoordinateSingleRegisterTree({
           inventory_id: inventoryID,
-          markedCoords: centerCoordinates,
+          markedCoords: markedCoords,
           locateTree: locateTree,
           currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
         }).then(() => {
-          setIsAlrightyModalShow(true);
+          this.setState({ isAlrightyModalShow: true });
         });
       },
       (err) => {
@@ -268,12 +301,16 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     );
   };
 
-  const renderAlrightyModal = () => {
-    const onPressClose = () => setIsAlrightyModalShow(false);
+  renderAlrightyModal = () => {
+    const { isAlrightyModalShow, locateTree } = this.state;
+    const { updateScreenState, navigation } = this.props;
+
+    const onPressClose = () => this.setState({ isAlrightyModalShow: false });
+
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
       navigation.navigate('SelectSpecies', {
-        inventory: inventory,
+        inventory: this.state.inventory,
         visible: true,
       });
       onPressClose();
@@ -307,8 +344,10 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     );
   };
 
-  const onPressBack = () => {
+  onPressBack = () => {
+    // const { locateTree } = this.state;
     // const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
+    const { navigation } = this.props;
     navigation.navigate('TreeInventory');
     return;
     // if (locateTree == 'off-site') {
@@ -327,8 +366,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     //   }
     // }
   };
+  renderAccuracyModal = () => {
+    const { isAccuracyModalShow } = this.state;
 
-  const renderAccuracyModal = () => {
     return (
       <Modal transparent visible={isAccuracyModalShow}>
         <View style={styles.modalContainer}>
@@ -373,7 +413,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
                   fontFamily: Typography.FONT_FAMILY_REGULAR,
                   fontSize: Typography.FONT_SIZE_14,
                 }}
-                onPress={() => setIsAccuracyModalShow(false)}>
+                onPress={() => this.setState({ isAccuracyModalShow: false })}>
                 Close
               </Text>
             </TouchableOpacity>
@@ -383,7 +423,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     );
   };
 
-  const renderConfirmationModal = () => {
+  renderConfirmationModal = () => {
+    const { isAlertShow } = this.state;
+    // console.log(isAlertShow, 'isAlertShow');
     return (
       <AlertModal
         visible={isAlertShow}
@@ -393,38 +435,23 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         }
         primaryBtnText={'Try Again'}
         secondaryBtnText={'Continue'}
-        onPressPrimaryBtn={onPressTryAgain}
-        onPressSecondaryBtn={onPressAlertContinue}
+        onPressPrimaryBtn={this.onPressTryAgain}
+        onPressSecondaryBtn={this.onPressAlertContinue}
       />
     );
   };
 
-  const renderLocationAlert = () => {
-    return (
-      <AlertModal
-        visible={isLocationAlertShow}
-        heading={'Alert'}
-        message={'Location settings are not satisfied'}
-        primaryBtnText={'Ok'}
-        onPressPrimaryBtn={() => {
-          setIsLocationAlertShow(false);
-          onPressBack();
-        }}
-      />
-    );
+  onPressTryAgain = () => {
+    this.setState({ isAlertShow: false });
   };
 
-  const onPressTryAgain = () => {
-    setIsAlertShow(false);
+  onPressAlertContinue = () => {
+    this.setState({ accuracy: 'ForceContinue', isAlertShow: false });
+    // this.addMarker();
   };
 
-  const onPressAlertContinue = () => {
-    setAccuracy('ForceContinue');
-    setIsAlertShow(false);
-    addMarker();
-  };
-
-  const renderAccuracyInfo = () => {
+  renderAccuracyInfo = () => {
+    let { accuracy } = this.state;
     return (
       <TouchableOpacity
         style={[
@@ -435,46 +462,48 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             ? { backgroundColor: '#FFC400' }
             : { backgroundColor: '#FF0000' },
         ]}
-        onPress={() => setIsAccuracyModalShow(true)}>
-        <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
+        onPress={() => this.setState({ isAccuracyModalShow: true })}>
+        <Text style={styles.gpsText}>GPS Accuracy</Text>
       </TouchableOpacity>
     );
   };
 
-  return (
-    <View style={styles.container} fourceInset={{ top: 'always' }}>
-      <View style={styles.container}>
-        {renderMapView()}
-        {renderFakeMarker()}
-      </View>
-      <View>
-        {renderMyLocationIcon()}
-        <View style={styles.continueBtnCont}>
-          <PrimaryButton
-            onPress={() => addMarker()}
-            disabled={loader}
-            btnText={i18next.t('label.tree_map_marking_btn')}
-            style={styles.bottomBtnWith}
-          />
+  render() {
+    const { loader } = this.state;
+    return (
+      <View style={styles.container} fourceInset={{ top: 'always' }}>
+        <View style={styles.container}>
+          {this.renderMapView()}
+          {this.renderFakeMarker()}
         </View>
+        <View>
+          {this.renderMyLocationIcon()}
+          <View style={styles.continueBtnCont}>
+            <PrimaryButton
+              onPress={this.addMarker}
+              disabled={loader}
+              btnText={i18next.t('label.tree_map_marking_btn')}
+              style={styles.bottomBtnWith}
+            />
+          </View>
+        </View>
+        <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
+          <SafeAreaView />
+          <Header
+            onBackPress={this.onPressBack}
+            closeIcon
+            headingText={i18next.t('label.tree_map_marking_header')}
+            topRightComponent={this.renderAccuracyInfo}
+          />
+        </LinearGradient>
+        <View></View>
+        {this.renderAccuracyModal()}
+        {this.renderConfirmationModal()}
+        {this.renderAlrightyModal()}
       </View>
-      <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
-        <SafeAreaView />
-        <Header
-          onBackPress={onPressBack}
-          closeIcon
-          headingText={i18next.t('label.tree_map_marking_header')}
-          topRightComponent={renderAccuracyInfo}
-        />
-      </LinearGradient>
-      <View></View>
-      {renderAccuracyModal()}
-      {renderConfirmationModal()}
-      {renderLocationAlert()}
-      {renderAlrightyModal()}
-    </View>
-  );
-};
+    );
+  }
+}
 
 export default function MapMarkingMain(props) {
   const navigation = useNavigation();
@@ -527,7 +556,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_12,
     paddingHorizontal: 7,
     paddingVertical: 3.5,
-    alignSelf: 'center',
   },
   modalContainer: {
     flex: 1,

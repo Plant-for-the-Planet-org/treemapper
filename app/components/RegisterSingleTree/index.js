@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, BackHandler, PermissionsAndroid, Alert } from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
+// import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
 import ImageCapturing from '../Common/ImageCapturing';
@@ -9,11 +10,13 @@ import { updateLastScreen, getInventory, addLocateTree } from '../../repositorie
 import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { bugsnag } from '_utils';
+import { set } from 'react-native-reanimated';
 
 const RegisterSingleTree = ({ navigation }) => {
   const { state: inventoryState } = useContext(InventoryContext);
   const [screenState, setScreenState] = useState('MapMarking');
   const [isGranted, setIsGranted] = useState(false);
+  // const [currentPosition, setCurrentPosition] = useState();
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
@@ -25,9 +28,16 @@ const RegisterSingleTree = ({ navigation }) => {
       if (InventoryData.status === INCOMPLETE_INVENTORY) {
         let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
         updateLastScreen(data);
+        console.log(
+          InventoryData.polygons[0],
+          '<======================InventoryData.polygons[0]======================>',
+        );
         permission();
-        if (isGranted) {
+        if (isGranted && InventoryData.polygons[0]) {
+          console.log('-----------In--------------');
           Geolocation.getCurrentPosition((position) => {
+            // console.log(currentPosition, 'currentPosition');
+            // setCurrentPosition(position);
             if (InventoryData.polygons.length > 0) {
               let distanceInMeters =
                 distanceCalculator(
@@ -40,7 +50,10 @@ const RegisterSingleTree = ({ navigation }) => {
 
               if (distanceInMeters && distanceInMeters < 100) {
                 //set onsite
-                addLocateTree({ inventory_id: inventoryState.inventoryID, locate_tree: 'on-site' });
+                addLocateTree({
+                  inventory_id: inventoryState.inventoryID,
+                  locate_tree: 'on-site',
+                });
                 updateScreenState('ImageCapturing');
               } else {
                 //set offsite
@@ -59,7 +72,7 @@ const RegisterSingleTree = ({ navigation }) => {
     });
 
     return () => BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
-  }, [inventoryState]);
+  }, [inventoryState, isGranted]);
 
   const hardBackHandler = () => {
     navigation.navigate('TreeInventory');
@@ -96,10 +109,12 @@ const RegisterSingleTree = ({ navigation }) => {
       return false;
     }
   };
-
+  console.log(isGranted, 'isGranted');
   return (
     <View style={styles.container}>
-      {screenState == 'MapMarking' && <MapMarking updateScreenState={updateScreenState} />}
+      {screenState == 'MapMarking' && isGranted && (
+        <MapMarking updateScreenState={updateScreenState} inventoryState={inventoryState} />
+      )}
       {screenState == 'ImageCapturing' && (
         <ImageCapturing updateScreenState={updateScreenState} inventoryType="single" />
       )}
