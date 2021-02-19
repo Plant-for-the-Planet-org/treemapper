@@ -11,11 +11,13 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { bugsnag } from '_utils';
 import { set } from 'react-native-reanimated';
+import AlertModal from '_components';
 
 const RegisterSingleTree = ({ navigation }) => {
   const { state: inventoryState } = useContext(InventoryContext);
   const [screenState, setScreenState] = useState('MapMarking');
   const [isGranted, setIsGranted] = useState(false);
+  const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   // const [currentPosition, setCurrentPosition] = useState();
 
   useEffect(() => {
@@ -97,9 +99,13 @@ const RegisterSingleTree = ({ navigation }) => {
         setIsGranted(true);
         return true;
       } else {
+        console.log('Permission Denied');
+        // setIsPermissionDeniedAlertShow(true);
         Alert.alert(
           'Permission Denied!',
           'You need to give location permission to register on-site tree',
+          [{ text: 'OK', onPress: () => hardBackHandler() }],
+          { cancelable: false },
         );
         return false;
       }
@@ -109,6 +115,22 @@ const RegisterSingleTree = ({ navigation }) => {
       return false;
     }
   };
+
+  // const PermissionDeniedAlert = () => {
+  //   return (
+  //     <AlertModal
+  //       visible={isPermissionDeniedAlertShow}
+  //       heading={'Permission Denied'}
+  //       message={'You need to give location permission to register on-site tree'}
+  //       primaryBtnText={'OK'}
+  //       onPressPrimaryBtn={() => {
+  //         setIsPermissionDeniedAlertShow(false);
+  //         hardBackHandler();
+  //       }}
+  //     />
+  //   );
+  // };
+
   console.log(isGranted, 'isGranted');
   return (
     <View style={styles.container}>
