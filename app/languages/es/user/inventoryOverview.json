@@ -3,7 +3,6 @@
   "inventory_overview_select_species": "Seleccione al menos una especie",
   "inventory_overview_view_loc_modal_header": "Ubicación {{locationTitle}}",
   "inventory_overview_loc": "{{locationTitle}}",
-  "inventory_overview_export_json_error": "no se puede guardar el archivo",
   "inventory_overview_add_species": "Especies plantadas",
   "inventory_overview_header_text": "Revisar",
   "inventory_overview_sub_header": "Los árboles se añadirán a tu inventario para sincronizarlos cuando tengas acceso a Internet.",

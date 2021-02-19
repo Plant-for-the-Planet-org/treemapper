@@ -28,13 +28,13 @@ const alrighty_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="110%" he
     <rect id="Rectangle_1171" data-name="Rectangle 1171" width="17.489" height="1.348" transform="translate(17.68 39.702) rotate(-28.158)" fill="#4d5153"/>
   </g>
   <g id="Group_2248" data-name="Group 2248" transform="translate(308.289 263.265)">
-    <ellipse id="Ellipse_198" data-name="Ellipse 198" cx="33.356" cy="68.059" rx="33.356" ry="68.059" transform="translate(0 0)" fill="#89b53a"/>
+    <ellipse id="Ellipse_198" data-name="Ellipse 198" cx="33.356" cy="68.059" rx="33.356" ry="68.059" transform="translate(0 0)" fill="#68B030"/>
     <path id="Path_3623" data-name="Path 3623" d="M1034.737,561.971c13.342-80.047.135-159.8,0-160.6l-1.329.225c.135.794,13.3,80.336,0,160.153Z" transform="translate(-1005.098 -382.617)" fill="#4d5153"/>
     <rect id="Rectangle_1172" data-name="Rectangle 1172" width="1.348" height="34.207" transform="translate(3.047 55.182) rotate(-61.858)" fill="#4d5153"/>
     <rect id="Rectangle_1173" data-name="Rectangle 1173" width="34.207" height="1.348" transform="translate(34.886 78.212) rotate(-28.158)" fill="#4d5153"/>
   </g>
   <g id="Group_2249" data-name="Group 2249" transform="translate(217 197.228)">
-    <ellipse id="Ellipse_199" data-name="Ellipse 199" cx="45.644" cy="93.133" rx="45.644" ry="93.133" transform="translate(0)" fill="#89b53a"/>
+    <ellipse id="Ellipse_199" data-name="Ellipse 199" cx="45.644" cy="93.133" rx="45.644" ry="93.133" transform="translate(0)" fill="#68B030"/>
     <path id="Path_3624" data-name="Path 3624" d="M897.185,520.239c18.25-109.5.184-218.6,0-219.685l-1.329.225c.184,1.087,18.211,109.971,0,219.239Z" transform="translate(-856.87 -274.847)" fill="#4d5153"/>
     <rect id="Rectangle_1174" data-name="Rectangle 1174" width="1.348" height="46.809" transform="translate(4.288 75.293) rotate(-61.858)" fill="#3f3d56"/>
     <rect id="Rectangle_1175" data-name="Rectangle 1175" width="46.809" height="1.348" transform="matrix(0.882, -0.472, 0.472, 0.882, 47.856, 107.253)" fill="#4d5153"/>

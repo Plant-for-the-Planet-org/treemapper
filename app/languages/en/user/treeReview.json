@@ -8,8 +8,8 @@
   "tree_review_location": "LOCATION",
   "tree_review_specie": "SPECIES",
   "tree_review_unable": "Unable to identify",
-  "tree_review_diameter_header": "DIAMETER (in cm)",
-  "tree_review_height_header": "HEIGHT (in m)",
+  "tree_review_diameter_header": "DIAMETER",
+  "tree_review_height_header": "HEIGHT",
   "tree_review_tree_tag_header": "TREE TAG",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
@@ -18,5 +18,8 @@
   "tree_review_alrighty": "Complete",
   "tree_review_register_planting_date": "Register Planting Date",
   "tree_review_delete": "Delete",
-  "tree_review_details": "Tree Details"
+  "tree_review_details": "Tree Details",
+  "tree_review_not_tagged": "Not Tagged",
+  "tree_review_delete_not_yet_uploaded_registration": "The registration is not yet uploaded to Plant-for-the-Planet. Once deleted it will be lost forever.",
+  "tree_review_delete_uploaded_registration": "This registration is safe on cloud. Once this registration is deleted, currently it is not possible to retrieve it on this app."
 }

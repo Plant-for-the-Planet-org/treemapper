@@ -14,5 +14,8 @@
   "alright_modal_off_site_header": "Hors site activé!",
   "image_capturing_header": "Photo",
   "image_capturing_sub_header": "Prendre une photo face à un arbre planté.",
-  "image_capturing_required": "La photo est requise."
+  "image_capturing_required": "La photo est requise.",
+  "coming_soon": "Arrive bientôt!",
+  "image_click_picture": "Prendre une photo",
+  "image_reclick": "A nouveau"
 }

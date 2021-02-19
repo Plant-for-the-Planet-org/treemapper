@@ -35,7 +35,7 @@ import MigratingDB from '../MigratingDB';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
-import updateLocalSpecies from '../../utils/updateLocalSpecies';
+import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
 import { migrateRealm } from '../../repositories/default';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -85,6 +85,9 @@ const App = () => {
       } else {
         auth0Logout();
       }
+      updateAndSyncLocalSpecies(newAccessToken);
+    } else {
+      updateAndSyncLocalSpecies();
     }
   };
 
@@ -94,7 +97,6 @@ const App = () => {
     }).then(() => {
       setIsDBMigrating(false);
       checkIsUserLogin();
-      updateLocalSpecies();
       dailyLogUpdateCheck();
     });
   }, []);
