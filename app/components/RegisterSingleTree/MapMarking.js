@@ -27,6 +27,7 @@ import { Typography } from '_styles';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const IS_ANDROID = Platform.OS === 'android';
+let askPermission = true;
 
 const MapMarking = ({ updateScreenState, inventoryState }) => {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
@@ -41,54 +42,30 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   const [isLocation, setIsLocation] = useState(false);
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
   const [location, setLocation] = useState(null);
-  const [askPermission, setAskPermission] = useState(true);
-  // const [forceContinue, setForceContinue] = useState(false);
   const camera = useRef(null);
   const map = useRef(null);
   const navigation = useNavigation();
-  // useEffect(() => {
-  //   if (IS_ANDROID) {
-  //     MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-  //       console.log(permission, 'permission');
-  //       if (permission) {
-  //         MapboxGL.setTelemetryEnabled(false);
-  //         updateCurrentPosition();
-  //         console.log('useEffect');
-  //       }
-  //     });
-  //   }
-  //   console.log(inventoryState, 'inventoryState');
-  //   const { inventoryID } = inventoryState.inventoryID;
-  //   console.log(inventoryID, 'inventoryID');
-  //   getInventory({ inventoryID: inventoryID }).then((inventory) => {
-  //     setInventory(inventory);
-  //   });
-  // }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       // Do something
-      console.log(askPermission, 'askPermission', isLocationAlertShow);
       if (IS_ANDROID && askPermission) {
         MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-          console.log(permission, 'permission');
           if (permission) {
             MapboxGL.setTelemetryEnabled(false);
             updateCurrentPosition();
-            console.log('useEffect transitionEnd');
           }
         });
       }
-      setAskPermission(true);
+      askPermission = true;
     });
     console.log(inventoryState, 'inventoryState');
     const { inventoryID } = inventoryState.inventoryID;
-    console.log(inventoryID, 'inventoryID');
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
       setInventory(inventory);
     });
     return unsubscribe;
-  }, [askPermission]);
+  }, []);
 
   const renderFakeMarker = () => {
     return (
@@ -102,7 +79,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
 
   const onChangeRegionComplete = async () => {
     const center = await map.current.getCenter();
-    console.log(center, 'center onChangeRegionComplete');
     setCenterCoordinates(center);
     setLoader(false);
   };
@@ -116,13 +92,11 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     }
   };
   const onPressMyLocationIcon = (position) => {
-    console.log(position, 'position onPressMyLocationIcon');
     if (position) {
       var recenterCoords = [position.coords.longitude, position.coords.latitude];
     } else {
       var recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
-    console.log(recenterCoords, 'recenterCoords');
     setCenterCoordinates(recenterCoords);
     setIsInitial(true);
     camera.current.setCamera({
@@ -133,7 +107,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   };
   const addMarker = async (forceContinue, accuracySet) => {
     // Check distance
-    console.log(accuracySet, 'accuracy', forceContinue);
     if (accuracySet < 30 || forceContinue) {
       updateCurrentPosition()
         .then(() => {
@@ -151,7 +124,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
 
           let distanceInMeters = distance * 1000;
           console.log(distanceInMeters, 'distanceInMeters');
-          // setForceContinue(false);
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
           } else {
@@ -159,7 +131,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           }
           onPressContinue(currentCoords);
         })
-        // }
         .catch((err) => {
           alert(JSON.stringify(err), 'Alert');
         });
@@ -182,7 +153,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             showsUserHeadingIndicator
             onUpdate={() => {
               updateCurrentPosition();
-              console.log('onUpdate MapboxGL');
             }}
           />
         )}
@@ -211,7 +181,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          console.log('updateCurrentPosition');
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -374,12 +343,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
           updateCurrentPosition();
-          console.log('onPressPrimaryBtn');
         }}
         onPressSecondaryBtn={() => {
-          setAskPermission(false, () => {
-            navigation.navigate('TreeInventory');
-          });
+          askPermission = false;
           setIsLocationAlertShow(false);
           navigation.navigate('TreeInventory');
         }}

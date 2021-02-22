@@ -26,13 +26,8 @@ const RegisterSingleTree = ({ navigation }) => {
       if (InventoryData.status === INCOMPLETE_INVENTORY) {
         let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
         updateLastScreen(data);
-        console.log(
-          InventoryData.polygons[0],
-          '<======================InventoryData.polygons[0]======================>',
-        );
         permission();
         if (isGranted && InventoryData.polygons[0]) {
-          console.log('-----------In--------------');
           Geolocation.getCurrentPosition((position) => {
             if (InventoryData.polygons.length > 0) {
               let distanceInMeters =
@@ -144,7 +139,6 @@ const RegisterSingleTree = ({ navigation }) => {
     );
   };
 
-  console.log(isGranted, 'isGranted');
   return (
     <View style={styles.container}>
       {screenState == 'MapMarking' &&
