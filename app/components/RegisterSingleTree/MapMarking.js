@@ -4,13 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
-  ImageBackground,
   Modal,
   Platform,
   SafeAreaView,
   StyleSheet,
   Text,
-  PermissionsAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -25,7 +23,6 @@ import { addCoordinateSingleRegisterTree, getInventory } from '../../repositorie
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { Typography } from '_styles';
-import { bugsnag } from '_utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -36,42 +33,62 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   const [centerCoordinates, setCenterCoordinates] = useState([0, 0]);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [markedCoords, setMarkedCoords] = useState(null);
   const [locateTree, setLocateTree] = useState('on-site');
   const [inventory, setInventory] = useState(null);
-  const [accuracy, setAccuracy] = useState(null);
   const [accuracyInMeters, setAccuracyInMeters] = useState('');
   const [isAlertShow, setIsAlertShow] = useState(false);
   const [isInitial, setIsInitial] = useState(false);
   const [isLocation, setIsLocation] = useState(false);
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
   const [location, setLocation] = useState(null);
+  const [askPermission, setAskPermission] = useState(true);
+  // const [forceContinue, setForceContinue] = useState(false);
   const camera = useRef(null);
   const map = useRef(null);
   const navigation = useNavigation();
+  // useEffect(() => {
+  //   if (IS_ANDROID) {
+  //     MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+  //       console.log(permission, 'permission');
+  //       if (permission) {
+  //         MapboxGL.setTelemetryEnabled(false);
+  //         updateCurrentPosition();
+  //         console.log('useEffect');
+  //       }
+  //     });
+  //   }
+  //   console.log(inventoryState, 'inventoryState');
+  //   const { inventoryID } = inventoryState.inventoryID;
+  //   console.log(inventoryID, 'inventoryID');
+  //   getInventory({ inventoryID: inventoryID }).then((inventory) => {
+  //     setInventory(inventory);
+  //   });
+  // }, []);
+
   useEffect(() => {
-    if (IS_ANDROID) {
-      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-        console.log(permission, 'permission');
-        if (permission) {
-          MapboxGL.setTelemetryEnabled(false);
-          updateCurrentPosition();
-        }
-      });
-    }
+    const unsubscribe = navigation.addListener('transitionEnd', () => {
+      // Do something
+      console.log(askPermission, 'askPermission', isLocationAlertShow);
+      if (IS_ANDROID && askPermission) {
+        MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+          console.log(permission, 'permission');
+          if (permission) {
+            MapboxGL.setTelemetryEnabled(false);
+            updateCurrentPosition();
+            console.log('useEffect transitionEnd');
+          }
+        });
+      }
+      setAskPermission(true);
+    });
     console.log(inventoryState, 'inventoryState');
     const { inventoryID } = inventoryState.inventoryID;
     console.log(inventoryID, 'inventoryID');
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
       setInventory(inventory);
-      if (inventory.polygons.length !== 0) {
-        const { latitude, longitude } = inventory.polygons[0].coordinates[0];
-        // this.onUpdateUserLocation([longitude, latitude]);
-        console.log([longitude, latitude], 'setMarkedCoords already present');
-        setMarkedCoords([longitude, latitude]);
-      }
     });
-  }, []);
+    return unsubscribe;
+  }, [askPermission]);
 
   const renderFakeMarker = () => {
     return (
@@ -92,23 +109,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
 
   const onUpdateUserLocation = (location) => {
     if (!location) {
-      // alert('Unable to retrieve location')
       return;
     }
-    // else {
-    //   const currentCoords = [location.coords.longitude, location.coords.latitude];
-    //   setCenterCoordinates(currentCoords);
-    // }
     if (!isInitial) {
-      // const currentCoords = [location.coords.longitude, location.coords.latitude];
-      // console.log(currentCoords, 'currentCoords');
-      // setCenterCoordinates(currentCoords);
-      // setIsInitial(true);
-      // camera.current.setCamera({
-      //   centerCoordinate: currentCoords,
-      //   zoomLevel: 18,
-      //   animationDuration: 2000,
-      // });
       onPressMyLocationIcon(location);
     }
   };
@@ -128,16 +131,14 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
       animationDuration: 2000,
     });
   };
-  const addMarker = async () => {
+  const addMarker = async (forceContinue, accuracySet) => {
     // Check distance
-    console.log(accuracy, 'accuracy');
-    if (accuracy !== 'Bad') {
-      // try {
+    console.log(accuracySet, 'accuracy', forceContinue);
+    if (accuracySet < 30 || forceContinue) {
       updateCurrentPosition()
         .then(() => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           console.log(currentCoords, 'currentCoords addMarker');
-          let markerCoords = centerCoordinates;
           console.log(location, 'location addMarker');
           console.log(centerCoordinates, 'centerCoordinates addMarker');
           let distance = distanceCalculator(
@@ -150,6 +151,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
 
           let distanceInMeters = distance * 1000;
           console.log(distanceInMeters, 'distanceInMeters');
+          // setForceContinue(false);
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
           } else {
@@ -166,27 +168,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     }
   };
 
-  const pushMaker = (currentCoords) => {
-    console.log(centerCoordinates, 'centerCoordinates pushMaker');
-    setMarkedCoords(centerCoordinates);
-    onPressContinue();
-  };
-
-  const renderMarker = () => {
-    return (
-      markedCoords && (
-        <MapboxGL.PointAnnotation
-          key={'markerCoordskey'}
-          id={'markerCoordsid'}
-          coordinate={markedCoords}>
-          {/* <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-            <Text style={styles.markerText}>{'A'}</Text>
-          </ImageBackground> */}
-        </MapboxGL.PointAnnotation>
-      )
-    );
-  };
-
   const renderMapView = () => {
     return (
       <MapboxGL.MapView
@@ -201,6 +182,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             showsUserHeadingIndicator
             onUpdate={() => {
               updateCurrentPosition();
+              console.log('onUpdate MapboxGL');
             }}
           />
         )}
@@ -212,8 +194,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          // setIsInitial(false);
-          // onUpdateUserLocation(location);
           onPressMyLocationIcon(location);
         }}
         style={[styles.myLocationIcon]}
@@ -228,14 +208,11 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   };
 
   const updateCurrentPosition = async () => {
-    console.log('In updateCurrentPosition');
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          // console.log(refresh, 'refresh');
-          console.log('In Geolocation');
+          console.log('updateCurrentPosition');
           setAccuracyInMeters(position.coords.accuracy);
-          accuracyRating();
           onUpdateUserLocation(position);
           setLocation(position);
           setIsLocation(true);
@@ -257,25 +234,10 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
       );
     });
   };
-  const accuracyRating = () => {
-    if (accuracyInMeters < 10) {
-      setAccuracy('Good');
-    } else if (accuracyInMeters < 31) {
-      setAccuracy('Fair');
-    } else {
-      setAccuracy('Bad');
-    }
-  };
 
   const onPressContinue = (currentCoords) => {
     const inventoryID = inventoryState.inventoryID;
-    console.log(markedCoords, inventoryID, 'inventoryID');
-    setMarkedCoords(centerCoordinates);
-    // Geolocation.getCurrentPosition(
-    //   (position) =>
-    // updateCurrentPosition().then(() => {
     console.log(location, 'position onPressContinue', currentCoords, 'currentCoords');
-    // let currentCoords = location.coords;
     addCoordinateSingleRegisterTree({
       inventory_id: inventoryID,
       markedCoords: centerCoordinates,
@@ -284,14 +246,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     }).then(() => {
       setIsAlrightyModalShow(true);
     });
-    // });
-    //   ,
-    //   (err) => {
-    //     console.log(err, 'onPressContinue');
-    //     alert(err.message);
-    //   },
-    //   // { enableHighAccuracy: true },
-    // );
   };
 
   const renderAlrightyModal = () => {
@@ -334,24 +288,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   };
 
   const onPressBack = () => {
-    // const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
     navigation.navigate('TreeInventory');
     return;
-    // if (locateTree == 'off-site') {
-    //   if (activeMarkerIndex > 0) {
-    //     this.setState({ isAlrightyModalShow: true });
-    //   } else {
-    //     navigation.goBack();
-    //   }
-    // } else {
-    //   // on-site
-    //   if (activeMarkerIndex > 0) {
-    //     updateActiveMarkerIndex(activeMarkerIndex - 1);
-    //     toogleState2();
-    //   } else {
-    //     navigation.goBack();
-    //   }
-    // }
   };
 
   const renderAccuracyModal = () => {
@@ -370,23 +308,23 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             </Text>
             <Text style={styles.accuracyModalText}>
               You can use the GPS data to determine accuracy of a location. Tree Mapper only allows
-              on site registration if location is accurate to 25 meter
+              on site registration if location is accurate to 30 meter
             </Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
                 Green
               </Text>{' '}
-              = Accurate to 5 meter
+              = Accurate to 10 meter
             </Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
                 Yellow
               </Text>{' '}
-              = Accurate to 25 meter
+              = Accurate to 30 meter
             </Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>Red</Text>{' '}
-              = Greater than 25 meter
+              = Greater than 30 meter
             </Text>
             <TouchableOpacity
               style={{
@@ -429,12 +367,21 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <AlertModal
         visible={isLocationAlertShow}
-        heading={'Alert'}
+        heading={'Location Service'}
         message={'Location settings are not satisfied'}
         primaryBtnText={'Ok'}
+        secondaryBtnText={'Back'}
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
           updateCurrentPosition();
+          console.log('onPressPrimaryBtn');
+        }}
+        onPressSecondaryBtn={() => {
+          setAskPermission(false, () => {
+            navigation.navigate('TreeInventory');
+          });
+          setIsLocationAlertShow(false);
+          navigation.navigate('TreeInventory');
         }}
       />
     );
@@ -445,9 +392,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   };
 
   const onPressAlertContinue = () => {
-    setAccuracy('ForceContinue');
     setIsAlertShow(false);
-    addMarker();
+    addMarker(true, accuracyInMeters);
   };
 
   const renderAccuracyInfo = () => {
@@ -455,9 +401,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
       <TouchableOpacity
         style={[
           styles.gpsContainer,
-          accuracy == 'Good'
+          accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
-            : accuracy == 'Fair'
+            : accuracyInMeters < 30 && accuracyInMeters > 0
             ? { backgroundColor: '#FFC400' }
             : { backgroundColor: '#FF0000' },
         ]}
@@ -477,7 +423,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         {renderMyLocationIcon()}
         <View style={styles.continueBtnCont}>
           <PrimaryButton
-            onPress={() => addMarker()}
+            onPress={() => addMarker(false, accuracyInMeters)}
             disabled={loader}
             btnText={i18next.t('label.tree_map_marking_btn')}
             style={styles.bottomBtnWith}
