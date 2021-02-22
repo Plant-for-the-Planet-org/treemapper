@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, BackHandler, PermissionsAndroid, Alert, Linking } from 'react-native';
+import { View, StyleSheet, BackHandler, PermissionsAndroid, Linking, Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '_styles';
 import MapMarking from './MapMarking';
@@ -9,8 +9,9 @@ import { updateLastScreen, getInventory, addLocateTree } from '../../repositorie
 import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { bugsnag } from '_utils';
-import { set } from 'react-native-reanimated';
 import AlertModal from '../Common/AlertModal';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
   const { state: inventoryState } = useContext(InventoryContext);
@@ -29,33 +30,29 @@ const RegisterSingleTree = ({ navigation }) => {
         permission();
         if (isGranted && InventoryData.polygons[0]) {
           Geolocation.getCurrentPosition((position) => {
-            if (InventoryData.polygons.length > 0) {
-              let distanceInMeters =
-                distanceCalculator(
-                  position.coords.latitude,
-                  position.coords.longitude,
-                  InventoryData.polygons[0].coordinates[0].latitude,
-                  InventoryData.polygons[0].coordinates[0].longitude,
-                  'K',
-                ) * 1000;
+            let distanceInMeters =
+              distanceCalculator(
+                position.coords.latitude,
+                position.coords.longitude,
+                InventoryData.polygons[0].coordinates[0].latitude,
+                InventoryData.polygons[0].coordinates[0].longitude,
+                'K',
+              ) * 1000;
 
-              if (distanceInMeters && distanceInMeters < 100) {
-                //set onsite
-                addLocateTree({
-                  inventory_id: inventoryState.inventoryID,
-                  locate_tree: 'on-site',
-                });
-                updateScreenState('ImageCapturing');
-              } else {
-                //set offsite
-                addLocateTree({
-                  inventory_id: inventoryState.inventoryID,
-                  locate_tree: 'off-site',
-                });
-                navigation.navigate('SelectSpecies');
-              }
+            if (distanceInMeters && distanceInMeters < 100) {
+              //set onsite
+              addLocateTree({
+                inventory_id: inventoryState.inventoryID,
+                locate_tree: 'on-site',
+              });
+              updateScreenState('ImageCapturing');
             } else {
-              updateScreenState('MapMarking');
+              //set offsite
+              addLocateTree({
+                inventory_id: inventoryState.inventoryID,
+                locate_tree: 'off-site',
+              });
+              navigation.navigate('SelectSpecies');
             }
           });
         }
@@ -73,28 +70,30 @@ const RegisterSingleTree = ({ navigation }) => {
   const updateScreenState = (state) => setScreenState(state);
 
   const permission = async () => {
-    try {
-      console.log('Asking permission');
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Permission granted');
-        setIsGranted(true);
-        return true;
-      } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-        console.log('Permission Blocked');
-        setIsPermissionBlockedAlertShow(true);
-        return false;
-      } else {
-        console.log('Permission Denied');
-        setIsPermissionDeniedAlertShow(true);
+    if (IS_ANDROID) {
+      try {
+        console.log('Asking permission');
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Permission granted');
+          setIsGranted(true);
+          return true;
+        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+          console.log('Permission Blocked');
+          setIsPermissionBlockedAlertShow(true);
+          return false;
+        } else {
+          console.log('Permission Denied');
+          setIsPermissionDeniedAlertShow(true);
+          return false;
+        }
+      } catch (err) {
+        bugsnag.notify(err);
+        console.log(err, 'Permission error');
         return false;
       }
-    } catch (err) {
-      bugsnag.notify(err);
-      console.log(err, 'Permission error');
-      return false;
     }
   };
 

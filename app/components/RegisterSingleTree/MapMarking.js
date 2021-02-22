@@ -16,13 +16,12 @@ import Config from 'react-native-config';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { Typography } from '_styles';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -56,6 +55,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
             updateCurrentPosition();
           }
         });
+      } else {
+        updateCurrentPosition();
       }
       askPermission = true;
     });
