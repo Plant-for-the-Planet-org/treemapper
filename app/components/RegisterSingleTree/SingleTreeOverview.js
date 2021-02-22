@@ -87,6 +87,11 @@ const SingleTreeOverview = ({ navigation }) => {
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
+  // useEffect(() => {
+  //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
+  //   return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+  // }, []);
+
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
     if (
