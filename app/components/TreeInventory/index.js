@@ -1,7 +1,15 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View, Alert } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  Alert,
+  BackHandler,
+} from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
@@ -25,6 +33,11 @@ const TreeInventory = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+  }, []);
 
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
