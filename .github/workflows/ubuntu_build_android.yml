@@ -96,7 +96,7 @@ jobs:
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
         echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
-        mv android/app/build/outputs/apk/production/release/app-release.apk uploads/$upload_file
+        mv android/app/build/outputs/apk/production/release/app-production-release.apk uploads/$upload_file
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload Android APK to Browserstack
