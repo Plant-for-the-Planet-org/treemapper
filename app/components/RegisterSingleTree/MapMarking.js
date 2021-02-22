@@ -93,10 +93,11 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     }
   };
   const onPressMyLocationIcon = (position) => {
+    var recenterCoords;
     if (position) {
-      var recenterCoords = [position.coords.longitude, position.coords.latitude];
+      recenterCoords = [position.coords.longitude, position.coords.latitude];
     } else {
-      var recenterCoords = [location.coords.longitude, location.coords.latitude];
+      recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setCenterCoordinates(recenterCoords);
     setIsInitial(true);
@@ -371,8 +372,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
