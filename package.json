@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
+    "ios": "ENVFILE=.env.develop react-native run-ios --scheme 'treemapper'",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint app --fix",
