@@ -2,6 +2,17 @@
   "edit_profile": "Profil bearbeiten",
   "logout": "Abmelden",
   "privacy_policy": "Datenschutzerklärung",
-  "support": "Unterstützen",
-  "edit": "Bearbeiten"
+  "terms_of_service": "AGB",
+  "imprint": "Impressum",
+  "legal_docs": "Rechtliches",
+  "open_source_license": "Open Source Lizenzen",
+  "edit": "Bearbeiten",
+  "manage_offline": "Offline Maps verwalten",
+  "manage_species": "Arten verwalten",
+  "activity_logging": "Aktivität aufzeichnen",
+  "activity_logs": "Aktivitätsaufzeichungen",
+  "all_backed_up": "Alle Änderungen gesichert",
+  "upload_pending": "{{count}} ausstehend",
+  "sync_remaining": "Synchronisiere - {{count}} verbleibend",
+  "support": "Unterstützen"
 }
