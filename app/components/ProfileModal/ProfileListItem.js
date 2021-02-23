@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Switch, Modal } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import React, { useState } from 'react';
+import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { setActivityLog, getUserInformation } from '../../repositories/user';
+import { Colors, Typography } from '_styles';
 
 export default function ProfileListItem({
   media,
@@ -14,18 +13,16 @@ export default function ProfileListItem({
   containerStyle,
   mediaStyle,
 }) {
-  const [isEnabled, setIsEnabled] = useState();
+  // const [isEnabled, setIsEnabled] = useState();
   const [modalVisible, setModalVisible] = useState(false);
-  useEffect(() => {
-    getUserInformation().then((data) => {
-      setIsEnabled(data.IsLogEnabled);
-      console.log(data.IsLogEnabled, 'data.IsLogEnabled');
-    });
-  }, []);
+  // useEffect(() => {
+  //   getUserInformation().then((data) => {
+  //     setIsEnabled(data.idLogEnabled);
+  //   });
+  // }, []);
 
   // const toggleSwitch = () => {
   //   setIsEnabled((previousState) => !previousState);
-  //   console.log(!isEnabled);
   //   setActivityLog(!isEnabled);
   // };
 
@@ -82,13 +79,13 @@ export default function ProfileListItem({
                 style={{ paddingHorizontal: 8 }}
               />
             </TouchableOpacity> */}
-            <Switch
+            {/* <Switch
               trackColor={{ false: '#767577', true: '#d4e7b1' }}
               thumbColor={isEnabled ? Colors.PRIMARY : '#f4f3f4'}
               ios_backgroundColor="#3e3e3e"
               // onValueChange={toggleSwitch}
               value={isEnabled}
-            />
+            /> */}
           </View>
         ) : (
           []

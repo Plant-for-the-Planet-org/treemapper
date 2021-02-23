@@ -14,6 +14,7 @@
   "select_species_add_measurements": "Add Measurements",
   "select_species_diameter": "Diameter",
   "select_species_height": "Height",
+  "select_species_tree_tag": "Tree tag",
   "select_species_inches": "Inches",
   "select_species_feet": "Feet",
   "select_species_continue": "Continue",
@@ -29,5 +30,13 @@
   "select_species_search_species": "Search species",
   "select_species_done": "Done",
   "select_species_add_name": "Add Name",
-  "select_species_my_species": "My Species"
+  "select_species_my_species": "My Species",
+  "select_species_diameter_more_than_error": "Diameter should be more than 0.1",
+  "select_species_height_more_than_error": "Height should be more than 0.1",
+  "select_species_diameter_invalid": "Diameter is invalid",
+  "select_species_height_invalid": "Height is invalid",
+  "select_species_tag_id_required": "Tag id is required",
+  "select_species_tagged_for_identification": "This tree has been tagged for identification.",
+  "select_species_unknown": "Unknown",
+  "select_species_search_specie_not_present": "The '{{searchText}}' species is not present"
 }

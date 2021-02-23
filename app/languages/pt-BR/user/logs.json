@@ -1,0 +1,4 @@
+{
+  "logs_all": "Todos",
+  "logs_date": "{{item.title}}"
+}

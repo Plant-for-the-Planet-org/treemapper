@@ -1,25 +1,32 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { tree, placeholder_image, map_img } from '../../../assets';
+import { single_tree_png, placeholder_image, map_img } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
+import RNFS from 'react-native-fs';
+import { INCOMPLETE_INVENTORY } from '../../../utils/inventoryStatuses';
 
-const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
+const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, inventoryStatus }) => {
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-  let imageSource =
-    activeBtn === true
-      ? map_img
-      : data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-        ? map_img
-        : activeBtn === false
-          ? placeholder_image
-          : tree;
+
+  let imageSource;
   if (data.imageURL) {
-    imageSource = { uri: data.imageURL };
+    const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
+    imageSource = { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}` };
+  } else if (
+    activeBtn === true ||
+    data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
+  ) {
+    imageSource = map_img;
+  } else if (activeBtn === false) {
+    imageSource = placeholder_image;
+  } else {
+    imageSource = single_tree_png;
   }
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -34,7 +41,9 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn }) => {
             onPress={onPressActiveButton}>
             {data.date}
           </Text>
-          {icon && <MCIcons name={icon} size={22} style={styles.activeText} />}
+          {icon && inventoryStatus !== INCOMPLETE_INVENTORY && (
+            <MCIcons name={icon} size={22} style={styles.activeText} />
+          )}
         </View>
       </View>
     </View>

@@ -23,7 +23,7 @@ const Species = {
   name: 'Species',
   properties: {
     aliases: 'string',
-    treeCount: 'string',
+    treeCount: 'int',
     id: 'string?',
   },
 };
@@ -42,7 +42,7 @@ const Inventory = {
   primaryKey: 'inventory_id',
   properties: {
     inventory_id: 'string',
-    plantation_date: 'string?',
+    plantation_date: 'date?',
     tree_type: 'string?',
     status: 'string?',
     project_id: 'string?',
@@ -55,6 +55,8 @@ const Inventory = {
     species_diameter: 'float?',
     species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     response: 'string?',
+    tag_id: 'string?',
+    registration_date: 'date?',
   },
 };
 
@@ -66,23 +68,14 @@ const User = {
     accessToken: 'string?',
     idToken: 'string?',
     email: 'string?',
-    firstname: 'string?',
-    lastname: 'string?',
-    country: 'string?',
-    IsLogEnabled: 'bool?',
-  },
-};
-
-const AddSpecies = {
-  name: 'AddSpecies',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    aliases: 'string?',
+    firstName: 'string?',
+    lastName: 'string?',
     image: 'string?',
-    scientificName: 'string',
-    status: 'string?',
-    speciesId: 'string',
+    country: 'string?',
+    isLogEnabled: 'bool?',
+    tpoId: 'string?',
+    refreshToken: 'string?',
+    isSignUpRequired: 'bool?',
   },
 };
 
@@ -112,23 +105,47 @@ const ActivityLogs = {
   },
 };
 
+// used to store all the available scientific species extracted from zip
 const ScientificSpecies = {
   name: 'ScientificSpecies',
   primaryKey: 'guid',
   properties: {
+    // stores the guid of scientific specie
     guid: 'string',
-    scientific_name: { type: 'string', indexed: true },
+    // stores the name of scientific specie and indexed for better search
+    scientificName: { type: 'string', indexed: true },
+    // used to check if this specie is preferred by user or not. Default to [false]
+    isUserSpecies: { type: 'bool', default: false },
+    // used to check whether this specie is synced to server or not. Defaults to [false]
+    // This property is used with [isUserSpecies]
+    isUploaded: { type: 'bool', default: false },
+    // stores the specieId which is uploaded on server
+    specieId: 'string?',
   },
 };
 
-export {
-  Coordinates,
-  Polygons,
-  User,
-  OfflineMaps,
-  Species,
-  Inventory,
-  AddSpecies,
-  ScientificSpecies,
-  ActivityLogs
+const migration = (oldRealm, newRealm) => {
+  if (oldRealm.schemaVersion < 2) {
+    const oldScientificSpeciesObject = oldRealm.objects('ScientificSpecies');
+    const newScientificSpeciesObject = newRealm.objects('ScientificSpecies');
+    for (const index in oldScientificSpeciesObject) {
+      newScientificSpeciesObject[index].scientificName =
+        oldScientificSpeciesObject[index].scientific_name;
+    }
+  }
+};
+
+export default {
+  schema: [
+    Coordinates,
+    Polygons,
+    User,
+    OfflineMaps,
+    Species,
+    Inventory,
+    ScientificSpecies,
+    ActivityLogs,
+  ],
+  schemaVersion: 2,
+  migration,
 };
