@@ -3,9 +3,12 @@
   "logout": "Sair",
   "privacy_policy": "Política de Privacidade",
   "terms_of_service": "Termos de Serviço",
+  "imprint": "Impresso",
+  "open_source_license": "Licença de código aberto (open source)",
   "edit": "Editar",
   "manage_offline": "Gerenciar mapas off-line",
   "manage_species": "Administrar espécies",
-  "back_up": "Todas as mudanças salvas",
+  "all_backed_up": "Todas as mudanças salvas",
+  "upload_pending": "{{count}}pendente",
   "support": "Suporte"
 }

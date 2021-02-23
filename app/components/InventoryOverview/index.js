@@ -17,7 +17,7 @@ import {
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SvgXml } from 'react-native-svg';
-import RNFetchBlob from 'rn-fetch-blob';
+import Share from 'react-native-share';
 import { Colors, Typography } from '_styles';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
@@ -32,6 +32,7 @@ import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import SelectSpecies from '../SelectSpecies/index';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { toBase64 } from '../../utils/base64';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -55,8 +56,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
       setInventory(inventory);
     });
   };
@@ -70,20 +69,22 @@ const InventoryOverview = ({ navigation }) => {
           return (
             <View>
               <Label
-                leftText={i18next.t('label.tree_inventory_overview_polygon_left_text', {
+                leftText={i18next.t('label.inventory_overview_polygon_left_text', {
                   locationType,
                 })}
                 rightText={''}
               />
               <FlatList
-                data={Object.values(item.coordinates)}
+                data={item.coordinates}
                 renderItem={({ item: oneCoordinate, index }) => {
                   let normalizeData = {
-                    title: `Coordinate ${ALPHABETS[index]}`,
+                    title: i18next.t('label.inventory_overview_title_coordinates', {
+                      alphabetindex: ALPHABETS[index],
+                    }),
                     subHeading: `${oneCoordinate.latitude.toFixed(
                       5,
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
-                    date: 'View location',
+                    date: i18next.t('label.inventory_overview_view_location'),
                     imageURL: oneCoordinate.imageUrl,
                     index: index,
                   };
@@ -105,7 +106,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressViewLOC = (index) => {
-    let selectedCoords = Object.values(inventory.polygons[0].coordinates)[index];
+    let selectedCoords = inventory.polygons[0].coordinates[index];
     let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
     setSelectedLOC(normalCoords);
     setLocationTitle(ALPHABETS[index]);
@@ -201,44 +202,41 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressExportJSON = async () => {
-    let exportGeoJSONFile = () => {
-      inventory.species = Object.values(inventory.species);
-      inventory.polygons = Object.values(inventory.polygons);
+    const exportGeoJSONFile = () => {
       if (inventory.polygons.length > 0) {
-        let featureList = inventory.polygons.map((onePolygon) => {
+        const featureList = inventory.polygons.map((onePolygon) => {
           return {
             type: 'Feature',
             properties: {},
             geometry: {
               type: 'LineString',
-              coordinates: Object.values(onePolygon.coordinates).map((oneCoordinate) => [
+              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
                 oneCoordinate.longitude,
                 oneCoordinate.latitude,
               ]),
             },
           };
         });
-        let geoJSON = {
+        const geoJSON = {
           type: 'FeatureCollection',
           features: featureList,
         };
-        let fileName = `Tree Mapper GeoJSON ${inventory.inventory_id}.json`;
-        let path = `${
-          Platform.OS == 'ios' ? RNFetchBlob.fs.dirs.DocumentDir : RNFetchBlob.fs.dirs.DownloadDir
-        }/${fileName}`;
-        RNFetchBlob.fs
-          .writeFile(path, JSON.stringify(geoJSON), 'utf88')
-          .then((success) => {
-            alert(
-              `GeoJSON file export in ${Platform.OS == 'ios' ? 'document' : 'download'} directory`,
-            );
+        const options = {
+          url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
+          message: i18next.t('label.inventory_overview_export_json_message'),
+          title: i18next.t('label.inventory_overview_export_json_title'),
+          filename: `Tree Mapper GeoJSON ${inventory.inventory_id}`,
+          saveToFiles: true,
+        };
+        Share.open(options)
+          .then(() => {
+            alert(i18next.t('label.inventory_overview_export_json_success'));
           })
-          .catch((err) => alert(i18next.t('label.inventory_overview_export_json_error')));
+          .catch(() => alert(i18next.t('label.inventory_overview_export_json_error')));
       }
     };
     if (Platform.OS == 'android') {
       const permissionResult = await askAndroidStoragePermission();
-
       if (permissionResult) {
         exportGeoJSONFile();
       }
@@ -258,7 +256,7 @@ const InventoryOverview = ({ navigation }) => {
           maximumDate={new Date()}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          value={new Date(Number(inventory.plantation_date))}
+          value={inventory.plantation_date}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -271,10 +269,10 @@ const InventoryOverview = ({ navigation }) => {
 
   const onChangeDate = (event, selectedDate) => {
     setShowDate(false);
-    setInventory({ ...inventory, plantation_date: `${selectedDate.getTime()}` });
+    setInventory({ ...inventory, plantation_date: selectedDate });
     updatePlantingDate({
       inventory_id: state.inventoryID,
-      plantation_date: `${selectedDate.getTime()}`,
+      plantation_date: selectedDate,
     });
   };
 
@@ -325,7 +323,6 @@ const InventoryOverview = ({ navigation }) => {
     if (inventory) {
       return (
         <SelectSpecies
-          speciess={inventory.species}
           invent={inventory}
           visible={isShowSpeciesListModal}
           closeSelectSpeciesModal={closeSelectSpeciesModal}
@@ -340,7 +337,7 @@ const InventoryOverview = ({ navigation }) => {
   let locationType;
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = Object.keys(inventory.polygons[0].coordinates).length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
     locationType = isSingleCoordinate
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');
@@ -367,7 +364,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: new Date(Number(inventory.plantation_date)),
+                  date: inventory.plantation_date,
                 })}
                 onPressRightText={() => onPressDate(status)}
               />

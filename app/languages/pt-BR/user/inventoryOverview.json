@@ -1,9 +1,10 @@
 {
-  "tree_inventory_overview_polygon_left_text": "Tipo de Localização: {{locationType}}",
+  "inventory_overview_polygon_left_text": "Tipo de Localização: {{locationType}}",
+  "inventory_overview_title_coordinates": "Coordenada {{alphabetindex}}",
+  "inventory_overview_view_location": "Ver localização",
   "inventory_overview_select_species": "Selecione pelo menos uma espécie",
   "inventory_overview_view_loc_modal_header": "Localização {{locationTitle}}",
   "inventory_overview_loc": "{{locationTitle}}",
-  "inventory_overview_export_json_error": "Não é possível salvar arquivo",
   "inventory_overview_add_species": "Espécies Plantadas",
   "inventory_overview_header_text": "Revisão",
   "inventory_overview_sub_header": "As árvores serão adicionadas ao seu inventário para sincronizar quando você tiver internet.",
