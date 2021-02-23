@@ -24,7 +24,7 @@
     "axios": "^0.21.1",
     "buffer": "^6.0.3",
     "bugsnag-react-native": "^2.23.10",
-    "i18next": "^19.8.3",
+    "i18next": "^19.8.5",
     "jail-monkey": "^2.3.3",
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.1",
