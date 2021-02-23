@@ -10,57 +10,72 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { bugsnag } from '_utils';
 import AlertModal from '../Common/AlertModal';
+import { set } from 'react-native-reanimated';
 
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
+  let askPermission = true;
   const { state: inventoryState } = useContext(InventoryContext);
   const [screenState, setScreenState] = useState('MapMarking');
   const [isGranted, setIsGranted] = useState(false);
   const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
-
+  // const [askPermission, setAskPermission] = useState(true);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-      if (InventoryData.status === INCOMPLETE_INVENTORY) {
-        let data = { inventory_id: inventoryState.inventoryID, last_screen: 'RegisterSingleTree' };
-        updateLastScreen(data);
-        permission();
-        if (isGranted && InventoryData.polygons[0]) {
-          Geolocation.getCurrentPosition((position) => {
-            let distanceInMeters =
-              distanceCalculator(
-                position.coords.latitude,
-                position.coords.longitude,
-                InventoryData.polygons[0].coordinates[0].latitude,
-                InventoryData.polygons[0].coordinates[0].longitude,
-                'K',
-              ) * 1000;
-
-            if (distanceInMeters && distanceInMeters < 100) {
-              //set onsite
-              addLocateTree({
-                inventory_id: inventoryState.inventoryID,
-                locate_tree: 'on-site',
+    console.log('Inside UseEffect');
+    const unsubscribe = navigation.addListener('transitionEnd', () => {
+      console.log('Inside UseEffect..........');
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+        if (InventoryData.status === INCOMPLETE_INVENTORY) {
+          let data = {
+            inventory_id: inventoryState.inventoryID,
+            last_screen: 'RegisterSingleTree',
+          };
+          updateLastScreen(data);
+          console.log(askPermission, isPermissionDeniedAlertShow, 'PermissionInfo');
+          if (askPermission) {
+            permission();
+            console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
+            if (isGranted && InventoryData.polygons[0]) {
+              Geolocation.getCurrentPosition((position) => {
+                let distanceInMeters =
+                  distanceCalculator(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    InventoryData.polygons[0].coordinates[0].latitude,
+                    InventoryData.polygons[0].coordinates[0].longitude,
+                    'K',
+                  ) * 1000;
+                if (distanceInMeters && distanceInMeters < 100) {
+                  //set onsite
+                  addLocateTree({
+                    inventory_id: inventoryState.inventoryID,
+                    locate_tree: 'on-site',
+                  });
+                  updateScreenState('ImageCapturing');
+                } else {
+                  //set offsite
+                  addLocateTree({
+                    inventory_id: inventoryState.inventoryID,
+                    locate_tree: 'off-site',
+                  });
+                  navigation.navigate('SelectSpecies');
+                }
               });
-              updateScreenState('ImageCapturing');
-            } else {
-              //set offsite
-              addLocateTree({
-                inventory_id: inventoryState.inventoryID,
-                locate_tree: 'off-site',
-              });
-              navigation.navigate('SelectSpecies');
+              // setAskPermission(true);
+              askPermission = true;
             }
-          });
+          }
         }
-      }
+      });
     });
-
-    return () => BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
-  }, [inventoryState, isGranted]);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+      unsubscribe();
+    };
+  }, [inventoryState, isGranted, navigation]);
 
   const hardBackHandler = () => {
     navigation.navigate('TreeInventory');
@@ -76,24 +91,28 @@ const RegisterSingleTree = ({ navigation }) => {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Permission granted');
-          setIsGranted(true);
-          return true;
-        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-          console.log('Permission Blocked');
-          setIsPermissionBlockedAlertShow(true);
-          return false;
-        } else {
-          console.log('Permission Denied');
-          setIsPermissionDeniedAlertShow(true);
-          return false;
+        console.log(granted, 'granted');
+        switch (granted) {
+          case PermissionsAndroid.RESULTS.GRANTED:
+            console.log('Permission granted');
+            setIsGranted(true);
+            return true;
+          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+            console.log('Permission Blocked');
+            setIsPermissionBlockedAlertShow(true);
+            return false;
+          case PermissionsAndroid.RESULTS.DENIED:
+            console.log('Permission Denied');
+            setIsPermissionDeniedAlertShow(true);
+            return false;
         }
       } catch (err) {
         bugsnag.notify(err);
         console.log(err, 'Permission error');
         return false;
       }
+    } else {
+      setIsGranted(true);
     }
   };
 
@@ -110,6 +129,8 @@ const RegisterSingleTree = ({ navigation }) => {
           permission();
         }}
         onPressSecondaryBtn={() => {
+          // setAskPermission(false);
+          askPermission = false;
           setIsPermissionDeniedAlertShow(false);
           hardBackHandler();
         }}

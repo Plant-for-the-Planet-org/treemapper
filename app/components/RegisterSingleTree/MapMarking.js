@@ -26,7 +26,6 @@ import distanceCalculator from '../../utils/distanceCalculator';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const IS_ANDROID = Platform.OS === 'android';
-let askPermission = true;
 
 const MapMarking = ({ updateScreenState, inventoryState }) => {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
@@ -46,26 +45,22 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('transitionEnd', () => {
-      // Do something
-      if (IS_ANDROID && askPermission) {
-        MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-          if (permission) {
-            MapboxGL.setTelemetryEnabled(false);
-            updateCurrentPosition();
-          }
-        });
-      } else {
-        updateCurrentPosition();
-      }
-      askPermission = true;
-    });
+    // Do something
+    if (IS_ANDROID) {
+      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+        if (permission) {
+          MapboxGL.setTelemetryEnabled(false);
+          updateCurrentPosition();
+        }
+      });
+    } else {
+      updateCurrentPosition();
+    }
     console.log(inventoryState, 'inventoryState');
     const { inventoryID } = inventoryState.inventoryID;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
       setInventory(inventory);
     });
-    return unsubscribe;
   }, []);
 
   const renderFakeMarker = () => {
@@ -183,6 +178,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
+          console.log(position, 'position updateCurrentPosition');
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -195,7 +191,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 2000,
+          timeout: 5000,
           maximumAge: 20000,
           accuracy: {
             android: 'high',
@@ -347,7 +343,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           updateCurrentPosition();
         }}
         onPressSecondaryBtn={() => {
-          askPermission = false;
           setIsLocationAlertShow(false);
           navigation.navigate('TreeInventory');
         }}
@@ -372,8 +367,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
