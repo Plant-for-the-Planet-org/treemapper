@@ -1,7 +1,15 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  Alert,
+  BackHandler,
+} from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
@@ -10,9 +18,11 @@ import { clearAllIncompleteInventory, getInventoryByStatus } from '../../reposit
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { UserContext } from '../../reducers/user';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
 
@@ -24,20 +34,25 @@ const TreeInventory = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+  }, []);
+
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
   };
 
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
-      setAllInventory(Object.values(allInventory));
+      setAllInventory(allInventory);
     });
   };
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
       getInventoryByStatus('all').then((allInventory) => {
-        setAllInventory(Object.values(allInventory));
+        setAllInventory(allInventory);
       });
     });
   };
@@ -52,12 +67,21 @@ const TreeInventory = ({ navigation }) => {
   }
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch)
+    uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('upload inventory successfully');
       })
       .catch((err) => {
-        console.error(err);
+        if (err?.response?.status === 303) {
+          navigation.navigate('SignUp');
+        } else if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+        }
       });
     navigation.navigate('MainScreen');
   };
@@ -77,6 +101,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
+              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -100,6 +125,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
+              inventoryStatus={INCOMPLETE_INVENTORY}
             />
           </>
         )}
@@ -129,7 +155,7 @@ const TreeInventory = ({ navigation }) => {
           style={{ marginHorizontal: 25 }}
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
-        <View style={styles.parimaryBtnCont}>
+        <View style={styles.primaryBtnCont}>
           {uploadedInventory.length > 0 && (
             <PrimaryButton
               onPress={() => navigation.navigate('UploadedInventory')}
@@ -195,7 +221,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
     bottom: -10,
   },
-  parimaryBtnCont: {
+  primaryBtnCont: {
     position: 'absolute',
     width: '100%',
     justifyContent: 'center',

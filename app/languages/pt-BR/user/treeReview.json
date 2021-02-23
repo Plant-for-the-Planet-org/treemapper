@@ -4,13 +4,15 @@
   "tree_review_Save": "Salvar",
   "tree_review_name_of_species": "Nome da Espécie",
   "tree_review_diameter": "Diâmetro",
+  "tree_review_height": "Altura",
   "tree_review_location": "Localização",
   "tree_review_specie": "ESPÉCIE",
   "tree_review_unable": "Incapaz de identificar",
-  "tree_review_diameter_header": "Diâmetro da árvore (cm)",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "DIA DO PLANTIO",
   "tree_review_plantation_date_text": "{{date, ll}}",
-  "tree_review_alrighty": "Completo"
+  "tree_review_alrighty": "Completo",
+  "tree_review_register_planting_date": "Registrar data do plantio",
+  "tree_review_delete": "Excluir"
 }
