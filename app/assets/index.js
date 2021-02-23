@@ -10,8 +10,10 @@ import tree from './images/tree.png';
 import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 import marker_png from './images/marker.png';
+import map_img from './images/map_img.png';
 import logout from './images/logout_icon.png';
 import add_image from './images/add_image1.jpg';
+import single_tree_png from './images/single_tree.png';
 
 // * SVGs *
 // import { marker_png } from './images/marker';
@@ -26,6 +28,7 @@ import { active_marker } from './images/active_marker';
 import { logo } from './images/logo';
 import { cloud_upload_gray } from './images/cloud_upload_gray';
 import { off_site_enable_banner } from './images/off_site_enable_banner';
+import { empty } from './images/empty';
 
 export {
   arrow_up,
@@ -50,6 +53,9 @@ export {
   logo,
   cloud_upload_gray,
   off_site_enable_banner,
+  map_img,
   logout,
   add_image,
+  empty,
+  single_tree_png,
 };

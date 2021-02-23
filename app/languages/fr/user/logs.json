@@ -1,0 +1,6 @@
+{
+  "logs_page_title": "Afficher les journaux d'activité",
+  "logs_all": "Tous",
+  "logs_errors": "Erreurs",
+  "logs_date": "{{item.title}}"
+}

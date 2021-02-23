@@ -1,1 +1,5 @@
-{ }
+{
+  "tree_inventory_tree": "Albero",
+  "tree_inventory_trees": "Alberi",
+  "tree_inventory_overview_date": "{{item.title}}"
+}

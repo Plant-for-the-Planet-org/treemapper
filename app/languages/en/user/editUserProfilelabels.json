@@ -3,9 +3,16 @@
   "logout": "Logout",
   "privacy_policy": "Privacy Policy",
   "terms_of_service": "Terms of Service",
+  "imprint": "Imprint",
+  "legal_docs": "Legal Docs",
+  "open_source_license": "Open Source License",
   "edit": "Edit",
   "manage_offline": "Manage Offline Maps",
   "manage_species": "Manage Species",
-  "back_up": "All changes backed up",
+  "activity_logging": "Activity Logging",
+  "activity_logs": "Activity Logs",
+  "all_backed_up": "All changes backed up",
+  "upload_pending": "{{count}} pending",
+  "sync_remaining": "Syncing - {{count}} remaining",
   "support": "Support"
 }
