@@ -125,7 +125,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           );
 
           let distanceInMeters = distance * 1000;
-          console.log(distanceInMeters, 'distanceInMeters');
+          console.log({ distanceInMeters });
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
           } else {
@@ -374,8 +374,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

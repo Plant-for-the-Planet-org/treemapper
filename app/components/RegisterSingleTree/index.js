@@ -14,27 +14,23 @@ import MapMarking from './MapMarking';
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
-  let askPermission = true;
   const { state: inventoryState } = useContext(InventoryContext);
   const [screenState, setScreenState] = useState('MapMarking');
   const [isGranted, setIsGranted] = useState(false);
   const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
-  // const [askPermission, setAskPermission] = useState(true);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-    const unsubscribe = navigation.addListener('transitionEnd', () => {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-        if (InventoryData.status === INCOMPLETE_INVENTORY) {
-          let data = {
-            inventory_id: inventoryState.inventoryID,
-            last_screen: 'RegisterSingleTree',
-          };
-          updateLastScreen(data);
-          console.log(askPermission, isPermissionDeniedAlertShow, 'PermissionInfo');
-          if (askPermission) {
+    const unsubscribe = navigation.addListener('focus', () =>
+      navigation.addListener('transitionEnd', () => {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+          if (InventoryData.status === INCOMPLETE_INVENTORY) {
+            let data = {
+              inventory_id: inventoryState.inventoryID,
+              last_screen: 'RegisterSingleTree',
+            };
+            updateLastScreen(data);
             permission();
-            console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
             if (isGranted && InventoryData.polygons[0]) {
               Geolocation.getCurrentPosition((position) => {
                 let distanceInMeters =
@@ -61,13 +57,11 @@ const RegisterSingleTree = ({ navigation }) => {
                   navigation.navigate('SelectSpecies');
                 }
               });
-              // setAskPermission(true);
-              askPermission = true;
             }
           }
-        }
-      });
-    });
+        });
+      }),
+    );
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
       unsubscribe();
@@ -113,58 +107,24 @@ const RegisterSingleTree = ({ navigation }) => {
     }
   };
 
-  const PermissionDeniedAlert = () => {
-    return (
-      <AlertModal
-        visible={isPermissionDeniedAlertShow}
-        heading={'Permission Denied'}
-        message={'You need to give location permission to register on-site tree'}
-        primaryBtnText={'Ok'}
-        secondaryBtnText={'Back'}
-        onPressPrimaryBtn={() => {
-          setIsPermissionDeniedAlertShow(false);
-          permission();
-        }}
-        onPressSecondaryBtn={() => {
-          // setAskPermission(false);
-          askPermission = false;
-          setIsPermissionDeniedAlertShow(false);
-          navigation.navigate('TreeInventory');
-        }}
-      />
-    );
-  };
-
-  const PermissionBlockedAlert = () => {
-    return (
-      <AlertModal
-        visible={isPermissionBlockedAlertShow}
-        heading={'Permission Blocked'}
-        message={'You need to give location permission to register on-site tree'}
-        primaryBtnText={'Open Settings'}
-        secondaryBtnText={'Back'}
-        onPressPrimaryBtn={() => {
-          setIsPermissionBlockedAlertShow(false);
-          hardBackHandler();
-          Linking.openSettings();
-        }}
-        onPressSecondaryBtn={() => {
-          setIsPermissionBlockedAlertShow(false);
-          hardBackHandler();
-        }}
-      />
-    );
-  };
-
   return (
     <View style={styles.container}>
       {screenState == 'MapMarking' &&
         (isGranted ? (
           <MapMarking updateScreenState={updateScreenState} inventoryState={inventoryState} />
         ) : isPermissionDeniedAlertShow ? (
-          <PermissionDeniedAlert />
+          <PermissionDeniedAlert
+            isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
+            setIsPermissionDeniedAlertShow={setIsPermissionDeniedAlertShow}
+            permission={permission}
+            navigation={navigation}
+          />
         ) : (
-          <PermissionBlockedAlert />
+          <PermissionBlockedAlert
+            isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
+            setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
+            hardBackHandler={hardBackHandler}
+          />
         ))}
 
       {screenState == 'ImageCapturing' && (
@@ -181,3 +141,54 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
 });
+
+const PermissionDeniedAlert = ({
+  isPermissionDeniedAlertShow,
+  setIsPermissionDeniedAlertShow,
+  permission,
+  navigation,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionDeniedAlertShow}
+      heading={'Permission Denied'}
+      message={'You need to give location permission to register on-site tree'}
+      primaryBtnText={'Ok'}
+      secondaryBtnText={'Back'}
+      onPressPrimaryBtn={() => {
+        setIsPermissionDeniedAlertShow(false);
+        permission();
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionDeniedAlertShow(false);
+        // navigation.navigate('TreeInventory');
+        navigation.goBack();
+      }}
+    />
+  );
+};
+
+const PermissionBlockedAlert = ({
+  isPermissionBlockedAlertShow,
+  setIsPermissionBlockedAlertShow,
+  hardBackHandler,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionBlockedAlertShow}
+      heading={'Permission Blocked'}
+      message={'You need to give location permission to register on-site tree'}
+      primaryBtnText={'Open Settings'}
+      secondaryBtnText={'Back'}
+      onPressPrimaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        hardBackHandler();
+        Linking.openSettings();
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        hardBackHandler();
+      }}
+    />
+  );
+};
