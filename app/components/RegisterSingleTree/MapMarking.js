@@ -22,6 +22,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { openSettings } from 'react-native-permissions';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -29,7 +30,6 @@ const IS_ANDROID = Platform.OS === 'android';
 
 const MapMarking = ({ updateScreenState, inventoryState }) => {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
-  const [centerCoordinates, setCenterCoordinates] = useState([0, 0]);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
   const [locateTree, setLocateTree] = useState('on-site');
@@ -58,6 +58,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         console.log(permission);
         if (permission === 'granted') {
           updateCurrentPosition();
+        } else {
+          openSettings().catch(() => console.warn('cannot open settings'));
         }
       });
     }
@@ -79,8 +81,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
   const onChangeRegionStart = () => setLoader(true);
 
   const onChangeRegionComplete = async () => {
-    const center = await map.current.getCenter();
-    setCenterCoordinates(center);
     setLoader(false);
   };
 
@@ -99,7 +99,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     } else {
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
-    setCenterCoordinates(recenterCoords);
     setIsInitial(true);
     camera.current.setCamera({
       centerCoordinate: recenterCoords,
@@ -111,10 +110,11 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     // Check distance
     if (accuracySet < 30 || forceContinue) {
       updateCurrentPosition()
-        .then(() => {
+        .then(async () => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           console.log(currentCoords, 'currentCoords addMarker');
           console.log(location, 'location addMarker');
+          let centerCoordinates = await map.current.getCenter();
           console.log(centerCoordinates, 'centerCoordinates addMarker');
           let distance = distanceCalculator(
             currentCoords[0],
@@ -125,13 +125,13 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           );
 
           let distanceInMeters = distance * 1000;
-          console.log({ distanceInMeters });
+          console.log(distanceInMeters, 'distanceInMeters');
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
           } else {
             setLocateTree('off-site');
           }
-          onPressContinue(currentCoords);
+          onPressContinue(currentCoords, centerCoordinates);
         })
         .catch((err) => {
           alert(JSON.stringify(err), 'Alert');
@@ -168,6 +168,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         onPress={() => {
           if (location) {
             onPressMyLocationIcon(location);
+          } else {
+            setIsLocationAlertShow(true);
           }
         }}
         style={[styles.myLocationIcon]}
@@ -185,7 +187,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          console.log(position, 'position updateCurrentPosition');
+          // console.log(position, 'position updateCurrentPosition');
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -209,7 +211,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     });
   };
 
-  const onPressContinue = (currentCoords) => {
+  const onPressContinue = (currentCoords, centerCoordinates) => {
     const inventoryID = inventoryState.inventoryID;
     console.log(location, 'position onPressContinue', currentCoords, 'currentCoords');
     addCoordinateSingleRegisterTree({
@@ -347,7 +349,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         secondaryBtnText={'Back'}
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
-          updateCurrentPosition();
+          if (IS_ANDROID) {
+            updateCurrentPosition();
+          }
         }}
         onPressSecondaryBtn={() => {
           setIsLocationAlertShow(false);

@@ -21,6 +21,7 @@ const RegisterSingleTree = ({ navigation }) => {
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
+    console.log('UseEffect called');
     const unsubscribe = navigation.addListener('focus', () =>
       navigation.addListener('transitionEnd', () => {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
@@ -30,8 +31,10 @@ const RegisterSingleTree = ({ navigation }) => {
               last_screen: 'RegisterSingleTree',
             };
             updateLastScreen(data);
+            console.log('Unsubscribe triggered');
             permission();
             if (isGranted && InventoryData.polygons[0]) {
+              console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
               Geolocation.getCurrentPosition((position) => {
                 let distanceInMeters =
                   distanceCalculator(
@@ -64,6 +67,7 @@ const RegisterSingleTree = ({ navigation }) => {
     );
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+      console.log('unsubscribe returned');
       unsubscribe();
     };
   }, [inventoryState, isGranted, navigation]);
@@ -160,9 +164,10 @@ const PermissionDeniedAlert = ({
         permission();
       }}
       onPressSecondaryBtn={() => {
+        console.log('Back pressed');
         setIsPermissionDeniedAlertShow(false);
-        // navigation.navigate('TreeInventory');
-        navigation.goBack();
+        navigation.navigate('TreeInventory');
+        // navigation.goBack();
       }}
     />
   );
