@@ -4,6 +4,15 @@ import AvatarIcon from '../AvatarIcon';
 import { Colors, Typography } from '_styles';
 import i18next from '../../../languages/languages';
 
+// shows the profile image if photo is present else shows avatar icon
+const ProfileIcon = ({ photo, name }) => {
+  if (photo) {
+    return <Image style={{ width: 40, height: 40, borderRadius: 20 }} source={{ uri: photo }} />;
+  } else {
+    return <AvatarIcon name={name} />;
+  }
+};
+
 const MainScreenHeader = ({
   onPressLogin,
   isUserLogin,
@@ -20,11 +29,7 @@ const MainScreenHeader = ({
         accessibilityLabel={accessibilityLabel}
         accessible={true}>
         {isUserLogin ? (
-          photo ? (
-            <Image style={{ width: 40, height: 40, borderRadius: 20 }} source={{ uri: photo }} />
-          ) : (
-            <AvatarIcon name={name} />
-          )
+          <ProfileIcon photo={photo} name={name} />
         ) : (
           <Text style={styles.loginText}>{i18next.t('label.login')}</Text>
         )}

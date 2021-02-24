@@ -31,7 +31,6 @@ import {
 } from '../';
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
-import MigratingDB from '../MigratingDB';
 import InitialLoading from '../InitialLoading';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
@@ -111,20 +110,8 @@ const App = () => {
           setAreSpeciesLoading(isLoading);
           setIsDBMigrating(false);
         })
-          .then(() => {
-            // sets [isDBMigrating = false] to hide the MigratingDB screen
-            setIsDBMigrating(false);
-            setAreSpeciesLoading(false);
-            checkIsUserLogin();
-            dailyLogUpdateCheck();
-          })
-          .catch(() => {
-            // sets [isDBMigrating = false] to hide the MigratingDB screen
-            setIsDBMigrating(false);
-            setAreSpeciesLoading(false);
-            checkIsUserLogin();
-            dailyLogUpdateCheck();
-          });
+          .then(postUpdatingSpecies)
+          .catch(postUpdatingSpecies);
       })
       .catch((err) => {
         // sets [isDBMigrating = false] to hide the MigratingDB screen
@@ -133,14 +120,27 @@ const App = () => {
       });
   }, []);
 
+  // called after local species are updated
+  const postUpdatingSpecies = () => {
+    // sets [isDBMigrating = false] to hide the MigratingDB screen
+    setIsDBMigrating(false);
+    // sets [areSpeciesLoading = false] to hide the SpeciesLoading screen
+    setAreSpeciesLoading(false);
+    checkIsUserLogin();
+    dailyLogUpdateCheck();
+  };
+
+  let initialRouteName = 'MainScreen';
+  if (isDBMigrating) {
+    initialRouteName = 'MigratingDB';
+  } else if (areSpeciesLoading) {
+    initialRouteName = 'SpeciesLoading';
+  }
+
   return (
     <Provider>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName={
-            isDBMigrating ? 'MigratingDB' : areSpeciesLoading ? 'SpeciesLoading' : 'MainScreen'
-          }
-          headerMode={'none'}>
+        <Stack.Navigator initialRouteName={initialRouteName} headerMode={'none'}>
           {isDBMigrating ? (
             <Stack.Screen name="MigratingDB" component={InitialLoading} />
           ) : areSpeciesLoading ? (
