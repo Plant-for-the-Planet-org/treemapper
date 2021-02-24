@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from 'react-native';
 import Config from 'react-native-config';
 import LinearGradient from 'react-native-linear-gradient';
@@ -22,7 +23,6 @@ import { InventoryContext } from '../../reducers/inventory';
 import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { openSettings } from 'react-native-permissions';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -59,7 +59,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         if (permission === 'granted') {
           updateCurrentPosition();
         } else {
-          openSettings().catch(() => console.warn('cannot open settings'));
+          // openSettings().catch(() => console.warn('cannot open settings'));
+          setIsLocationAlertShow(true);
         }
       });
     }
@@ -351,6 +352,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           setIsLocationAlertShow(false);
           if (IS_ANDROID) {
             updateCurrentPosition();
+          } else {
+            Linking.openURL('app-settings:');
           }
         }}
         onPressSecondaryBtn={() => {
