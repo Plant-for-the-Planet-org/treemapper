@@ -1,16 +1,15 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, BackHandler, PermissionsAndroid, Linking, Platform } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '_styles';
-import MapMarking from './MapMarking';
-import ImageCapturing from '../Common/ImageCapturing';
+import { bugsnag } from '_utils';
 import { InventoryContext } from '../../reducers/inventory';
-import { updateLastScreen, getInventory, addLocateTree } from '../../repositories/inventory';
+import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
-import { bugsnag } from '_utils';
 import AlertModal from '../Common/AlertModal';
-import { set } from 'react-native-reanimated';
+import ImageCapturing from '../Common/ImageCapturing';
+import MapMarking from './MapMarking';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -24,9 +23,7 @@ const RegisterSingleTree = ({ navigation }) => {
   // const [askPermission, setAskPermission] = useState(true);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-    console.log('Inside UseEffect');
     const unsubscribe = navigation.addListener('transitionEnd', () => {
-      console.log('Inside UseEffect..........');
       getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
         if (InventoryData.status === INCOMPLETE_INVENTORY) {
           let data = {
@@ -132,7 +129,7 @@ const RegisterSingleTree = ({ navigation }) => {
           // setAskPermission(false);
           askPermission = false;
           setIsPermissionDeniedAlertShow(false);
-          hardBackHandler();
+          navigation.navigate('TreeInventory');
         }}
       />
     );

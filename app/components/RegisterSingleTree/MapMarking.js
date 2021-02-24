@@ -54,7 +54,12 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         }
       });
     } else {
-      updateCurrentPosition();
+      Geolocation.requestAuthorization('whenInUse').then((permission) => {
+        console.log(permission);
+        if (permission === 'granted') {
+          updateCurrentPosition();
+        }
+      });
     }
     console.log(inventoryState, 'inventoryState');
     const { inventoryID } = inventoryState.inventoryID;
@@ -161,7 +166,9 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          onPressMyLocationIcon(location);
+          if (location) {
+            onPressMyLocationIcon(location);
+          }
         }}
         style={[styles.myLocationIcon]}
         accessibilityLabel="Register Tree Camera"
