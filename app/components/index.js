@@ -17,7 +17,9 @@ import SelectSpecies from './SelectSpecies';
 import SignUp from './SignUp';
 import ProfileModal from './ProfileModal';
 import UploadedInventory from './UploadedInventory';
-import AddSpecies from './AddSpecies';
+import Logs from './Logs';
+import ManageSpecies from './ManageSpecies';
+import Legals from './Legals';
 export {
   RegisterTree,
   MultipleTrees,
@@ -38,5 +40,7 @@ export {
   SignUp,
   ProfileModal,
   UploadedInventory,
-  AddSpecies,
+  Logs,
+  ManageSpecies,
+  Legals,
 };

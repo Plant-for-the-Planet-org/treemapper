@@ -1,40 +1,63 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
 import { InventoryContext } from '../../../reducers/inventory';
+import i18next from 'i18next';
+import { UserContext } from '../../../reducers/user';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
 
+  const navigation = useNavigation();
+
   const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {
     if (pendingCount !== 0) {
-      setSyncText(`${pendingCount} pending`);
+      setSyncText(
+        i18next.t('label.upload_pending', {
+          count: pendingCount,
+        }),
+      );
     } else {
-      setSyncText('All changes are backed up');
+      setSyncText(i18next.t('label.all_backed_up'));
     }
   };
 
   useEffect(() => {
     if (isUploading) {
-      setSyncText(`Syncing - ${uploadCount} remaining`);
+      setSyncText(
+        i18next.t('label.sync_remaining', {
+          count: uploadCount,
+        }),
+      );
     } else {
       checkPendingCount();
     }
   }, [pendingCount, uploadCount, isUploading]);
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch)
+    uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('uploaded successfully');
       })
       .catch((err) => {
-        console.error(err);
+        if (err?.response?.status === 303) {
+          navigation.navigate('SignUp');
+        } else if (err.error !== 'a0.session.user_cancelled') {
+          Alert.alert(
+            'Verify your Email',
+            'Please verify your email before logging in.',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+        }
       });
   };
 

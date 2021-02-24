@@ -9,6 +9,7 @@ import {
   Image,
   Platform,
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';

@@ -1,18 +1,25 @@
 {
-  "tree_review_header": "Bewertung",
+  "tree_review_header": "Überprüfung",
   "tree_review_next_btn": "Nächster Baum",
   "tree_review_Save": "Speichern",
   "tree_review_name_of_species": "Name der Art",
   "tree_review_diameter": "Durchmesser",
+  "tree_review_height": "Höhe",
   "tree_review_location": "STANDORT",
   "tree_review_specie": "ART",
   "tree_review_unable": "Nicht identifizierbar",
-  "tree_review_diameter_header": "BAUMDURCHMESSER (cm)",
+  "tree_review_diameter_header": "DURCHMESSER",
+  "tree_review_height_header": "HÖHE",
+  "tree_review_tree_tag_header": "BAUM TAG",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "PFLANZDATUM",
   "tree_review_plantation_date_text": "{{date, ll}}",
   "tree_review_alrighty": "Vervollständige",
   "tree_review_register_planting_date": "Registriere Pflanzdatum",
-  "tree_review_delete": "Löschen"
+  "tree_review_delete": "Löschen",
+  "tree_review_details": "Baumdetails",
+  "tree_review_not_tagged": "Nicht getaggt",
+  "tree_review_delete_not_yet_uploaded_registration": "Die Registrierung wurde noch nicht zu Plant-for-the-Planet hochgeladen. Sobald sie gelöscht wird, ist sie für immer verloren.",
+  "tree_review_delete_uploaded_registration": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen."
 }
