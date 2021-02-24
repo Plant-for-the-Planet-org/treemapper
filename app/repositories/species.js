@@ -105,7 +105,7 @@ export const getUserSpecies = () => {
 export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(async (realm) => {
         if (alreadySyncedSpecies) {
           // iterates through all the user preferred species which are already synced and updates the same in DB
           realm.write(() => {
@@ -126,6 +126,9 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
               });
             }
           });
+
+          // calls the AsyncStorage function and stores [isInitialSyncDone] as ["true"]
+          await AsyncStorage.setItem('isInitialSyncDone', 'true');
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,

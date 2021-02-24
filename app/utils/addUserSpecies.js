@@ -14,15 +14,17 @@ import AsyncStorage from '@react-native-community/async-storage';
  * for already uploaded species of user from server and updates the status of same in local DB.
  * Followed by filtering out the species from local DB which are not uploaded/synced to server and
  * then creates the not uploaded user's species on server one by one.
- *
- * @param {string} isFirstUpdate - if [true] then adds the species from server to local DB else deletes the
- *                                 the species from server if not marked as user specie in local DB.
- *                                 Default value is [false]
  */
-export const checkAndAddUserSpecies = async (isFirstUpdate = false) => {
+export const checkAndAddUserSpecies = async () => {
   try {
     // calls the function and stores whether species data was already loaded or not
     const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
+
+    // calls the function and stores whether species data was already loaded or not
+    let isFirstUpdate = await AsyncStorage.getItem('isInitialSyncDone');
+
+    // if string value of [isFirstUpdate] is ["true"] then sets [true] as boolean else [false]
+    isFirstUpdate = isFirstUpdate === 'true';
 
     // checks and sync the species only if the local species are updated
     if (isSpeciesLoaded === 'true') {
