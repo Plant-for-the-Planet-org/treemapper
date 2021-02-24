@@ -3,6 +3,7 @@ import Realm from 'realm';
 import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import { getSchema } from './default';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export const updateAndSyncLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {

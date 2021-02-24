@@ -33,7 +33,7 @@ const updateSpeciesFromFile = (jsonFilePath) => {
           })
           .catch((err) => {
             console.error(
-              `Error at /utils/updateSpeciesFromFile/updateAndSyncLocalSpeciesRepo while updating local species`,
+              'Error at /utils/updateSpeciesFromFile/updateAndSyncLocalSpeciesRepo while updating local species',
               err,
             );
             reject(err);
@@ -140,7 +140,7 @@ export default async function updateAndSyncLocalSpecies(setAreSpeciesLoading) {
             })
             .catch((error) => {
               console.error(
-                `Error at /utils/updateAndSyncLocalSpecies - updateSpeciesFromFile`,
+                'Error at /utils/updateAndSyncLocalSpecies - updateSpeciesFromFile',
                 error.err.message,
               );
 
@@ -191,7 +191,7 @@ export default async function updateAndSyncLocalSpecies(setAreSpeciesLoading) {
       }
     });
   } catch (err) {
-    console.error(`Error while checking file existence`, err);
+    console.error('Error while checking file existence', err);
     dbLog.error({
       logType: LogTypes.MANAGE_SPECIES,
       message: 'Error while checking file existence',
@@ -215,7 +215,7 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath) => {
         updateSpeciesFromFile(jsonFilePath).then(resolve).catch(reject);
       })
       .catch((err) => {
-        console.error(`Error at /utils/unzipAndAddSpeciesData`, err.message);
+        console.error('Error at /utils/unzipAndAddSpeciesData', err.message);
 
         // if there's error while unzipping the file
         if (err.message === 'Failed to extract file error in opening zip file') {
@@ -282,7 +282,7 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath) => {
       })
       .catch((err) => {
         // logs the error while downloading a file
-        console.error(`Error at /utils/updateAndSyncLocalSpecies - downloadFile`, err);
+        console.error('Error at /utils/updateAndSyncLocalSpecies - downloadFile', err);
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message:
