@@ -35,9 +35,7 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar = userInfo.image
-    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
-    : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
+  let avatar = userInfo.image ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}` : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
@@ -87,8 +85,6 @@ const ProfileModal = ({
       text: 'logout',
     },
   ];
-
-  console.log('avatar', avatar);
 
   return (
     <Modal visible={isProfileModalVisible} transparent>
