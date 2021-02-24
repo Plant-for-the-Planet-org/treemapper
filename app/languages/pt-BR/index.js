@@ -1,4 +1,5 @@
 import WelcomeScreen from './static/welcomeScreen.json';
+import InitialScreen from './static/initialScreen.json';
 import SignUp from './authentication/signUplabels.json';
 import RegisterTree from './user/registerTreeslabels.json';
 import LocateTree from './user/locateTree.json';
@@ -26,4 +27,5 @@ export default {
   ...Permission,
   ...Review,
   ...SelectSpecies,
+  ...InitialScreen,
 };

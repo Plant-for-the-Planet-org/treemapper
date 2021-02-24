@@ -32,7 +32,7 @@ import {
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import MigratingDB from '../MigratingDB';
-import SpeciesLoading from '../SpeciesLoading';
+import InitialLoading from '../InitialLoading';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
@@ -53,7 +53,7 @@ const MyTransition = {
     close: TransitionSpecs.TransitionIOSSpec,
   },
   headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-  cardStyleInterpolator: ({ current, next, layouts }) => {
+  cardStyleInterpolator: ({ current, layouts }) => {
     return {
       cardStyle: {
         transform: [
@@ -104,7 +104,6 @@ const App = () => {
           logType: LogTypes.OTHER,
           message: 'DB migration successfully done',
         });
-
         // calls this function to update the species in the realm DB with [setAreSpeciesLoading]
         // as callback param which changes the [areSpeciesLoading] state
         updateAndSyncLocalSpecies((isLoading) => {
@@ -119,7 +118,7 @@ const App = () => {
             checkIsUserLogin();
             dailyLogUpdateCheck();
           })
-          .catch((err) => {
+          .catch(() => {
             // sets [isDBMigrating = false] to hide the MigratingDB screen
             setIsDBMigrating(false);
             setAreSpeciesLoading(false);
@@ -143,9 +142,9 @@ const App = () => {
           }
           headerMode={'none'}>
           {isDBMigrating ? (
-            <Stack.Screen name="MigratingDB" component={MigratingDB} />
+            <Stack.Screen name="MigratingDB" component={InitialLoading} />
           ) : areSpeciesLoading ? (
-            <Stack.Screen name="SpeciesLoading" component={SpeciesLoading} />
+            <Stack.Screen name="SpeciesLoading" component={InitialLoading} />
           ) : (
             <>
               <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
