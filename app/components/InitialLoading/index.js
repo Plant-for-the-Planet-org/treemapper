@@ -13,21 +13,39 @@ import { showMainNavigationStack } from '../../actions/navigation';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 
+const SpeciesContainer = ({ updatingSpeciesState }) => {
+  switch (updatingSpeciesState) {
+    case 'INITIAL':
+      return <Text style={styles.descriptionText}>{i18next.t('label.species_data_status')}</Text>;
+    case 'DOWNLOADING':
+      return <Text style={styles.descriptionText}>{i18next.t('label.downloading_archive')}</Text>;
+    case 'UNZIPPING_FILE':
+      return <Text style={styles.descriptionText}>{i18next.t('label.unzipping_archive')}</Text>;
+    case 'READING_FILE':
+      return (
+        <Text style={styles.descriptionText}>
+          {i18next.t('label.fetch_and_add_species_to_database')}
+        </Text>
+      );
+    default:
+      return <Text>{i18next.t('label.species_data_loaded')}</Text>;
+  }
+};
+
 export default function InitialLoading() {
   const route = useRoute();
   const navigation = useNavigation();
+  const isSpeciesLoadingScreen = route.name === 'SpeciesLoading';
 
   const { dispatch } = React.useContext(NavigationContext);
 
-  const textMessage =
-    route.name === 'SpeciesLoading'
-      ? i18next.t('label.updating_species')
-      : i18next.t('label.running_migration');
+  const [updatingSpeciesState, setUpdatingSpeciesState] = React.useState('INITIAL');
 
-  const descriptionText =
-    route.name === 'SpeciesLoading'
-      ? i18next.t('label.migration_description')
-      : i18next.t('label.migration_description');
+  const textMessage = isSpeciesLoadingScreen
+    ? i18next.t('label.updating_species')
+    : i18next.t('label.running_migration');
+
+  const descriptionText = !isSpeciesLoadingScreen ? i18next.t('label.migration_description') : '';
 
   React.useEffect(() => {
     if (route.name !== 'SpeciesLoading') {
@@ -54,20 +72,28 @@ export default function InitialLoading() {
         });
     } else {
       // calls this function to update the species in the realm DB
-      updateAndSyncLocalSpecies()
-        .then(() => showMainNavigationStack()(dispatch))
-        .catch(() => showMainNavigationStack()(dispatch));
+      updateAndSyncLocalSpecies(setUpdatingSpeciesState)
+        .then(() => {
+          showMainNavigationStack()(dispatch);
+        })
+        .catch(() => {
+          showMainNavigationStack()(dispatch);
+        });
     }
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.imageContainer}>
-        <SvgXml xml={route.name === 'SpeciesLoading' ? mobile_download : cloud_sync} />
+        <SvgXml xml={isSpeciesLoadingScreen ? mobile_download : cloud_sync} />
       </View>
       <View>
         <Text style={styles.textStyle}>{textMessage}</Text>
-        <Text style={styles.descriptionText}>{descriptionText}</Text>
+        {isSpeciesLoadingScreen ? (
+          <SpeciesContainer updatingSpeciesState={updatingSpeciesState} />
+        ) : (
+          <Text style={styles.descriptionText}>{descriptionText}</Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -79,6 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 25,
+    backgroundColor: Colors.WHITE,
   },
   imageContainer: {
     width: '90%',

@@ -14,9 +14,10 @@ const { protocol, url } = APIConfig;
  *
  * @param {string} jsonFilePath - used to read the file from file system and update the local species from the file contents
  */
-const updateSpeciesFromFile = (jsonFilePath) => {
+const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
   let isJsonCorrupted = false;
   return new Promise((resolve, reject) => {
+    setUpdatingSpeciesState('READING_FILE');
     // reads the file content using the passed target path in utf-8 format
     RNFS.readFile(jsonFilePath, 'utf8')
       .then((speciesContent) => {
@@ -26,6 +27,7 @@ const updateSpeciesFromFile = (jsonFilePath) => {
         // calls the function and pass the parsed content to update the species in local DB
         updateAndSyncLocalSpeciesRepo(speciesContent)
           .then(async () => {
+            setUpdatingSpeciesState('COMPLETED');
             // adds an AsyncStorage item [isLocalSpeciesUpdated] with value [true], which helps to determine
             // whether species were already updated in local DB or not
             await AsyncStorage.setItem('isLocalSpeciesUpdated', 'true');
@@ -88,8 +90,10 @@ const updateSpeciesFromFile = (jsonFilePath) => {
  * reads the json and adds species to DB.
  * Else if ZIP file is also not present then downloads the zip file, unzip it, reads the json file and
  * adds the species in DB
+ *
+ * @param {SetStateAction} setUpdatingSpeciesState - sets the current progress state
  */
-export default async function updateAndSyncLocalSpecies() {
+export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState) {
   try {
     // calls the function and stores whether species data was already loaded or not
     const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
@@ -128,7 +132,7 @@ export default async function updateAndSyncLocalSpecies() {
             message: 'Species are not updated but json file is already present',
           });
 
-          updateSpeciesFromFile(jsonFilePath)
+          updateSpeciesFromFile(jsonFilePath, setUpdatingSpeciesState)
             .then(() => {
               resolve();
             })
@@ -146,7 +150,9 @@ export default async function updateAndSyncLocalSpecies() {
                   });
 
                   // calls the function to unzip and add the species data in realm DB
-                  unzipAndAddSpeciesData(zipFilePath, jsonFilePath).then(resolve).catch(reject);
+                  unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
+                    .then(resolve)
+                    .catch(reject);
                 } else {
                   dbLog.info({
                     logType: LogTypes.MANAGE_SPECIES,
@@ -154,7 +160,9 @@ export default async function updateAndSyncLocalSpecies() {
                       'JSON file is corrupted and archive file is not present. Downloading archive file.',
                   });
 
-                  downloadAndUpdateSpecies(zipFilePath, jsonFilePath).then(resolve).catch(reject);
+                  downloadAndUpdateSpecies(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
+                    .then(resolve)
+                    .catch(reject);
                 }
               } else {
                 reject();
@@ -167,14 +175,18 @@ export default async function updateAndSyncLocalSpecies() {
           });
 
           // calls the function to unzip and add the species data in realm DB
-          unzipAndAddSpeciesData(zipFilePath, jsonFilePath).then(resolve).catch(reject);
+          unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
+            .then(resolve)
+            .catch(reject);
         } else {
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
             message: 'Species are not updated downloading archive file',
           });
 
-          downloadAndUpdateSpecies(zipFilePath, jsonFilePath).then(resolve).catch(reject);
+          downloadAndUpdateSpecies(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
+            .then(resolve)
+            .catch(reject);
         }
       } else {
         dbLog.info({
@@ -200,13 +212,14 @@ export default async function updateAndSyncLocalSpecies() {
  * @param {string} zipFilePath - path of zip file, used to unzip the file
  * @param {string} jsonFilePath - passed to [updateSpeciesFromFile] function to add species data in realm DB
  */
-const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath) => {
+const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesState) => {
   return new Promise((resolve, reject) => {
+    setUpdatingSpeciesState('UNZIPPING_FILE');
     // unzips the downloaded file in document directory
     unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8')
       .then(async () => {
         // this function updates the species in DB after reading the content of the file
-        updateSpeciesFromFile(jsonFilePath).then(resolve).catch(reject);
+        updateSpeciesFromFile(jsonFilePath, setUpdatingSpeciesState).then(resolve).catch(reject);
       })
       .catch((err) => {
         console.error('Error at /utils/unzipAndAddSpeciesData', err.message);
@@ -252,13 +265,16 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath) => {
  * @param {string} zipFilePath - path of zip file to store the downloaded file and also unzip it
  * @param {string} jsonFilePath - passed as param to [unzipAndAddSpeciesData] function
  */
-const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath) => {
+const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesState) => {
   return new Promise((resolve, reject) => {
     // downloads the zip file from the link and then after completion unzip the file
     // and updates th species in local DB
     RNFS.downloadFile({
       fromUrl: `${protocol}://${url}/treemapper/scientificSpeciesArchive`,
       toFile: zipFilePath,
+      begin: () => {
+        setUpdatingSpeciesState('DOWNLOADING');
+      },
     })
       .promise.then(async (response) => {
         // if response is 200 then unzips the file and adds the species in local DB
@@ -271,7 +287,9 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath) => {
           });
 
           // calls the function to unzip and add the species data in realm DB
-          unzipAndAddSpeciesData(zipFilePath, jsonFilePath).then(resolve).catch(reject);
+          unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
+            .then(resolve)
+            .catch(reject);
         }
       })
       .catch((err) => {

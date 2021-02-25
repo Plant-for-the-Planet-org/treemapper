@@ -133,12 +133,12 @@ const ManageSpecies = ({
   //This function handles search whenever any search text is entered
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
-    if (text) {
+    if (text && text.length > 2) {
       setShowSearchSpecies(true);
       searchSpeciesFromLocal(text).then((data) => {
         setSearchList([...data]);
       });
-    } else {
+    } else if (!text) {
       setShowSearchSpecies(false);
       setSearchList([]);
     }
@@ -177,7 +177,11 @@ const ManageSpecies = ({
             )}
           </View>
           {showSearchSpecies ? (
-            searchList && searchList.length > 0 ? (
+            searchText.length < 3 ? (
+              <Text style={styles.notPresentText}>
+                {i18next.t('label.select_species_search_atleast_3_characters')}
+              </Text>
+            ) : searchList && searchList.length > 0 ? (
               <SearchSpecies
                 searchList={searchList}
                 registrationType={registrationType}

@@ -38,5 +38,6 @@
   "select_species_tag_id_required": "Tag id is required",
   "select_species_tagged_for_identification": "This tree has been tagged for identification.",
   "select_species_unknown": "Unknown",
-  "select_species_search_specie_not_present": "The '{{searchText}}' species is not present"
+  "select_species_search_specie_not_present": "The '{{searchText}}' species is not present",
+  "select_species_search_atleast_3_characters":"Enter atleast 3 characters to get better result"
 }
