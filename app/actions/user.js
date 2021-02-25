@@ -69,7 +69,7 @@ export const auth0Login = (dispatch) => {
               tpoId,
             })(dispatch);
 
-            checkAndAddUserSpecies(true);
+            checkAndAddUserSpecies();
             resolve(true);
           })
           .catch((err) => {
