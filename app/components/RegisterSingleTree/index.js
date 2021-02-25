@@ -11,6 +11,7 @@ import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
+import { CommonActions } from '@react-navigation/native';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -33,6 +34,7 @@ const RegisterSingleTree = ({ navigation }) => {
             };
             updateLastScreen(data);
             console.log('Unsubscribe triggered');
+            console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
             permission();
             if (isGranted && InventoryData.polygons[0]) {
               console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
@@ -167,8 +169,17 @@ const PermissionDeniedAlert = ({
       onPressSecondaryBtn={() => {
         console.log('Back pressed');
         setIsPermissionDeniedAlertShow(false);
-        navigation.navigate('TreeInventory');
-        // navigation.goBack();
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [
+              { name: 'MainScreen' },
+              {
+                name: 'TreeInventory',
+              },
+            ],
+          }),
+        );
       }}
     />
   );
