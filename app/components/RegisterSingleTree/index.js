@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
@@ -155,10 +156,10 @@ const PermissionDeniedAlert = ({
   return (
     <AlertModal
       visible={isPermissionDeniedAlertShow}
-      heading={'Permission Denied'}
-      message={'You need to give location permission to register on-site tree'}
-      primaryBtnText={'Ok'}
-      secondaryBtnText={'Back'}
+      heading={i18next.t('label.permission_denied')}
+      message={i18next.t('label.permission_denied_message')}
+      primaryBtnText={i18next.t('label.ok')}
+      secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionDeniedAlertShow(false);
         permission();
@@ -181,10 +182,10 @@ const PermissionBlockedAlert = ({
   return (
     <AlertModal
       visible={isPermissionBlockedAlertShow}
-      heading={'Permission Blocked'}
-      message={'You need to give location permission to register on-site tree'}
-      primaryBtnText={'Open Settings'}
-      secondaryBtnText={'Back'}
+      heading={i18next.t('label.permission_blocked')}
+      message={i18next.t('label.permission_blocked_message')}
+      primaryBtnText={i18next.t('label.open_settings')}
+      secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
         hardBackHandler();

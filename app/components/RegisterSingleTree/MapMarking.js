@@ -59,7 +59,6 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         if (permission === 'granted') {
           updateCurrentPosition();
         } else {
-          // openSettings().catch(() => console.warn('cannot open settings'));
           setIsLocationAlertShow(true);
         }
       });
@@ -281,27 +280,26 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
                 fontSize: Typography.FONT_SIZE_18,
                 paddingBottom: 18,
               }}>
-              GPS Accuracy
+              {i18next.t('label.gps_accuracy')}
             </Text>
-            <Text style={styles.accuracyModalText}>
-              You can use the GPS data to determine accuracy of a location. Tree Mapper only allows
-              on site registration if location is accurate to 30 meter
-            </Text>
+            <Text style={styles.accuracyModalText}>{i18next.t('label.accuracy_info')}</Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
-                Green
+                {i18next.t('label.green')}
               </Text>{' '}
-              = Accurate to 10 meter
+              {i18next.t('label.green_info')}
             </Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
-                Yellow
+                {i18next.t('label.yellow')}
               </Text>{' '}
-              = Accurate to 30 meter
+              {i18next.t('label.yellow_info')}
             </Text>
             <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>Red</Text>{' '}
-              = Greater than 30 meter
+              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                {i18next.t('label.red')}
+              </Text>{' '}
+              {i18next.t('label.red_info')}
             </Text>
             <TouchableOpacity
               style={{
@@ -315,7 +313,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
                   fontSize: Typography.FONT_SIZE_14,
                 }}
                 onPress={() => setIsAccuracyModalShow(false)}>
-                Close
+                {i18next.t('label.close')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -328,12 +326,10 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <AlertModal
         visible={isAlertShow}
-        heading={'Poor Accuracy'}
-        message={
-          'Your location accuracy is POOR, which is not recommended. Are you sure you want to continue?'
-        }
-        primaryBtnText={'Try Again'}
-        secondaryBtnText={'Continue'}
+        heading={i18next.t('label.poor_accuracy')}
+        message={i18next.t('label.poor_accuracy_message')}
+        primaryBtnText={i18next.t('label.try_again')}
+        secondaryBtnText={i18next.t('label.continue')}
         onPressPrimaryBtn={onPressTryAgain}
         onPressSecondaryBtn={onPressAlertContinue}
       />
@@ -344,10 +340,10 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
     return (
       <AlertModal
         visible={isLocationAlertShow}
-        heading={'Location Service'}
-        message={'Location settings are not satisfied'}
-        primaryBtnText={'Ok'}
-        secondaryBtnText={'Back'}
+        heading={i18next.t('label.location_service')}
+        message={i18next.t('label.location_service_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        secondaryBtnText={i18next.t('label.back')}
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
           if (IS_ANDROID) {
@@ -381,8 +377,8 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

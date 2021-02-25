@@ -12,6 +12,7 @@ import Permission from './static/permission.json';
 import Review from './user/treeReview.json';
 import SelectSpecies from './user/selectSpecies.json';
 import Logs from './user/logs.json';
+import MapMarking from './user/mapMarking.json';
 
 export default {
   ...WelcomeScreen,
@@ -28,4 +29,5 @@ export default {
   ...Review,
   ...SelectSpecies,
   ...Logs,
+  ...MapMarking,
 };
