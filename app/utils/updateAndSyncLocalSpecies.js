@@ -88,11 +88,8 @@ const updateSpeciesFromFile = (jsonFilePath) => {
  * reads the json and adds species to DB.
  * Else if ZIP file is also not present then downloads the zip file, unzip it, reads the json file and
  * adds the species in DB
- *
- * @param {CallBack} setAreSpeciesLoading - accepts boolean as param to update the state which
- *                                          decides whether to show the SpeciesLoading screen
  */
-export default async function updateAndSyncLocalSpecies(setAreSpeciesLoading) {
+export default async function updateAndSyncLocalSpecies() {
   try {
     // calls the function and stores whether species data was already loaded or not
     const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
@@ -119,9 +116,6 @@ export default async function updateAndSyncLocalSpecies(setAreSpeciesLoading) {
       // Else if unzip the file if already present and adds data in DB using JSON file.
       // Else tries to download the zip file, unzip it and loads into realm DB using JSON file
       if (isSpeciesLoaded !== 'true') {
-        // calls the callback function [setAreSpeciesLoading] with [true] as param to show the updating species screen
-        setAreSpeciesLoading(true);
-
         // if JSON file path exists then it reads the file and calls the [updateSpeciesFromFile] function
         // with JSON file path as param which is used to parse file content to update the data in realm DB
         // .

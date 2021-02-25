@@ -8,7 +8,7 @@ export const schemas = [schema0, schema1, schema2];
 
 export const getSchema = () => schemas[schemas.length - 1];
 
-export function migrateRealm(isMigrationRequired) {
+export function migrateRealm() {
   return new Promise((resolve, reject) => {
     try {
       // The first schema to update to is the current schema version
@@ -18,7 +18,6 @@ export function migrateRealm(isMigrationRequired) {
       // If Realm.schemaVersion() returned -1, it means this is a new Realm file
       // so no migration is needed.
       if (nextSchemaIndex !== -1 && nextSchemaIndex < schemas.length - 1) {
-        isMigrationRequired(true);
         // This will help to migrate the schema sequentially starting from the
         // current schema version of the user to the latest one. This will help to
         // avoid rewriting any old migrations code to match with new one, if the user
