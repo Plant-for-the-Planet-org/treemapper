@@ -13,6 +13,7 @@
   "select_species_add_measurements": "Adicionar medidas",
   "select_species_diameter": "Diâmetro",
   "select_species_height": "Altura",
+  "select_species_tree_tag": "Etiqueta da árvore",
   "select_species_inches": "Polegadas",
   "select_species_feet": "Pés",
   "select_species_continue": "Continuar",
@@ -28,5 +29,13 @@
   "select_species_search_species": "Pesquisar espécies",
   "select_species_done": "Feito",
   "select_species_add_name": "Adicionar Nome",
-  "select_species_my_species": "Minhas espécies"
+  "select_species_my_species": "Minhas espécies",
+  "select_species_diameter_more_than_error": "O diâmetro deve ser superior a 0,1",
+  "select_species_height_more_than_error": "A altura deve ser superior a 0,1",
+  "select_species_diameter_invalid": "O diâmetro é inválido",
+  "select_species_height_invalid": "A altura é inválida",
+  "select_species_tag_id_required": "É necessária a identificação da etiqueta",
+  "select_species_tagged_for_identification": "Esta árvore foi etiquetada para identificação.",
+  "select_species_unknown": "Desconhecido",
+  "select_species_search_specie_not_present": "A espécie '{{searchText}}' não está presente"
 }

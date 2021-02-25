@@ -201,7 +201,9 @@ const MainScreen = ({ navigation }) => {
   };
 
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => alert('Can write mail to support@plant-for-the-planet.org'));
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
   };
 
   return (
@@ -233,6 +235,7 @@ const MainScreen = ({ navigation }) => {
                     ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
                     : ''
                 }
+                name={userInfo ? userInfo.firstName : ''}
               />
             </View>
             {/* <View> */}

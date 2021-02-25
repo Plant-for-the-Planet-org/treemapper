@@ -9,7 +9,7 @@ export const schemas = [schema0, schema1, schema2];
 export const getSchema = () => schemas[schemas.length - 1];
 
 export function migrateRealm(isMigrationRequired) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     try {
       // The first schema to update to is the current schema version
       // since the first schema in our array is at nextSchemaIndex
@@ -32,6 +32,7 @@ export function migrateRealm(isMigrationRequired) {
     } catch (err) {
       console.error(`Error while setting up realm connection, ${JSON.stringify(err)}`);
       bugsnag.notify(err);
+      reject(err);
     }
   });
 }
