@@ -26,9 +26,9 @@ export const permission = () => {
         })
         .catch((err) => console.warn(err));
     } else {
-      Geolocation.requestAuthorization('whenInUse').then((permission) => {
-        console.log(permission);
-        if (permission === 'granted') {
+      Geolocation.requestAuthorization('whenInUse').then((permissionStatus) => {
+        console.log(permissionStatus);
+        if (permissionStatus === 'granted') {
           resolve();
         } else {
           reject();

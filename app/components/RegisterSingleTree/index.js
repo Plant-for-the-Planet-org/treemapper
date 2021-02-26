@@ -80,6 +80,20 @@ const RegisterSingleTree = ({ navigation }) => {
     return true;
   };
 
+  const resetRouteStack = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
+  };
+
   const updateScreenState = (state) => setScreenState(state);
 
   const permission = async () => {
@@ -124,13 +138,13 @@ const RegisterSingleTree = ({ navigation }) => {
             isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
             setIsPermissionDeniedAlertShow={setIsPermissionDeniedAlertShow}
             permission={permission}
-            navigation={navigation}
+            resetRouteStack={resetRouteStack}
           />
         ) : (
           <PermissionBlockedAlert
             isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
             setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
-            hardBackHandler={hardBackHandler}
+            resetRouteStack={resetRouteStack}
           />
         ))}
 
@@ -153,7 +167,7 @@ const PermissionDeniedAlert = ({
   isPermissionDeniedAlertShow,
   setIsPermissionDeniedAlertShow,
   permission,
-  navigation,
+  resetRouteStack,
 }) => {
   return (
     <AlertModal
@@ -169,17 +183,7 @@ const PermissionDeniedAlert = ({
       onPressSecondaryBtn={() => {
         console.log('Back pressed');
         setIsPermissionDeniedAlertShow(false);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 1,
-            routes: [
-              { name: 'MainScreen' },
-              {
-                name: 'TreeInventory',
-              },
-            ],
-          }),
-        );
+        resetRouteStack();
       }}
     />
   );
@@ -188,7 +192,7 @@ const PermissionDeniedAlert = ({
 const PermissionBlockedAlert = ({
   isPermissionBlockedAlertShow,
   setIsPermissionBlockedAlertShow,
-  hardBackHandler,
+  resetRouteStack,
 }) => {
   return (
     <AlertModal
@@ -199,12 +203,12 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        hardBackHandler();
+        resetRouteStack();
         Linking.openSettings();
       }}
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        hardBackHandler();
+        resetRouteStack();
       }}
     />
   );
