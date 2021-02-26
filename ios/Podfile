@@ -27,12 +27,3 @@ target 'treemapper' do
     flipper_post_install(installer)
   end
 end
-
-target 'treemapper-tvOS' do
-  # Pods for treemapper-tvOS
-
-  target 'treemapper-tvOSTests' do
-    inherit! :search_paths
-    # Pods for testing
-  end
-end

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
-    "ios": "ENVFILE=.env.develop react-native run-ios --scheme 'treemapper'",
+    "ios": "ENVFILE=.env.develop react-native run-ios --scheme 'treemapper(.env.develop)'",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint app --fix",
