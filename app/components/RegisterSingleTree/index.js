@@ -24,50 +24,46 @@ const RegisterSingleTree = ({ navigation }) => {
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     console.log('UseEffect called');
-    const unsubscribe = navigation.addListener('focus', () =>
-      navigation.addListener('transitionEnd', () => {
-        getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-          if (InventoryData.status === INCOMPLETE_INVENTORY) {
-            let data = {
-              inventory_id: inventoryState.inventoryID,
-              last_screen: 'RegisterSingleTree',
-            };
-            updateLastScreen(data);
-            console.log('Unsubscribe triggered');
-            console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
-            permission();
-            if (isGranted && InventoryData.polygons[0]) {
-              console.log(InventoryData.polygons[0], 'InventoryData.polygons[0]');
-              Geolocation.getCurrentPosition((position) => {
-                let distanceInMeters =
-                  distanceCalculator(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                    InventoryData.polygons[0].coordinates[0].latitude,
-                    InventoryData.polygons[0].coordinates[0].longitude,
-                    'K',
-                  ) * 1000;
-                if (distanceInMeters && distanceInMeters < 100) {
-                  //set onsite
-                  addLocateTree({
-                    inventory_id: inventoryState.inventoryID,
-                    locate_tree: 'on-site',
-                  });
-                  updateScreenState('ImageCapturing');
-                } else {
-                  //set offsite
-                  addLocateTree({
-                    inventory_id: inventoryState.inventoryID,
-                    locate_tree: 'off-site',
-                  });
-                  navigation.navigate('SelectSpecies');
-                }
-              });
-            }
+    const unsubscribe = navigation.addListener('transitionEnd', () => {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+        if (InventoryData.status === INCOMPLETE_INVENTORY) {
+          let data = {
+            inventory_id: inventoryState.inventoryID,
+            last_screen: 'RegisterSingleTree',
+          };
+          updateLastScreen(data);
+
+          permission();
+          if (isGranted && InventoryData.polygons[0]) {
+            Geolocation.getCurrentPosition((position) => {
+              let distanceInMeters =
+                distanceCalculator(
+                  position.coords.latitude,
+                  position.coords.longitude,
+                  InventoryData.polygons[0].coordinates[0].latitude,
+                  InventoryData.polygons[0].coordinates[0].longitude,
+                  'K',
+                ) * 1000;
+              if (distanceInMeters && distanceInMeters < 100) {
+                //set onsite
+                addLocateTree({
+                  inventory_id: inventoryState.inventoryID,
+                  locate_tree: 'on-site',
+                });
+                updateScreenState('ImageCapturing');
+              } else {
+                //set offsite
+                addLocateTree({
+                  inventory_id: inventoryState.inventoryID,
+                  locate_tree: 'off-site',
+                });
+                navigation.navigate('SelectSpecies');
+              }
+            });
           }
-        });
-      }),
-    );
+        }
+      });
+    });
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
       console.log('unsubscribe returned');
@@ -78,6 +74,20 @@ const RegisterSingleTree = ({ navigation }) => {
   const hardBackHandler = () => {
     navigation.navigate('TreeInventory');
     return true;
+  };
+
+  const resetRouteStack = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
   };
 
   const updateScreenState = (state) => setScreenState(state);
@@ -118,19 +128,23 @@ const RegisterSingleTree = ({ navigation }) => {
     <View style={styles.container}>
       {screenState == 'MapMarking' &&
         (isGranted ? (
-          <MapMarking updateScreenState={updateScreenState} inventoryState={inventoryState} />
+          <MapMarking
+            updateScreenState={updateScreenState}
+            inventoryState={inventoryState}
+            resetRouteStack={resetRouteStack}
+          />
         ) : isPermissionDeniedAlertShow ? (
           <PermissionDeniedAlert
             isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
             setIsPermissionDeniedAlertShow={setIsPermissionDeniedAlertShow}
             permission={permission}
-            navigation={navigation}
+            resetRouteStack={resetRouteStack}
           />
         ) : (
           <PermissionBlockedAlert
             isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
             setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
-            hardBackHandler={hardBackHandler}
+            resetRouteStack={resetRouteStack}
           />
         ))}
 
@@ -153,7 +167,7 @@ const PermissionDeniedAlert = ({
   isPermissionDeniedAlertShow,
   setIsPermissionDeniedAlertShow,
   permission,
-  navigation,
+  resetRouteStack,
 }) => {
   return (
     <AlertModal
@@ -169,17 +183,7 @@ const PermissionDeniedAlert = ({
       onPressSecondaryBtn={() => {
         console.log('Back pressed');
         setIsPermissionDeniedAlertShow(false);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 1,
-            routes: [
-              { name: 'MainScreen' },
-              {
-                name: 'TreeInventory',
-              },
-            ],
-          }),
-        );
+        resetRouteStack();
       }}
     />
   );
@@ -188,7 +192,7 @@ const PermissionDeniedAlert = ({
 const PermissionBlockedAlert = ({
   isPermissionBlockedAlertShow,
   setIsPermissionBlockedAlertShow,
-  hardBackHandler,
+  resetRouteStack,
 }) => {
   return (
     <AlertModal
@@ -199,12 +203,12 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        hardBackHandler();
+        resetRouteStack();
         Linking.openSettings();
       }}
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        hardBackHandler();
+        resetRouteStack();
       }}
     />
   );
