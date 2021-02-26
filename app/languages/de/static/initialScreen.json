@@ -1,10 +1,3 @@
 {
-    "updating_species":"Updating species",
-    "running_migration":"Running a migration",
-    "migration_description":"You recently updated your app. Please do not close the app as we are applying changes to ensure compatibility.",
-    "species_data_status": "Checking species data status.",
-    "downloading_archive":"Downloading species archive.",
-    "unzipping_archive":"Unzipping the species archive.",
-    "fetch_and_add_species_to_database":"Fetching and adding species into database.",
-    "species_data_loaded":"Species data loaded."
+    "updating_species": "Arten aktualisieren",
 }
