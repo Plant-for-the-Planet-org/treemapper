@@ -28,7 +28,7 @@ MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const IS_ANDROID = Platform.OS === 'android';
 
-const MapMarking = ({ updateScreenState, inventoryState }) => {
+const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
@@ -354,7 +354,7 @@ const MapMarking = ({ updateScreenState, inventoryState }) => {
         }}
         onPressSecondaryBtn={() => {
           setIsLocationAlertShow(false);
-          navigation.navigate('TreeInventory');
+          resetRouteStack();
         }}
       />
     );
