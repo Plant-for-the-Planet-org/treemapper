@@ -11,8 +11,8 @@ export default function InitialLoading() {
 
   const textMessage =
     route.name === 'SpeciesLoading'
-      ? i18next.t('label:updating_species')
-      : i18next.t('label:updating_database');
+      ? i18next.t('label.updating_species')
+      : i18next.t('label.updating_database');
 
   return (
     <SafeAreaView style={styles.container}>
