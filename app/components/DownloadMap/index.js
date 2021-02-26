@@ -7,6 +7,7 @@ import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../reposito
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
 import Geolocation from '@react-native-community/geolocation';
+import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -32,15 +33,17 @@ const DownloadMap = ({ navigation }) => {
   };
 
   const initialMapCamera = () => {
-    Geolocation.getCurrentPosition(
-      (position) => {
-        MapBoxGLCameraRef.current.setCamera({
-          centerCoordinate: [position.coords.longitude, position.coords.latitude],
-          zoomLevel: 15,
-          animationDuration: 2000,
-        });
-      },
-      (err) => alert(err.message),
+    permission().then(
+      Geolocation.getCurrentPosition(
+        (position) => {
+          MapBoxGLCameraRef.current.setCamera({
+            centerCoordinate: [position.coords.longitude, position.coords.latitude],
+            zoomLevel: 15,
+            animationDuration: 2000,
+          });
+        },
+        (err) => alert(err.message),
+      ),
     );
   };
 
@@ -50,47 +53,49 @@ const DownloadMap = ({ navigation }) => {
     setIsLoaderShow(true);
     let coords = await MapBoxGLRef.current.getCenter();
     let bounds = await MapBoxGLRef.current.getVisibleBounds();
-    getAreaName({ coords }).then(async (areaName) => {
-      setAreaName(areaName);
-      const progressListener = (offlineRegion, status) => {
-        if (status.percentage == 100) {
-          createOfflineMap({
-            name: offllineMapId,
-            size: status.completedTileSize,
-            areaName: areaName,
-          }).then(() => {
-            setIsLoaderShow(false);
-            setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
-            getAllOfflineMapslocal();
+    getAreaName({ coords })
+      .then(async (areaName) => {
+        setAreaName(areaName);
+        const progressListener = (offlineRegion, status) => {
+          if (status.percentage == 100) {
+            createOfflineMap({
+              name: offllineMapId,
+              size: status.completedTileSize,
+              areaName: areaName,
+            })
+              .then(() => {
+                setIsLoaderShow(false);
+                setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
+                getAllOfflineMapslocal();
 
-            setAreaName('');
-          }).catch((err) => {
+                setAreaName('');
+              })
+              .catch((err) => {
+                setIsLoaderShow(false);
+                setAreaName('');
+                alert(i18next.t('label.download_map_area_exists'));
+              });
+          }
+        };
+        const errorListener = (offlineRegion, err) => {
+          if (err.message !== 'timeout') {
             setIsLoaderShow(false);
             setAreaName('');
-            alert(i18next.t('label.download_map_area_exists'));
-          });
-          
-        }
-      };
-      const errorListener = (offlineRegion, err) => {
-        if (err.message !== 'timeout') {
-          setIsLoaderShow(false);
-          setAreaName('');
-          alert(err.message);
-        }
-      };
-      await MapboxGL.offlineManager.createPack(
-        {
-          name: offllineMapId,
-          styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
-          minZoom: 14,
-          maxZoom: 20,
-          bounds: bounds,
-        },
-        progressListener,
-        errorListener,
-      );
-    })
+            alert(err.message);
+          }
+        };
+        await MapboxGL.offlineManager.createPack(
+          {
+            name: offllineMapId,
+            styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
+            minZoom: 14,
+            maxZoom: 20,
+            bounds: bounds,
+          },
+          progressListener,
+          errorListener,
+        );
+      })
       .catch((err) => {
         setIsLoaderShow(false);
         setAreaName('');
