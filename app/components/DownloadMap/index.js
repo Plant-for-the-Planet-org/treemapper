@@ -47,7 +47,6 @@ const DownloadMap = ({ navigation }) => {
           },
           (err) => {
             alert(err.message);
-            console.log('Error location');
           },
         ),
       )
