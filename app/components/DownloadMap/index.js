@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, Modal, ActivityIndicator, Image } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
+import { Header, PrimaryButton, AlertModal } from '../Common';
+import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+const IS_ANDROID = Platform.OS === 'android';
 
 const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
   const [areaName, setAreaName] = useState('');
   const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0);
+  const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
 
   const MapBoxGLRef = useRef();
   const MapBoxGLCameraRef = useRef();
@@ -33,18 +35,27 @@ const DownloadMap = ({ navigation }) => {
   };
 
   const initialMapCamera = () => {
-    permission().then(
-      Geolocation.getCurrentPosition(
-        (position) => {
-          MapBoxGLCameraRef.current.setCamera({
-            centerCoordinate: [position.coords.longitude, position.coords.latitude],
-            zoomLevel: 15,
-            animationDuration: 2000,
-          });
-        },
-        (err) => alert(err.message),
-      ),
-    );
+    permission()
+      .then(
+        Geolocation.getCurrentPosition(
+          (position) => {
+            MapBoxGLCameraRef.current.setCamera({
+              centerCoordinate: [position.coords.longitude, position.coords.latitude],
+              zoomLevel: 15,
+              animationDuration: 2000,
+            });
+          },
+          (err) => {
+            alert(err.message);
+            console.log('Error location');
+          },
+        ),
+      )
+      .catch((err) => {
+        if (err === 'blocked') {
+          setIsPermissionBlockedAlertShow(true);
+        }
+      });
   };
 
   const onPressDownloadArea = async () => {
@@ -154,6 +165,10 @@ const DownloadMap = ({ navigation }) => {
           </View>
         )}
       </View>
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
+      />
       {renderLoaderModal()}
     </SafeAreaView>
   );
@@ -228,3 +243,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+const PermissionBlockedAlert = ({
+  isPermissionBlockedAlertShow,
+  setIsPermissionBlockedAlertShow,
+  handleBackPress,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionBlockedAlertShow}
+      heading={i18next.t('label.permission_blocked')}
+      message={i18next.t('label.permission_blocked_message')}
+      primaryBtnText={i18next.t('label.open_settings')}
+      secondaryBtnText={i18next.t('label.cancel')}
+      onPressPrimaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        // handleBackPress();
+        if (IS_ANDROID) {
+          Linking.openSettings();
+        } else {
+          Linking.openURL('app-settings:');
+        }
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        // handleBackPress();
+      }}
+    />
+  );
+};
