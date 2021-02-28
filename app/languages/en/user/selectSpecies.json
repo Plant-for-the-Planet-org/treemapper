@@ -39,7 +39,7 @@
   "select_species_tagged_for_identification": "This tree has been tagged for identification.",
   "select_species_unknown": "Unknown",
   "select_species_search_specie_not_present": "The '{{searchText}}' species is not present",
-  "select_species_search_atleast_3_characters":"Enter atleast 3 characters to get better result",
+  "select_species_search_atleast_3_characters": "Enter at least 3 characters to get a better result",
   "select_species_looks_empty_here": "Looks Empty Here!",
   "select_species_add_species_desscription": "Add species to your list by searching the species",
   "select_species_tree_species": "Tree Species"
