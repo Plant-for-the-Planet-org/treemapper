@@ -152,7 +152,7 @@ const ManageSpecies = ({
             closeIcon
             onBackPress={onPressBack ? onPressBack : onPressHome}
             headingText={
-              registrationType ? i18next.t('label.select_species_header') : 'Tree Species'
+              registrationType ? i18next.t('label.select_species_header') : i18next.t('label.select_species_tree_species')
             }
           />
           <View style={styles.searchBar}>

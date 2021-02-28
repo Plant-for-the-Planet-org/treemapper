@@ -38,5 +38,8 @@
   "select_species_tag_id_required": "Tag-ID wird benötigt",
   "select_species_tagged_for_identification": "Dieser Baum wurde zur Identifizierung getaggt.",
   "select_species_unknown": "Unbekannt",
-  "select_species_search_specie_not_present": "Die Art '{{searchText}}' ist nicht vorhanden"
+  "select_species_search_specie_not_present": "Die Art '{{searchText}}' ist nicht vorhanden",
+  "select_species_looks_empty_here": "Sieht leer aus hier!",
+  "select_species_add_species_desscription": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
+  "select_species_tree_species": "Baumarten"
 }
