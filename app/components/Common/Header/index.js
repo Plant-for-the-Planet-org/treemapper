@@ -19,7 +19,7 @@ const Header = ({
   onPressFunction,
 }) => {
   const navigation = useNavigation();
-  const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
+  const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
   return (
     <View style={style}>
       <View style={styles.arrowContainer}>

@@ -31,12 +31,15 @@ import {
 } from '../';
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
-import MigratingDB from '../MigratingDB';
+import InitialLoading from '../InitialLoading';
 import Provider from '../../reducers/provider';
 import { getUserDetails } from '../../repositories/user';
 import { dailyLogUpdateCheck } from '../../utils/logs';
 import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
 import { migrateRealm } from '../../repositories/default';
+import dbLog from '../../repositories/logs';
+import { LogTypes } from '../../utils/constants';
+import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -49,7 +52,7 @@ const MyTransition = {
     close: TransitionSpecs.TransitionIOSSpec,
   },
   headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-  cardStyleInterpolator: ({ current, next, layouts }) => {
+  cardStyleInterpolator: ({ current, layouts }) => {
     return {
       cardStyle: {
         transform: [
@@ -72,7 +75,8 @@ const MyTransition = {
 };
 
 const App = () => {
-  const [isDBMigrating, setIsDBMigrating] = React.useState(false);
+  const [isDBMigrating, setIsDBMigrating] = React.useState(true);
+  const [areSpeciesLoading, setAreSpeciesLoading] = React.useState(false);
 
   const checkIsUserLogin = async () => {
     const dbUserDetails = await getUserDetails();
@@ -82,33 +86,65 @@ const App = () => {
       if (newAccessToken) {
         // fetches the user details from server by passing the accessToken which is used while requesting the API
         getUserDetailsFromServer(newAccessToken);
+        checkAndAddUserSpecies();
       } else {
         auth0Logout();
       }
-      updateAndSyncLocalSpecies(newAccessToken);
-    } else {
-      updateAndSyncLocalSpecies();
     }
   };
 
   React.useEffect(() => {
-    migrateRealm((isMigrationRequired) => {
-      setIsDBMigrating(isMigrationRequired);
-    }).then(() => {
-      setIsDBMigrating(false);
-      checkIsUserLogin();
-      dailyLogUpdateCheck();
-    });
+    // calls the migration function to migrate the realm with [setIsDBMigrating]
+    // as callback param which changes the [isDBMigrating] state.
+    migrateRealm(setIsDBMigrating)
+      .then(() => {
+        // logs success in DB
+        dbLog.info({
+          logType: LogTypes.OTHER,
+          message: 'DB migration successfully done',
+        });
+        // calls this function to update the species in the realm DB with [setAreSpeciesLoading]
+        // as callback param which changes the [areSpeciesLoading] state
+        updateAndSyncLocalSpecies((isLoading) => {
+          // sets [isDBMigrating = false] to hide the MigratingDB screen
+          setAreSpeciesLoading(isLoading);
+          setIsDBMigrating(false);
+        })
+          .then(postUpdatingSpecies)
+          .catch(postUpdatingSpecies);
+      })
+      .catch((err) => {
+        // sets [isDBMigrating = false] to hide the MigratingDB screen
+        setIsDBMigrating(false);
+        console.error(`Error while setting up realm connection - App, ${JSON.stringify(err)}`);
+      });
   }, []);
+
+  // called after local species are updated
+  const postUpdatingSpecies = () => {
+    // sets [isDBMigrating = false] to hide the MigratingDB screen
+    setIsDBMigrating(false);
+    // sets [areSpeciesLoading = false] to hide the SpeciesLoading screen
+    setAreSpeciesLoading(false);
+    checkIsUserLogin();
+    dailyLogUpdateCheck();
+  };
+
+  let initialRouteName = 'MainScreen';
+  if (isDBMigrating) {
+    initialRouteName = 'MigratingDB';
+  } else if (areSpeciesLoading) {
+    initialRouteName = 'SpeciesLoading';
+  }
 
   return (
     <Provider>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName={isDBMigrating ? 'MigratingDB' : 'MainScreen'}
-          headerMode={'none'}>
+        <Stack.Navigator initialRouteName={initialRouteName} headerMode={'none'}>
           {isDBMigrating ? (
-            <Stack.Screen name="MigratingDB" component={MigratingDB} options={MyTransition} />
+            <Stack.Screen name="MigratingDB" component={InitialLoading} />
+          ) : areSpeciesLoading ? (
+            <Stack.Screen name="SpeciesLoading" component={InitialLoading} />
           ) : (
             <>
               <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />

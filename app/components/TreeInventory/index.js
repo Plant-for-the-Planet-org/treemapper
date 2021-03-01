@@ -38,6 +38,11 @@ const TreeInventory = ({ navigation }) => {
     };
   }, [navigation]);
 
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+  }, []);
+
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
   };
@@ -139,6 +144,7 @@ const TreeInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_list_header')}
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
+          onBackPress={handleBackPress}
         />
         <ActivityIndicator size={25} color={Colors.PRIMARY} />
       </View>
@@ -152,6 +158,7 @@ const TreeInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_empty_list_header')}
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
+          onBackPress={handleBackPress}
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
         <View style={styles.primaryBtnCont}>

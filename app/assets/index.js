@@ -29,6 +29,8 @@ import { logo } from './images/logo';
 import { cloud_upload_gray } from './images/cloud_upload_gray';
 import { off_site_enable_banner } from './images/off_site_enable_banner';
 import { empty } from './images/empty';
+import mobile_download from './images/mobile_download';
+import cloud_sync from './images/cloud_sync';
 
 export {
   arrow_up,
@@ -58,4 +60,6 @@ export {
   add_image,
   empty,
   single_tree_png,
+  mobile_download,
+  cloud_sync,
 };

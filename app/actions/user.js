@@ -1,20 +1,17 @@
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
-import axios from 'axios';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
-import { APIConfig } from '../actions/Config';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
-import getSessionData from '../utils/sessionId';
 import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
+import { getAuthenticatedRequest, getRequest, postAuthenticatedRequest } from '../utils/api';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
 
 // stores the protocol and url used for api request
-const { protocol, url } = APIConfig;
 
 /* ============================== *\
       Auth0 functions - STARTS
@@ -72,7 +69,7 @@ export const auth0Login = (dispatch) => {
               tpoId,
             })(dispatch);
 
-            checkAndAddUserSpecies(credentials.accessToken, true);
+            checkAndAddUserSpecies();
             resolve(true);
           })
           .catch((err) => {
@@ -212,71 +209,60 @@ export const checkErrorCode = async (error, userDispatch) => {
  */
 export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
   return new Promise((resolve, reject) => {
-    getSessionData().then((sessionData) => {
-      axios({
-        method: 'GET',
-        url: `${protocol}://${url}/app/profile`,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `OAuth ${userToken}`,
-          'x-session-id': sessionData,
-        },
-      })
-        .then((data) => {
-          // destructured and modified variable names which is used to set user state
-          const {
-            email,
-            firstname: firstName,
-            lastname: lastName,
-            image,
-            country,
-            id: tpoId,
-          } = data.data;
+    getAuthenticatedRequest('/app/profile')
+      .then((data) => {
+        // destructured and modified variable names which is used to set user state
+        const {
+          email,
+          firstname: firstName,
+          lastname: lastName,
+          image,
+          country,
+          id: tpoId,
+        } = data.data;
 
-          // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
-          modifyUserDetails({
-            email,
-            firstName,
-            lastName,
-            image,
-            country,
-            tpoId,
-          });
-
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.USER,
-            message: 'Successfully retrieved User Information from Server',
-            statusCode: data.status,
-          });
-          resolve(data.data);
-        })
-        .catch(async (err) => {
-          // calls this function to check for the error code and either logout the user or ask to signup
-          await checkErrorCode(err, userDispatch);
-          console.error(
-            `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile, ${JSON.stringify(
-              err.response,
-            )}`,
-          );
-
-          dbLog.error({
-            logType: LogTypes.USER,
-            message: 'Failed to retrieve User Information from Server',
-            statusCode: err?.response?.status,
-            logStack: JSON.stringify(err.response),
-          });
-          reject(err);
+        // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
+        modifyUserDetails({
+          email,
+          firstName,
+          lastName,
+          image,
+          country,
+          tpoId,
         });
-    });
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.USER,
+          message: 'Successfully retrieved User Information from Server',
+          statusCode: data.status,
+        });
+        resolve(data.data);
+      })
+      .catch(async (err) => {
+        // calls this function to check for the error code and either logout the user or ask to signup
+        await checkErrorCode(err, userDispatch);
+        console.error(
+          `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile, ${JSON.stringify(
+            err.response,
+          )}`,
+        );
+
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Failed to retrieve User Information from Server',
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err.response),
+        });
+        reject(err);
+      });
   });
 };
 
 export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
-    axios
-      .post(`${protocol}://${url}/app/profile`, payload)
+    postAuthenticatedRequest('/app/profile', payload)
       .then((res) => {
         const { status, data } = res;
         if (status === 200) {
@@ -318,8 +304,7 @@ export const SignupService = (payload, dispatch) => {
  */
 export const getCdnUrls = (language = 'en') => {
   return new Promise((resolve) => {
-    axios
-      .get(`${protocol}://${url}/public/v1.2/${language}/config`)
+    getRequest(`/public/v1.2/${language}/config`)
       .then((res) => {
         const { status, data } = res;
         // checks if status is 200 then returns the CDN media URLs else returns false

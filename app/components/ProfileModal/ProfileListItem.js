@@ -52,18 +52,12 @@ export default function ProfileListItem({
       {mediaType === 'image' ? (
         <Image source={media} style={[styles.imgIcon, mediaStyle ? mediaStyle : {}]} />
       ) : mediaType === 'icon' ? (
-        <Icon name={media} size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
+        <Icon name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
       ) : (
-        <Ionicons name={media} size={25} color={Colors.TEXT_COLOR} style={styles.avatar} />
+        <Ionicons name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
       )}
       <TouchableOpacity
-        onPress={
-          onPressFunction
-            ? onPressFunction
-            : () => {
-              // toggleSwitch();
-            }
-        }
+        onPress={onPressFunction ? onPressFunction : () => {}}
         style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
         <Text style={styles.userName}>{i18next.t(`label.${text}`)}</Text>
         {mediaType === 'ionicon' ? (
@@ -118,8 +112,8 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   imgIcon: {
-    width: 25,
-    height: 25,
+    width: 20,
+    height: 20,
     marginHorizontal: 20,
   },
 });

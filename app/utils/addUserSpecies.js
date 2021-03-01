@@ -1,5 +1,5 @@
 import { addUserSpecie, getSpeciesList, deleteUserSpecie } from '../actions/species';
-import { bugsnag } from '_utils';
+import { bugsnag } from './index';
 import dbLog from '../repositories/logs';
 import {
   updateAndGetUserSpeciesToSync,
@@ -14,21 +14,22 @@ import AsyncStorage from '@react-native-community/async-storage';
  * for already uploaded species of user from server and updates the status of same in local DB.
  * Followed by filtering out the species from local DB which are not uploaded/synced to server and
  * then creates the not uploaded user's species on server one by one.
- *
- * @param {string} userToken - used to pass it to other function using to send authorized request to API
- * @param {string} isFirstUpdate - if [true] then adds the species from server to local DB else deletes the
- *                                 the species from server if not marked as user specie in local DB.
- *                                 Default value is [false]
  */
-export const checkAndAddUserSpecies = async (userToken, isFirstUpdate = false) => {
+export const checkAndAddUserSpecies = async () => {
   try {
     // calls the function and stores whether species data was already loaded or not
     const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
 
+    // calls the function and stores whether species data was already loaded or not
+    let isFirstUpdate = await AsyncStorage.getItem('isInitialSyncDone');
+
+    // if string value of [isFirstUpdate] is ["true"] then sets [true] as boolean else [false]
+    isFirstUpdate = isFirstUpdate === 'true';
+
     // checks and sync the species only if the local species are updated
     if (isSpeciesLoaded === 'true') {
       // gets all the user species synced on the server
-      getSpeciesList(userToken)
+      getSpeciesList()
         .then(async (alreadySyncedSpecies) => {
           // passes already synced species fetched from server to update the local species and gets the
           // local species which are not uploaded to server
@@ -37,7 +38,7 @@ export const checkAndAddUserSpecies = async (userToken, isFirstUpdate = false) =
               // checks if [speciesToSync] is present and has data to iterate
               if (speciesToSync && speciesToSync.length > 0) {
                 // adds or deletes the species
-                addOrDeleteUserSpecies(speciesToSync, userToken, alreadySyncedSpecies);
+                addOrDeleteUserSpecies(speciesToSync, alreadySyncedSpecies);
 
                 // logging the success in to the db after all the species are synced
                 dbLog.info({
@@ -112,17 +113,16 @@ const addFromAlreadySyncedSpecies = (scientificSpecieGuid, alreadySyncedSpecies)
  * Iterates through the list of [speciesToSync] to add or delete the specie on server and
  * update the status of the same in local DB
  * @param {Array} speciesToSync  - array of species that are not synced on the server
- * @param {string} userToken - used to pass to api functions to authenticate the route
  * @param {Array} alreadySyncedSpecies - array of species which are already synced on the server
  */
-const addOrDeleteUserSpecies = (speciesToSync, userToken, alreadySyncedSpecies) => {
+const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
   // iterates through the list of [speciesToSync] to add the specie on server and if result is success
   // then updates the [isUploaded] property in local DB to [true] else logs the error
   for (const specie of speciesToSync) {
     if (specie.isUserSpecies && !specie.isUploaded) {
-      addUserSpecieToServer(specie, userToken, alreadySyncedSpecies);
+      addUserSpecieToServer(specie, alreadySyncedSpecies);
     } else if (!specie.isUserSpecies && specie.isUploaded) {
-      deleteUserSpecieFromServer(specie, userToken);
+      deleteUserSpecieFromServer(specie);
     }
   }
 };
@@ -132,12 +132,11 @@ const addOrDeleteUserSpecies = (speciesToSync, userToken, alreadySyncedSpecies) 
  * then updates in local DB using the [alreadySyncedSpecies] array
  *
  * @param {Object} specie - specie which is to be added to the server
- * @param {string} userToken - used to authenticate the api request
  * @param {Array} alreadySyncedSpecies - array of already synced species present on server
  */
-const addUserSpecieToServer = (specie, userToken, alreadySyncedSpecies) => {
+const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
   // calls the api function with user token and specie to add specie on the server
-  addUserSpecie(userToken, {
+  addUserSpecie({
     scientificSpecies: specie.guid,
     aliases: specie.scientificName,
   })
@@ -192,11 +191,10 @@ const addUserSpecieToServer = (specie, userToken, alreadySyncedSpecies) => {
  * Calls the delete api function to delete the specie and if already present then updates the same in local DB
  *
  * @param {object} specie - user specie which is to be deleted from the server
- * @param {string} userToken - used to authenticate the api request
  */
-const deleteUserSpecieFromServer = (specie, userToken) => {
+const deleteUserSpecieFromServer = (specie) => {
   // calls the api function with user token and specie to delete the specie from the server
-  deleteUserSpecie(userToken, specie.specieId)
+  deleteUserSpecie(specie.specieId)
     .then((result) => {
       if (result) {
         // logging the success in to the db

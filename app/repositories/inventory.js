@@ -303,7 +303,6 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
         let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
         const isPending = inventory.status === 'pending';
         realm.write(() => {
-          console.log('inventory delete', inventory);
           realm.delete(inventory);
           setInventoryId('')(dispatch);
         });
