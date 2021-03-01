@@ -37,5 +37,6 @@
   "select_species_height_invalid": "La hauteur n'est pas valide",
   "select_species_tag_id_required": "L'identifiant de balise est requis",
   "select_species_tagged_for_identification": "Cet arbre a été étiqueté pour identification.",
-  "select_species_unknown": "Inconnu"
+  "select_species_unknown": "Inconnu",
+  "select_species_tree_species": "Espèces d'Arbres"
 }

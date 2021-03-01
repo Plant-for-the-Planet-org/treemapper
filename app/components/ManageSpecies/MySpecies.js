@@ -99,9 +99,8 @@ const MySpecies = ({
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>Looks Empty Here!</Text>
-            <Text style={styles.subHeadingText}>Add species to your list by </Text>
-            <Text style={styles.subHeadingText}>searching the species. </Text>
+            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
+            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
           </View>
         )}
       </View>
@@ -131,6 +130,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
+    paddingLeft: 25,
+    paddingRight: 25,
+    textAlign: 'center',
   },
 });
 

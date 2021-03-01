@@ -153,7 +153,7 @@ const MainScreen = ({ navigation }) => {
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
-          } else if (err.error !== 'a0.session.user_cancelled') {
+          } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
