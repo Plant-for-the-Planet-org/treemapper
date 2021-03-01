@@ -1,11 +1,9 @@
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
-  ActivityIndicator,
-  ImageBackground,
   Modal,
   Platform,
   SafeAreaView,
@@ -13,165 +11,173 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from 'react-native';
 import Config from 'react-native-config';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
-import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
-import { Alrighty, Header, PrimaryButton } from '../Common';
+import {
+  addCoordinateSingleRegisterTree,
+  getInventory,
+  updateLastScreen,
+} from '../../repositories/inventory';
+import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-const IS_ANDROID = Platform.OS == 'android';
+const IS_ANDROID = Platform.OS === 'android';
 
-class MapMarking extends React.Component {
-  state = {
-    isAlrightyModalShow: false,
-    centerCoordinates: [0, 0],
-    // activePolygonIndex: 0,
-    loader: false,
-    markedCoords: null,
-    locateTree: 'on-site',
-    inventory: null,
-  };
+const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
+  const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+  const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
+  const [loader, setLoader] = useState(false);
+  const [locateTree, setLocateTree] = useState('on-site');
+  const [inventory, setInventory] = useState(null);
+  const [accuracyInMeters, setAccuracyInMeters] = useState('');
+  const [isAlertShow, setIsAlertShow] = useState(false);
+  const [isInitial, setIsInitial] = useState(false);
+  const [isLocation, setIsLocation] = useState(false);
+  const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
+  const [location, setLocation] = useState(null);
+  const camera = useRef(null);
+  const map = useRef(null);
+  const navigation = useNavigation();
 
-  async UNSAFE_componentWillMount() {
+  useEffect(() => {
+    // Do something
     if (IS_ANDROID) {
-      MapboxGL.setTelemetryEnabled(false);
-      await MapboxGL.requestAndroidLocationPermissions().then(() => {});
+      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+        if (permission) {
+          MapboxGL.setTelemetryEnabled(false);
+          updateCurrentPosition();
+        }
+      });
+    } else {
+      Geolocation.requestAuthorization('whenInUse').then((permission) => {
+        if (permission === 'granted') {
+          updateCurrentPosition();
+        } else {
+          setIsLocationAlertShow(true);
+        }
+      });
     }
-  }
-
-  componentDidMount() {
-    const { inventoryID } = this.props;
+    const inventoryID = inventoryState.inventoryID;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
-      this.setState({ inventory: inventory });
-      if (inventory.polygons.length !== 0) {
-        const { latitude, longitude } = inventory.polygons[0].coordinates[0];
-        // this.onUpdateUserLocation([longitude, latitude]);
-        this.setState({ markedCoords: [longitude, latitude] });
-      }
+      setInventory(inventory);
     });
-  }
+  }, []);
 
-  renderFakeMarker = () => {
+  const renderFakeMarker = () => {
     return (
       <View style={styles.fakeMarkerCont}>
         <SvgXml xml={active_marker} style={styles.markerImage} />
-        {/* {this.state.loader ? (
-          <ActivityIndicator color={Colors.WHITE} style={styles.loader} />
-        ) : (
-          <Text style={styles.activeMarkerLocation}>{'A'}</Text>
-        )} */}
       </View>
     );
   };
 
-  onChangeRegionStart = () => this.setState({ loader: true });
+  const onChangeRegionStart = () => setLoader(true);
 
-  onChangeRegionComplete = async () => {
-    const center = await this._map.getCenter();
-    this.setState({ centerCoordinates: center, loader: false });
+  const onChangeRegionComplete = async () => {
+    setLoader(false);
   };
 
-  onUpdateUserLocation = (location) => {
+  //only the first time marker will follow the user's current location by default
+  const onUpdateUserLocation = (location) => {
     if (!location) {
-      // alert('Unable to retrieve location')
       return;
     }
-    if (!this.state.isInitial) {
-      const currentCoords = [location.coords.longitude, location.coords.latitude];
-      // const currentCoords = location;
-      this.setState({ centerCoordinates: currentCoords, isInitial: true });
-      this._camera.setCamera({
-        centerCoordinate: currentCoords,
-        zoomLevel: 18,
-        animationDuration: 2000,
-      });
+    if (!isInitial) {
+      onPressMyLocationIcon(location);
     }
   };
 
-  addMarker = async () => {
-    let { centerCoordinates } = this.state;
-    // Check distance
-    try {
-      Geolocation.getCurrentPosition(
-        (position) => {
-          let currentCoords = position.coords;
-          let markerCoords = centerCoordinates;
-
-          let distance = distanceCalculator(
-            currentCoords.latitude,
-            currentCoords.longitude,
-            markerCoords[1],
-            centerCoordinates[0],
-            'K',
-          );
-          let distanceInMeters = distance * 1000;
-          if (distanceInMeters < 100) {
-            this.setState({ locateTree: 'on-site' }, () => {
-              this.pushMaker(currentCoords);
-            });
-          } else {
-            this.setState({ locateTree: 'off-site' }, () => {
-              this.pushMaker(currentCoords);
-            });
-          }
-        },
-        (err) => alert(err.message),
-      );
-    } catch (err) {
-      alert(JSON.stringify(err));
+  //recenter the marker to the current coordinates
+  const onPressMyLocationIcon = (position) => {
+    var recenterCoords;
+    if (position) {
+      recenterCoords = [position.coords.longitude, position.coords.latitude];
+    } else {
+      recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
-  };
-
-  pushMaker = (currentCoords) => {
-    let { centerCoordinates } = this.state;
-    this.setState({ markedCoords: centerCoordinates }, () => {
-      this.onPressContinue();
+    setIsInitial(true);
+    camera.current.setCamera({
+      centerCoordinate: recenterCoords,
+      zoomLevel: 18,
+      animationDuration: 2000,
     });
   };
 
-  renderMarker = () => {
-    const { markedCoords } = this.state;
-    return (
-      markedCoords && (
-        <MapboxGL.PointAnnotation
-          key={'markerCoordskey'}
-          id={'markerCoordsid'}
-          coordinate={markedCoords}>
-          {/* <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-            <Text style={styles.markerText}>{'A'}</Text>
-          </ImageBackground> */}
-        </MapboxGL.PointAnnotation>
-      )
-    );
+  //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
+  const addMarker = async (forceContinue, accuracySet) => {
+    // Check distance
+    if (accuracySet < 30 || forceContinue) {
+      updateCurrentPosition()
+        .then(async () => {
+          let currentCoords = [location.coords.latitude, location.coords.longitude];
+          let centerCoordinates = await map.current.getCenter();
+          let distance = distanceCalculator(
+            currentCoords[0],
+            currentCoords[1],
+            centerCoordinates[1],
+            centerCoordinates[0],
+            'K',
+          );
+
+          let distanceInMeters = distance * 1000;
+          let locateTreeVariable;
+          if (distanceInMeters < 100) {
+            setLocateTree('on-site');
+            locateTreeVariable = 'on-site';
+          } else {
+            setLocateTree('off-site');
+            locateTreeVariable = 'off-site';
+          }
+          onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
+        })
+        .catch((err) => {
+          alert(JSON.stringify(err), 'Alert');
+        });
+    } else {
+      setIsAlertShow(true);
+    }
   };
 
-  renderMapView = () => {
+  const renderMapView = () => {
     return (
       <MapboxGL.MapView
         showUserLocation={true}
         style={styles.container}
-        ref={(ref) => (this._map = ref)}
-        onRegionWillChange={this.onChangeRegionStart}
-        onRegionDidChange={this.onChangeRegionComplete}>
-        {/* {this.renderMarker()} */}
-        <MapboxGL.Camera ref={(ref) => (this._camera = ref)} />
-        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={this.onUpdateUserLocation} />
+        ref={map}
+        onRegionWillChange={onChangeRegionStart}
+        onRegionDidChange={onChangeRegionComplete}>
+        <MapboxGL.Camera ref={camera} />
+        {isLocation && (
+          <MapboxGL.UserLocation
+            showsUserHeadingIndicator
+            onUpdate={() => {
+              updateCurrentPosition();
+            }}
+          />
+        )}
       </MapboxGL.MapView>
     );
   };
 
-  renderMyLocationIcon = () => {
+  const renderMyLocationIcon = () => {
     return (
       <TouchableOpacity
-        onPress={this.onPressMyLocationIcon}
+        onPress={() => {
+          if (location) {
+            onPressMyLocationIcon(location);
+          } else {
+            setIsLocationAlertShow(true);
+          }
+        }}
         style={[styles.myLocationIcon]}
         accessibilityLabel="Register Tree Camera"
         accessible={true}
@@ -183,49 +189,60 @@ class MapMarking extends React.Component {
     );
   };
 
-  onPressMyLocationIcon = () => {
-    Geolocation.getCurrentPosition(
-      (position) => {
-        this.setState({ isInitial: false }, () => this.onUpdateUserLocation(position));
-      },
-      (err) => alert(err.message),
-    );
+  //getting current position of the user with high accuracy
+  const updateCurrentPosition = async () => {
+    return new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          setAccuracyInMeters(position.coords.accuracy);
+          onUpdateUserLocation(position);
+          setLocation(position);
+          setIsLocation(true);
+          resolve(true);
+        },
+        (err) => {
+          setIsLocationAlertShow(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 20000,
+          accuracy: {
+            android: 'high',
+            ios: 'bestForNavigation',
+          },
+        },
+      );
+    });
   };
 
-  onPressContinue = () => {
-    const { inventoryID } = this.props;
-    const { markedCoords, locateTree } = this.state;
-    Geolocation.getCurrentPosition(
-      (position) => {
-        let currentCoords = position.coords;
-        addCoordinateSingleRegisterTree({
-          inventory_id: inventoryID,
-          markedCoords: markedCoords,
-          locateTree: locateTree,
-          currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
-        }).then(() => {
-          this.setState({ isAlrightyModalShow: true });
-        });
-      },
-      (err) => alert(err.message),
-    );
+  // Adds coordinates and locateTree label to inventory
+  const onPressContinue = (currentCoords, centerCoordinates, locateTreeVariable) => {
+    const inventoryID = inventoryState.inventoryID;
+    addCoordinateSingleRegisterTree({
+      inventory_id: inventoryID,
+      markedCoords: centerCoordinates,
+      locateTree: locateTreeVariable,
+      currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
+    }).then(() => {
+      setIsAlrightyModalShow(true);
+    });
   };
 
-  renderAlrightyModal = () => {
-    const { isAlrightyModalShow, locateTree } = this.state;
-    const { updateScreenState, navigation } = this.props;
-
-    const onPressClose = () => this.setState({ isAlrightyModalShow: false });
-
+  // Alrighty Screen..
+  // Updates the last screen for off-site as the coordinates are already recorded.
+  // Moves the screen to ImageCapturing for on-site flow as the Picture is needed in the on-site flow
+  const renderAlrightyModal = () => {
+    const onPressClose = () => setIsAlrightyModalShow(false);
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
       navigation.navigate('SelectSpecies', {
-        inventory: this.state.inventory,
+        inventory: inventory,
         visible: true,
       });
+      updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
       onPressClose();
     };
-
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
     let bannerImage = undefined;
@@ -254,62 +271,179 @@ class MapMarking extends React.Component {
     );
   };
 
-  onPressBack = () => {
-    // const { locateTree } = this.state;
-    // const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
-    const { navigation } = this.props;
-    navigation.navigate('TreeInventory');
+  const onPressBack = () => {
+    // resets the navigation stack with MainScreen => TreeInventory
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
     return;
-    // if (locateTree == 'off-site') {
-    //   if (activeMarkerIndex > 0) {
-    //     this.setState({ isAlrightyModalShow: true });
-    //   } else {
-    //     navigation.goBack();
-    //   }
-    // } else {
-    //   // on-site
-    //   if (activeMarkerIndex > 0) {
-    //     updateActiveMarkerIndex(activeMarkerIndex - 1);
-    //     toogleState2();
-    //   } else {
-    //     navigation.goBack();
-    //   }
-    // }
   };
 
-  render() {
-    const { loader } = this.state;
+  //this modal shows the information about GPS accuracy and accuracy range for red, yellow and green colour
+  const renderAccuracyModal = () => {
     return (
-      <View style={styles.container} fourceInset={{ top: 'always' }}>
-        <View style={styles.container}>
-          {this.renderMapView()}
-          {this.renderFakeMarker()}
-        </View>
-        <View>
-          {this.renderMyLocationIcon()}
-          <View style={styles.continueBtnCont}>
-            <PrimaryButton
-              onPress={this.addMarker}
-              disabled={loader}
-              btnText={i18next.t('label.tree_map_marking_btn')}
-              style={styles.bottomBtnWith}
-            />
+      <Modal transparent visible={isAccuracyModalShow}>
+        <View style={styles.modalContainer}>
+          <View style={styles.contentContainer}>
+            <Text
+              style={{
+                color: '#000000',
+                fontFamily: Typography.FONT_FAMILY_BOLD,
+                fontSize: Typography.FONT_SIZE_18,
+                paddingBottom: 18,
+              }}>
+              {i18next.t('label.gps_accuracy')}
+            </Text>
+            <Text style={styles.accuracyModalText}>{i18next.t('label.accuracy_info')}</Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                {i18next.t('label.green')}
+              </Text>{' '}
+              {i18next.t('label.green_info')}
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                {i18next.t('label.yellow')}
+              </Text>{' '}
+              {i18next.t('label.yellow_info')}
+            </Text>
+            <Text style={styles.accuracyModalText}>
+              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+                {i18next.t('label.red')}
+              </Text>{' '}
+              {i18next.t('label.red_info')}
+            </Text>
+            <TouchableOpacity
+              style={{
+                alignSelf: 'center',
+                paddingTop: 25,
+              }}>
+              <Text
+                style={{
+                  color: '#87B738',
+                  fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  fontSize: Typography.FONT_SIZE_14,
+                }}
+                onPress={() => setIsAccuracyModalShow(false)}>
+                {i18next.t('label.close')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
-          <SafeAreaView />
-          <Header
-            onBackPress={this.onPressBack}
-            closeIcon
-            headingText={i18next.t('label.tree_map_marking_header')}
-          />
-        </LinearGradient>
-        <View></View>
-        {this.renderAlrightyModal()}
-      </View>
+      </Modal>
     );
-  }
-}
+  };
+
+  //if the accuracy is greater than 30m, this alert will be shown to confirm if the user really want to continue with the poor level of accuracy
+  const renderConfirmationModal = () => {
+    return (
+      <AlertModal
+        visible={isAlertShow}
+        heading={i18next.t('label.poor_accuracy')}
+        message={i18next.t('label.poor_accuracy_message')}
+        primaryBtnText={i18next.t('label.try_again')}
+        secondaryBtnText={i18next.t('label.continue')}
+        onPressPrimaryBtn={onPressTryAgain}
+        onPressSecondaryBtn={onPressAlertContinue}
+      />
+    );
+  };
+
+  //alert shown if the location setting are not satisfied
+  const renderLocationAlert = () => {
+    return (
+      <AlertModal
+        visible={isLocationAlertShow}
+        heading={i18next.t('label.location_service')}
+        message={i18next.t('label.location_service_message')}
+        primaryBtnText={IS_ANDROID ? i18next.t('label.ok') : i18next.t('label.open_settings')}
+        secondaryBtnText={i18next.t('label.back')}
+        onPressPrimaryBtn={() => {
+          setIsLocationAlertShow(false);
+          if (IS_ANDROID) {
+            updateCurrentPosition();
+          } else {
+            Linking.openURL('app-settings:');
+          }
+        }}
+        onPressSecondaryBtn={() => {
+          setIsLocationAlertShow(false);
+          resetRouteStack();
+        }}
+      />
+    );
+  };
+
+  //to try again for getting a better accuracy
+  const onPressTryAgain = () => {
+    setIsAlertShow(false);
+  };
+  //continuing with a poor accuracy
+  const onPressAlertContinue = () => {
+    setIsAlertShow(false);
+    addMarker(true, accuracyInMeters);
+  };
+
+  //small button on top right corner which will show accuracy in meters and the respective colour
+  const renderAccuracyInfo = () => {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.gpsContainer,
+          accuracyInMeters < 10 && accuracyInMeters > 0
+            ? { backgroundColor: '#1CE003' }
+            : accuracyInMeters < 30 && accuracyInMeters > 0
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
+        ]}
+        onPress={() => setIsAccuracyModalShow(true)}>
+        <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View style={styles.container} fourceInset={{ top: 'always' }}>
+      <View style={styles.container}>
+        {renderMapView()}
+        {renderFakeMarker()}
+      </View>
+      <View>
+        {renderMyLocationIcon()}
+        <View style={styles.continueBtnCont}>
+          <PrimaryButton
+            onPress={() => addMarker(false, accuracyInMeters)}
+            disabled={loader}
+            btnText={i18next.t('label.tree_map_marking_btn')}
+            style={styles.bottomBtnWith}
+          />
+        </View>
+      </View>
+      <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
+        <SafeAreaView />
+        <Header
+          onBackPress={onPressBack}
+          closeIcon
+          headingText={i18next.t('label.tree_map_marking_header')}
+          topRightComponent={renderAccuracyInfo}
+        />
+      </LinearGradient>
+      <View></View>
+      {renderAccuracyModal()}
+      {renderConfirmationModal()}
+      {renderLocationAlert()}
+      {renderAlrightyModal()}
+    </View>
+  );
+};
 
 export default function MapMarkingMain(props) {
   const navigation = useNavigation();
@@ -347,6 +481,44 @@ const styles = StyleSheet.create({
     top: 0,
     backgroundColor: 'rgba(255, 255, 255, 0)',
     width: '100%',
+  },
+  gpsContainer: {
+    marginTop: 20,
+    width: 96,
+    height: 24,
+    backgroundColor: '#FFC400',
+    borderRadius: 25,
+  },
+  gpsText: {
+    color: '#FFFFFF',
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    alignSelf: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  contentContainer: {
+    backgroundColor: Colors.WHITE,
+    width: 300,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    borderRadius: 10,
+    paddingLeft: 25,
+    paddingRight: 15,
+    paddingVertical: 25,
+  },
+  accuracyModalText: {
+    color: '#000000',
+    lineHeight: 26,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
   },
   fakeMarkerCont: {
     position: 'absolute',
