@@ -125,13 +125,16 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           );
 
           let distanceInMeters = distance * 1000;
+          let locateTreeVariable;
           console.log(distanceInMeters, 'distanceInMeters');
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
+            locateTreeVariable = 'on-site';
           } else {
             setLocateTree('off-site');
+            locateTreeVariable = 'off-site';
           }
-          onPressContinue(currentCoords, centerCoordinates);
+          onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
         })
         .catch((err) => {
           alert(JSON.stringify(err), 'Alert');
@@ -211,13 +214,20 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     });
   };
 
-  const onPressContinue = (currentCoords, centerCoordinates) => {
+  const onPressContinue = (currentCoords, centerCoordinates, locateTreeVariable) => {
     const inventoryID = inventoryState.inventoryID;
-    console.log(location, 'position onPressContinue', currentCoords, 'currentCoords');
+    console.log(
+      location,
+      'position onPressContinue',
+      currentCoords,
+      'currentCoords',
+      locateTree,
+      locateTreeVariable,
+    );
     addCoordinateSingleRegisterTree({
       inventory_id: inventoryID,
       markedCoords: centerCoordinates,
-      locateTree: locateTree,
+      locateTree: locateTreeVariable,
       currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
     }).then(() => {
       setIsAlrightyModalShow(true);
@@ -234,7 +244,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       });
       onPressClose();
     };
-
+    // console.log(locateTree, 'locateTree');
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
     let bannerImage = undefined;
@@ -377,8 +387,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
