@@ -37,5 +37,6 @@
   "select_species_tag_id_required": "É necessária a identificação da etiqueta",
   "select_species_tagged_for_identification": "Esta árvore foi etiquetada para identificação.",
   "select_species_unknown": "Desconhecido",
-  "select_species_search_specie_not_present": "A espécie '{{searchText}}' não está presente"
+  "select_species_search_specie_not_present": "A espécie '{{searchText}}' não está presente",
+  "select_species_tree_species": "Espécies de Árvores"
 }
