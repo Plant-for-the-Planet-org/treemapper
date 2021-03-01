@@ -20,6 +20,7 @@ import UploadedInventory from './UploadedInventory';
 import Logs from './Logs';
 import ManageSpecies from './ManageSpecies';
 import Legals from './Legals';
+import SampleTreesCount from './SampleTrees/SampleTreesCount';
 export {
   RegisterTree,
   MultipleTrees,
@@ -43,4 +44,5 @@ export {
   Logs,
   ManageSpecies,
   Legals,
+  SampleTreesCount,
 };

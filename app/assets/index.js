@@ -31,6 +31,7 @@ import { off_site_enable_banner } from './images/off_site_enable_banner';
 import { empty } from './images/empty';
 import mobile_download from './images/mobile_download';
 import cloud_sync from './images/cloud_sync';
+import sample_trees_vector from './images/sample_trees_vector';
 
 export {
   arrow_up,
@@ -62,4 +63,5 @@ export {
   single_tree_png,
   mobile_download,
   cloud_sync,
+  sample_trees_vector,
 };

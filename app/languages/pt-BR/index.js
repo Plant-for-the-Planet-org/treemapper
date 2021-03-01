@@ -13,6 +13,7 @@ import SavedAreas from './user/savedAreas.json';
 import SelectSpecies from './user/selectSpecies.json';
 import TreeInventory from './user/treeInventory.json';
 import Review from './user/treeReview.json';
+import SampleTrees from './user/sampleTrees.json';
 
 export default {
   ...WelcomeScreen,
@@ -30,4 +31,5 @@ export default {
   ...SelectSpecies,
   ...InitialScreen,
   ...Logs,
+  ...SampleTrees,
 };

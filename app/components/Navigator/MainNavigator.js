@@ -25,6 +25,7 @@ import {
   SingleTreeOverview,
   TreeInventory,
   UploadedInventory,
+  SampleTreesCount,
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 
@@ -90,6 +91,7 @@ export default function MainNavigator() {
       <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
       <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
       <Stack.Screen name="Legals" component={Legals} options={MyTransition} />
+      <Stack.Screen name="SampleTreesCount" component={SampleTreesCount} options={MyTransition} />
     </Stack.Navigator>
   );
 }
