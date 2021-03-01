@@ -94,7 +94,6 @@ const TreeInventory = ({ navigation }) => {
           navigation.navigate('MainScreen');
         }
       });
-    // navigation.navigate('MainScreen');
   };
 
   const renderInventory = () => {
@@ -212,8 +211,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
@@ -273,7 +272,6 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.cancel')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        // handleBackPress();
         if (IS_ANDROID) {
           Linking.openSettings();
         } else {
@@ -282,7 +280,6 @@ const PermissionBlockedAlert = ({
       }}
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        // handleBackPress();
       }}
     />
   );

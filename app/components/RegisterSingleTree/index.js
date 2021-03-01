@@ -23,7 +23,6 @@ const RegisterSingleTree = ({ navigation }) => {
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-    console.log('UseEffect called');
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
         if (InventoryData.status === INCOMPLETE_INVENTORY) {
@@ -35,31 +34,45 @@ const RegisterSingleTree = ({ navigation }) => {
 
           permission().then((granted) => {
             if (granted && InventoryData.polygons[0]) {
-              Geolocation.getCurrentPosition((position) => {
-                let distanceInMeters =
-                  distanceCalculator(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                    InventoryData.polygons[0].coordinates[0].latitude,
-                    InventoryData.polygons[0].coordinates[0].longitude,
-                    'K',
-                  ) * 1000;
-                if (distanceInMeters && distanceInMeters < 100) {
-                  //set onsite
-                  addLocateTree({
-                    inventory_id: inventoryState.inventoryID,
-                    locate_tree: 'on-site',
-                  });
-                  updateScreenState('ImageCapturing');
-                } else {
-                  //set offsite
-                  addLocateTree({
-                    inventory_id: inventoryState.inventoryID,
-                    locate_tree: 'off-site',
-                  });
-                  navigation.navigate('SelectSpecies');
-                }
-              });
+              Geolocation.getCurrentPosition(
+                (position) => {
+                  let distanceInMeters =
+                    distanceCalculator(
+                      position.coords.latitude,
+                      position.coords.longitude,
+                      InventoryData.polygons[0].coordinates[0].latitude,
+                      InventoryData.polygons[0].coordinates[0].longitude,
+                      'K',
+                    ) * 1000;
+                  if (distanceInMeters && distanceInMeters < 100) {
+                    //set onsite
+                    addLocateTree({
+                      inventory_id: inventoryState.inventoryID,
+                      locate_tree: 'on-site',
+                    });
+                    updateScreenState('ImageCapturing');
+                  } else {
+                    //set offsite
+                    addLocateTree({
+                      inventory_id: inventoryState.inventoryID,
+                      locate_tree: 'off-site',
+                    });
+                    navigation.navigate('SelectSpecies');
+                  }
+                },
+                (err) => {
+                  console.log(err);
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 5000,
+                  maximumAge: 20000,
+                  accuracy: {
+                    android: 'high',
+                    ios: 'bestForNavigation',
+                  },
+                },
+              );
             }
           });
         }
@@ -67,7 +80,6 @@ const RegisterSingleTree = ({ navigation }) => {
     });
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
-      console.log('unsubscribe returned');
       unsubscribe();
     };
   }, [inventoryState, isGranted, navigation]);
@@ -77,6 +89,7 @@ const RegisterSingleTree = ({ navigation }) => {
     return true;
   };
 
+  // resets the navigation stack with MainScreen => TreeInventory
   const resetRouteStack = () => {
     navigation.dispatch(
       CommonActions.reset({
@@ -100,7 +113,6 @@ const RegisterSingleTree = ({ navigation }) => {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-        console.log(granted, 'granted');
         switch (granted) {
           case PermissionsAndroid.RESULTS.GRANTED:
             console.log('Permission granted');
@@ -182,7 +194,6 @@ const PermissionDeniedAlert = ({
         permission();
       }}
       onPressSecondaryBtn={() => {
-        console.log('Back pressed');
         setIsPermissionDeniedAlertShow(false);
         resetRouteStack();
       }}

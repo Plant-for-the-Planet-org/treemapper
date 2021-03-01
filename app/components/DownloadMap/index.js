@@ -257,7 +257,6 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.cancel')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        // handleBackPress();
         if (IS_ANDROID) {
           Linking.openSettings();
         } else {
@@ -266,7 +265,6 @@ const PermissionBlockedAlert = ({
       }}
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        // handleBackPress();
       }}
     />
   );

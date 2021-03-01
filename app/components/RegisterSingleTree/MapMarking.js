@@ -20,7 +20,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
 import { active_marker, marker_png, off_site_enable_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
-import { addCoordinateSingleRegisterTree, getInventory } from '../../repositories/inventory';
+import {
+  addCoordinateSingleRegisterTree,
+  getInventory,
+  updateLastScreen,
+} from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 
@@ -55,7 +59,6 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       });
     } else {
       Geolocation.requestAuthorization('whenInUse').then((permission) => {
-        console.log(permission);
         if (permission === 'granted') {
           updateCurrentPosition();
         } else {
@@ -63,8 +66,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
         }
       });
     }
-    console.log(inventoryState, 'inventoryState');
-    const { inventoryID } = inventoryState.inventoryID;
+    const inventoryID = inventoryState.inventoryID;
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
       setInventory(inventory);
     });
@@ -84,6 +86,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     setLoader(false);
   };
 
+  //only the first time marker will follow the user's current location by default
   const onUpdateUserLocation = (location) => {
     if (!location) {
       return;
@@ -92,6 +95,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       onPressMyLocationIcon(location);
     }
   };
+
+  //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position) => {
     var recenterCoords;
     if (position) {
@@ -106,16 +111,15 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       animationDuration: 2000,
     });
   };
+
+  //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
   const addMarker = async (forceContinue, accuracySet) => {
     // Check distance
     if (accuracySet < 30 || forceContinue) {
       updateCurrentPosition()
         .then(async () => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
-          console.log(currentCoords, 'currentCoords addMarker');
-          console.log(location, 'location addMarker');
           let centerCoordinates = await map.current.getCenter();
-          console.log(centerCoordinates, 'centerCoordinates addMarker');
           let distance = distanceCalculator(
             currentCoords[0],
             currentCoords[1],
@@ -126,7 +130,6 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
 
           let distanceInMeters = distance * 1000;
           let locateTreeVariable;
-          console.log(distanceInMeters, 'distanceInMeters');
           if (distanceInMeters < 100) {
             setLocateTree('on-site');
             locateTreeVariable = 'on-site';
@@ -186,11 +189,11 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     );
   };
 
+  //getting current position of the user with high accuracy
   const updateCurrentPosition = async () => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          // console.log(position, 'position updateCurrentPosition');
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -198,7 +201,6 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           resolve(true);
         },
         (err) => {
-          console.log(err, 'updateCurrentPosition');
           setIsLocationAlertShow(true);
         },
         {
@@ -214,16 +216,9 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     });
   };
 
+  // Adds coordinates and locateTree label to inventory
   const onPressContinue = (currentCoords, centerCoordinates, locateTreeVariable) => {
     const inventoryID = inventoryState.inventoryID;
-    console.log(
-      location,
-      'position onPressContinue',
-      currentCoords,
-      'currentCoords',
-      locateTree,
-      locateTreeVariable,
-    );
     addCoordinateSingleRegisterTree({
       inventory_id: inventoryID,
       markedCoords: centerCoordinates,
@@ -234,6 +229,9 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     });
   };
 
+  // Alrighty Screen..
+  // Updates the last screen for off-site as the coordinates are already recorded.
+  // Moves the screen to ImageCapturing for on-site flow as the Picture is needed in the on-site flow
   const renderAlrightyModal = () => {
     const onPressClose = () => setIsAlrightyModalShow(false);
     const moveScreen = () => updateScreenState('ImageCapturing');
@@ -242,9 +240,9 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
         inventory: inventory,
         visible: true,
       });
+      updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
       onPressClose();
     };
-    // console.log(locateTree, 'locateTree');
     let subHeading = i18next.t('label.alright_modal_sub_header');
     let heading = i18next.t('label.alright_modal_header');
     let bannerImage = undefined;
@@ -274,7 +272,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   };
 
   const onPressBack = () => {
-    // navigation.navigate('TreeInventory');
+    // resets the navigation stack with MainScreen => TreeInventory
     navigation.dispatch(
       CommonActions.reset({
         index: 1,
@@ -289,6 +287,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     return;
   };
 
+  //this modal shows the information about GPS accuracy and accuracy range for red, yellow and green colour
   const renderAccuracyModal = () => {
     return (
       <Modal transparent visible={isAccuracyModalShow}>
@@ -343,6 +342,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     );
   };
 
+  //if the accuracy is greater than 30m, this alert will be shown to confirm if the user really want to continue with the poor level of accuracy
   const renderConfirmationModal = () => {
     return (
       <AlertModal
@@ -357,13 +357,14 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     );
   };
 
+  //alert shown if the location setting are not satisfied
   const renderLocationAlert = () => {
     return (
       <AlertModal
         visible={isLocationAlertShow}
         heading={i18next.t('label.location_service')}
         message={i18next.t('label.location_service_message')}
-        primaryBtnText={i18next.t('label.ok')}
+        primaryBtnText={IS_ANDROID ? i18next.t('label.ok') : i18next.t('label.open_settings')}
         secondaryBtnText={i18next.t('label.back')}
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
@@ -381,15 +382,17 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     );
   };
 
+  //to try again for getting a better accuracy
   const onPressTryAgain = () => {
     setIsAlertShow(false);
   };
-
+  //continuing with a poor accuracy
   const onPressAlertContinue = () => {
     setIsAlertShow(false);
     addMarker(true, accuracyInMeters);
   };
 
+  //small button on top right corner which will show accuracy in meters and the respective colour
   const renderAccuracyInfo = () => {
     return (
       <TouchableOpacity
