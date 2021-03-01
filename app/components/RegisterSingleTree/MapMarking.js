@@ -1,6 +1,6 @@
 import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
@@ -274,7 +274,18 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   };
 
   const onPressBack = () => {
-    navigation.navigate('TreeInventory');
+    // navigation.navigate('TreeInventory');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
     return;
   };
 
@@ -387,8 +398,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

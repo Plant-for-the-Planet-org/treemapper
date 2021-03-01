@@ -33,34 +33,35 @@ const RegisterSingleTree = ({ navigation }) => {
           };
           updateLastScreen(data);
 
-          permission();
-          if (isGranted && InventoryData.polygons[0]) {
-            Geolocation.getCurrentPosition((position) => {
-              let distanceInMeters =
-                distanceCalculator(
-                  position.coords.latitude,
-                  position.coords.longitude,
-                  InventoryData.polygons[0].coordinates[0].latitude,
-                  InventoryData.polygons[0].coordinates[0].longitude,
-                  'K',
-                ) * 1000;
-              if (distanceInMeters && distanceInMeters < 100) {
-                //set onsite
-                addLocateTree({
-                  inventory_id: inventoryState.inventoryID,
-                  locate_tree: 'on-site',
-                });
-                updateScreenState('ImageCapturing');
-              } else {
-                //set offsite
-                addLocateTree({
-                  inventory_id: inventoryState.inventoryID,
-                  locate_tree: 'off-site',
-                });
-                navigation.navigate('SelectSpecies');
-              }
-            });
-          }
+          permission().then((granted) => {
+            if (granted && InventoryData.polygons[0]) {
+              Geolocation.getCurrentPosition((position) => {
+                let distanceInMeters =
+                  distanceCalculator(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    InventoryData.polygons[0].coordinates[0].latitude,
+                    InventoryData.polygons[0].coordinates[0].longitude,
+                    'K',
+                  ) * 1000;
+                if (distanceInMeters && distanceInMeters < 100) {
+                  //set onsite
+                  addLocateTree({
+                    inventory_id: inventoryState.inventoryID,
+                    locate_tree: 'on-site',
+                  });
+                  updateScreenState('ImageCapturing');
+                } else {
+                  //set offsite
+                  addLocateTree({
+                    inventory_id: inventoryState.inventoryID,
+                    locate_tree: 'off-site',
+                  });
+                  navigation.navigate('SelectSpecies');
+                }
+              });
+            }
+          });
         }
       });
     });
