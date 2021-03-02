@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -403,7 +403,16 @@ const SelectSpecies = () => {
           setDiameter('');
           setHeight('');
           setTagId('');
-          navigation.navigate('SingleTreeOverview');
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 2,
+              routes: [
+                { name: 'MainScreen' },
+                { name: 'TreeInventory' },
+                { name: 'SingleTreeOverview' },
+              ],
+            }),
+          );
         })
         .catch((err) => {
           console.error(err);

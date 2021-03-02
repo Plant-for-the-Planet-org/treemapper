@@ -19,7 +19,7 @@ jobs:
     - name: Select Xcode
       run: |
         echo "Default version:" `xcode-select -p`
-        sudo xcode-select -s /Applications/Xcode_11.5.app
+        sudo xcode-select -s /Applications/Xcode_12.3.app
         echo "Selected version:" `xcode-select -p`
 
     - name: Check versions
@@ -72,9 +72,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-treemapper-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-treemapper2-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-treemapper-
+          ${{ runner.os }}-node-treemapper2-
 
     - name: Install npm
       run : |
@@ -142,7 +142,7 @@ jobs:
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
         echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
-        mv 'ios/DerivedData/ipa/treemapper.ipa' uploads/$upload_file
+        mv 'ios/DerivedData/ipa/Tree Mapper.ipa' uploads/$upload_file
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload iOS IPA to Browserstack

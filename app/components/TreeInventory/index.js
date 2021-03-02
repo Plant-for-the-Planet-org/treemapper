@@ -9,6 +9,8 @@ import {
   View,
   Alert,
   BackHandler,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
@@ -16,16 +18,18 @@ import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
-import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
+import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { UserContext } from '../../reducers/user';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
-
+  const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
     // BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     const unsubscribe = navigation.addListener('focus', () => {
@@ -74,10 +78,16 @@ const TreeInventory = ({ navigation }) => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         console.log('upload inventory successfully');
+        navigation.navigate('MainScreen');
       })
       .catch((err) => {
+        console.log(err, 'In Tree Inventory');
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
+          navigation.navigate('MainScreen');
+        } else if (err === 'blocked') {
+          console.log('Tree Inventory blocked');
+          setIsPermissionBlockedAlertShow(true);
         } else if (err.error !== 'a0.session.user_cancelled') {
           Alert.alert(
             'Verify your Email',
@@ -85,9 +95,9 @@ const TreeInventory = ({ navigation }) => {
             [{ text: 'OK' }],
             { cancelable: false },
           );
+          navigation.navigate('MainScreen');
         }
       });
-    navigation.navigate('MainScreen');
   };
 
   const renderInventory = () => {
@@ -207,6 +217,11 @@ const TreeInventory = ({ navigation }) => {
         : allInventory == null
           ? renderLoadingInventoryList()
           : renderEmptyInventoryList()}
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
+        handleBackPress={handleBackPress}
+      />
     </View>
   );
 };
@@ -246,3 +261,30 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 });
+
+const PermissionBlockedAlert = ({
+  isPermissionBlockedAlertShow,
+  setIsPermissionBlockedAlertShow,
+  handleBackPress,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionBlockedAlertShow}
+      heading={i18next.t('label.permission_blocked')}
+      message={i18next.t('label.permission_blocked_message')}
+      primaryBtnText={i18next.t('label.open_settings')}
+      secondaryBtnText={i18next.t('label.cancel')}
+      onPressPrimaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        if (IS_ANDROID) {
+          Linking.openSettings();
+        } else {
+          Linking.openURL('app-settings:');
+        }
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+      }}
+    />
+  );
+};
