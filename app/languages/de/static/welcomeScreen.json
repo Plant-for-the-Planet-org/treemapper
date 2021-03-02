@@ -1,6 +1,5 @@
 {
   "login": "Anmelden / Registrieren",
-  "continue": "Weiter",
   "tree_mapper": "Tree Mapper",
   "tree_inventory": "Baum-Inventarisierung",
   "tree_inventory_sub_header": "von Entwürfen und offenen Registrierungen",
@@ -8,6 +7,5 @@
   "download_maps_sub_header": "zur Offline-Verwendung",
   "learn": "Lernen",
   "learn_sub_header": "wie man Tree Mapper verwendet",
-  "register_tree": "Baum registrieren",
-  "back": "Zurück"
+  "register_tree": "Baum registrieren"
 }
