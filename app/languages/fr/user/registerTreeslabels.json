@@ -8,7 +8,7 @@
   "tree_map_marking_header": "Emplacement de l'arbre",
   "tree_map_marking_btn": "Sélectionner l'emplacement et continuer",
   "alright_modal_sub_header": "Lorsque vous êtes près de l’arbre, vous pouvez prendre une photo à l’étape suivante. Cliquer sur continuer lorsque vous êtes prêt.",
-  "alright_modal_header": "Temps de la photo!",
+  "alright_modal_header": "Date/heure de la photo!",
   "alright_modal_white_btn": "Retourner",
   "alright_modal_off_site_sub_header": "Nous voyons que vous êtes loin de l’arbre. Cliquer sur continuer pour ajouter des détails sur l'arborescence.",
   "alright_modal_off_site_header": "Hors site activé!",
