@@ -135,7 +135,7 @@ const MainScreen = ({ navigation }) => {
 
   // let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
 
-  const onPressLargeButtons = (screenName) => navigation.navigate('SampleTreesCount');
+  const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
 
   const onPressLearn = () => setIsModalVisible(!isModalVisible);
 

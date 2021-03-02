@@ -19,7 +19,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../utils/inventoryStatuses';
 import { UserContext } from '../../reducers/user';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -70,7 +70,7 @@ const TreeInventory = ({ navigation }) => {
   let uploadedInventory = [];
   if (allInventory) {
     pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE_INVENTORY);
+    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE);
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
@@ -139,7 +139,7 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
-              inventoryStatus={INCOMPLETE_INVENTORY}
+              inventoryStatus={INCOMPLETE}
             />
           </>
         )}
@@ -215,8 +215,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}

@@ -37,7 +37,7 @@ import {
   updateTreeTag,
 } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../utils/inventoryStatuses';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import AlertModal from '../Common/AlertModal';
@@ -154,16 +154,16 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -264,7 +264,7 @@ const SingleTreeOverview = ({ navigation }) => {
       coords = polygons[0].coordinates[0];
     }
     let shouldEdit;
-    if (inventory && (inventory.status === INCOMPLETE_INVENTORY || inventory.status == null)) {
+    if (inventory && (inventory.status === INCOMPLETE || inventory.status == null)) {
       shouldEdit = true;
     } else {
       shouldEdit = false;
@@ -311,7 +311,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -391,7 +391,7 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressNextTree = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
+    if (inventory.status === INCOMPLETE) {
       changeInventoryStatus(
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
@@ -483,7 +483,7 @@ const SingleTreeOverview = ({ navigation }) => {
 
           />
         ) : */}
-        {status === INCOMPLETE_INVENTORY ? (
+        {status === INCOMPLETE ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressNextTree}

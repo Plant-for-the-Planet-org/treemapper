@@ -5,7 +5,7 @@ import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
-import { INCOMPLETE_INVENTORY } from '../../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../../utils/inventoryStatuses';
 
 export default function InventoryList({ inventoryList, accessibilityLabel, inventoryStatus }) {
   const navigation = useNavigation();
@@ -15,7 +15,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const onPressInventory = (item) => {
     console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
-    if (item.status !== INCOMPLETE_INVENTORY) {
+    if (item.status !== INCOMPLETE) {
       navigation.navigate('SingleTreeOverview');
     } else {
       navigation.navigate(item.last_screen);
@@ -81,11 +81,11 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
             testID="upload_inventory_list">
             <InventoryCard
               icon={
-                inventoryStatus === INCOMPLETE_INVENTORY
+                inventoryStatus === INCOMPLETE
                   ? null
                   : inventoryStatus === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
               inventoryStatus={inventoryStatus}

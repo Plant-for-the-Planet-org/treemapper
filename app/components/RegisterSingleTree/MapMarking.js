@@ -82,9 +82,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
 
   const onChangeRegionStart = () => setLoader(true);
 
-  const onChangeRegionComplete = async () => {
-    setLoader(false);
-  };
+  const onChangeRegionComplete = () => setLoader(false);
 
   //only the first time marker will follow the user's current location by default
   const onUpdateUserLocation = (location) => {
@@ -401,8 +399,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

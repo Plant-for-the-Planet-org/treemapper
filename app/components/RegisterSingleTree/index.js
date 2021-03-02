@@ -7,7 +7,7 @@ import { bugsnag } from '_utils';
 import { InventoryContext } from '../../reducers/inventory';
 import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../utils/inventoryStatuses';
 import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
@@ -25,7 +25,7 @@ const RegisterSingleTree = ({ navigation }) => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-        if (InventoryData.status === INCOMPLETE_INVENTORY) {
+        if (InventoryData.status === INCOMPLETE) {
           let data = {
             inventory_id: inventoryState.inventoryID,
             last_screen: 'RegisterSingleTree',

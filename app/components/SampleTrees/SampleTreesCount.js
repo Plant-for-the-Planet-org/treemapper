@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { sample_trees_vector } from '../../assets';
-import { Header } from '../Common';
+import { InventoryContext } from '../../reducers/inventory';
+import { updateInventory } from '../../repositories/inventory';
+import { Header, PrimaryButton } from '../Common';
 
 /**
  * Maps/Shows the button to select the sample tree count which user is going to add
@@ -58,6 +60,19 @@ export default function SampleTreesCount() {
   // used to set the selected tree count
   const [selectedTreeCount, setSelectedTreeCount] = useState(5);
 
+  // gets the inventory state to get the inventory id selected currently
+  const { state } = useContext(InventoryContext);
+
+  // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
+  const onPressContinue = () => {
+    updateInventory({
+      inventory_id: state.inventoryID,
+      inventoryData: {
+        sampleTreesCount: selectedTreeCount,
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
@@ -90,6 +105,13 @@ export default function SampleTreesCount() {
             setSelectedTreeCount={setSelectedTreeCount}
           />
         </ScrollView>
+        <PrimaryButton
+          onPress={onPressContinue}
+          btnText={i18next.t('label.continue')}
+          theme={'primary'}
+          testID={'sample_tree_count_continue'}
+          accessibilityLabel={'sample_tree_count_continue'}
+        />
       </View>
     </SafeAreaView>
   );

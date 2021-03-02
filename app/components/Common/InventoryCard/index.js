@@ -5,7 +5,7 @@ import { single_tree_png, placeholder_image, map_img } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import { INCOMPLETE_INVENTORY } from '../../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../../utils/inventoryStatuses';
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, inventoryStatus }) => {
   const onPressActiveButton = () => {
@@ -41,7 +41,7 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, inventoryStatu
             onPress={onPressActiveButton}>
             {data.date}
           </Text>
-          {icon && inventoryStatus !== INCOMPLETE_INVENTORY && (
+          {icon && inventoryStatus !== INCOMPLETE && (
             <MCIcons name={icon} size={22} style={styles.activeText} />
           )}
         </View>

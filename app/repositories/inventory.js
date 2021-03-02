@@ -1,6 +1,6 @@
 import { bugsnag } from '../utils';
 import { updateCount, setInventoryId } from '../actions/inventory';
-import { INCOMPLETE_INVENTORY } from '../utils/inventoryStatuses';
+import { INCOMPLETE } from '../utils/inventoryStatuses';
 import dbLog from './logs';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
@@ -126,7 +126,7 @@ export const initiateInventory = ({ treeType }, dispatch) => {
           const inventoryData = {
             inventory_id: inventoryID,
             tree_type: treeType,
-            status: INCOMPLETE_INVENTORY,
+            status: INCOMPLETE,
             plantation_date: new Date(),
             last_screen: treeType === 'single' ? 'RegisterSingleTree' : 'LocateTree',
           };
@@ -406,9 +406,7 @@ export const clearAllIncompleteInventory = () => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let allInventory = realm
-            .objects('Inventory')
-            .filtered(`status == "${INCOMPLETE_INVENTORY}"`);
+          let allInventory = realm.objects('Inventory').filtered(`status == "${INCOMPLETE}"`);
           realm.delete(allInventory);
 
           // logging the success in to the db
@@ -841,6 +839,37 @@ export const completePolygon = ({ inventory_id }) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Error while updating polygon completion and last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+/**
+ * updates the inventory with the data provided using the inventory id
+ * @param {object} - takes [inventory_id] and [inventoryData] as properties
+ *                   to update the inventory
+ */
+export const updateInventory = ({ inventory_id, inventoryData }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          inventory = {
+            ...inventory,
+            ...inventoryData,
+          };
+          resolve();
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating inventory with inventory_id: ${inventory_id}`,
           logStack: JSON.stringify(err),
         });
         reject(err);

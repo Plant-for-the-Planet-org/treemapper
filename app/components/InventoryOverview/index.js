@@ -32,7 +32,7 @@ import {
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import SelectSpecies from '../SelectSpecies/index';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE } from '../../utils/inventoryStatuses';
 import { toBase64 } from '../../utils/base64';
 
 const InventoryOverview = ({ navigation }) => {
@@ -126,7 +126,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
+    if (inventory.status === INCOMPLETE) {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
@@ -290,7 +290,7 @@ const InventoryOverview = ({ navigation }) => {
 
   const renderAddSpeciesButton = (status) => {
     return (
-      status === INCOMPLETE_INVENTORY && (
+      status === INCOMPLETE && (
         <TouchableOpacity
           onPress={handleSelectSpecies}
           style={{
@@ -318,7 +318,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    if (status === INCOMPLETE_INVENTORY && inventory.locate_tree === 'off-site') {
+    if (status === INCOMPLETE && inventory.locate_tree === 'off-site') {
       setShowDate(true);
     }
   };
@@ -376,7 +376,7 @@ const InventoryOverview = ({ navigation }) => {
               )}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={status === INCOMPLETE_INVENTORY ? i18next.t('label.edit') : ''}
+                rightText={status === INCOMPLETE ? i18next.t('label.edit') : ''}
                 onPressRightText={handleSelectSpecies}
               />
               <FlatList
