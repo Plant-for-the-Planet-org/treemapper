@@ -14,5 +14,8 @@
   "alright_modal_off_site_header": "Fora do Local Ativado!",
   "image_capturing_header": "Foto",
   "image_capturing_sub_header": "Por favor, tire uma foto de frente para a árvore plantada.",
-  "image_capturing_required": "Imagem é necessária"
+  "image_capturing_required": "Imagem é necessária",
+  "coming_soon": "Em breve!",
+  "image_click_picture": "Tirar foto",
+  "image_reclick": "De novo"
 }

@@ -1,21 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, Modal, ActivityIndicator, Image } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
+import { Header, PrimaryButton, AlertModal } from '../Common';
+import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
+import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+const IS_ANDROID = Platform.OS === 'android';
 
 const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
   const [areaName, setAreaName] = useState('');
   const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(0);
+  const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
 
   const MapBoxGLRef = useRef();
   const MapBoxGLCameraRef = useRef();
@@ -33,16 +36,26 @@ const DownloadMap = ({ navigation }) => {
   };
 
   const initialMapCamera = () => {
-    Geolocation.getCurrentPosition(
-      (position) => {
-        MapBoxGLCameraRef.current.setCamera({
-          centerCoordinate: [position.coords.longitude, position.coords.latitude],
-          zoomLevel: 15,
-          animationDuration: 2000,
-        });
-      },
-      (err) => alert(err.message),
-    );
+    permission()
+      .then(
+        Geolocation.getCurrentPosition(
+          (position) => {
+            MapBoxGLCameraRef.current.setCamera({
+              centerCoordinate: [position.coords.longitude, position.coords.latitude],
+              zoomLevel: 15,
+              animationDuration: 2000,
+            });
+          },
+          (err) => {
+            alert(err.message);
+          },
+        ),
+      )
+      .catch((err) => {
+        if (err === 'blocked') {
+          setIsPermissionBlockedAlertShow(true);
+        }
+      });
   };
 
   const zoomLevelChanged = async ()=>{
@@ -54,43 +67,53 @@ const DownloadMap = ({ navigation }) => {
     setIsLoaderShow(true);
     let coords = await MapBoxGLRef.current.getCenter();
     let bounds = await MapBoxGLRef.current.getVisibleBounds();
-    
-    getAreaName({ coords }).then(async (areaName) => {
-      setAreaName(areaName);
-      const progressListener = (offlineRegion, status) => {
-        if (status.percentage == 100) {
-          createOfflineMap({
-            name: offllineMapId,
-            size: status.completedTileSize,
-            areaName: areaName,
-          }).then(() => {
+    getAreaName({ coords })
+      .then(async (areaName) => {
+        setAreaName(areaName);
+        const progressListener = (offlineRegion, status) => {
+          if (status.percentage == 100) {
+            createOfflineMap({
+              name: offllineMapId,
+              size: status.completedTileSize,
+              areaName: areaName,
+            })
+              .then(() => {
+                setIsLoaderShow(false);
+                setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
+                getAllOfflineMapslocal();
+                setAreaName('');
+              })
+              .catch((err) => {
+                setIsLoaderShow(false);
+                setAreaName('');
+                alert(i18next.t('label.download_map_area_exists'));
+              });
+          }
+        };
+        const errorListener = (offlineRegion, err) => {
+          if (err.message !== 'timeout') {
             setIsLoaderShow(false);
-            setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
-            getAllOfflineMapslocal();
-
             setAreaName('');
-          });
-        }
-      };
-      const errorListener = (offlineRegion, err) => {
-        if (err.message !== 'timeout') {
-          setIsLoaderShow(false);
-          setAreaName('');
-          alert(err.message);
-        }
-      };
-      await MapboxGL.offlineManager.createPack(
-        {
-          name: offllineMapId,
-          styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
-          minZoom: 14,
-          maxZoom: 20,
-          bounds: bounds,
-        },
-        progressListener,
-        errorListener,
-      );
-    });
+            alert(err.message);
+          }
+        };
+        await MapboxGL.offlineManager.createPack(
+          {
+            name: offllineMapId,
+            styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
+            minZoom: 14,
+            maxZoom: 20,
+            bounds: bounds,
+          },
+          progressListener,
+          errorListener,
+        );
+      })
+      .catch((err) => {
+        setIsLoaderShow(false);
+        setAreaName('');
+        alert(i18next.t('label.download_map_area_failed'));
+      });
   };
 
   const renderLoaderModal = () => {
@@ -146,6 +169,10 @@ const DownloadMap = ({ navigation }) => {
           </View>
         )}
       </View>
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
+      />
       {renderLoaderModal()}
     </SafeAreaView>
   );
@@ -220,3 +247,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+const PermissionBlockedAlert = ({
+  isPermissionBlockedAlertShow,
+  setIsPermissionBlockedAlertShow,
+  handleBackPress,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionBlockedAlertShow}
+      heading={i18next.t('label.permission_blocked')}
+      message={i18next.t('label.permission_blocked_message')}
+      primaryBtnText={i18next.t('label.open_settings')}
+      secondaryBtnText={i18next.t('label.cancel')}
+      onPressPrimaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        if (IS_ANDROID) {
+          Linking.openSettings();
+        } else {
+          Linking.openURL('app-settings:');
+        }
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+      }}
+    />
+  );
+};

@@ -87,31 +87,39 @@ const MainScreen = ({ navigation }) => {
     });
   }, []);
 
-  const initializeRealm = async (realm) => {
-    const userObject = realm.objects('User');
-
-    // Define the collection notification listener
-    function listener(userData, changes) {
-      if (changes.deletions.length > 0) {
-        setUserInfo({});
-        setIsUserLogin(false);
-        clearUserDetails()(userDispatch);
-      }
-      // Update UI in response to inserted objects
-      changes.insertions.forEach((index) => {
-        if (userData[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userData[index]);
-        }
-      });
-      // Update UI in response to modified objects
-      changes.modifications.forEach((index) => {
-        if (userData[index].id === 'id0001') {
-          checkIsSignedInAndUpdate(userData[index]);
-        }
-      });
+  // Define the collection notification listener
+  function listener(userData, changes) {
+    if (changes.deletions.length > 0) {
+      setUserInfo({});
+      setIsUserLogin(false);
+      clearUserDetails()(userDispatch);
     }
-    // Observe collection notifications.
-    userObject.addListener(listener);
+    // Update UI in response to inserted objects
+    changes.insertions.forEach((index) => {
+      if (userData[index].id === 'id0001') {
+        checkIsSignedInAndUpdate(userData[index]);
+      }
+    });
+    // Update UI in response to modified objects
+    changes.modifications.forEach((index) => {
+      if (userData[index].id === 'id0001') {
+        checkIsSignedInAndUpdate(userData[index]);
+      }
+    });
+  }
+
+  // initializes the realm by adding listener to user object of realm to listen
+  // the modifications and update the application state
+  const initializeRealm = async (realm) => {
+    try {
+      // gets the user object from realm
+      const userObject = realm.objects('User');
+
+      // Observe collection notifications.
+      userObject.addListener(listener);
+    } catch (err) {
+      console.error(`Error at /components/MainScreen/initializeRealm, ${JSON.stringify(err)}`);
+    }
   };
 
   const checkIsSignedInAndUpdate = (userDetail) => {
@@ -145,7 +153,7 @@ const MainScreen = ({ navigation }) => {
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
-          } else if (err.error !== 'a0.session.user_cancelled') {
+          } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
@@ -193,7 +201,9 @@ const MainScreen = ({ navigation }) => {
   };
 
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org');
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
   };
 
   return (
@@ -225,6 +235,7 @@ const MainScreen = ({ navigation }) => {
                     ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
                     : ''
                 }
+                name={userInfo ? userInfo.firstName : ''}
               />
             </View>
             {/* <View> */}
@@ -282,7 +293,12 @@ const MainScreen = ({ navigation }) => {
             accessibilityLabel={'Register Tree'}
           />
           {!isUserLogin ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                marginHorizontal: 50,
+              }}>
               <Text onPress={onPressLegals} style={styles.textAlignCenter}>
                 {i18next.t('label.legal_docs')}
               </Text>
@@ -290,7 +306,10 @@ const MainScreen = ({ navigation }) => {
               <Text onPress={onPressSupport} style={styles.textAlignCenter}>
                 {i18next.t('label.support')}
               </Text>
-            </View>) : <View/>}
+            </View>
+          ) : (
+            <View />
+          )}
         </View>
       )}
       {renderVideoModal()}

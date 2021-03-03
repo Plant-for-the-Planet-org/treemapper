@@ -1,4 +1,4 @@
-let PRIMARY = '#89B53A';
+let PRIMARY = '#68B030';
 // export let SECONDARY = '#767676';
 let WHITE = '#FFFFFF';
 let BLACK = '#000000';

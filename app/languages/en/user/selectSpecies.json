@@ -31,11 +31,16 @@
   "select_species_done": "Done",
   "select_species_add_name": "Add Name",
   "select_species_my_species": "My Species",
-  "select_species_diameter_more_than_error":"Diameter should be more than 0.1",
-  "select_species_height_more_than_error":"Height should be more than 0.1",
-  "select_species_diameter_invalid":"Diameter is invalid",
-  "select_species_height_invalid":"Height is invalid",
-  "select_species_tag_id_required":"Tag id is required",
-  "select_species_tagged_for_identification":"This tree has been tagged for identification.",
-  "select_species_unknown":"Unknown"
+  "select_species_diameter_more_than_error": "Diameter should be more than 0.1",
+  "select_species_height_more_than_error": "Height should be more than 0.1",
+  "select_species_diameter_invalid": "Diameter is invalid",
+  "select_species_height_invalid": "Height is invalid",
+  "select_species_tag_id_required": "Tag id is required",
+  "select_species_tagged_for_identification": "This tree has been tagged for identification.",
+  "select_species_unknown": "Unknown",
+  "select_species_search_specie_not_present": "The '{{searchText}}' species is not present",
+  "select_species_search_atleast_3_characters": "Enter at least 3 characters to get a better result",
+  "select_species_looks_empty_here": "Looks Empty Here!",
+  "select_species_add_species_desscription": "Add species to your list by searching the species",
+  "select_species_tree_species": "Tree Species"
 }

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, SafeAreaView, Image, Text, TouchableOpacity, Modal } from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';
@@ -67,7 +67,6 @@ const ImageCapturing = ({
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
-        console.log('inventory data', inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
@@ -120,8 +119,14 @@ const ImageCapturing = ({
       return;
     }
     const options = { quality: 0.5 };
-    const data = await camera.current.takePictureAsync(options);
-    setImagePath(data.uri);
+    const data = await camera.current.takePictureAsync(options).catch((err) => {
+      alert(i18next.t('label.permission_camera_message'));
+      setImagePath('');
+      return;
+    });
+    if (data) {
+      setImagePath(data.uri);
+    }
   };
 
   const onPressClose = () => {
@@ -227,6 +232,14 @@ const ImageCapturing = ({
                 captureAudio={false}
                 ref={camera}
                 style={styles.container}
+                notAuthorizedView={
+                  <View
+                    style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <Text style={styles.message}>
+                      {i18next.t('label.permission_camera_message')}
+                    </Text>
+                  </View>
+                }
                 androidCameraPermissionOptions={{
                   title: i18next.t('label.permission_camera_title'),
                   message: i18next.t('label.permission_camera_message'),
@@ -256,7 +269,9 @@ const ImageCapturing = ({
           <PrimaryButton
             onPress={onPressCamera}
             // btnText={i18next.t('label.back')}
-            btnText={imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')}
+            btnText={
+              imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')
+            }
             theme={imagePath ? 'white' : null}
             halfWidth={imagePath}
           />

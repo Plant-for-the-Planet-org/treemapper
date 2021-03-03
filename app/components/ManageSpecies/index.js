@@ -57,7 +57,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         } else {
@@ -65,7 +65,7 @@ const ManageSpecies = ({
             {
               guid: 'unknown',
               isUserSpecies: true,
-              scientific_name: i18next.t('label.select_species_unknown'),
+              scientificName: i18next.t('label.select_species_unknown'),
             },
           ];
         }
@@ -111,8 +111,8 @@ const ManageSpecies = ({
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
-              message: `Specie with guid ${guid} is toggled ${
-                specieToToggle.isUserSpecies ? 'on' : 'off'
+              message: `Specie with guid ${guid} ${
+                specieToToggle.isUserSpecies ? 'added' : 'removed'
               }`,
             });
           });
@@ -133,12 +133,12 @@ const ManageSpecies = ({
   //This function handles search whenever any search text is entered
   const handleSpeciesSearch = (text) => {
     setSearchText(text);
-    if (text) {
+    if (text && text.length > 2) {
       setShowSearchSpecies(true);
       searchSpeciesFromLocal(text).then((data) => {
         setSearchList([...data]);
       });
-    } else {
+    } else if (!text) {
       setShowSearchSpecies(false);
       setSearchList([]);
     }
@@ -152,7 +152,7 @@ const ManageSpecies = ({
             closeIcon
             onBackPress={onPressBack ? onPressBack : onPressHome}
             headingText={
-              registrationType ? i18next.t('label.select_species_header') : 'Tree Species'
+              registrationType ? i18next.t('label.select_species_header') : i18next.t('label.select_species_tree_species')
             }
           />
           <View style={styles.searchBar}>
@@ -177,7 +177,11 @@ const ManageSpecies = ({
             )}
           </View>
           {showSearchSpecies ? (
-            searchList && searchList.length > 0 ? (
+            searchText.length < 3 ? (
+              <Text style={styles.notPresentText}>
+                {i18next.t('label.select_species_search_atleast_3_characters')}
+              </Text>
+            ) : searchList && searchList.length > 0 ? (
               <SearchSpecies
                 searchList={searchList}
                 registrationType={registrationType}
@@ -191,7 +195,9 @@ const ManageSpecies = ({
               />
             ) : (
               <Text style={styles.notPresentText}>
-                The &apos;{searchText}&apos; specie is not present
+                {i18next.t('label.select_species_search_specie_not_present', {
+                  searchText,
+                })}
               </Text>
             )
           ) : (

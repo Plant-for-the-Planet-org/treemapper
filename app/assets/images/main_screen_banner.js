@@ -8,13 +8,13 @@ const main_screen_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="100%"
     <rect id="Rectangle_1165" data-name="Rectangle 1165" width="0.733" height="9.51" transform="translate(60.327 379.15) rotate(-61.842)" fill="#4d5153"/>
   </g>
   <g id="Group_2237" data-name="Group 2237" transform="translate(0 -51)">
-    <ellipse id="Ellipse_195" data-name="Ellipse 195" cx="18.138" cy="37.008" rx="18.138" ry="37.008" transform="translate(28.98 314.137)" fill="#89b53a"/>
+    <ellipse id="Ellipse_195" data-name="Ellipse 195" cx="18.138" cy="37.008" rx="18.138" ry="37.008" transform="translate(28.98 314.137)" fill="#68B030"/>
     <path id="Path_3620" data-name="Path 3620" d="M182.436,488.7c-7.255-43.527-.073-86.9,0-87.329l.722.122c-.073.432-7.234,43.684,0,87.086Z" transform="translate(-133.298 -77.037)" fill="#4d5153"/>
     <rect id="Rectangle_1166" data-name="Rectangle 1166" width="18.601" height="0.733" transform="translate(46.849 352.268) rotate(-28.142)" fill="#4d5153"/>
     <rect id="Rectangle_1167" data-name="Rectangle 1167" width="0.733" height="18.601" transform="translate(29.54 348.538) rotate(-61.842)" fill="#4d5153"/>
   </g>
   <g id="Group_2236" data-name="Group 2236" transform="translate(0 -51)">
-    <path id="Path_3722" data-name="Path 3722" d="M24.82,0C38.528,0,49.64,22.674,49.64,50.643s-11.112,50.643-24.82,50.643S0,78.612,0,50.643,11.112,0,24.82,0Z" transform="translate(65.255 278.228)" fill="#89b53a"/>
+    <path id="Path_3722" data-name="Path 3722" d="M24.82,0C38.528,0,49.64,22.674,49.64,50.643s-11.112,50.643-24.82,50.643S0,78.612,0,50.643,11.112,0,24.82,0Z" transform="translate(65.255 278.228)" fill="#68B030"/>
     <path id="Path_3621" data-name="Path 3621" d="M317.439,420.011c-9.924-59.542-.1-118.866,0-119.458l.722.122c-.1.591-9.9,59.8,0,119.215Z" transform="translate(-224.466 -8.347)" fill="#4d5153"/>
     <rect id="Rectangle_1168" data-name="Rectangle 1168" width="25.454" height="0.733" transform="translate(89.772 330.527) rotate(-28.142)" fill="#4d5153"/>
     <rect id="Rectangle_1169" data-name="Rectangle 1169" width="0.733" height="25.454" transform="matrix(0.472, -0.882, 0.882, 0.472, 66.085, 325.182)" fill="#4d5153"/>
@@ -26,13 +26,13 @@ const main_screen_banner = `<svg xmlns="http://www.w3.org/2000/svg" width="100%"
     <rect id="Rectangle_1171" data-name="Rectangle 1171" width="9.51" height="0.733" transform="translate(298.921 382.994) rotate(-28.158)" fill="#4d5153"/>
   </g>
   <g id="Group_2233" data-name="Group 2233" transform="translate(-1 -51)">
-    <ellipse id="Ellipse_198" data-name="Ellipse 198" cx="18.138" cy="37.008" rx="18.138" ry="37.008" transform="translate(302.725 314.137)" fill="#89b53a"/>
+    <ellipse id="Ellipse_198" data-name="Ellipse 198" cx="18.138" cy="37.008" rx="18.138" ry="37.008" transform="translate(302.725 314.137)" fill="#68B030"/>
     <path id="Path_3623" data-name="Path 3623" d="M1034.131,488.7c7.255-43.527.073-86.9,0-87.329l-.722.122c.073.432,7.234,43.684,0,87.086Z" transform="translate(-715.289 -77.037)" fill="#4d5153"/>
     <rect id="Rectangle_1172" data-name="Rectangle 1172" width="0.733" height="18.601" transform="translate(304.381 344.143) rotate(-61.858)" fill="#4d5153"/>
     <rect id="Rectangle_1173" data-name="Rectangle 1173" width="18.601" height="0.733" transform="translate(321.694 356.666) rotate(-28.158)" fill="#4d5153"/>
   </g>
   <g id="Group_2235" data-name="Group 2235" transform="translate(-1 -51)">
-    <ellipse id="Ellipse_199" data-name="Ellipse 199" cx="24.82" cy="50.643" rx="24.82" ry="50.643" transform="translate(253.084 278.228)" fill="#89b53a"/>
+    <ellipse id="Ellipse_199" data-name="Ellipse 199" cx="24.82" cy="50.643" rx="24.82" ry="50.643" transform="translate(253.084 278.228)" fill="#68B030"/>
     <path id="Path_3624" data-name="Path 3624" d="M896.579,420.011c9.924-59.542.1-118.866,0-119.458l-.722.122c.1.591,9.9,59.8,0,119.215Z" transform="translate(-621.572 -8.347)" fill="#4d5153"/>
     <rect id="Rectangle_1174" data-name="Rectangle 1174" width="0.733" height="25.454" transform="translate(255.416 319.17) rotate(-61.858)" fill="#3f3d56"/>
     <rect id="Rectangle_1175" data-name="Rectangle 1175" width="25.454" height="0.733" transform="matrix(0.882, -0.472, 0.472, 0.882, 279.107, 336.549)" fill="#4d5153"/>

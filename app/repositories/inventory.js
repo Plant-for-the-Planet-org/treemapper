@@ -300,9 +300,9 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
+        let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+        const isPending = inventory.status === 'pending';
         realm.write(() => {
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          console.log('inventory delete', inventory);
           realm.delete(inventory);
           setInventoryId('')(dispatch);
         });
@@ -313,7 +313,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
           message: `Successfully deleted inventory with inventory_id: ${inventory_id}`,
         });
 
-        if (dispatch) {
+        if (dispatch && isPending) {
           updateCount({ type: 'pending', count: 'decrement' })(dispatch);
         }
         resolve(true);
@@ -461,13 +461,7 @@ export const clearAllUploadedInventory = () => {
   });
 };
 
-export const updateSpecieAndMeasurements = ({
-  inventoryId,
-  species,
-  diameter,
-  height,
-  tagId,
-}) => {
+export const updateSpecieAndMeasurements = ({ inventoryId, species, diameter, height, tagId }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {

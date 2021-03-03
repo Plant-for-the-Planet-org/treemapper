@@ -1,4 +1,5 @@
 import Config from 'react-native-config';
+import axios from 'axios';
 import Realm from 'realm';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
@@ -7,11 +8,15 @@ import { getSchema } from './default';
 
 export const getAreaName = ({ coords }) => {
   return new Promise((resolve, reject) => {
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${Config.MAPBOXGL_ACCCESS_TOKEN}`,
-    )
+    axios({
+      method: 'GET',
+      url: `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=place&access_token=${Config.MAPBOXGL_ACCCESS_TOKEN}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
       .then((res) => {
-        res = res.json();
+        res = res.data;
         if (res && res.features && res.features[0]) {
           resolve(res.features[0].place_name);
           // logging the error in to the db

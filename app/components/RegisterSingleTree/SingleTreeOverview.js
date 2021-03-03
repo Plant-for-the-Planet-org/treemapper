@@ -40,6 +40,7 @@ import { getUserInformation } from '../../repositories/user';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
+import AlertModal from '../Common/AlertModal';
 
 const SingleTreeOverview = ({ navigation }) => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
@@ -61,6 +62,7 @@ const SingleTreeOverview = ({ navigation }) => {
   const [countryCode, setCountryCode] = useState('');
   const [isShowManageSpecies, setIsShowManageSpecies] = useState(false);
   const [registrationType, setRegistrationType] = useState(null);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
     let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -84,6 +86,11 @@ const SingleTreeOverview = ({ navigation }) => {
     Country();
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
+
+  // useEffect(() => {
+  //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
+  //   return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+  // }, []);
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
@@ -204,11 +211,11 @@ const SingleTreeOverview = ({ navigation }) => {
         {
           id: specie.guid,
           treeCount: 1,
-          aliases: specie.scientific_name,
+          aliases: specie.scientificName,
         },
       ],
     });
-    setSpecieText(specie.scientific_name);
+    setSpecieText(specie.scientificName);
   };
 
   const renderDateModal = () => {
@@ -358,7 +365,8 @@ const SingleTreeOverview = ({ navigation }) => {
             testID="tree-tag-btn"
             accessible={true}>
             <Text style={styles.detailText}>
-              {tagId ? tagId : 'NA'} {shouldEdit && <MIcon name={'edit'} size={20} />}
+              {tagId ? tagId : i18next.t('label.tree_review_not_tagged')}{' '}
+              {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
@@ -400,11 +408,9 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const handleDeleteInventory = () => {
-    deleteInventory(
-      { inventory_id: inventory.inventory_id },
-      inventory.status === 'pending' ? dispatch : null,
-    )
+    deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
+        setShowDeleteAlert(!showDeleteAlert);
         navigation.navigate('TreeInventory');
       })
       .catch((err) => {
@@ -431,10 +437,12 @@ const SingleTreeOverview = ({ navigation }) => {
               closeIcon
               onBackPress={onPressSave}
               headingText={
-                locateTree === 'off-site' ? i18next.t('label.tree_review_details') : i18next.t('label.tree_review_header')
+                locateTree === 'off-site'
+                  ? i18next.t('label.tree_review_details')
+                  : i18next.t('label.tree_review_header')
               }
             />
-            <TouchableOpacity style={{ paddingTop: 15 }} onPress={handleDeleteInventory}>
+            <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
               <Text
                 style={{
                   fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -493,6 +501,19 @@ const SingleTreeOverview = ({ navigation }) => {
           []
         )}
       </View>
+      <AlertModal
+        visible={showDeleteAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={
+          status === 'complete'
+            ? i18next.t('label.tree_review_delete_uploaded_registration')
+            : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
+        }
+        primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')}
+        secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
+        onPressPrimaryBtn={handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+      />
     </SafeAreaView>
   );
 };

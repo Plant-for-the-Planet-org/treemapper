@@ -51,14 +51,14 @@ const MySpecies = ({
               fontSize: Typography.FONT_SIZE_16,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
             }}>
-            {item.scientific_name}
+            {item.scientificName}
           </Text>
         </View>
         {registrationType == 'multiple' ? (
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
         ) : item.guid !== 'unknown' ? (
           <TouchableOpacity
-            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientific_name })}>
+            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
         ) : (
@@ -99,9 +99,8 @@ const MySpecies = ({
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>Looks Empty Here!</Text>
-            <Text style={styles.subHeadingText}>Add species to your list by </Text>
-            <Text style={styles.subHeadingText}>searching the species. </Text>
+            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
+            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
           </View>
         )}
       </View>
@@ -131,6 +130,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
+    paddingLeft: 25,
+    paddingRight: 25,
+    textAlign: 'center',
   },
 });
 

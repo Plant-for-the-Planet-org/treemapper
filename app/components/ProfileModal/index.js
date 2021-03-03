@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { close, logo, logout } from '../../assets';
+import { logo, logout } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import ProfileListItem from './ProfileListItem';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AvatarIcon from '../Common/AvatarIcon';
 
 const ProfileModal = ({
-  isUserLogin,
   onPressCloseProfileModal,
   isProfileModalVisible,
   onPressLogout,
@@ -28,14 +28,14 @@ const ProfileModal = ({
     navigation.navigate('Legals');
   };
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org');
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
   };
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar = userInfo.image
-    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
-    : 'https://cdn.iconscout.com/icon/free/png-512/avatar-367-456319.png';
+  let avatar = userInfo.image ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}` : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
@@ -93,20 +93,31 @@ const ProfileModal = ({
           <View style={styles.subContainer}>
             <View style={styles.headerContainer}>
               <TouchableOpacity
+                style={styles.closeButtonContainer}
                 onPress={onPressCloseProfileModal}
                 accessible={true}
                 accessibilityLabel="Profile Modal"
                 testID="profile_modal">
                 <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
               </TouchableOpacity>
-              <SvgXml xml={logo} />
-              <View />
+              <View style={styles.logoContainer}>
+                <SvgXml xml={logo} />
+              </View>
             </View>
             <View style={styles.profileSection1}>
-              <Image
-                style={{ width: 50, height: 50, marginHorizontal: 10, borderRadius: 50 }}
-                source={{ uri: avatar }}
-              />
+              {avatar ? (
+                <Image
+                  style={{
+                    width: 50,
+                    height: 50,
+                    marginLeft: 10,
+                    marginRight: 4,
+                  }}
+                  source={{ uri: avatar }}
+                />
+              ) : (
+                <AvatarIcon name={userInfo.firstName} style={{ marginLeft: 10, marginRight: 14 }} />
+              )}
               <View style={styles.nameAndEmailContainer}>
                 <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
                 <Text style={styles.userName}>{userInfo.email}</Text>
@@ -116,7 +127,12 @@ const ProfileModal = ({
               <ProfileListItem key={index} {...item} />
             ))}
             <View style={styles.horizontalBar} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal:50 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                marginHorizontal: 50,
+              }}>
               <Text onPress={onPressLegals} style={styles.textAlignCenter}>
                 {i18next.t('label.legal_docs')}
               </Text>
@@ -147,8 +163,18 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  logoContainer: {
+    height: 44,
+    width: 44,
   },
   profileSection: {
     flexDirection: 'row',
@@ -201,10 +227,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
     textTransform: 'capitalize',
-  },
-  bottomBtnsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   imgIcon: {
     width: 25,

@@ -1,22 +1,22 @@
-import { APIConfig } from './Config';
-import axios from 'axios';
 import {
   getInventoryByStatus,
   changeInventoryStatusAndResponse,
   changeInventoryStatus,
 } from '../repositories/inventory';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import RNFS from 'react-native-fs';
-import getSessionData from '../utils/sessionId';
 import { updateCount, updateIsUploading } from './inventory';
 import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { bugsnag } from '../utils';
-import { getUserToken } from '../repositories/user';
+import { permission } from '../utils/permissions';
+import {
+  postAuthenticatedRequest,
+  getAuthenticatedRequest,
+  putAuthenticatedRequest,
+} from '../utils/api';
 
-const { protocol, url } = APIConfig;
-
-const changeStatusAndUpload = async (response, oneInventory, userToken, sessionData, dispatch) => {
+const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
     try {
       if (oneInventory.locate_tree == 'off-site') {
@@ -43,12 +43,7 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
         )
           .then(async (isSucceed) => {
             if (isSucceed) {
-              const result = await checkAndUploadImage(
-                oneInventory,
-                response,
-                userToken,
-                sessionData,
-              );
+              const result = await checkAndUploadImage(oneInventory, response);
               if (result.allUploadCompleted) {
                 changeInventoryStatus(
                   {
@@ -87,9 +82,10 @@ const changeStatusAndUpload = async (response, oneInventory, userToken, sessionD
 
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
-    getUserToken().then((userToken) => {
-      try {
-        // gets the current geo location coordinate of the user and passes the position forward
+    // gets the current geo location coordinate of the user and passes the position forward
+    permission()
+      .then(() => {
+        console.log('asking location service');
         Geolocation.getCurrentPosition(
           async (position) => {
             dbLog.info({
@@ -97,6 +93,7 @@ export const uploadInventory = (dispatch) => {
               message: 'Fetched user current coordinates.',
               logStack: JSON.stringify(position),
             });
+            console.log(position, 'position');
             // stores the current coordinates of the user
             const currentCoords = position.coords;
             // get pending inventories from realm DB
@@ -153,117 +150,75 @@ export const uploadInventory = (dispatch) => {
               if (oneInventory.tag_id) {
                 body.tag = oneInventory.tag_id;
               }
-              await getSessionData()
-                .then(async (sessionData) => {
-                  if (oneInventory.response !== null && oneInventory.status === 'uploading') {
-                    const inventoryResponse = JSON.parse(oneInventory.response);
-                    try {
-                      const response = await getPlantLocationDetails(
-                        inventoryResponse.id,
-                        userToken,
-                      );
-                      await changeStatusAndUpload(
-                        response,
-                        oneInventory,
-                        userToken,
-                        sessionData,
-                        dispatch,
-                      );
-                      if (inventoryData.length - 1 === i) {
-                        updateIsUploading(false)(dispatch);
-                        resolve();
-                      }
-                    } catch (err) {
-                      if (inventoryData.length - 1 === i) {
-                        updateIsUploading(false)(dispatch);
-                        reject();
-                      }
-                      console.error(err);
-                    }
-                  } else {
-                    try {
-                      const data = await axios({
-                        method: 'POST',
-                        url: `${protocol}://${url}/treemapper/plantLocations`,
-                        data: body,
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${userToken}`,
-                          'x-session-id': sessionData,
-                        },
-                      });
-                      if (data && data.data) {
-                        await changeStatusAndUpload(
-                          data.data,
-                          oneInventory,
-                          userToken,
-                          sessionData,
-                          dispatch,
-                        )
-                          .then(() => {
-                            if (inventoryData.length - 1 === i) {
-                              updateIsUploading(false)(dispatch);
-                              resolve();
-                            }
-                          })
-                          .catch((err) => {
-                            if (inventoryData.length - 1 === i) {
-                              updateIsUploading(false)(dispatch);
-                              reject(err);
-                            }
-                            console.error(
-                              `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
-                                err,
-                              )}`,
-                            );
-                          });
-                      } else {
+
+              if (oneInventory.response !== null && oneInventory.status === 'uploading') {
+                const inventoryResponse = JSON.parse(oneInventory.response);
+                try {
+                  const response = await getPlantLocationDetails(inventoryResponse.id);
+                  await changeStatusAndUpload(response, oneInventory, dispatch);
+                  if (inventoryData.length - 1 === i) {
+                    updateIsUploading(false)(dispatch);
+                    resolve();
+                  }
+                } catch (err) {
+                  if (inventoryData.length - 1 === i) {
+                    updateIsUploading(false)(dispatch);
+                    reject();
+                  }
+                  console.error(err);
+                }
+              } else {
+                try {
+                  const data = await postAuthenticatedRequest('/treemapper/plantLocations', body);
+
+                  if (data && data.data) {
+                    await changeStatusAndUpload(data.data, oneInventory, dispatch)
+                      .then(() => {
                         if (inventoryData.length - 1 === i) {
                           updateIsUploading(false)(dispatch);
-                          reject(false);
+                          resolve();
                         }
-                      }
-                      dbLog.info({
-                        logType: LogTypes.DATA_SYNC,
-                        message:
-                          'Successfully added plant location, POST - /treemapper/plantLocation',
-                        referenceId: oneInventory.inventory_id,
+                      })
+                      .catch((err) => {
+                        if (inventoryData.length - 1 === i) {
+                          updateIsUploading(false)(dispatch);
+                          reject(err);
+                        }
+                        console.error(
+                          `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
+                            err,
+                          )}`,
+                        );
                       });
-                    } catch (err) {
-                      if (inventoryData.length - 1 === i) {
-                        updateIsUploading(false)(dispatch);
-                        reject(err);
-                      }
-                      console.error(
-                        `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
-                          err.response,
-                        )}`,
-                      );
-                      dbLog.error({
-                        logType: LogTypes.DATA_SYNC,
-                        message:
-                          'Error while add plant location, POST - /treemapper/plantLocations',
-                        statusCode: err?.response?.status,
-                        logStack: JSON.stringify(err.response),
-                      });
+                  } else {
+                    if (inventoryData.length - 1 === i) {
+                      updateIsUploading(false)(dispatch);
+                      reject(false);
                     }
                   }
-                })
-                .catch((err) => {
+                  dbLog.info({
+                    logType: LogTypes.DATA_SYNC,
+                    message: 'Successfully added plant location, POST - /treemapper/plantLocation',
+                    referenceId: oneInventory.inventory_id,
+                  });
+                } catch (err) {
                   if (inventoryData.length - 1 === i) {
                     updateIsUploading(false)(dispatch);
                     reject(err);
                   }
                   console.error(
-                    `Error at: /action/upload, getSessionData -> ${JSON.stringify(err.response)}`,
+                    `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
+                      err.response,
+                    )}`,
                   );
                   dbLog.error({
                     logType: LogTypes.DATA_SYNC,
-                    message: 'Error while getting session data',
+                    message: 'Error while add plant location, POST - /treemapper/plantLocations',
                     statusCode: err?.response?.status,
                     logStack: JSON.stringify(err.response),
                   });
-                });
+                }
+              }
             }
           },
           (err) => {
@@ -274,15 +229,16 @@ export const uploadInventory = (dispatch) => {
             });
           },
         );
-      } catch (err) {
+      })
+      .catch((err) => {
+        console.log(err);
         reject(err);
-        alert('Unable to retrieve location');
-      }
-    });
+        return err;
+      });
   });
 };
 
-const checkAndUploadImage = async (oneInventory, response, userToken, sessionId) => {
+const checkAndUploadImage = async (oneInventory, response) => {
   try {
     let locationId = response.id;
     let coordinatesList = oneInventory.polygons[0].coordinates;
@@ -300,8 +256,6 @@ const checkAndUploadImage = async (oneInventory, response, userToken, sessionId)
 
       const isUploaded = await uploadImage(
         inventoryObject.imageUrl,
-        userToken,
-        sessionId,
         locationId,
         oneResponseCoords.id,
         oneInventory.inventory_id,
@@ -319,14 +273,7 @@ const checkAndUploadImage = async (oneInventory, response, userToken, sessionId)
   }
 };
 
-const uploadImage = async (
-  imageUrl,
-  userToken,
-  sessionId,
-  locationId,
-  coordinateId,
-  inventoryId,
-) => {
+const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
   try {
     // fetches the image from device file system and stores it in base64 format which is used for uploading
     const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');
@@ -336,20 +283,12 @@ const uploadImage = async (
       imageFile: `data:image/png;base64,${base64Image}`,
     };
 
-    // defines the headers which is to be passed with the request
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `OAuth ${userToken}`,
-      'x-session-id': sessionId,
-    };
     try {
       // makes the PUT request to upload the image and stores the result of the same
-      const result = await axios({
-        method: 'PUT',
-        url: `${protocol}://${url}/treemapper/plantLocations/${locationId}/coordinates/${coordinateId}`,
-        data: body,
-        headers: headers,
-      });
+      const result = await putAuthenticatedRequest(
+        `/treemapper/plantLocations/${locationId}/coordinates/${coordinateId}`,
+        body,
+      );
 
       // if status is 200 then increments the completed upload count by 1 and logs the success of api request in DB
       if (result.status === 200) {
@@ -394,16 +333,9 @@ const uploadImage = async (
   }
 };
 
-const getPlantLocationDetails = (locationId, userToken) => {
+const getPlantLocationDetails = (locationId) => {
   return new Promise((resolve, reject) => {
-    axios({
-      method: 'GET',
-      url: `${protocol}://${url}/treemapper/plantLocations/${locationId}`,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `OAuth ${userToken}`,
-      },
-    })
+    getAuthenticatedRequest(`/treemapper/plantLocations/${locationId}`)
       .then((res) => {
         const { data, status } = res;
         if (status === 200) {
