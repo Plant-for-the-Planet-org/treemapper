@@ -1,11 +1,11 @@
 {
   "permission_blocked": "Permission Blocked",
-  "permission_blocked_message": "You need to give location permission to register on-site tree",
+  "permission_blocked_message": "You need to give location permission to register on-site tree.",
   "open_settings": "Open Settings",
   "back": "Back",
   "ok": "Ok",
   "permission_denied": "Permission Denied",
-  "permission_denied_message": "You need to give location permission to register on-site tree",
+  "permission_denied_message": "You need to give location permission to register on-site tree.",
   "gps_accuracy": "GPS Accuracy",
   "accuracy_info": "You can use the GPS data to determine accuracy of a location. Tree Mapper only allows on site registration if location is accurate to 30 meter.",
   "green": "Green",
@@ -20,6 +20,6 @@
   "try_again": "Try Again",
   "continue": "Continue",
   "location_service": "Location Service",
-  "location_service_message": "Location settings are not satisfied",
+  "location_service_message": "Location settings are not satisfied.",
   "cancel": "Cancel"
 }
