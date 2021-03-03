@@ -17,7 +17,7 @@ import { active_marker, marker_png } from '../../assets/index';
 import { getInventory, addCoordinates, polygonUpdate } from '../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
@@ -118,6 +118,7 @@ export default function MapMarking({
   // initializes the state by updating state
   const initializeState = () => {
     getInventory({ inventoryID: inventoryID }).then((inventory) => {
+      console.log('inventory', inventory);
       if (inventory.polygons.length > 0) {
         let featureList = inventory.polygons.map((onePolygon) => {
           return {
@@ -175,60 +176,65 @@ export default function MapMarking({
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
-  const addMarker = async (forceContinue, accuracySet) => {
-    if (locateTree == 'on-site') {
-      if (accuracySet < 30 || forceContinue) {
-        updateCurrentPosition()
-          .then(async () => {
-            let currentCoords = [location.coords.latitude, location.coords.longitude];
-            let centerCoordinates = await map.current.getCenter();
+  const addMarker = async () => {
+    console.log('locateTree', locateTree);
+    if (locateTree === 'on-site') {
+      // if (accuracyInMeters < 30 || forceContinue) {
+      updateCurrentPosition()
+        .then(async () => {
+          let currentCoords = [location.coords.latitude, location.coords.longitude];
+          let centerCoordinates = await map.current.getCenter();
+          console.log('currentCoords', currentCoords);
+          console.log('centerCoordinates', centerCoordinates);
 
-            let isValidMarkers = true;
-            for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
-              let distance = distanceCalculator(
-                centerCoordinates[1],
-                centerCoordinates[0],
-                oneMarker[1],
-                oneMarker[0],
-                'K',
-              );
-              let distanceInMeters = distance * 1000;
-              if (distanceInMeters < 10) {
-                isValidMarkers = false;
-              }
-            }
-
+          let isValidMarkers = true;
+          for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
             let distance = distanceCalculator(
-              currentCoords[0],
-              currentCoords[1],
               centerCoordinates[1],
               centerCoordinates[0],
+              oneMarker[1],
+              oneMarker[0],
               'K',
             );
-
             let distanceInMeters = distance * 1000;
-
-            if (!isValidMarkers) {
-              alert(i18next.t('label.locate_tree_add_marker_valid'));
-            } else if (distanceInMeters < 100) {
-              pushMaker(complete, currentCoords);
-            } else {
-              alert(i18next.t('label.locate_tree_add_marker_invalid'));
+            if (distanceInMeters < 10) {
+              isValidMarkers = false;
             }
-          })
-          .catch((err) => {
-            alert(JSON.stringify(err), 'Alert');
-          });
-      } else {
-        setIsAlertShow(true);
-      }
+          }
+
+          let distance = distanceCalculator(
+            currentCoords[0],
+            currentCoords[1],
+            centerCoordinates[1],
+            centerCoordinates[0],
+            'K',
+          );
+
+          let distanceInMeters = distance * 1000;
+
+          console.log('isValidMarkers', isValidMarkers);
+          console.log('distanceInMeters', distanceInMeters);
+          if (!isValidMarkers) {
+            alert(i18next.t('label.locate_tree_add_marker_valid'));
+          } else if (distanceInMeters < 100) {
+            pushMaker(currentCoords);
+          } else {
+            alert(i18next.t('label.locate_tree_add_marker_invalid'));
+          }
+        })
+        .catch((err) => {
+          alert(JSON.stringify(err), 'Alert');
+        });
+      // } else {
+      //   setIsAlertShow(true);
+      // }
     } else {
       setIsAccuracyModalShow(true);
       try {
         Geolocation.getCurrentPosition(
           (position) => {
             let currentCoords = position.coords;
-            pushMaker(complete, currentCoords);
+            pushMaker(currentCoords);
           },
           (err) => alert(err.message),
         );
@@ -239,7 +245,7 @@ export default function MapMarking({
     // Check distance
   };
 
-  const pushMaker = async (complete, currentCoords) => {
+  const pushMaker = async (currentCoords) => {
     geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = await map.current.getCenter();
 
     setGeoJSON(geoJSON);
@@ -251,16 +257,14 @@ export default function MapMarking({
     };
     addCoordinates(data).then(() => {
       if (locateTree === 'on-site') {
-        let location =
-          alphabets[geoJSON.features[0].geometry.coordinates.length - complete ? 2 : 1];
-        toggleState(location, geoJSON.features[0].geometry.coordinates.length);
+        toggleState();
       } else {
         // For off site
-        if (complete) {
-          navigation.navigate('InventoryOverview');
-        } else {
-          updateActiveMarkerIndex(activeMarkerIndex + 1);
-        }
+        // if (complete) {
+        //   navigation.navigate('InventoryOverview');
+        // } else {
+        updateActiveMarkerIndex(activeMarkerIndex + 1);
+        // }
       }
     });
   };
@@ -326,7 +330,7 @@ export default function MapMarking({
     return markers;
   };
 
-  onPressCompletePolygon = async () => {
+  const onPressCompletePolygon = async () => {
     setIsCompletePolygon(true);
 
     geoJSON.features[0].properties.isPolygonComplete = true;
@@ -337,7 +341,7 @@ export default function MapMarking({
       geoJSON: geoJSON,
       currentCoords: { latitude: lastCoords.latitude, longitude: lastCoords.longitude },
     }).then(() => {
-      if (locateTree == 'on-site') {
+      if (locateTree === 'on-site') {
         console.log('onsite locate tree');
       } else {
         // For off site
@@ -367,6 +371,7 @@ export default function MapMarking({
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
+          console.log('position', position);
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -374,6 +379,7 @@ export default function MapMarking({
           resolve(true);
         },
         (err) => {
+          console.error('geolocation error', err);
           setIsLocationAlertShow(true);
         },
         {
@@ -410,7 +416,9 @@ export default function MapMarking({
     );
   };
 
-  renderAlrightyModal = () => {
+  const renderAlrightyModal = () => {
+    console.log('renderAlrightyModal create poly');
+
     let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length;
     const onPressContinue = () => setIsAlrightyModalShow(false);
     const updateAndCompletePolygon = () => {
@@ -444,7 +452,7 @@ export default function MapMarking({
     );
   };
 
-  onPressBack = () => {
+  const onPressBack = () => {
     navigation.navigate('TreeInventory');
   };
 
@@ -456,6 +464,17 @@ export default function MapMarking({
 
   return (
     <View style={styles.container} fourceInset={{ top: 'always' }}>
+      <View style={styles.headerCont}>
+        {/* <SafeAreaView /> */}
+        <Header
+          onBackPress={onPressBack}
+          headingText={`${i18next.t('label.locate_tree_location')} ${
+            alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
+          }`}
+          closeIcon
+          subHeadingText={i18next.t('label.locate_tree_map_marking_sub_header')}
+        />
+      </View>
       <View style={styles.container}>
         {renderMapView()}
         {renderFakeMarker()}
@@ -465,21 +484,13 @@ export default function MapMarking({
         <View style={styles.continueBtnCont}>
           <PrimaryButton
             disabled={loader}
-            onPress={() => addMarker()}
+            onPress={addMarker}
             btnText={i18next.t('label.tree_map_marking_btn')}
             style={styles.bottonBtnContainer}
           />
         </View>
       </View>
-      {/* <SafeAreaView /> */}
-      <Header
-        onBackPress={onPressBack}
-        headingText={`${i18next.t('label.locate_tree_location')} ${
-          alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
-        }`}
-        closeIcon
-        subHeadingText={i18next.t('label.locate_tree_map_marking_sub_header')}
-      />
+
       {renderAlrightyModal()}
     </View>
   );
@@ -514,9 +525,6 @@ const styles = StyleSheet.create({
   },
   headerCont: {
     paddingHorizontal: 25,
-    position: 'absolute',
-    top: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0)',
     width: '100%',
   },
   fakeMarkerCont: {

@@ -7,7 +7,6 @@ import { Colors, Typography } from '_styles';
 import {
   getInventory,
   removeLastCoord,
-  getCoordByIndex,
   insertImageSingleRegisterTree,
   insertImageAtIndexCoordinate,
   polygonUpdate,
@@ -57,13 +56,16 @@ const ImageCapturing = ({
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     if (inventoryType === 'multiple') {
-      getCoordByIndex({ inventory_id: state.inventoryID, index: activeMarkerIndex }).then(
-        ({ coordsLength, coord }) => {
-          if (coord.imageUrl) {
-            setImagePath(coord.imageUrl);
-          }
-        },
-      );
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+        if (
+          Array.isArray(inventoryData.polygons) &&
+          Array.isArray(inventoryData.polygons[0]?.coordinates) &&
+          inventoryData.polygons[0].coordinates[activeMarkerIndex]
+        ) {
+          setImagePath(inventoryData.polygons[0].coordinates[activeMarkerIndex].imageUrl);
+        }
+      });
       generateMarkers();
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
@@ -144,7 +146,11 @@ const ImageCapturing = ({
           insertImageAtIndexCoordinate(data).then(() => {
             if (isCompletePolygon) {
               setIsAlrightyModalShow(false);
-              navigation.navigate('InventoryOverview');
+              if (inventory.locate_tree === 'on-site') {
+                navigation.navigate('SampleTreesCount');
+              } else {
+                navigation.navigate('InventoryOverview');
+              }
             } else {
               updateActiveMarkerIndex(activeMarkerIndex + 1);
               toggleState();
@@ -185,7 +191,11 @@ const ImageCapturing = ({
       polygonUpdate({ inventory_id: state.inventoryID }).then(() => {
         completePolygon({ inventory_id: state.inventoryID }).then(() => {
           setIsAlrightyModalShow(false);
-          navigation.navigate('InventoryOverview');
+          if (inventory.locate_tree === 'on-site') {
+            navigation.navigate('SampleTreesCount');
+          } else {
+            navigation.navigate('InventoryOverview');
+          }
         });
       });
     });
@@ -194,6 +204,7 @@ const ImageCapturing = ({
   const renderAlrightyModal = () => {
     let infoIndex = activeMarkerIndex > 2 ? 2 : activeMarkerIndex;
     const { heading, subHeading } = infographicText[infoIndex];
+    console.log('renderAlrightyModal image capturing');
     return (
       <Modal animationType={'slide'} visible={isAlrightyModalShow}>
         <View style={styles.mainContainer}>

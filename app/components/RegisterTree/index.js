@@ -52,9 +52,7 @@ const RegisterTree = ({ navigation }) => {
           <LargeButton
             onPress={onPressMultipleTree}
             heading={i18next.t('label.tree_registration_type_2')}
-            subHeading={`${i18next.t('label.tree_registration_type_1_sub_header')}\n${i18next.t(
-              'label.coming_soon',
-            )}`}
+            subHeading={`${i18next.t('label.tree_registration_type_1_sub_header')}`}
             active={treeType === 'multiple'}
             subHeadingStyle={treeType === 'multiple' && styles.activeTextColor}
             testID={'page_rt_multiple_trees'}

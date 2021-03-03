@@ -9,11 +9,9 @@ import { InventoryContext } from '../../reducers/inventory';
 const CreatePolygon = ({ route }) => {
   const { state } = useContext(InventoryContext);
 
-  const [locationText, setLocationText] = useState('');
   const [isMapMarkingState, setIsMapMarkingState] = useState(true);
   const [isCompletePolygon, setIsCompletePolygon] = useState(false);
-  const [coordsLength, setCoordsLength] = useState(0);
-  const [activeMarkerIndex, setActiveMarkerIndex] = useState(null);
+  const [activeMarkerIndex, setActiveMarkerIndex] = useState();
 
   useEffect(() => {
     checkIsEdit();
@@ -30,18 +28,12 @@ const CreatePolygon = ({ route }) => {
     }
   };
 
-  const toggleState = (locationText, coordsLength) => {
-    setLocationText(locationText);
-    setCoordsLength(coordsLength);
+  const toggleState = () => {
     setIsMapMarkingState(!isMapMarkingState);
   };
 
   const updateActiveMarkerIndex = (index) => {
     setActiveMarkerIndex(index);
-  };
-
-  const toogleState2 = () => {
-    setIsMapMarkingState(!isMapMarkingState);
   };
 
   return (
@@ -54,7 +46,7 @@ const CreatePolygon = ({ route }) => {
             setIsCompletePolygon={setIsCompletePolygon}
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
-            toogleState2={toogleState2}
+            inventoryID={state.inventoryID}
           />
         ) : (
           <ImageCapturing
