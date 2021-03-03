@@ -19,7 +19,7 @@ jobs:
     - name: Select Xcode
       run: |
         echo "Default version:" `xcode-select -p`
-        sudo xcode-select -s /Applications/Xcode_12.3.app
+        sudo xcode-select -s /Applications/Xcode_12.4.app
         echo "Selected version:" `xcode-select -p`
 
     - name: Check versions
@@ -95,6 +95,7 @@ jobs:
         echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
         echo "API_ENDPOINT=$API_ENDPOINT" >> .env
         echo "CDN_URL=$CDN_URL" >> .env
+        cp .env .env.staging
 
     # - name: Caching Pods
     #   uses: actions/cache@v1
@@ -116,8 +117,9 @@ jobs:
 
     - name: Build archive
       run: |
+        xcodebuild -list
         xcodebuild -sdk iphoneos -workspace treemapper.xcworkspace \
-        -configuration Release -scheme 'treemapper' \
+        -configuration Release -scheme 'treemapper(.env.staging)' \
         -derivedDataPath DerivedData \
         -archivePath DerivedData/Archive/treemapper archive
       working-directory: ./ios
