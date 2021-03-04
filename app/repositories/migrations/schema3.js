@@ -27,7 +27,6 @@ const Species = {
     id: 'string?',
   },
 };
-
 const OfflineMaps = {
   name: 'OfflineMaps',
   primaryKey: 'name',
@@ -35,37 +34,6 @@ const OfflineMaps = {
     areaName: 'string',
     size: 'int',
     name: 'string',
-  },
-};
-
-// used to record the sample trees
-const SampleTrees = {
-  name: 'SampleTrees',
-  properties: {
-    // stores the latitiude of the tree
-    latitude: 'float',
-    // stores the longitude of the tree
-    longitude: 'float',
-    // stores the latitiude of the device when location was marked
-    deviceLatitude: 'float',
-    // stores the longitude of the device when location was marked
-    deviceLongitude: 'float',
-    // stores accuracy of location when the location was marked
-    locationAccuracy: 'float?',
-    // URL of the image if picture was clicked
-    imageUrl: 'string?',
-    // specie id for this sample tree
-    specieId: 'string?',
-    // diameter of selected specie
-    species_diameter: 'float?',
-    // height of selected specie
-    species_height: 'float?',
-    // tag id of the tree if the tree has one
-    tag_id: 'string?',
-    // current status of the tree. Refer to inventoryStatuses for different status
-    status: 'string',
-    // stores the date when the tree was planted
-    plantation_date: 'date?',
   },
 };
 
@@ -89,15 +57,6 @@ const Inventory = {
     response: 'string?',
     tag_id: 'string?',
     registration_date: 'date?',
-    // stores the count of sample trees which are to be recorded
-    sampleTreesCount: 'int?',
-    // stores the sample trees having length equal to tree count
-    sampleTrees: 'SampleTrees[]',
-    // stores the number of sample trees which are already recorded
-    completedSampleTreesCount: {
-      type: 'int?',
-      default: 0,
-    },
   },
 };
 
@@ -179,8 +138,7 @@ export default {
     Inventory,
     ScientificSpecies,
     ActivityLogs,
-    SampleTrees,
   ],
-  schemaVersion: 4,
+  schemaVersion: 3,
   migration,
 };

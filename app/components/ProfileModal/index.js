@@ -19,6 +19,17 @@ const ProfileModal = ({
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const navigation = useNavigation();
 
+  // adds the user name according to the available data
+  let userName = '';
+  if (userInfo.firstName) {
+    userName += userInfo.firstName;
+    if (userInfo.lastName) {
+      userName += ` ${userInfo.lastName}`;
+    }
+  } else if (userInfo.type === 'tpo' && userInfo.displayName) {
+    userName = userInfo.displayName;
+  }
+
   useEffect(() => {
     setVisibility(isProfileModalVisible);
   }, [navigation, visibility]);
@@ -119,7 +130,8 @@ const ProfileModal = ({
                 <AvatarIcon name={userInfo.firstName} style={{ marginLeft: 10, marginRight: 14 }} />
               )}
               <View style={styles.nameAndEmailContainer}>
-                <Text style={styles.userEmail}>{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
+                {userName ? <Text style={styles.userEmail}>{`${userName}`}</Text> : []}
+
                 <Text style={styles.userName}>{userInfo.email}</Text>
               </View>
             </View>

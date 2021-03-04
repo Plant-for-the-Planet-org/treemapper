@@ -1,4 +1,9 @@
 apply plugin: "com.android.application"
+project.ext.envConfigFiles = [
+  staging   : ".env.staging",
+  production: ".env.production",
+  develop   : ".env.develop",
+]
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 import com.android.build.OutputFile
@@ -78,6 +83,12 @@ import com.android.build.OutputFile
  * ]
  */
 
+def Properties properties = new Properties()
+def File propfile = project.rootProject.file("local.properties")
+if (propfile.exists()) {
+  properties.load(propfile.newDataInputStream())
+}
+
 // Unfortunately realm is not compatible yet with Hermes engine: https://github.com/realm/realm-js/issues/2581#issuecomment-547289399
 // Here you can check if Realm is already supporting Hermes engine: https://github.com/realm/realm-js/issues/2455
 project.ext.react = [
@@ -151,6 +162,14 @@ android {
         }
     }
     signingConfigs {
+      release {
+          if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+            storeFile file(MYAPP_RELEASE_STORE_FILE)
+            storePassword properties.getProperty("MYAPP_RELEASE_STORE_PASSWORD")
+            keyAlias MYAPP_RELEASE_KEY_ALIAS
+            keyPassword properties.getProperty("MYAPP_RELEASE_KEY_PASSWORD")
+          }
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -163,19 +182,23 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
+    flavorDimensions "env"
 
-    packagingOptions {
-        pickFirst "lib/armeabi-v7a/libc++_shared.so"
-        pickFirst "lib/arm64-v8a/libc++_shared.so"
-        pickFirst "lib/x86/libc++_shared.so"
-        pickFirst "lib/x86_64/libc++_shared.so"
+    productFlavors {
+      staging {
+        dimension "env"
+      }
+      production {
+        dimension "env"
+      }
+      develop {
+        dimension "env"
+      }
     }
 
     // applicationVariants are e.g. debug, release
@@ -189,19 +212,28 @@ android {
                 output.versionCodeOverride =
                         versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
-
         }
+    }
+
+    packagingOptions {
+      pickFirst "lib/armeabi-v7a/libc++_shared.so"
+      pickFirst "lib/arm64-v8a/libc++_shared.so"
+      pickFirst "lib/x86/libc++_shared.so"
+      pickFirst "lib/x86_64/libc++_shared.so"
+    }
+
+    lintOptions {
+      abortOnError false
     }
 }
 
 dependencies {
-    compile (project(':react-native-camera')) {
-    exclude group: "com.google.android.gms"
-    }
-    compile ("com.google.android.gms:play-services-vision:10.2.0") {
-    force = true;
-    }
-
+//    compile (project(':react-native-camera')) {
+//    exclude group: "com.google.android.gms"
+//    }
+//    compile ("com.google.android.gms:play-services-vision:10.2.0") {
+//    force = true;
+//    }
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion

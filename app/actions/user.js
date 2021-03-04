@@ -223,6 +223,8 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
           image,
           country,
           id: tpoId,
+          type,
+          displayName,
         } = data.data;
 
         // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
@@ -233,6 +235,8 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
           image,
           country,
           tpoId,
+          type,
+          displayName,
         });
 
         // logging the success in to the db
