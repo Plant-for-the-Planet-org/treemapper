@@ -166,7 +166,7 @@ const ScientificSpecies = {
 };
 
 const migration = (oldRealm, newRealm) => {
-  if (oldRealm.schemaVersion < 3) {
+  if (oldRealm.schemaVersion < 4) {
   }
 };
 
@@ -182,6 +182,6 @@ export default {
     ActivityLogs,
     SampleTrees,
   ],
-  schemaVersion: 3,
+  schemaVersion: 4,
   migration,
 };

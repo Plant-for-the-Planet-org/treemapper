@@ -3,9 +3,9 @@ import { bugsnag } from '../utils';
 import schema0 from './migrations/schema0';
 import schema1 from './migrations/schema1';
 import schema2 from './migrations/schema2';
-import schema3 from './migrations/schema3';
+import schema4 from './migrations/schema4';
 
-export const schemas = [schema0, schema1, schema2, schema3];
+export const schemas = [schema0, schema1, schema2, schema4];
 
 export const getSchema = () => schemas[schemas.length - 1];
 
