@@ -172,9 +172,9 @@ const SingleTreeOverview = ({ navigation }) => {
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
                   onChangeText={(text) => {
                     if (editEnable === 'diameter') {
-                      setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else if (editEnable === 'height') {
-                      setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else {
                       setEditedTagId(text);
                     }

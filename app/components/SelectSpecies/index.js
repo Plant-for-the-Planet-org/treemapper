@@ -256,7 +256,7 @@ const SelectSpecies = ({
                           autoFocus
                           placeholder={i18next.t('label.select_species_diameter')}
                           placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) => setDiameter(text.replace(/[^0-9.]/g, ''))}
+                          onChangeText={(text) => setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))}
                           keyboardType={'decimal-pad'}
                         />
                         <Text
@@ -285,7 +285,7 @@ const SelectSpecies = ({
                           style={styles.input}
                           placeholder={i18next.t('label.select_species_height')}
                           placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) => setHeight(text.replace(/[^0-9.]/g, ''))}
+                          onChangeText={(text) => setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))}
                           keyboardType={'decimal-pad'}
                         />
                         <Text
