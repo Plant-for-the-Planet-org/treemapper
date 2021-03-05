@@ -110,6 +110,7 @@ class SelectCoordinates extends React.Component {
         (err) => alert(err.message),
       );
     } catch (err) {
+      // TODO:i18n - if this is used, please add translations or convert to db logging
       alert(JSON.stringify(err));
     }
   };

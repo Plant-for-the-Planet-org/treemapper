@@ -126,6 +126,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
+      // TODO:i18n - if this is used, please add translations
       Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
@@ -385,6 +386,7 @@ const SingleTreeOverview = ({ navigation }) => {
           navigation.navigate('TreeInventory');
         });
       } else {
+        // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
     }
