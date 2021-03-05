@@ -45,11 +45,12 @@ const MultipleTrees = ({ navigation, route }) => {
   };
 
   const renderDatePicker = () => {
-    // TODO: should we replace this with DateTimePickerModal like done elsewhere?
+    // TODO: should we replace this with DateTimePickerModal like done in SingleTreeOverview?
     return (
       showDate && (
         <DateTimePicker
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
           value={plantingDate}

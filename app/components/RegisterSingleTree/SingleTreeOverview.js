@@ -219,15 +219,16 @@ const SingleTreeOverview = ({ navigation }) => {
     setSpecieText(specie.scientificName);
   };
 
+  const onChangeDate = (selectedDate) => {
+    setIsShowDate(false);
+    setPlantationDate(selectedDate);
+    updatePlantingDate({
+      inventory_id: inventoryState.inventoryID,
+      plantation_date: selectedDate,
+    });
+  };
+
   const renderDateModal = () => {
-    const onChangeDate = (selectedDate) => {
-      updatePlantingDate({
-        inventory_id: inventoryState.inventoryID,
-        plantation_date: selectedDate,
-      });
-      setIsShowDate(false);
-      setPlantationDate(selectedDate);
-    };
     const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
@@ -235,13 +236,14 @@ const SingleTreeOverview = ({ navigation }) => {
       isShowDate && (
         <DateTimePickerModal
           headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
-          cancelTextIOS={i18next.t('label.inventory_overview_confirm')}
-          confirmTextIOS={i18next.t('label.inventory_overview_cancel')}
+          cancelTextIOS={i18next.t('label.inventory_overview_cancel')}
+          confirmTextIOS={i18next.t('label.inventory_overview_confirm')}
           isVisible={true}
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker1"
           timeZoneOffsetInMinutes={0}
-          value={new Date(plantationDate)}
+          date={new Date(plantationDate)}
           mode={'date'}
           is24Hour={true}
           display="default"
