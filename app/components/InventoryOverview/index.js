@@ -245,21 +245,31 @@ const InventoryOverview = ({ navigation }) => {
     }
   };
 
+  const onChangeDate = (selectedDate) => {
+    setShowDate(false);
+    setInventory({ ...inventory, plantation_date: selectedDate });
+    updatePlantingDate({
+      inventory_id: state.inventoryID,
+      plantation_date: selectedDate,
+    });
+  };
+
   const renderDatePicker = () => {
-    const handleConfirm = (data) => onChangeDate(null, data);
+    const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setShowDate(false);
 
     return (
       showDate && (
         <DateTimePickerModal
           headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
-          cancelTextIOS={i18next.t('label.inventory_overview_confirm')}
-          confirmTextIOS={i18next.t('label.inventory_overview_cancel')}
+          cancelTextIOS={i18next.t('label.inventory_overview_cancel')}
+          confirmTextIOS={i18next.t('label.inventory_overview_confirm')}
           isVisible={showDate}
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          value={inventory.plantation_date}
+          date={inventory.plantation_date}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -268,15 +278,6 @@ const InventoryOverview = ({ navigation }) => {
         />
       )
     );
-  };
-
-  const onChangeDate = (event, selectedDate) => {
-    setShowDate(false);
-    setInventory({ ...inventory, plantation_date: selectedDate });
-    updatePlantingDate({
-      inventory_id: state.inventoryID,
-      plantation_date: selectedDate,
-    });
   };
 
   const renderAddSpeciesButton = (status) => {
