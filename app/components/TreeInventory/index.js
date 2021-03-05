@@ -153,7 +153,7 @@ const TreeInventory = ({ navigation }) => {
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };

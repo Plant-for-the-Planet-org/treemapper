@@ -50,7 +50,7 @@ class SelectCoordinates extends React.Component {
       <View style={styles.fakeMarkerCont}>
         <SvgXml xml={active_marker} style={styles.markerImage} />
         {this.state.loader ? (
-          <ActivityIndicator color={Colors.WHITE} style={styles.loader} />
+          <ActivityIndicator size="large" color={Colors.WHITE} style={styles.loader} />
         ) : (
           <Text style={styles.activeMarkerLocation}>{'A'}</Text>
         )}

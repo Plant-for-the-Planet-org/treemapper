@@ -118,7 +118,7 @@ const DownloadMap = ({ navigation }) => {
       <Modal transparent visible={isLoaderShow}>
         <View style={styles.dowloadModalContainer}>
           <View style={styles.contentContainer}>
-            <ActivityIndicator size={40} style={styles.loader} />
+            <ActivityIndicator size="large" color={Colors.PRIMARY} style={styles.loader} />
             <Text style={styles.areaName}>{areaName}</Text>
           </View>
         </View>
