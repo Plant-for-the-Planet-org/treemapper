@@ -234,6 +234,9 @@ const SingleTreeOverview = ({ navigation }) => {
     return (
       isShowDate && (
         <DateTimePickerModal
+          headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
+          cancelTextIOS={i18next.t('label.inventory_overview_confirm')}
+          confirmTextIOS={i18next.t('label.inventory_overview_cancel')}
           isVisible={true}
           maximumDate={new Date()}
           testID="dateTimePicker1"

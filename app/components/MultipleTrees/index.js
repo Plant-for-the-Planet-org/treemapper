@@ -45,6 +45,7 @@ const MultipleTrees = ({ navigation, route }) => {
   };
 
   const renderDatePicker = () => {
+    // TODO: should we replace this with DateTimePickerModal like done elsewhere?
     return (
       showDate && (
         <DateTimePicker

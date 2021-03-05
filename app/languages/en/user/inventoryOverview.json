@@ -19,5 +19,8 @@
   "inventory_overview_loc_export_json": "Export GeoJson",
   "inventory_overview_loc_next_tree": "Next Tree",
   "inventory_overview_loc_save": "Save",
-  "inventory_overview_date": "{{date, ll}}"
+  "inventory_overview_date": "{{date, ll}}",
+  "inventory_overview_cancel": "Cancel",
+  "inventory_overview_confirm": "Confirm",
+  "inventory_overview_pick_a_date": "Pick a date"
 }
