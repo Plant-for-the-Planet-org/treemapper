@@ -191,7 +191,7 @@ class MapMarkingComponent extends React.Component {
           (err) => alert(err.message),
         );
       } catch (err) {
-        alert('console 3');
+        // TODO:i18n - if this is used, please add translations or convert to db logging
         alert(JSON.stringify(err));
       }
     } else {
@@ -205,7 +205,8 @@ class MapMarkingComponent extends React.Component {
           (err) => alert(err.message),
         );
       } catch (err) {
-        alert('Unable to retrive location');
+        // TODO:i18n - if this is used, please add translations or convert to db logging
+        alert('Unable to retrieve location');
       }
     }
   };

@@ -126,6 +126,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
+      // TODO:i18n - if this is used, please add translations
       Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
@@ -171,9 +172,9 @@ const SingleTreeOverview = ({ navigation }) => {
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
                   onChangeText={(text) => {
                     if (editEnable === 'diameter') {
-                      setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else if (editEnable === 'height') {
-                      setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else {
                       setEditedTagId(text);
                     }
@@ -233,6 +234,9 @@ const SingleTreeOverview = ({ navigation }) => {
     return (
       isShowDate && (
         <DateTimePickerModal
+          headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
+          cancelTextIOS={i18next.t('label.inventory_overview_confirm')}
+          confirmTextIOS={i18next.t('label.inventory_overview_cancel')}
           isVisible={true}
           maximumDate={new Date()}
           testID="dateTimePicker1"
@@ -385,6 +389,7 @@ const SingleTreeOverview = ({ navigation }) => {
           navigation.navigate('TreeInventory');
         });
       } else {
+        // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
     }

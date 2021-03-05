@@ -4,6 +4,7 @@ import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 
+// TODO:i18n - if this file is used, please add translations
 const TPOQuestion = () => {
   return (
     <SafeAreaView style={styles.container}>

@@ -140,6 +140,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
         })
         .catch((err) => {
+          // TODO:i18n - if this is used, please add translations or convert to db logging
           alert(JSON.stringify(err), 'Alert');
         });
     } else {
