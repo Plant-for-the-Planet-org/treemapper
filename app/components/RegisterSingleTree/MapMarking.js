@@ -108,7 +108,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     camera.current.setCamera({
       centerCoordinate: recenterCoords,
       zoomLevel: 18,
-      animationDuration: 2000,
+      animationDuration: 1000,
     });
   };
 
@@ -195,6 +195,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
+          console.log('accuracy', position.coords.accuracy);
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -203,15 +204,19 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
         },
         (err) => {
           setIsLocationAlertShow(true);
+          console.log(err, 'position error');
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 20000,
+          timeout: 12000,
+          maximumAge: 2000,
           accuracy: {
             android: 'high',
             ios: 'bestForNavigation',
           },
+          useSignificantChanges: true,
+          interval: 1000,
+          fastestInterval: 1000,
         },
       );
     });
@@ -402,8 +407,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
