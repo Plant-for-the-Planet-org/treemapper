@@ -107,7 +107,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera.current.setCamera({
+    camera && camera.current.setCamera( {
       centerCoordinate: recenterCoords,
       zoomLevel: 18,
       animationDuration: 1000,
