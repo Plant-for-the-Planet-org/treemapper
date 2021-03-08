@@ -379,7 +379,7 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           if (IS_ANDROID) {
             updateCurrentPosition();
           } else {
-            Linking.openURL('App-Prefs:LOCATION_SERVICES');
+            Linking.openURL('app-settings:');
             resetRouteStack();
           }
         }}
