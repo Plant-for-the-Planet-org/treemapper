@@ -60,9 +60,11 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     } else {
       Geolocation.requestAuthorization('whenInUse').then((permission) => {
         if (permission === 'granted') {
+          console.log(permission,'permission');
           updateCurrentPosition();
         } else {
           setIsLocationAlertShow(true);
+          console.log(permission,'permission');
         }
       });
     }
@@ -208,8 +210,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 2000,
+          timeout: 20000,
+          // maximumAge:13000,
           accuracy: {
             android: 'high',
             ios: 'bestForNavigation',
@@ -377,7 +379,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           if (IS_ANDROID) {
             updateCurrentPosition();
           } else {
-            Linking.openURL('app-settings:');
+            Linking.openURL('App-Prefs:LOCATION_SERVICES');
+            resetRouteStack();
           }
         }}
         onPressSecondaryBtn={() => {

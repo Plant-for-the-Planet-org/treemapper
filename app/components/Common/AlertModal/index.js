@@ -19,7 +19,7 @@ const AlertModal = ({
           <Text style={styles.alertHeader}>{heading}</Text>
           <Text style={styles.alertMessage}>{message}</Text>
           <View style={styles.bottomBtnContainer}>
-            <FlatButton onPress={onPressSecondaryBtn} text={secondaryBtnText} />
+            <FlatButton onPress={onPressSecondaryBtn} text={secondaryBtnText} style={styles.secondaryButtonStyle}/>
             <FlatButton
               onPress={onPressPrimaryBtn}
               text={primaryBtnText}
@@ -66,7 +66,11 @@ const styles = StyleSheet.create({
   primaryButtonStyle: {
     marginLeft: 20,
     color: Colors.ALERT,
+    padding: 5
   },
+  secondaryButtonStyle: {
+    padding: 5
+  }
 });
 
 export default AlertModal;
