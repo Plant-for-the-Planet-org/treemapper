@@ -66,10 +66,12 @@ const styles = StyleSheet.create({
   primaryButtonStyle: {
     marginLeft: 20,
     color: Colors.ALERT,
-    padding: 5
+    paddingVertical: 6,
+    paddingHorizontal: 10,
   },
   secondaryButtonStyle: {
-    padding: 5
+    paddingVertical: 6,
+    paddingHorizontal: 10,
   }
 });
 
