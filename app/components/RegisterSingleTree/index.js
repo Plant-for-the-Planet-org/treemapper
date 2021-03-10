@@ -1,6 +1,14 @@
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  BackHandler,
+  Linking,
+  PermissionsAndroid,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '_styles';
 import { bugsnag } from '_utils';
@@ -12,12 +20,12 @@ import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
 import { CommonActions } from '@react-navigation/native';
-
+import { Loader } from '../Common';
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
   const { state: inventoryState } = useContext(InventoryContext);
-  const [screenState, setScreenState] = useState('MapMarking');
+  const [screenState, setScreenState] = useState('');
   const [isGranted, setIsGranted] = useState(false);
   const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
@@ -25,8 +33,10 @@ const RegisterSingleTree = ({ navigation }) => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       console.log(inventoryState.inventoryID, 'inventoryState.inventoryID', inventoryState);
+      setScreenState('');
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+          console.log(InventoryData, 'InventoryData');
           if (InventoryData.status === INCOMPLETE_INVENTORY) {
             let data = {
               inventory_id: inventoryState.inventoryID,
@@ -77,6 +87,8 @@ const RegisterSingleTree = ({ navigation }) => {
                     },
                   },
                 );
+              } else {
+                setScreenState('MapMarking');
               }
             });
           }
@@ -172,6 +184,8 @@ const RegisterSingleTree = ({ navigation }) => {
       {screenState == 'ImageCapturing' && (
         <ImageCapturing updateScreenState={updateScreenState} inventoryType="single" />
       )}
+
+      {screenState === '' && <Loader isLoaderShow={true} />}
     </View>
   );
 };

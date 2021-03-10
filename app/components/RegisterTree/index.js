@@ -6,7 +6,7 @@ import { initiateInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { Colors } from '_styles';
 import i18next from 'i18next';
-import { initiateInventoryState } from '../../actions/inventory';
+import { deleteInventoryId } from '../../actions/inventory';
 
 const RegisterTree = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
@@ -18,7 +18,7 @@ const RegisterTree = ({ navigation }) => {
 
   const onPressContinue = async () => {
     // let data = { treeType };
-
+    deleteInventoryId()(dispatch);
     // const result = await initiateInventory(data, dispatch);
     // if (result) {
     //   initiateInventoryState(result)(dispatch);

@@ -78,6 +78,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
       }
       const inventoryID = inventoryState.inventoryID;
       getInventory({ inventoryID: inventoryID }).then((inventory) => {
+        console.log(inventory, 'inventory mapmarking');
         setInventory(inventory);
       });
     }
@@ -245,22 +246,38 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
   const onPressContinue = async (currentCoords, centerCoordinates, locateTreeVariable) => {
     console.log('onpressCOntinue clicked');
     if (!inventoryState.inventoryID) {
+      console.log('in if');
       const result = await initiateInventory({ treeType: 'single' }, dispatch);
       console.log(result, 'result');
       if (result) {
         initiateInventoryState(result)(dispatch);
         const inventoryID = result.inventory_id;
         console.log(inventoryID, 'inventoryID');
-        addCoordinateSingleRegisterTree({
-          inventory_id: inventoryID,
-          markedCoords: centerCoordinates,
-          locateTree: locateTreeVariable,
-          currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
-        }).then(() => {
-          setIsAlrightyModalShow(true);
-          console.log('coordinates added', inventoryState);
+        getInventory({ inventoryID: inventoryID }).then((inventory) => {
+          console.log(inventory, 'inventory mapmarking');
+          setInventory(inventory);
+          addCoordinateSingleRegisterTree({
+            inventory_id: inventoryID,
+            markedCoords: centerCoordinates,
+            locateTree: locateTreeVariable,
+            currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
+          }).then(() => {
+            setIsAlrightyModalShow(true);
+            console.log('coordinates added', inventoryState);
+          });
         });
       }
+    } else {
+      console.log('in else');
+      addCoordinateSingleRegisterTree({
+        inventory_id: inventoryState.inventoryID,
+        markedCoords: centerCoordinates,
+        locateTree: locateTreeVariable,
+        currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
+      }).then(() => {
+        setIsAlrightyModalShow(true);
+        console.log('coordinates added', inventoryState);
+      });
     }
   };
 
@@ -268,6 +285,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
   // Updates the last screen for off-site as the coordinates are already recorded.
   // Moves the screen to ImageCapturing for on-site flow as the Picture is needed in the on-site flow
   const renderAlrightyModal = () => {
+    console.log(inventory, 'inventory.inventory_id');
     const onPressClose = () => setIsAlrightyModalShow(false);
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {
@@ -437,8 +455,8 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
