@@ -19,11 +19,18 @@ import { setMultipleTreesSpeciesList } from '../../actions/species';
 import { placeholder_image } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
-import { getInventory, updateSpecieAndMeasurements } from '../../repositories/inventory';
+import {
+  getInventory,
+  updateInventory,
+  updateSpecieAndMeasurements,
+} from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
+import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
+import dbLog from '../../repositories/logs';
+import { LogTypes } from '../../utils/constants';
 
 const SelectSpecies = () => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
@@ -42,6 +49,7 @@ const SelectSpecies = () => {
   const [index, setIndex] = useState(undefined);
   const [isTagIdPresent, setIsTagIdPresent] = useState(false);
   const [tagIdError, setTagIdError] = useState('');
+  const [isSampleTree, setIsSampleTree] = useState(false);
 
   const { state } = useContext(InventoryContext);
   const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
@@ -49,30 +57,13 @@ const SelectSpecies = () => {
   const route = useRoute();
 
   useEffect(() => {
-    // let species;
-    // let inventory;
-    // if (route !== undefined) {
-    //   inventory = route.params.inventory;
-    //   species = route.params.inventory.species;
-    // } else {
-    //   inventory = invent;
-    //   species = invent.species;
-    // }
-
-    // getAllSpecies().then((data) => {
-    //   if (data && species) {
-    //     for (const specie of species) {
-    //       data[specie.id].treeCount = specie.treeCount;
-    //     }
-    //     setMultipleTreesSpeciesList(data)(speciesDispatch);
-    //   }
-    // });
     Inventory();
-
-    // setRegistrationType(inventory.tree_type);
-
     Country();
   }, []);
+
+  useEffect(() => {
+    setIsSampleTree(inventory?.status === INCOMPLETE_SAMPLE_TREE);
+  }, [inventory]);
 
   useEffect(() => {
     if (isShowTreeMeasurementModal) {
@@ -391,46 +382,113 @@ const SelectSpecies = () => {
       setDiameterError('');
       setHeightError('');
       setTagIdError('');
-      updateSpecieAndMeasurements({
-        inventoryId: inventory.inventory_id,
-        species: [singleTreeSpecie],
-        diameter: Math.round(diameter * 100) / 100,
-        height: Math.round(height * 100) / 100,
-        tagId,
-      })
-        .then(() => {
-          setIsShowTreeMeasurementModal(false);
-          setDiameter('');
-          setHeight('');
-          setTagId('');
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 2,
-              routes: [
-                { name: 'MainScreen' },
-                { name: 'TreeInventory' },
-                { name: 'SingleTreeOverview' },
-              ],
-            }),
-          );
+
+      if (!isSampleTree) {
+        updateSpecieAndMeasurements({
+          inventoryId: inventory.inventory_id,
+          species: [singleTreeSpecie],
+          diameter: Math.round(diameter * 100) / 100,
+          height: Math.round(height * 100) / 100,
+          tagId,
         })
-        .catch((err) => {
-          console.error(err);
-        });
+          .then(() => {
+            postMeasurementUpdate();
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      } else {
+        let updatedSampleTrees = [...inventory.sampleTrees];
+        updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter = Number(diameter);
+        updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = Number(height);
+        if (tagId) {
+          updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
+        }
+        console.log('updatedSampleTrees=>>', updatedSampleTrees);
+
+        updateInventory({
+          inventory_id: inventory.inventory_id,
+          inventoryData: {
+            sampleTrees: [...updatedSampleTrees],
+            completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
+          },
+        })
+          .then(() => {
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Successfully added measurements for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventory.inventory_id}`,
+            });
+            console.log(
+              `Successfully added measurements for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventory.inventory_id}`,
+            );
+            postMeasurementUpdate();
+          })
+          .catch((err) => {
+            console.error('Error while updating measurement in sample tree', err);
+          });
+      }
     }
   };
 
-  const addSpecieNameToInventory = (specie) => {
-    updateSingleTreeSpecie({
-      inventory_id: inventory.inventory_id,
-      species: [
-        {
-          id: specie.guid,
-          aliases: specie.scientificName,
-          treeCount: 1,
+  const postMeasurementUpdate = () => {
+    setIsShowTreeMeasurementModal(false);
+    setDiameter('');
+    setHeight('');
+    setTagId('');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 2,
+        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'SingleTreeOverview' }],
+      }),
+    );
+  };
+
+  const addSpecieToInventory = (specie) => {
+    if (!isSampleTree) {
+      updateSingleTreeSpecie({
+        inventory_id: inventory.inventory_id,
+        species: [
+          {
+            id: specie.guid,
+            aliases: specie.scientificName,
+            treeCount: 1,
+          },
+        ],
+      });
+    } else {
+      let updatedSampleTrees = [...inventory.sampleTrees];
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
+      console.log('updatedSampleTrees=>>', updatedSampleTrees);
+
+      updateInventory({
+        inventory_id: inventory.inventory_id,
+        inventoryData: {
+          sampleTrees: [...updatedSampleTrees],
         },
-      ],
-    });
+      })
+        .then(() => {
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully added specie with id: ${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+          });
+          console.log(
+            `Successfully added specie with id: ${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+          );
+          setIsShowTreeMeasurementModal(true);
+        })
+        .catch((err) => {
+          console.error('Error while upading pic url in sample tree', err);
+        });
+    }
   };
 
   return (
@@ -441,7 +499,8 @@ const SelectSpecies = () => {
         registrationType={registrationType}
         onPressSpeciesMultiple={onPressSpecie}
         onSaveMultipleSpecies={onPressContinue}
-        addSpecieNameToInventory={addSpecieNameToInventory}
+        addSpecieToInventory={addSpecieToInventory}
+        isSampleTree={isSampleTree}
       />
       {renderTreeCountModal()}
       {renderMeasurementModal()}

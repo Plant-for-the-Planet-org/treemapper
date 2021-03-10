@@ -8,11 +8,11 @@ const SearchSpecies = ({
   toggleUserSpecies,
   registrationType,
   onPressSpeciesSingle,
-  onPressSpeciesMultiple,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
   onPressBack,
   clearSearchText,
+  isSampleTree,
 }) => {
   const renderSearchSpecieCard = ({ item, index }) => {
     const isCheck = item.isUserSpecies;
@@ -49,17 +49,16 @@ const SearchSpecies = ({
         key={index}
         style={styles.specieListItem}
         onPress={() => {
+          toggleUserSpecies(item.guid, true);
+          addSpecieToInventory(item);
+          if (editOnlySpecieName && (registrationType === 'single' || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === 'single' && !editOnlySpecieName) {
+            onPressSpeciesSingle(item);
+          }
+
           if (registrationType == 'single') {
-            addSpecieNameToInventory(item);
-            toggleUserSpecies(item.guid, 'add');
             clearSearchText();
-            if (editOnlySpecieName) {
-              onPressBack();
-            } else {
-              onPressSpeciesSingle(item);
-            }
-          } else if (registrationType == 'multiple') {
-            onPressSpeciesMultiple(item, index);
           }
         }}>
         <SpecieListItem />

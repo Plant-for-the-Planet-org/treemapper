@@ -32,7 +32,7 @@ import {
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import SelectSpecies from '../SelectSpecies/index';
-import { INCOMPLETE } from '../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
 import { toBase64 } from '../../utils/base64';
 
 const InventoryOverview = ({ navigation }) => {
@@ -103,7 +103,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn={inventory.status === 'complete' ? true : false}
+                      activeBtn={inventory.status === 'complete'}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -117,6 +117,38 @@ const InventoryOverview = ({ navigation }) => {
     );
   };
 
+  const SampleTrees = ({ sampleTrees }) => {
+    console.log('sampleTrees', sampleTrees);
+    return (
+      <View>
+        <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
+        <FlatList
+          data={sampleTrees}
+          renderItem={({ item: sampleTree, index }) => {
+            let normalizeData = {
+              title: sampleTree.specieName,
+              subHeading: `${index + 1} . ${sampleTree.specieName} . ${sampleTree.specieHeight} . ${
+                sampleTree.specieDiameter
+              }`,
+              date: i18next.t('label.inventory_overview_view_location'),
+              imageURL: '',
+              index: index,
+            };
+            return (
+              <InventoryCard
+                data={normalizeData}
+                activeBtn={inventory.status === 'complete'}
+                onPressActiveBtn={onPressViewLOC}
+                hideImage
+              />
+            );
+          }}
+          keyExtractor={(item, index) => `location-${index}`}
+        />
+      </View>
+    );
+  };
+
   const onPressViewLOC = (index) => {
     let selectedCoords = inventory.polygons[0].coordinates[index];
     let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
@@ -126,7 +158,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status === INCOMPLETE) {
+    if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
@@ -290,7 +322,7 @@ const InventoryOverview = ({ navigation }) => {
 
   const renderAddSpeciesButton = (status) => {
     return (
-      status === INCOMPLETE && (
+      (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) && (
         <TouchableOpacity
           onPress={handleSelectSpecies}
           style={{
@@ -331,10 +363,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const handleSelectSpecies = () => {
-    navigation.navigate('SelectSpecies', {
-      closeSelectSpeciesModal: () => setIsShowSpeciesListModal(false),
-      onPressSaveAndContinueMultiple,
-    });
+    navigation.navigate('TotalTreesSpecies');
   };
 
   let locationType;
@@ -376,7 +405,11 @@ const InventoryOverview = ({ navigation }) => {
               )}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={status === INCOMPLETE ? i18next.t('label.edit') : ''}
+                rightText={
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    ? i18next.t('label.edit')
+                    : ''
+                }
                 onPressRightText={handleSelectSpecies}
               />
               <FlatList
@@ -392,6 +425,9 @@ const InventoryOverview = ({ navigation }) => {
               />
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
               {renderPolygon(inventory.polygons, locationType)}
+              {inventory?.sampleTrees.length > 0 && (
+                <SampleTrees sampleTrees={inventory.sampleTrees} />
+              )}
               <LargeButton
                 onPress={onPressExportJSON}
                 heading={i18next.t('label.inventory_overview_loc_export_json')}

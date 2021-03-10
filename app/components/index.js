@@ -21,6 +21,8 @@ import Logs from './Logs';
 import ManageSpecies from './ManageSpecies';
 import Legals from './Legals';
 import SampleTreesCount from './SampleTrees/SampleTreesCount';
+import RecordSampleTrees from './SampleTrees/RecordSampleTrees';
+import TotalTreesSpecies from './SampleTrees/TotalTreesSpecies';
 export {
   RegisterTree,
   MultipleTrees,
@@ -45,4 +47,6 @@ export {
   ManageSpecies,
   Legals,
   SampleTreesCount,
+  RecordSampleTrees,
+  TotalTreesSpecies,
 };

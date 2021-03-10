@@ -1,6 +1,6 @@
 import { bugsnag } from '../utils';
 import { updateCount, setInventoryId } from '../actions/inventory';
-import { INCOMPLETE } from '../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../utils/inventoryStatuses';
 import dbLog from './logs';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
@@ -406,7 +406,10 @@ export const clearAllIncompleteInventory = () => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let allInventory = realm.objects('Inventory').filtered(`status == "${INCOMPLETE}"`);
+          let allInventory = realm
+            .objects('Inventory')
+            .filtered(`status == "${INCOMPLETE}" || status == "${INCOMPLETE_SAMPLE_TREE}"`);
+
           realm.delete(allInventory);
 
           // logging the success in to the db
@@ -826,6 +829,7 @@ export const completePolygon = ({ inventory_id }) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
           inventory.polygons[0].coordinates.push(inventory.polygons[0].coordinates[0]);
+          inventory.status = INCOMPLETE_SAMPLE_TREE;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -858,10 +862,14 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory = {
-            ...inventory,
+          console.log('inventoryData ->>', inventoryData);
+
+          let newInventory = {
+            ...JSON.parse(JSON.stringify(inventory)),
             ...inventoryData,
           };
+          console.log('after ->>', newInventory);
+          realm.create('Inventory', newInventory, 'modified');
           resolve();
         });
       })

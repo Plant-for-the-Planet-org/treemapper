@@ -1,5 +1,6 @@
+import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -12,7 +13,7 @@ import {
 import { Colors, Typography } from '_styles';
 import { sample_trees_vector } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
-import { updateInventory } from '../../repositories/inventory';
+import { updateInventory, updateLastScreen } from '../../repositories/inventory';
 import { Header, PrimaryButton } from '../Common';
 
 /**
@@ -54,7 +55,7 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
 
 // shows the sample tree initial screen where user selects the number of sample trees to record.
 export default function SampleTreesCount() {
-  // used to show the tree count selection option with values of array as number oftrees to select
+  // used to show the tree count selection option with values of array as number of trees to select
   const sampleTreesCount = [2, 5, 10];
 
   // used to set the selected tree count
@@ -62,6 +63,9 @@ export default function SampleTreesCount() {
 
   // gets the inventory state to get the inventory id selected currently
   const { state } = useContext(InventoryContext);
+
+  // used for navigation
+  const navigation = useNavigation();
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
@@ -71,7 +75,17 @@ export default function SampleTreesCount() {
         sampleTreesCount: selectedTreeCount,
       },
     });
+    navigation.navigate('RecordSampleTrees');
   };
+
+  // changes the inventory last screen to sample trees count
+  useEffect(() => {
+    let data = {
+      inventory_id: state.inventoryID,
+      last_screen: 'SampleTreesCount',
+    };
+    updateLastScreen(data);
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>

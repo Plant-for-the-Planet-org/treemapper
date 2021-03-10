@@ -42,11 +42,11 @@ const OfflineMaps = {
 const SampleTrees = {
   name: 'SampleTrees',
   properties: {
-    // stores the latitiude of the tree
+    // stores the latitude of the tree
     latitude: 'float',
     // stores the longitude of the tree
     longitude: 'float',
-    // stores the latitiude of the device when location was marked
+    // stores the latitude of the device when location was marked
     deviceLatitude: 'float',
     // stores the longitude of the device when location was marked
     deviceLongitude: 'float',
@@ -56,16 +56,18 @@ const SampleTrees = {
     imageUrl: 'string?',
     // specie id for this sample tree
     specieId: 'string?',
+    // specie name of specie id for this sample tree
+    specieName: 'string?',
     // diameter of selected specie
-    species_diameter: 'float?',
+    specieDiameter: 'float?',
     // height of selected specie
-    species_height: 'float?',
+    specieHeight: 'float?',
     // tag id of the tree if the tree has one
-    tag_id: 'string?',
+    tagId: 'string?',
     // current status of the tree. Refer to inventoryStatuses for different status
     status: 'string',
     // stores the date when the tree was planted
-    plantation_date: 'date?',
+    plantationDate: 'date?',
   },
 };
 

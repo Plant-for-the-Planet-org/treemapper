@@ -17,5 +17,10 @@
   "image_capturing_required": "Image is required",
   "coming_soon": "Coming Soon!",
   "image_click_picture": "Take picture",
-  "image_reclick": "Again"
+  "image_reclick": "Again",
+  "sample_tree_marking_heading":"Sample Tree #{{ongoingSampleTreeNumber}}",
+  "sample_tree_review_tree_number":"Review Tree #{{ongoingSampleTreeNumber}}",
+  "alright_modal_skip": "Skip",
+  "total_trees_header": "Total Trees",
+  "add_all_trees_planted_on_site": "Please add the list of all trees planted in the site."
 }

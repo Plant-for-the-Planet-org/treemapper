@@ -12,6 +12,7 @@ import {
   polygonUpdate,
   completePolygon,
   updateLastScreen,
+  updateInventory,
 } from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +21,8 @@ import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { InventoryContext } from '../../../reducers/inventory';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
 
 const infographicText = [
   {
@@ -43,6 +46,7 @@ const ImageCapturing = ({
   isCompletePolygon,
   updateScreenState,
   inventoryType,
+  isSampleTree,
 }) => {
   const camera = useRef();
 
@@ -55,7 +59,7 @@ const ImageCapturing = ({
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    if (inventoryType === 'multiple') {
+    if (inventoryType === 'multiple' && !isSampleTree) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
         if (
@@ -70,7 +74,7 @@ const ImageCapturing = ({
     } else {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
-        if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
+        if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl && !isSampleTree) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
         }
       });
@@ -141,7 +145,8 @@ const ImageCapturing = ({
     if (imagePath) {
       try {
         let data = await copyImageAndGetData();
-        if (inventoryType === 'multiple') {
+        console.log('data', data, inventory);
+        if (inventoryType === 'multiple' && !isSampleTree) {
           data.index = activeMarkerIndex;
           insertImageAtIndexCoordinate(data).then(() => {
             if (isCompletePolygon) {
@@ -156,6 +161,35 @@ const ImageCapturing = ({
               toggleState();
             }
           });
+        } else if (inventoryType === 'multiple' && isSampleTree) {
+          let updatedSampleTrees = [...inventory.sampleTrees];
+          updatedSampleTrees[inventory.completedSampleTreesCount].imageUrl = data.imageUrl;
+          updatedSampleTrees[inventory.completedSampleTreesCount].status = 'SPECIES_PENDING';
+          console.log('updatedSampleTrees=>>', updatedSampleTrees);
+
+          updateInventory({
+            inventory_id: inventory.inventory_id,
+            inventoryData: {
+              sampleTrees: [...updatedSampleTrees],
+            },
+          })
+            .then(() => {
+              dbLog.info({
+                logType: LogTypes.INVENTORY,
+                message: `Successfully added image for sample tree #${
+                  inventory.completedSampleTreesCount + 1
+                } inventory_id: ${inventory.inventory_id}`,
+              });
+              console.log(
+                `Successfully added image for sample tree #${
+                  inventory.completedSampleTreesCount + 1
+                } inventory_id: ${inventory.inventory_id}`,
+              );
+              navigation.navigate('SelectSpecies');
+            })
+            .catch((err) => {
+              console.error('Error while updating pic url in sample tree', err);
+            });
         } else {
           updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
           insertImageSingleRegisterTree(data).then(() => {
@@ -174,7 +208,7 @@ const ImageCapturing = ({
   };
 
   const onBackPress = () => {
-    if (inventoryType === 'multiple') {
+    if (inventoryType === 'multiple' && !isSampleTree) {
       removeLastCoord({ inventory_id: state.inventoryID }).then(() => {
         toggleState();
       });
@@ -227,7 +261,7 @@ const ImageCapturing = ({
         <Header
           onBackPress={onBackPress}
           headingText={
-            inventoryType === 'multiple'
+            inventoryType === 'multiple' && !isSampleTree
               ? `Location ${ALPHABETS[activeMarkerIndex]}`
               : i18next.t('label.image_capturing_header')
           }
@@ -277,7 +311,9 @@ const ImageCapturing = ({
           <PrimaryButton
             disabled={imagePath ? false : true}
             onPress={
-              inventoryType === 'multiple' ? () => setIsAlrightyModalShow(true) : onPressContinue
+              inventoryType === 'multiple' && !isSampleTree
+                ? () => setIsAlrightyModalShow(true)
+                : onPressContinue
             }
             btnText={i18next.t('label.continue')}
             halfWidth={true}
@@ -286,7 +322,7 @@ const ImageCapturing = ({
           []
         )}
       </View>
-      {inventoryType === 'multiple' && renderAlrightyModal()}
+      {inventoryType === 'multiple' && !isSampleTree && renderAlrightyModal()}
     </SafeAreaView>
   );
 };

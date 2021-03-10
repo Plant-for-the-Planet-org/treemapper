@@ -5,9 +5,9 @@ import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
-import { INCOMPLETE } from '../../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryStatuses';
 
-export default function InventoryList({ inventoryList, accessibilityLabel, inventoryStatus }) {
+export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
@@ -15,7 +15,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
   const onPressInventory = (item) => {
     console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
-    if (item.status !== INCOMPLETE) {
+    if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       navigation.navigate('SingleTreeOverview');
     } else {
       navigation.navigate(item.last_screen);
@@ -71,6 +71,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
             date: item.plantation_date,
           }),
           imageURL,
+          status: item.status,
         };
 
         return (
@@ -81,14 +82,13 @@ export default function InventoryList({ inventoryList, accessibilityLabel, inven
             testID="upload_inventory_list">
             <InventoryCard
               icon={
-                inventoryStatus === INCOMPLETE
+                item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
-                  : inventoryStatus === 'pending'
+                  : item.status === 'pending'
                   ? 'cloud-outline'
                   : 'cloud-check'
               }
               data={data}
-              inventoryStatus={inventoryStatus}
             />
           </TouchableOpacity>
         );

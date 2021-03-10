@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,6 +10,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Modal,
+  Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
@@ -22,6 +25,8 @@ import { LogTypes } from '../../utils/constants';
 import { Header } from '../Common';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { placeholder_image } from '../../assets';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -31,20 +36,82 @@ const DismissKeyBoard = ({ children }) => {
   );
 };
 
+const TreeCountModal = ({
+  showTreeCountModal,
+  activeSpecie,
+  setTreeCount,
+  treeCount,
+  onPressTreeCountNextBtn,
+}) => {
+  let specieName = showTreeCountModal ? activeSpecie?.scientificName : '';
+  return (
+    <Modal visible={showTreeCountModal} transparent={true}>
+      <View style={styles.modalBackground}>
+        <View style={styles.inputModal}>
+          <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+          <Header
+            hideBackIcon
+            subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
+            textAlignStyle={{ textAlign: 'center' }}
+          />
+          <Header
+            hideBackIcon
+            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header', {
+              specieName,
+            })}
+            textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
+          />
+          <Header
+            hideBackIcon
+            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
+            textAlignStyle={{ textAlign: 'center' }}
+          />
+        </View>
+      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+        style={styles.bgWhite}>
+        <View style={styles.externalInputContainer}>
+          <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
+          <TextInput
+            value={treeCount.toString()}
+            style={styles.value}
+            autoFocus
+            placeholderTextColor={Colors.TEXT_COLOR}
+            onChangeText={(text) => setTreeCount(text.replace(/[^0-9]/g, ''))}
+            keyboardType={'number-pad'}
+          />
+          <MCIcon
+            onPress={onPressTreeCountNextBtn}
+            name={'arrow-right'}
+            size={30}
+            color={Colors.PRIMARY}
+          />
+        </View>
+        <SafeAreaView />
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
+
 const ManageSpecies = ({
   onPressSpeciesSingle,
   onPressBack,
-  onPressSpeciesMultiple,
   registrationType,
   onSaveMultipleSpecies,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
+  isSampleTree,
+  isSampleTreeCompleted,
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
+  const [showTreeCountModal, setShowTreeCountModal] = useState(false);
+  const [treeCount, setTreeCount] = useState('');
+  const [activeSpecie, setActiveSpecie] = useState(undefined);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
@@ -91,13 +158,13 @@ const ManageSpecies = ({
 
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
-  const toggleUserSpecies = (guid, add) => {
+  const toggleUserSpecies = (guid, addSpecie = false) => {
     return new Promise((resolve) => {
       Realm.open(getSchema())
         .then((realm) => {
           realm.write(() => {
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-            if (add) {
+            if (addSpecie) {
               specieToToggle.isUserSpecies = true;
             } else {
               specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
@@ -144,6 +211,32 @@ const ManageSpecies = ({
     }
   };
 
+  console.log('activespec ie', activeSpecie);
+
+  const handleSpeciePress = (specie) => {
+    if (registrationType === 'multiple' && isSampleTreeCompleted) {
+      setActiveSpecie(specie);
+      setShowTreeCountModal(true);
+    } else {
+      addSpecieToInventory(specie);
+    }
+  };
+
+  const handleTreeCountNextButton = () => {
+    let specie = activeSpecie;
+    specie.treeCount = Number(treeCount);
+    addSpecieToInventory(specie);
+    setActiveSpecie();
+    setTreeCount('');
+    setShowTreeCountModal(false);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 2,
+        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
+      }),
+    );
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
@@ -152,7 +245,9 @@ const ManageSpecies = ({
             closeIcon
             onBackPress={onPressBack ? onPressBack : onPressHome}
             headingText={
-              registrationType ? i18next.t('label.select_species_header') : i18next.t('label.select_species_tree_species')
+              registrationType
+                ? i18next.t('label.select_species_header')
+                : i18next.t('label.select_species_tree_species')
             }
           />
           <View style={styles.searchBar}>
@@ -186,12 +281,12 @@ const ManageSpecies = ({
                 searchList={searchList}
                 registrationType={registrationType}
                 onPressSpeciesSingle={onPressSpeciesSingle}
-                onPressSpeciesMultiple={onPressSpeciesMultiple}
                 toggleUserSpecies={toggleUserSpecies}
-                addSpecieNameToInventory={addSpecieNameToInventory}
+                addSpecieToInventory={handleSpeciePress}
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
                 clearSearchText={() => setSearchText('')}
+                isSampleTree={isSampleTree}
               />
             ) : (
               <Text style={styles.notPresentText}>
@@ -205,15 +300,22 @@ const ManageSpecies = ({
               onSaveMultipleSpecies={onSaveMultipleSpecies}
               registrationType={registrationType}
               onPressSpeciesSingle={onPressSpeciesSingle}
-              onPressSpeciesMultiple={onPressSpeciesMultiple}
               specieList={specieList}
-              addSpecieNameToInventory={addSpecieNameToInventory}
+              addSpecieToInventory={handleSpeciePress}
               editOnlySpecieName={editOnlySpecieName}
               onPressBack={onPressBack}
+              isSampleTree={isSampleTree}
             />
           )}
         </View>
       </DismissKeyBoard>
+      <TreeCountModal
+        showTreeCountModal={showTreeCountModal}
+        activeSpecie={activeSpecie}
+        setTreeCount={setTreeCount}
+        treeCount={treeCount}
+        onPressTreeCountNextBtn={handleTreeCountNextButton}
+      />
     </SafeAreaView>
   );
 };
@@ -279,5 +381,44 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     color: Colors.TEXT_COLOR,
     paddingRight: 20,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  externalInputContainer: {
+    flexDirection: 'row',
+    height: 65,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.WHITE,
+    borderTopWidth: 0.5,
+    borderColor: Colors.TEXT_COLOR,
+  },
+  value: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_20,
+    color: Colors.TEXT_COLOR,
+    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  labelModal: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_18,
+    lineHeight: Typography.LINE_HEIGHT_30,
+    color: Colors.TEXT_COLOR,
+    marginRight: 10,
+    paddingHorizontal: 10,
+  },
+  inputModal: {
+    backgroundColor: Colors.WHITE,
+    marginVertical: 30,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
   },
 });

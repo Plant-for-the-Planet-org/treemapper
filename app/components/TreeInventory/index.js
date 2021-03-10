@@ -19,7 +19,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE } from '../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
 import { UserContext } from '../../reducers/user';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -70,14 +70,15 @@ const TreeInventory = ({ navigation }) => {
   let uploadedInventory = [];
   if (allInventory) {
     pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE);
+    inCompleteInventory = allInventory.filter(
+      (x) => x.status === INCOMPLETE || x.status === INCOMPLETE_SAMPLE_TREE,
+    );
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        console.log('upload inventory successfully');
         navigation.navigate('MainScreen');
       })
       .catch((err) => {
@@ -115,7 +116,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
-              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -139,7 +139,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
-              inventoryStatus={INCOMPLETE}
             />
           </>
         )}

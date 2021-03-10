@@ -12,11 +12,11 @@ const MySpecies = ({
   onSaveMultipleSpecies,
   registrationType,
   onPressSpeciesSingle,
-  onPressSpeciesMultiple,
   specieList,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
   onPressBack,
+  isSampleTree,
 }) => {
   const navigation = useNavigation();
 
@@ -34,15 +34,11 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          if (registrationType == 'single') {
-            addSpecieNameToInventory(item);
-            if (editOnlySpecieName) {
-              onPressBack();
-            } else {
-              onPressSpeciesSingle(item);
-            }
-          } else if (registrationType == 'multiple') {
-            onPressSpeciesMultiple(item, index);
+          addSpecieToInventory(item);
+          if (editOnlySpecieName && (registrationType === 'single' || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === 'single' && !editOnlySpecieName) {
+            onPressSpeciesSingle(item);
           }
         }}>
         <View>
@@ -54,9 +50,7 @@ const MySpecies = ({
             {item.scientificName}
           </Text>
         </View>
-        {registrationType == 'multiple' ? (
-          <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : item.guid !== 'unknown' ? (
+        {item.guid !== 'unknown' ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
             <Ionicons name="information-circle-outline" size={20} />
@@ -99,8 +93,12 @@ const MySpecies = ({
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
-            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
+            <Text style={styles.headerText}>
+              {i18next.t('label.select_species_looks_empty_here')}
+            </Text>
+            <Text style={styles.subHeadingText}>
+              {i18next.t('label.select_species_add_species_desscription')}
+            </Text>
           </View>
         )}
       </View>
