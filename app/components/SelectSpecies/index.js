@@ -102,8 +102,6 @@ const SelectSpecies = ({
 
   const Inventory = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      console.log(inventory, 'inventory');
-      console.log(state, 'inventoryState');
       setInventory(inventory);
 
       if (inventory.species.length > 0 && inventory.species_diameter == null) {

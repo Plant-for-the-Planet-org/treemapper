@@ -54,10 +54,8 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
 
   useEffect(() => {
     let isCancelled = false;
-    console.log('inside useEffect');
     // Do something
     if (!isCancelled) {
-      // const unsubscribe = () => {
       if (IS_ANDROID) {
         MapboxGL.requestAndroidLocationPermissions().then((permission) => {
           if (permission) {
@@ -78,15 +76,11 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
       }
       const inventoryID = inventoryState.inventoryID;
       getInventory({ inventoryID: inventoryID }).then((inventory) => {
-        console.log(inventory, 'inventory mapmarking');
         setInventory(inventory);
       });
     }
-    // }
     return () => {
       isCancelled = true;
-      // unsubscribe();
-      console.log('unsubscribed----------');
     };
   }, []);
 
@@ -215,7 +209,6 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          console.log('accuracy', position.coords.accuracy);
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -244,17 +237,12 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
 
   // Adds coordinates and locateTree label to inventory
   const onPressContinue = async (currentCoords, centerCoordinates, locateTreeVariable) => {
-    console.log('onpressCOntinue clicked');
     if (!inventoryState.inventoryID) {
-      console.log('in if');
       const result = await initiateInventory({ treeType: 'single' }, dispatch);
-      console.log(result, 'result');
       if (result) {
         initiateInventoryState(result)(dispatch);
         const inventoryID = result.inventory_id;
-        console.log(inventoryID, 'inventoryID');
         getInventory({ inventoryID: inventoryID }).then((inventory) => {
-          console.log(inventory, 'inventory mapmarking');
           setInventory(inventory);
           addCoordinateSingleRegisterTree({
             inventory_id: inventoryID,
@@ -263,12 +251,10 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
             currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
           }).then(() => {
             setIsAlrightyModalShow(true);
-            console.log('coordinates added', inventoryState);
           });
         });
       }
     } else {
-      console.log('in else');
       addCoordinateSingleRegisterTree({
         inventory_id: inventoryState.inventoryID,
         markedCoords: centerCoordinates,
@@ -276,7 +262,6 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
         currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
       }).then(() => {
         setIsAlrightyModalShow(true);
-        console.log('coordinates added', inventoryState);
       });
     }
   };
@@ -285,7 +270,6 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
   // Updates the last screen for off-site as the coordinates are already recorded.
   // Moves the screen to ImageCapturing for on-site flow as the Picture is needed in the on-site flow
   const renderAlrightyModal = () => {
-    console.log(inventory, 'inventory.inventory_id');
     const onPressClose = () => setIsAlrightyModalShow(false);
     const moveScreen = () => updateScreenState('ImageCapturing');
     const offSiteContinue = () => {

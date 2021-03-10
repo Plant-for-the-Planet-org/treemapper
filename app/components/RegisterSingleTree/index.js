@@ -32,11 +32,9 @@ const RegisterSingleTree = ({ navigation }) => {
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
-      console.log(inventoryState.inventoryID, 'inventoryState.inventoryID', inventoryState);
       setScreenState('');
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-          console.log(InventoryData, 'InventoryData');
           if (InventoryData.status === INCOMPLETE_INVENTORY) {
             let data = {
               inventory_id: inventoryState.inventoryID,
@@ -48,7 +46,6 @@ const RegisterSingleTree = ({ navigation }) => {
               if (granted && InventoryData.polygons[0]) {
                 Geolocation.getCurrentPosition(
                   (position) => {
-                    console.log(position.accuracy, 'accuracy index');
                     let distanceInMeters =
                       distanceCalculator(
                         position.coords.latitude,
@@ -64,7 +61,6 @@ const RegisterSingleTree = ({ navigation }) => {
                         locate_tree: 'on-site',
                       });
                       updateScreenState('ImageCapturing');
-                      console.log('set to Imagecapturing');
                     } else {
                       //set offsite
                       addLocateTree({
@@ -99,7 +95,6 @@ const RegisterSingleTree = ({ navigation }) => {
     });
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
-      console.log('unsubscribing');
       unsubscribe();
     };
   }, [inventoryState, isGranted, navigation]);

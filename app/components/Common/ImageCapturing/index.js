@@ -1,5 +1,15 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, Text, TouchableOpacity, Modal, Platform, Linking } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Platform,
+  Linking,
+} from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';
@@ -65,9 +75,7 @@ const ImageCapturing = ({
       );
       generateMarkers();
     } else {
-      console.log(state, 'state Imagecapturing');
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
