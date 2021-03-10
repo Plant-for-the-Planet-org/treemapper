@@ -24,10 +24,10 @@ import {
   addCoordinateSingleRegisterTree,
   getInventory,
   updateLastScreen,
+  initiateInventory,
 } from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { initiateInventory } from '../../repositories/inventory';
 import { initiateInventoryState } from '../../actions/inventory';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -484,11 +484,6 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
 };
 
 export default MapMarking;
-// export default function MapMarkingMain(props) {
-//   const navigation = useNavigation();
-//   const { state } = useContext(InventoryContext);
-//   return <MapMarking {...props} {...state} navigation={navigation} />;
-// }
 
 const styles = StyleSheet.create({
   container: {

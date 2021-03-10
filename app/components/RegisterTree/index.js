@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { initiateInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { Colors } from '_styles';
 import i18next from 'i18next';
@@ -17,19 +16,13 @@ const RegisterTree = ({ navigation }) => {
   const onPressMultipleTree = () => setTreeType('multiple');
 
   const onPressContinue = async () => {
-    // let data = { treeType };
     deleteInventoryId()(dispatch);
-    // const result = await initiateInventory(data, dispatch);
-    // if (result) {
-    //   initiateInventoryState(result)(dispatch);
-    //   navigation.navigate('RegisterSingleTree');
 
     if (treeType === 'multiple') {
       navigation.navigate('LocateTree');
     } else {
       navigation.navigate('RegisterSingleTree');
     }
-    // }
   };
 
   return (

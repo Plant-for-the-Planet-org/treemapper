@@ -1,14 +1,6 @@
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  BackHandler,
-  Linking,
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '_styles';
 import { bugsnag } from '_utils';
