@@ -90,6 +90,7 @@ const TreeInventory = ({ navigation }) => {
           console.log('Tree Inventory blocked');
           setIsPermissionBlockedAlertShow(true);
         } else if (err.error !== 'a0.session.user_cancelled') {
+          // TODO:i18n - if this is used, please add translations
           Alert.alert(
             'Verify your Email',
             'Please verify your email before logging in.',
@@ -155,7 +156,7 @@ const TreeInventory = ({ navigation }) => {
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };

@@ -154,6 +154,7 @@ const MainScreen = ({ navigation }) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
+            // TODO:i18n - if this is used, please add translations
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
@@ -202,6 +203,7 @@ const MainScreen = ({ navigation }) => {
 
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      // TODO:i18n - if this is used, please add translations
       alert('Can write mail to support@plant-for-the-planet.org'),
     );
   };

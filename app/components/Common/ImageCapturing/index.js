@@ -1,28 +1,37 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, Text, Modal, BackHandler } from 'react-native';
-import Header from '../Header';
-import PrimaryButton from '../PrimaryButton';
-import Alrighty from '../Alrighty';
-import { Colors, Typography } from '_styles';
-import {
-  getInventory,
-  removeLastCoord,
-  insertImageSingleRegisterTree,
-  insertImageAtIndexCoordinate,
-  polygonUpdate,
-  completePolygon,
-  updateLastScreen,
-  updateInventory,
-} from '../../../repositories/inventory';
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { RNCamera } from 'react-native-camera';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import i18next from 'i18next';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  BackHandler,
+  Image,
+  Linking,
+  Modal,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { RNCamera } from 'react-native-camera';
 import RNFS from 'react-native-fs';
+import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../../reducers/inventory';
+import {
+  completePolygon,
+  getInventory,
+  insertImageAtIndexCoordinate,
+  insertImageSingleRegisterTree,
+  polygonUpdate,
+  removeLastCoord,
+  updateInventory,
+  updateLastScreen,
+} from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import Alrighty from '../Alrighty';
+import Header from '../Header';
+import PrimaryButton from '../PrimaryButton';
 
 const infographicText = [
   {
@@ -255,6 +264,12 @@ const ImageCapturing = ({
     );
   };
 
+  const onClickOpenSettings = async () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
       <View style={styles.screenMargin}>
@@ -285,6 +300,13 @@ const ImageCapturing = ({
                     <Text style={styles.message}>
                       {i18next.t('label.permission_camera_message')}
                     </Text>
+                    {Platform.OS === 'ios' ? (
+                      <Text style={styles.message} onPress={onClickOpenSettings}>
+                        {i18next.t('label.open_settings')}
+                      </Text>
+                    ) : (
+                      []
+                    )}
                   </View>
                 }
                 androidCameraPermissionOptions={{
@@ -352,6 +374,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     lineHeight: Typography.LINE_HEIGHT_30,
     textAlign: 'center',
+    padding: 20,
   },
   cameraIconContainer: {
     position: 'absolute',

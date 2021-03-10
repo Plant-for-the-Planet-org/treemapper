@@ -40,6 +40,7 @@ const ProfileModal = ({
   };
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      // TODO:i18n - if this is used, please add translations
       alert('Can write mail to support@plant-for-the-planet.org'),
     );
   };

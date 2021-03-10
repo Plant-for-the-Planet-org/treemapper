@@ -147,6 +147,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
+      // TODO:i18n - if this is used, please add translations
       Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
@@ -192,9 +193,9 @@ const SingleTreeOverview = ({ navigation }) => {
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
                   onChangeText={(text) => {
                     if (editEnable === 'diameter') {
-                      setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else if (editEnable === 'height') {
-                      setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else {
                       setEditedTagId(text);
                     }
@@ -268,54 +269,59 @@ const SingleTreeOverview = ({ navigation }) => {
     setSpecieText(specie.scientificName);
   };
 
-  const renderDateModal = () => {
-    const onChangeDate = (selectedDate) => {
-      if (!isSampleTree) {
-        updatePlantingDate({
-          inventory_id: inventoryState.inventoryID,
-          plantation_date: selectedDate,
-        });
-      } else {
-        let updatedSampleTrees = inventory.sampleTrees;
-        let sampleTree = updatedSampleTrees[inventory.completedSampleTreesCount - 1];
-        sampleTree = {
-          ...sampleTree,
-          plantationDate: selectedDate,
-        };
-        updateInventory({
-          inventory_id: inventory.inventory_id,
-          inventoryData: {
-            sampleTrees: [...updatedSampleTrees],
-          },
-        })
-          .then(() => {
-            dbLog.info({
-              logType: LogTypes.INVENTORY,
-              message: `Successfully modified plantation date for sample tree #${inventory.completedSampleTreesCount} having inventory_id: ${inventory.inventory_id}`,
-            });
-            console.log(
-              `Successfully modified plantation date for sample tree #${inventory.completedSampleTreesCount} having inventory_id: ${inventory.inventory_id}`,
-            );
-          })
-          .catch((err) => {
-            console.error('Error while modifying plantation date in sample tree', err);
+  const onChangeDate = (selectedDate) => {
+    if (!isSampleTree) {
+      updatePlantingDate({
+        inventory_id: inventoryState.inventoryID,
+        plantation_date: selectedDate,
+      });
+    } else {
+      let updatedSampleTrees = inventory.sampleTrees;
+      let sampleTree = updatedSampleTrees[inventory.completedSampleTreesCount - 1];
+      sampleTree = {
+        ...sampleTree,
+        plantationDate: selectedDate,
+      };
+      updateInventory({
+        inventory_id: inventory.inventory_id,
+        inventoryData: {
+          sampleTrees: [...updatedSampleTrees],
+        },
+      })
+        .then(() => {
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully modified plantation date for sample tree #${inventory.completedSampleTreesCount} having inventory_id: ${inventory.inventory_id}`,
           });
-      }
+          console.log(
+            `Successfully modified plantation date for sample tree #${inventory.completedSampleTreesCount} having inventory_id: ${inventory.inventory_id}`,
+          );
+        })
+        .catch((err) => {
+          console.error('Error while modifying plantation date in sample tree', err);
+        });
+    }
 
-      setIsShowDate(false);
-      setPlantationDate(selectedDate);
-    };
+    setIsShowDate(false);
+    setPlantationDate(selectedDate);
+  };
+
+  const renderDateModal = () => {
     const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
     return (
       isShowDate && (
         <DateTimePickerModal
+          headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
+          cancelTextIOS={i18next.t('label.inventory_overview_cancel')}
+          confirmTextIOS={i18next.t('label.inventory_overview_confirm')}
           isVisible={true}
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker1"
           timeZoneOffsetInMinutes={0}
-          value={new Date(plantationDate)}
+          date={new Date(plantationDate)}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -468,6 +474,7 @@ const SingleTreeOverview = ({ navigation }) => {
           navigation.navigate('TreeInventory');
         });
       } else {
+        // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
     }
