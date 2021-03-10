@@ -17,19 +17,19 @@ const RegisterTree = ({ navigation }) => {
   const onPressMultipleTree = () => setTreeType('multiple');
 
   const onPressContinue = async () => {
-    let data = { treeType };
+    // let data = { treeType };
 
-    const result = await initiateInventory(data, dispatch);
-    if (result) {
-      initiateInventoryState(result)(dispatch);
+    // const result = await initiateInventory(data, dispatch);
+    // if (result) {
+    //   initiateInventoryState(result)(dispatch);
+    //   navigation.navigate('RegisterSingleTree');
+
+    if (treeType === 'multiple') {
+      navigation.navigate('LocateTree');
+    } else {
       navigation.navigate('RegisterSingleTree');
-
-      if (treeType === 'multiple') {
-        navigation.navigate('LocateTree');
-      } else {
-        navigation.navigate('RegisterSingleTree');
-      }
     }
+    // }
   };
 
   return (

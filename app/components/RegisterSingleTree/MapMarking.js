@@ -27,12 +27,16 @@ import {
 } from '../../repositories/inventory';
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { initiateInventory } from '../../repositories/inventory';
+import { initiateInventoryState } from '../../actions/inventory';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const IS_ANDROID = Platform.OS === 'android';
 
-const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
+const MapMarking = ({ updateScreenState, resetRouteStack }) => {
+  const { state: inventoryState, dispatch } = useContext(InventoryContext);
+
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
@@ -49,29 +53,40 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    let isCancelled = false;
+    console.log('inside useEffect');
     // Do something
-    if (IS_ANDROID) {
-      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-        if (permission) {
-          MapboxGL.setTelemetryEnabled(false);
-          updateCurrentPosition();
-        }
-      });
-    } else {
-      Geolocation.requestAuthorization('whenInUse').then((permission) => {
-        if (permission === 'granted') {
-          console.log(permission,'permission');
-          updateCurrentPosition();
-        } else {
-          setIsLocationAlertShow(true);
-          console.log(permission,'permission');
-        }
+    if (!isCancelled) {
+      // const unsubscribe = () => {
+      if (IS_ANDROID) {
+        MapboxGL.requestAndroidLocationPermissions().then((permission) => {
+          if (permission) {
+            MapboxGL.setTelemetryEnabled(false);
+            updateCurrentPosition();
+          }
+        });
+      } else {
+        Geolocation.requestAuthorization('whenInUse').then((permission) => {
+          if (permission === 'granted') {
+            console.log(permission, 'permission');
+            updateCurrentPosition();
+          } else {
+            setIsLocationAlertShow(true);
+            console.log(permission, 'permission');
+          }
+        });
+      }
+      const inventoryID = inventoryState.inventoryID;
+      getInventory({ inventoryID: inventoryID }).then((inventory) => {
+        setInventory(inventory);
       });
     }
-    const inventoryID = inventoryState.inventoryID;
-    getInventory({ inventoryID: inventoryID }).then((inventory) => {
-      setInventory(inventory);
-    });
+    // }
+    return () => {
+      isCancelled = true;
+      // unsubscribe();
+      console.log('unsubscribed----------');
+    };
   }, []);
 
   const renderFakeMarker = () => {
@@ -107,11 +122,13 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera && camera.current.setCamera( {
-      centerCoordinate: recenterCoords,
-      zoomLevel: 18,
-      animationDuration: 1000,
-    });
+    camera &&
+      camera.current &&
+      camera.current.setCamera({
+        centerCoordinate: recenterCoords,
+        zoomLevel: 18,
+        animationDuration: 1000,
+      });
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
@@ -225,16 +242,26 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   };
 
   // Adds coordinates and locateTree label to inventory
-  const onPressContinue = (currentCoords, centerCoordinates, locateTreeVariable) => {
-    const inventoryID = inventoryState.inventoryID;
-    addCoordinateSingleRegisterTree({
-      inventory_id: inventoryID,
-      markedCoords: centerCoordinates,
-      locateTree: locateTreeVariable,
-      currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
-    }).then(() => {
-      setIsAlrightyModalShow(true);
-    });
+  const onPressContinue = async (currentCoords, centerCoordinates, locateTreeVariable) => {
+    console.log('onpressCOntinue clicked');
+    if (!inventoryState.inventoryID) {
+      const result = await initiateInventory({ treeType: 'single' }, dispatch);
+      console.log(result, 'result');
+      if (result) {
+        initiateInventoryState(result)(dispatch);
+        const inventoryID = result.inventory_id;
+        console.log(inventoryID, 'inventoryID');
+        addCoordinateSingleRegisterTree({
+          inventory_id: inventoryID,
+          markedCoords: centerCoordinates,
+          locateTree: locateTreeVariable,
+          currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
+        }).then(() => {
+          setIsAlrightyModalShow(true);
+          console.log('coordinates added', inventoryState);
+        });
+      }
+    }
   };
 
   // Alrighty Screen..
@@ -410,8 +437,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -454,11 +481,12 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
   );
 };
 
-export default function MapMarkingMain(props) {
-  const navigation = useNavigation();
-  const { state } = useContext(InventoryContext);
-  return <MapMarking {...props} {...state} navigation={navigation} />;
-}
+export default MapMarking;
+// export default function MapMarkingMain(props) {
+//   const navigation = useNavigation();
+//   const { state } = useContext(InventoryContext);
+//   return <MapMarking {...props} {...state} navigation={navigation} />;
+// }
 
 const styles = StyleSheet.create({
   container: {

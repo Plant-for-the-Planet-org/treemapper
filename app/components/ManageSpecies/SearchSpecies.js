@@ -49,6 +49,7 @@ const SearchSpecies = ({
         key={index}
         style={styles.specieListItem}
         onPress={() => {
+          console.log('clicked');
           if (registrationType == 'single') {
             addSpecieNameToInventory(item);
             toggleUserSpecies(item.guid, 'add');

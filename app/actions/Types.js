@@ -1,6 +1,9 @@
 // used to set the inventory id of an inventory
 export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
 
+// used to delete the inventory id from the inventory state
+export const DELETE_INVENTORY_ID = 'DELETE_INVENTORY_ID';
+
 // used when the inventory is initiated
 export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
 

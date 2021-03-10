@@ -65,7 +65,9 @@ const ImageCapturing = ({
       );
       generateMarkers();
     } else {
+      console.log(state, 'state Imagecapturing');
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);

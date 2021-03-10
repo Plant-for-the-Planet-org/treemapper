@@ -24,62 +24,70 @@ const RegisterSingleTree = ({ navigation }) => {
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-        if (InventoryData.status === INCOMPLETE_INVENTORY) {
-          let data = {
-            inventory_id: inventoryState.inventoryID,
-            last_screen: 'RegisterSingleTree',
-          };
-          updateLastScreen(data);
+      console.log(inventoryState.inventoryID, 'inventoryState.inventoryID', inventoryState);
+      if (inventoryState.inventoryID) {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+          if (InventoryData.status === INCOMPLETE_INVENTORY) {
+            let data = {
+              inventory_id: inventoryState.inventoryID,
+              last_screen: 'RegisterSingleTree',
+            };
+            updateLastScreen(data);
 
-          permission().then((granted) => {
-            if (granted && InventoryData.polygons[0]) {
-              Geolocation.getCurrentPosition(
-                (position) => {
-                  let distanceInMeters =
-                    distanceCalculator(
-                      position.coords.latitude,
-                      position.coords.longitude,
-                      InventoryData.polygons[0].coordinates[0].latitude,
-                      InventoryData.polygons[0].coordinates[0].longitude,
-                      'K',
-                    ) * 1000;
-                  if (distanceInMeters && distanceInMeters < 100) {
-                    //set onsite
-                    addLocateTree({
-                      inventory_id: inventoryState.inventoryID,
-                      locate_tree: 'on-site',
-                    });
-                    updateScreenState('ImageCapturing');
-                  } else {
-                    //set offsite
-                    addLocateTree({
-                      inventory_id: inventoryState.inventoryID,
-                      locate_tree: 'off-site',
-                    });
-                    navigation.navigate('SelectSpecies');
-                  }
-                },
-                (err) => {
-                  console.log(err);
-                },
-                {
-                  enableHighAccuracy: true,
-                  timeout: 5000,
-                  maximumAge: 20000,
-                  accuracy: {
-                    android: 'high',
-                    ios: 'bestForNavigation',
+            permission().then((granted) => {
+              if (granted && InventoryData.polygons[0]) {
+                Geolocation.getCurrentPosition(
+                  (position) => {
+                    console.log(position.accuracy, 'accuracy index');
+                    let distanceInMeters =
+                      distanceCalculator(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        InventoryData.polygons[0].coordinates[0].latitude,
+                        InventoryData.polygons[0].coordinates[0].longitude,
+                        'K',
+                      ) * 1000;
+                    if (distanceInMeters && distanceInMeters < 100) {
+                      //set onsite
+                      addLocateTree({
+                        inventory_id: inventoryState.inventoryID,
+                        locate_tree: 'on-site',
+                      });
+                      updateScreenState('ImageCapturing');
+                      console.log('set to Imagecapturing');
+                    } else {
+                      //set offsite
+                      addLocateTree({
+                        inventory_id: inventoryState.inventoryID,
+                        locate_tree: 'off-site',
+                      });
+                      navigation.navigate('SelectSpecies');
+                    }
                   },
-                },
-              );
-            }
-          });
-        }
-      });
+                  (err) => {
+                    console.log(err);
+                  },
+                  {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 20000,
+                    accuracy: {
+                      android: 'high',
+                      ios: 'bestForNavigation',
+                    },
+                  },
+                );
+              }
+            });
+          }
+        });
+      } else {
+        permission().then(() => setScreenState('MapMarking'));
+      }
     });
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+      console.log('unsubscribing');
       unsubscribe();
     };
   }, [inventoryState, isGranted, navigation]);
@@ -143,7 +151,7 @@ const RegisterSingleTree = ({ navigation }) => {
         (isGranted ? (
           <MapMarking
             updateScreenState={updateScreenState}
-            inventoryState={inventoryState}
+            // inventoryState={inventoryState}
             resetRouteStack={resetRouteStack}
           />
         ) : isPermissionDeniedAlertShow ? (

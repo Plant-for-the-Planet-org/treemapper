@@ -102,6 +102,8 @@ const SelectSpecies = ({
 
   const Inventory = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      console.log(inventory, 'inventory');
+      console.log(state, 'inventoryState');
       setInventory(inventory);
 
       if (inventory.species.length > 0 && inventory.species_diameter == null) {
@@ -256,7 +258,9 @@ const SelectSpecies = ({
                           autoFocus
                           placeholder={i18next.t('label.select_species_diameter')}
                           placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) => setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))}
+                          onChangeText={(text) =>
+                            setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
+                          }
                           keyboardType={'decimal-pad'}
                         />
                         <Text
@@ -285,7 +289,9 @@ const SelectSpecies = ({
                           style={styles.input}
                           placeholder={i18next.t('label.select_species_height')}
                           placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) => setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))}
+                          onChangeText={(text) =>
+                            setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
+                          }
                           keyboardType={'decimal-pad'}
                         />
                         <Text

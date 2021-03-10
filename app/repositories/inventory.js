@@ -680,7 +680,7 @@ export const addCoordinateSingleRegisterTree = ({
               locateTree,
             }),
           });
-          resolve();
+          resolve((data) => console.log(data, 'coordinate data'));
         });
       })
       .catch((err) => {
