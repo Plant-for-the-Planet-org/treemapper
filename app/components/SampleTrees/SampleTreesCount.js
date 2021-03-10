@@ -27,11 +27,11 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
       {/* if sample tree count is present and has length greater than zero then maps the array */}
       {sampleTreesCount &&
         sampleTreesCount.length > 0 &&
-        sampleTreesCount.map((treeCount) => {
+        sampleTreesCount.map((treeCount, index) => {
           // used to show the selected tree count selected by user
           const isSelected = treeCount === selectedTreeCount;
           return (
-            <TouchableOpacity onPress={() => setSelectedTreeCount(treeCount)}>
+            <TouchableOpacity onPress={() => setSelectedTreeCount(treeCount)} key={`tree-number-selection-${index}`}>
               <View
                 style={[
                   styles.treeCountSelection,

@@ -1,8 +1,14 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
+import Label from '../Common/Label';
+import i18next from '18next';
 
 const SampleTreeListItem = (sampleTree) => {
-  return <div></div>;
+  return (
+    <View>
+      <Text>Sample tree list titem</Text>
+    </View>
+  );
 };
 
 export default function SampleTreesReview({ sampleTrees }) {
@@ -22,12 +28,7 @@ export default function SampleTreesReview({ sampleTrees }) {
             index: index,
           };
           return (
-            <InventoryCard
-              data={normalizeData}
-              activeBtn={inventory.status === 'complete'}
-              onPressActiveBtn={onPressViewLOC}
-              hideImage
-            />
+            <SampleTreeListItem sampleTree />
           );
         }}
         keyExtractor={(item, index) => `location-${index}`}

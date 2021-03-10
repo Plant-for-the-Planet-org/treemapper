@@ -13,6 +13,7 @@ import {
   Modal,
   Image,
   KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';

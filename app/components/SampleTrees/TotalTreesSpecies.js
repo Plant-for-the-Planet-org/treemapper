@@ -140,8 +140,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-                <SpecieListItem item={specie} index={index} />
-              ))
+              <SpecieListItem item={specie} index={index} key={index} />
+            ))
             : []}
         </ScrollView>
         <PrimaryButton
