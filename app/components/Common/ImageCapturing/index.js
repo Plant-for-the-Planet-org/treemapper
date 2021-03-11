@@ -1,5 +1,15 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, Text, TouchableOpacity, Modal, Platform, Linking } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Platform,
+  Linking,
+} from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';

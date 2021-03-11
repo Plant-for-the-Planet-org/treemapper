@@ -82,7 +82,6 @@ const TreeInventory = ({ navigation }) => {
           navigation.navigate('SignUp');
           navigation.navigate('MainScreen');
         } else if (err === 'blocked') {
-          console.log('Tree Inventory blocked');
           setIsPermissionBlockedAlertShow(true);
         } else if (err.error !== 'a0.session.user_cancelled') {
           // TODO:i18n - if this is used, please add translations
