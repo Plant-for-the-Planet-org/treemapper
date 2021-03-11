@@ -22,13 +22,12 @@ import FIcon from 'react-native-vector-icons/Fontisto';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
-import { initiateInventoryState } from '../../actions/inventory';
+import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   changeInventoryStatus,
   deleteInventory,
   getInventory,
-  initiateInventory,
   updateLastScreen,
   updatePlantingDate,
   updateSingleTreeSpecie,
@@ -489,12 +488,9 @@ const SingleTreeOverview = ({ navigation }) => {
       changeInventoryStatus(
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
-      ).then(async () => {
-        const result = await initiateInventory({ treeType: 'single' }, dispatch);
-        if (result) {
-          initiateInventoryState(result)(dispatch);
-          navigation.navigate('RegisterSingleTree');
-        }
+      ).then(() => {
+        deleteInventoryId()(dispatch);
+        navigation.navigate('RegisterSingleTree');
       });
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
       let data = {
