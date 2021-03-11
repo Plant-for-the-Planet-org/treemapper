@@ -31,25 +31,19 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   headerText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
   leftText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_20,
-    lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
   rightText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.PRIMARY,
-    fontWeight: Typography.FONT_WEIGHT_REGULAR,
   },
   backArrow: {},
 });

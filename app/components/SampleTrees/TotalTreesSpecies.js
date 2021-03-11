@@ -33,14 +33,32 @@ export default function TotalTreesSpecies() {
   const addSpecieToInventory = (specie) => {
     console.log('specie added', specie);
     let species = [...inventory.species];
-    species = [
-      ...species,
-      {
-        aliases: specie.scientificName,
-        id: specie.guid,
-        treeCount: specie.treeCount,
-      },
-    ];
+
+    let deleteSpecieIndex;
+    let updateSpecieIndex;
+    for (const index in species) {
+      if (species[index].id === specie.guid && specie.treeCount === 0) {
+        deleteSpecieIndex = index;
+        break;
+      } else if (species[index].id === specie.guid && specie.treeCount > 0) {
+        updateSpecieIndex = index;
+      }
+    }
+
+    if (deleteSpecieIndex) {
+      species.splice(deleteSpecieIndex, 1);
+    } else if (updateSpecieIndex) {
+      species[updateSpecieIndex].treeCount = specie.treeCount;
+    } else {
+      species = [
+        ...species,
+        {
+          aliases: specie.scientificName,
+          id: specie.guid,
+          treeCount: specie.treeCount,
+        },
+      ];
+    }
 
     console.log('species=>>', species);
 
@@ -140,8 +158,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : []}
         </ScrollView>
         <PrimaryButton

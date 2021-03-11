@@ -16,7 +16,11 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
     console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
-      navigation.navigate('SingleTreeOverview');
+      if (item.locate_tree === 'single') {
+        navigation.navigate('SingleTreeOverview');
+      } else {
+        navigation.navigate('InventoryOverview');
+      }
     } else {
       navigation.navigate(item.last_screen);
     }
@@ -85,8 +89,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
                   : item.status === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
             />

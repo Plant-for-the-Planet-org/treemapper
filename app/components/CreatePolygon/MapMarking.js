@@ -175,6 +175,27 @@ export default function MapMarking({
     }
   };
 
+  const checkIsValidMarker = async (currentCoords, centerCoordinates) => {
+    console.log('currentCoords', currentCoords);
+    console.log('centerCoordinates', centerCoordinates);
+
+    let isValidMarkers = true;
+    for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
+      let distance = distanceCalculator(
+        centerCoordinates[1],
+        centerCoordinates[0],
+        oneMarker[1],
+        oneMarker[0],
+        'K',
+      );
+      let distanceInMeters = distance * 1000;
+      if (distanceInMeters < 10) {
+        isValidMarkers = false;
+      }
+    }
+    return isValidMarkers;
+  };
+
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
   const addMarker = async () => {
     console.log('locateTree', locateTree);
@@ -184,23 +205,7 @@ export default function MapMarking({
         .then(async () => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           let centerCoordinates = await map.current.getCenter();
-          console.log('currentCoords', currentCoords);
-          console.log('centerCoordinates', centerCoordinates);
-
-          let isValidMarkers = true;
-          for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
-            let distance = distanceCalculator(
-              centerCoordinates[1],
-              centerCoordinates[0],
-              oneMarker[1],
-              oneMarker[0],
-              'K',
-            );
-            let distanceInMeters = distance * 1000;
-            if (distanceInMeters < 10) {
-              isValidMarkers = false;
-            }
-          }
+          let isValidMarkers = await checkIsValidMarker(currentCoords, centerCoordinates);
 
           let distance = distanceCalculator(
             currentCoords[0],
@@ -223,6 +228,7 @@ export default function MapMarking({
           }
         })
         .catch((err) => {
+          console.error('some err', err);
           alert(JSON.stringify(err), 'Alert');
         });
       // } else {
@@ -231,13 +237,23 @@ export default function MapMarking({
     } else {
       setIsAccuracyModalShow(true);
       try {
-        Geolocation.getCurrentPosition(
-          (position) => {
-            let currentCoords = position.coords;
-            pushMaker(currentCoords);
-          },
-          (err) => alert(err.message),
-        );
+        updateCurrentPosition()
+          .then(async () => {
+            let currentCoords = [location.coords.latitude, location.coords.longitude];
+            let centerCoordinates = await map.current.getCenter();
+            let isValidMarkers = await checkIsValidMarker(currentCoords, centerCoordinates);
+
+            console.log('isValidMarkers', isValidMarkers);
+            if (!isValidMarkers) {
+              alert(i18next.t('label.locate_tree_add_marker_valid'));
+            } else {
+              pushMaker(currentCoords);
+            }
+          })
+          .catch((err) => {
+            console.log('error', err);
+            alert(JSON.stringify(err), 'Alert');
+          });
       } catch (err) {
         // TODO:i18n - if this is used, please add translations or convert to db logging
         alert('Unable to retrieve location');
@@ -260,6 +276,7 @@ export default function MapMarking({
       if (locateTree === 'on-site') {
         toggleState();
       } else {
+        setIsAlrightyModalShow(true);
         // For off site
         // if (complete) {
         //   navigation.navigate('InventoryOverview');
@@ -346,7 +363,7 @@ export default function MapMarking({
         console.log('onsite locate tree');
       } else {
         // For off site
-        this.props.navigation.navigate('InventoryOverview');
+        navigation.navigate('InventoryOverview');
       }
     });
   };

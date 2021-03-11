@@ -247,7 +247,6 @@ const ImageCapturing = ({
   const renderAlrightyModal = () => {
     let infoIndex = activeMarkerIndex > 2 ? 2 : activeMarkerIndex;
     const { heading, subHeading } = infographicText[infoIndex];
-    console.log('renderAlrightyModal image capturing');
     return (
       <Modal animationType={'slide'} visible={isAlrightyModalShow}>
         <View style={styles.mainContainer}>

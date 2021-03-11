@@ -60,11 +60,11 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     } else {
       Geolocation.requestAuthorization('whenInUse').then((permission) => {
         if (permission === 'granted') {
-          console.log(permission,'permission');
+          console.log(permission, 'permission');
           updateCurrentPosition();
         } else {
           setIsLocationAlertShow(true);
-          console.log(permission,'permission');
+          console.log(permission, 'permission');
         }
       });
     }
@@ -105,11 +105,12 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera && camera.current.setCamera( {
-      centerCoordinate: recenterCoords,
-      zoomLevel: 18,
-      animationDuration: 1000,
-    });
+    camera &&
+      camera.current.setCamera({
+        centerCoordinate: recenterCoords,
+        zoomLevel: 18,
+        animationDuration: 1000,
+      });
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
@@ -195,7 +196,6 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
-          console.log('accuracy', position.coords.accuracy);
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
@@ -408,8 +408,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

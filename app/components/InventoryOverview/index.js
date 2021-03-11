@@ -34,6 +34,7 @@ import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Com
 import SelectSpecies from '../SelectSpecies/index';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
 import { toBase64 } from '../../utils/base64';
+import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -430,7 +431,7 @@ const InventoryOverview = ({ navigation }) => {
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
               {renderPolygon(inventory.polygons, locationType)}
               {inventory?.sampleTrees.length > 0 && (
-                <SampleTrees sampleTrees={inventory.sampleTrees} />
+                <SampleTreesReview sampleTrees={inventory.sampleTrees} />
               )}
               <LargeButton
                 onPress={onPressExportJSON}
@@ -439,20 +440,22 @@ const InventoryOverview = ({ navigation }) => {
                 medium
               />
             </ScrollView>
-            <View>
-              <View style={styles.bottomButtonContainer}>
-                <PrimaryButton
-                  btnText={i18next.t('label.inventory_overview_loc_next_tree')}
-                  halfWidth
-                  theme={'white'}
-                />
-                <PrimaryButton
-                  onPress={onPressSave}
-                  btnText={i18next.t('label.inventory_overview_loc_save')}
-                  halfWidth
-                />
+            {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
+              <View>
+                <View style={styles.bottomButtonContainer}>
+                  <PrimaryButton
+                    btnText={i18next.t('label.inventory_overview_loc_next_tree')}
+                    halfWidth
+                    theme={'white'}
+                  />
+                  <PrimaryButton
+                    onPress={onPressSave}
+                    btnText={i18next.t('label.inventory_overview_loc_save')}
+                    halfWidth
+                  />
+                </View>
               </View>
-            </View>
+            )}
           </View>
         ) : null}
       </View>
