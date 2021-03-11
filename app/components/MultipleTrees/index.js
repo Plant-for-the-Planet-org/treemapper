@@ -12,6 +12,7 @@ import {
 } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 
+// TODO:i18n - if this file is used, please add translations
 const MultipleTrees = ({ navigation, route }) => {
   const { state } = useContext(InventoryContext);
 
@@ -44,10 +45,12 @@ const MultipleTrees = ({ navigation, route }) => {
   };
 
   const renderDatePicker = () => {
+    // TODO: should we replace this with DateTimePickerModal like done in SingleTreeOverview?
     return (
       showDate && (
         <DateTimePicker
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
           value={plantingDate}
@@ -105,6 +108,7 @@ const MultipleTrees = ({ navigation, route }) => {
         totalTreeCount += Number(species[i].treeCount);
       }
       if (totalTreeCount < 2) {
+        // TODO:i18n - if this is used, please add translations
         alert('Tree count should be greater than one.');
         return;
       }

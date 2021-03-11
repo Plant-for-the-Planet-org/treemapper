@@ -1,5 +1,15 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Image, Text, TouchableOpacity, Modal } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Platform,
+  Linking,
+} from 'react-native';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 import Alrighty from '../Alrighty';
@@ -208,6 +218,12 @@ const ImageCapturing = ({
     );
   };
 
+  const onClickOpenSettings = async () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
       <View style={styles.screenMargin}>
@@ -238,6 +254,13 @@ const ImageCapturing = ({
                     <Text style={styles.message}>
                       {i18next.t('label.permission_camera_message')}
                     </Text>
+                    {Platform.OS === 'ios' ? (
+                      <Text style={styles.message} onPress={onClickOpenSettings}>
+                        {i18next.t('label.open_settings')}
+                      </Text>
+                    ) : (
+                      []
+                    )}
                   </View>
                 }
                 androidCameraPermissionOptions={{
@@ -322,6 +345,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     lineHeight: Typography.LINE_HEIGHT_30,
     textAlign: 'center',
+    padding: 20,
   },
   cameraIconContainer: {
     position: 'absolute',

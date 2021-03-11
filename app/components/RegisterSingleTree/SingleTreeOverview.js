@@ -22,13 +22,12 @@ import FIcon from 'react-native-vector-icons/Fontisto';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
-import { initiateInventoryState } from '../../actions/inventory';
+import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   changeInventoryStatus,
   deleteInventory,
   getInventory,
-  initiateInventory,
   updateLastScreen,
   updatePlantingDate,
   updateSingleTreeSpecie,
@@ -126,6 +125,7 @@ const SingleTreeOverview = ({ navigation }) => {
       });
       setIsOpenModal(false);
     } else {
+      // TODO:i18n - if this is used, please add translations
       Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
       setIsOpenModal(false);
     }
@@ -171,9 +171,9 @@ const SingleTreeOverview = ({ navigation }) => {
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
                   onChangeText={(text) => {
                     if (editEnable === 'diameter') {
-                      setSpecieEditDiameter(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else if (editEnable === 'height') {
-                      setSpecieEditHeight(text.replace(/[^0-9.]/g, ''));
+                      setSpecieEditHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
                     } else {
                       setEditedTagId(text);
                     }
@@ -218,26 +218,31 @@ const SingleTreeOverview = ({ navigation }) => {
     setSpecieText(specie.scientificName);
   };
 
+  const onChangeDate = (selectedDate) => {
+    setIsShowDate(false);
+    setPlantationDate(selectedDate);
+    updatePlantingDate({
+      inventory_id: inventoryState.inventoryID,
+      plantation_date: selectedDate,
+    });
+  };
+
   const renderDateModal = () => {
-    const onChangeDate = (selectedDate) => {
-      updatePlantingDate({
-        inventory_id: inventoryState.inventoryID,
-        plantation_date: selectedDate,
-      });
-      setIsShowDate(false);
-      setPlantationDate(selectedDate);
-    };
     const handleConfirm = (data) => onChangeDate(data);
     const hideDatePicker = () => setIsShowDate(false);
 
     return (
       isShowDate && (
         <DateTimePickerModal
+          headerTextIOS={i18next.t('label.inventory_overview_pick_a_date')}
+          cancelTextIOS={i18next.t('label.inventory_overview_cancel')}
+          confirmTextIOS={i18next.t('label.inventory_overview_confirm')}
           isVisible={true}
           maximumDate={new Date()}
+          minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker1"
           timeZoneOffsetInMinutes={0}
-          value={new Date(plantationDate)}
+          date={new Date(plantationDate)}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -385,6 +390,7 @@ const SingleTreeOverview = ({ navigation }) => {
           navigation.navigate('TreeInventory');
         });
       } else {
+        // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
     }
@@ -395,12 +401,9 @@ const SingleTreeOverview = ({ navigation }) => {
       changeInventoryStatus(
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
-      ).then(async () => {
-        const result = await initiateInventory({ treeType: 'single' }, dispatch);
-        if (result) {
-          initiateInventoryState(result)(dispatch);
-          navigation.navigate('RegisterSingleTree');
-        }
+      ).then(() => {
+        deleteInventoryId()(dispatch);
+        navigation.navigate('RegisterSingleTree');
       });
     } else {
       navigation.goBack('TreeInventory');
@@ -476,26 +479,12 @@ const SingleTreeOverview = ({ navigation }) => {
             )}
           </View>
         </ScrollView>
-        {/* {locateTree === 'on-site' ? (
-          <PrimaryButton
-            onPress={onPressNextTree}
-            btnText={i18next.t('label.tree_review_next_btn')}
-
-          />
-        ) : */}
         {status === INCOMPLETE_INVENTORY ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressNextTree}
               btnText={i18next.t('label.tree_review_next_btn')}
-              // halfWidth
-              // theme={'white'}
             />
-            {/* <PrimaryButton
-              onPress={onPressSave}
-              btnText={i18next.t('label.tree_review_Save')}
-              halfWidth
-            /> */}
           </View>
         ) : (
           []

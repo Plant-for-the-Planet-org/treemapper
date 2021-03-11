@@ -29,6 +29,7 @@ import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { StackActions } from '@react-navigation/native';
 
+// TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
   const [accountType, setAccountType] = useState('tpo');
   const [lastname, setLastName] = useState('');

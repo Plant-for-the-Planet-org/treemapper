@@ -11,6 +11,7 @@ import ManageUser from './user/manageUser.json';
 import RegisterTree from './user/registerTreeslabels.json';
 import SavedAreas from './user/savedAreas.json';
 import SelectSpecies from './user/selectSpecies.json';
+import MapMarking from './user/mapMarking.json';
 import TreeInventory from './user/treeInventory.json';
 import Review from './user/treeReview.json';
 
@@ -30,4 +31,5 @@ export default {
   ...SelectSpecies,
   ...InitialScreen,
   ...Logs,
+  ...MapMarking,
 };

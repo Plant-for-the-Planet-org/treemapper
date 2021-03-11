@@ -12,71 +12,78 @@ import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
 import { CommonActions } from '@react-navigation/native';
-
+import { Loader } from '../Common';
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
   const { state: inventoryState } = useContext(InventoryContext);
-  const [screenState, setScreenState] = useState('MapMarking');
+  const [screenState, setScreenState] = useState('');
   const [isGranted, setIsGranted] = useState(false);
   const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-        if (InventoryData.status === INCOMPLETE_INVENTORY) {
-          let data = {
-            inventory_id: inventoryState.inventoryID,
-            last_screen: 'RegisterSingleTree',
-          };
-          updateLastScreen(data);
+      setScreenState('');
+      if (inventoryState.inventoryID) {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+          if (InventoryData.status === INCOMPLETE_INVENTORY) {
+            let data = {
+              inventory_id: inventoryState.inventoryID,
+              last_screen: 'RegisterSingleTree',
+            };
+            updateLastScreen(data);
 
-          permission().then((granted) => {
-            if (granted && InventoryData.polygons[0]) {
-              Geolocation.getCurrentPosition(
-                (position) => {
-                  let distanceInMeters =
-                    distanceCalculator(
-                      position.coords.latitude,
-                      position.coords.longitude,
-                      InventoryData.polygons[0].coordinates[0].latitude,
-                      InventoryData.polygons[0].coordinates[0].longitude,
-                      'K',
-                    ) * 1000;
-                  if (distanceInMeters && distanceInMeters < 100) {
-                    //set onsite
-                    addLocateTree({
-                      inventory_id: inventoryState.inventoryID,
-                      locate_tree: 'on-site',
-                    });
-                    updateScreenState('ImageCapturing');
-                  } else {
-                    //set offsite
-                    addLocateTree({
-                      inventory_id: inventoryState.inventoryID,
-                      locate_tree: 'off-site',
-                    });
-                    navigation.navigate('SelectSpecies');
-                  }
-                },
-                (err) => {
-                  console.log(err);
-                },
-                {
-                  enableHighAccuracy: true,
-                  timeout: 5000,
-                  maximumAge: 20000,
-                  accuracy: {
-                    android: 'high',
-                    ios: 'bestForNavigation',
+            permission().then((granted) => {
+              if (granted && InventoryData.polygons[0]) {
+                Geolocation.getCurrentPosition(
+                  (position) => {
+                    let distanceInMeters =
+                      distanceCalculator(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        InventoryData.polygons[0].coordinates[0].latitude,
+                        InventoryData.polygons[0].coordinates[0].longitude,
+                        'K',
+                      ) * 1000;
+                    if (distanceInMeters && distanceInMeters < 100) {
+                      //set onsite
+                      addLocateTree({
+                        inventory_id: inventoryState.inventoryID,
+                        locate_tree: 'on-site',
+                      });
+                      updateScreenState('ImageCapturing');
+                    } else {
+                      //set offsite
+                      addLocateTree({
+                        inventory_id: inventoryState.inventoryID,
+                        locate_tree: 'off-site',
+                      });
+                      navigation.navigate('SelectSpecies');
+                    }
                   },
-                },
-              );
-            }
-          });
-        }
-      });
+                  (err) => {
+                    console.log(err);
+                  },
+                  {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 20000,
+                    accuracy: {
+                      android: 'high',
+                      ios: 'bestForNavigation',
+                    },
+                  },
+                );
+              } else {
+                setScreenState('MapMarking');
+              }
+            });
+          }
+        });
+      } else {
+        permission().then(() => setScreenState('MapMarking'));
+      }
     });
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
@@ -143,7 +150,7 @@ const RegisterSingleTree = ({ navigation }) => {
         (isGranted ? (
           <MapMarking
             updateScreenState={updateScreenState}
-            inventoryState={inventoryState}
+            // inventoryState={inventoryState}
             resetRouteStack={resetRouteStack}
           />
         ) : isPermissionDeniedAlertShow ? (
@@ -164,6 +171,8 @@ const RegisterSingleTree = ({ navigation }) => {
       {screenState == 'ImageCapturing' && (
         <ImageCapturing updateScreenState={updateScreenState} inventoryType="single" />
       )}
+
+      {screenState === '' && <Loader isLoaderShow={true} />}
     </View>
   );
 };
