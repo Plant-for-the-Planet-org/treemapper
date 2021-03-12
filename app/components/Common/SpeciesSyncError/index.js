@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
-import i18next from '../../languages/languages';
+import i18next from 'i18next';
 
 //Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
