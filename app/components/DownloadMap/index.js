@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Modal, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, Text, Modal, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { Header, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -9,6 +9,7 @@ import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
 import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const IS_ANDROID = Platform.OS === 'android';
@@ -20,7 +21,7 @@ const DownloadMap = ({ navigation }) => {
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
 
   const MapBoxGLRef = useRef();
-  const MapBoxGLCameraRef = useRef();
+  const camera = useRef();
 
   useEffect(() => {
     navigation.addListener('focus', () => {
@@ -31,25 +32,39 @@ const DownloadMap = ({ navigation }) => {
   const getAllOfflineMapslocal = async () => {
     getAllOfflineMaps().then((offlineMaps) => {
       setNumberOfOfflineMaps(offlineMaps.length);
+      initialMapCamera();
     });
   };
 
   const initialMapCamera = () => {
     permission()
-      .then(
+      .then(() => {
+        console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
-            MapBoxGLCameraRef.current.setCamera({
+            camera && camera.current &&
+            camera.current.setCamera({
               centerCoordinate: [position.coords.longitude, position.coords.latitude],
               zoomLevel: 15,
-              animationDuration: 2000,
+              animationDuration: 1000,
             });
           },
           (err) => {
             alert(err.message);
           },
-        ),
-      )
+          {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            accuracy: {
+              android: 'high',
+              ios: 'bestForNavigation',
+            },
+            useSignificantChanges: true,
+            interval: 1000,
+            fastestInterval: 1000,
+          },
+        )
+      })
       .catch((err) => {
         if (err === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
@@ -143,8 +158,20 @@ const DownloadMap = ({ navigation }) => {
             zoomLevel={15}
             centerCoordinate={[11.256, 43.77]}>
             <MapboxGL.UserLocation showsUserHeadingIndicator />
-            <MapboxGL.Camera ref={MapBoxGLCameraRef} />
+            <MapboxGL.Camera ref={camera} />
           </MapboxGL.MapView>
+          <TouchableOpacity
+            onPress={() => {
+              initialMapCamera();
+            }}
+            style={[styles.myLocationIcon]}
+            accessibilityLabel="Register Tree Camera"
+            accessible={true}
+            testID="register_tree_camera">
+            <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
+              <Icon name={'my-location'} size={22} />
+            </View>
+          </TouchableOpacity>
         </View>
         {numberOfOfflineMaps == 0 ? (
           <PrimaryButton onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
@@ -240,6 +267,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_30,
     textAlign: 'center',
+  },
+  myLocationIcon: {
+    width: 45,
+    height: 45,
+    backgroundColor: Colors.WHITE,
+    position: 'absolute',
+    borderRadius: 100,
+    right: 0,
+    marginHorizontal: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: Colors.TEXT_COLOR,
+    bottom: 25,
+  },
+  myLocationIconContainer: {
+    top: 1.5,
+    left: 0.8,
   },
 });
 
