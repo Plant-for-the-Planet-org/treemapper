@@ -66,7 +66,7 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
     return (
       <View style={styles.syncContainer}>
         {isUploading ? (
-          <RotatingView>
+          <RotatingView isClockwise={false}>
             <Icon size={24} name="sync" color={Colors.PRIMARY} />
           </RotatingView>
         ) : (
