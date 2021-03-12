@@ -32,7 +32,15 @@ import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
+import {
+  Header,
+  LargeButton,
+  Loader,
+  MainScreenHeader,
+  PrimaryButton,
+  Sync,
+  SpeciesSyncError,
+} from '../Common';
 import ProfileModal from '../ProfileModal';
 
 const MainScreen = ({ navigation }) => {
@@ -240,7 +248,7 @@ const MainScreen = ({ navigation }) => {
                 name={userInfo ? userInfo.firstName : ''}
               />
             </View>
-            {/* <View> */}
+            <SpeciesSyncError />
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -249,7 +257,6 @@ const MainScreen = ({ navigation }) => {
               hideBackIcon
               textAlignStyle={{ textAlign: 'center' }}
             />
-            {/* </View> */}
             <View>
               <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                 <LargeButton

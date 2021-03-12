@@ -14,6 +14,7 @@ import FlatButton from './FlatButton';
 import Loader from './Loader/Index';
 import Sync from './Syncing';
 import InventoryList from './InventoryList';
+import SpeciesSyncError from './SpeciesSyncError';
 // import Loader from './Loader';
 
 export {
@@ -33,4 +34,5 @@ export {
   Loader,
   Sync,
   InventoryList,
+  SpeciesSyncError,
 };

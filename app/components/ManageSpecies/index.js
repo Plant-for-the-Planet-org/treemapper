@@ -19,7 +19,7 @@ import dbLog from '../../repositories/logs';
 // import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
-import { Header } from '../Common';
+import { Header, SpeciesSyncError } from '../Common';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
 
@@ -152,9 +152,14 @@ const ManageSpecies = ({
             closeIcon
             onBackPress={onPressBack ? onPressBack : onPressHome}
             headingText={
-              registrationType ? i18next.t('label.select_species_header') : i18next.t('label.select_species_tree_species')
+              registrationType
+                ? i18next.t('label.select_species_header')
+                : i18next.t('label.select_species_tree_species')
             }
           />
+          <View>
+            <SpeciesSyncError />
+          </View>
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
             <TextInput
