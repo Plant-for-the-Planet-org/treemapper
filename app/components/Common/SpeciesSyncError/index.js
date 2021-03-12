@@ -14,16 +14,14 @@ const SpeciesSyncError = () => {
   const [updatingSpeciesState, setUpdatingSpeciesState] = useState('');
   const [asyncStorageSpecies, setAsyncStorageSpecies] = useState(false);
   useEffect(() => {
-    const unsubscribe = async () => {
+    const setIsSpeciesUpdated = async () => {
       const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
-      console.log(species, 'species useEffect');
+      console.log(species, updatingSpeciesState, 'species useEffect');
       setAsyncStorageSpecies(species);
     };
 
-    return () => {
-      unsubscribe();
-    };
-  });
+    setIsSpeciesUpdated();
+  }, []);
 
   //Syncs species if not downloaded already due to network error
   const speciesCheck = () => {
@@ -47,7 +45,7 @@ const SpeciesSyncError = () => {
   };
   return (
     <View>
-      {asyncStorageSpecies !== 'true' && updatingSpeciesState !== 'COMPLETED' ? (
+      {asyncStorageSpecies !== 'true' ? (
         <View style={styles.speciesZipWarning}>
           <View style={{ width: '80%', marginRight: 16, flex: 4 }}>
             <Text style={styles.speciesHeading}>{i18next.t('label.speciesSyncError_heading')}</Text>
