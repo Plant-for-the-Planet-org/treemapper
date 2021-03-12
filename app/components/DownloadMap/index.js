@@ -64,7 +64,7 @@ const DownloadMap = ({ navigation }) => {
             interval: 1000,
             fastestInterval: 1000,
           },
-        )
+        );
       })
       .catch((err) => {
         if (err === 'blocked') {
