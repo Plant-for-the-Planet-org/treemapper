@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
+import i18next from '../../languages/languages';
 
 //Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
@@ -49,11 +50,8 @@ const SpeciesSyncError = () => {
       {asyncStorageSpecies !== 'true' && updatingSpeciesState !== 'COMPLETED' ? (
         <View style={styles.speciesZipWarning}>
           <View style={{ width: '80%', marginRight: 16, flex: 4 }}>
-            <Text style={styles.speciesHeading}>Species sync is incomplete!</Text>
-            <Text style={styles.speciesText}>
-              Species syncing is required to add species in inventory. Sync when internet connection
-              is available.
-            </Text>
+            <Text style={styles.speciesHeading}>{i18next.t('label.speciesSyncError_heading')}</Text>
+            <Text style={styles.speciesText}>{i18next.t('label.speciesSyncError_text')}</Text>
           </View>
           <TouchableOpacity
             onPress={() => {
