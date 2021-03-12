@@ -1,4 +1,5 @@
 {
   "speciesSyncError_heading": "Species sync is incomplete!",
-  "speciesSyncError_text": "Species syncing is required to add species in inventory. Sync when internet connection is available."
+  "speciesSyncError_text": "Species syncing is required to add species in inventory. Sync when internet connection is available.",
+  "snackBarText": "Something went wrong!"
 }

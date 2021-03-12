@@ -16,7 +16,6 @@ const SpeciesSyncError = () => {
   useEffect(() => {
     const setIsSpeciesUpdated = async () => {
       const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
-      console.log(species, updatingSpeciesState, 'species useEffect');
       setAsyncStorageSpecies(species);
     };
 
@@ -28,19 +27,16 @@ const SpeciesSyncError = () => {
     updateAndSyncLocalSpecies(setUpdatingSpeciesState)
       .then(async () => {
         setRefreshAnimation(false);
-        console.log('zip added', asyncStorageSpecies, updatingSpeciesState);
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
         setAsyncStorageSpecies(species);
-        console.log(species, 'species');
       })
       .catch(() => {
         setRefreshAnimation(false);
         Snackbar.show({
-          text: 'No Internet Connection!',
+          text: i18next.t('label.snackBarText'),
           duration: Snackbar.LENGTH_SHORT,
           backgroundColor: '#e74c3c',
         });
-        console.log('zip downloading failed');
       });
   };
   return (
