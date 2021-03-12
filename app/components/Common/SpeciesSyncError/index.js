@@ -11,7 +11,6 @@ import i18next from 'i18next';
 //Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
   const [refreshAnimation, setRefreshAnimation] = useState(false);
-  const [updatingSpeciesState, setUpdatingSpeciesState] = useState('');
   const [asyncStorageSpecies, setAsyncStorageSpecies] = useState(false);
   useEffect(() => {
     const setIsSpeciesUpdated = async () => {
@@ -24,7 +23,7 @@ const SpeciesSyncError = () => {
 
   //Syncs species if not downloaded already due to network error
   const speciesCheck = () => {
-    updateAndSyncLocalSpecies(setUpdatingSpeciesState)
+    updateAndSyncLocalSpecies()
       .then(async () => {
         setRefreshAnimation(false);
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
