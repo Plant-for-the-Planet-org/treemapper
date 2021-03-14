@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { useNavigation } from '@react-navigation/native';
+import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
   onSaveMultipleSpecies,
@@ -35,9 +36,9 @@ const MySpecies = ({
         }}
         onPress={() => {
           addSpecieToInventory(item);
-          if (editOnlySpecieName && (registrationType === 'single' || isSampleTree)) {
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
             onPressBack();
-          } else if (registrationType === 'single' && !editOnlySpecieName) {
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
             onPressSpeciesSingle(item);
           }
         }}>
@@ -102,7 +103,7 @@ const MySpecies = ({
           </View>
         )}
       </View>
-      {registrationType === 'multiple' && (
+      {registrationType === MULTI && (
         <PrimaryButton
           onPress={onSaveMultipleSpecies}
           btnText={i18next.t('label.select_species_btn_text')}

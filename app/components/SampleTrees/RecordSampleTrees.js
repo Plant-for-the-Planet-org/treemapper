@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import MapMarking from './MapMarking';
 import { Colors } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
+import { MULTI } from '../../utils/inventoryConstants';
 
 export default function RecordSampleTrees() {
   const [screenState, setScreenState] = useState('MapMarking');
@@ -21,7 +22,7 @@ export default function RecordSampleTrees() {
       {screenState == 'ImageCapturing' && (
         <ImageCapturing
           updateScreenState={updateScreenState}
-          inventoryType="multiple"
+          inventoryType={MULTI}
           isSampleTree={true}
         />
       )}

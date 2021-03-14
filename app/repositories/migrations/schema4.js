@@ -64,10 +64,14 @@ const SampleTrees = {
     specieHeight: 'float?',
     // tag id of the tree if the tree has one
     tagId: 'string?',
-    // current status of the tree. Refer to inventoryStatuses for different status
-    status: 'string',
+    // current status of the tree. Refer to inventoryConstants for different status
+    status: { type: 'string', default: 'INCOMPLETE' },
     // stores the date when the tree was planted
     plantationDate: 'date?',
+    // stores the location id when the data upload is successful
+    locationId: 'string?',
+    // stores the tree type which is always sample tree
+    treeType: { type: 'string', default: 'sample' },
   },
 };
 
@@ -77,7 +81,7 @@ const Inventory = {
   properties: {
     inventory_id: 'string',
     plantation_date: 'date?',
-    tree_type: 'string?',
+    treeType: 'string?',
     status: 'string?',
     project_id: 'string?',
     donation_type: 'string?',
@@ -88,7 +92,6 @@ const Inventory = {
     specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     species_diameter: 'float?',
     species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    response: 'string?',
     tag_id: 'string?',
     registration_date: 'date?',
     // stores the count of sample trees which are to be recorded
@@ -100,6 +103,14 @@ const Inventory = {
       type: 'int?',
       default: 0,
     },
+    // stores the number of sample trees which are uploaded to server
+    uploadedSampleTreesCount: {
+      type: 'int?',
+      default: 0,
+    },
+    // stores the location id of the plant location which is available
+    // when the inventory data is uploaded
+    locationId: 'string?',
   },
 };
 
@@ -169,7 +180,15 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {};
+const migration = (oldRealm, newRealm) => {
+  if (oldRealm.schemaVersion < 2) {
+    const oldInventory = oldRealm.objects('Inventory');
+    const newInventory = newRealm.objects('Inventory');
+    for (const index in oldInventory) {
+      newInventory[index].treeType = oldInventory[index].tree_type;
+    }
+  }
+};
 
 export default {
   schema: [

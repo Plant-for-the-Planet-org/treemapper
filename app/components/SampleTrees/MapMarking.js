@@ -30,6 +30,7 @@ import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -39,7 +40,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [locateTree, setLocateTree] = useState('on-site');
+  const [locateTree, setLocateTree] = useState(ON_SITE);
   const [inventory, setInventory] = useState(null);
   const [accuracyInMeters, setAccuracyInMeters] = useState('');
   const [isAlertShow, setIsAlertShow] = useState(false);
@@ -113,11 +114,13 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera.current.setCamera({
-      centerCoordinate: recenterCoords,
-      zoomLevel: 18,
-      animationDuration: 2000,
-    });
+    if (camera?.current?.setCamera) {
+      camera.current.setCamera({
+        centerCoordinate: recenterCoords,
+        zoomLevel: 18,
+        animationDuration: 2000,
+      });
+    }
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
@@ -141,8 +144,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           let distanceInMeters = distance * 1000;
           let locateTreeVariable;
           if (distanceInMeters < 100) {
-            setLocateTree('on-site');
-            locateTreeVariable = 'on-site';
+            setLocateTree(ON_SITE);
+            locateTreeVariable = ON_SITE;
             onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
           } else {
             if (isSampleTree) {
@@ -150,8 +153,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
               setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
               setShowAlert(true);
             } else {
-              setLocateTree('off-site');
-              locateTreeVariable = 'off-site';
+              setLocateTree(OFF_SITE);
+              locateTreeVariable = OFF_SITE;
               onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
             }
           }
@@ -245,7 +248,6 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         longitude: centerCoordinates[0],
         deviceLatitude: currentCoords[0],
         deviceLongitude: currentCoords[1],
-        status: 'IMAGE_PENDING',
         plantationDate: new Date(),
       };
 
@@ -286,7 +288,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
 
   const skipPicture = () => {
     let sampleTrees = [...inventory.sampleTrees];
-    sampleTrees[inventory.completedSampleTreesCount].status = 'SPECIES_PENDING';
+
     updateInventory({
       inventory_id: inventory.inventory_id,
       inventoryData: {
@@ -335,7 +337,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
     let heading = i18next.t('label.alright_modal_header');
     let bannerImage = undefined;
     let whiteBtnText = i18next.t('label.alright_modal_skip');
-    if (locateTree == 'off-site') {
+    if (locateTree === OFF_SITE) {
       subHeading = i18next.t('label.alright_modal_off_site_sub_header');
       heading = i18next.t('label.alright_modal_off_site_header');
       bannerImage = off_site_enable_banner;
@@ -349,7 +351,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
             bannerImage={bannerImage}
             onPressClose={onPressClose}
             onPressWhiteButton={isSampleTree ? skipPicture : onPressClose}
-            onPressContinue={locateTree === 'off-site' ? offSiteContinue : moveScreen}
+            onPressContinue={locateTree === OFF_SITE ? offSiteContinue : moveScreen}
             heading={heading}
             subHeading={subHeading}
             whiteBtnText={isSampleTree ? whiteBtnText : ''}
@@ -489,8 +491,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -523,8 +525,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           headingText={
             isSampleTree
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                })
               : i18next.t('label.tree_map_marking_header')
           }
           topRightComponent={renderAccuracyInfo}

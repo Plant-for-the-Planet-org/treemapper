@@ -28,11 +28,12 @@ import {
   getInventory,
   updateLastScreen,
   updatePlantingDate,
+  deleteInventory,
 } from '../../repositories/inventory';
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
-import SelectSpecies from '../SelectSpecies/index';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
+import AlertModal from '../Common/AlertModal';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
@@ -47,6 +48,7 @@ const InventoryOverview = ({ navigation }) => {
   const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
   const [showDate, setShowDate] = useState(false);
   const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
@@ -115,38 +117,6 @@ const InventoryOverview = ({ navigation }) => {
           );
         }}
       />
-    );
-  };
-
-  const SampleTrees = ({ sampleTrees }) => {
-    console.log('sampleTrees', sampleTrees);
-    return (
-      <View>
-        <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
-        <FlatList
-          data={sampleTrees}
-          renderItem={({ item: sampleTree, index }) => {
-            let normalizeData = {
-              title: sampleTree.specieName,
-              subHeading: `${index + 1} . ${sampleTree.specieName} . ${sampleTree.specieHeight} . ${
-                sampleTree.specieDiameter
-              }`,
-              date: i18next.t('label.inventory_overview_view_location'),
-              imageURL: '',
-              index: index,
-            };
-            return (
-              <InventoryCard
-                data={normalizeData}
-                activeBtn={inventory.status === 'complete'}
-                onPressActiveBtn={onPressViewLOC}
-                hideImage
-              />
-            );
-          }}
-          keyExtractor={(item, index) => `location-${index}`}
-        />
-      </View>
     );
   };
 
@@ -355,7 +325,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    if (status === INCOMPLETE && inventory.locate_tree === 'off-site') {
+    if (status === INCOMPLETE && inventory.locate_tree === OFF_SITE) {
       setShowDate(true);
     }
   };
@@ -371,6 +341,17 @@ const InventoryOverview = ({ navigation }) => {
     navigation.navigate('TotalTreesSpecies');
   };
 
+  const handleDeleteInventory = () => {
+    deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
+      .then(() => {
+        setShowDeleteAlert(!showDeleteAlert);
+        navigation.navigate('TreeInventory');
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   let locationType;
   let isSingleCoordinate, locateType;
   if (inventory) {
@@ -379,12 +360,13 @@ const InventoryOverview = ({ navigation }) => {
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');
     locateType =
-      inventory.locate_tree == 'off-site'
+      inventory.locate_tree === OFF_SITE
         ? i18next.t('label.tree_inventory_off_site')
         : i18next.t('label.tree_inventory_on_site');
   }
 
   let status = inventory ? inventory.status : 'pending';
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -398,6 +380,20 @@ const InventoryOverview = ({ navigation }) => {
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
               />
+              {/* {status !== INCOMPLETE_SAMPLE_TREE && (
+                <TouchableOpacity
+                  style={{ paddingTop: 15 }}
+                  onPress={() => setShowDeleteAlert(true)}>
+                  <Text
+                    style={{
+                      fontFamily: Typography.FONT_FAMILY_REGULAR,
+                      fontSize: Typography.FONT_SIZE_18,
+                      lineHeight: Typography.LINE_HEIGHT_24,
+                    }}>
+                    {i18next.t('label.tree_review_delete')}
+                  </Text>
+                </TouchableOpacity>
+              )} */}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
@@ -441,24 +437,29 @@ const InventoryOverview = ({ navigation }) => {
               />
             </ScrollView>
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
-              <View>
-                <View style={styles.bottomButtonContainer}>
-                  <PrimaryButton
-                    btnText={i18next.t('label.inventory_overview_loc_next_tree')}
-                    halfWidth
-                    theme={'white'}
-                  />
-                  <PrimaryButton
-                    onPress={onPressSave}
-                    btnText={i18next.t('label.inventory_overview_loc_save')}
-                    halfWidth
-                  />
-                </View>
+              <View style={styles.bottomButtonContainer}>
+                <PrimaryButton
+                  onPress={onPressSave}
+                  btnText={i18next.t('label.inventory_overview_loc_save')}
+                />
               </View>
             )}
           </View>
         ) : null}
       </View>
+      <AlertModal
+        visible={showDeleteAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={
+          status === 'complete'
+            ? i18next.t('label.tree_review_delete_uploaded_registration')
+            : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
+        }
+        primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')}
+        secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
+        onPressPrimaryBtn={handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+      />
       {renderDatePicker()}
     </SafeAreaView>
   );

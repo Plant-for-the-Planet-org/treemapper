@@ -2,6 +2,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
+import { SINGLE } from '../../utils/inventoryConstants';
 
 const SearchSpecies = ({
   searchList,
@@ -51,13 +52,13 @@ const SearchSpecies = ({
         onPress={() => {
           toggleUserSpecies(item.guid, true);
           addSpecieToInventory(item);
-          if (editOnlySpecieName && (registrationType === 'single' || isSampleTree)) {
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
             onPressBack();
-          } else if (registrationType === 'single' && !editOnlySpecieName) {
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
             onPressSpeciesSingle(item);
           }
 
-          if (registrationType == 'single') {
+          if (registrationType === SINGLE) {
             clearSearchText();
           }
         }}>

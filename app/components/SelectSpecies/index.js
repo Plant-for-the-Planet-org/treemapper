@@ -28,7 +28,7 @@ import { getUserInformation } from '../../repositories/user';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
-import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
+import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 
@@ -94,7 +94,7 @@ const SelectSpecies = () => {
         setIsShowTreeMeasurementModal(true);
         setSingleTreeSpecie(inventory.species[0]);
       }
-      setRegistrationType(inventory.tree_type);
+      setRegistrationType(inventory.treeType);
     });
   };
 
@@ -414,7 +414,6 @@ const SelectSpecies = () => {
           inventory_id: inventory.inventory_id,
           inventoryData: {
             sampleTrees: [...updatedSampleTrees],
-            completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
           },
         })
           .then(() => {

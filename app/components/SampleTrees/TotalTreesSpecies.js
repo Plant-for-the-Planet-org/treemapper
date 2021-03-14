@@ -12,6 +12,7 @@ import ManageSpecies from '../ManageSpecies';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import { MULTI } from '../../utils/inventoryConstants';
 
 export default function TotalTreesSpecies() {
   const { state: inventoryState } = useContext(InventoryContext);
@@ -135,7 +136,7 @@ export default function TotalTreesSpecies() {
     return (
       <ManageSpecies
         onPressBack={() => setShowManageSpecies(false)}
-        registrationType={'multiple'}
+        registrationType={MULTI}
         addSpecieToInventory={addSpecieToInventory}
         isSampleTree={true}
         isSampleTreeCompleted={true}
@@ -158,8 +159,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : []}
         </ScrollView>
         <PrimaryButton

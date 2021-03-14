@@ -5,7 +5,12 @@ import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
 import { setInventoryId } from '../../../actions/inventory';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryStatuses';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  OFF_SITE,
+  SINGLE,
+} from '../../../utils/inventoryConstants';
 
 export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const navigation = useNavigation();
@@ -16,7 +21,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
     console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
-      if (item.locate_tree === 'single') {
+      if (item.locate_tree === SINGLE) {
         navigation.navigate('SingleTreeOverview');
       } else {
         navigation.navigate('InventoryOverview');
@@ -43,12 +48,12 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
         }
         let locateTreeAndType = '';
         let title = '';
-        if (item.locate_tree === 'off-site') {
+        if (item.locate_tree === OFF_SITE) {
           locateTreeAndType = i18next.t('label.tree_inventory_off_site');
         } else {
           locateTreeAndType = i18next.t('label.tree_inventory_on_site');
         }
-        if (item.tree_type == 'single') {
+        if (item.treeType === SINGLE) {
           title =
             `1 ${item.species.length > 0 ? `${item.species[0].aliases} ` : ''}` +
             i18next.t('label.tree_inventory_tree');
@@ -89,8 +94,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
                   : item.status === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
             />

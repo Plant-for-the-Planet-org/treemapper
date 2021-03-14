@@ -29,6 +29,7 @@ import {
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { initiateInventoryState } from '../../actions/inventory';
+import { OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryConstants';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -40,7 +41,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [locateTree, setLocateTree] = useState('on-site');
+  const [locateTree, setLocateTree] = useState(ON_SITE);
   const [inventory, setInventory] = useState(null);
   const [accuracyInMeters, setAccuracyInMeters] = useState('');
   const [isAlertShow, setIsAlertShow] = useState(false);
@@ -115,13 +116,13 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera &&
-      camera.current &&
+    if (camera?.current?.setCamera) {
       camera.current.setCamera({
         centerCoordinate: recenterCoords,
         zoomLevel: 18,
         animationDuration: 1000,
       });
+    }
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
@@ -143,11 +144,11 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
           let distanceInMeters = distance * 1000;
           let locateTreeVariable;
           if (distanceInMeters < 100) {
-            setLocateTree('on-site');
-            locateTreeVariable = 'on-site';
+            setLocateTree(ON_SITE);
+            locateTreeVariable = ON_SITE;
           } else {
-            setLocateTree('off-site');
-            locateTreeVariable = 'off-site';
+            setLocateTree(OFF_SITE);
+            locateTreeVariable = OFF_SITE;
           }
           onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
         })
@@ -235,26 +236,18 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
 
   // Adds coordinates and locateTree label to inventory
   const onPressContinue = async (currentCoords, centerCoordinates, locateTreeVariable) => {
+    let result;
     if (!inventoryState.inventoryID) {
-      const result = await initiateInventory({ treeType: 'single' }, dispatch);
+      result = await initiateInventory({ treeType: SINGLE }, dispatch);
       if (result) {
         initiateInventoryState(result)(dispatch);
-        const inventoryID = result.inventory_id;
-        getInventory({ inventoryID: inventoryID }).then((inventory) => {
+        getInventory({ inventoryID: result.inventory_id }).then((inventory) => {
           setInventory(inventory);
-          addCoordinateSingleRegisterTree({
-            inventory_id: inventoryID,
-            markedCoords: centerCoordinates,
-            locateTree: locateTreeVariable,
-            currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
-          }).then(() => {
-            setIsAlrightyModalShow(true);
-          });
         });
       }
-    } else {
+    } else if (inventoryState.inventoryID || result) {
       addCoordinateSingleRegisterTree({
-        inventory_id: inventoryState.inventoryID,
+        inventory_id: inventoryState.inventoryID ? inventoryState.inventoryID : result.inventoryID,
         markedCoords: centerCoordinates,
         locateTree: locateTreeVariable,
         currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
@@ -282,7 +275,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
     let heading = i18next.t('label.alright_modal_header');
     let bannerImage = undefined;
     let whiteBtnText = i18next.t('label.alright_modal_white_btn');
-    if (locateTree == 'off-site') {
+    if (locateTree === OFF_SITE) {
       subHeading = i18next.t('label.alright_modal_off_site_sub_header');
       heading = i18next.t('label.alright_modal_off_site_header');
       bannerImage = off_site_enable_banner;
@@ -296,7 +289,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
             bannerImage={bannerImage}
             onPressClose={onPressClose}
             onPressWhiteButton={onPressClose}
-            onPressContinue={locateTree === 'off-site' ? offSiteContinue : moveScreen}
+            onPressContinue={locateTree === OFF_SITE ? offSiteContinue : moveScreen}
             heading={heading}
             subHeading={subHeading}
             whiteBtnText={whiteBtnText}
@@ -437,8 +430,8 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

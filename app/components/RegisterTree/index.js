@@ -6,19 +6,20 @@ import { InventoryContext } from '../../reducers/inventory';
 import { Colors } from '_styles';
 import i18next from 'i18next';
 import { deleteInventoryId } from '../../actions/inventory';
+import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 
 const RegisterTree = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
 
-  const [treeType, setTreeType] = useState('single');
+  const [treeType, setTreeType] = useState(SINGLE);
 
-  const onPressSingleTree = () => setTreeType('single');
-  const onPressMultipleTree = () => setTreeType('multiple');
+  const onPressSingleTree = () => setTreeType(SINGLE);
+  const onPressMultipleTree = () => setTreeType(MULTI);
 
   const onPressContinue = async () => {
     deleteInventoryId()(dispatch);
 
-    if (treeType === 'multiple') {
+    if (treeType === MULTI) {
       navigation.navigate('LocateTree');
     } else {
       navigation.navigate('RegisterSingleTree');
@@ -37,8 +38,8 @@ const RegisterTree = ({ navigation }) => {
             onPress={onPressSingleTree}
             heading={i18next.t('label.tree_registration_type_1')}
             subHeading={i18next.t('label.tree_registration_type_1_sub_header')}
-            active={treeType === 'single'}
-            subHeadingStyle={treeType === 'single' && styles.activeTextColor}
+            active={treeType === SINGLE}
+            subHeadingStyle={treeType === SINGLE && styles.activeTextColor}
             testID={'page_rt_single_tree'}
             accessibilityLabel={'Single Tree'}
           />
@@ -46,8 +47,8 @@ const RegisterTree = ({ navigation }) => {
             onPress={onPressMultipleTree}
             heading={i18next.t('label.tree_registration_type_2')}
             subHeading={`${i18next.t('label.tree_registration_type_1_sub_header')}`}
-            active={treeType === 'multiple'}
-            subHeadingStyle={treeType === 'multiple' && styles.activeTextColor}
+            active={treeType === MULTI}
+            subHeadingStyle={treeType === MULTI && styles.activeTextColor}
             testID={'page_rt_multiple_trees'}
             accessibilityLabel={'Multiple Trees'}
           />

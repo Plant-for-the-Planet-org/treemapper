@@ -23,6 +23,7 @@ import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { InventoryContext } from '../../reducers/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -35,7 +36,7 @@ class SelectCoordinates extends React.Component {
     activePolygonIndex: 0,
     loader: false,
     markedCoords: null,
-    locateTree: 'on-site',
+    locateTree: ON_SITE,
   };
 
   async UNSAFE_componentWillMount() {
@@ -101,10 +102,10 @@ class SelectCoordinates extends React.Component {
 
           if (distanceInMeters < 100) {
             this.pushMaker(currentCoords);
-            this.setState({ locateTree: 'on-site' });
+            this.setState({ locateTree: ON_SITE });
           } else {
             this.pushMaker(currentCoords);
-            this.setState({ locateTree: 'off-site' });
+            this.setState({ locateTree: OFF_SITE });
           }
         },
         (err) => alert(err.message),
@@ -194,7 +195,7 @@ class SelectCoordinates extends React.Component {
   onPressBack = () => {
     const { locateTree } = this.state;
     const { activeMarkerIndex, updateActiveMarkerIndex, navigation, toogleState2 } = this.props;
-    if (locateTree == 'off-site') {
+    if (locateTree === OFF_SITE) {
       if (activeMarkerIndex > 0) {
         this.setState({ isAlrightyModalShow: true });
       } else {

@@ -1,6 +1,6 @@
 import { bugsnag } from '../utils';
 import { updateCount, setInventoryId } from '../actions/inventory';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../utils/inventoryConstants';
 import dbLog from './logs';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
@@ -125,10 +125,10 @@ export const initiateInventory = ({ treeType }, dispatch) => {
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
-            tree_type: treeType,
+            treeType,
             status: INCOMPLETE,
             plantation_date: new Date(),
-            last_screen: treeType === 'single' ? 'RegisterSingleTree' : 'LocateTree',
+            last_screen: treeType === SINGLE ? 'RegisterSingleTree' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
           setInventoryId(inventoryID)(dispatch);
@@ -181,7 +181,10 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
-export const changeInventoryStatusAndResponse = ({ inventory_id, status, response }, dispatch) => {
+export const changeInventoryStatusAndLocationId = (
+  { inventory_id, status, locationId },
+  dispatch,
+) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -191,7 +194,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
             {
               inventory_id: `${inventory_id}`,
               status,
-              response,
+              locationId,
             },
             'modified',
           );
@@ -199,7 +202,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status and response for inventory_id: ${inventory_id} to ${status}`,
+            message: `Successfully updated status and locationId for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -215,7 +218,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while updating status and response for inventory_id: ${inventory_id}`,
+          message: `Error while updating status and locationId for inventory_id: ${inventory_id}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);

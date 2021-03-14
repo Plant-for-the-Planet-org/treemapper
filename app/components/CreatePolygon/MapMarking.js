@@ -1,29 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  Text,
-  Platform,
-  SafeAreaView,
   ActivityIndicator,
-  TouchableOpacity,
   ImageBackground,
   Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Header, PrimaryButton, Alrighty } from '../Common';
-import { Colors } from '_styles';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { active_marker, marker_png } from '../../assets/index';
-import { getInventory, addCoordinates, polygonUpdate } from '../../repositories/inventory';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Geolocation from 'react-native-geolocation-service';
 import Config from 'react-native-config';
+import Geolocation from 'react-native-geolocation-service';
 import { SvgXml } from 'react-native-svg';
-import i18next from 'i18next';
-import { toLetters } from '../../utils/mapMarkingCoordinate';
-import distanceCalculator from '../../utils/distanceCalculator';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Colors } from '_styles';
+import { active_marker, marker_png } from '../../assets/index';
 import { InventoryContext } from '../../reducers/inventory';
+import { initiateInventoryState } from '../../actions/inventory';
+import {
+  addCoordinates,
+  getInventory,
+  polygonUpdate,
+  initiateInventory,
+  updateLastScreen,
+  addLocateTree,
+} from '../../repositories/inventory';
+import distanceCalculator from '../../utils/distanceCalculator';
+import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
+import { toLetters } from '../../utils/mapMarkingCoordinate';
+import { Alrighty, Header, PrimaryButton } from '../Common';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -41,20 +49,18 @@ const infographicText = [
     subHeading: i18next.t('label.info_graphic_sub_header_3'),
   },
 ];
-const ALPHABETS = i18next.t('label.locate_tree_alphabets');
 const IS_ANDROID = Platform.OS == 'android';
 
 export default function MapMarking({
-  inventoryID,
   updateActiveMarkerIndex,
   activeMarkerIndex,
   toggleState,
   setIsCompletePolygon,
+  locateTree,
 }) {
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [locateTree, setLocateTree] = useState('on-site');
   const [inventory, setInventory] = useState(null);
   const [accuracyInMeters, setAccuracyInMeters] = useState('');
   const [isAlertShow, setIsAlertShow] = useState(false);
@@ -66,7 +72,7 @@ export default function MapMarking({
   // currently active polygon index
   const [activePolygonIndex, setActivePolygonIndex] = useState(0);
 
-  const [isShowCompletePolygonButton, setIsShowCompletePolygonButton] = useState();
+  const { state: inventoryState, dispatch } = useContext(InventoryContext);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
@@ -95,7 +101,9 @@ export default function MapMarking({
 
   useEffect(() => {
     generateAlphabets();
-    initializeState();
+    if (inventoryState.inventoryID) {
+      initializeState();
+    }
     // Do something
     if (IS_ANDROID) {
       MapboxGL.requestAndroidLocationPermissions().then((permission) => {
@@ -117,10 +125,11 @@ export default function MapMarking({
 
   // initializes the state by updating state
   const initializeState = () => {
-    getInventory({ inventoryID: inventoryID }).then((inventory) => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
       console.log('inventory', inventory);
       if (inventory.polygons.length > 0) {
         let featureList = inventory.polygons.map((onePolygon) => {
+          console.log('onePoly', onePolygon);
           return {
             type: 'Feature',
             properties: {
@@ -139,19 +148,19 @@ export default function MapMarking({
           type: 'FeatureCollection',
           features: featureList,
         };
+
+        console.log('feature list', geoJSONData.features[0].geometry.coordinates.length);
+
         if (
           activeMarkerIndex !== null &&
           activeMarkerIndex < geoJSONData.features[0].geometry.coordinates.length
         ) {
-          updateActiveMarkerIndex(activeMarkerIndex);
-        } else {
           updateActiveMarkerIndex(geoJSONData.features[0].geometry.coordinates.length);
         }
         setGeoJSON(geoJSONData);
       } else {
         updateActiveMarkerIndex(0);
       }
-      setLocateTree(inventory.locate_tree);
     });
   };
 
@@ -199,7 +208,7 @@ export default function MapMarking({
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
   const addMarker = async () => {
     console.log('locateTree', locateTree);
-    if (locateTree === 'on-site') {
+    if (locateTree === ON_SITE) {
       // if (accuracyInMeters < 30 || forceContinue) {
       updateCurrentPosition()
         .then(async () => {
@@ -267,24 +276,42 @@ export default function MapMarking({
 
     setGeoJSON(geoJSON);
 
-    let data = {
-      inventory_id: inventoryID,
-      geoJSON: geoJSON,
-      currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
-    };
-    addCoordinates(data).then(() => {
-      if (locateTree === 'on-site') {
-        toggleState();
-      } else {
-        setIsAlrightyModalShow(true);
-        // For off site
-        // if (complete) {
-        //   navigation.navigate('InventoryOverview');
-        // } else {
-        updateActiveMarkerIndex(activeMarkerIndex + 1);
-        // }
+    let result;
+    if (!inventoryState.inventoryID) {
+      result = await initiateInventory({ treeType: MULTI }, dispatch);
+      console.log('result', result);
+      if (result) {
+        initiateInventoryState(result)(dispatch);
+        addLocateTree({ inventory_id: result.inventory_id, locate_tree: locateTree });
+
+        getInventory({ inventoryID: result.inventory_id }).then((inventory) => {
+          setInventory(inventory);
+        });
+        let data = { inventory_id: result.inventory_id, last_screen: 'CreatePolygon' };
+        updateLastScreen(data);
       }
-    });
+    }
+    if (inventoryState.inventoryID || result) {
+      let data = {
+        inventory_id: inventoryState.inventoryID ? inventoryState.inventoryID : result.inventory_id,
+        geoJSON: geoJSON,
+        currentCoords: { latitude: currentCoords.latitude, longitude: currentCoords.longitude },
+      };
+
+      addCoordinates(data).then(() => {
+        if (locateTree === ON_SITE) {
+          toggleState();
+        } else {
+          setIsAlrightyModalShow(true);
+          // For off site
+          // if (complete) {
+          //   navigation.navigate('InventoryOverview');
+          // } else {
+          updateActiveMarkerIndex(activeMarkerIndex + 1);
+          // }
+        }
+      });
+    }
   };
 
   const onChangeRegionStart = () => setLoader(true);
@@ -355,11 +382,11 @@ export default function MapMarking({
     geoJSON.features[0].geometry.coordinates.push(geoJSON.features[0].geometry.coordinates[0]);
     let lastCoords = geoJSON.features[0].geometry.coordinates[0];
     addCoordinates({
-      inventory_id: inventoryID,
+      inventory_id: inventoryState.inventoryID,
       geoJSON: geoJSON,
-      currentCoords: { latitude: lastCoords.latitude, longitude: lastCoords.longitude },
+      currentCoords: { latitude: location.coords.latitude, longitude: location.coords.longitude },
     }).then(() => {
-      if (locateTree === 'on-site') {
+      if (locateTree === ON_SITE) {
         console.log('onsite locate tree');
       } else {
         // For off site
@@ -377,11 +404,13 @@ export default function MapMarking({
       recenterCoords = [location.coords.longitude, location.coords.latitude];
     }
     setIsInitial(true);
-    camera.current.setCamera({
-      centerCoordinate: recenterCoords,
-      zoomLevel: 18,
-      animationDuration: 2000,
-    });
+    if (camera && camera.current && camera.current.setCamera) {
+      camera.current.setCamera({
+        centerCoordinate: recenterCoords,
+        zoomLevel: 18,
+        animationDuration: 2000,
+      });
+    }
   };
 
   //getting current position of the user with high accuracy
@@ -435,12 +464,10 @@ export default function MapMarking({
   };
 
   const renderAlrightyModal = () => {
-    console.log('renderAlrightyModal create poly');
-
     let coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length;
     const onPressContinue = () => setIsAlrightyModalShow(false);
     const updateAndCompletePolygon = () => {
-      polygonUpdate({ inventory_id: inventoryID }).then(() => {
+      polygonUpdate({ inventory_id: inventoryState.inventoryID }).then(() => {
         onPressCompletePolygon();
         onPressContinue();
       });
@@ -474,11 +501,7 @@ export default function MapMarking({
     navigation.navigate('TreeInventory');
   };
 
-  // useEffect(() => {
-  //   setIsShowCompletePolygonButton(
-  //     geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1,
-  //   );
-  // }, [geoJSON]);
+  console.log('activeMarkerIndex', activeMarkerIndex);
 
   return (
     <View style={styles.container} fourceInset={{ top: 'always' }}>

@@ -1,7 +1,8 @@
 import {
   getInventoryByStatus,
-  changeInventoryStatusAndResponse,
+  changeInventoryStatusAndLocationId,
   changeInventoryStatus,
+  updateInventory,
 } from '../repositories/inventory';
 import Geolocation from 'react-native-geolocation-service';
 import RNFS from 'react-native-fs';
@@ -15,11 +16,23 @@ import {
   getAuthenticatedRequest,
   putAuthenticatedRequest,
 } from '../utils/api';
+import {
+  OFF_SITE,
+  ON_SITE,
+  PENDING_DATA_UPLOAD,
+  PENDING_IMAGE_UPLOAD,
+  POINT,
+  POLYGON,
+  SINGLE,
+  SYNCED,
+  MULTI,
+} from '../utils/inventoryConstants';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
+  console.log('changeStatusAndUpload=>>>', response);
   return new Promise((resolve, reject) => {
     try {
-      if (oneInventory.locate_tree == 'off-site') {
+      if (oneInventory.locate_tree === OFF_SITE) {
         changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
           dispatch,
@@ -32,12 +45,11 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           resolve();
         });
       } else {
-        const stringifiedResponse = JSON.stringify(response);
-        changeInventoryStatusAndResponse(
+        changeInventoryStatusAndLocationId(
           {
             inventory_id: oneInventory.inventory_id,
             status: 'uploading',
-            response: stringifiedResponse,
+            locationId: response.id,
           },
           dispatch,
         )
@@ -45,20 +57,28 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
             if (isSucceed) {
               const result = await checkAndUploadImage(oneInventory, response);
               if (result.allUploadCompleted) {
-                changeInventoryStatus(
-                  {
-                    inventory_id: oneInventory.inventory_id,
-                    status: 'complete',
-                  },
-                  dispatch,
-                )
-                  .then(() => resolve())
-                  .catch((err) => {
-                    console.error(
-                      `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
-                    );
-                    reject();
-                  });
+                console.log('result.allUploadCompleted', result.allUploadCompleted);
+                let inventory = {};
+                inventory = oneInventory;
+                const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
+                if (sampleTreeUploadResult) {
+                  changeInventoryStatus(
+                    {
+                      inventory_id: oneInventory.inventory_id,
+                      status: 'complete',
+                    },
+                    dispatch,
+                  )
+                    .then(() => resolve())
+                    .catch((err) => {
+                      console.error(
+                        `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
+                      );
+                      reject();
+                    });
+                } else {
+                  reject();
+                }
               } else {
                 reject();
               }
@@ -67,7 +87,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           .catch((err) => {
             reject(err);
             console.error(
-              `Error at: /action/upload/changeInventoryStatusAndResponse, -> ${JSON.stringify(
+              `Error at: /action/upload/changeInventoryStatusAndLocationId, -> ${JSON.stringify(
                 err,
               )}`,
             );
@@ -82,159 +102,342 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
 
 export const uploadInventory = (dispatch) => {
   return new Promise((resolve, reject) => {
-    // gets the current geo location coordinate of the user and passes the position forward
     permission()
-      .then(() => {
-        console.log('asking location service');
-        Geolocation.getCurrentPosition(
-          async (position) => {
-            dbLog.info({
-              logType: LogTypes.DATA_SYNC,
-              message: 'Fetched user current coordinates.',
-              logStack: JSON.stringify(position),
-            });
-            console.log(position, 'position');
-            // stores the current coordinates of the user
-            const currentCoords = position.coords;
-            // get pending inventories from realm DB
-            const pendingInventory = await getInventoryByStatus('pending');
-            // get inventories whose images are pending tob be uploaded from realm DB
-            const uploadingInventory = await getInventoryByStatus('uploading');
-            // copies pending and uploading inventory
-            let inventoryData = [...pendingInventory, ...uploadingInventory];
-            let coordinates = [];
-            let species = [];
-            // updates the count of inventories that is going to be uploaded
-            updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
-            // changes the status of isUploading to true, to show that data started to sync
-            updateIsUploading(true)(dispatch);
-            // loops through the inventory data to upload the data and then the images of the same synchronously
-            for (let i = 0; i < inventoryData.length; i++) {
-              const oneInventory = inventoryData[i];
-              let polygons = oneInventory.polygons;
-              const onePolygon = polygons[0];
-              let coords = onePolygon.coordinates;
-              coordinates = coords.map((x) => [x.longitude, x.latitude]);
-              if (oneInventory.tree_type == 'single') {
-                species =
-                  oneInventory.species[0].id === 'unknown' ? null : oneInventory.species[0].id;
-              } else {
-                species = oneInventory.species.map((x) => ({
-                  otherSpecies: x.nameOfTree,
-                  treeCount: Number(x.treeCount),
-                }));
-              }
-              // prepares the body which is to be passed to api
-              let body = {
-                type: oneInventory.tree_type,
-                captureMode: oneInventory.locate_tree,
-                deviceLocation: {
-                  coordinates: [currentCoords.longitude, currentCoords.latitude],
-                  type: 'Point',
-                },
-                geometry: {
-                  type: coordinates.length > 1 ? 'Polygon' : 'Point',
-                  coordinates: coordinates.length > 1 ? [coordinates] : coordinates[0],
-                },
-                plantDate: oneInventory.plantation_date.toISOString().split('T')[0],
-                registrationDate: oneInventory.registration_date.toISOString().split('T')[0],
-                plantProject: null,
-                measurements: {
-                  height: oneInventory.species_height,
-                  width: oneInventory.species_diameter,
-                },
-              };
-              if (species) {
-                body.scientificSpecies = species;
-              }
-              if (oneInventory.tag_id) {
-                body.tag = oneInventory.tag_id;
-              }
+      .then(async () => {
+        // get pending inventories from realm DB
+        const pendingInventory = await getInventoryByStatus('pending');
+        // get inventories whose images are pending tob be uploaded from realm DB
+        const uploadingInventory = await getInventoryByStatus('uploading');
+        // copies pending and uploading inventory
+        let inventoryData = [...pendingInventory, ...uploadingInventory];
+        // updates the count of inventories that is going to be uploaded
+        updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
+        // changes the status of isUploading to true, to show that data started to sync
+        updateIsUploading(true)(dispatch);
+        // loops through the inventory data to upload the data and then the images of the same synchronously
+        for (let i = 0; i < inventoryData.length; i++) {
+          const oneInventory = inventoryData[i];
 
-              if (oneInventory.response !== null && oneInventory.status === 'uploading') {
-                const inventoryResponse = JSON.parse(oneInventory.response);
-                try {
-                  const response = await getPlantLocationDetails(inventoryResponse.id);
-                  await changeStatusAndUpload(response, oneInventory, dispatch);
-                  if (inventoryData.length - 1 === i) {
-                    updateIsUploading(false)(dispatch);
-                    resolve();
-                  }
-                } catch (err) {
-                  if (inventoryData.length - 1 === i) {
-                    updateIsUploading(false)(dispatch);
-                    reject();
-                  }
-                  console.error(err);
-                }
-              } else {
-                try {
-                  const data = await postAuthenticatedRequest('/treemapper/plantLocations', body);
+          let body = getBodyData(oneInventory);
 
-                  if (data && data.data) {
-                    await changeStatusAndUpload(data.data, oneInventory, dispatch)
-                      .then(() => {
-                        if (inventoryData.length - 1 === i) {
-                          updateIsUploading(false)(dispatch);
-                          resolve();
-                        }
-                      })
-                      .catch((err) => {
-                        if (inventoryData.length - 1 === i) {
-                          updateIsUploading(false)(dispatch);
-                          reject(err);
-                        }
-                        console.error(
-                          `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
-                            err,
-                          )}`,
-                        );
-                      });
-                  } else {
+          console.log('body=>>>', body);
+
+          if (oneInventory.locationId !== null && oneInventory.status === 'uploading') {
+            try {
+              const response = await getPlantLocationDetails(oneInventory.locationId);
+              await changeStatusAndUpload(response, oneInventory, dispatch);
+
+              if (inventoryData.length - 1 === i) {
+                updateIsUploading(false)(dispatch);
+                resolve();
+              }
+            } catch (err) {
+              if (inventoryData.length - 1 === i) {
+                updateIsUploading(false)(dispatch);
+                reject();
+              }
+              bugsnag.notify(err);
+              console.error(err);
+            }
+          } else {
+            try {
+              const data = await postAuthenticatedRequest('/treemapper/plantLocations', body);
+
+              dbLog.info({
+                logType: LogTypes.DATA_SYNC,
+                message: 'Successfully added plant location, POST - /treemapper/plantLocation',
+                referenceId: oneInventory.inventory_id,
+              });
+
+              if (data && data.data) {
+                await changeStatusAndUpload(data.data, oneInventory, dispatch)
+                  .then(async () => {
                     if (inventoryData.length - 1 === i) {
                       updateIsUploading(false)(dispatch);
-                      reject(false);
+                      resolve();
                     }
-                  }
-                  dbLog.info({
-                    logType: LogTypes.DATA_SYNC,
-                    message: 'Successfully added plant location, POST - /treemapper/plantLocation',
-                    referenceId: oneInventory.inventory_id,
+                  })
+                  .catch((err) => {
+                    if (inventoryData.length - 1 === i) {
+                      updateIsUploading(false)(dispatch);
+                      reject(err);
+                    }
+                    console.error(
+                      `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(err)}`,
+                    );
                   });
-                } catch (err) {
-                  if (inventoryData.length - 1 === i) {
-                    updateIsUploading(false)(dispatch);
-                    reject(err);
-                  }
-                  console.error(
-                    `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
-                      err.response,
-                    )}`,
-                  );
-                  dbLog.error({
-                    logType: LogTypes.DATA_SYNC,
-                    message: 'Error while add plant location, POST - /treemapper/plantLocations',
-                    statusCode: err?.response?.status,
-                    logStack: JSON.stringify(err.response),
-                  });
+              } else {
+                if (inventoryData.length - 1 === i) {
+                  updateIsUploading(false)(dispatch);
+                  reject(false);
                 }
               }
+            } catch (err) {
+              if (inventoryData.length - 1 === i) {
+                updateIsUploading(false)(dispatch);
+                reject(err);
+              }
+              console.error(
+                `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
+                  err.response,
+                )}`,
+              );
+              dbLog.error({
+                logType: LogTypes.DATA_SYNC,
+                message: 'Error while add plant location, POST - /treemapper/plantLocations',
+                statusCode: err?.response?.status,
+                logStack: JSON.stringify(err.response),
+              });
             }
-          },
-          (err) => {
-            dbLog.error({
-              logType: LogTypes.DATA_SYNC,
-              message: 'Error while getting current coordinates',
-              logStack: JSON.stringify(err),
-            });
-          },
-        );
+          }
+        }
       })
       .catch((err) => {
         console.log(err);
         reject(err);
         return err;
       });
+  });
+};
+
+const getBodyData = (inventory) => {
+  let coords = inventory.polygons[0].coordinates;
+
+  console.log('\n\n\n');
+  console.log('coords', coords);
+  console.log('\n\n\n');
+
+  // stores the coordinates of the registered tree(s)
+  let coordinates = coords.map((x) => [x.longitude, x.latitude]);
+  let coordinatesType = coordinates.length > 1 ? POLYGON : POINT;
+  coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
+
+  // stores the device coordinated of the registered tree(s)
+  // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
+  let deviceCoordinatesType = POINT;
+  deviceCoordinates = [coords[0].longitude, coords[0].latitude];
+
+  console.log('\n\n\n');
+  console.log('deviceCoordinates', deviceCoordinates);
+  console.log('\n\n\n');
+
+  // prepares the body which is to be passed to api
+  let body = {
+    type: inventory.treeType,
+    captureMode: inventory.locate_tree,
+    deviceLocation: {
+      coordinates: deviceCoordinates,
+      type: deviceCoordinatesType,
+    },
+    geometry: {
+      coordinates,
+      type: coordinatesType,
+    },
+    plantDate: inventory.plantation_date.toISOString().split('T')[0],
+    registrationDate: inventory.registration_date.toISOString().split('T')[0],
+    plantProject: null,
+  };
+
+  // if inventory type is scientific species then adds measurements and scientific species to body
+  if (inventory.treeType === SINGLE) {
+    let bodyData = {
+      measurements: {
+        height: inventory.species_height,
+        width: inventory.species_diameter,
+      },
+    };
+    if (inventory.species[0].id !== 'unknown') {
+      bodyData.scientificSpecies = inventory.species[0].id;
+    }
+    if (inventory.tag_id) {
+      bodyData.tag = inventory.tag_id;
+    }
+
+    body = {
+      ...body,
+      ...bodyData,
+    };
+  } else {
+    let plantedSpecies = inventory.species.map((x) => {
+      let specie = {
+        treeCount: Number(x.treeCount),
+      };
+      if (x.id === 'unknown') {
+        specie.otherSpecies = 'Unknown';
+      } else {
+        specie.scientificSpecies = x.id;
+      }
+      return specie;
+    });
+    body.plantedSpecies = plantedSpecies;
+  }
+  return body;
+};
+
+const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
+  // prepares the body which is to be passed to api
+  let body = {
+    type: sampleTree.treeType,
+    captureMode: ON_SITE,
+    deviceLocation: {
+      coordinates: [sampleTree.deviceLongitude, sampleTree.deviceLatitude],
+      type: POINT,
+    },
+    geometry: {
+      coordinates: [sampleTree.longitude, sampleTree.latitude],
+      type: POINT,
+    },
+    plantDate: new Date(sampleTree.plantationDate).toISOString().split('T')[0],
+    registrationDate: new Date(registrationDate).toISOString().split('T')[0],
+    parent: parentId,
+    scientificSpecies: sampleTree.specieId,
+    measurements: {
+      height: sampleTree.specieHeight,
+      width: sampleTree.specieDiameter,
+    },
+  };
+
+  if (sampleTree.tagId) {
+    body.tag = sampleTree.tagId;
+  }
+  return body;
+};
+
+const checkSampleTreesAndUpload = async (inventory) => {
+  if (
+    inventory.treeType === MULTI &&
+    inventory.locate_tree === ON_SITE &&
+    inventory.uploadedSampleTreesCount < inventory.sampleTreesCount
+  ) {
+    let uploadedCount = 0;
+    for (const index in inventory.sampleTrees) {
+      let sampleTree = inventory.sampleTrees[index];
+      sampleTree = JSON.parse(JSON.stringify(sampleTree));
+
+      if (sampleTree.status !== SYNCED) {
+        let response;
+        console.log('\n\n\n');
+        console.log('not synced =>>>>>>>>>>>>', { ...sampleTree }, typeof sampleTree);
+
+        if (sampleTree.locationId && sampleTree.status === PENDING_IMAGE_UPLOAD) {
+          response = await getPlantLocationDetails(sampleTree.locationId);
+        } else if (sampleTree.status === PENDING_DATA_UPLOAD) {
+          let body = getSampleBodyData(
+            sampleTree,
+            inventory.registration_date,
+            inventory.locationId,
+          );
+          console.log('body data', body);
+          response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
+
+          response = response.data;
+        }
+
+        console.log('response =>', response);
+
+        if (response && response.coordinates[0].status === 'pending' && sampleTree.imageUrl) {
+          console.log('\n\n\n');
+          console.log('pending =>>>>>>>>>>>>');
+          sampleTree.status = PENDING_IMAGE_UPLOAD;
+          sampleTree.locationId = response.id;
+          // let updatedSampleTree = {
+          //   ...sampleTree,
+          //   status: PENDING_IMAGE_UPLOAD,
+          //   locationId: response.id,
+          // };
+
+          console.log('abjfajk', sampleTree);
+
+          await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
+            console.error('Error while updating sample tree data', err);
+          });
+
+          console.log('sample image', sampleTree.imageUrl, sampleTree);
+
+          const uploadResult = await uploadImage(
+            sampleTree.imageUrl,
+            response.id,
+            response.coordinates[0].id,
+            inventory.inventory_id,
+          );
+
+          // const uploadResult = null;
+
+          if (uploadResult) {
+            console.log('uploaded image');
+            sampleTree.status = SYNCED;
+            // updatedSampleTree = {
+            //   ...updatedSampleTree,
+            //   status: SYNCED,
+            // };
+
+            await updateSampleTreeByIndex(inventory, sampleTree, index, true)
+              .then(() => {
+                uploadedCount += 1;
+              })
+              .catch((err) => {
+                console.error('Error while updating sample tree data', err);
+              });
+          } else {
+            console.error('Error while uploading image');
+          }
+        } else if (
+          response &&
+          (response.coordinates[0].status === 'complete' || !sampleTree.imageUrl)
+        ) {
+          console.log('image upload complete');
+          sampleTree.status = SYNCED;
+          sampleTree.locationId = response.id;
+          // let updatedSampleTree = {
+          //   ...sampleTree,
+          //   status: SYNCED,
+          //   locationId: response.id,
+          // };
+
+          await updateSampleTreeByIndex(inventory, sampleTree, index, true)
+            .then(() => {
+              uploadedCount += 1;
+            })
+            .catch((err) => {
+              console.error('Error while updating sample tree data', err);
+            });
+        }
+      } else {
+        console.log('already uploaded');
+        uploadedCount += 1;
+      }
+      console.log('for uploadedCount', uploadedCount);
+    }
+    console.log('for completed uploadedCount', uploadedCount, inventory.sampleTreesCount);
+    return uploadedCount === inventory.sampleTreesCount;
+  } else {
+    return true;
+  }
+};
+
+const updateSampleTreeByIndex = (
+  inventory,
+  sampleTree,
+  index,
+  incrementUploadedSampleTreeCount = false,
+) => {
+  return new Promise((resolve, reject) => {
+    let sampleTrees = [...inventory.sampleTrees];
+    sampleTrees[index] = {
+      ...sampleTree,
+    };
+
+    let inventoryData = {
+      sampleTrees,
+    };
+
+    if (incrementUploadedSampleTreeCount) {
+      inventoryData.uploadedSampleTreesCount = inventory.uploadedSampleTreesCount + 1;
+    }
+
+    updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
+      .then(resolve)
+      .catch(reject);
   });
 };
 
@@ -274,6 +477,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
 };
 
 const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
+  console.log('image url', imageUrl);
   try {
     // fetches the image from device file system and stores it in base64 format which is used for uploading
     const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');

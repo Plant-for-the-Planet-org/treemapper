@@ -5,25 +5,33 @@ import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from './MapMarking';
 import { getInventory, updateLastScreen } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
 
 const CreatePolygon = ({ route }) => {
   const { state } = useContext(InventoryContext);
 
   const [isMapMarkingState, setIsMapMarkingState] = useState(true);
   const [isCompletePolygon, setIsCompletePolygon] = useState(false);
-  const [activeMarkerIndex, setActiveMarkerIndex] = useState();
+  const [activeMarkerIndex, setActiveMarkerIndex] = useState(0);
+  const [locateTree, setLocateTree] = useState(ON_SITE);
 
   useEffect(() => {
     checkIsEdit();
-    let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' };
-    updateLastScreen(data);
+    if (state.inventoryID) {
+      let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' };
+      updateLastScreen(data);
+    }
+    if (route?.params?.locateTree) {
+      setLocateTree(route.params.locateTree);
+    }
   }, []);
 
   const checkIsEdit = () => {
-    if (route.params?.isEdit) {
+    if (route.params?.isEdit && state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         setIsMapMarkingState(false);
         setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
+        setLocateTree(inventory.locate_tree);
       });
     }
   };
@@ -33,6 +41,7 @@ const CreatePolygon = ({ route }) => {
   };
 
   const updateActiveMarkerIndex = (index) => {
+    console.log('update active index', index);
     setActiveMarkerIndex(index);
   };
 
@@ -46,7 +55,7 @@ const CreatePolygon = ({ route }) => {
             setIsCompletePolygon={setIsCompletePolygon}
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
-            inventoryID={state.inventoryID}
+            locateTree={locateTree}
           />
         ) : (
           <ImageCapturing
@@ -54,7 +63,7 @@ const CreatePolygon = ({ route }) => {
             updateActiveMarkerIndex={updateActiveMarkerIndex}
             activeMarkerIndex={activeMarkerIndex}
             isCompletePolygon={isCompletePolygon}
-            inventoryType="multiple"
+            inventoryType={MULTI}
           />
         )}
       </View>

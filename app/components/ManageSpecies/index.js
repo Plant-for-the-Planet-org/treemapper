@@ -13,7 +13,7 @@ import {
   Modal,
   Image,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
@@ -28,6 +28,7 @@ import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { placeholder_image } from '../../assets';
+import { MULTI } from '../../utils/inventoryConstants';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -212,10 +213,8 @@ const ManageSpecies = ({
     }
   };
 
-  console.log('activespec ie', activeSpecie);
-
   const handleSpeciePress = (specie) => {
-    if (registrationType === 'multiple' && isSampleTreeCompleted) {
+    if (registrationType === MULTI && isSampleTreeCompleted) {
       setActiveSpecie(specie);
       setShowTreeCountModal(true);
     } else {

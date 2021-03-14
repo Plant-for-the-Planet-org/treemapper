@@ -5,7 +5,7 @@ import { single_tree_png, placeholder_image, map_img } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
   const onPressActiveButton = () => {

@@ -19,7 +19,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -75,6 +75,11 @@ const TreeInventory = ({ navigation }) => {
     );
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
+
+  console.log('pendingInventory', pendingInventory);
+  console.log('inCompleteInventory', inCompleteInventory);
+  console.log('uploadedInventory', uploadedInventory);
+  console.log('allInventory', allInventory);
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
@@ -211,11 +216,11 @@ const TreeInventory = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <SafeAreaView />
-      {allInventory && allInventory.length > 0
+      {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
