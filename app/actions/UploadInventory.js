@@ -4,7 +4,6 @@ import {
   changeInventoryStatus,
   updateInventory,
 } from '../repositories/inventory';
-import Geolocation from 'react-native-geolocation-service';
 import RNFS from 'react-native-fs';
 import { updateCount, updateIsUploading } from './inventory';
 import dbLog from '../repositories/logs';
@@ -215,7 +214,7 @@ const getBodyData = (inventory) => {
   // stores the device coordinated of the registered tree(s)
   // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
   let deviceCoordinatesType = POINT;
-  deviceCoordinates = [coords[0].longitude, coords[0].latitude];
+  let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
 
   console.log('\n\n\n');
   console.log('deviceCoordinates', deviceCoordinates);
