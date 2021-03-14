@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Animated, Easing } from 'react-native';
 
-export default function RotatingView({ children }) {
+export default function RotatingView({ children, isClockwise }) {
   const [spinValue] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -19,9 +19,10 @@ export default function RotatingView({ children }) {
   }, []);
 
   // Next, interpolate beginning and end values (in this case 0 and 1)
+  // if Clockwise icon will rotate clockwise, else anti-clockwise
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['360deg', '0deg'],
+    outputRange: isClockwise ? ['0deg', '360deg'] : ['360deg', '0deg'],
   });
 
   return (

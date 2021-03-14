@@ -27,10 +27,10 @@ const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
         // calls the function and pass the parsed content to update the species in local DB
         updateAndSyncLocalSpeciesRepo(speciesContent)
           .then(async () => {
-            setUpdatingSpeciesState('COMPLETED');
             // adds an AsyncStorage item [isLocalSpeciesUpdated] with value [true], which helps to determine
             // whether species were already updated in local DB or not
             await AsyncStorage.setItem('isLocalSpeciesUpdated', 'true');
+            setUpdatingSpeciesState('COMPLETED');
             resolve();
           })
           .catch((err) => {

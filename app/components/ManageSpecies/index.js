@@ -23,7 +23,7 @@ import dbLog from '../../repositories/logs';
 // import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
-import { Header } from '../Common';
+import { Header, SpeciesSyncError } from '../Common';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -250,6 +250,9 @@ const ManageSpecies = ({
                 : i18next.t('label.select_species_tree_species')
             }
           />
+          <View>
+            <SpeciesSyncError />
+          </View>
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
             <TextInput
