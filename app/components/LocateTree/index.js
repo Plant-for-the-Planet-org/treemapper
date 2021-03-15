@@ -73,7 +73,7 @@ const LocateTree = ({ navigation }) => {
             testID={'page_off_site_polygon'}
             accessibilityLabel={'Off Site Polygon'}
           />
-          <LargeButton
+          {/* <LargeButton
             onPress={onPressSelectCoordinates}
             heading={i18next.t('label.locate_tree_off_site_point_heading')}
             subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')}
@@ -88,7 +88,7 @@ const LocateTree = ({ navigation }) => {
             subHeadingStyle={{ fontStyle: 'italic' }}
             rightIcon={<SvgXml xml={cloud_upload_gray} />}
             disabled
-          />
+          /> */}
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
         <PrimaryButton

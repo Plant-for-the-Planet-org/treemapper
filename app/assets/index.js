@@ -14,6 +14,7 @@ import map_img from './images/map_img.png';
 import logout from './images/logout_icon.png';
 import add_image from './images/add_image1.jpg';
 import single_tree_png from './images/single_tree.png';
+import top_right_tree from './images/top_right_tree.png';
 
 // * SVGs *
 // import { marker_png } from './images/marker';
@@ -64,4 +65,5 @@ export {
   mobile_download,
   cloud_sync,
   sample_trees_vector,
+  top_right_tree,
 };

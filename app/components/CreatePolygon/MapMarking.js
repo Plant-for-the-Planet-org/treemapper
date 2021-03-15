@@ -17,16 +17,16 @@ import Geolocation from 'react-native-geolocation-service';
 import { SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '_styles';
+import { initiateInventoryState } from '../../actions/inventory';
 import { active_marker, marker_png } from '../../assets/index';
 import { InventoryContext } from '../../reducers/inventory';
-import { initiateInventoryState } from '../../actions/inventory';
 import {
   addCoordinates,
-  getInventory,
-  polygonUpdate,
-  initiateInventory,
-  updateLastScreen,
   addLocateTree,
+  getInventory,
+  initiateInventory,
+  polygonUpdate,
+  updateLastScreen,
 } from '../../repositories/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
@@ -209,7 +209,6 @@ export default function MapMarking({
   const addMarker = async () => {
     console.log('locateTree', locateTree);
     if (locateTree === ON_SITE) {
-      // if (accuracyInMeters < 30 || forceContinue) {
       updateCurrentPosition()
         .then(async () => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
@@ -238,35 +237,27 @@ export default function MapMarking({
         })
         .catch((err) => {
           console.error('some err', err);
-          alert(JSON.stringify(err), 'Alert');
+          alert('Unable to retrieve location', 'Alert');
         });
-      // } else {
-      //   setIsAlertShow(true);
-      // }
     } else {
       setIsAccuracyModalShow(true);
-      try {
-        updateCurrentPosition()
-          .then(async () => {
-            let currentCoords = [location.coords.latitude, location.coords.longitude];
-            let centerCoordinates = await map.current.getCenter();
-            let isValidMarkers = await checkIsValidMarker(currentCoords, centerCoordinates);
+      updateCurrentPosition()
+        .then(async () => {
+          let currentCoords = [location.coords.latitude, location.coords.longitude];
+          let centerCoordinates = await map.current.getCenter();
+          let isValidMarkers = await checkIsValidMarker(currentCoords, centerCoordinates);
 
-            console.log('isValidMarkers', isValidMarkers);
-            if (!isValidMarkers) {
-              alert(i18next.t('label.locate_tree_add_marker_valid'));
-            } else {
-              pushMaker(currentCoords);
-            }
-          })
-          .catch((err) => {
-            console.log('error', err);
-            alert(JSON.stringify(err), 'Alert');
-          });
-      } catch (err) {
-        // TODO:i18n - if this is used, please add translations or convert to db logging
-        alert('Unable to retrieve location');
-      }
+          console.log('isValidMarkers', isValidMarkers);
+          if (!isValidMarkers) {
+            alert(i18next.t('label.locate_tree_add_marker_valid'));
+          } else {
+            pushMaker(currentCoords);
+          }
+        })
+        .catch((err) => {
+          console.log('error', err);
+          alert('Unable to retrieve location', 'Alert');
+        });
     }
     // Check distance
   };

@@ -1,20 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useState, useEffect } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { sample_trees_vector } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory, updateLastScreen } from '../../repositories/inventory';
-import { Header, PrimaryButton } from '../Common';
+import { Header, PrimaryButton, TopRightBackground } from '../Common';
 
 /**
  * Maps/Shows the button to select the sample tree count which user is going to add
@@ -31,7 +22,9 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
           // used to show the selected tree count selected by user
           const isSelected = treeCount === selectedTreeCount;
           return (
-            <TouchableOpacity onPress={() => setSelectedTreeCount(treeCount)} key={`tree-number-selection-${index}`}>
+            <TouchableOpacity
+              onPress={() => setSelectedTreeCount(treeCount)}
+              key={`tree-number-selection-${index}`}>
               <View
                 style={[
                   styles.treeCountSelection,
@@ -90,10 +83,9 @@ export default function SampleTreesCount() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
-        <Image source={sample_trees_vector} style={styles.backgroundImage} />
+        <TopRightBackground />
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <Header headingText={i18next.t('label.sample_trees')} />
-
           {/* container for description of what sample trees are and how to proceed */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
@@ -138,13 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     position: 'relative',
   },
-  backgroundImage: {
-    width: '90%',
-    height: 40,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
+
   descriptionContainer: {
     marginTop: 40,
   },

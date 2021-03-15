@@ -226,6 +226,7 @@ const ManageSpecies = ({
     let specie = activeSpecie;
     specie.treeCount = Number(treeCount);
     addSpecieToInventory(specie);
+
     setActiveSpecie();
     setTreeCount('');
     setShowTreeCountModal(false);

@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Modal, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Modal,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { Header, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -43,12 +51,13 @@ const DownloadMap = ({ navigation }) => {
         console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
-            camera && camera.current &&
-            camera.current.setCamera({
-              centerCoordinate: [position.coords.longitude, position.coords.latitude],
-              zoomLevel: 15,
-              animationDuration: 1000,
-            });
+            if (camera?.current?.setCamera) {
+              camera.current.setCamera({
+                centerCoordinate: [position.coords.longitude, position.coords.latitude],
+                zoomLevel: 15,
+                animationDuration: 1000,
+              });
+            }
           },
           (err) => {
             alert(err.message);
@@ -73,8 +82,8 @@ const DownloadMap = ({ navigation }) => {
       });
   };
 
-  const zoomLevelChanged = async ()=>{
-    setZoomLevel( await MapBoxGLRef.current.getZoom());
+  const zoomLevelChanged = async () => {
+    setZoomLevel(await MapBoxGLRef.current.getZoom());
   };
 
   const onPressDownloadArea = async () => {
@@ -178,7 +187,11 @@ const DownloadMap = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         {numberOfOfflineMaps == 0 ? (
-          <PrimaryButton disabled={zoomLevel > 11 ? false : true} onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
+          <PrimaryButton
+            disabled={zoomLevel > 11 ? false : true}
+            onPress={onPressDownloadArea}
+            btnText={i18next.t('label.download_map')}
+          />
         ) : (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
