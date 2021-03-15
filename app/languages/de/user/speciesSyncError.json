@@ -1,4 +1,5 @@
 {
-  "speciesSyncError_heading": "Artensychronisation nicht vollständig!",
-  "speciesSyncError_text": "Artensychronisation is notwendig, um Arten in der Inventarliste hinzuzufügen. Synchronisiere bei Verfügbarkeit einer Internetverbindung."
+  "speciesSyncError_heading": "Artensynchronisation nicht vollständig!",
+  "speciesSyncError_text": "Artensynchronisation is notwendig, um Arten in der Inventarliste hinzuzufügen. Synchronisiere bei Verfügbarkeit einer Internetverbindung.",
+  "snackBarText": "Etwas ist schief gelaufen."
 }
