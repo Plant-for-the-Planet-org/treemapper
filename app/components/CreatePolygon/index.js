@@ -41,7 +41,6 @@ const CreatePolygon = ({ route }) => {
   };
 
   const updateActiveMarkerIndex = (index) => {
-    console.log('update active index', index);
     setActiveMarkerIndex(index);
   };
 

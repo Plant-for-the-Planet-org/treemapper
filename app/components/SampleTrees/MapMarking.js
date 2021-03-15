@@ -131,8 +131,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         .then(async () => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           let centerCoordinates = await map.current.getCenter();
-          console.log('centerCoordinates=>', centerCoordinates);
-          console.log('currentCoords=>', currentCoords);
+
           let distance = distanceCalculator(
             currentCoords[0],
             currentCoords[1],
@@ -240,8 +239,6 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
   const onPressContinue = (currentCoords, centerCoordinates, locateTreeVariable) => {
     const inventoryID = inventoryState.inventoryID;
 
-    console.log('inventory onpress continue', inventory);
-
     if (isSampleTree) {
       let data = {
         latitude: centerCoordinates[1],
@@ -256,24 +253,35 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         inventoryData: {
           sampleTrees: [...inventory.sampleTrees, data],
         },
-      }).then(() => {
-        const inventoryID = inventoryState.inventoryID;
-        getInventory({ inventoryID: inventoryID }).then((inventory) => {
-          setInventory(inventory);
+      })
+        .then(() => {
+          const inventoryID = inventoryState.inventoryID;
+          getInventory({ inventoryID: inventoryID }).then((inventory) => {
+            setInventory(inventory);
+          });
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully added map coordinate for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventoryID}`,
+          });
+          setIsAlrightyModalShow(true);
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to add map coordinate for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventoryID}`,
+            logStack: JSON.stringify(err),
+          });
+          console.error(
+            `Failed to add map coordinate for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventoryID}`,
+            err,
+          );
         });
-        dbLog.info({
-          logType: LogTypes.INVENTORY,
-          message: `Successfully added map coordinate for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventoryID}`,
-        });
-        console.log(
-          `Successfully added map coordinate for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventoryID}`,
-        );
-        setIsAlrightyModalShow(true);
-      });
     } else {
       addCoordinateSingleRegisterTree({
         inventory_id: inventoryID,
@@ -302,11 +310,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
             inventory.completedSampleTreesCount + 1
           } having inventory_id: ${inventory.inventory_id}`,
         });
-        console.log(
-          `Skipped picture for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        );
+
         setIsAlrightyModalShow(false);
         navigation.navigate('SelectSpecies', {
           inventory: inventory,
@@ -315,7 +319,19 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
       })
       .catch((err) => {
-        console.error('Error while updating inventory for sample trees to skip picture');
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while skipping picture for sample tree #${
+            inventory.completedSampleTreesCount + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        console.error(
+          `Error while skipping picture for sample tree #${
+            inventory.completedSampleTreesCount + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
       });
   };
 
@@ -545,15 +561,9 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         secondaryBtnText={i18next.t('label.back')}
         onPressPrimaryBtn={() => {
           setShowAlert(false);
-          if (alertModalFor === 'FAR_AWAY_LOCATION') {
-            console.log('FAR_AWAY_LOCATION');
-          }
         }}
         onPressSecondaryBtn={() => {
           setShowAlert(false);
-          if (alertModalFor === 'FAR_AWAY_LOCATION') {
-            console.log('FAR_AWAY_LOCATION');
-          }
         }}
       />
     </View>

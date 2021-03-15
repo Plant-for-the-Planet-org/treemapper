@@ -57,7 +57,7 @@ export default function TotalTreesSpecies() {
   const deleteSpecie = (index) => {
     let species = [...inventory.species];
     const specie = species.splice(index, 1);
-    console.log('specie', specie);
+
     updateInventory({
       inventory_id: inventory.inventory_id,
       inventoryData: {
@@ -83,7 +83,6 @@ export default function TotalTreesSpecies() {
   };
 
   const addSpecieToInventory = (specie) => {
-    console.log('specie added', specie);
     if (specie.treeCount > 0) {
       let species = [...inventory.species];
 
@@ -113,8 +112,6 @@ export default function TotalTreesSpecies() {
         ];
       }
 
-      console.log('species=>>', species);
-
       updateInventory({
         inventory_id: inventory.inventory_id,
         inventoryData: {
@@ -129,15 +126,17 @@ export default function TotalTreesSpecies() {
             logType: LogTypes.INVENTORY,
             message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
           });
-          console.log(
-            `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-          );
         })
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.INVENTORY,
             message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
           });
+          console.error(
+            `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
         });
     }
   };
@@ -201,10 +200,8 @@ export default function TotalTreesSpecies() {
   const initializeState = () => {
     getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
       setInventory(inventoryData);
-      console.log('inventoryData', inventoryData);
       if (inventoryData.polygons.length > 0) {
         let featureList = inventoryData.polygons.map((onePolygon) => {
-          console.log('onePoly', onePolygon);
           return {
             type: 'Feature',
             properties: {
@@ -224,8 +221,6 @@ export default function TotalTreesSpecies() {
           features: featureList,
         };
 
-        console.log('feature list', geoJSONData.features[0].geometry.coordinates.length);
-
         setGeoJSON(geoJSONData);
       }
     });
@@ -233,15 +228,8 @@ export default function TotalTreesSpecies() {
 
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
-    console.log('shouldRenderShape', shouldRenderShape);
     return (
-      <MapboxGL.MapView
-        showUserLocation={false}
-        style={styles.mapContainer}
-        ref={map}
-        // onRegionWillChange={onChangeRegionStart}
-        // onRegionDidChange={onChangeRegionComplete}
-      >
+      <MapboxGL.MapView showUserLocation={false} style={styles.mapContainer} ref={map}>
         <MapboxGL.Camera ref={camera} />
         {shouldRenderShape && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>

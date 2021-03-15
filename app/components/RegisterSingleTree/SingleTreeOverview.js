@@ -87,7 +87,6 @@ const SingleTreeOverview = ({ navigation }) => {
         setRegistrationType(inventory.treeType);
         if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
           setIsSampleTree(true);
-          console.log('inventory', inventory);
           const currentSampleTree = inventory.sampleTrees[inventory.completedSampleTreesCount];
           setSpecieText(currentSampleTree.specieName);
           setSpecieDiameter(Math.round(currentSampleTree.specieDiameter * 100) / 100);
@@ -112,8 +111,6 @@ const SingleTreeOverview = ({ navigation }) => {
     Country();
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
-
-  console.log('isSampleTree', isSampleTree);
 
   // useEffect(() => {
   //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
@@ -247,7 +244,6 @@ const SingleTreeOverview = ({ navigation }) => {
       });
     } else {
       let updatedSampleTrees = inventory.sampleTrees;
-      console.log('inventory', inventory, updatedSampleTrees.length);
       let sampleTree = updatedSampleTrees[inventory.completedSampleTreesCount];
       sampleTree = {
         ...sampleTree,
@@ -267,14 +263,20 @@ const SingleTreeOverview = ({ navigation }) => {
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
-          console.log(
-            `Successfully modified specie with id:${specie.guid} for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          );
         })
         .catch((err) => {
-          console.error('Error while modifying specie in sample tree', err);
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to modify specie with id:${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+          });
+          console.error(
+            `Failed to modify specie with id:${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
         });
     }
     setSpecieText(specie.scientificName);
@@ -306,14 +308,20 @@ const SingleTreeOverview = ({ navigation }) => {
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
-          console.log(
-            `Successfully modified plantation date for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          );
         })
         .catch((err) => {
-          console.error('Error while modifying plantation date in sample tree', err);
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to modify plantation date for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+          });
+          console.error(
+            `Failed to modify plantation date for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
         });
     }
 
@@ -515,15 +523,21 @@ const SingleTreeOverview = ({ navigation }) => {
             inventory.completedSampleTreesCount + 1
           } having inventory_id: ${inventory.inventory_id}`,
         });
-        console.log(
-          `Successfully modified status to PENDING_DATA_UPLOAD for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        );
         navigation.navigate('TotalTreesSpecies');
       })
       .catch((err) => {
-        console.error('Error while modifying status in sample tree', err);
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
+            inventory.completedSampleTreesCount + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+        });
+        console.error(
+          `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
+            inventory.completedSampleTreesCount + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
       });
   };
 
@@ -551,14 +565,21 @@ const SingleTreeOverview = ({ navigation }) => {
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
-          console.log(
-            `Successfully modified status to PENDING_DATA_UPLOAD for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          );
         })
         .catch((err) => {
-          console.error('Error while modifying status in sample tree', err);
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
+          });
+          console.error(
+            `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
         });
       let data = {
         inventory_id: inventory.inventory_id,

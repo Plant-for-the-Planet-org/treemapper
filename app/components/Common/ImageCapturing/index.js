@@ -155,7 +155,6 @@ const ImageCapturing = ({
     if (imagePath) {
       try {
         let data = await copyImageAndGetData();
-        console.log('data', data, inventory);
         if (inventoryType === MULTI && !isSampleTree) {
           data.index = activeMarkerIndex;
           insertImageAtIndexCoordinate(data).then(() => {
@@ -174,7 +173,6 @@ const ImageCapturing = ({
         } else if (inventoryType === MULTI && isSampleTree) {
           let updatedSampleTrees = [...inventory.sampleTrees];
           updatedSampleTrees[inventory.completedSampleTreesCount].imageUrl = data.imageUrl;
-          console.log('updatedSampleTrees=>>', updatedSampleTrees);
 
           updateInventory({
             inventory_id: inventory.inventory_id,
@@ -189,15 +187,22 @@ const ImageCapturing = ({
                   inventory.completedSampleTreesCount + 1
                 } inventory_id: ${inventory.inventory_id}`,
               });
-              console.log(
-                `Successfully added image for sample tree #${
-                  inventory.completedSampleTreesCount + 1
-                } inventory_id: ${inventory.inventory_id}`,
-              );
               navigation.navigate('SelectSpecies');
             })
             .catch((err) => {
-              console.error('Error while updating pic url in sample tree', err);
+              dbLog.error({
+                logType: LogTypes.INVENTORY,
+                message: `Failed to add image for sample tree #${
+                  inventory.completedSampleTreesCount + 1
+                } inventory_id: ${inventory.inventory_id}`,
+                logStack: JSON.stringify(err),
+              });
+              console.error(
+                `Failed to add image for sample tree #${
+                  inventory.completedSampleTreesCount + 1
+                } inventory_id: ${inventory.inventory_id}`,
+                err,
+              );
             });
         } else {
           updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });

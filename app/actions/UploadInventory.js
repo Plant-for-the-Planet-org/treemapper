@@ -28,7 +28,6 @@ import {
 } from '../utils/inventoryConstants';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
-  console.log('changeStatusAndUpload=>>>', response);
   return new Promise((resolve, reject) => {
     try {
       if (oneInventory.locate_tree === OFF_SITE) {
@@ -56,7 +55,6 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
             if (isSucceed) {
               const result = await checkAndUploadImage(oneInventory, response);
               if (result.allUploadCompleted) {
-                console.log('result.allUploadCompleted', result.allUploadCompleted);
                 let inventory = {};
                 inventory = oneInventory;
                 const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
@@ -118,8 +116,6 @@ export const uploadInventory = (dispatch) => {
           const oneInventory = inventoryData[i];
 
           let body = getBodyData(oneInventory);
-
-          console.log('body=>>>', body);
 
           if (oneInventory.locationId !== null && oneInventory.status === 'uploading') {
             try {
@@ -202,10 +198,6 @@ export const uploadInventory = (dispatch) => {
 const getBodyData = (inventory) => {
   let coords = inventory.polygons[0].coordinates;
 
-  console.log('\n\n\n');
-  console.log('coords', coords);
-  console.log('\n\n\n');
-
   // stores the coordinates of the registered tree(s)
   let coordinates = coords.map((x) => [x.longitude, x.latitude]);
   let coordinatesType = coordinates.length > 1 ? POLYGON : POINT;
@@ -215,10 +207,6 @@ const getBodyData = (inventory) => {
   // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
   let deviceCoordinatesType = POINT;
   let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
-
-  console.log('\n\n\n');
-  console.log('deviceCoordinates', deviceCoordinates);
-  console.log('\n\n\n');
 
   // prepares the body which is to be passed to api
   let body = {
@@ -315,8 +303,6 @@ const checkSampleTreesAndUpload = async (inventory) => {
 
       if (sampleTree.status !== SYNCED) {
         let response;
-        console.log('\n\n\n');
-        console.log('not synced =>>>>>>>>>>>>', { ...sampleTree }, typeof sampleTree);
 
         if (sampleTree.locationId && sampleTree.status === PENDING_IMAGE_UPLOAD) {
           response = await getPlantLocationDetails(sampleTree.locationId);
@@ -326,32 +312,19 @@ const checkSampleTreesAndUpload = async (inventory) => {
             inventory.registration_date,
             inventory.locationId,
           );
-          console.log('body data', body);
+
           response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
 
           response = response.data;
         }
 
-        console.log('response =>', response);
-
         if (response && response.coordinates[0].status === 'pending' && sampleTree.imageUrl) {
-          console.log('\n\n\n');
-          console.log('pending =>>>>>>>>>>>>');
           sampleTree.status = PENDING_IMAGE_UPLOAD;
           sampleTree.locationId = response.id;
-          // let updatedSampleTree = {
-          //   ...sampleTree,
-          //   status: PENDING_IMAGE_UPLOAD,
-          //   locationId: response.id,
-          // };
-
-          console.log('abjfajk', sampleTree);
 
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
             console.error('Error while updating sample tree data', err);
           });
-
-          console.log('sample image', sampleTree.imageUrl, sampleTree);
 
           const uploadResult = await uploadImage(
             sampleTree.imageUrl,
@@ -363,13 +336,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
           // const uploadResult = null;
 
           if (uploadResult) {
-            console.log('uploaded image');
             sampleTree.status = SYNCED;
-            // updatedSampleTree = {
-            //   ...updatedSampleTree,
-            //   status: SYNCED,
-            // };
-
             await updateSampleTreeByIndex(inventory, sampleTree, index, true)
               .then(() => {
                 uploadedCount += 1;
@@ -384,14 +351,8 @@ const checkSampleTreesAndUpload = async (inventory) => {
           response &&
           (response.coordinates[0].status === 'complete' || !sampleTree.imageUrl)
         ) {
-          console.log('image upload complete');
           sampleTree.status = SYNCED;
           sampleTree.locationId = response.id;
-          // let updatedSampleTree = {
-          //   ...sampleTree,
-          //   status: SYNCED,
-          //   locationId: response.id,
-          // };
 
           await updateSampleTreeByIndex(inventory, sampleTree, index, true)
             .then(() => {
@@ -402,12 +363,9 @@ const checkSampleTreesAndUpload = async (inventory) => {
             });
         }
       } else {
-        console.log('already uploaded');
         uploadedCount += 1;
       }
-      console.log('for uploadedCount', uploadedCount);
     }
-    console.log('for completed uploadedCount', uploadedCount, inventory.sampleTreesCount);
     return uploadedCount === inventory.sampleTreesCount;
   } else {
     return true;
@@ -476,7 +434,6 @@ const checkAndUploadImage = async (oneInventory, response) => {
 };
 
 const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
-  console.log('image url', imageUrl);
   try {
     // fetches the image from device file system and stores it in base64 format which is used for uploading
     const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');

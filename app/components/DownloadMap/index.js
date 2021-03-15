@@ -48,7 +48,6 @@ const DownloadMap = ({ navigation }) => {
   const initialMapCamera = () => {
     permission()
       .then(() => {
-        console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
             if (camera?.current?.setCamera) {

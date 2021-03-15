@@ -67,11 +67,9 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
       } else {
         Geolocation.requestAuthorization('whenInUse').then((permission) => {
           if (permission === 'granted') {
-            console.log(permission, 'permission');
             updateCurrentPosition();
           } else {
             setIsLocationAlertShow(true);
-            console.log(permission, 'permission');
           }
         });
       }
@@ -216,7 +214,6 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
         },
         (err) => {
           setIsLocationAlertShow(true);
-          console.log(err, 'position error');
         },
         {
           enableHighAccuracy: true,

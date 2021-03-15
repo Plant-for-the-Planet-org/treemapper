@@ -865,13 +865,11 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          console.log('inventoryData ->>', inventoryData);
 
           let newInventory = {
             ...JSON.parse(JSON.stringify(inventory)),
             ...inventoryData,
           };
-          console.log('after ->>', newInventory);
           realm.create('Inventory', newInventory, 'modified');
           resolve();
         });

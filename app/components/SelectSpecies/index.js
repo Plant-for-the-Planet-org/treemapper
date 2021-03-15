@@ -408,7 +408,6 @@ const SelectSpecies = () => {
         if (tagId) {
           updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
         }
-        console.log('updatedSampleTrees=>>', updatedSampleTrees);
 
         updateInventory({
           inventory_id: inventory.inventory_id,
@@ -423,15 +422,22 @@ const SelectSpecies = () => {
                 inventory.completedSampleTreesCount + 1
               } having inventory_id: ${inventory.inventory_id}`,
             });
-            console.log(
-              `Successfully added measurements for sample tree #${
-                inventory.completedSampleTreesCount + 1
-              } having inventory_id: ${inventory.inventory_id}`,
-            );
             postMeasurementUpdate();
           })
           .catch((err) => {
-            console.error('Error while updating measurement in sample tree', err);
+            dbLog.error({
+              logType: LogTypes.INVENTORY,
+              message: `Error while adding measurements for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventory.inventory_id}`,
+              logStack: JSON.stringify(err),
+            });
+            console.error(
+              `Error while adding measurements for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventory.inventory_id}`,
+              err,
+            );
           });
       }
     }
@@ -466,7 +472,6 @@ const SelectSpecies = () => {
       let updatedSampleTrees = [...inventory.sampleTrees];
       updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
       updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
-      console.log('updatedSampleTrees=>>', updatedSampleTrees);
 
       updateInventory({
         inventory_id: inventory.inventory_id,
@@ -481,15 +486,22 @@ const SelectSpecies = () => {
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
-          console.log(
-            `Successfully added specie with id: ${specie.guid} for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          );
           setIsShowTreeMeasurementModal(true);
         })
         .catch((err) => {
-          console.error('Error while upading pic url in sample tree', err);
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Error while adding specie with id: ${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
+          });
+          console.error(
+            `Error while adding specie with id: ${specie.guid} for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
         });
     }
   };

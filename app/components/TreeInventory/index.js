@@ -76,18 +76,12 @@ const TreeInventory = ({ navigation }) => {
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
-  console.log('pendingInventory', pendingInventory);
-  console.log('inCompleteInventory', inCompleteInventory);
-  console.log('uploadedInventory', uploadedInventory);
-  console.log('allInventory', allInventory);
-
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
         navigation.navigate('MainScreen');
       })
       .catch((err) => {
-        console.log(err, 'In Tree Inventory');
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
           navigation.navigate('MainScreen');

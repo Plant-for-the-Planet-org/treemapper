@@ -18,7 +18,6 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const { dispatch } = useContext(InventoryContext);
 
   const onPressInventory = (item) => {
-    console.log('onPressInventory item', item);
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.locate_tree === SINGLE) {

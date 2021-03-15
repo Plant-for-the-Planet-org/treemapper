@@ -232,6 +232,18 @@ const InventoryOverview = ({ navigation }) => {
             },
           };
         });
+        if (inventory.sampleTrees.length > 0) {
+          for (const sampleTree of inventory.sampleTrees) {
+            featureList.push({
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Point',
+                coordinates: [sampleTree.longitude, sampleTree.latitude],
+              },
+            });
+          }
+        }
         const geoJSON = {
           type: 'FeatureCollection',
           features: featureList,
