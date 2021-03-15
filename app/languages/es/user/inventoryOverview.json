@@ -13,5 +13,8 @@
   "inventory_overview_loc_export_json": "Exportar GeoJson",
   "inventory_overview_loc_next_tree": "Próximo árbol",
   "inventory_overview_loc_save": "Guardar",
-  "inventory_overview_date": "{{date, ll}}"
+  "inventory_overview_date": "{{date, ll}}",
+  "inventory_overview_cancel": "Cancelar",
+  "inventory_overview_confirm": "Confirmar",
+  "inventory_overview_pick_a_date": "Selecciona una fecha"
 }
