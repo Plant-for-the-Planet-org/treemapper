@@ -85,7 +85,6 @@ export const uploadInventory = (dispatch) => {
     // gets the current geo location coordinate of the user and passes the position forward
     permission()
       .then(() => {
-        console.log('asking location service');
         Geolocation.getCurrentPosition(
           async (position) => {
             dbLog.info({
@@ -107,7 +106,12 @@ export const uploadInventory = (dispatch) => {
             // updates the count of inventories that is going to be uploaded
             updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
             // changes the status of isUploading to true, to show that data started to sync
-            updateIsUploading(true)(dispatch);
+            console.log(inventoryData.length, 'inventoryData.length');
+            if (inventoryData.length === 0) {
+              updateIsUploading(false)(dispatch);
+            } else {
+              updateIsUploading(true)(dispatch);
+            }
             // loops through the inventory data to upload the data and then the images of the same synchronously
             for (let i = 0; i < inventoryData.length; i++) {
               const oneInventory = inventoryData[i];

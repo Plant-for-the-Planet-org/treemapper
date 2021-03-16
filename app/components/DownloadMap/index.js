@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Modal, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Header, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -10,6 +10,7 @@ import Geolocation from 'react-native-geolocation-service';
 import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const IS_ANDROID = Platform.OS === 'android';
@@ -20,6 +21,8 @@ const DownloadMap = ({ navigation }) => {
   const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(0);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
+  const [offlineModal, setOfflineModal] = useState(false);
+  const netInfo = useNetInfo();
 
   const MapBoxGLRef = useRef();
   const camera = useRef();
@@ -40,15 +43,15 @@ const DownloadMap = ({ navigation }) => {
   const initialMapCamera = () => {
     permission()
       .then(() => {
-        console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
-            camera && camera.current &&
-            camera.current.setCamera({
-              centerCoordinate: [position.coords.longitude, position.coords.latitude],
-              zoomLevel: 15,
-              animationDuration: 1000,
-            });
+            camera &&
+              camera.current &&
+              camera.current.setCamera({
+                centerCoordinate: [position.coords.longitude, position.coords.latitude],
+                zoomLevel: 15,
+                animationDuration: 1000,
+              });
           },
           (err) => {
             alert(err.message);
@@ -73,62 +76,66 @@ const DownloadMap = ({ navigation }) => {
       });
   };
 
-  const zoomLevelChanged = async ()=>{
-    setZoomLevel( await MapBoxGLRef.current.getZoom());
+  const zoomLevelChanged = async () => {
+    setZoomLevel(await MapBoxGLRef.current.getZoom());
   };
 
   const onPressDownloadArea = async () => {
     let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
-    setIsLoaderShow(true);
-    let coords = await MapBoxGLRef.current.getCenter();
-    let bounds = await MapBoxGLRef.current.getVisibleBounds();
-    getAreaName({ coords })
-      .then(async (areaName) => {
-        setAreaName(areaName);
-        const progressListener = (offlineRegion, status) => {
-          if (status.percentage == 100) {
-            createOfflineMap({
-              name: offllineMapId,
-              size: status.completedTileSize,
-              areaName: areaName,
-            })
-              .then(() => {
-                setIsLoaderShow(false);
-                setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
-                getAllOfflineMapslocal();
-                setAreaName('');
+    if (netInfo.isConnected) {
+      setIsLoaderShow(true);
+      let coords = await MapBoxGLRef.current.getCenter();
+      let bounds = await MapBoxGLRef.current.getVisibleBounds();
+      getAreaName({ coords })
+        .then(async (areaName) => {
+          setAreaName(areaName);
+          const progressListener = (offlineRegion, status) => {
+            if (status.percentage == 100) {
+              createOfflineMap({
+                name: offllineMapId,
+                size: status.completedTileSize,
+                areaName: areaName,
               })
-              .catch((err) => {
-                setIsLoaderShow(false);
-                setAreaName('');
-                alert(i18next.t('label.download_map_area_exists'));
-              });
-          }
-        };
-        const errorListener = (offlineRegion, err) => {
-          if (err.message !== 'timeout') {
-            setIsLoaderShow(false);
-            setAreaName('');
-            alert(err.message);
-          }
-        };
-        await MapboxGL.offlineManager.createPack(
-          {
-            name: offllineMapId,
-            styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
-            minZoom: 14,
-            maxZoom: 20,
-            bounds: bounds,
-          },
-          progressListener,
-          errorListener,
-        );
-      })
-      .catch((err) => {
-        setIsLoaderShow(false);
-        setAreaName('');
-        alert(i18next.t('label.download_map_area_failed'));
-      });
+                .then(() => {
+                  setIsLoaderShow(false);
+                  setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
+                  getAllOfflineMapslocal();
+                  setAreaName('');
+                })
+                .catch((err) => {
+                  setIsLoaderShow(false);
+                  setAreaName('');
+                  alert(i18next.t('label.download_map_area_exists'));
+                });
+            }
+          };
+          const errorListener = (offlineRegion, err) => {
+            if (err.message !== 'timeout') {
+              setIsLoaderShow(false);
+              setAreaName('');
+              alert(err.message);
+            }
+          };
+          await MapboxGL.offlineManager.createPack(
+            {
+              name: offllineMapId,
+              styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
+              minZoom: 14,
+              maxZoom: 20,
+              bounds: bounds,
+            },
+            progressListener,
+            errorListener,
+          );
+        })
+        .catch((err) => {
+          setIsLoaderShow(false);
+          setAreaName('');
+          alert(i18next.t('label.download_map_area_failed'));
+        });
+    } else {
+      setOfflineModal(true);
+    }
   };
 
   const renderLoaderModal = () => {
@@ -178,7 +185,11 @@ const DownloadMap = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         {numberOfOfflineMaps == 0 ? (
-          <PrimaryButton disabled={zoomLevel > 11 ? false : true} onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
+          <PrimaryButton
+            disabled={zoomLevel > 11 ? false : true}
+            onPress={onPressDownloadArea}
+            btnText={i18next.t('label.download_map')}
+          />
         ) : (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
@@ -196,6 +207,13 @@ const DownloadMap = ({ navigation }) => {
           </View>
         )}
       </View>
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setOfflineModal(false)}
+      />
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}

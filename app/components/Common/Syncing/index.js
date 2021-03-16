@@ -9,7 +9,13 @@ import i18next from 'i18next';
 import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
 
-export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
+export default function Syncing({
+  uploadCount,
+  pendingCount,
+  isUploading,
+  isUserLogin,
+  setEmailAlert,
+}) {
   const [syncText, setSyncText] = useState('');
 
   const navigation = useNavigation();
@@ -51,13 +57,7 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
         } else if (err.error !== 'a0.session.user_cancelled') {
-          // TODO:i18n - if this is used, please add translations
-          Alert.alert(
-            'Verify your Email',
-            'Please verify your email before logging in.',
-            [{ text: 'OK' }],
-            { cancelable: false },
-          );
+          setEmailAlert(true);
         }
       });
   };

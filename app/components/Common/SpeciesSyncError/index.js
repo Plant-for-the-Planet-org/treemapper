@@ -12,6 +12,7 @@ import i18next from 'i18next';
 const SpeciesSyncError = () => {
   const [refreshAnimation, setRefreshAnimation] = useState(false);
   const [asyncStorageSpecies, setAsyncStorageSpecies] = useState(false);
+  const [updatingSpeciesState, setUpdatingSpeciesState] = useState('');
   useEffect(() => {
     const setIsSpeciesUpdated = async () => {
       const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
@@ -23,7 +24,7 @@ const SpeciesSyncError = () => {
 
   //Syncs species if not downloaded already due to network error
   const speciesCheck = () => {
-    updateAndSyncLocalSpecies()
+    updateAndSyncLocalSpecies(setUpdatingSpeciesState)
       .then(async () => {
         setRefreshAnimation(false);
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
@@ -40,7 +41,7 @@ const SpeciesSyncError = () => {
   };
   return (
     <View>
-      {asyncStorageSpecies !== 'true' ? (
+      {asyncStorageSpecies !== 'true' && asyncStorageSpecies !== false ? (
         <View style={styles.speciesZipWarning}>
           <View style={{ width: '80%', marginRight: 16, flex: 4 }}>
             <Text style={styles.speciesHeading}>{i18next.t('label.speciesSyncError_heading')}</Text>

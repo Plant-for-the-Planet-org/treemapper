@@ -42,6 +42,7 @@ import {
   SpeciesSyncError,
 } from '../Common';
 import ProfileModal from '../ProfileModal';
+import VerifyEmailAlert from '../Common/EmailAlert';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -53,6 +54,7 @@ const MainScreen = ({ navigation }) => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
   const [cdnUrls, setCdnUrls] = useState({});
+  const [emailAlert, setEmailAlert] = useState(false);
 
   useEffect(() => {
     let realm;
@@ -163,12 +165,13 @@ const MainScreen = ({ navigation }) => {
             navigation.navigate('SignUp');
           } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
             // TODO:i18n - if this is used, please add translations
-            Alert.alert(
-              'Verify your Email',
-              'Please verify your email before logging in.',
-              [{ text: 'OK' }],
-              { cancelable: false },
-            );
+            // Alert.alert(
+            //   'Verify your Email',
+            //   'Please verify your email before logging in.',
+            //   [{ text: 'OK' }],
+            //   { cancelable: false },
+            // );
+            setEmailAlert(true);
           }
           stopLoading()(loadingDispatch);
         });
@@ -234,6 +237,7 @@ const MainScreen = ({ navigation }) => {
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
                 isUserLogin={isUserLogin}
+                setEmailAlert={setEmailAlert}
               />
               <MainScreenHeader
                 onPressLogin={onPressLogin}
@@ -330,6 +334,7 @@ const MainScreen = ({ navigation }) => {
         userInfo={userInfo}
         cdnUrls={cdnUrls}
       />
+      <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>
   );
 };

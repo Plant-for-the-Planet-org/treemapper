@@ -26,13 +26,18 @@ export default function AppNavigator() {
     console.log(netInfo.type, 'netInfo.type', netInfo.isConnected);
     if (netInfo.isConnected) {
       console.log('connected');
-      checkLoginAndSync(true, dispatch, userDispatch);
+      checkLoginAndSync({
+        sync: true,
+        dispatch: dispatch,
+        userDispatch: userDispatch,
+        internet: netInfo.isConnected,
+      });
     }
   };
 
   useEffect(() => {
     if (!state.showInitialStack) {
-      checkLoginAndSync();
+      checkLoginAndSync({ sync: false, internet: netInfo.isConnected });
       dailyLogUpdateCheck();
     }
   }, [state.showInitialStack]);

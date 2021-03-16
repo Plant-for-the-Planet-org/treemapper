@@ -25,13 +25,7 @@ import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
 
-const SelectSpecies = ({
-  visible,
-  closeSelectSpeciesModal,
-  route,
-  invent,
-  onPressSaveAndContinueMultiple,
-}) => {
+const SelectSpecies = ({ closeSelectSpeciesModal, onPressSaveAndContinueMultiple }) => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpecie, setActiveSpecie] = useState(undefined);
@@ -54,28 +48,7 @@ const SelectSpecies = ({
   const navigation = useNavigation();
 
   useEffect(() => {
-    // let species;
-    // let inventory;
-    // if (route !== undefined) {
-    //   inventory = route.params.inventory;
-    //   species = route.params.inventory.species;
-    // } else {
-    //   inventory = invent;
-    //   species = invent.species;
-    // }
-
-    // getAllSpecies().then((data) => {
-    //   if (data && species) {
-    //     for (const specie of species) {
-    //       data[specie.id].treeCount = specie.treeCount;
-    //     }
-    //     setMultipleTreesSpeciesList(data)(speciesDispatch);
-    //   }
-    // });
     Inventory();
-
-    // setRegistrationType(inventory.tree_type);
-
     Country();
   }, []);
 
@@ -85,14 +58,6 @@ const SelectSpecies = ({
       setHeightError('');
     }
   }, [isShowTreeMeasurementModal]);
-
-  // useEffect(() => {
-  //   if (route && route.params && route.params.visible) {
-  //     setShowSpecies(route.params.visible);
-  //   } else {
-  //     setShowSpecies(visible);
-  //   }
-  // }, [visible, route, navigation]);
 
   useEffect(() => {
     setDiameter('');
@@ -230,7 +195,7 @@ const SelectSpecies = ({
         <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
                 <Header
                   headingText={i18next.t('label.select_species_add_measurements')}
                   onBackPress={() => {
@@ -241,7 +206,12 @@ const SelectSpecies = ({
               <KeyboardAvoidingView
                 behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
-                <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}>
                   <View>
                     <View style={styles.inputBox}>
                       <View

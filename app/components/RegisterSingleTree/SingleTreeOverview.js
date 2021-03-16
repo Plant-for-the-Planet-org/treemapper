@@ -42,6 +42,7 @@ import ManageSpecies from '../ManageSpecies';
 import AlertModal from '../Common/AlertModal';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import { UserContext } from '../../reducers/user';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 const SingleTreeOverview = ({ navigation }) => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
@@ -64,6 +65,9 @@ const SingleTreeOverview = ({ navigation }) => {
   const [isShowManageSpecies, setIsShowManageSpecies] = useState(false);
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showInputError, setShowInputError] = useState(false);
+
+  const netInfo = useNetInfo();
 
   useEffect(() => {
     let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
@@ -87,11 +91,6 @@ const SingleTreeOverview = ({ navigation }) => {
     Country();
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
-
-  // useEffect(() => {
-  //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
-  //   return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
-  // }, []);
 
   const onSubmitInputField = (action) => {
     const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
@@ -128,7 +127,8 @@ const SingleTreeOverview = ({ navigation }) => {
       setIsOpenModal(false);
     } else {
       // TODO:i18n - if this is used, please add translations
-      Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
+      // Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
+      setShowInputError(true);
       setIsOpenModal(false);
     }
     setEditEnable('');
@@ -389,7 +389,8 @@ const SingleTreeOverview = ({ navigation }) => {
       if (specieText) {
         let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
-          checkLoginAndSync(true, dispatch, userDispatch);
+          console.log('Syncing');
+          checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -406,7 +407,7 @@ const SingleTreeOverview = ({ navigation }) => {
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
-        checkLoginAndSync(true, dispatch, userDispatch);
+        checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
         navigation.navigate('RegisterSingleTree');
       });
     } else {
@@ -506,6 +507,13 @@ const SingleTreeOverview = ({ navigation }) => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+      />
+      <AlertModal
+        visible={showInputError}
+        heading={'Input Error'}
+        message={'Please Enter Valid Input'}
+        primaryBtnText={'ok'}
+        onPressPrimaryBtn={() => setShowInputError(false)}
       />
     </SafeAreaView>
   );
