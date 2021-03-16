@@ -48,7 +48,7 @@ const SpeciesSyncError = () => {
       });
   };
 
-  onPressRefreshIcon = () => {
+  const onPressRefreshIcon = () => {
     if (netInfo.isConnected) {
       speciesCheck();
       showInitialNavigationStack()(dispatch);

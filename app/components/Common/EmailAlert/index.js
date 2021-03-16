@@ -1,5 +1,6 @@
 import React from 'react';
 import AlertModal from '../AlertModal';
+import i18next from 'i18next';
 
 const VerifyEmailAlert = ({ emailAlert, setEmailAlert }) => {
   return (
