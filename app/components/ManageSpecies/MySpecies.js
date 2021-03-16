@@ -92,15 +92,19 @@ const MySpecies = ({
             keyboardShouldPersistTaps="always"
           />
         ) : (
-          <View style={{ flex: 1, alignItems: 'center' }}>
+          <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
             <SvgXml
               xml={empty}
               style={{
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
-            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
+            <Text style={styles.headerText}>
+              {i18next.t('label.select_species_looks_empty_here')}
+            </Text>
+            <Text style={styles.subHeadingText}>
+              {i18next.t('label.select_species_add_species_desscription')}
+            </Text>
           </View>
         )}
       </View>
