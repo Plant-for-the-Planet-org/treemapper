@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import updateAndSyncLocalSpecies from '../../../utils/updateAndSyncLocalSpecies';
 import RotatingView from '../RotatingView';
@@ -7,12 +7,20 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import { NavigationContext } from '../../../reducers/navigation';
+import { showInitialNavigationStack } from '../../../actions/navigation';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 //Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
   const [refreshAnimation, setRefreshAnimation] = useState(false);
   const [asyncStorageSpecies, setAsyncStorageSpecies] = useState(false);
   const [updatingSpeciesState, setUpdatingSpeciesState] = useState('');
+
+  const { dispatch } = useContext(NavigationContext);
+
+  const netInfo = useNetInfo();
+
   useEffect(() => {
     const setIsSpeciesUpdated = async () => {
       const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
@@ -33,12 +41,27 @@ const SpeciesSyncError = () => {
       .catch(() => {
         setRefreshAnimation(false);
         Snackbar.show({
-          text: i18next.t('label.snackBarText'),
+          text: i18next.t('label.something_went_wrong'),
           duration: Snackbar.LENGTH_SHORT,
           backgroundColor: '#e74c3c',
         });
       });
   };
+
+  onPressRefreshIcon = () => {
+    if (netInfo.isConnected) {
+      speciesCheck();
+      showInitialNavigationStack()(dispatch);
+      setRefreshAnimation(true);
+    } else {
+      Snackbar.show({
+        text: i18next.t('label.no_internet_connection'),
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#e74c3c',
+      });
+    }
+  };
+
   return (
     <View>
       {asyncStorageSpecies !== 'true' && asyncStorageSpecies !== false ? (
@@ -49,8 +72,7 @@ const SpeciesSyncError = () => {
           </View>
           <TouchableOpacity
             onPress={() => {
-              speciesCheck();
-              setRefreshAnimation(true);
+              onPressRefreshIcon();
             }}
             style={{
               padding: 10,

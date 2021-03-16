@@ -5,9 +5,9 @@ const VerifyEmailAlert = ({ emailAlert, setEmailAlert }) => {
   return (
     <AlertModal
       visible={emailAlert}
-      heading={'Verify your Email'}
-      message={'Please verify your email before logging in.'}
-      primaryBtnText={'Ok'}
+      heading={i18next.t('label.verify_email')}
+      message={i18next.t('label.verify_email_message')}
+      primaryBtnText={i18next.t('label.ok')}
       onPressPrimaryBtn={() => setEmailAlert(false)}
     />
   );
