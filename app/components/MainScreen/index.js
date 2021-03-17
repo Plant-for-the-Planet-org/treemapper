@@ -95,24 +95,32 @@ const MainScreen = ({ navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    getUserDetails().then((userDetails) => {
-      const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-      console.log(stringifiedUserDetails, 'stringifiedUserDetails');
-      if (stringifiedUserDetails) {
-        setUserInfo(stringifiedUserDetails);
-        setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
-      }
-    });
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      setCdnUrls(cdnMedia);
-    });
+    if (!loadingState.isLoading) {
+      getUserDetails().then((userDetails) => {
+        if (userDetails) {
+          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+          if (stringifiedUserDetails) {
+            setUserInfo(stringifiedUserDetails);
+            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+          }
+        }
+      });
+      getCdnUrls(i18next.language).then((cdnMedia) => {
+        setCdnUrls(cdnMedia);
+      });
+    }
   }, []);
 
   useEffect(() => {
-    console.log('Uploading inventory');
     console.log(netInfo, 'netInfo', pendingInventory, 'isFocused', isFocused);
-    if (pendingInventory !== 0 && isFocused) {
-      checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
+    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+      checkLoginAndSync({
+        sync: true,
+        dispatch,
+        userDispatch,
+        connected: netInfo.isConnected,
+        internet: netInfo.isInternetReachable,
+      });
     }
   }, [pendingInventory, netInfo, isFocused]);
 
@@ -179,8 +187,14 @@ const MainScreen = ({ navigation }) => {
       auth0Login(userDispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
-          console.log('log in successfull');
-          checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
+          console.log('log in successful');
+          checkLoginAndSync({
+            sync: true,
+            dispatch,
+            userDispatch,
+            connected: netInfo.isConnected,
+            internet: netInfo.isInternetReachable,
+          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {

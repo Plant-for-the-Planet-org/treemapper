@@ -3,12 +3,12 @@ import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 import { uploadInventoryData } from '../utils/uploadInventory';
 
-export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, internet }) => {
+export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connected, internet }) => {
   console.log(sync, internet, 'internet connection');
   const dbUserDetails = await getUserDetails();
-  if (dbUserDetails && dbUserDetails.accessToken && sync && internet) {
+  if (dbUserDetails && dbUserDetails.accessToken && sync && internet && connected) {
     uploadInventoryData(dispatch, userDispatch);
-  } else if (dbUserDetails && dbUserDetails.refreshToken && internet) {
+  } else if (dbUserDetails && dbUserDetails.refreshToken && internet && connected) {
     const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
     if (newAccessToken) {
       if (sync) {

@@ -82,7 +82,7 @@ const DownloadMap = ({ navigation }) => {
 
   const onPressDownloadArea = async () => {
     let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
-    if (netInfo.isConnected) {
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
       setIsLoaderShow(true);
       let coords = await MapBoxGLRef.current.getCenter();
       let bounds = await MapBoxGLRef.current.getVisibleBounds();

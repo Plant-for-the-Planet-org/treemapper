@@ -388,7 +388,13 @@ const SingleTreeOverview = ({ navigation }) => {
         let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
           console.log('Syncing');
-          checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
+          checkLoginAndSync({
+            sync: true,
+            dispatch,
+            userDispatch,
+            connected: netInfo.isConnected,
+            internet: netInfo.isInternetReachable,
+          });
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -405,7 +411,13 @@ const SingleTreeOverview = ({ navigation }) => {
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
-        checkLoginAndSync({ sync: true, dispatch, userDispatch, internet: netInfo.isConnected });
+        checkLoginAndSync({
+          sync: true,
+          dispatch,
+          userDispatch,
+          connected: netInfo.isConnected,
+          internet: netInfo.isInternetReachable,
+        });
         navigation.navigate('RegisterSingleTree');
       });
     } else {
@@ -485,8 +497,15 @@ const SingleTreeOverview = ({ navigation }) => {
         {status === INCOMPLETE_INVENTORY ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
+              onPress={() => onPressSave()}
+              btnText={i18next.t('label.tree_review_Save')}
+              theme={'white'}
+              halfWidth={true}
+            />
+            <PrimaryButton
               onPress={onPressNextTree}
               btnText={i18next.t('label.tree_review_next_btn')}
+              halfWidth={true}
             />
           </View>
         ) : (

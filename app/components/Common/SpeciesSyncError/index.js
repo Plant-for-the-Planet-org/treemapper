@@ -49,7 +49,7 @@ const SpeciesSyncError = () => {
   };
 
   const onPressRefreshIcon = () => {
-    if (netInfo.isConnected) {
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
       speciesCheck();
       showInitialNavigationStack()(dispatch);
       setRefreshAnimation(true);
