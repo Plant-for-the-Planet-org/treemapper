@@ -54,7 +54,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
         resolve(true);
       })
       .catch((err) => {
-        console.error(`Error while creating log`, err);
+        console.error('Error while creating log', err);
         bugsnag.notify(err);
         resolve(false);
       });

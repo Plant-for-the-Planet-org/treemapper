@@ -130,7 +130,7 @@ export const auth0Logout = (userDispatch = null) => {
       })
       .catch((err) => {
         if (err?.error !== 'a0.session.user_cancelled') {
-          console.error(`Error at /actions/user/auth0Logout`, err);
+          console.error('Error at /actions/user/auth0Logout', err);
           dbLog.error({
             logType: LogTypes.USER,
             message: 'Error while Logging Out',
@@ -172,7 +172,7 @@ export const getNewAccessToken = async (refreshToken) => {
       })
       .catch((err) => {
         // logs the error in Db and notifies the same to bugsnag
-        console.error(`Error at /actions/user/getNewAccessToken`, err);
+        console.error('Error at /actions/user/getNewAccessToken', err);
         bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
@@ -251,7 +251,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
         // calls this function to check for the error code and either logout the user or ask to signup
         await checkErrorCode(err, userDispatch);
         console.error(
-          `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile,`,
+          'Error at /actions/user/getUserDetailsFromServer: GET - /app/profile,',
           err.response,
           err,
         );

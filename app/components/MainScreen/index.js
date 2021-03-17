@@ -148,7 +148,7 @@ const MainScreen = ({ navigation }) => {
       // Observe collection notifications.
       userObject.addListener(listener);
     } catch (err) {
-      console.error(`Error at /components/MainScreen/initializeRealm, `, err);
+      console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
   };
 
