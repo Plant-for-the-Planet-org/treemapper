@@ -180,16 +180,16 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                    ? i18next.t('label.tree_review_height')
-                    : i18next.t('label.tree_review_tree_tag_header')}
+                      ? i18next.t('label.tree_review_height')
+                      : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                      ? specieEditHeight.toString()
-                      : editedTagId
+                        ? specieEditHeight.toString()
+                        : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -428,7 +428,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  Countries.includes(countryCode)
+                Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -633,10 +633,10 @@ const SingleTreeOverview = ({ navigation }) => {
                 locateTree === OFF_SITE
                   ? i18next.t('label.tree_review_details')
                   : isSampleTree
-                  ? i18next.t('label.sample_tree_review_tree_number', {
+                    ? i18next.t('label.sample_tree_review_tree_number', {
                       ongoingSampleTreeNumber: inventory.completedSampleTreesCount + 1,
                     })
-                  : i18next.t('label.tree_review_header')
+                    : i18next.t('label.tree_review_header')
               }
             />
             {status !== INCOMPLETE_SAMPLE_TREE && (

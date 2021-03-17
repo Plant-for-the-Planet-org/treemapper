@@ -19,7 +19,17 @@ import turfCenter from '@turf/center';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 export default function TotalTreesSpecies() {
-  const { state: inventoryState } = useContext(InventoryContext);
+  const [bounds, setBounds] = useState([]);
+  const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
+  const [centerCoordinate, setCenterCoordinate] = useState([]);
+
+  const navigation = useNavigation();
+
+  // reference for camera to focus on map
+  const camera = useRef(null);
+
+  // reference for map
+  const map = useRef(null);
   const [showManageSpecies, setShowManageSpecies] = useState(false);
   const [inventory, setInventory] = useState();
   // stores the geoJSON
@@ -39,17 +49,7 @@ export default function TotalTreesSpecies() {
     ],
   });
 
-  const [bounds, setBounds] = useState([]);
-  const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
-  const [centerCoordinate, setCenterCoordinate] = useState([]);
-
-  const navigation = useNavigation();
-
-  // reference for camera to focus on map
-  const camera = useRef(null);
-
-  // reference for map
-  const map = useRef(null);
+  const { state: inventoryState } = useContext(InventoryContext);
 
   useEffect(() => {
     let data = {
@@ -190,18 +190,6 @@ export default function TotalTreesSpecies() {
     );
   };
 
-  if (showManageSpecies) {
-    return (
-      <ManageSpecies
-        onPressBack={() => setShowManageSpecies(false)}
-        registrationType={MULTI}
-        addSpecieToInventory={addSpecieToInventory}
-        isSampleTree={true}
-        isSampleTreeCompleted={true}
-      />
-    );
-  }
-
   useEffect(() => {
     if (isCameraRefVisible && bounds.length > 0) {
       camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
@@ -273,6 +261,18 @@ export default function TotalTreesSpecies() {
     );
   };
 
+  if (showManageSpecies) {
+    return (
+      <ManageSpecies
+        onPressBack={() => setShowManageSpecies(false)}
+        registrationType={MULTI}
+        addSpecieToInventory={addSpecieToInventory}
+        isSampleTree={true}
+        isSampleTreeCompleted={true}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
@@ -288,8 +288,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-                <SpecieListItem item={specie} index={index} key={index} />
-              ))
+              <SpecieListItem item={specie} index={index} key={index} />
+            ))
             : renderMapView()}
         </ScrollView>
         <PrimaryButton

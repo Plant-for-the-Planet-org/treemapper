@@ -579,8 +579,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+              ? { backgroundColor: '#FFC400' }
+              : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -613,8 +613,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           headingText={
             isSampleTree
               ? i18next.t('label.sample_tree_marking_heading', {
-                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-                })
+                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+              })
               : i18next.t('label.tree_map_marking_header')
           }
           topRightComponent={renderAccuracyInfo}
