@@ -77,13 +77,13 @@ const SingleTreeOverview = ({ navigation }) => {
   const [isSampleTree, setIsSampleTree] = useState(false);
 
   useEffect(() => {
-    let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
+    let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
     updateLastScreen(data);
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
         setInventory(inventory);
         setStatus(inventory.status);
-        setLocateTree(inventory.locate_tree);
+        setLocateTree(inventory.locateTree);
         setRegistrationType(inventory.treeType);
         if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
           setIsSampleTree(true);
@@ -98,13 +98,13 @@ const SingleTreeOverview = ({ navigation }) => {
           setEditedTagId(currentSampleTree.tagId);
         } else {
           setSpecieText(inventory.species[0].aliases);
-          setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
-          setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
-          setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
-          setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
+          setSpecieDiameter(Math.round(inventory.specieDiameter * 100) / 100);
+          setSpecieEditDiameter(Math.round(inventory.specieDiameter * 100) / 100);
+          setSpecieHeight(Math.round(inventory.specieHeight * 100) / 100);
+          setSpecieEditHeight(Math.round(inventory.specieHeight * 100) / 100);
           setPlantationDate(inventory.plantation_date);
-          setTagId(inventory.tag_id);
-          setEditedTagId(inventory.tag_id);
+          setTagId(inventory.tagId);
+          setEditedTagId(inventory.tagId);
         }
       });
     });
@@ -180,16 +180,16 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -428,7 +428,7 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
+                  Countries.includes(countryCode)
                   ? `${Math.round(specieDiameter * 100) / 100}inches`
                   : `${Math.round(specieDiameter * 100) / 100}cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -583,7 +583,7 @@ const SingleTreeOverview = ({ navigation }) => {
         });
       let data = {
         inventory_id: inventory.inventory_id,
-        last_screen: 'RecordSampleTrees',
+        lastScreen: 'RecordSampleTrees',
       };
       updateLastScreen(data);
       navigation.dispatch(
@@ -633,10 +633,10 @@ const SingleTreeOverview = ({ navigation }) => {
                 locateTree === OFF_SITE
                   ? i18next.t('label.tree_review_details')
                   : isSampleTree
-                    ? i18next.t('label.sample_tree_review_tree_number', {
+                  ? i18next.t('label.sample_tree_review_tree_number', {
                       ongoingSampleTreeNumber: inventory.completedSampleTreesCount + 1,
                     })
-                    : i18next.t('label.tree_review_header')
+                  : i18next.t('label.tree_review_header')
               }
             />
             {status !== INCOMPLETE_SAMPLE_TREE && (

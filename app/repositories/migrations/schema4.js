@@ -1,3 +1,6 @@
+// schema version
+const schemaVersion = 4;
+
 // SCHEMAS
 const Coordinates = {
   name: 'Coordinates',
@@ -83,17 +86,16 @@ const Inventory = {
     plantation_date: 'date?',
     treeType: 'string?',
     status: 'string?',
-    project_id: 'string?',
-    donation_type: 'string?',
-    locate_tree: 'string?',
-    last_screen: 'string?',
+    projectId: 'string?',
+    donationType: 'string?',
+    locateTree: 'string?',
+    lastScreen: 'string?',
     species: 'Species[]',
     polygons: 'Polygons[]',
-    specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    species_diameter: 'float?',
-    species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    tag_id: 'string?',
-    registration_date: 'date?',
+    specieDiameter: 'float?',
+    specieHeight: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    tagId: 'string?',
+    registrationDate: 'date?',
     // stores the count of sample trees which are to be recorded
     sampleTreesCount: 'int?',
     // stores the sample trees having length equal to tree count
@@ -181,11 +183,17 @@ const ScientificSpecies = {
 };
 
 const migration = (oldRealm, newRealm) => {
-  if (oldRealm.schemaVersion < 2) {
+  if (oldRealm.schemaVersion < schemaVersion) {
     const oldInventory = oldRealm.objects('Inventory');
-    const newInventory = newRealm.objects('Inventory');
+    let newInventory = newRealm.objects('Inventory');
     for (const index in oldInventory) {
       newInventory[index].treeType = oldInventory[index].tree_type;
+      newInventory[index].specieDiameter = oldInventory[index].species_diameter;
+      newInventory[index].specieHeight = oldInventory[index].species_height;
+      newInventory[index].locateTree = oldInventory[index].locate_tree;
+      newInventory[index].tagId = oldInventory[index].tag_id;
+      newInventory[index].lastScreen = oldInventory[index].last_screen;
+      newInventory[index].registrationDate = oldInventory[index].registration_date;
     }
   }
 };
@@ -202,6 +210,6 @@ export default {
     ActivityLogs,
     SampleTrees,
   ],
-  schemaVersion: 4,
+  schemaVersion,
   migration,
 };

@@ -30,7 +30,7 @@ import {
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
     try {
-      if (oneInventory.locate_tree === OFF_SITE) {
+      if (oneInventory.locateTree === OFF_SITE) {
         changeInventoryStatus(
           { inventory_id: oneInventory.inventory_id, status: 'complete' },
           dispatch,
@@ -211,7 +211,7 @@ const getBodyData = (inventory) => {
   // prepares the body which is to be passed to api
   let body = {
     type: inventory.treeType,
-    captureMode: inventory.locate_tree,
+    captureMode: inventory.locateTree,
     deviceLocation: {
       coordinates: deviceCoordinates,
       type: deviceCoordinatesType,
@@ -221,7 +221,7 @@ const getBodyData = (inventory) => {
       type: coordinatesType,
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
-    registrationDate: inventory.registration_date.toISOString().split('T')[0],
+    registrationDate: inventory.registrationDate.toISOString().split('T')[0],
     plantProject: null,
   };
 
@@ -229,15 +229,15 @@ const getBodyData = (inventory) => {
   if (inventory.treeType === SINGLE) {
     let bodyData = {
       measurements: {
-        height: inventory.species_height,
-        width: inventory.species_diameter,
+        height: inventory.specieHeight,
+        width: inventory.specieDiameter,
       },
     };
     if (inventory.species[0].id !== 'unknown') {
       bodyData.scientificSpecies = inventory.species[0].id;
     }
-    if (inventory.tag_id) {
-      bodyData.tag = inventory.tag_id;
+    if (inventory.tagId) {
+      bodyData.tag = inventory.tagId;
     }
 
     body = {
@@ -293,7 +293,7 @@ const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
 const checkSampleTreesAndUpload = async (inventory) => {
   if (
     inventory.treeType === MULTI &&
-    inventory.locate_tree === ON_SITE &&
+    inventory.locateTree === ON_SITE &&
     inventory.uploadedSampleTreesCount < inventory.sampleTreesCount
   ) {
     let uploadedCount = 0;
@@ -309,7 +309,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
         } else if (sampleTree.status === PENDING_DATA_UPLOAD) {
           let body = getSampleBodyData(
             sampleTree,
-            inventory.registration_date,
+            inventory.registrationDate,
             inventory.locationId,
           );
 

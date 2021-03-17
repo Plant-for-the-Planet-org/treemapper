@@ -5,6 +5,7 @@ import dbLog from './logs';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import Realm from 'realm';
+import { ON_SITE } from '../utils/inventoryConstants';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve) => {
@@ -12,7 +13,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = Math.round(speciesDiameter * 100) / 100;
+          inventory.specieDiameter = Math.round(speciesDiameter * 100) / 100;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -40,7 +41,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_height = Math.round(speciesHeight * 100) / 100;
+          inventory.specieHeight = Math.round(speciesHeight * 100) / 100;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -68,7 +69,7 @@ export const updateTreeTag = ({ inventoryId, tagId }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
-          inventory.tag_id = tagId;
+          inventory.tagId = tagId;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -128,7 +129,7 @@ export const initiateInventory = ({ treeType }, dispatch) => {
             treeType,
             status: INCOMPLETE,
             plantation_date: new Date(),
-            last_screen: treeType === SINGLE ? 'RegisterSingleTree' : 'LocateTree',
+            lastScreen: treeType === SINGLE ? 'RegisterSingleTree' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
           setInventoryId(inventoryID)(dispatch);
@@ -237,7 +238,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
         };
         // adds registration date if the status is pending
         if (status === 'pending') {
-          inventoryObject.registration_date = new Date();
+          inventoryObject.registrationDate = new Date();
         }
         realm.write(() => {
           realm.create('Inventory', inventoryObject, 'modified');
@@ -370,7 +371,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
   });
 };
 
-export const updateLastScreen = ({ last_screen, inventory_id }) => {
+export const updateLastScreen = ({ lastScreen, inventory_id }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -379,7 +380,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              last_screen: last_screen,
+              lastScreen,
             },
             'modified',
           );
@@ -387,7 +388,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
+            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${lastScreen}`,
           });
           resolve();
         });
@@ -471,10 +472,10 @@ export const updateSpecieAndMeasurements = ({ inventoryId, species, diameter, he
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
-          inventory.species_diameter = Number(diameter);
-          inventory.species_height = Number(height);
+          inventory.specieDiameter = Number(diameter);
+          inventory.specieHeight = Number(height);
           inventory.species = species;
-          inventory.tag_id = tagId;
+          inventory.tagId = tagId;
         });
         // logging the success in to the db
         dbLog.info({
@@ -669,9 +670,8 @@ export const addCoordinateSingleRegisterTree = ({
               ],
             },
           ];
-          // inventory.species_diameter = 10;
           if (locateTree) {
-            inventory.locate_tree = locateTree;
+            inventory.locateTree = locateTree;
           }
           inventory.plantation_date = new Date();
           // logging the success in to the db
@@ -763,7 +763,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
   });
 };
 
-export const addLocateTree = ({ locate_tree, inventory_id }) => {
+export const addLocateTree = ({ locateTree, inventory_id }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -772,7 +772,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              locate_tree: locate_tree,
+              locateTree,
             },
             'modified',
           );
@@ -824,7 +824,7 @@ export const polygonUpdate = ({ inventory_id }) => {
   });
 };
 
-export const completePolygon = ({ inventory_id }) => {
+export const completePolygon = ({ inventory_id, locateTree }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -832,7 +832,9 @@ export const completePolygon = ({ inventory_id }) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
           inventory.polygons[0].coordinates.push(inventory.polygons[0].coordinates[0]);
-          inventory.status = INCOMPLETE_SAMPLE_TREE;
+          if (locateTree === ON_SITE) {
+            inventory.status = INCOMPLETE_SAMPLE_TREE;
+          }
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,

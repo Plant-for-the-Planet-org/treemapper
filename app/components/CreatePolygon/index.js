@@ -18,7 +18,7 @@ const CreatePolygon = ({ route }) => {
   useEffect(() => {
     checkIsEdit();
     if (state.inventoryID) {
-      let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' };
+      let data = { inventory_id: state.inventoryID, lastScreen: 'CreatePolygon' };
       updateLastScreen(data);
     }
     if (route?.params?.locateTree) {
@@ -31,7 +31,7 @@ const CreatePolygon = ({ route }) => {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         setIsMapMarkingState(false);
         setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
-        setLocateTree(inventory.locate_tree);
+        setLocateTree(inventory.locateTree);
       });
     }
   };

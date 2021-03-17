@@ -13,6 +13,8 @@ import { Header, PrimaryButton, TopRightBackground } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -37,6 +39,10 @@ export default function TotalTreesSpecies() {
     ],
   });
 
+  const [bounds, setBounds] = useState([]);
+  const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
+  const [centerCoordinate, setCenterCoordinate] = useState([]);
+
   const navigation = useNavigation();
 
   // reference for camera to focus on map
@@ -48,7 +54,7 @@ export default function TotalTreesSpecies() {
   useEffect(() => {
     let data = {
       inventory_id: inventoryState.inventoryID,
-      last_screen: 'TotalTreesSpecies',
+      lastScreen: 'TotalTreesSpecies',
     };
     updateLastScreen(data);
     initializeState();
@@ -196,6 +202,17 @@ export default function TotalTreesSpecies() {
     );
   }
 
+  useEffect(() => {
+    if (isCameraRefVisible && bounds.length > 0) {
+      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
+    }
+    if (isCameraRefVisible && centerCoordinate > 0) {
+      camera.current.setCamera({
+        centerCoordinate,
+      });
+    }
+  }, [isCameraRefVisible, bounds, centerCoordinate]);
+
   // initializes the state by updating state
   const initializeState = () => {
     getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
@@ -221,6 +238,10 @@ export default function TotalTreesSpecies() {
           features: featureList,
         };
 
+        setCenterCoordinate(turfCenter(featureList[0]));
+
+        setBounds(bbox(featureList[0]));
+
         setGeoJSON(geoJSONData);
       }
     });
@@ -229,8 +250,20 @@ export default function TotalTreesSpecies() {
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
     return (
-      <MapboxGL.MapView showUserLocation={false} style={styles.mapContainer} ref={map}>
-        <MapboxGL.Camera ref={camera} />
+      <MapboxGL.MapView
+        showUserLocation={false}
+        style={styles.mapContainer}
+        ref={map}
+        scrollEnabled={false}
+        pitchEnabled={false}
+        zoomEnabled={false}
+        rotateEnabled={false}>
+        <MapboxGL.Camera
+          ref={(el) => {
+            camera.current = el;
+            setIsCameraRefVisible(!!el);
+          }}
+        />
         {shouldRenderShape && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
@@ -255,8 +288,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <PrimaryButton

@@ -31,6 +31,8 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -59,6 +61,27 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
   const [showAlert, setShowAlert] = useState(false);
   const [alertModalFor, setAlertModalFor] = useState('');
 
+  const [bounds, setBounds] = useState([]);
+  const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
+  const [centerCoordinate, setCenterCoordinate] = useState([]);
+
+  // stores the geoJSON
+  const [geoJSON, setGeoJSON] = useState({
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          isPolygonComplete: false,
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: [],
+        },
+      },
+    ],
+  });
+
   useEffect(() => {
     // Do something
     if (IS_ANDROID) {
@@ -77,11 +100,53 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         }
       });
     }
-    const inventoryID = inventoryState.inventoryID;
-    getInventory({ inventoryID: inventoryID }).then((inventory) => {
-      setInventory(inventory);
-    });
+    initializeState();
   }, []);
+
+  useEffect(() => {
+    if (isCameraRefVisible && bounds.length > 0) {
+      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
+    }
+    if (isCameraRefVisible && centerCoordinate > 0) {
+      camera.current.setCamera({
+        centerCoordinate,
+      });
+    }
+  }, [isCameraRefVisible, bounds, centerCoordinate]);
+
+  // initializes the state by updating state
+  const initializeState = () => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+      if (inventoryData.polygons.length > 0) {
+        let featureList = inventoryData.polygons.map((onePolygon) => {
+          return {
+            type: 'Feature',
+            properties: {
+              isPolygonComplete: onePolygon.isPolygonComplete,
+            },
+            geometry: {
+              type: 'LineString',
+              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
+                oneCoordinate.longitude,
+                oneCoordinate.latitude,
+              ]),
+            },
+          };
+        });
+        let geoJSONData = {
+          type: 'FeatureCollection',
+          features: featureList,
+        };
+
+        setCenterCoordinate(turfCenter(featureList[0]));
+
+        setBounds(bbox(featureList[0]));
+
+        setGeoJSON(geoJSONData);
+      }
+    });
+  };
 
   const renderFakeMarker = () => {
     return (
@@ -167,6 +232,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
   };
 
   const renderMapView = () => {
+    let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
+
     return (
       <MapboxGL.MapView
         showUserLocation={true}
@@ -174,14 +241,19 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         ref={map}
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        <MapboxGL.Camera ref={camera} />
+        <MapboxGL.Camera
+          ref={(el) => {
+            camera.current = el;
+            setIsCameraRefVisible(!!el);
+          }}
+        />
+        {shouldRenderShape && (
+          <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
+          </MapboxGL.ShapeSource>
+        )}
         {isLocation && (
-          <MapboxGL.UserLocation
-            showsUserHeadingIndicator
-            onUpdate={() => {
-              updateCurrentPosition();
-            }}
-          />
+          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={updateCurrentPosition} />
         )}
       </MapboxGL.MapView>
     );
@@ -316,7 +388,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           inventory: inventory,
           visible: true,
         });
-        updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
+        updateLastScreen({ inventory_id: inventory.inventory_id, lastScreen: 'SelectSpecies' });
       })
       .catch((err) => {
         dbLog.error({
@@ -346,7 +418,7 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
         inventory: inventory,
         visible: true,
       });
-      updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
+      updateLastScreen({ inventory_id: inventory.inventory_id, lastScreen: 'SelectSpecies' });
       onPressClose();
     };
     let subHeading = i18next.t('label.alright_modal_sub_header');
@@ -507,8 +579,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -541,8 +613,8 @@ export default function MapMarking({ updateScreenState, resetRouteStack, isSampl
           headingText={
             isSampleTree
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                })
               : i18next.t('label.tree_map_marking_header')
           }
           topRightComponent={renderAccuracyInfo}
@@ -697,3 +769,5 @@ const styles = StyleSheet.create({
     width: '90%',
   },
 });
+
+const polyline = { lineWidth: 2, lineColor: Colors.BLACK };

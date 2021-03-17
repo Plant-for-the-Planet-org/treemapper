@@ -20,13 +20,13 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const onPressInventory = (item) => {
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
-      if (item.locate_tree === SINGLE) {
+      if (item.locateTree === SINGLE) {
         navigation.navigate('SingleTreeOverview');
       } else {
         navigation.navigate('InventoryOverview');
       }
     } else {
-      navigation.navigate(item.last_screen);
+      navigation.navigate(item.lastScreen);
     }
   };
   return (
@@ -47,7 +47,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
         }
         let locateTreeAndType = '';
         let title = '';
-        if (item.locate_tree === OFF_SITE) {
+        if (item.locateTree === OFF_SITE) {
           locateTreeAndType = i18next.t('label.tree_inventory_off_site');
         } else {
           locateTreeAndType = i18next.t('label.tree_inventory_on_site');
@@ -93,8 +93,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
                   : item.status === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  ? 'cloud-outline'
+                  : 'cloud-check'
               }
               data={data}
             />

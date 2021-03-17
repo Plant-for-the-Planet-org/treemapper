@@ -75,7 +75,7 @@ export default function SampleTreesCount() {
   useEffect(() => {
     let data = {
       inventory_id: state.inventoryID,
-      last_screen: 'SampleTreesCount',
+      lastScreen: 'SampleTreesCount',
     };
     updateLastScreen(data);
   }, []);

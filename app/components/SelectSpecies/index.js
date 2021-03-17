@@ -90,7 +90,7 @@ const SelectSpecies = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
       setInventory(inventory);
 
-      if (inventory.species.length > 0 && inventory.species_diameter == null) {
+      if (inventory.species.length > 0 && inventory.specieDiameter == null) {
         setIsShowTreeMeasurementModal(true);
         setSingleTreeSpecie(inventory.species[0]);
       }

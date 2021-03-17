@@ -160,7 +160,7 @@ const ImageCapturing = ({
           insertImageAtIndexCoordinate(data).then(() => {
             if (isCompletePolygon) {
               setIsAlrightyModalShow(false);
-              if (inventory.locate_tree === ON_SITE) {
+              if (inventory.locateTree === ON_SITE) {
                 navigation.navigate('SampleTreesCount');
               } else {
                 navigation.navigate('InventoryOverview');
@@ -205,7 +205,7 @@ const ImageCapturing = ({
               );
             });
         } else {
-          updateLastScreen({ inventory_id: inventory.inventory_id, last_screen: 'SelectSpecies' });
+          updateLastScreen({ inventory_id: inventory.inventory_id, lastScreen: 'SelectSpecies' });
           insertImageSingleRegisterTree(data).then(() => {
             navigation.navigate('SelectSpecies', {
               inventory: inventory,
@@ -237,9 +237,12 @@ const ImageCapturing = ({
 
     insertImageAtIndexCoordinate(data).then(() => {
       polygonUpdate({ inventory_id: state.inventoryID }).then(() => {
-        completePolygon({ inventory_id: state.inventoryID }).then(() => {
+        completePolygon({
+          inventory_id: state.inventoryID,
+          locateTree: inventory.locateTree,
+        }).then(() => {
           setIsAlrightyModalShow(false);
-          if (inventory.locate_tree === ON_SITE) {
+          if (inventory.locateTree === ON_SITE) {
             navigation.navigate('SampleTreesCount');
           } else {
             navigation.navigate('InventoryOverview');

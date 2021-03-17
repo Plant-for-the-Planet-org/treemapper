@@ -30,7 +30,7 @@ const RegisterSingleTree = ({ navigation }) => {
           if (InventoryData.status === INCOMPLETE) {
             let data = {
               inventory_id: inventoryState.inventoryID,
-              last_screen: 'RegisterSingleTree',
+              lastScreen: 'RegisterSingleTree',
             };
             updateLastScreen(data);
 
@@ -50,14 +50,14 @@ const RegisterSingleTree = ({ navigation }) => {
                       //set onsite
                       addLocateTree({
                         inventory_id: inventoryState.inventoryID,
-                        locate_tree: ON_SITE,
+                        locateTree: ON_SITE,
                       });
                       updateScreenState('ImageCapturing');
                     } else {
                       //set offsite
                       addLocateTree({
                         inventory_id: inventoryState.inventoryID,
-                        locate_tree: OFF_SITE,
+                        locateTree: OFF_SITE,
                       });
                       navigation.navigate('SelectSpecies');
                     }

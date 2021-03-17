@@ -261,12 +261,12 @@ export default function MapMarking({
       result = await initiateInventory({ treeType: MULTI }, dispatch);
       if (result) {
         initiateInventoryState(result)(dispatch);
-        addLocateTree({ inventory_id: result.inventory_id, locate_tree: locateTree });
+        addLocateTree({ inventory_id: result.inventory_id, locateTree });
 
         getInventory({ inventoryID: result.inventory_id }).then((inventory) => {
           setInventory(inventory);
         });
-        let data = { inventory_id: result.inventory_id, last_screen: 'CreatePolygon' };
+        let data = { inventory_id: result.inventory_id, lastScreen: 'CreatePolygon' };
         updateLastScreen(data);
       }
     }

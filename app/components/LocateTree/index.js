@@ -29,9 +29,9 @@ const LocateTree = ({ navigation }) => {
   };
 
   const onPressContinue = () => {
-    let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+    let data = { inventory_id: state.inventoryID, locateTree };
     if (isSelectCoordinates) {
-      data.locate_tree = OFF_SITE;
+      data.locateTree = OFF_SITE;
       addLocateTree(data).then(() => {
         navigation.navigate('SelectCoordinates');
       });

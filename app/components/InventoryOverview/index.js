@@ -55,7 +55,7 @@ const InventoryOverview = ({ navigation }) => {
 
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
-      let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' };
+      let data = { inventory_id: state.inventoryID, lastScreen: 'InventoryOverview' };
       updateLastScreen(data);
     });
     return () => {
@@ -337,7 +337,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    if (status === INCOMPLETE && inventory.locate_tree === OFF_SITE) {
+    if (status === INCOMPLETE && inventory.locateTree === OFF_SITE) {
       setShowDate(true);
     }
   };
@@ -372,7 +372,7 @@ const InventoryOverview = ({ navigation }) => {
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');
     locateType =
-      inventory.locate_tree === OFF_SITE
+      inventory.locateTree === OFF_SITE
         ? i18next.t('label.tree_inventory_off_site')
         : i18next.t('label.tree_inventory_on_site');
   }
