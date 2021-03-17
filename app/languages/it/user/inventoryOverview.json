@@ -1,5 +1,8 @@
 {
   "inventory_overview_loc": "{{locationTitle}}",
   "inventory_overview_loc_left_text": "{{item.aliases}}",
-  "inventory_overview_date": "{{date, ll}}"
+  "inventory_overview_date": "{{date, ll}}",
+  "inventory_overview_cancel": "Cancellare",
+  "inventory_overview_confirm": "Confermare",
+  "inventory_overview_pick_a_date": "Scegli una data"
 }
