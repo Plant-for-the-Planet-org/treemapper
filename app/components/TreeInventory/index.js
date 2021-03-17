@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  Alert,
   BackHandler,
   Linking,
   Platform,

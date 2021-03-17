@@ -1,7 +1,6 @@
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,

@@ -18,7 +18,7 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, internet
         getUserDetailsFromServer(newAccessToken);
         checkAndAddUserSpecies();
       }
-    } else if (internet) {
+    } else {
       auth0Logout();
     }
   }

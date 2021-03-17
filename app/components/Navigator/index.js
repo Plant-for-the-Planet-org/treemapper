@@ -3,14 +3,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContext } from '../../reducers/navigation';
 import React, { useEffect, useContext } from 'react';
-// import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../../actions/user';
-// import { getUserDetails } from '../../repositories/user';
-// import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
 import { dailyLogUpdateCheck } from '../../utils/logs';
 import InitialLoadingNavigator from './InitialLoadingNavigator';
 import MainNavigator from './MainNavigator';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-// import { uploadInventoryData } from '../../utils/uploadInventory';
 import { UserContext } from '../../reducers/user';
 import { InventoryContext } from '../../reducers/inventory';
 

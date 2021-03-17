@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   ImageBackground,
   Linking,
   Modal,
