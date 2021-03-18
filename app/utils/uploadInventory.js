@@ -1,6 +1,7 @@
 import { uploadInventory } from '../actions/UploadInventory';
 import { isLogin } from '../repositories/user';
 import { auth0Login } from '../actions/user';
+import { bugsnag } from '../utils';
 
 export const uploadInventoryData = (dispatch, userDispatch) => {
   return new Promise((resolve, reject) => {
@@ -11,6 +12,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
             isUserLogin ? resolve() : reject();
           })
           .catch((err) => {
+            bugsnag.notify(err);
             reject(err);
           });
       } else {
@@ -24,6 +26,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
               console.log('rejecting', err);
             }
             console.error(err);
+            bugsnag.notify(err);
           });
       }
     });

@@ -38,6 +38,7 @@ const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
               'Error at /utils/updateSpeciesFromFile/updateAndSyncLocalSpeciesRepo while updating local species',
               err,
             );
+            bugsnag.notify(err);
             reject(err);
           });
       })
@@ -46,6 +47,7 @@ const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
           `Error at /utils/updateSpeciesFromFile while reading file at path ${jsonFilePath}`,
           err,
         );
+        bugsnag.notify(err);
         // deletes the JSON file if there is JSON Parse error
         if (err.message.includes('JSON Parse error')) {
           isJsonCorrupted = true;
@@ -63,6 +65,7 @@ const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
                 `Error at /utils/updateSpeciesFromFile while deleting file at path ${jsonFilePath}`,
                 err,
               );
+              bugsnag.notify(err);
               // logging the error in to the db
               dbLog.error({
                 logType: LogTypes.MANAGE_SPECIES,
@@ -141,7 +144,7 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
                 'Error at /utils/updateAndSyncLocalSpecies - updateSpeciesFromFile',
                 error.err.message,
               );
-
+              bugsnag.notify(error);
               if (error.isJsonCorrupted) {
                 if (doesZipPathExist) {
                   dbLog.info({
@@ -152,7 +155,10 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
                   // calls the function to unzip and add the species data in realm DB
                   unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
                     .then(resolve)
-                    .catch(reject);
+                    .catch((err) => {
+                      reject(err);
+                      bugsnag.notify(err);
+                    });
                 } else {
                   dbLog.info({
                     logType: LogTypes.MANAGE_SPECIES,
@@ -162,7 +168,10 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
 
                   downloadAndUpdateSpecies(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
                     .then(resolve)
-                    .catch(reject);
+                    .catch((err) => {
+                      reject(err);
+                      bugsnag.notify(err);
+                    });
                 }
               } else {
                 reject();
@@ -177,7 +186,10 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
           // calls the function to unzip and add the species data in realm DB
           unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+              reject(err);
+              bugsnag.notify(err);
+            });
         } else {
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
@@ -186,7 +198,10 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
 
           downloadAndUpdateSpecies(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+              reject(err);
+              bugsnag.notify(err);
+            });
         }
       } else {
         dbLog.info({
@@ -219,7 +234,12 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesSta
     unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8')
       .then(async () => {
         // this function updates the species in DB after reading the content of the file
-        updateSpeciesFromFile(jsonFilePath, setUpdatingSpeciesState).then(resolve).catch(reject);
+        updateSpeciesFromFile(jsonFilePath, setUpdatingSpeciesState)
+          .then(resolve)
+          .catch((err) => {
+            reject(err);
+            bugsnag.notify(err);
+          });
       })
       .catch((err) => {
         console.error('Error at /utils/unzipAndAddSpeciesData', err.message);
@@ -240,6 +260,7 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesSta
                 `Error at /utils/unzipAndAddSpeciesData while deleting file at path ${zipFilePath}`,
                 err,
               );
+              bugsnag.notify(err);
               // logging the error in to the db
               dbLog.error({
                 logType: LogTypes.MANAGE_SPECIES,
@@ -289,12 +310,16 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
           // calls the function to unzip and add the species data in realm DB
           unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+              reject(err);
+              bugsnag.notify(err);
+            });
         }
       })
       .catch((err) => {
         // logs the error while downloading a file
         console.error('Error at /utils/updateAndSyncLocalSpecies - downloadFile', err);
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message:

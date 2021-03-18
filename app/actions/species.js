@@ -136,6 +136,7 @@ export const addUserSpecie = (specieData) => {
           logStack: JSON.stringify(err?.response),
         });
         reject(err);
+        bugsnag.notify(err);
       });
   });
 };
@@ -176,6 +177,7 @@ export const deleteUserSpecie = (specieId) => {
           statusCode: err?.response?.status,
           logStack: JSON.stringify(err?.response),
         });
+        bugsnag.notify(err);
         reject(err);
       });
   });

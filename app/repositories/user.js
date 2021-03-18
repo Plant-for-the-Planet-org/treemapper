@@ -56,6 +56,7 @@ export const isLogin = () => {
       })
       .catch((err) => {
         console.error(`Error at /repositories/user/isLogin, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
       });
   });
 };
@@ -73,6 +74,7 @@ export const getUserDetails = () => {
         resolve(User);
       })
       .catch((err) => {
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while retrieving User details',
@@ -225,6 +227,7 @@ export const getUserInformation = () => {
         }
       })
       .catch((err) => {
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while retrieving user details',
@@ -250,6 +253,7 @@ export const setActivityLog = (bool) => {
         resolve();
       })
       .catch((err) => {
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while changing isLogEnabled value',

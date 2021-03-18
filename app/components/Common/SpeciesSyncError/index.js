@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import { bugsnag } from '../../../utils';
 
 //Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
@@ -29,8 +30,9 @@ const SpeciesSyncError = () => {
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
         setAsyncStorageSpecies(species);
       })
-      .catch(() => {
+      .catch((err) => {
         setRefreshAnimation(false);
+        bugsnag.notify(err);
         Snackbar.show({
           text: i18next.t('label.snackBarText'),
           duration: Snackbar.LENGTH_SHORT,

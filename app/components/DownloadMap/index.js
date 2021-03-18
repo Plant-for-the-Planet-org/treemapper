@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Modal, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Modal,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { Header, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView, Linking, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -10,6 +18,7 @@ import Geolocation from 'react-native-geolocation-service';
 import { permission } from '../../utils/permissions';
 import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { bugsnag } from '../../utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const IS_ANDROID = Platform.OS === 'android';
@@ -43,12 +52,13 @@ const DownloadMap = ({ navigation }) => {
         console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
-            camera && camera.current &&
-            camera.current.setCamera({
-              centerCoordinate: [position.coords.longitude, position.coords.latitude],
-              zoomLevel: 15,
-              animationDuration: 1000,
-            });
+            camera &&
+              camera.current &&
+              camera.current.setCamera({
+                centerCoordinate: [position.coords.longitude, position.coords.latitude],
+                zoomLevel: 15,
+                animationDuration: 1000,
+              });
           },
           (err) => {
             alert(err.message);
@@ -67,14 +77,15 @@ const DownloadMap = ({ navigation }) => {
         );
       })
       .catch((err) => {
+        bugsnag.notify(err);
         if (err === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
         }
       });
   };
 
-  const zoomLevelChanged = async ()=>{
-    setZoomLevel( await MapBoxGLRef.current.getZoom());
+  const zoomLevelChanged = async () => {
+    setZoomLevel(await MapBoxGLRef.current.getZoom());
   };
 
   const onPressDownloadArea = async () => {
@@ -101,6 +112,7 @@ const DownloadMap = ({ navigation }) => {
               .catch((err) => {
                 setIsLoaderShow(false);
                 setAreaName('');
+                bugsnag.notify(err);
                 alert(i18next.t('label.download_map_area_exists'));
               });
           }
@@ -127,6 +139,7 @@ const DownloadMap = ({ navigation }) => {
       .catch((err) => {
         setIsLoaderShow(false);
         setAreaName('');
+        bugsnag.notify(err);
         alert(i18next.t('label.download_map_area_failed'));
       });
   };
@@ -178,7 +191,11 @@ const DownloadMap = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         {numberOfOfflineMaps == 0 ? (
-          <PrimaryButton disabled={zoomLevel > 11 ? false : true} onPress={onPressDownloadArea} btnText={i18next.t('label.download_map')} />
+          <PrimaryButton
+            disabled={zoomLevel > 11 ? false : true}
+            onPress={onPressDownloadArea}
+            btnText={i18next.t('label.download_map')}
+          />
         ) : (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton

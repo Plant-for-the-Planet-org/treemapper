@@ -22,6 +22,7 @@ import { LogTypes } from '../../utils/constants';
 import { Header, SpeciesSyncError } from '../Common';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
+import { bugsnag } from '../../utils';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -120,6 +121,7 @@ const ManageSpecies = ({
         })
         .catch((err) => {
           console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+          bugsnag.notify(err);
           // logging the error in to the db
           dbLog.error({
             logType: LogTypes.MANAGE_SPECIES,

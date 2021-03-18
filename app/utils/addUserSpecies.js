@@ -59,6 +59,7 @@ export const checkAndAddUserSpecies = async () => {
                   err,
                 )}`,
               );
+              bugsnag.notify(err);
             });
         })
         .catch((err) => {
@@ -67,6 +68,7 @@ export const checkAndAddUserSpecies = async () => {
               err,
             )}`,
           );
+          bugsnag.notify(err);
         });
     } else {
       // logging the success in to the db
@@ -103,6 +105,7 @@ const addFromAlreadySyncedSpecies = (scientificSpecieGuid, alreadySyncedSpecies)
         console.error(
           `Error at /utils/addUserSpecies/addFromAlreadySyncedSpecies, ${JSON.stringify(err)}`,
         );
+        bugsnag.notify(err);
       }
       break;
     }
@@ -148,6 +151,7 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
           console.error(
             `Error at /utils/addUserSpecies/addUserSpecieToServer, ${JSON.stringify(err)}`,
           );
+          bugsnag.notify(err);
         }
         // logging the success in to the db
         dbLog.info({
@@ -163,6 +167,7 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
       }
     })
     .catch((err) => {
+      bugsnag.notify(err);
       if (
         err?.response?.status === 400 &&
         err.response.data?.errors &&
@@ -208,6 +213,7 @@ const deleteUserSpecieFromServer = (specie) => {
           console.error(
             `Error at /utils/addUserSpecies/deleteUserSpecieFromServer, ${JSON.stringify(err)}`,
           );
+          bugsnag.notify(err);
         }
       } else {
         // logging the warn in to the db
@@ -218,6 +224,7 @@ const deleteUserSpecieFromServer = (specie) => {
       }
     })
     .catch((err) => {
+      bugsnag.notify(err);
       if (err?.response?.status === 404) {
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
@@ -229,6 +236,7 @@ const deleteUserSpecieFromServer = (specie) => {
           console.error(
             `Error at /utils/addUserSpecies/deleteUserSpecieFromServer, ${JSON.stringify(err)}`,
           );
+          bugsnag.notify(err);
         }
       } else {
         dbLog.error({

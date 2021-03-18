@@ -75,16 +75,17 @@ export const auth0Login = (dispatch) => {
           })
           .catch((err) => {
             reject(err);
+            bugsnag.notify(err);
           });
       })
       .catch((err) => {
+        bugsnag.notify(err);
         if (err?.error !== 'a0.session.user_cancelled') {
           dbLog.error({
             logType: LogTypes.USER,
             message: 'Error while logging in from auth0',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           // if any error is found then deletes the user and clear the user app state
           deleteUser();
           clearUserDetails()(dispatch);
@@ -129,6 +130,7 @@ export const auth0Logout = (userDispatch = null) => {
         resolve(true);
       })
       .catch((err) => {
+        bugsnag.notify(err);
         if (err?.error !== 'a0.session.user_cancelled') {
           console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
           dbLog.error({
@@ -136,7 +138,6 @@ export const auth0Logout = (userDispatch = null) => {
             message: 'Error while Logging Out',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           resolve(false);
         } else {
           dbLog.info({
@@ -255,7 +256,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
             err.response,
           )}`,
         );
-
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Failed to retrieve User Information from Server',
@@ -298,6 +299,7 @@ export const SignupService = (payload, dispatch) => {
           message: 'Failed to Sign up',
           statusCode: err?.response?.status,
         });
+        bugsnag.notify(err);
         // if any error is found then deletes the user and clear the user app state
         deleteUser();
         clearUserDetails()(dispatch);
@@ -342,6 +344,7 @@ export const getCdnUrls = (language = 'en') => {
           logStack: JSON.stringify(err?.response),
         });
         resolve(false);
+        bugsnag.notify(err);
       });
   });
 };

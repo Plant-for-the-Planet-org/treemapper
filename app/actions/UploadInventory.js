@@ -58,6 +58,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                       `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
                     );
                     reject();
+                    bugsnag.notify(err);
                   });
               } else {
                 reject();
@@ -71,10 +72,12 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                 err,
               )}`,
             );
+            bugsnag.notify(err);
           });
       }
     } catch (err) {
       reject(err);
+      bugsnag.notify(err);
       console.error(`Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
     }
   });
@@ -165,6 +168,7 @@ export const uploadInventory = (dispatch) => {
                     updateIsUploading(false)(dispatch);
                     reject();
                   }
+                  bugsnag.notify(err);
                   console.error(err);
                 }
               } else {
@@ -184,6 +188,7 @@ export const uploadInventory = (dispatch) => {
                           updateIsUploading(false)(dispatch);
                           reject(err);
                         }
+                        bugsnag.notify(err);
                         console.error(
                           `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
                             err,
@@ -206,6 +211,7 @@ export const uploadInventory = (dispatch) => {
                     updateIsUploading(false)(dispatch);
                     reject(err);
                   }
+                  bugsnag.notify(err);
                   console.error(
                     `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
                       err.response,
@@ -233,6 +239,7 @@ export const uploadInventory = (dispatch) => {
       .catch((err) => {
         console.log(err);
         reject(err);
+        bugsnag.notify(err);
         return err;
       });
   });
@@ -268,6 +275,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
     // the length of coordinates of an inventory registration with the upload count of successfully completed upload
     return { allUploadCompleted: completedUploadCount === responseCoords.length };
   } catch (err) {
+    bugsnag.notify(err);
     console.error(`Error at /actions/upload/checkAndUploadImage, ${JSON.stringify(err)}`);
     return { allUploadCompleted: false };
   }
@@ -306,6 +314,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
         return true;
       }
     } catch (err) {
+      bugsnag.notify(err);
       console.error(
         `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${coordinateId} -> ${JSON.stringify(
           err.response,
@@ -354,6 +363,7 @@ const getPlantLocationDetails = (locationId) => {
           message: `Failed to fetch planted location details, GET - /treemapper/plantLocations/${locationId}.`,
           logStack: JSON.stringify(err),
         });
+        bugsnag.notify(err);
       });
   });
 };

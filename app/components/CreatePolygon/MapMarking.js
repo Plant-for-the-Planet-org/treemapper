@@ -25,6 +25,7 @@ import i18next from 'i18next';
 import { toLetters } from '../../utils/mapMarkingCoordinate';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { InventoryContext } from '../../reducers/inventory';
+import { bugsnag } from '../../utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -193,6 +194,7 @@ class MapMarkingComponent extends React.Component {
       } catch (err) {
         // TODO:i18n - if this is used, please add translations or convert to db logging
         alert(JSON.stringify(err));
+        bugsnag.notify(err);
       }
     } else {
       this.setState({ isAlrightyModalShow: true });
@@ -207,6 +209,7 @@ class MapMarkingComponent extends React.Component {
       } catch (err) {
         // TODO:i18n - if this is used, please add translations or convert to db logging
         alert('Unable to retrieve location');
+        bugsnag.notify(err);
       }
     }
   };

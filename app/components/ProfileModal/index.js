@@ -8,6 +8,7 @@ import ProfileListItem from './ProfileListItem';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AvatarIcon from '../Common/AvatarIcon';
+import { bugsnag } from '../../utils';
 
 const ProfileModal = ({
   onPressCloseProfileModal,
@@ -39,10 +40,11 @@ const ProfileModal = ({
     navigation.navigate('Legals');
   };
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => {
       // TODO:i18n - if this is used, please add translations
-      alert('Can write mail to support@plant-for-the-planet.org'),
-    );
+      bugsnag.notify(err);
+      alert('Can write mail to support@plant-for-the-planet.org');
+    });
   };
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');

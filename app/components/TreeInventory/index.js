@@ -21,6 +21,7 @@ import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
 import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
 import { UserContext } from '../../reducers/user';
+import { bugsnag } from '../../utils';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -77,6 +78,7 @@ const TreeInventory = ({ navigation }) => {
         navigation.navigate('MainScreen');
       })
       .catch((err) => {
+        bugsnag.notify(err);
         console.log(err, 'In Tree Inventory');
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
@@ -211,8 +213,8 @@ const TreeInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}

@@ -36,6 +36,7 @@ export const getAreaName = ({ coords }) => {
         }
       })
       .catch((err) => {
+        bugsnag.notify(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.MAPS,

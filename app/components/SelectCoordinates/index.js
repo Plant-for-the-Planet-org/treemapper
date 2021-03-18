@@ -23,6 +23,7 @@ import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { InventoryContext } from '../../reducers/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { bugsnag } from '../../utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -110,6 +111,7 @@ class SelectCoordinates extends React.Component {
         (err) => alert(err.message),
       );
     } catch (err) {
+      bugsnag.notify(err);
       // TODO:i18n - if this is used, please add translations or convert to db logging
       alert(JSON.stringify(err));
     }

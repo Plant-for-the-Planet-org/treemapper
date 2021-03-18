@@ -1,5 +1,6 @@
 import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { bugsnag } from '../utils';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -27,7 +28,10 @@ export const permission = () => {
             reject('denied');
           }
         })
-        .catch((err) => console.warn(err));
+        .catch((err) => {
+          console.warn(err);
+          bugsnag.notify(err);
+        });
     } else {
       Geolocation.requestAuthorization('whenInUse').then((permissionStatus) => {
         console.log(permissionStatus);

@@ -28,6 +28,7 @@ import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../action
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { StackActions } from '@react-navigation/native';
+import { bugsnag } from '../../utils';
 
 // TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
@@ -227,6 +228,7 @@ const SignUp = ({ navigation }) => {
           navigation.navigate('MainScreen');
         })
         .catch((err) => {
+          bugsnag.notify(err);
           alert(err.response.data.message);
           console.error(err.response.data.message, 'err');
           stopSignUpLoading()(loadingDispatch);

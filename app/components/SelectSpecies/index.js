@@ -24,6 +24,7 @@ import { getUserInformation } from '../../repositories/user';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
+import { bugsnag } from '../../utils';
 
 const SelectSpecies = ({
   visible,
@@ -422,6 +423,7 @@ const SelectSpecies = ({
           );
         })
         .catch((err) => {
+          bugsnag.notify(err);
           console.error(err);
         });
     }

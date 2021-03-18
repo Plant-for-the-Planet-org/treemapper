@@ -31,6 +31,7 @@ import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { InventoryContext } from '../../../reducers/inventory';
+import { bugsnag } from '../../../utils';
 
 const infographicText = [
   {
@@ -120,6 +121,7 @@ const ImageCapturing = ({
       return data;
     } catch (err) {
       console.error('error while saving file', err);
+      bugsnag.notify(err);
     }
   };
 
@@ -132,6 +134,7 @@ const ImageCapturing = ({
     const data = await camera.current.takePictureAsync(options).catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
       setImagePath('');
+      bugsnag.notify(err);
       return;
     });
     if (data) {
@@ -169,6 +172,7 @@ const ImageCapturing = ({
         }
       } catch (err) {
         console.error('error while saving file', err);
+        bugsnag.notify(err);
       }
     } else {
       alert(i18next.t('label.image_capturing_required'));

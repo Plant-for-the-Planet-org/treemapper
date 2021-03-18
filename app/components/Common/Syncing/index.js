@@ -8,6 +8,7 @@ import { InventoryContext } from '../../../reducers/inventory';
 import i18next from 'i18next';
 import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
+import { bugsnag } from '../../../utils';
 
 export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
   const [syncText, setSyncText] = useState('');
@@ -59,6 +60,7 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
             { cancelable: false },
           );
         }
+        bugsnag.notify(err);
       });
   };
 

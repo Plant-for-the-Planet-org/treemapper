@@ -232,7 +232,10 @@ const InventoryOverview = ({ navigation }) => {
           .then(() => {
             alert(i18next.t('label.inventory_overview_export_json_success'));
           })
-          .catch(() => alert(i18next.t('label.inventory_overview_export_json_error')));
+          .catch((err) => {
+            alert(i18next.t('label.inventory_overview_export_json_error'));
+            bugsnag.notify(err);
+          });
       }
     };
     if (Platform.OS == 'android') {

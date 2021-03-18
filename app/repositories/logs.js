@@ -133,6 +133,7 @@ export const deleteOldLogs = () => {
       .catch((err) => {
         // logs the error
         console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
+        bugsnag.notify(err);
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.ERROR,

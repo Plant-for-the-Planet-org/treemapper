@@ -42,6 +42,7 @@ import {
   SpeciesSyncError,
 } from '../Common';
 import ProfileModal from '../ProfileModal';
+import { bugsnag } from '../../utils';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -126,6 +127,7 @@ const MainScreen = ({ navigation }) => {
       // Observe collection notifications.
       userObject.addListener(listener);
     } catch (err) {
+      bugsnag.notify(err);
       console.error(`Error at /components/MainScreen/initializeRealm, ${JSON.stringify(err)}`);
     }
   };
@@ -170,6 +172,7 @@ const MainScreen = ({ navigation }) => {
               { cancelable: false },
             );
           }
+          bugsnag.notify(err);
           stopLoading()(loadingDispatch);
         });
     }
@@ -210,10 +213,11 @@ const MainScreen = ({ navigation }) => {
   };
 
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch((err) => {
+      bugsnag.notify(err);
       // TODO:i18n - if this is used, please add translations
-      alert('Can write mail to support@plant-for-the-planet.org'),
-    );
+      alert('Can write mail to support@plant-for-the-planet.org');
+    });
   };
 
   return (

@@ -12,6 +12,7 @@ import { NavigationContext } from '../../reducers/navigation';
 import { showMainNavigationStack } from '../../actions/navigation';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import { bugsnag } from '../../utils';
 
 const SpeciesContainer = ({ updatingSpeciesState }) => {
   switch (updatingSpeciesState) {
@@ -69,6 +70,7 @@ export default function InitialLoading() {
         })
         .catch((err) => {
           console.error('Error while setting up realm connection - App', err);
+          bugsnag.notify(err);
         });
     } else {
       // calls this function to update the species in the realm DB
@@ -76,8 +78,9 @@ export default function InitialLoading() {
         .then(() => {
           showMainNavigationStack()(dispatch);
         })
-        .catch(() => {
+        .catch((err) => {
           showMainNavigationStack()(dispatch);
+          bugsnag.notify(err);
         });
     }
   }, []);

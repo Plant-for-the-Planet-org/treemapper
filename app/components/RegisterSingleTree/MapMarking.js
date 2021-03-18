@@ -29,6 +29,7 @@ import {
 import { AlertModal, Alrighty, Header, PrimaryButton } from '../Common';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { initiateInventoryState } from '../../actions/inventory';
+import { bugsnag } from '../../utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -154,6 +155,7 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
           onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
         })
         .catch((err) => {
+          bugsnag.notify(err);
           // TODO:i18n - if this is used, please add translations or convert to db logging
           alert(JSON.stringify(err), 'Alert');
         });
@@ -439,8 +441,8 @@ const MapMarking = ({ updateScreenState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>

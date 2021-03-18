@@ -76,6 +76,7 @@ const request = async (url, method = 'GET', isAuthenticated = false, data = unde
           resolve(response);
         })
         .catch((err) => {
+          bugsnag.notify(err);
           reject(err);
         });
     });

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { deleteOldLogs } from '../repositories/logs';
-
+import { bugsnag } from './index';
 // This function checks everyday if there are any older logs stored in the db which needs to be deleted
 export const dailyLogUpdateCheck = async () => {
   const currentDate = new Date().toLocaleDateString();
@@ -22,6 +22,7 @@ const getLogUpdateDate = async () => {
   } catch (err) {
     // error reading value
     console.error(`Error at /utils/logs/getLogUpdateDate, ${JSON.stringify(err)}`);
+    bugsnag.notify(err);
     return false;
   }
 };
@@ -33,5 +34,6 @@ const setUpdatedLogDate = async (date) => {
   } catch (err) {
     // error saving storing updateLogDate to AsyncStorage
     console.error(`Error at /utils/logs/setUpdatedLogDate, ${JSON.stringify(err)}`);
+    bugsnag.notify(err);
   }
 };
