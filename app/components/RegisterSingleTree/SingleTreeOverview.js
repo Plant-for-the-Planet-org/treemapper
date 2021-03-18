@@ -614,7 +614,7 @@ const SingleTreeOverview = ({ navigation }) => {
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
       registrationType={registrationType}
-      addSpecieNameToInventory={addSpecieNameToInventory}
+      addSpecieToInventory={addSpecieNameToInventory}
       editOnlySpecieName={true}
       isSampleTree={isSampleTree}
     />

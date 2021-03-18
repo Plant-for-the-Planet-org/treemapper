@@ -20,7 +20,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
   const onPressInventory = (item) => {
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
-      if (item.locateTree === SINGLE) {
+      if (item.treeType === SINGLE) {
         navigation.navigate('SingleTreeOverview');
       } else {
         navigation.navigate('InventoryOverview');

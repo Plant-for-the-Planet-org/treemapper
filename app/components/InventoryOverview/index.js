@@ -47,7 +47,6 @@ const InventoryOverview = ({ navigation }) => {
   const [selectedLOC, setSelectedLOC] = useState(null);
   const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
   const [showDate, setShowDate] = useState(false);
-  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
@@ -296,7 +295,7 @@ const InventoryOverview = ({ navigation }) => {
           minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          date={inventory.plantation_date}
+          date={new Date(inventory.plantation_date)}
           mode={'date'}
           is24Hour={true}
           display="default"

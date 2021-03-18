@@ -73,7 +73,7 @@ const LocateTree = ({ navigation }) => {
             testID={'page_off_site_polygon'}
             accessibilityLabel={'Off Site Polygon'}
           />
-          {/* <LargeButton
+          <LargeButton
             onPress={onPressSelectCoordinates}
             heading={i18next.t('label.locate_tree_off_site_point_heading')}
             subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')}
@@ -82,7 +82,7 @@ const LocateTree = ({ navigation }) => {
             testID={'page_off_site_point'}
             accessibilityLabel={'Off Site Point'}
           />
-          <LargeButton
+          {/* <LargeButton
             onPress={onPressSelectCoordinates}
             heading={i18next.t('label.locate_tree_geo_json')}
             subHeadingStyle={{ fontStyle: 'italic' }}

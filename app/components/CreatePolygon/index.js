@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
-import MapMarking from './MapMarking';
+import MapMarking from '../Common/MapMarking';
 import { getInventory, updateLastScreen } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
@@ -54,7 +54,8 @@ const CreatePolygon = ({ route }) => {
             setIsCompletePolygon={setIsCompletePolygon}
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
-            locateTree={locateTree}
+            multipleLocateTree={locateTree}
+            treeType={MULTI}
           />
         ) : (
           <ImageCapturing

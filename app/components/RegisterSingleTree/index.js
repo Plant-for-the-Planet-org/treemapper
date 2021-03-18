@@ -12,7 +12,7 @@ import { INCOMPLETE, OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryCons
 import { Loader } from '../Common';
 import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
-import MapMarking from './MapMarking';
+import MapMarking from '../Common/MapMarking';
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
@@ -59,6 +59,7 @@ const RegisterSingleTree = ({ navigation }) => {
                         inventory_id: inventoryState.inventoryID,
                         locateTree: OFF_SITE,
                       });
+                      updateScreenState('MapMarking');
                       navigation.navigate('SelectSpecies');
                     }
                   },
@@ -141,13 +142,9 @@ const RegisterSingleTree = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {screenState == 'MapMarking' &&
+      {screenState === 'MapMarking' &&
         (isGranted ? (
-          <MapMarking
-            updateScreenState={updateScreenState}
-            // inventoryState={inventoryState}
-            resetRouteStack={resetRouteStack}
-          />
+          <MapMarking updateScreenState={updateScreenState} treeType={SINGLE} />
         ) : isPermissionDeniedAlertShow ? (
           <PermissionDeniedAlert
             isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
@@ -163,7 +160,7 @@ const RegisterSingleTree = ({ navigation }) => {
           />
         ))}
 
-      {screenState == 'ImageCapturing' && (
+      {screenState === 'ImageCapturing' && (
         <ImageCapturing updateScreenState={updateScreenState} inventoryType={SINGLE} />
       )}
 

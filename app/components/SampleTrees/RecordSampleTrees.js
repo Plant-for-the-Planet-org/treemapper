@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import MapMarking from './MapMarking';
+import { StyleSheet, View } from 'react-native';
+import MapMarking from '../Common/MapMarking';
 import { Colors } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
-import { MULTI } from '../../utils/inventoryConstants';
+import { MULTI, SAMPLE } from '../../utils/inventoryConstants';
 
 export default function RecordSampleTrees() {
   const [screenState, setScreenState] = useState('MapMarking');
@@ -17,6 +17,7 @@ export default function RecordSampleTrees() {
           isSampleTree={true}
           updateScreenState={updateScreenState}
           resetRouteStack={() => {}}
+          treeType={SAMPLE}
         />
       )}
       {screenState == 'ImageCapturing' && (
