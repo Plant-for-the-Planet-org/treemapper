@@ -8,14 +8,14 @@ target 'treemapper' do
 
   use_react_native!(:path => config["reactNativePath"])
 
-  # Mapbox
-  # pod 'react-native-mapbox-gl/DynamicLibrary', :path => '../node_modules/@react-native-mapbox-gl/maps'
-
-
-
   target 'treemapperTests' do
     inherit! :complete
     # Pods for testing
+  end
+
+  pre_install do |installer|
+    # Mapbox
+    $RNMBGL.pre_install(installer)
   end
 
   # Enables Flipper.
@@ -24,6 +24,8 @@ target 'treemapper' do
   # you should disable these next few lines.
   use_flipper!('Flipper' => '0.81.0')
   post_install do |installer|
+    # Mapbox
+    $RNMBGL.post_install(installer)
     flipper_post_install(installer)
   end
 end
