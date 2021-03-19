@@ -40,7 +40,7 @@ const ProfileModal = ({
     navigation.navigate('Legals');
   };
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => {
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch((err) => {
       // TODO:i18n - if this is used, please add translations
       bugsnag.notify(err);
       alert('Can write mail to support@plant-for-the-planet.org');
