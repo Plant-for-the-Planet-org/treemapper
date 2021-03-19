@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: macOS-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     steps:
     - name: Checkout branch
       uses: actions/checkout@v2
@@ -97,13 +97,13 @@ jobs:
         echo "CDN_URL=$CDN_URL" >> .env
         cp .env .env.staging
 
-    # - name: Caching Pods
-    #   uses: actions/cache@v1
-    #   with:
-    #     path: ios/Pods
-    #     key: ${{ runner.os }}-pods-treemapper-${{ hashFiles('ios/Podfile.lock') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-pods-treemapper-
+    - name: Caching Pods
+      uses: actions/cache@v1
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-treemapper-${{ hashFiles('ios/Podfile*') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-treemapper-
 
     - name: Install Pods
       run: pod install
