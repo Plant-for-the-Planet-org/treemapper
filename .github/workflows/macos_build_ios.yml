@@ -98,12 +98,12 @@ jobs:
         cp .env .env.staging
 
     - name: Caching Pods
-       uses: actions/cache@v1
-       with:
-         path: ios/Pods
-         key: ${{ runner.os }}-pods-treemapper-${{ hashFiles('ios/Podfile*') }}
-         restore-keys: |
-           ${{ runner.os }}-pods-treemapper-
+      uses: actions/cache@v1
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-treemapper-${{ hashFiles('ios/Podfile*') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-treemapper-
 
     - name: Install Pods
       run: pod install
