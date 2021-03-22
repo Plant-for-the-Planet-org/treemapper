@@ -327,6 +327,7 @@ const PermissionBlockedAlert = ({
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
       }}
+      showSecondaryButton={true}
     />
   );
 };

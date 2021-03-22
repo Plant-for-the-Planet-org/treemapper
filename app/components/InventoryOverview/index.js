@@ -470,6 +470,7 @@ const InventoryOverview = ({ navigation }) => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
       />
       {renderDatePicker()}
     </SafeAreaView>

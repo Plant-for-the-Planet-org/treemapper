@@ -333,8 +333,6 @@ const checkSampleTreesAndUpload = async (inventory) => {
             inventory.inventory_id,
           );
 
-          // const uploadResult = null;
-
           if (uploadResult) {
             sampleTree.status = SYNCED;
             await updateSampleTreeByIndex(inventory, sampleTree, index, true)

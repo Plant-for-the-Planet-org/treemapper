@@ -1,9 +1,12 @@
-import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import i18next from 'i18next';
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  Linking,
   Modal,
   Platform,
   SafeAreaView,
@@ -11,34 +14,28 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Linking,
 } from 'react-native';
 import Config from 'react-native-config';
+import Geolocation from 'react-native-geolocation-service';
 import LinearGradient from 'react-native-linear-gradient';
-import { SvgXml } from 'react-native-svg';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
-import { active_marker, off_site_enable_banner, tree } from '../../../assets';
+import { AlertModal, Header } from '../';
+import { initiateInventoryState } from '../../../actions/inventory';
 import { InventoryContext } from '../../../reducers/inventory';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
-
 import {
+  addCoordinates,
   addCoordinateSingleRegisterTree,
+  addLocateTree,
   getInventory,
+  initiateInventory,
   updateInventory,
   updateLastScreen,
-  initiateInventory,
-  addLocateTree,
-  addCoordinates,
 } from '../../../repositories/inventory';
-import { AlertModal, Alrighty, Header, PrimaryButton } from '../';
-import distanceCalculator from '../../../utils/distanceCalculator';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
+import distanceCalculator from '../../../utils/distanceCalculator';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
-import { initiateInventoryState } from '../../../actions/inventory';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Map from './Map';
 import MapAlrightyModal from './MapAlrightyModal';
 import MapButtons from './MapButtons';
@@ -66,6 +63,7 @@ export default function MapMarking({
   const [isAlertShow, setIsAlertShow] = useState(false);
   const [isInitial, setIsInitial] = useState(true);
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
+  const [showSecondaryButton, setShowSecondaryButton] = useState(true);
   const [location, setLocation] = useState();
 
   // used to show alphabet for each map location
@@ -88,6 +86,7 @@ export default function MapMarking({
   const [bounds, setBounds] = useState([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
+  const [polygonCoordinates, setPolygonCoordinates] = useState([]);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
@@ -154,7 +153,6 @@ export default function MapMarking({
   }, [isCameraRefVisible, centerCoordinate]);
 
   useEffect(() => {
-    console.log('multipleLocateTree', multipleLocateTree);
     setLocateTree(multipleLocateTree);
   }, [multipleLocateTree]);
 
@@ -193,6 +191,10 @@ export default function MapMarking({
         } else if (treeType === SAMPLE) {
           setCenterCoordinate(turfCenter(featureList[0]));
           setBounds(bbox(featureList[0]));
+          setPolygonCoordinates({
+            type: 'Polygon',
+            coordinates: [featureList[0].geometry.coordinates],
+          });
         }
         setGeoJSON(geoJSONData);
       } else if (updateActiveMarkerIndex) {
@@ -220,6 +222,10 @@ export default function MapMarking({
 
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position) => {
+    if (isInitial && treeType === SAMPLE) {
+      setIsInitial(false);
+      return;
+    }
     if (isCameraRefVisible) {
       setIsInitial(false);
       camera.current.setCamera({
@@ -249,7 +255,7 @@ export default function MapMarking({
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
-  const addMultipleTreeMarker = async () => {
+  const addPolygonMarker = async () => {
     updateCurrentPosition()
       .then(async () => {
         let currentCoords = [location.coords.latitude, location.coords.longitude];
@@ -325,7 +331,7 @@ export default function MapMarking({
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
-  const addMarker = async (forceContinue = false) => {
+  const addPointMarker = async (forceContinue = false) => {
     // Check distance
     if (accuracyInMeters < 30 || forceContinue) {
       updateCurrentPosition()
@@ -407,39 +413,64 @@ export default function MapMarking({
         plantationDate: new Date(),
       };
 
-      updateInventory({
-        inventory_id: inventoryID,
-        inventoryData: {
-          sampleTrees: [...inventory.sampleTrees, data],
+      let sampleTrees = [...inventory.sampleTrees];
+      if (sampleTrees[inventory.completedSampleTreesCount]) {
+        sampleTrees[inventory.completedSampleTreesCount] = data;
+      } else {
+        sampleTrees.push(data);
+      }
+
+      const point = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Point',
+          coordinates: centerCoordinates,
         },
-      })
-        .then(() => {
-          getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
-            setInventory(inventoryData);
-          });
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully added map coordinate for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventoryID}`,
-          });
-          setShowAlrightyModal(true);
+      };
+
+      const isPointInPolygon = booleanPointInPolygon(point, polygonCoordinates);
+
+      if (isPointInPolygon) {
+        updateInventory({
+          inventory_id: inventoryID,
+          inventoryData: {
+            sampleTrees,
+          },
         })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to add map coordinate for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventoryID}`,
-            logStack: JSON.stringify(err),
+          .then(() => {
+            getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
+              setInventory(inventoryData);
+            });
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Successfully added map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventoryID}`,
+            });
+            setShowAlrightyModal(true);
+          })
+          .catch((err) => {
+            dbLog.error({
+              logType: LogTypes.INVENTORY,
+              message: `Failed to add map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventoryID}`,
+              logStack: JSON.stringify(err),
+            });
+            console.error(
+              `Failed to add map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventoryID}`,
+              err,
+            );
           });
-          console.error(
-            `Failed to add map coordinate for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventoryID}`,
-            err,
-          );
-        });
+      } else {
+        setShowSecondaryButton(false);
+        setAlertHeading(i18next.t('label.locate_tree_cannot_record_tree'));
+        setAlertSubHeading(i18next.t('label.locate_tree_cannot_record_tree_outside_polygon'));
+        setShowAlert(true);
+      }
     } else {
       let result;
       if (!inventoryID) {
@@ -601,6 +632,7 @@ export default function MapMarking({
         secondaryBtnText={i18next.t('label.continue')}
         onPressPrimaryBtn={onPressTryAgain}
         onPressSecondaryBtn={onPressAlertContinue}
+        showSecondaryButton={true}
       />
     );
   };
@@ -642,6 +674,7 @@ export default function MapMarking({
           setIsLocationAlertShow(false);
           resetRouteStack();
         }}
+        showSecondaryButton={true}
       />
     );
   };
@@ -653,7 +686,7 @@ export default function MapMarking({
   //continuing with a poor accuracy
   const onPressAlertContinue = () => {
     setIsAlertShow(false);
-    addMarker(true);
+    addPointMarker(true);
   };
 
   //small button on top right corner which will show accuracy in meters and the respective colour
@@ -665,8 +698,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -696,7 +729,7 @@ export default function MapMarking({
         onPressMyLocationIcon={onPressMyLocationIcon}
         setIsLocationAlertShow={setIsLocationAlertShow}
         addMarker={
-          treeType === MULTI && !isPointForMultipleTree ? addMultipleTreeMarker : addMarker
+          treeType === MULTI && !isPointForMultipleTree ? addPolygonMarker : addPointMarker
         }
         loader={loader}
       />
@@ -709,13 +742,13 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
+              ? `${i18next.t('label.locate_tree_location')} ${
                   alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           topRightComponent={renderAccuracyInfo}
         />
@@ -748,10 +781,12 @@ export default function MapMarking({
         secondaryBtnText={i18next.t('label.back')}
         onPressPrimaryBtn={() => {
           setShowAlert(false);
+          setShowSecondaryButton(true);
         }}
         onPressSecondaryBtn={() => {
           setShowAlert(false);
         }}
+        showSecondaryButton={showSecondaryButton}
       />
     </View>
   );

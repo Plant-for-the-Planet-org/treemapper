@@ -198,6 +198,7 @@ const PermissionDeniedAlert = ({
         setIsPermissionDeniedAlertShow(false);
         resetRouteStack();
       }}
+      showSecondaryButton={true}
     />
   );
 };
@@ -223,6 +224,7 @@ const PermissionBlockedAlert = ({
         setIsPermissionBlockedAlertShow(false);
         resetRouteStack();
       }}
+      showSecondaryButton={true}
     />
   );
 };
