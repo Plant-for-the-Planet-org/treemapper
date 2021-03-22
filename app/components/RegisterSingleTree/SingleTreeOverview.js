@@ -1,7 +1,9 @@
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
+  BackHandler,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -28,15 +30,32 @@ import {
   changeInventoryStatus,
   deleteInventory,
   getInventory,
+  updateInventory,
   updateLastScreen,
   updatePlantingDate,
   updateSingleTreeSpecie,
   updateSpecieDiameter,
   updateSpecieHeight,
   updateTreeTag,
-  updateInventory,
 } from '../../repositories/inventory';
+import dbLog from '../../repositories/logs';
 import { getUserInformation } from '../../repositories/user';
+import {
+  cmToInch,
+  footToMeter,
+  inchToCm,
+  LogTypes,
+  meterToFoot,
+  nonISUCountries,
+  diameterMinInch,
+  diameterMinCm,
+  diameterMaxInch,
+  diameterMaxCm,
+  heightMinFoot,
+  heightMinM,
+  heightMaxFoot,
+  heightMaxM,
+} from '../../utils/constants';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -47,13 +66,10 @@ import {
   SINGLE,
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
-import ManageSpecies from '../ManageSpecies';
 import AlertModal from '../Common/AlertModal';
-import dbLog from '../../repositories/logs';
-import { LogTypes } from '../../utils/constants';
-import { CommonActions } from '@react-navigation/native';
+import ManageSpecies from '../ManageSpecies';
 
-const SingleTreeOverview = ({ navigation }) => {
+const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -75,19 +91,41 @@ const SingleTreeOverview = ({ navigation }) => {
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [isSampleTree, setIsSampleTree] = useState(false);
+  const [sampleTreeIndex, setSampleTreeIndex] = useState();
+
+  const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
-    let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
-    updateLastScreen(data);
+    if (route?.params?.isSampleTree) {
+      setSampleTreeIndex(route.params.sampleTreeIndex);
+    }
+  }, [route.params]);
+
+  useEffect(() => {
+    if (!route?.params?.isSampleTree) {
+      let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
+      updateLastScreen(data);
+    }
     const unsubscribe = navigation.addListener('focus', () => {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
         setInventory(inventory);
         setStatus(inventory.status);
         setLocateTree(inventory.locateTree);
         setRegistrationType(inventory.treeType);
-        if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
+        if (
+          inventory.status === INCOMPLETE_SAMPLE_TREE ||
+          (route?.params?.isSampleTree && route?.params?.sampleTreeIndex)
+        ) {
+          const index = route?.params?.isSampleTree
+            ? route?.params?.sampleTreeIndex
+            : inventory.completedSampleTreesCount === inventory.sampleTreesCount
+              ? inventory.completedSampleTreesCount - 1
+              : inventory.completedSampleTreesCount;
+
+          setSampleTreeIndex(index);
           setIsSampleTree(true);
-          const currentSampleTree = inventory.sampleTrees[inventory.completedSampleTreesCount];
+          const currentSampleTree = inventory.sampleTrees[index];
           setSpecieText(currentSampleTree.specieName);
           setSpecieDiameter(Math.round(currentSampleTree.specieDiameter * 100) / 100);
           setSpecieEditDiameter(Math.round(currentSampleTree.specieDiameter * 100) / 100);
@@ -112,43 +150,71 @@ const SingleTreeOverview = ({ navigation }) => {
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
-  // useEffect(() => {
-  //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
-  //   return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
-  // }, []);
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onPressSave);
+    return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+  }, []);
 
   const onSubmitInputField = (action) => {
-    const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
+    const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
+
+    const diameterMinValue = nonISUCountries.includes(countryCode)
+      ? diameterMinInch
+      : diameterMinCm;
+    const diameterMaxValue = nonISUCountries.includes(countryCode)
+      ? diameterMaxInch
+      : diameterMaxCm;
+
+    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
+    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
     if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
-      Number(specieEditDiameter) !== 0 &&
+      Number(specieEditDiameter) >= diameterMinValue &&
+      Number(specieEditDiameter) <= diameterMaxValue &&
       dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
-      updateSpecieDiameter({
-        inventory_id: inventory.inventory_id,
-        speciesDiameter: Number(specieEditDiameter),
-      });
+      if (!isSampleTree || !route?.params?.isSampleTree) {
+        updateSpecieDiameter({
+          inventory_id: inventory.inventory_id,
+          speciesDiameter: nonISUCountries.includes(countryCode)
+            ? Number(specieEditDiameter) * inchToCm
+            : Number(specieEditDiameter),
+        });
+      } else {
+        updateSampleTree(action);
+      }
       setIsOpenModal(false);
     } else if (
       action === 'height' &&
       specieEditHeight !== '' &&
-      Number(specieEditHeight) !== 0 &&
+      Number(specieEditHeight) >= heightMinValue &&
+      Number(specieEditHeight) <= heightMaxValue &&
       dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
-      updateSpecieHeight({
-        inventory_id: inventory.inventory_id,
-        speciesHeight: Number(specieEditHeight),
-      });
+      if (!isSampleTree || !route?.params?.isSampleTree) {
+        updateSpecieHeight({
+          inventory_id: inventory.inventory_id,
+          speciesHeight: nonISUCountries.includes(countryCode)
+            ? Number(specieEditHeight) * footToMeter
+            : Number(specieEditHeight),
+        });
+      } else {
+        updateSampleTree(action);
+      }
       setIsOpenModal(false);
     } else if (action === 'tagId') {
       setTagId(editedTagId);
-      updateTreeTag({
-        inventoryId: inventory.inventory_id,
-        tagId: editedTagId,
-      });
+      if (!isSampleTree || !route?.params?.isSampleTree) {
+        updateTreeTag({
+          inventoryId: inventory.inventory_id,
+          tagId: editedTagId,
+        });
+      } else {
+        updateSampleTree(action);
+      }
       setIsOpenModal(false);
     } else {
       // TODO:i18n - if this is used, please add translations
@@ -158,13 +224,111 @@ const SingleTreeOverview = ({ navigation }) => {
     setEditEnable('');
   };
 
+  const updateSampleTree = (toUpdate, value = null) => {
+    let updatedSampleTrees = inventory.sampleTrees;
+    let sampleTree = updatedSampleTrees[sampleTreeIndex];
+    let inventoryData = {};
+    switch (toUpdate) {
+      case 'diameter': {
+        const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
+          ? Math.round(Number(specieEditDiameter) * inchToCm * 100) / 100
+          : Math.round(Number(specieEditDiameter) * 100) / 100;
+        sampleTree = {
+          ...sampleTree,
+          specieDiameter: refactoredSpecieDiameter,
+        };
+        break;
+      }
+      case 'height': {
+        const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
+          ? Math.round(Number(specieEditHeight) * footToMeter * 100) / 100
+          : Math.round(Number(specieEditHeight) * 100) / 100;
+        sampleTree = {
+          ...sampleTree,
+          specieHeight: refactoredSpecieHeight,
+        };
+        break;
+      }
+      case 'tagId': {
+        sampleTree = {
+          ...sampleTree,
+          tagId: editedTagId,
+        };
+        break;
+      }
+      case 'plantationDate': {
+        sampleTree = {
+          ...sampleTree,
+          plantationDate: value,
+        };
+        break;
+      }
+      case 'specie': {
+        sampleTree = {
+          ...sampleTree,
+          specieId: value.guid,
+          specieName: value.scientificName,
+        };
+        break;
+      }
+      case 'changeStatusToPending': {
+        sampleTree = {
+          ...sampleTree,
+          status: PENDING_DATA_UPLOAD,
+          specieName: value.scientificName,
+        };
+        inventoryData = {
+          ...inventoryData,
+          completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
+        };
+        break;
+      }
+      default:
+        break;
+    }
+    updatedSampleTrees[sampleTreeIndex] = sampleTree;
+
+    inventoryData = {
+      ...inventoryData,
+      sampleTrees: [...updatedSampleTrees],
+    };
+
+    updateInventory({
+      inventory_id: inventory.inventory_id,
+      inventoryData,
+    })
+      .then(() => {
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully modified ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+        });
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          setInventory(inventoryData);
+        });
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to modify ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+        });
+        console.error(
+          `Failed to modify ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
+      });
+  };
+
   const Country = () => {
     getUserInformation().then((data) => {
       setCountryCode(data.country);
     });
   };
-
-  const Countries = ['US', 'LR', 'MM'];
 
   const renderInputModal = () => {
     return (
@@ -180,16 +344,16 @@ const SingleTreeOverview = ({ navigation }) => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                    ? i18next.t('label.tree_review_height')
-                    : i18next.t('label.tree_review_tree_tag_header')}
+                      ? i18next.t('label.tree_review_height')
+                      : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                      ? specieEditHeight.toString()
-                      : editedTagId
+                        ? specieEditHeight.toString()
+                        : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -231,7 +395,7 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const addSpecieNameToInventory = (specie) => {
-    if (!isSampleTree) {
+    if (!isSampleTree && !route?.params?.isSampleTree) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
         species: [
@@ -243,86 +407,19 @@ const SingleTreeOverview = ({ navigation }) => {
         ],
       });
     } else {
-      let updatedSampleTrees = inventory.sampleTrees;
-      let sampleTree = updatedSampleTrees[inventory.completedSampleTreesCount];
-      sampleTree = {
-        ...sampleTree,
-        specieId: specie.guid,
-        specieName: specie.scientificName,
-      };
-      updateInventory({
-        inventory_id: inventory.inventory_id,
-        inventoryData: {
-          sampleTrees: [...updatedSampleTrees],
-        },
-      })
-        .then(() => {
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully modified specie with id:${specie.guid} for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          });
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to modify specie with id:${specie.guid} for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          });
-          console.error(
-            `Failed to modify specie with id:${specie.guid} for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-            err,
-          );
-        });
+      updateSampleTree('specie', specie);
     }
     setSpecieText(specie.scientificName);
   };
 
   const onChangeDate = (selectedDate) => {
-    if (!isSampleTree) {
+    if (!isSampleTree && !route?.params?.isSampleTree) {
       updatePlantingDate({
         inventory_id: inventoryState.inventoryID,
         plantation_date: selectedDate,
       });
     } else {
-      let updatedSampleTrees = inventory.sampleTrees;
-      let sampleTree = updatedSampleTrees[inventory.completedSampleTreesCount];
-      sampleTree = {
-        ...sampleTree,
-        plantationDate: selectedDate,
-      };
-      updateInventory({
-        inventory_id: inventory.inventory_id,
-        inventoryData: {
-          sampleTrees: [...updatedSampleTrees],
-        },
-      })
-        .then(() => {
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully modified plantation date for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          });
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to modify plantation date for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          });
-          console.error(
-            `Failed to modify plantation date for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-            err,
-          );
-        });
+      updateSampleTree('plantationDate', selectedDate);
     }
 
     setIsShowDate(false);
@@ -361,8 +458,12 @@ const SingleTreeOverview = ({ navigation }) => {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     if (inventory.treeType === SINGLE) {
       filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
-    } else if (inventory.treeType === MULTI && inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      filePath = inventory.sampleTrees[inventory.completedSampleTreesCount].imageUrl;
+    } else if (
+      inventory.treeType === MULTI &&
+      inventory.status === INCOMPLETE_SAMPLE_TREE &&
+      sampleTreeIndex
+    ) {
+      filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
     }
 
     imageSource = filePath
@@ -428,9 +529,9 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  Countries.includes(countryCode)
-                  ? `${Math.round(specieDiameter * 100) / 100}inches`
-                  : `${Math.round(specieDiameter * 100) / 100}cm`
+                nonISUCountries.includes(countryCode)
+                  ? ` ${Math.round(specieDiameter * cmToInch * 100) / 100} inch`
+                  : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -448,9 +549,9 @@ const SingleTreeOverview = ({ navigation }) => {
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieHeight
-                ? Countries.includes(countryCode)
-                  ? `${Math.round(specieHeight * 100) / 100}foot`
-                  : `${Math.round(specieHeight * 100) / 100}m`
+                ? nonISUCountries.includes(countryCode)
+                  ? ` ${Math.round(specieHeight * meterToFoot * 100) / 100} foot`
+                  : ` ${Math.round(specieHeight * 100) / 100} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -493,7 +594,9 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status === 'complete' || inventory.status === INCOMPLETE_SAMPLE_TREE) {
+    if (route?.params?.isSampleTree) {
+      navigation.goBack();
+    } else if (inventory.status === 'complete' || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       navigation.navigate('TreeInventory');
     } else {
       if (specieText) {
@@ -509,36 +612,8 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressContinueToSpecies = () => {
-    let sampleTrees = [...inventory.sampleTrees];
-    sampleTrees[inventory.completedSampleTreesCount].status = PENDING_DATA_UPLOAD;
-    let inventoryData = {
-      sampleTrees,
-      completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
-    };
-    updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
-      .then(() => {
-        dbLog.info({
-          logType: LogTypes.INVENTORY,
-          message: `Successfully modified status to PENDING_DATA_UPLOAD for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        });
-        navigation.navigate('TotalTreesSpecies');
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.INVENTORY,
-          message: `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        });
-        console.error(
-          `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-          err,
-        );
-      });
+    updateSampleTree('changeStatusToPending');
+    navigation.navigate('TotalTreesSpecies');
   };
 
   const onPressNextTree = () => {
@@ -551,36 +626,8 @@ const SingleTreeOverview = ({ navigation }) => {
         navigation.navigate('RegisterSingleTree');
       });
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      let sampleTrees = [...inventory.sampleTrees];
-      sampleTrees[inventory.completedSampleTreesCount].status = PENDING_DATA_UPLOAD;
-      let inventoryData = {
-        sampleTrees,
-        completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
-      };
-      updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
-        .then(() => {
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully modified status to PENDING_DATA_UPLOAD for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-          });
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-            logStack: JSON.stringify(err),
-          });
-          console.error(
-            `Failed to modify status to PENDING_DATA_UPLOAD for sample tree #${
-              inventory.completedSampleTreesCount + 1
-            } having inventory_id: ${inventory.inventory_id}`,
-            err,
-          );
-        });
+      updateSampleTree('changeStatusToPending');
+
       let data = {
         inventory_id: inventory.inventory_id,
         lastScreen: 'RecordSampleTrees',
@@ -632,11 +679,11 @@ const SingleTreeOverview = ({ navigation }) => {
               headingText={
                 locateTree === OFF_SITE
                   ? i18next.t('label.tree_review_details')
-                  : isSampleTree
-                  ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: inventory.completedSampleTreesCount + 1,
+                  : isSampleTree && `${sampleTreeIndex}`
+                    ? i18next.t('label.sample_tree_review_tree_number', {
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
                     })
-                  : i18next.t('label.tree_review_header')
+                    : i18next.t('label.tree_review_header')
               }
             />
             {status !== INCOMPLETE_SAMPLE_TREE && (
@@ -683,16 +730,17 @@ const SingleTreeOverview = ({ navigation }) => {
               btnText={i18next.t('label.tree_review_continue_to_species')}
             />
           </View>
-        ) : status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE ? (
-          <View style={styles.bottomBtnsContainer}>
-            <PrimaryButton
-              onPress={onPressNextTree}
-              btnText={i18next.t('label.tree_review_next_btn')}
-            />
-          </View>
-        ) : (
-          []
-        )}
+        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
+          !route?.params?.isSampleTree ? (
+            <View style={styles.bottomBtnsContainer}>
+              <PrimaryButton
+                onPress={onPressNextTree}
+                btnText={i18next.t('label.tree_review_next_btn')}
+              />
+            </View>
+          ) : (
+            []
+          )}
       </View>
       <AlertModal
         visible={showDeleteAlert}

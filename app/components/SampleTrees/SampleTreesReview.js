@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Platform, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Platform, Image, TouchableOpacity } from 'react-native';
 import Label from '../Common/Label';
 import i18next from 'i18next';
 import { Typography } from '_styles';
@@ -8,39 +8,46 @@ import { Colors } from '_styles';
 import { single_tree_png } from '../../assets';
 import RNFS from 'react-native-fs';
 
-const SampleTreeListItem = ({ sampleTree, index }) => {
+const SampleTreeListItem = ({ sampleTree, index, navigation }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
     : single_tree_png;
 
   return (
-    <View style={styles.specieListItemContainer}>
-      <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
-      <View style={styles.specieListTextContainer}>
-        <View style={styles.specieHeadingContainer}>
-          <Text style={styles.specieListHeading}>{sampleTree.specieName}</Text>
-          <Text style={styles.specieListHeading}>
-            {sampleTree.tagId ? ' • ' + sampleTree.tagId : ''}
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('SingleTreeOverview', { isSampleTree: true, sampleTreeIndex: index })
+      }>
+      <View style={styles.specieListItemContainer}>
+        <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
+        <View style={styles.specieListTextContainer}>
+          <View style={styles.specieHeadingContainer}>
+            <Text style={styles.specieListHeading}>{sampleTree.specieName}</Text>
+            <Text style={styles.specieListHeading}>
+              {sampleTree.tagId ? ' • ' + sampleTree.tagId : ''}
+            </Text>
+          </View>
+          <Text style={styles.subHeadingText}>
+            #{index + 1} • {sampleTree.specieHeight}cm • {sampleTree.specieDiameter}cm
           </Text>
         </View>
-        <Text style={styles.subHeadingText}>
-          #{index + 1} • {sampleTree.specieHeight}cm • {sampleTree.specieDiameter}cm
-        </Text>
+        <FAIcon name="angle-right" size={30} color={Colors.GRAY_DARK} />
       </View>
-      <FAIcon name="angle-right" size={30} color={Colors.GRAY_DARK} />
-    </View>
+    </TouchableOpacity>
   );
 };
 
-export default function SampleTreesReview({ sampleTrees }) {
+export default function SampleTreesReview({ sampleTrees, navigation }) {
   return (
     <View>
       <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
       <FlatList
         data={sampleTrees}
         renderItem={({ item: sampleTree, index }) => {
-          return <SampleTreeListItem sampleTree={sampleTree} index={index} />;
+          return (
+            <SampleTreeListItem sampleTree={sampleTree} index={index} navigation={navigation} />
+          );
         }}
         keyExtractor={(item, index) => `location-${index}`}
       />

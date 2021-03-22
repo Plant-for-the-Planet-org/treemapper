@@ -30,7 +30,20 @@ import ManageSpecies from '../ManageSpecies';
 import { updateSingleTreeSpecie } from '../../repositories/inventory';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import dbLog from '../../repositories/logs';
-import { LogTypes } from '../../utils/constants';
+import {
+  footToMeter,
+  inchToCm,
+  LogTypes,
+  nonISUCountries,
+  diameterMinInch,
+  diameterMinCm,
+  diameterMaxInch,
+  diameterMaxCm,
+  heightMinFoot,
+  heightMinM,
+  heightMaxFoot,
+  heightMaxM,
+} from '../../utils/constants';
 
 const SelectSpecies = () => {
   const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
@@ -348,15 +361,31 @@ const SelectSpecies = () => {
     );
   };
 
-  const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
+  const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
 
   const onPressMeasurementBtn = () => {
     let isDiameterValid = false;
     let isHeightValid = false;
     let isTagIdValid = false;
+
+    const diameterMinValue = nonISUCountries.includes(countryCode)
+      ? diameterMinInch
+      : diameterMinCm;
+    const diameterMaxValue = nonISUCountries.includes(countryCode)
+      ? diameterMaxInch
+      : diameterMaxCm;
+
+    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
+    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
+
     // sets diameter error if diameter less than 0.1 or is invalid input
-    if (!diameter || Number(diameter) < 0.1) {
-      setDiameterError(i18next.t('label.select_species_diameter_more_than_error'));
+    if (!diameter || Number(diameter) < diameterMinValue || Number(diameter) > diameterMaxValue) {
+      setDiameterError(
+        i18next.t('label.select_species_diameter_more_than_error', {
+          minValue: diameterMinValue,
+          maxValue: diameterMaxValue,
+        }),
+      );
     } else if (!dimensionRegex.test(diameter)) {
       setDiameterError(i18next.t('label.select_species_diameter_invalid'));
     } else {
@@ -365,8 +394,13 @@ const SelectSpecies = () => {
     }
 
     // sets height error if height less than 0.1 or is invalid input
-    if (!height || Number(height) < 0.1) {
-      setHeightError(i18next.t('label.select_species_height_more_than_error'));
+    if (!height || Number(height) < heightMinValue || Number(height) > heightMaxValue) {
+      setHeightError(
+        i18next.t('label.select_species_height_more_than_error', {
+          minValue: heightMinValue,
+          maxValue: heightMaxValue,
+        }),
+      );
     } else if (!dimensionRegex.test(height)) {
       setHeightError(i18next.t('label.select_species_height_invalid'));
     } else {
@@ -391,8 +425,12 @@ const SelectSpecies = () => {
         updateSpecieAndMeasurements({
           inventoryId: inventory.inventory_id,
           species: [singleTreeSpecie],
-          diameter: Math.round(diameter * 100) / 100,
-          height: Math.round(height * 100) / 100,
+          diameter: nonISUCountries.includes(countryCode)
+            ? Math.round(Number(diameter) * inchToCm * 100) / 100
+            : Math.round(Number(diameter) * 100) / 100,
+          height: nonISUCountries.includes(countryCode)
+            ? Math.round(Number(height) * footToMeter * 100) / 100
+            : Math.round(Number(height) * 100) / 100,
           tagId,
         })
           .then(() => {

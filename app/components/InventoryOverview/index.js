@@ -36,6 +36,7 @@ import AlertModal from '../Common/AlertModal';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
+import { CommonActions } from '@react-navigation/routers';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -50,27 +51,41 @@ const InventoryOverview = ({ navigation }) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
       let data = { inventory_id: state.inventoryID, lastScreen: 'InventoryOverview' };
       updateLastScreen(data);
     });
+    const unsubscribeBlur = navigation.addListener('focus', () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+    });
     return () => {
-      unsubscribe();
+      unsubscribeFocus();
+      unsubscribeBlur();
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
     };
   }, []);
 
   const hardBackHandler = () => {
-    navigation.navigate('TreeInventory');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
     return true;
   };
 
   const initialState = () => {
-    getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      setInventory(inventory);
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      console.log('inventoryData', inventoryData);
+      setInventory(inventoryData);
     });
   };
 
@@ -438,7 +453,7 @@ const InventoryOverview = ({ navigation }) => {
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
               {renderPolygon(inventory.polygons, locationType)}
               {inventory?.sampleTrees.length > 0 && (
-                <SampleTreesReview sampleTrees={inventory.sampleTrees} />
+                <SampleTreesReview sampleTrees={inventory.sampleTrees} navigation={navigation} />
               )}
               <LargeButton
                 onPress={onPressExportJSON}

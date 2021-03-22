@@ -116,8 +116,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-        ? renderLoadingInventoryList()
-        : renderEmptyInventoryList()}
+          ? renderLoadingInventoryList()
+          : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
