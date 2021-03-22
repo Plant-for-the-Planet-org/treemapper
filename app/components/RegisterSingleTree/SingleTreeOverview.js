@@ -120,26 +120,26 @@ const SingleTreeOverview = () => {
           const index = route?.params?.isSampleTree
             ? route?.params?.sampleTreeIndex
             : inventory.completedSampleTreesCount === inventory.sampleTreesCount
-              ? inventory.completedSampleTreesCount - 1
-              : inventory.completedSampleTreesCount;
+            ? inventory.completedSampleTreesCount - 1
+            : inventory.completedSampleTreesCount;
 
           setSampleTreeIndex(index);
           setIsSampleTree(true);
           const currentSampleTree = inventory.sampleTrees[index];
           setSpecieText(currentSampleTree.specieName);
-          setSpecieDiameter(Math.round(currentSampleTree.specieDiameter * 100) / 100);
-          setSpecieEditDiameter(Math.round(currentSampleTree.specieDiameter * 100) / 100);
-          setSpecieHeight(Math.round(currentSampleTree.specieHeight * 100) / 100);
-          setSpecieEditHeight(Math.round(currentSampleTree.specieHeight * 100) / 100);
+          setSpecieDiameter(currentSampleTree.specieDiameter);
+          setSpecieEditDiameter(currentSampleTree.specieDiameter);
+          setSpecieHeight(currentSampleTree.specieHeight);
+          setSpecieEditHeight(currentSampleTree.specieHeight);
           setPlantationDate(currentSampleTree.plantationDate);
           setTagId(currentSampleTree.tagId);
           setEditedTagId(currentSampleTree.tagId);
         } else {
           setSpecieText(inventory.species[0].aliases);
-          setSpecieDiameter(Math.round(inventory.specieDiameter * 100) / 100);
-          setSpecieEditDiameter(Math.round(inventory.specieDiameter * 100) / 100);
-          setSpecieHeight(Math.round(inventory.specieHeight * 100) / 100);
-          setSpecieEditHeight(Math.round(inventory.specieHeight * 100) / 100);
+          setSpecieDiameter(inventory.specieDiameter);
+          setSpecieEditDiameter(inventory.specieDiameter);
+          setSpecieHeight(inventory.specieHeight);
+          setSpecieEditHeight(inventory.specieHeight);
           setPlantationDate(inventory.plantation_date);
           setTagId(inventory.tagId);
           setEditedTagId(inventory.tagId);
@@ -231,8 +231,8 @@ const SingleTreeOverview = () => {
     switch (toUpdate) {
       case 'diameter': {
         const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
-          ? Math.round(Number(specieEditDiameter) * inchToCm * 100) / 100
-          : Math.round(Number(specieEditDiameter) * 100) / 100;
+          ? Math.round(Number(specieEditDiameter) * inchToCm * 1000) / 1000
+          : Math.round(Number(specieEditDiameter) * 1000) / 1000;
         sampleTree = {
           ...sampleTree,
           specieDiameter: refactoredSpecieDiameter,
@@ -241,8 +241,8 @@ const SingleTreeOverview = () => {
       }
       case 'height': {
         const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
-          ? Math.round(Number(specieEditHeight) * footToMeter * 100) / 100
-          : Math.round(Number(specieEditHeight) * 100) / 100;
+          ? Math.round(Number(specieEditHeight) * footToMeter * 1000) / 1000
+          : Math.round(Number(specieEditHeight) * 1000) / 1000;
         sampleTree = {
           ...sampleTree,
           specieHeight: refactoredSpecieHeight,
@@ -266,8 +266,8 @@ const SingleTreeOverview = () => {
       case 'specie': {
         sampleTree = {
           ...sampleTree,
-          specieId: value.guid,
-          specieName: value.scientificName,
+          specieId: value?.guid,
+          specieName: value?.scientificName,
         };
         break;
       }
@@ -275,7 +275,6 @@ const SingleTreeOverview = () => {
         sampleTree = {
           ...sampleTree,
           status: PENDING_DATA_UPLOAD,
-          specieName: value.scientificName,
         };
         inventoryData = {
           ...inventoryData,
@@ -305,6 +304,9 @@ const SingleTreeOverview = () => {
           } having inventory_id: ${inventory.inventory_id}`,
         });
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          console.log('\n\n\n');
+          console.log(inventoryData);
+          console.log('\n\n\n');
           setInventory(inventoryData);
         });
       })
@@ -344,16 +346,16 @@ const SingleTreeOverview = () => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -529,9 +531,9 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieDiameter * cmToInch * 100) / 100} inch`
-                  : ` ${Math.round(specieDiameter * 100) / 100} cm`
+                  nonISUCountries.includes(countryCode)
+                  ? ` ${specieDiameter * cmToInch} inch`
+                  : ` ${specieDiameter} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -550,8 +552,8 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieHeight
                 ? nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieHeight * meterToFoot * 100) / 100} foot`
-                  : ` ${Math.round(specieHeight * 100) / 100} m`
+                  ? ` ${specieHeight * meterToFoot} foot`
+                  : ` ${specieHeight} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -680,10 +682,10 @@ const SingleTreeOverview = () => {
                 locateTree === OFF_SITE
                   ? i18next.t('label.tree_review_details')
                   : isSampleTree && `${sampleTreeIndex}`
-                    ? i18next.t('label.sample_tree_review_tree_number', {
+                  ? i18next.t('label.sample_tree_review_tree_number', {
                       ongoingSampleTreeNumber: sampleTreeIndex + 1,
                     })
-                    : i18next.t('label.tree_review_header')
+                  : i18next.t('label.tree_review_header')
               }
             />
             {status !== INCOMPLETE_SAMPLE_TREE && (
@@ -732,15 +734,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                onPress={onPressNextTree}
-                btnText={i18next.t('label.tree_review_next_btn')}
-              />
-            </View>
-          ) : (
-            []
-          )}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showDeleteAlert}

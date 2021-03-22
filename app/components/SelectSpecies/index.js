@@ -426,11 +426,11 @@ const SelectSpecies = () => {
           inventoryId: inventory.inventory_id,
           species: [singleTreeSpecie],
           diameter: nonISUCountries.includes(countryCode)
-            ? Math.round(Number(diameter) * inchToCm * 100) / 100
-            : Math.round(Number(diameter) * 100) / 100,
+            ? Math.round(Number(diameter) * inchToCm * 1000) / 1000
+            : Math.round(Number(diameter) * 1000) / 1000,
           height: nonISUCountries.includes(countryCode)
-            ? Math.round(Number(height) * footToMeter * 100) / 100
-            : Math.round(Number(height) * 100) / 100,
+            ? Math.round(Number(height) * footToMeter * 1000) / 1000
+            : Math.round(Number(height) * 1000) / 1000,
           tagId,
         })
           .then(() => {

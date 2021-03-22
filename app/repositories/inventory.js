@@ -874,6 +874,7 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
             ...inventoryData,
           };
           realm.create('Inventory', newInventory, 'modified');
+          console.log('inventory', newInventory);
           resolve();
         });
       })

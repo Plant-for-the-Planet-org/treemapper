@@ -1,18 +1,32 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, Platform, Image, TouchableOpacity } from 'react-native';
-import Label from '../Common/Label';
 import i18next from 'i18next';
-import { Typography } from '_styles';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
-import { Colors } from '_styles';
-import { single_tree_png } from '../../assets';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RNFS from 'react-native-fs';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
+import { Colors, Typography } from '_styles';
+import { single_tree_png } from '../../assets';
+import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
+import Label from '../Common/Label';
+import { getUserInformation } from '../../repositories/user';
 
-const SampleTreeListItem = ({ sampleTree, index, navigation }) => {
+const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
     : single_tree_png;
+
+  const specieHeight = nonISUCountries.includes(countryCode)
+    ? sampleTree.specieHeight * meterToFoot
+    : sampleTree.specieHeight;
+  const specieDiameter = nonISUCountries.includes(countryCode)
+    ? sampleTree.specieDiameter * cmToInch
+    : sampleTree.specieDiameter;
+
+  console.log('specieHeight', specieHeight);
+  console.log('specieDiameter', specieDiameter);
+
+  const heightUnit = nonISUCountries.includes(countryCode) ? 'foot' : 'm';
+  const diameterUnit = nonISUCountries.includes(countryCode) ? 'inch' : 'cm';
 
   return (
     <TouchableOpacity
@@ -29,7 +43,7 @@ const SampleTreeListItem = ({ sampleTree, index, navigation }) => {
             </Text>
           </View>
           <Text style={styles.subHeadingText}>
-            #{index + 1} • {sampleTree.specieHeight}cm • {sampleTree.specieDiameter}cm
+            #{index + 1} • {specieHeight} {heightUnit} • {specieDiameter} {diameterUnit}
           </Text>
         </View>
         <FAIcon name="angle-right" size={30} color={Colors.GRAY_DARK} />
@@ -39,6 +53,13 @@ const SampleTreeListItem = ({ sampleTree, index, navigation }) => {
 };
 
 export default function SampleTreesReview({ sampleTrees, navigation }) {
+  const [countryCode, setCountryCode] = useState('');
+
+  useEffect(() => {
+    getUserInformation().then((data) => {
+      setCountryCode(data.country);
+    });
+  }, []);
   return (
     <View>
       <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
@@ -46,7 +67,12 @@ export default function SampleTreesReview({ sampleTrees, navigation }) {
         data={sampleTrees}
         renderItem={({ item: sampleTree, index }) => {
           return (
-            <SampleTreeListItem sampleTree={sampleTree} index={index} navigation={navigation} />
+            <SampleTreeListItem
+              sampleTree={sampleTree}
+              index={index}
+              navigation={navigation}
+              countryCode={countryCode}
+            />
           );
         }}
         keyExtractor={(item, index) => `location-${index}`}

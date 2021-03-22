@@ -5,11 +5,11 @@ const schemaVersion = 4;
 const Coordinates = {
   name: 'Coordinates',
   properties: {
-    latitude: 'float',
-    longitude: 'float',
+    latitude: 'double',
+    longitude: 'double',
     imageUrl: 'string?',
-    currentloclat: 'float',
-    currentloclong: 'float',
+    currentloclat: 'double',
+    currentloclong: 'double',
     isImageUploaded: 'bool?',
   },
 };
@@ -46,15 +46,15 @@ const SampleTrees = {
   name: 'SampleTrees',
   properties: {
     // stores the latitude of the tree
-    latitude: 'float',
+    latitude: 'double',
     // stores the longitude of the tree
-    longitude: 'float',
+    longitude: 'double',
     // stores the latitude of the device when location was marked
-    deviceLatitude: 'float',
+    deviceLatitude: 'double',
     // stores the longitude of the device when location was marked
-    deviceLongitude: 'float',
+    deviceLongitude: 'double',
     // stores accuracy of location when the location was marked
-    locationAccuracy: 'float?',
+    locationAccuracy: 'double?',
     // URL of the image if picture was clicked
     imageUrl: 'string?',
     // specie id for this sample tree
@@ -62,9 +62,9 @@ const SampleTrees = {
     // specie name of specie id for this sample tree
     specieName: 'string?',
     // diameter of selected specie
-    specieDiameter: 'float?',
+    specieDiameter: 'double?',
     // height of selected specie
-    specieHeight: 'float?',
+    specieHeight: 'double?',
     // tag id of the tree if the tree has one
     tagId: 'string?',
     // current status of the tree. Refer to inventoryConstants for different status
@@ -92,8 +92,8 @@ const Inventory = {
     lastScreen: 'string?',
     species: 'Species[]',
     polygons: 'Polygons[]',
-    specieDiameter: 'float?',
-    specieHeight: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    specieDiameter: 'double?',
+    specieHeight: 'double?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
     tagId: 'string?',
     registrationDate: 'date?',
     // stores the count of sample trees which are to be recorded
