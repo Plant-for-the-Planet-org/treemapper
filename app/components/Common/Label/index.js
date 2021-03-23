@@ -4,21 +4,19 @@ import { Colors, Typography } from '_styles';
 
 const Label = ({ leftText, rightText, onPressRightText, leftTextStyle, rightTextStyle, style }) => {
   return (
-    <View>
-      <View style={[styles.container, style]}>
-        <View>
-          <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
-        </View>
-        <TouchableOpacity onPress={onPressRightText}>
-          <Text
-            style={[styles.rightText, rightTextStyle]}
-            accessibilityLabel="Label Button"
-            accessible={true}
-            testID="label_btn">
-            {rightText}
-          </Text>
-        </TouchableOpacity>
+    <View style={[styles.container, style]}>
+      <View>
+        <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
       </View>
+      <TouchableOpacity onPress={onPressRightText}>
+        <Text
+          style={[styles.rightText, rightTextStyle]}
+          accessibilityLabel="Label Button"
+          accessible={true}
+          testID="label_btn">
+          {rightText}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

@@ -79,15 +79,14 @@ const TreeInventory = ({ navigation }) => {
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        navigation.navigate('MainScreen');
+        handleBackPress();
       })
       .catch((err) => {
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
-          navigation.navigate('MainScreen');
         } else if (err === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
-        } else if (err.error !== 'a0.session.user_cancelled') {
+        } else if (err?.error !== 'a0.session.user_cancelled') {
           // TODO:i18n - if this is used, please add translations
           Alert.alert(
             'Verify your Email',
@@ -95,7 +94,7 @@ const TreeInventory = ({ navigation }) => {
             [{ text: 'OK' }],
             { cancelable: false },
           );
-          navigation.navigate('MainScreen');
+          handleBackPress();
         }
       });
   };

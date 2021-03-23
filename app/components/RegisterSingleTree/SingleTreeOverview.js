@@ -102,6 +102,8 @@ const SingleTreeOverview = () => {
     }
   }, [route.params]);
 
+  // console.log('route?.params', route?.params);
+
   useEffect(() => {
     if (!route?.params?.isSampleTree) {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
@@ -113,15 +115,18 @@ const SingleTreeOverview = () => {
         setStatus(inventory.status);
         setLocateTree(inventory.locateTree);
         setRegistrationType(inventory.treeType);
+        console.log('route?.params?.isSampleTree', route?.params);
         if (
           inventory.status === INCOMPLETE_SAMPLE_TREE ||
-          (route?.params?.isSampleTree && route?.params?.sampleTreeIndex)
+          (route?.params?.isSampleTree && `${route?.params?.sampleTreeIndex}`)
         ) {
           const index = route?.params?.isSampleTree
             ? route?.params?.sampleTreeIndex
             : inventory.completedSampleTreesCount === inventory.sampleTreesCount
-            ? inventory.completedSampleTreesCount - 1
-            : inventory.completedSampleTreesCount;
+              ? inventory.completedSampleTreesCount - 1
+              : inventory.completedSampleTreesCount;
+
+          console.log('index', index);
 
           setSampleTreeIndex(index);
           setIsSampleTree(true);
@@ -167,6 +172,7 @@ const SingleTreeOverview = () => {
 
     const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
     const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
+
     if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
@@ -175,7 +181,7 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
-      if (!isSampleTree || !route?.params?.isSampleTree) {
+      if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieDiameter({
           inventory_id: inventory.inventory_id,
           speciesDiameter: nonISUCountries.includes(countryCode)
@@ -194,7 +200,7 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
-      if (!isSampleTree || !route?.params?.isSampleTree) {
+      if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieHeight({
           inventory_id: inventory.inventory_id,
           speciesHeight: nonISUCountries.includes(countryCode)
@@ -207,7 +213,7 @@ const SingleTreeOverview = () => {
       setIsOpenModal(false);
     } else if (action === 'tagId') {
       setTagId(editedTagId);
-      if (!isSampleTree || !route?.params?.isSampleTree) {
+      if (!isSampleTree && !route?.params?.isSampleTree) {
         updateTreeTag({
           inventoryId: inventory.inventory_id,
           tagId: editedTagId,
@@ -346,16 +352,16 @@ const SingleTreeOverview = () => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                    ? i18next.t('label.tree_review_height')
-                    : i18next.t('label.tree_review_tree_tag_header')}
+                      ? i18next.t('label.tree_review_height')
+                      : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                      ? specieEditHeight.toString()
-                      : editedTagId
+                        ? specieEditHeight.toString()
+                        : editedTagId
                   }
                   style={styles.value}
                   autoFocus
@@ -392,6 +398,13 @@ const SingleTreeOverview = () => {
       setIsShowManageSpecies(true);
     } else {
       setEditEnable(action);
+      if (action === 'diameter') {
+        setSpecieEditDiameter(specieDiameter);
+      } else if (action === 'height') {
+        setSpecieEditHeight(specieHeight);
+      } else if (action === 'tagId') {
+        setEditedTagId(tagId);
+      }
       setIsOpenModal(true);
     }
   };
@@ -531,7 +544,7 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  nonISUCountries.includes(countryCode)
+                nonISUCountries.includes(countryCode)
                   ? ` ${specieDiameter * cmToInch} inch`
                   : ` ${specieDiameter} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
@@ -659,6 +672,8 @@ const SingleTreeOverview = () => {
       });
   };
 
+  console.log('locate', locateTree);
+
   return isShowManageSpecies ? (
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
@@ -674,21 +689,26 @@ const SingleTreeOverview = () => {
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingVertical: 0,
+              marginBottom: 24,
+            }}>
             <Header
               closeIcon
               onBackPress={onPressSave}
               headingText={
-                locateTree === OFF_SITE
-                  ? i18next.t('label.tree_review_details')
-                  : isSampleTree && `${sampleTreeIndex}`
+                isSampleTree && `${sampleTreeIndex}`
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                    })
-                  : i18next.t('label.tree_review_header')
+                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                  })
+                  : status === 'complete'
+                    ? i18next.t('label.tree_review_details')
+                    : i18next.t('label.tree_review_header')
               }
             />
-            {status !== INCOMPLETE_SAMPLE_TREE && (
+            {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && (
               <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
                 <Text
                   style={{
@@ -702,27 +722,17 @@ const SingleTreeOverview = () => {
             )}
           </View>
 
-          <View style={styles.scrollViewContainer}>
-            {inventory && locateTree !== ON_SITE && (
-              <>
-                {imageSource && <Image source={imageSource} style={styles.bgImage} />}
-                <LinearGradient
-                  colors={[
-                    'rgba(255,255,255,0)',
-                    imageSource ? Colors.GRAY_LIGHTEST : 'rgba(255,255,255,0)',
-                  ]}
-                  style={styles.detailContainer}>
-                  {renderDetails(inventory)}
-                </LinearGradient>
-              </>
-            )}
-            {locateTree === ON_SITE && (
-              <>
-                {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
-                {renderDetails(inventory)}
-              </>
-            )}
-          </View>
+          {inventory && (
+            <View style={styles.scrollViewContainer}>
+              {imageSource && (
+                <Image
+                  source={imageSource}
+                  style={locateTree === ON_SITE ? styles.imgSpecie : styles.bgImage}
+                />
+              )}
+              {renderDetails(inventory)}
+            </View>
+          )}
         </ScrollView>
 
         {inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
@@ -734,15 +744,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-          <View style={styles.bottomBtnsContainer}>
-            <PrimaryButton
-              onPress={onPressNextTree}
-              btnText={i18next.t('label.tree_review_next_btn')}
-            />
-          </View>
-        ) : (
-          []
-        )}
+            <View style={styles.bottomBtnsContainer}>
+              <PrimaryButton
+                onPress={onPressNextTree}
+                btnText={i18next.t('label.tree_review_next_btn')}
+              />
+            </View>
+          ) : (
+            []
+          )}
       </View>
       <AlertModal
         visible={showDeleteAlert}
@@ -857,11 +867,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   imgSpecie: {
-    // marginTop: 0,
     width: '100%',
     height: Dimensions.get('window').height * 0.3,
     borderRadius: 13,
-    marginTop: 24,
   },
   detailHead: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

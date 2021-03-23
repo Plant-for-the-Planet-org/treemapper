@@ -36,12 +36,9 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
       <View style={styles.specieListItemContainer}>
         <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
         <View style={styles.specieListTextContainer}>
-          <View style={styles.specieHeadingContainer}>
-            <Text style={styles.specieListHeading}>{sampleTree.specieName}</Text>
-            <Text style={styles.specieListHeading}>
-              {sampleTree.tagId ? ' • ' + sampleTree.tagId : ''}
-            </Text>
-          </View>
+          <Text style={styles.specieListHeading}>
+            {`${sampleTree.specieName}${sampleTree.tagId ? ' • ' + sampleTree.tagId : ''}`}
+          </Text>
           <Text style={styles.subHeadingText}>
             #{index + 1} • {specieHeight} {heightUnit} • {specieDiameter} {diameterUnit}
           </Text>
@@ -61,7 +58,7 @@ export default function SampleTreesReview({ sampleTrees, navigation }) {
     });
   }, []);
   return (
-    <View>
+    <View style={{ marginBottom: 24 }}>
       <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
       <FlatList
         data={sampleTrees}
@@ -91,17 +88,14 @@ const styles = StyleSheet.create({
   },
   specieListTextContainer: {
     justifyContent: 'center',
-    marginRight: 'auto',
-    marginLeft: 16,
-  },
-  specieHeadingContainer: {
-    flexDirection: 'row',
-    marginBottom: 6,
+    marginHorizontal: 16,
+    flex: 1,
   },
   specieListHeading: {
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
+    marginBottom: 6,
   },
   subHeadingText: {
     fontSize: Typography.FONT_SIZE_14,
