@@ -480,7 +480,7 @@ const SingleTreeOverview = () => {
       filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
     } else if (
       inventory.treeType === MULTI &&
-      inventory.status === INCOMPLETE_SAMPLE_TREE &&
+      (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === 'complete') &&
       sampleTreeIndex
     ) {
       filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
@@ -676,6 +676,8 @@ const SingleTreeOverview = () => {
         console.error(err);
       });
   };
+
+  console.log('locateTree', locateTree);
 
   return isShowManageSpecies ? (
     <ManageSpecies
