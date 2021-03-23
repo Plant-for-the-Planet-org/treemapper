@@ -22,8 +22,8 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
     ? sampleTree.specieDiameter * cmToInch
     : sampleTree.specieDiameter;
 
-  const heightUnit = nonISUCountries.includes(countryCode) ? 'foot' : 'm';
-  const diameterUnit = nonISUCountries.includes(countryCode) ? 'inch' : 'cm';
+  const heightUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_feet') : 'm';
+  const diameterUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_inches') : 'cm';
 
   return (
     <TouchableOpacity

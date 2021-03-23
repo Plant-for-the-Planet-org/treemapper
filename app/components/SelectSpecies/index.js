@@ -152,7 +152,7 @@ const SelectSpecies = () => {
                             paddingRight: 20,
                           }}>
                           {nonISUCountries.includes(countryCode)
-                            ? i18next.t('label.select_species_inch')
+                            ? i18next.t('label.select_species_inches')
                             : 'cm'}
                         </Text>
                       </View>

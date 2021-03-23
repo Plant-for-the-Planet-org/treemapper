@@ -550,7 +550,7 @@ const SingleTreeOverview = () => {
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
                 nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieDiameter * 100) / 100} inch`
+                  ? ` ${Math.round(specieDiameter * 100) / 100} ` + i18next.t('label.select_species_inches')
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -570,7 +570,7 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieHeight
                 ? nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieHeight * 100) / 100} foot`
+                  ? ` ${Math.round(specieHeight * 100) / 100} ` + i18next.t('label.select_species_feet')
                   : ` ${Math.round(specieHeight * 100) / 100} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
