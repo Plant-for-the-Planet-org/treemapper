@@ -31,14 +31,12 @@ const TreeInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
-    // BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
     });
 
     return () => {
       unsubscribe();
-      // BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
   }, [navigation]);
 

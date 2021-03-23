@@ -10,7 +10,6 @@ import { useNavigation } from '@react-navigation/native';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
-  onSaveMultipleSpecies,
   registrationType,
   onPressSpeciesSingle,
   specieList,
@@ -103,14 +102,6 @@ const MySpecies = ({
           </View>
         )}
       </View>
-      {registrationType === MULTI && (
-        <PrimaryButton
-          onPress={onSaveMultipleSpecies}
-          btnText={i18next.t('label.select_species_btn_text')}
-          testID={'btn_save_and_continue_species'}
-          accessibilityLabel={'Save and Continue Species'}
-        />
-      )}
     </View>
   );
 };

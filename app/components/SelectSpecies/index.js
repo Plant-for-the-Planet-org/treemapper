@@ -1,54 +1,46 @@
-import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
   SafeAreaView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
-  Switch,
 } from 'react-native';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
-import { setMultipleTreesSpeciesList } from '../../actions/species';
-import { placeholder_image } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
-import { SpeciesContext } from '../../reducers/species';
 import {
   getInventory,
   updateInventory,
+  updateSingleTreeSpecie,
   updateSpecieAndMeasurements,
 } from '../../repositories/inventory';
-import { getUserInformation } from '../../repositories/user';
-import { Header, PrimaryButton } from '../Common';
-import ManageSpecies from '../ManageSpecies';
-import { updateSingleTreeSpecie } from '../../repositories/inventory';
-import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import dbLog from '../../repositories/logs';
+import { getUserInformation } from '../../repositories/user';
 import {
+  diameterMaxCm,
+  diameterMaxInch,
+  diameterMinCm,
+  diameterMinInch,
   footToMeter,
+  heightMaxFoot,
+  heightMaxM,
+  heightMinFoot,
+  heightMinM,
   inchToCm,
   LogTypes,
   nonISUCountries,
-  diameterMinInch,
-  diameterMinCm,
-  diameterMaxInch,
-  diameterMaxCm,
-  heightMinFoot,
-  heightMinM,
-  heightMaxFoot,
-  heightMaxM,
 } from '../../utils/constants';
+import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
+import { Header, PrimaryButton } from '../Common';
+import ManageSpecies from '../ManageSpecies';
 
 const SelectSpecies = () => {
-  const [isShowTreeCountModal, setIsShowTreeCountModal] = useState(false);
-  const [treeCount, setTreeCount] = useState('');
-  const [activeSpecie, setActiveSpecie] = useState(undefined);
   const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);
   const [isShowTreeMeasurementModal, setIsShowTreeMeasurementModal] = useState(false);
   const [diameter, setDiameter] = useState(null);
@@ -59,13 +51,11 @@ const SelectSpecies = () => {
   const [inventory, setInventory] = useState(null);
   const [registrationType, setRegistrationType] = useState(null);
   const [countryCode, setCountryCode] = useState('');
-  const [index, setIndex] = useState(undefined);
   const [isTagIdPresent, setIsTagIdPresent] = useState(false);
   const [tagIdError, setTagIdError] = useState('');
   const [isSampleTree, setIsSampleTree] = useState(false);
 
   const { state } = useContext(InventoryContext);
-  const { state: speciesState, dispatch: speciesDispatch } = useContext(SpeciesContext);
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -84,14 +74,6 @@ const SelectSpecies = () => {
       setHeightError('');
     }
   }, [isShowTreeMeasurementModal]);
-
-  // useEffect(() => {
-  //   if (route && route.params && route.params.visible) {
-  //     setShowSpecies(route.params.visible);
-  //   } else {
-  //     setShowSpecies(visible);
-  //   }
-  // }, [visible, route, navigation]);
 
   useEffect(() => {
     setDiameter('');
@@ -117,19 +99,6 @@ const SelectSpecies = () => {
     });
   };
 
-  const onPressSpecie = (item, specieIndex) => {
-    if (item.treeCount) {
-      let list = speciesState.multipleTreesSpecies;
-      list[specieIndex].treeCount = undefined;
-
-      setMultipleTreesSpeciesList(list)(speciesDispatch);
-    } else {
-      setActiveSpecie(item);
-      setIndex(specieIndex);
-      setIsShowTreeCountModal(true);
-    }
-  };
-
   const onPressSaveBtn = (item) => {
     setSingleTreeSpecie({
       id: item.guid,
@@ -138,92 +107,6 @@ const SelectSpecies = () => {
     });
     setIsShowTreeMeasurementModal(true);
   };
-
-  const onPressTreeCountNextBtn = () => {
-    let speciesListClone = [...speciesState.multipleTreesSpecies];
-    let specie = speciesListClone[index];
-    specie.treeCount = Number(treeCount) ? treeCount : undefined;
-    speciesListClone.splice(index, 1, specie);
-
-    setIsShowTreeCountModal(false);
-    setTreeCount(0);
-    setMultipleTreesSpeciesList([...speciesListClone])(speciesDispatch);
-  };
-
-  const onPressContinue = () => {
-    let selectedSpeciesList = [];
-    for (let i = 0; i < speciesState.multipleTreesSpecies.length; i++) {
-      const oneSpecie = speciesState.multipleTreesSpecies[i];
-
-      if (oneSpecie.treeCount) {
-        oneSpecie.id = i.toString();
-        selectedSpeciesList.push(oneSpecie);
-      }
-    }
-
-    if (route?.params?.onPressSaveAndContinueMultiple) {
-      route.params.onPressSaveAndContinueMultiple(selectedSpeciesList);
-    }
-
-    setActiveSpecie(undefined);
-    setIsShowTreeCountModal(false);
-    setTreeCount('');
-    navigation.goBack();
-  };
-
-  const renderTreeCountModal = () => {
-    let specieName = isShowTreeCountModal ? activeSpecie.scientificName : '';
-    return (
-      <Modal visible={isShowTreeCountModal} transparent={true}>
-        <View style={styles.modalBackground}>
-          <View style={styles.inputModal}>
-            <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
-            <Header
-              hideBackIcon
-              subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
-              textAlignStyle={{ textAlign: 'center' }}
-            />
-            <Header
-              hideBackIcon
-              subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header', {
-                specieName,
-              })}
-              textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
-            />
-            <Header
-              hideBackIcon
-              subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
-              textAlignStyle={{ textAlign: 'center' }}
-            />
-          </View>
-        </View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-          style={styles.bgWhite}>
-          <View style={styles.externalInputContainer}>
-            <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
-            <TextInput
-              value={treeCount.toString()}
-              style={styles.value}
-              autoFocus
-              placeholderTextColor={Colors.TEXT_COLOR}
-              onChangeText={(text) => setTreeCount(text.replace(/[^0-9]/g, ''))}
-              keyboardType={'number-pad'}
-            />
-            <MCIcon
-              onPress={onPressTreeCountNextBtn}
-              name={'arrow-right'}
-              size={30}
-              color={Colors.PRIMARY}
-            />
-          </View>
-          <SafeAreaView />
-        </KeyboardAvoidingView>
-      </Modal>
-    );
-  };
-
-  const Countries = ['US', 'LR', 'MM'];
 
   const renderMeasurementModal = () => {
     return (
@@ -268,7 +151,7 @@ const SelectSpecies = () => {
                             padding: 10,
                             paddingRight: 20,
                           }}>
-                          {Countries.includes(countryCode)
+                          {nonISUCountries.includes(countryCode)
                             ? i18next.t('label.select_species_inch')
                             : 'cm'}
                         </Text>
@@ -299,7 +182,7 @@ const SelectSpecies = () => {
                             padding: 10,
                             paddingRight: 20,
                           }}>
-                          {Countries.includes(countryCode)
+                          {nonISUCountries.includes(countryCode)
                             ? i18next.t('label.select_species_feet')
                             : 'm'}
                         </Text>
@@ -550,12 +433,9 @@ const SelectSpecies = () => {
         onPressSpeciesSingle={onPressSaveBtn}
         onPressBack={() => navigation.goBack()}
         registrationType={registrationType}
-        onPressSpeciesMultiple={onPressSpecie}
-        onSaveMultipleSpecies={onPressContinue}
         addSpecieToInventory={addSpecieToInventory}
         isSampleTree={isSampleTree}
       />
-      {renderTreeCountModal()}
       {renderMeasurementModal()}
     </>
   );
@@ -572,45 +452,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-  },
-  externalInputContainer: {
-    flexDirection: 'row',
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
-    paddingHorizontal: 10,
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  inputModal: {
-    backgroundColor: Colors.WHITE,
-    marginVertical: 30,
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    width: '80%',
   },
   inputBox: {
     borderWidth: 1,

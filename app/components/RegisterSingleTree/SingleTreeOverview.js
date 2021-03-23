@@ -18,12 +18,11 @@ import {
   View,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import LinearGradient from 'react-native-linear-gradient';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, Typography } from '_styles';
+import { Colors, CommonStyles, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -42,25 +41,24 @@ import dbLog from '../../repositories/logs';
 import { getUserInformation } from '../../repositories/user';
 import {
   cmToInch,
+  diameterMaxCm,
+  diameterMaxInch,
+  diameterMinCm,
+  diameterMinInch,
   footToMeter,
+  heightMaxFoot,
+  heightMaxM,
+  heightMinFoot,
+  heightMinM,
   inchToCm,
   LogTypes,
   meterToFoot,
   nonISUCountries,
-  diameterMinInch,
-  diameterMinCm,
-  diameterMaxInch,
-  diameterMaxCm,
-  heightMinFoot,
-  heightMinM,
-  heightMaxFoot,
-  heightMaxM,
 } from '../../utils/constants';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   MULTI,
-  OFF_SITE,
   ON_SITE,
   PENDING_DATA_UPLOAD,
   SINGLE,
@@ -102,8 +100,6 @@ const SingleTreeOverview = () => {
     }
   }, [route.params]);
 
-  // console.log('route?.params', route?.params);
-
   useEffect(() => {
     if (!route?.params?.isSampleTree) {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
@@ -115,7 +111,7 @@ const SingleTreeOverview = () => {
         setStatus(inventory.status);
         setLocateTree(inventory.locateTree);
         setRegistrationType(inventory.treeType);
-        console.log('route?.params?.isSampleTree', route?.params);
+
         if (
           inventory.status === INCOMPLETE_SAMPLE_TREE ||
           (route?.params?.isSampleTree && `${route?.params?.sampleTreeIndex}`)
@@ -125,8 +121,6 @@ const SingleTreeOverview = () => {
             : inventory.completedSampleTreesCount === inventory.sampleTreesCount
               ? inventory.completedSampleTreesCount - 1
               : inventory.completedSampleTreesCount;
-
-          console.log('index', index);
 
           setSampleTreeIndex(index);
           setIsSampleTree(true);
@@ -310,9 +304,6 @@ const SingleTreeOverview = () => {
           } having inventory_id: ${inventory.inventory_id}`,
         });
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-          console.log('\n\n\n');
-          console.log(inventoryData);
-          console.log('\n\n\n');
           setInventory(inventoryData);
         });
       })
@@ -347,8 +338,8 @@ const SingleTreeOverview = () => {
             <KeyboardAvoidingView
               behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
               style={styles.bgWhite}>
-              <View style={styles.externalInputContainer}>
-                <Text style={styles.labelModal}>
+              <View style={CommonStyles.bottomInputContainer}>
+                <Text style={CommonStyles.bottomInputLabel}>
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
@@ -363,7 +354,7 @@ const SingleTreeOverview = () => {
                         ? specieEditHeight.toString()
                         : editedTagId
                   }
-                  style={styles.value}
+                  style={CommonStyles.bottomInputText}
                   autoFocus
                   placeholderTextColor={Colors.TEXT_COLOR}
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
@@ -672,8 +663,6 @@ const SingleTreeOverview = () => {
       });
   };
 
-  console.log('locate', locateTree);
-
   return isShowManageSpecies ? (
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
@@ -834,31 +823,6 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     lineHeight: Typography.LINE_HEIGHT_30,
-  },
-  externalInputContainer: {
-    flexDirection: 'row',
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
   },
   defaultFontColor: {
     color: Colors.TEXT_COLOR,

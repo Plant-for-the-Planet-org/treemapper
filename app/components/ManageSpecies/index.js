@@ -10,10 +10,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Modal,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
@@ -23,12 +19,10 @@ import dbLog from '../../repositories/logs';
 // import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
-import { Header, SpeciesSyncError } from '../Common';
+import { MULTI } from '../../utils/inventoryConstants';
+import { Header, SpeciesSyncError, TreeCountModal } from '../Common';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { placeholder_image } from '../../assets';
-import { MULTI } from '../../utils/inventoryConstants';
 
 const DismissKeyBoard = ({ children }) => {
   return (
@@ -38,69 +32,10 @@ const DismissKeyBoard = ({ children }) => {
   );
 };
 
-const TreeCountModal = ({
-  showTreeCountModal,
-  activeSpecie,
-  setTreeCount,
-  treeCount,
-  onPressTreeCountNextBtn,
-}) => {
-  let specieName = showTreeCountModal ? activeSpecie?.scientificName : '';
-  return (
-    <Modal visible={showTreeCountModal} transparent={true}>
-      <View style={styles.modalBackground}>
-        <View style={styles.inputModal}>
-          <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
-            textAlignStyle={{ textAlign: 'center' }}
-          />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header', {
-              specieName,
-            })}
-            textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
-          />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
-            textAlignStyle={{ textAlign: 'center' }}
-          />
-        </View>
-      </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-        style={styles.bgWhite}>
-        <View style={styles.externalInputContainer}>
-          <Text style={styles.labelModal}>{i18next.t('label.select_species_modal_label')}</Text>
-          <TextInput
-            value={treeCount.toString()}
-            style={styles.value}
-            autoFocus
-            placeholderTextColor={Colors.TEXT_COLOR}
-            onChangeText={(text) => setTreeCount(text.replace(/[^0-9]/g, ''))}
-            keyboardType={'number-pad'}
-          />
-          <MCIcon
-            onPress={onPressTreeCountNextBtn}
-            name={'arrow-right'}
-            size={30}
-            color={Colors.PRIMARY}
-          />
-        </View>
-        <SafeAreaView />
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-};
-
 const ManageSpecies = ({
   onPressSpeciesSingle,
   onPressBack,
   registrationType,
-  onSaveMultipleSpecies,
   addSpecieToInventory,
   editOnlySpecieName,
   isSampleTree,
@@ -301,7 +236,6 @@ const ManageSpecies = ({
             )
           ) : (
             <MySpecies
-              onSaveMultipleSpecies={onSaveMultipleSpecies}
               registrationType={registrationType}
               onPressSpeciesSingle={onPressSpeciesSingle}
               specieList={specieList}
@@ -385,44 +319,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     color: Colors.TEXT_COLOR,
     paddingRight: 20,
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  externalInputContainer: {
-    flexDirection: 'row',
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
-    paddingHorizontal: 10,
-  },
-  inputModal: {
-    backgroundColor: Colors.WHITE,
-    marginVertical: 30,
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    width: '80%',
   },
 });

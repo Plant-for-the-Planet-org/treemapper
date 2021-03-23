@@ -1,11 +1,10 @@
-import { bugsnag } from '../utils';
-import { updateCount, setInventoryId } from '../actions/inventory';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../utils/inventoryConstants';
-import dbLog from './logs';
-import { LogTypes } from '../utils/constants';
-import { getSchema } from './default';
 import Realm from 'realm';
-import { ON_SITE } from '../utils/inventoryConstants';
+import { setInventoryId, updateCount } from '../actions/inventory';
+import { bugsnag } from '../utils';
+import { LogTypes } from '../utils/constants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, ON_SITE, SINGLE } from '../utils/inventoryConstants';
+import { getSchema } from './default';
+import dbLog from './logs';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve) => {

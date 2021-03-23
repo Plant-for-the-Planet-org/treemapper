@@ -356,13 +356,6 @@ const InventoryOverview = ({ navigation }) => {
     }
   };
 
-  const onPressSaveAndContinueMultiple = (selectedSpeciesList) => {
-    //  Add it to local Db
-    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedSpeciesList }).then(() => {
-      initialState();
-    });
-  };
-
   const handleSelectSpecies = () => {
     navigation.navigate('TotalTreesSpecies');
   };
@@ -406,20 +399,6 @@ const InventoryOverview = ({ navigation }) => {
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
               />
-              {/* {status !== INCOMPLETE_SAMPLE_TREE && (
-                <TouchableOpacity
-                  style={{ paddingTop: 15 }}
-                  onPress={() => setShowDeleteAlert(true)}>
-                  <Text
-                    style={{
-                      fontFamily: Typography.FONT_FAMILY_REGULAR,
-                      fontSize: Typography.FONT_SIZE_18,
-                      lineHeight: Typography.LINE_HEIGHT_24,
-                    }}>
-                    {i18next.t('label.tree_review_delete')}
-                  </Text>
-                </TouchableOpacity>
-              )} */}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {

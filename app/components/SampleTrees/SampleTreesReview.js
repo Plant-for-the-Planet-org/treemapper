@@ -22,9 +22,6 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
     ? sampleTree.specieDiameter * cmToInch
     : sampleTree.specieDiameter;
 
-  console.log('specieHeight', specieHeight);
-  console.log('specieDiameter', specieDiameter);
-
   const heightUnit = nonISUCountries.includes(countryCode) ? 'foot' : 'm';
   const diameterUnit = nonISUCountries.includes(countryCode) ? 'inch' : 'cm';
 

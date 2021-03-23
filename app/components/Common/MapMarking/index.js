@@ -81,7 +81,6 @@ export default function MapMarking({
   const [alertHeading, setAlertHeading] = useState('');
   const [alertSubHeading, setAlertSubHeading] = useState('');
   const [showAlert, setShowAlert] = useState(false);
-  const [alertModalFor, setAlertModalFor] = useState('');
 
   const [bounds, setBounds] = useState([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
@@ -214,9 +213,9 @@ export default function MapMarking({
   };
 
   //only the first time marker will follow the user's current location by default
-  const onUpdateUserLocation = (location) => {
-    if (isInitial && location) {
-      onPressMyLocationIcon(location);
+  const onUpdateUserLocation = (userLocation) => {
+    if (isInitial && userLocation) {
+      onPressMyLocationIcon(userLocation);
     }
   };
 
@@ -305,8 +304,8 @@ export default function MapMarking({
         initiateInventoryState(result)(dispatch);
         addLocateTree({ inventory_id: result.inventory_id, locateTree });
 
-        getInventory({ inventoryID: result.inventory_id }).then((inventory) => {
-          setInventory(inventory);
+        getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+          setInventory(inventoryData);
         });
         let data = { inventory_id: result.inventory_id, lastScreen: 'CreatePolygon' };
         updateLastScreen(data);
@@ -480,8 +479,8 @@ export default function MapMarking({
         );
         if (result) {
           initiateInventoryState(result)(dispatch);
-          getInventory({ inventoryID: result.inventory_id }).then((inventory) => {
-            setInventory(inventory);
+          getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+            setInventory(inventoryData);
           });
         }
       }
@@ -563,7 +562,6 @@ export default function MapMarking({
         ],
       }),
     );
-    return;
   };
 
   //this modal shows the information about GPS accuracy and accuracy range for red, yellow and green colour

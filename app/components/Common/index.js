@@ -16,6 +16,7 @@ import Sync from './Syncing';
 import InventoryList from './InventoryList';
 import SpeciesSyncError from './SpeciesSyncError';
 import TopRightBackground from './TopRightBackground';
+import TreeCountModal from './TreeCountModal';
 
 export {
   Header,
@@ -36,4 +37,5 @@ export {
   InventoryList,
   SpeciesSyncError,
   TopRightBackground,
+  TreeCountModal,
 };

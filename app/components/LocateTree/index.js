@@ -2,12 +2,10 @@ import i18next from 'i18next';
 import JailMonkey from 'jail-monkey';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
 import { Colors, Typography } from '_styles';
-import { cloud_upload_gray } from '../../assets';
-import { InventoryContext } from '../../reducers/inventory';
 import { deleteInventoryId } from '../../actions/inventory';
-import { addLocateTree, updateLastScreen } from '../../repositories/inventory';
+import { InventoryContext } from '../../reducers/inventory';
+import { addLocateTree } from '../../repositories/inventory';
 import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 
