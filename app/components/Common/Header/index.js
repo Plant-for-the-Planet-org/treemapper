@@ -17,7 +17,8 @@ const Header = ({
   accessibilityLabel,
   rightText,
   onPressFunction,
-  topRightComponent,
+  TopRightComponent,
+  TitleRightComponent,
 }) => {
   const navigation = useNavigation();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
@@ -49,13 +50,23 @@ const Header = ({
           ) : (
             <Text style={styles.rightText}>{rightText}</Text>
           )
-        ) : topRightComponent ? (
-          topRightComponent()
+        ) : TopRightComponent ? (
+          <TopRightComponent />
         ) : null}
       </View>
       {headingText ? (
-        <View style={{ marginVertical: 0 }}>
+        <View
+          style={
+            TitleRightComponent
+              ? {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
+              : {}
+          }>
           <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
+          {TitleRightComponent ? <TitleRightComponent /> : null}
         </View>
       ) : null}
       {subHeadingText ? (
@@ -76,7 +87,6 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
   },
   subHeadingText: {
@@ -85,7 +95,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
-  backArrow: {},
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

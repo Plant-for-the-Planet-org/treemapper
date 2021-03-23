@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderColor: Colors.TEXT_COLOR,
-    bottom: 90,
+    bottom: 120,
   },
   myLocationIconContainer: {
     top: 1.5,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   continueBtnCont: {
     flexDirection: 'row',
     position: 'absolute',
-    bottom: 10,
+    bottom: 30,
     backgroundColor: 'transparent',
     width: '100%',
     justifyContent: 'center',

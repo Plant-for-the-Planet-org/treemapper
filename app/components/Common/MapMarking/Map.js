@@ -57,6 +57,12 @@ export default function Map({
         showUserLocation={true}
         style={styles.container}
         ref={map}
+        compassViewPosition={3}
+        compassViewMargins={{
+          x: 30,
+          y: 230,
+        }}
+        logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
         {treeType === MULTI && <Markers />}

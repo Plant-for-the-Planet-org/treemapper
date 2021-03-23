@@ -748,7 +748,7 @@ export default function MapMarking({
                 }`
                 : i18next.t('label.tree_map_marking_header')
           }
-          topRightComponent={renderAccuracyInfo}
+          TitleRightComponent={renderAccuracyInfo}
         />
       </LinearGradient>
       {renderAccuracyModal()}
@@ -822,9 +822,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   gpsContainer: {
-    marginTop: 20,
-    width: 96,
-    height: 24,
+    width: 100,
     backgroundColor: '#FFC400',
     borderRadius: 25,
   },
