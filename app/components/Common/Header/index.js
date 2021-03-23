@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     fontSize: Typography.FONT_SIZE_27,
     color: Colors.TEXT_COLOR,
+    flex: 1,
+    marginRight: 16,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

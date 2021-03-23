@@ -122,23 +122,37 @@ const SingleTreeOverview = () => {
               ? inventory.completedSampleTreesCount - 1
               : inventory.completedSampleTreesCount;
 
+          const currentSampleTree = inventory.sampleTrees[index];
+          const diameter = nonISUCountries.includes(countryCode)
+            ? currentSampleTree.specieDiameter * cmToInch
+            : currentSampleTree.specieDiameter;
+          const height = nonISUCountries.includes(countryCode)
+            ? currentSampleTree.specieHeight * meterToFoot
+            : currentSampleTree.specieHeight;
+
           setSampleTreeIndex(index);
           setIsSampleTree(true);
-          const currentSampleTree = inventory.sampleTrees[index];
           setSpecieText(currentSampleTree.specieName);
-          setSpecieDiameter(currentSampleTree.specieDiameter);
-          setSpecieEditDiameter(currentSampleTree.specieDiameter);
-          setSpecieHeight(currentSampleTree.specieHeight);
-          setSpecieEditHeight(currentSampleTree.specieHeight);
+          setSpecieDiameter(diameter);
+          setSpecieEditDiameter(diameter);
+          setSpecieHeight(height);
+          setSpecieEditHeight(height);
           setPlantationDate(currentSampleTree.plantationDate);
           setTagId(currentSampleTree.tagId);
           setEditedTagId(currentSampleTree.tagId);
         } else {
+          const diameter = nonISUCountries.includes(countryCode)
+            ? inventory.specieDiameter * cmToInch
+            : inventory.specieDiameter;
+          const height = nonISUCountries.includes(countryCode)
+            ? inventory.specieHeight * meterToFoot
+            : inventory.specieHeight;
+
           setSpecieText(inventory.species[0].aliases);
-          setSpecieDiameter(inventory.specieDiameter);
-          setSpecieEditDiameter(inventory.specieDiameter);
-          setSpecieHeight(inventory.specieHeight);
-          setSpecieEditHeight(inventory.specieHeight);
+          setSpecieDiameter(diameter);
+          setSpecieEditDiameter(diameter);
+          setSpecieHeight(height);
+          setSpecieEditHeight(height);
           setPlantationDate(inventory.plantation_date);
           setTagId(inventory.tagId);
           setEditedTagId(inventory.tagId);
@@ -536,8 +550,8 @@ const SingleTreeOverview = () => {
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
                 nonISUCountries.includes(countryCode)
-                  ? ` ${specieDiameter * cmToInch} inch`
-                  : ` ${specieDiameter} cm`
+                  ? ` ${Math.round(specieDiameter * 100) / 100} inch`
+                  : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -556,8 +570,8 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieHeight
                 ? nonISUCountries.includes(countryCode)
-                  ? ` ${specieHeight * meterToFoot} foot`
-                  : ` ${specieHeight} m`
+                  ? ` ${Math.round(specieHeight * 100) / 100} foot`
+                  : ` ${Math.round(specieHeight * 100) / 100} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>

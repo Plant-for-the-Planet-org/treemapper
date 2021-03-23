@@ -37,7 +37,8 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
             {`${sampleTree.specieName}${sampleTree.tagId ? ' • ' + sampleTree.tagId : ''}`}
           </Text>
           <Text style={styles.subHeadingText}>
-            #{index + 1} • {specieHeight} {heightUnit} • {specieDiameter} {diameterUnit}
+            #{index + 1} • {Math.round(specieHeight * 100) / 100} {heightUnit} •{' '}
+            {Math.round(specieDiameter * 100) / 100} {diameterUnit}
           </Text>
         </View>
         <FAIcon name="angle-right" size={30} color={Colors.GRAY_DARK} />

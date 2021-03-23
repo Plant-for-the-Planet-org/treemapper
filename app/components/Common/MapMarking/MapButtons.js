@@ -22,15 +22,15 @@ export default function MapButtons({
             setIsLocationAlertShow(true);
           }
         }}
-        style={[styles.myLocationIcon]}
+        style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
         accessibilityLabel="Register Tree Camera"
         accessible={true}
         testID="register_tree_camera">
-        <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
+        <View style={Platform.OS === 'ios' && styles.myLocationIconContainer}>
           <Icon name={'my-location'} size={22} />
         </View>
       </TouchableOpacity>
-      <View style={styles.continueBtnCont}>
+      <View style={[styles.continueBtnCont, Platform.OS === 'ios' ? { bottom: 70 } : {}]}>
         <PrimaryButton
           onPress={addMarker}
           disabled={loader}
