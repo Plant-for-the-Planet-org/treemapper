@@ -106,60 +106,64 @@ const SingleTreeOverview = () => {
       updateLastScreen(data);
     }
     const unsubscribe = navigation.addListener('focus', () => {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        setInventory(inventory);
-        setStatus(inventory.status);
-        setLocateTree(inventory.locateTree);
-        setRegistrationType(inventory.treeType);
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+        setStatus(inventoryData.status);
+        setLocateTree(inventoryData.locateTree);
+        setRegistrationType(inventoryData.treeType);
 
-        if (
-          inventory.status === INCOMPLETE_SAMPLE_TREE ||
-          (route?.params?.isSampleTree && `${route?.params?.sampleTreeIndex}`)
-        ) {
-          const index = route?.params?.isSampleTree
-            ? route?.params?.sampleTreeIndex
-            : inventory.completedSampleTreesCount === inventory.sampleTreesCount
-              ? inventory.completedSampleTreesCount - 1
-              : inventory.completedSampleTreesCount;
+        getUserInformation().then((data) => {
+          setCountryCode(data.country);
+          if (
+            inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
+            (route?.params?.isSampleTree &&
+              (route?.params?.sampleTreeIndex === 0 || route?.params?.sampleTreeIndex))
+          ) {
+            const index = route?.params?.isSampleTree
+              ? route?.params?.sampleTreeIndex
+              : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
+                ? inventoryData.completedSampleTreesCount - 1
+                : inventoryData.completedSampleTreesCount;
 
-          const currentSampleTree = inventory.sampleTrees[index];
-          const diameter = nonISUCountries.includes(countryCode)
-            ? currentSampleTree.specieDiameter * cmToInch
-            : currentSampleTree.specieDiameter;
-          const height = nonISUCountries.includes(countryCode)
-            ? currentSampleTree.specieHeight * meterToFoot
-            : currentSampleTree.specieHeight;
+            const currentSampleTree = inventoryData.sampleTrees[index];
+            const diameter = nonISUCountries.includes(data.country)
+              ? Math.round(currentSampleTree.specieDiameter * cmToInch * 100) / 100
+              : currentSampleTree.specieDiameter;
+            const height = nonISUCountries.includes(data.country)
+              ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
+              : currentSampleTree.specieHeight;
 
-          setSampleTreeIndex(index);
-          setIsSampleTree(true);
-          setSpecieText(currentSampleTree.specieName);
-          setSpecieDiameter(diameter);
-          setSpecieEditDiameter(diameter);
-          setSpecieHeight(height);
-          setSpecieEditHeight(height);
-          setPlantationDate(currentSampleTree.plantationDate);
-          setTagId(currentSampleTree.tagId);
-          setEditedTagId(currentSampleTree.tagId);
-        } else {
-          const diameter = nonISUCountries.includes(countryCode)
-            ? inventory.specieDiameter * cmToInch
-            : inventory.specieDiameter;
-          const height = nonISUCountries.includes(countryCode)
-            ? inventory.specieHeight * meterToFoot
-            : inventory.specieHeight;
+            setSampleTreeIndex(index);
+            setIsSampleTree(true);
+            setSpecieText(currentSampleTree.specieName);
+            setSpecieDiameter(diameter);
+            setSpecieEditDiameter(diameter);
+            setSpecieHeight(height);
+            setSpecieEditHeight(height);
+            setPlantationDate(currentSampleTree.plantationDate);
+            setTagId(currentSampleTree.tagId);
+            setEditedTagId(currentSampleTree.tagId);
+          } else {
+            const diameter = nonISUCountries.includes(data.country)
+              ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
+              : inventoryData.specieDiameter;
+            const height = nonISUCountries.includes(data.country)
+              ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
+              : inventoryData.specieHeight;
 
-          setSpecieText(inventory.species[0].aliases);
-          setSpecieDiameter(diameter);
-          setSpecieEditDiameter(diameter);
-          setSpecieHeight(height);
-          setSpecieEditHeight(height);
-          setPlantationDate(inventory.plantation_date);
-          setTagId(inventory.tagId);
-          setEditedTagId(inventory.tagId);
-        }
+            setSpecieText(inventoryData.species[0].aliases);
+            setSpecieDiameter(diameter);
+            setSpecieEditDiameter(diameter);
+            setSpecieHeight(height);
+            setSpecieEditHeight(height);
+            setPlantationDate(inventoryData.plantation_date);
+            setTagId(inventoryData.tagId);
+            setEditedTagId(inventoryData.tagId);
+          }
+        });
       });
     });
-    Country();
+
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
@@ -189,15 +193,17 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
+      const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
+        ? Math.round(Number(specieEditDiameter) * inchToCm * 100) / 100
+        : Math.round(Number(specieEditDiameter) * 100) / 100;
+
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieDiameter({
           inventory_id: inventory.inventory_id,
-          speciesDiameter: nonISUCountries.includes(countryCode)
-            ? Number(specieEditDiameter) * inchToCm
-            : Number(specieEditDiameter),
+          speciesDiameter: refactoredSpecieDiameter,
         });
       } else {
-        updateSampleTree(action);
+        updateSampleTree(action, refactoredSpecieDiameter);
       }
       setIsOpenModal(false);
     } else if (
@@ -208,15 +214,17 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
+      const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
+        ? Math.round(Number(specieEditHeight) * footToMeter * 100) / 100
+        : Math.round(Number(specieEditHeight) * 100) / 100;
+
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieHeight({
           inventory_id: inventory.inventory_id,
-          speciesHeight: nonISUCountries.includes(countryCode)
-            ? Number(specieEditHeight) * footToMeter
-            : Number(specieEditHeight),
+          speciesHeight: refactoredSpecieHeight,
         });
       } else {
-        updateSampleTree(action);
+        updateSampleTree(action, refactoredSpecieHeight);
       }
       setIsOpenModal(false);
     } else if (action === 'tagId') {
@@ -244,22 +252,16 @@ const SingleTreeOverview = () => {
     let inventoryData = {};
     switch (toUpdate) {
       case 'diameter': {
-        const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
-          ? Math.round(Number(specieEditDiameter) * inchToCm * 1000) / 1000
-          : Math.round(Number(specieEditDiameter) * 1000) / 1000;
         sampleTree = {
           ...sampleTree,
-          specieDiameter: refactoredSpecieDiameter,
+          specieDiameter: value,
         };
         break;
       }
       case 'height': {
-        const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
-          ? Math.round(Number(specieEditHeight) * footToMeter * 1000) / 1000
-          : Math.round(Number(specieEditHeight) * 1000) / 1000;
         sampleTree = {
           ...sampleTree,
-          specieHeight: refactoredSpecieHeight,
+          specieHeight: value,
         };
         break;
       }
@@ -335,12 +337,6 @@ const SingleTreeOverview = () => {
           err,
         );
       });
-  };
-
-  const Country = () => {
-    getUserInformation().then((data) => {
-      setCountryCode(data.country);
-    });
   };
 
   const renderInputModal = () => {
@@ -481,7 +477,7 @@ const SingleTreeOverview = () => {
     } else if (
       inventory.treeType === MULTI &&
       (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === 'complete') &&
-      sampleTreeIndex
+      (sampleTreeIndex === 0 || sampleTreeIndex)
     ) {
       filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
     }
@@ -550,7 +546,9 @@ const SingleTreeOverview = () => {
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
                 nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieDiameter * 100) / 100} ` + i18next.t('label.select_species_inches')
+                  ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
+                    'label.select_species_inches',
+                  )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -570,7 +568,8 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieHeight
                 ? nonISUCountries.includes(countryCode)
-                  ? ` ${Math.round(specieHeight * 100) / 100} ` + i18next.t('label.select_species_feet')
+                  ? ` ${Math.round(specieHeight * 100) / 100} ` +
+                    i18next.t('label.select_species_feet')
                   : ` ${Math.round(specieHeight * 100) / 100} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -633,7 +632,17 @@ const SingleTreeOverview = () => {
 
   const onPressContinueToSpecies = () => {
     updateSampleTree('changeStatusToPending');
-    navigation.navigate('TotalTreesSpecies');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 3,
+        routes: [
+          { name: 'MainScreen' },
+          { name: 'TreeInventory' },
+          { name: 'InventoryOverview' },
+          { name: 'TotalTreesSpecies' },
+        ],
+      }),
+    );
   };
 
   const onPressNextTree = () => {
@@ -677,8 +686,6 @@ const SingleTreeOverview = () => {
       });
   };
 
-  console.log('locateTree', locateTree);
-
   return isShowManageSpecies ? (
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
@@ -704,7 +711,7 @@ const SingleTreeOverview = () => {
               closeIcon
               onBackPress={onPressSave}
               headingText={
-                isSampleTree && `${sampleTreeIndex}`
+                isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
                     ongoingSampleTreeNumber: sampleTreeIndex + 1,
                   })

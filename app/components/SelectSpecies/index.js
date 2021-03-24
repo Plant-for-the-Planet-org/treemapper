@@ -304,16 +304,20 @@ const SelectSpecies = () => {
       setHeightError('');
       setTagIdError('');
 
+      const convertedDiameter = nonISUCountries.includes(countryCode)
+        ? Math.round(Number(diameter) * inchToCm * 100) / 100
+        : Math.round(Number(diameter) * 100) / 100;
+
+      const convertedHeight = nonISUCountries.includes(countryCode)
+        ? Math.round(Number(height) * footToMeter * 100) / 100
+        : Math.round(Number(height) * 100) / 100;
+
       if (!isSampleTree) {
         updateSpecieAndMeasurements({
           inventoryId: inventory.inventory_id,
           species: [singleTreeSpecie],
-          diameter: nonISUCountries.includes(countryCode)
-            ? Math.round(Number(diameter) * inchToCm * 1000) / 1000
-            : Math.round(Number(diameter) * 1000) / 1000,
-          height: nonISUCountries.includes(countryCode)
-            ? Math.round(Number(height) * footToMeter * 1000) / 1000
-            : Math.round(Number(height) * 1000) / 1000,
+          diameter: convertedDiameter,
+          height: convertedHeight,
           tagId,
         })
           .then(() => {
@@ -324,8 +328,8 @@ const SelectSpecies = () => {
           });
       } else {
         let updatedSampleTrees = [...inventory.sampleTrees];
-        updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter = Number(diameter);
-        updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = Number(height);
+        updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter = convertedDiameter;
+        updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = convertedHeight;
         if (tagId) {
           updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
         }

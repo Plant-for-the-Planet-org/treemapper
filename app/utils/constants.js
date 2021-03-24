@@ -25,10 +25,10 @@ export const LogLevels = {
 };
 
 // multiplication factor to convert meter to foot
-export const meterToFoot = 3.2808399;
+export const meterToFoot = 3.2808;
 
 // multiplication factor to convert centimeter to inch
-export const cmToInch = 0.39370079;
+export const cmToInch = 0.3937;
 
 // multiplication factor to convert foot to meter
 export const footToMeter = 0.3048;

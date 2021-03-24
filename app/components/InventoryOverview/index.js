@@ -84,7 +84,6 @@ const InventoryOverview = ({ navigation }) => {
 
   const initialState = () => {
     getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-      console.log('inventoryData', inventoryData);
       setInventory(inventoryData);
     });
   };
@@ -425,7 +424,8 @@ const InventoryOverview = ({ navigation }) => {
                     leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
                     rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
                     style={{ marginVertical: 5 }}
-                    leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }}
+                    leftTextStyle={{ paddingLeft: 20, fontFamily: Typography.FONT_FAMILY_REGULAR }}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
                   />
                 )}
               />
