@@ -16,7 +16,6 @@ import Realm from 'realm';
 import { Colors, Typography } from '_styles';
 import { getSchema } from '../../repositories/default';
 import dbLog from '../../repositories/logs';
-// import { addMultipleTreesSpecie, setSpecieId } from '../../actions/species';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';

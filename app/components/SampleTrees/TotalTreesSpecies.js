@@ -165,15 +165,16 @@ export default function TotalTreesSpecies() {
             style={{
               fontSize: Typography.FONT_SIZE_16,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
+              color: Colors.TEXT_COLOR,
             }}>
             {item.aliases}
           </Text>
           <Text
             style={{
               fontSize: Typography.FONT_SIZE_18,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
+              fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
               marginTop: 10,
-              color: Colors.PRIMARY,
+              color: Colors.TEXT_COLOR,
             }}>
             {item.treeCount}{' '}
             {item.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}

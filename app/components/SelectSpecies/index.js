@@ -305,12 +305,12 @@ const SelectSpecies = () => {
       setTagIdError('');
 
       const convertedDiameter = nonISUCountries.includes(countryCode)
-        ? Math.round(Number(diameter) * inchToCm * 100) / 100
-        : Math.round(Number(diameter) * 100) / 100;
+        ? Number(diameter) * inchToCm
+        : Number(diameter);
 
       const convertedHeight = nonISUCountries.includes(countryCode)
-        ? Math.round(Number(height) * footToMeter * 100) / 100
-        : Math.round(Number(height) * 100) / 100;
+        ? Number(height) * footToMeter
+        : Number(height);
 
       if (!isSampleTree) {
         updateSpecieAndMeasurements({

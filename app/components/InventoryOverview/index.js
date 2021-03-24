@@ -160,7 +160,7 @@ const InventoryOverview = ({ navigation }) => {
     cameraRef.current.setCamera({
       centerCoordinate: selectedLOC,
       zoomLevel: 18,
-      animationDuration: 2000,
+      animationDuration: 1000,
     });
   };
 

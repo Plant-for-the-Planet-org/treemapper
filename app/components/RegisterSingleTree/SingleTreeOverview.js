@@ -194,8 +194,8 @@ const SingleTreeOverview = () => {
     ) {
       setSpecieDiameter(specieEditDiameter);
       const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
-        ? Math.round(Number(specieEditDiameter) * inchToCm * 100) / 100
-        : Math.round(Number(specieEditDiameter) * 100) / 100;
+        ? Number(specieEditDiameter) * inchToCm
+        : Number(specieEditDiameter);
 
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieDiameter({
@@ -215,8 +215,8 @@ const SingleTreeOverview = () => {
     ) {
       setSpecieHeight(specieEditHeight);
       const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
-        ? Math.round(Number(specieEditHeight) * footToMeter * 100) / 100
-        : Math.round(Number(specieEditHeight) * 100) / 100;
+        ? Number(specieEditHeight) * footToMeter
+        : Number(specieEditHeight);
 
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieHeight({

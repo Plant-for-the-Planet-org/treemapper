@@ -39,6 +39,7 @@ import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Map from './Map';
 import MapAlrightyModal from './MapAlrightyModal';
 import MapButtons from './MapButtons';
+import { bugsnag } from '../../../utils';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -138,13 +139,13 @@ export default function MapMarking({
   }, []);
 
   useEffect(() => {
-    if (isCameraRefVisible && bounds.length > 0) {
-      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
+    if (isCameraRefVisible && bounds.length > 0 && camera?.current?.fitBounds) {
+      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 60, 1000);
     }
   }, [isCameraRefVisible, bounds]);
 
   useEffect(() => {
-    if (isCameraRefVisible && centerCoordinate.length > 0) {
+    if (isCameraRefVisible && centerCoordinate.length > 0 && camera?.current?.setCamera) {
       camera.current.setCamera({
         centerCoordinate,
       });
@@ -225,12 +226,12 @@ export default function MapMarking({
       setIsInitial(false);
       return;
     }
-    if (isCameraRefVisible) {
+    if (isCameraRefVisible && camera?.current?.setCamera) {
       setIsInitial(false);
       camera.current.setCamera({
         centerCoordinate: [position.coords.longitude, position.coords.latitude],
         zoomLevel: 18,
-        animationDuration: 2000,
+        animationDuration: 1000,
       });
     }
   };
@@ -254,7 +255,7 @@ export default function MapMarking({
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
-  const addPolygonMarker = async () => {
+  const addPolygonMarker = async (forceContinue = false) => {
     updateCurrentPosition()
       .then(async () => {
         let currentCoords = [location.coords.latitude, location.coords.longitude];
@@ -262,10 +263,11 @@ export default function MapMarking({
         let isValidMarkers = await checkIsValidMarker(centerCoordinates);
 
         if (!isValidMarkers) {
-          alert(i18next.t('label.locate_tree_add_marker_valid'));
-        }
-
-        if (locateTree === ON_SITE) {
+          setShowSecondaryButton(false);
+          setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
+          setAlertSubHeading(i18next.t('label.locate_tree_add_marker_valid'));
+          setShowAlert(true);
+        } else if (locateTree === ON_SITE && (accuracyInMeters < 30 || forceContinue)) {
           let distance = distanceCalculator(
             currentCoords[0],
             currentCoords[1],
@@ -279,17 +281,29 @@ export default function MapMarking({
           if (distanceInMeters < 100) {
             pushMaker(currentCoords);
           } else {
-            alert(i18next.t('label.locate_tree_add_marker_invalid'));
+            setShowSecondaryButton(false);
+            setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
+            setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
+            setShowAlert(true);
           }
+        } else if (locateTree === ON_SITE && (accuracyInMeters >= 30 || !forceContinue)) {
+          setIsAlertShow(true);
         } else {
           pushMaker(currentCoords);
         }
       })
       .catch((err) => {
-        console.error('some err', err);
-        alert('Unable to retrieve location', 'Alert');
+        bugsnag.notify(err);
+        showUnknownLocationAlert();
       });
     // Check distance
+  };
+
+  const showUnknownLocationAlert = () => {
+    setShowSecondaryButton(false);
+    setAlertHeading(i18next.t('label.snackBarText'));
+    setAlertSubHeading(i18next.t('label.locate_tree_unable_to_retrieve_location'));
+    setShowAlert(true);
   };
 
   const pushMaker = async (currentCoords) => {
@@ -363,7 +377,8 @@ export default function MapMarking({
           }
         })
         .catch((err) => {
-          alert(JSON.stringify(err), 'Alert');
+          bugsnag.notify(err);
+          showUnknownLocationAlert();
         });
     } else {
       setIsAlertShow(true);
@@ -684,7 +699,11 @@ export default function MapMarking({
   //continuing with a poor accuracy
   const onPressAlertContinue = () => {
     setIsAlertShow(false);
-    addPointMarker(true);
+    if (treeType === MULTI && !isPointForMultipleTree) {
+      addPolygonMarker(true);
+    } else {
+      addPointMarker(true);
+    }
   };
 
   //small button on top right corner which will show accuracy in meters and the respective colour
@@ -727,7 +746,9 @@ export default function MapMarking({
         onPressMyLocationIcon={onPressMyLocationIcon}
         setIsLocationAlertShow={setIsLocationAlertShow}
         addMarker={
-          treeType === MULTI && !isPointForMultipleTree ? addPolygonMarker : addPointMarker
+          treeType === MULTI && !isPointForMultipleTree
+            ? () => addPolygonMarker()
+            : () => addPointMarker()
         }
         loader={loader}
       />
