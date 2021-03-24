@@ -284,7 +284,7 @@ const ImageCapturing = ({
           onBackPress={onBackPress}
           headingText={
             inventoryType === MULTI && !isSampleTree
-              ? `Location ${ALPHABETS[activeMarkerIndex]}`
+              ? `${i18next.t('label.locate_tree_location')} ${ALPHABETS[activeMarkerIndex]}`
               : i18next.t('label.image_capturing_header')
           }
           subHeadingText={i18next.t('label.image_capturing_sub_header')}
