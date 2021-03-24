@@ -17,20 +17,16 @@ export const permission = () => {
       )
         .then((granted) => {
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('You can use the location');
             resolve('granted');
           } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            console.log('Location permission blocked');
             reject('blocked');
           } else {
-            console.log('Location permission denied');
             reject('denied');
           }
         })
         .catch((err) => console.warn(err));
     } else {
       Geolocation.requestAuthorization('whenInUse').then((permissionStatus) => {
-        console.log(permissionStatus);
         if (permissionStatus === 'granted') {
           resolve();
         } else {
