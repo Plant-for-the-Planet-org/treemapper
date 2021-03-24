@@ -143,7 +143,7 @@ const ManageSpecies = ({
       setSearchList([]);
     }
   };
-
+  console.log(specieList, 'specieList');
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>

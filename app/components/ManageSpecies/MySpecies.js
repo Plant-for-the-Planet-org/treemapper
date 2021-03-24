@@ -34,6 +34,7 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
+          console.log(item.guid, item.specieId, item.aliases, item.image, item.description, 'Item');
           if (registrationType == 'single') {
             addSpecieNameToInventory(item);
             if (editOnlySpecieName) {
@@ -58,7 +59,16 @@ const MySpecies = ({
           <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
         ) : item.guid !== 'unknown' ? (
           <TouchableOpacity
-            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
+            onPress={() =>
+              navigation.navigate('SpecieInfo', {
+                SpecieName: item.scientificName,
+                SpecieGuid: item.guid,
+                SpecieId: item.specieId,
+                SpecieAliases: item.aliases,
+                SpecieDescription: item.description,
+                SpecieImage: item.image,
+              })
+            }>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
         ) : (
@@ -99,8 +109,12 @@ const MySpecies = ({
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
-            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
+            <Text style={styles.headerText}>
+              {i18next.t('label.select_species_looks_empty_here')}
+            </Text>
+            <Text style={styles.subHeadingText}>
+              {i18next.t('label.select_species_add_species_desscription')}
+            </Text>
           </View>
         )}
       </View>

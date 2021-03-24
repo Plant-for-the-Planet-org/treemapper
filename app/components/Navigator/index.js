@@ -16,7 +16,7 @@ export default function AppNavigator() {
 
   const checkIsUserLogin = async () => {
     const dbUserDetails = await getUserDetails();
-
+    console.log(dbUserDetails, 'dbUserDetails');
     if (dbUserDetails && dbUserDetails.refreshToken) {
       const newAccessToken = await getNewAccessToken(dbUserDetails.refreshToken);
       if (newAccessToken) {

@@ -120,6 +120,16 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
               specieResult.isUploaded = true;
               specieResult.isUserSpecies = true;
               specieResult.specieId = specie.id;
+              console.log(specie.aliases, 'specie.aliases');
+              if (specie.aliases) {
+                specieResult.aliases = specie.aliases;
+              }
+              if (specie.image) {
+                specieResult.image = specie.image;
+              }
+              if (specie.description) {
+                specieResult.description = specie.description;
+              }
               // logging the success in to the db
               dbLog.info({
                 logType: LogTypes.MANAGE_SPECIES,
@@ -164,6 +174,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
         });
         console.error(
           `Error at /repositories/species/updateAndGetUserSpeciesToSync, ${JSON.stringify(err)}`,
+          err,
         );
         bugsnag.notify(err);
         reject(err);

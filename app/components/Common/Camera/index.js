@@ -1,19 +1,20 @@
 import React, { useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import {RNCamera} from 'react-native-camera';
+import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import i18next from 'i18next';
 
-export default function index({handleCamera}) {
+export default function index({ handleCamera }) {
   const camera = useRef();
   // const [imagePath, setImagePath] = useState(null);
 
-  const takePicture =async () => {
+  const takePicture = async () => {
     const options = { quality: 0.5 };
     const data = await camera.current.takePictureAsync(options).catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
     });
     // setImagePath(data.uri);
+    console.log(data.uri, 'Image url');
     handleCamera(data.uri);
   };
   return (
@@ -21,8 +22,12 @@ export default function index({handleCamera}) {
       ratio={'1:1'}
       captureAudio={false}
       ref={camera}
-      style={{flex: 1}}
-      notAuthorizedView={(<View><Text>{i18next.t('label.permission_camera_message')}</Text></View>)}
+      style={{ flex: 1 }}
+      notAuthorizedView={
+        <View>
+          <Text>{i18next.t('label.permission_camera_message')}</Text>
+        </View>
+      }
       androidCameraPermissionOptions={{
         title: i18next.t('label.permission_camera_title'),
         message: i18next.t('label.permission_camera_message'),

@@ -25,7 +25,7 @@ export const checkAndAddUserSpecies = async () => {
 
     // if string value of [isFirstUpdate] is ["true"] then sets [true] as boolean else [false]
     isFirstUpdate = isFirstUpdate === 'true';
-
+    console.log(isFirstUpdate, 'isFirstUpdate');
     // checks and sync the species only if the local species are updated
     if (isSpeciesLoaded === 'true') {
       // gets all the user species synced on the server
@@ -33,7 +33,8 @@ export const checkAndAddUserSpecies = async () => {
         .then(async (alreadySyncedSpecies) => {
           // passes already synced species fetched from server to update the local species and gets the
           // local species which are not uploaded to server
-          updateAndGetUserSpeciesToSync(isFirstUpdate ? alreadySyncedSpecies : null)
+          console.log(alreadySyncedSpecies, 'alreadySyncedSpecies');
+          updateAndGetUserSpeciesToSync(alreadySyncedSpecies)
             .then((speciesToSync) => {
               // checks if [speciesToSync] is present and has data to iterate
               if (speciesToSync && speciesToSync.length > 0) {
