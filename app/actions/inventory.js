@@ -19,10 +19,12 @@ export const setInventoryId = (inventoryId) => async (dispatch) => {
   });
 };
 
+/**
+ * This function dispatches type DELETE_INVENTORY_ID and deletes inventory id in inventory state
+ */
 export const deleteInventoryId = () => (dispatch) => {
   dispatch({
     type: DELETE_INVENTORY_ID,
-    // payload: inventoryId,
   });
 };
 /**

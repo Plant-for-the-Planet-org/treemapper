@@ -31,8 +31,6 @@
   "select_species_done": "Terminé",
   "select_species_add_name": "Ajouter un nom",
   "select_species_my_species": "Mes espèces",
-  "select_species_diameter_more_than_error": "Le diamètre doit être supérieur à 0,1",
-  "select_species_height_more_than_error": "La hauteur doit être supérieure à 0,1",
   "select_species_diameter_invalid": "Le diamètre n'est pas valide",
   "select_species_height_invalid": "La hauteur n'est pas valide",
   "select_species_tag_id_required": "L'identifiant de balise est requis",

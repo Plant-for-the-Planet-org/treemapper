@@ -17,5 +17,6 @@
   "image_capturing_required": "La photo est requise.",
   "coming_soon": "Arrive bientôt!",
   "image_click_picture": "Prendre une photo",
-  "image_reclick": "A nouveau"
+  "image_reclick": "A nouveau",
+  "total_trees_header": "Total des arbres"
 }
