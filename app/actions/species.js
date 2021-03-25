@@ -182,9 +182,9 @@ export const deleteUserSpecie = (specieId) => {
   });
 };
 
-export const setSpecieAliases = (specieId, aliases) => {
+export const setSpecieAliases = ({ specieId, aliases, description }) => {
   return new Promise((resolve, reject) => {
-    const data = { aliases: aliases };
+    const data = { aliases, description };
     console.log(data, 'data');
     // makes an authorized DELETE request on /species to delete a specie of user.
     putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)

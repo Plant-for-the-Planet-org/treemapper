@@ -5,7 +5,6 @@ import {
   SafeAreaView,
   Text,
   Image,
-  Modal,
   TouchableOpacity,
   KeyboardAvoidingView,
   TextInput,
@@ -15,8 +14,6 @@ import {
 import { Header, Camera } from '../Common';
 import { Colors, Typography } from '_styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MIcon from 'react-native-vector-icons/MaterialIcons';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import RNFS from 'react-native-fs';
 import { UpdateSpeciesImage } from './../../utils/specieImageUpload';
@@ -26,9 +23,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
-  const [isOpenModal, setIsOpenModal] = useState(false);
   const [aliases, setAliases] = useState('');
   const [localImageUrl, setLocalImageUrl] = useState('');
+  const specieName = route.params.SpecieName;
+  const SpecieGuid = route.params.SpecieGuid;
+  const SpecieId = route.params.SpecieId;
+  let SpecieDescription = route.params.SpecieDescription;
+
   useEffect(() => {
     setAliases(route.params.SpecieAliases);
     if (route.params.SpecieLocalImage) {
@@ -47,89 +48,29 @@ const SpecieInfo = ({ route }) => {
     return () => {};
   }, []);
 
-  const specieName = route.params.SpecieName;
-  const SpecieGuid = route.params.SpecieGuid;
-  const SpecieId = route.params.SpecieId;
-  let SpecieAliases = route.params.SpecieAliases;
-  let SpecieDescription = route.params.SpecieDescription;
-  let SpecieImage = route.params.SpecieImage;
-  let SpecieLocalImage = route.params.SpecieLocalImage;
-  // console.log(
-  //   specieName,
-  //   SpecieGuid,
-  //   SpecieId,
-  //   SpecieAliases,
-  //   SpecieLocalImage,
-  //   RNFS.DocumentDirectoryPath,
-  //   'specieName',
-  // );
-
   const InfoCard = () => {
+    const [descriptionText, setDescriptionText] = useState('');
+    useEffect(() => {
+      setDescriptionText(SpecieDescription);
+    }, []);
     return (
       <View style={{ flex: 1, flexDirection: 'column' }}>
         <Text style={styles.InfoCard_heading}>Specie Name</Text>
         <Text style={styles.InfoCard_text}>{specieName}</Text>
-        <View style={{ flexDirection: 'row' }}>
-          <Text style={styles.InfoCard_heading}>Aliases</Text>
-          <MIcon name={'edit'} size={15} style={{ paddingTop: 25, paddingLeft: 7 }} />
-        </View>
-        <TouchableOpacity onPress={() => setIsOpenModal(true)}>
-          <Text style={styles.InfoCard_text}>{aliases}</Text>
-        </TouchableOpacity>
         <Text style={styles.InfoCard_heading}>Description</Text>
-        {SpecieDescription ? (
-          <Text style={styles.InfoCard_text}>{SpecieDescription}</Text>
-        ) : (
-          <TextInput style={styles.InfoCard_text} defaultValue={'Type the Description here'} />
-        )}
+        <TextInput
+          style={styles.InfoCard_text}
+          placeholder={'Type the Description here'}
+          value={descriptionText}
+          onChangeText={(text) => setDescriptionText(text)}
+          onSubmitEditing={() => onSubmitInputField(descriptionText)}
+        />
       </View>
     );
   };
-  const onSubmitInputField = (aliasesText) => {
-    setAliases(aliasesText);
-    setIsOpenModal(false);
-    addAliases(SpecieGuid, aliasesText);
-    setSpecieAliases(SpecieId, aliasesText);
-  };
-  const RenderInputModal = () => {
-    const [aliasesText, setAliasesText] = useState('');
-
-    return (
-      <Modal transparent={true} visible={isOpenModal}>
-        <View style={styles.cont}>
-          <View style={styles.cont}>
-            <View style={styles.cont} />
-            <KeyboardAvoidingView
-              behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-              style={styles.bgWhite}>
-              <View style={styles.externalInputContainer}>
-                <Text style={styles.labelModal}>Aliases</Text>
-                <TextInput
-                  value={aliasesText}
-                  style={styles.value}
-                  autoFocus
-                  placeholderTextColor={Colors.TEXT_COLOR}
-                  keyboardType={'default'}
-                  onChangeText={(text) => {
-                    setAliasesText(text);
-                  }}
-                  onSubmitEditing={() => onSubmitInputField(aliasesText)}
-                />
-                <MCIcon
-                  onPress={() => {
-                    onSubmitInputField(aliasesText);
-                  }}
-                  name={'arrow-right'}
-                  size={30}
-                  color={Colors.PRIMARY}
-                />
-              </View>
-              <SafeAreaView />
-            </KeyboardAvoidingView>
-          </View>
-        </View>
-      </Modal>
-    );
+  const onSubmitInputField = (description) => {
+    addAliases({ scientificSpecieGuid: SpecieGuid, aliases, description });
+    setSpecieAliases({ specieId: SpecieId, aliases, description });
   };
 
   const handleCamera = (data, fsurl) => {
@@ -149,15 +90,21 @@ const SpecieInfo = ({ route }) => {
   const checkIcon = () => {
     return <Icon name={'check-circle'} size={30} style={{ color: Colors.PRIMARY }} />;
   };
+
   if (isCamera) {
     return <Camera handleCamera={handleCamera} />;
   } else {
     return (
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <Header headingText={specieName} TitleRightComponent={checkIcon} />
+          <Header
+            headingTextInput={aliases}
+            TitleRightComponent={checkIcon}
+            setAliases={setAliases}
+            onSubmitInputField={onSubmitInputField}
+          />
           <ScrollView showsVerticalScrollIndicator={false}>
-            <KeyboardAvoidingView>
+            <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
               {!localImageUrl ? (
                 <TouchableOpacity
                   style={styles.image_container}
@@ -192,18 +139,12 @@ const SpecieInfo = ({ route }) => {
                 // />
                 <Image
                   source={{ uri: `file://${RNFS.DocumentDirectoryPath}/${localImageUrl}` }}
-                  // resizeMode={'contain'}
                   style={{
-                    // flexDirection: 'row',
-                    // height: 200,
-                    // width: 230,
                     marginTop: 25,
                     borderRadius: 13,
-                    // alignSelf: 'center',
                     width: '100%',
                     height: Dimensions.get('window').height * 0.3,
-                    // borderRadius: 13,
-                    // marginTop: 24,
+                    transform: [{ rotate: '90deg' }],
                   }}
                 />
               )}

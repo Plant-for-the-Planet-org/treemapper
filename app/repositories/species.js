@@ -260,7 +260,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
   });
 };
 
-export const addAliases = (scientificSpecieGuid, aliases) => {
+export const addAliases = ({ scientificSpecieGuid, aliases, description }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -269,7 +269,7 @@ export const addAliases = (scientificSpecieGuid, aliases) => {
           // modifies [isUploaded] and [isUserSpecies] to [false]
           let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
           specieResult.aliases = aliases;
-          // specieResult.description = description;
+          specieResult.description = description;
         });
         // logging the success in to the db
         dbLog.info({
@@ -284,7 +284,7 @@ export const addAliases = (scientificSpecieGuid, aliases) => {
           message: `Error while adding Aliases to a specie having scientific specie guid: ${scientificSpecieGuid}`,
           logStack: JSON.stringify(err),
         });
-        console.error(`Error at /repositories/species/addAliases, ${JSON.stringify(err)}`);
+        console.error(`Error at /repositories/species/addAliases, ${err}`);
         bugsnag.notify(err);
         reject(err);
       });

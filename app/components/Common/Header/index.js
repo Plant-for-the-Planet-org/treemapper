@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -8,6 +8,9 @@ const Header = ({
   hideBackIcon,
   closeIcon,
   headingText,
+  headingTextInput,
+  setAliases,
+  onSubmitInputField,
   subHeadingText,
   onBackPress,
   textAlignStyle,
@@ -54,17 +57,18 @@ const Header = ({
           <TopRightComponent />
         ) : null}
       </View>
-      {headingText ? (
-        <View
-          style={
-            TitleRightComponent
-              ? {
-                flexDirection: 'row',
+      <View
+        style={
+          TitleRightComponent
+            ? {
+                flexDirection: 'row-reverse',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }
-              : {}
-          }>
+            : {}
+        }>
+        {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
+        {headingText ? (
           <Text
             style={[
               styles.headerText,
@@ -73,9 +77,26 @@ const Header = ({
             ]}>
             {headingText}
           </Text>
-          {TitleRightComponent ? <TitleRightComponent /> : null}
-        </View>
-      ) : null}
+        ) : headingTextInput !== undefined ? (
+          <TextInput
+            style={{
+              fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+              fontSize: Typography.FONT_SIZE_27,
+              color: Colors.TEXT_COLOR,
+              flex: 1,
+            }}
+            multiline={true}
+            blurOnSubmit={true}
+            onChangeText={(text) => setAliases(text)}
+            value={headingTextInput}
+            placeholder="Type Aliases Here"
+            returnKeyType={'done'}
+            onSubmitEditing={() => onSubmitInputField()}
+          />
+        ) : (
+          []
+        )}
+      </View>
       {subHeadingText ? (
         <View style={{ marginVertical: 10 }}>
           <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
