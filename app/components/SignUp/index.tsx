@@ -1,32 +1,31 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  ScrollView,
-  Switch,
-  TextInput,
-  Platform,
-  Image,
-} from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
-import Ionicons from 'react-native-vector-icons/FontAwesome';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { getUserDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
-import { SignupService, getCdnUrls } from '../../actions/user';
-import Snackbar from 'react-native-snackbar';
-import { Loader } from '../Common';
-import Modal from '../Common/Modal';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as RNLocalize from 'react-native-localize';
-import { handleFilter } from '../../utils/CountryDataFilter';
-import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
+import Snackbar from 'react-native-snackbar';
+import Ionicons from 'react-native-vector-icons/FontAwesome';
+import { Colors, Typography } from '_styles';
+import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
+import { SignupService, getCdnUrls } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
-import { StackActions } from '@react-navigation/native';
+import { getUserDetails } from '../../repositories/user';
+import { handleFilter } from '../../utils/CountryDataFilter';
+import { Header, Loader, PrimaryButton } from '../Common';
+import Modal from '../Common/Modal';
 
 // TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
@@ -377,7 +376,7 @@ const SignUp = ({ navigation }) => {
                 <Image
                   source={{
                     // not using currencyCountryFlag any more as we have flags for every country
-                    uri: country ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png` : null,
+                    uri: (country && cdnUrls.images) ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png` : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
