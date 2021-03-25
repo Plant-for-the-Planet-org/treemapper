@@ -11,6 +11,7 @@ import {
   deleteAuthenticatedRequest,
   getAuthenticatedRequest,
   postAuthenticatedRequest,
+  putAuthenticatedRequest,
 } from '../utils/api';
 
 /**
@@ -173,6 +174,43 @@ export const deleteUserSpecie = (specieId) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Failed to delete user species having id ${specieId}, DELETE - /species`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+        reject(err);
+      });
+  });
+};
+
+export const setSpecieAliases = (specieId, aliases) => {
+  return new Promise((resolve, reject) => {
+    const data = { aliases: aliases };
+    console.log(data, 'data');
+    // makes an authorized DELETE request on /species to delete a specie of user.
+    putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)
+      .then((res) => {
+        const { status } = res;
+        console.log(status, 'status');
+        // checks if the status code is 204 then resolves the promise
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Set aliases to species having id ${specieId}, PUT - /species`,
+            statusCode: status,
+          });
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        // logs the error
+        console.error(`Error at /actions/species/setAliases, ${JSON.stringify(err?.response)}`);
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to set aliases to species having id ${specieId}, PUT - /species`,
           statusCode: err?.response?.status,
           logStack: JSON.stringify(err?.response),
         });

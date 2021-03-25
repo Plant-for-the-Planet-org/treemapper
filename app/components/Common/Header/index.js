@@ -18,6 +18,7 @@ const Header = ({
   rightText,
   onPressFunction,
   topRightComponent,
+  TitleRightComponent,
 }) => {
   const navigation = useNavigation();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
@@ -54,8 +55,25 @@ const Header = ({
         ) : null}
       </View>
       {headingText ? (
-        <View style={{ marginVertical: 0 }}>
-          <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
+        <View
+          style={
+            TitleRightComponent
+              ? {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }
+              : {}
+          }>
+          <Text
+            style={[
+              styles.headerText,
+              textAlignStyle,
+              TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
+            ]}>
+            {headingText}
+          </Text>
+          {TitleRightComponent ? <TitleRightComponent /> : null}
         </View>
       ) : null}
       {subHeadingText ? (

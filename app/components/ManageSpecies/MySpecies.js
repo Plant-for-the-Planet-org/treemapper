@@ -34,7 +34,6 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          console.log(item.guid, item.specieId, item.aliases, item.image, item.description, 'Item');
           if (registrationType == 'single') {
             addSpecieNameToInventory(item);
             if (editOnlySpecieName) {
@@ -67,6 +66,7 @@ const MySpecies = ({
                 SpecieAliases: item.aliases,
                 SpecieDescription: item.description,
                 SpecieImage: item.image,
+                SpecieLocalImage: item.localImage,
               })
             }>
             <Ionicons name="information-circle-outline" size={20} />

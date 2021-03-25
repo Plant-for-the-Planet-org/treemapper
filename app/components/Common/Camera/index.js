@@ -1,12 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import i18next from 'i18next';
+import { copyImageAndGetData } from '../../../utils/copyToFS';
 
 export default function index({ handleCamera }) {
   const camera = useRef();
-  // const [imagePath, setImagePath] = useState(null);
 
   const takePicture = async () => {
     const options = { quality: 0.5 };
@@ -15,7 +15,8 @@ export default function index({ handleCamera }) {
     });
     // setImagePath(data.uri);
     console.log(data.uri, 'Image url');
-    handleCamera(data.uri);
+    const fsurl = await copyImageAndGetData(data.uri);
+    handleCamera(data.uri, fsurl);
   };
   return (
     <RNCamera

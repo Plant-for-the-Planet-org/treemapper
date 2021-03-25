@@ -125,10 +125,8 @@ const ScientificSpecies = {
     specieId: 'string?',
     aliases: { type: 'string', default: '' },
     image: { type: 'string', default: '' },
+    localImage: { type: 'string', default: '' },
     description: { type: 'string', default: '' },
-    // aliases: 'string?',
-    // image: 'string?',
-    // description: 'string?',
   },
 };
 
