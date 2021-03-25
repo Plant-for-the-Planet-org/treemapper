@@ -2,46 +2,46 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
-import MapMarking from './MapMarking';
+import MapMarking from '../Common/MapMarking';
 import { getInventory, updateLastScreen } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
 
 const CreatePolygon = ({ route }) => {
   const { state } = useContext(InventoryContext);
 
-  const [locationText, setLocationText] = useState('');
   const [isMapMarkingState, setIsMapMarkingState] = useState(true);
   const [isCompletePolygon, setIsCompletePolygon] = useState(false);
-  const [coordsLength, setCoordsLength] = useState(0);
-  const [activeMarkerIndex, setActiveMarkerIndex] = useState(null);
+  const [activeMarkerIndex, setActiveMarkerIndex] = useState(0);
+  const [locateTree, setLocateTree] = useState(ON_SITE);
 
   useEffect(() => {
     checkIsEdit();
-    let data = { inventory_id: state.inventoryID, last_screen: 'CreatePolygon' };
-    updateLastScreen(data);
+    if (state.inventoryID) {
+      let data = { inventory_id: state.inventoryID, lastScreen: 'CreatePolygon' };
+      updateLastScreen(data);
+    }
+    if (route?.params?.locateTree) {
+      setLocateTree(route.params.locateTree);
+    }
   }, []);
 
   const checkIsEdit = () => {
-    if (route.params?.isEdit) {
+    if (route.params?.isEdit && state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         setIsMapMarkingState(false);
         setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
+        setLocateTree(inventory.locateTree);
       });
     }
   };
 
-  const toggleState = (locationText, coordsLength) => {
-    setLocationText(locationText);
-    setCoordsLength(coordsLength);
+  const toggleState = () => {
     setIsMapMarkingState(!isMapMarkingState);
   };
 
   const updateActiveMarkerIndex = (index) => {
     setActiveMarkerIndex(index);
-  };
-
-  const toogleState2 = () => {
-    setIsMapMarkingState(!isMapMarkingState);
   };
 
   return (
@@ -54,7 +54,8 @@ const CreatePolygon = ({ route }) => {
             setIsCompletePolygon={setIsCompletePolygon}
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
-            toogleState2={toogleState2}
+            multipleLocateTree={locateTree}
+            treeType={MULTI}
           />
         ) : (
           <ImageCapturing
@@ -62,7 +63,7 @@ const CreatePolygon = ({ route }) => {
             updateActiveMarkerIndex={updateActiveMarkerIndex}
             activeMarkerIndex={activeMarkerIndex}
             isCompletePolygon={isCompletePolygon}
-            inventoryType="multiple"
+            inventoryType={MULTI}
           />
         )}
       </View>

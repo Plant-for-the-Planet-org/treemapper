@@ -75,7 +75,7 @@ const UploadedInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_upload_list_header')}
           style={{ marginHorizontal: 25 }}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };
@@ -126,6 +126,7 @@ const UploadedInventory = ({ navigation }) => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={freeUpSpace}
         onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert}
+        showSecondaryButton={true}
       />
     </View>
   );

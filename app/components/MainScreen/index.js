@@ -32,7 +32,15 @@ import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
+import {
+  Header,
+  LargeButton,
+  Loader,
+  MainScreenHeader,
+  PrimaryButton,
+  Sync,
+  SpeciesSyncError,
+} from '../Common';
 import ProfileModal from '../ProfileModal';
 
 const MainScreen = ({ navigation }) => {
@@ -153,7 +161,8 @@ const MainScreen = ({ navigation }) => {
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
-          } else if (err.error !== 'a0.session.user_cancelled') {
+          } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
+            // TODO:i18n - if this is used, please add translations
             Alert.alert(
               'Verify your Email',
               'Please verify your email before logging in.',
@@ -201,7 +210,10 @@ const MainScreen = ({ navigation }) => {
   };
 
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => alert('Can write mail to support@plant-for-the-planet.org'));
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      // TODO:i18n - if this is used, please add translations
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
   };
 
   return (
@@ -233,9 +245,10 @@ const MainScreen = ({ navigation }) => {
                     ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
                     : ''
                 }
+                name={userInfo ? userInfo.firstName : ''}
               />
             </View>
-            {/* <View> */}
+            <SpeciesSyncError />
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -244,7 +257,6 @@ const MainScreen = ({ navigation }) => {
               hideBackIcon
               textAlignStyle={{ textAlign: 'center' }}
             />
-            {/* </View> */}
             <View>
               <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                 <LargeButton

@@ -1,6 +1,9 @@
 // used to set the inventory id of an inventory
 export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
 
+// used to delete the inventory id from the inventory state
+export const DELETE_INVENTORY_ID = 'DELETE_INVENTORY_ID';
+
 // used when the inventory is initiated
 export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
 
@@ -33,3 +36,9 @@ export const SET_USER_DETAILS = 'SET_USER_DETAILS';
 
 // Type to reset the user state to initialState. Used when user is logged out or no user data is present
 export const CLEAR_USER_DETAILS = 'CLEAR_USER_DETAILS';
+
+// Type to show the initial screens navigation stack
+export const SET_SHOW_INITIAL_STACK = 'SET_SHOW_INITIAL_STACK';
+
+// Type to show main screens navigation stack
+export const SET_SHOW_MAIN_STACK = 'SET_SHOW_MAIN_STACK';

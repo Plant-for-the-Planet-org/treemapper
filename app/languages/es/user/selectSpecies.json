@@ -12,5 +12,6 @@
   "select_species_height": "Altura",
   "select_species_continue": "Continuar",
   "select_species_error": "Error",
-  "select_species_ok": "OK"
+  "select_species_ok": "OK",
+  "select_species_tree_species": "Especies de árboles"
 }

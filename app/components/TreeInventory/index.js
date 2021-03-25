@@ -9,6 +9,8 @@ import {
   View,
   Alert,
   BackHandler,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
@@ -16,22 +18,26 @@ import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
-import { Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 const TreeInventory = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
-
+  const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, [navigation]);
 
   useEffect(() => {
@@ -62,28 +68,33 @@ const TreeInventory = ({ navigation }) => {
   let uploadedInventory = [];
   if (allInventory) {
     pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE_INVENTORY);
+    inCompleteInventory = allInventory.filter(
+      (x) => x.status === INCOMPLETE || x.status === INCOMPLETE_SAMPLE_TREE,
+    );
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        console.log('upload inventory successfully');
+        handleBackPress();
       })
       .catch((err) => {
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
-        } else if (err.error !== 'a0.session.user_cancelled') {
+        } else if (err === 'blocked') {
+          setIsPermissionBlockedAlertShow(true);
+        } else if (err?.error !== 'a0.session.user_cancelled') {
+          // TODO:i18n - if this is used, please add translations
           Alert.alert(
             'Verify your Email',
             'Please verify your email before logging in.',
             [{ text: 'OK' }],
             { cancelable: false },
           );
+          handleBackPress();
         }
       });
-    navigation.navigate('MainScreen');
   };
 
   const renderInventory = () => {
@@ -101,7 +112,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
-              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -125,7 +135,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
-              inventoryStatus={INCOMPLETE_INVENTORY}
             />
           </>
         )}
@@ -140,8 +149,9 @@ const TreeInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_list_header')}
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
+          onBackPress={handleBackPress}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };
@@ -153,6 +163,7 @@ const TreeInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_empty_list_header')}
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
+          onBackPress={handleBackPress}
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
         <View style={styles.primaryBtnCont}>
@@ -196,11 +207,16 @@ const TreeInventory = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <SafeAreaView />
-      {allInventory && allInventory.length > 0
+      {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
           ? renderLoadingInventoryList()
           : renderEmptyInventoryList()}
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
+        handleBackPress={handleBackPress}
+      />
     </View>
   );
 };
@@ -240,3 +256,31 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 });
+
+const PermissionBlockedAlert = ({
+  isPermissionBlockedAlertShow,
+  setIsPermissionBlockedAlertShow,
+  handleBackPress,
+}) => {
+  return (
+    <AlertModal
+      visible={isPermissionBlockedAlertShow}
+      heading={i18next.t('label.permission_blocked')}
+      message={i18next.t('label.permission_blocked_message')}
+      primaryBtnText={i18next.t('label.open_settings')}
+      secondaryBtnText={i18next.t('label.cancel')}
+      onPressPrimaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+        if (IS_ANDROID) {
+          Linking.openSettings();
+        } else {
+          Linking.openURL('app-settings:');
+        }
+      }}
+      onPressSecondaryBtn={() => {
+        setIsPermissionBlockedAlertShow(false);
+      }}
+      showSecondaryButton={true}
+    />
+  );
+};

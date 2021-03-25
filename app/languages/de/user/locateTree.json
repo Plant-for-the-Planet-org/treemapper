@@ -17,5 +17,6 @@
   "locate_tree_add_marker_valid": "Du befindest dich am selben Ort. Bitte gehe zum nächsten Standort.",
   "locate_tree_add_marker_invalid": "Du bist sehr weit von deinem derzeitigen Standort entfernt.",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "locate_tree_location": "Standort"
+  "locate_tree_location": "Standort",
+  "locate_tree_cannot_record_tree": "Beispielbaum konnte nicht erfasst werden"
 }

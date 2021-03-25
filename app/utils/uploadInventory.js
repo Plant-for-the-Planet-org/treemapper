@@ -19,6 +19,9 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
             resolve();
           })
           .catch((err) => {
+            if (err === 'blocked' || err === 'denied') {
+              reject(err);
+            }
             console.error(err);
           });
       }

@@ -6,7 +6,8 @@ import { LogTypes } from '../utils/constants';
 import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { getAuthenticatedRequest, getRequest, postAuthenticatedRequest } from '../utils/api';
+import { getAuthenticatedRequest, getRequest, postRequest } from '../utils/api';
+import AsyncStorage from '@react-native-community/async-storage';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -69,7 +70,7 @@ export const auth0Login = (dispatch) => {
               tpoId,
             })(dispatch);
 
-            checkAndAddUserSpecies(true);
+            checkAndAddUserSpecies();
             resolve(true);
           })
           .catch((err) => {
@@ -109,9 +110,12 @@ export const auth0Logout = (userDispatch = null) => {
   return new Promise((resolve) => {
     auth0.webAuth
       .clearSession()
-      .then(() => {
+      .then(async () => {
         // deletes the user from DB
         deleteUser();
+
+        // removes [isInitialSyncDone] item from AsyncStorage
+        await AsyncStorage.removeItem('isInitialSyncDone');
 
         if (userDispatch) {
           // clear the user details from the user state
@@ -219,6 +223,8 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
           image,
           country,
           id: tpoId,
+          type,
+          displayName,
         } = data.data;
 
         // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
@@ -229,6 +235,8 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
           image,
           country,
           tpoId,
+          type,
+          displayName,
         });
 
         // logging the success in to the db
@@ -262,7 +270,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
 export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
-    postAuthenticatedRequest('/app/profile', payload)
+    postRequest('/app/profile', payload)
       .then((res) => {
         const { status, data } = res;
         if (status === 200) {
