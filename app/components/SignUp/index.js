@@ -25,6 +25,7 @@ import Config from 'react-native-config';
 import * as RNLocalize from 'react-native-localize';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
+import { getCdnUrls } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { StackActions } from '@react-navigation/native';
@@ -59,6 +60,13 @@ const SignUp = ({ navigation }) => {
   const textInputCity = useRef(null);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
+  const [cdnUrls, setCdnUrls] = useState({});
+
+  useEffect(() => {
+    getCdnUrls(i18next.language).then((cdnMedia) => {
+      setCdnUrls(cdnMedia);
+    });
+  }, []);
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
@@ -67,19 +75,19 @@ const SignUp = ({ navigation }) => {
     let name;
     switch (type) {
       case 'individual':
-        name = 'INIDIVDUAL';
+        name = i18next.t('label.individual');
         break;
       case 'tpo':
-        name = 'TREE PLANTING ORGANISATION';
+        name = i18next.t('label.tpo_title');
         break;
       case 'education':
-        name = 'SCHOOL';
+        name = i18next.t('label.education_title');
         break;
       case 'company':
-        name = 'COMPANY';
+        name = i18next.t('label.company');
         break;
       default:
-        name = 'TREE PLANTING ORGANISATION';
+        name = i18next.t('label.tpo');
         break;
     }
     return name;
@@ -114,7 +122,7 @@ const SignUp = ({ navigation }) => {
     let userData;
     if (accountType === '') {
       Snackbar.show({
-        text: 'Select Role Type',
+        text: i18next.t('label.select_role_type'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -122,7 +130,7 @@ const SignUp = ({ navigation }) => {
     if (firstname === '') {
       setFirstNameError(true);
       Snackbar.show({
-        text: 'Enter first name',
+        text: i18next.t('label.enter_first_name'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -130,7 +138,7 @@ const SignUp = ({ navigation }) => {
     if (lastname === '') {
       setLastNameError(true);
       Snackbar.show({
-        text: 'Enter last name',
+        text: i18next.t('label.enter_last_name'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -138,28 +146,28 @@ const SignUp = ({ navigation }) => {
       if (city === '') {
         setCityError(true);
         Snackbar.show({
-          text: 'Enter City Name',
+          text: i18next.t('label.enter_city_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (zipCode === '') {
         setZipCodeError(true);
         Snackbar.show({
-          text: 'Enter zipcode',
+          text: i18next.t('label.enter_zipcode'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (address === '') {
         setAddressError(true);
         Snackbar.show({
-          text: 'Enter Address',
+          text: i18next.t('label.enter_address'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
-          text: 'Enter Organisation Name',
+          text: i18next.t('label.enter_organisation_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
@@ -184,7 +192,7 @@ const SignUp = ({ navigation }) => {
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
-          text: 'Enter Organisation Name',
+          text: i18next.t('label.enter_organisation_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
@@ -366,11 +374,12 @@ const SignUp = ({ navigation }) => {
               </View>
             </View>
             <View style={{ marginVertical: 20 }}>
-              <Text>COUNTRY</Text>
+              <Text>{i18next.t('label.country')}</Text>
               <View style={styles.countryContainer}>
                 <Image
                   source={{
-                    uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : null,
+                    // not using currencyCountryFlag any more as we have flags for every country
+                    uri: country ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png` : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
@@ -382,7 +391,7 @@ const SignUp = ({ navigation }) => {
                     <View>
                       <Text
                         style={{ paddingBottom: 8, fontFamily: Typography.FONT_FAMILY_REGULAR }}>
-                        {country ? country.countryName : 'Select Country'}
+                        {country ? country.countryName : i18next.t('label.select_country')}
                       </Text>
                       <View style={{ flexDirection: 'row' }}>
                         <Text
@@ -390,7 +399,7 @@ const SignUp = ({ navigation }) => {
                             color: Colors.PRIMARY,
                             fontFamily: Typography.FONT_FAMILY_REGULAR,
                           }}>
-                          Change
+                          {i18next.t('label.change')}
                         </Text>
                         <Ionicons
                           name="angle-right"
@@ -412,7 +421,7 @@ const SignUp = ({ navigation }) => {
               </TouchableOpacity> */}
             </View>
             {modalVisible ? (
-              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
+              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} cdnUrls={cdnUrls} />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer()}>
