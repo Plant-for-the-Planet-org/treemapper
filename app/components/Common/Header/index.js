@@ -17,11 +17,7 @@ const Header = ({
   accessibilityLabel,
   rightText,
   onPressFunction,
-<<<<<<< HEAD
-  topRightComponent,
-=======
   TopRightComponent,
->>>>>>> develop
   TitleRightComponent,
 }) => {
   const navigation = useNavigation();
