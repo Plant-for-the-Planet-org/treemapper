@@ -14,5 +14,13 @@
   "alright_modal_off_site_header": "Fuera del sitio habilitado!",
   "image_capturing_header": "Foto",
   "image_capturing_sub_header": "Por favor, toma una foto de frente al árbol plantado.",
-  "image_capturing_required": "La imagen es necesaria"
+  "image_capturing_required": "La imagen es necesaria",
+  "coming_soon": "¡Disponible en breve!",
+  "image_click_picture": "Toma una foto",
+  "image_reclick": "De nuevo",
+  "sample_tree_marking_heading": "Árbol de muestra #{{ongoingSampleTreeNumber}}",
+  "sample_tree_review_tree_number": "Revisar {{ongoingSampleTreeNumber}} Árboles",
+  "alright_modal_skip": "Saltar",
+  "total_trees_header": "Total de árboles",
+  "add_all_trees_planted_on_site": "Por favor, añade la lista de todos los árboles plantados en la ubicación"
 }

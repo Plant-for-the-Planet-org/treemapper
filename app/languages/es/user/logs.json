@@ -1,4 +1,6 @@
 {
+  "logs_page_title": "Registro de actividades",
   "logs_all": "Todo",
+  "logs_errors": "Errores",
   "logs_date": "{{item.title}}"
 }

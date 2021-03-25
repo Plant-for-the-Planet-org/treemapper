@@ -1,1 +1,5 @@
-{ }
+{
+  "speciesSyncError_heading": "A sincronização das espécies está incompleta!",
+  "speciesSyncError_text": "A sincronização das espécies é necessária para adicionar espécies no inventário. Sincronize quando a conexão com a internet estiver disponível.",
+  "snackBarText": "Alguma coisa deu errado. "
+}

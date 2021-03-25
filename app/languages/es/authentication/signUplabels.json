@@ -1,4 +1,5 @@
 {
+  "signup": "Regístrate",
   "email": "Correo electrónico",
   "isPrivate": "Acepto que mi nombre se publique en el sitio web de Plant-for-the-Planet y en la aplicación.",
   "getNews": "Acepto que la organización de niños y jóvenes Plant-for-the-Planet me contacte para actualizarme sobre los desafíos de plantar árboles.",
@@ -10,5 +11,10 @@
   "signup_confirm": "Por favor, confirma tus datos.",
   "individual": "Individual",
   "company": "Empresa",
-  "create_profile": "Crear el perfil"
+  "tpo_title_organisation": "Nombre de {{roleText}}",
+  "create_profile": "Crear el perfil",
+  "city": "Ciudad",
+  "address": "Dirección",
+  "zipcode": "Código Postal",
+  "account_type": "Tipo de cuenta"
 }
