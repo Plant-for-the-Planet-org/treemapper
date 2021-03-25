@@ -1,32 +1,31 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  ScrollView,
-  Switch,
-  TextInput,
-  Platform,
-  Image,
-} from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
-import Ionicons from 'react-native-vector-icons/FontAwesome';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { getUserDetails } from '../../repositories/user';
 import jwtDecode from 'jwt-decode';
-import { SignupService, getCdnUrls } from '../../actions/user';
-import Snackbar from 'react-native-snackbar';
-import { Loader } from '../Common';
-import Modal from '../Common/Modal';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import * as RNLocalize from 'react-native-localize';
-import { handleFilter } from '../../utils/CountryDataFilter';
-import { startSignUpLoading, stopSignUpLoading, stopLoading } from '../../actions/loader';
+import Snackbar from 'react-native-snackbar';
+import Ionicons from 'react-native-vector-icons/FontAwesome';
+import { Colors, Typography } from '_styles';
+import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
+import { getCdnUrls, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
-import { StackActions } from '@react-navigation/native';
+import { getUserDetails } from '../../repositories/user';
+import { handleFilter } from '../../utils/CountryDataFilter';
+import { Header, Loader, PrimaryButton } from '../Common';
+import Modal from '../Common/Modal';
 
 // TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
@@ -343,7 +342,10 @@ const SignUp = ({ navigation }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
                 <TextInput
-                  style={styles.value(firstNameError)}
+                  style={[
+                    styles.value,
+                    firstNameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={firstname}
                   onChangeText={(text) => setFirstName(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -355,7 +357,10 @@ const SignUp = ({ navigation }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
                 <TextInput
-                  style={styles.value(lastNameError)}
+                  style={[
+                    styles.value,
+                    lastNameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={lastname}
                   onChangeText={(text) => setLastName(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -377,7 +382,9 @@ const SignUp = ({ navigation }) => {
                 <Image
                   source={{
                     // not using currencyCountryFlag any more as we have flags for every country
-                    uri: country ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png` : null,
+                    uri: country
+                      ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png`
+                      : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
@@ -419,15 +426,23 @@ const SignUp = ({ navigation }) => {
               </TouchableOpacity> */}
             </View>
             {modalVisible ? (
-              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} cdnUrls={cdnUrls} />
+              <Modal
+                visible={modalVisible}
+                openModal={openModal}
+                userCountry={userCountry}
+                cdnUrls={cdnUrls}
+              />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
-              <View style={styles.emailContainer()}>
+              <View style={styles.emailContainer}>
                 <Text style={styles.label}>
                   {i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}
                 </Text>
                 <TextInput
-                  style={styles.value(nameError)}
+                  style={[
+                    styles.value,
+                    nameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={nameOfOrg}
                   onChangeText={(text) => setNameOfOrg(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -438,7 +453,7 @@ const SignUp = ({ navigation }) => {
                 />
               </View>
             ) : null}
-            <View style={styles.emailContainer('email')}>
+            <View style={[styles.emailContainer, styles.primaryColor]}>
               <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
               <TextInput
                 style={styles.inputColor}
@@ -449,10 +464,13 @@ const SignUp = ({ navigation }) => {
             </View>
             {accountType === 'tpo' ? (
               <View>
-                <View style={styles.emailContainer()}>
+                <View style={styles.emailContainer}>
                   <Text style={styles.label}>{i18next.t('label.address')}</Text>
                   <TextInput
-                    style={styles.value(addressError)}
+                    style={[
+                      styles.value,
+                      addressError ? styles.borderBottomRed : styles.borderBottomBlack,
+                    ]}
                     value={address}
                     onChangeText={(text) => setAddress(text)}
                     returnKeyType={completeCheck ? 'done' : 'next'}
@@ -467,7 +485,10 @@ const SignUp = ({ navigation }) => {
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.city')}</Text>
                     <TextInput
-                      style={styles.value(cityError)}
+                      style={[
+                        styles.value,
+                        cityError ? styles.borderBottomRed : styles.borderBottomBlack,
+                      ]}
                       value={city}
                       onChangeText={(text) => setCity(text)}
                       returnKeyType={completeCheck ? 'done' : 'next'}
@@ -482,7 +503,10 @@ const SignUp = ({ navigation }) => {
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
                     <TextInput
-                      style={styles.value(zipCodeError)}
+                      style={[
+                        styles.value,
+                        zipCodeError ? styles.borderBottomRed : styles.borderBottomBlack,
+                      ]}
                       value={zipCode}
                       onChangeText={(text) => setZipCode(text)}
                       returnKeyType={completeCheck ? 'done' : 'next'}
@@ -582,16 +606,19 @@ const styles = StyleSheet.create({
   },
   marginRight: { marginRight: 5 },
   marginLeft: { marginLeft: 5 },
-  value: (invalid) => ({
+  value: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: 20,
-    // color: Colors.TEXT_COLOR,
-    // fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: invalid ? 'red' : Colors.TEXT_COLOR,
-  }),
+  },
+  borderBottomRed: {
+    borderBottomColor: 'red',
+  },
+  borderBottomBlack: {
+    borderBottomColor: Colors.TEXT_COLOR,
+  },
   label: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
@@ -601,12 +628,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '46.7%',
   },
-  emailContainer: (email) => ({
+  emailContainer: {
     width: '100%',
-    color: email === 'email' ? Colors.PRIMARY : null,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginVertical: 20,
-  }),
+  },
+  primaryColor: { color: Colors.PRIMARY },
   getNewsText: {
     // paddingTop: 60,
     marginTop: 130,
