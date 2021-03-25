@@ -59,10 +59,10 @@ const Header = ({
           style={
             TitleRightComponent
               ? {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
               : {}
           }>
           <Text

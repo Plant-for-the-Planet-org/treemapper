@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Header, Camera } from '../Common';
 import { Colors, Typography } from '_styles';
