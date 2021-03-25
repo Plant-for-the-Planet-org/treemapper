@@ -13,7 +13,6 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';
-import Config from 'react-native-config';
 import i18next from 'i18next';
 
 export default function index({ visible, openModal, userCountry, cdnUrls }) {
