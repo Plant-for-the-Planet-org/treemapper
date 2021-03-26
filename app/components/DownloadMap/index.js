@@ -1,24 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import i18next from 'i18next';
+import { default as React, default as React, useEffect, useRef, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Linking,
+  Modal,
+  Platform,
+  SafeAreaView,
   StyleSheet,
   Text,
-  Modal,
-  ActivityIndicator,
-  Image,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import { Header, PrimaryButton, AlertModal } from '../Common';
-import { SafeAreaView, Linking, Platform } from 'react-native';
-import { Colors, Typography } from '_styles';
-import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
-import { permission } from '../../utils/permissions';
-import i18next from 'i18next';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Colors, Typography } from '_styles';
+import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 import { bugsnag } from '../../utils';
+import { permission } from '../../utils/permissions';
+import { AlertModal, Header, PrimaryButton } from '../Common';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const IS_ANDROID = Platform.OS === 'android';
@@ -49,16 +50,15 @@ const DownloadMap = ({ navigation }) => {
   const initialMapCamera = () => {
     permission()
       .then(() => {
-        console.log('above geolocation');
         Geolocation.getCurrentPosition(
           (position) => {
-            camera &&
-              camera.current &&
+            if (camera?.current?.setCamera) {
               camera.current.setCamera({
                 centerCoordinate: [position.coords.longitude, position.coords.latitude],
                 zoomLevel: 15,
                 animationDuration: 1000,
               });
+            }
           },
           (err) => {
             alert(err.message);
@@ -192,7 +192,7 @@ const DownloadMap = ({ navigation }) => {
         </View>
         {numberOfOfflineMaps == 0 ? (
           <PrimaryButton
-            disabled={zoomLevel > 11 ? false : true}
+            disabled={zoomLevel < 11}
             onPress={onPressDownloadArea}
             btnText={i18next.t('label.download_map')}
           />
@@ -205,7 +205,7 @@ const DownloadMap = ({ navigation }) => {
               theme={'white'}
             />
             <PrimaryButton
-              disabled={zoomLevel > 11 ? false : true}
+              disabled={zoomLevel < 11}
               onPress={onPressDownloadArea}
               btnText={i18next.t('label.download_map')}
               halfWidth
@@ -332,6 +332,7 @@ const PermissionBlockedAlert = ({
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
       }}
+      showSecondaryButton={true}
     />
   );
 };

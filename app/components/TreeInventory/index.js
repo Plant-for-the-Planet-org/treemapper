@@ -19,7 +19,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import { bugsnag } from '../../utils';
 
@@ -36,7 +36,9 @@ const TreeInventory = ({ navigation }) => {
       initialState();
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, [navigation]);
 
   useEffect(() => {
@@ -67,25 +69,24 @@ const TreeInventory = ({ navigation }) => {
   let uploadedInventory = [];
   if (allInventory) {
     pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter((x) => x.status === INCOMPLETE_INVENTORY);
+    inCompleteInventory = allInventory.filter(
+      (x) => x.status === INCOMPLETE || x.status === INCOMPLETE_SAMPLE_TREE,
+    );
     uploadedInventory = allInventory.filter((x) => x.status == 'complete');
   }
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        console.log('upload inventory successfully');
-        navigation.navigate('MainScreen');
+        handleBackPress();
       })
       .catch((err) => {
         bugsnag.notify(err);
-        console.log(err, 'In Tree Inventory');
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
-          navigation.navigate('MainScreen');
         } else if (err === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
-        } else if (err.error !== 'a0.session.user_cancelled') {
+        } else if (err?.error !== 'a0.session.user_cancelled') {
           // TODO:i18n - if this is used, please add translations
           Alert.alert(
             'Verify your Email',
@@ -93,7 +94,7 @@ const TreeInventory = ({ navigation }) => {
             [{ text: 'OK' }],
             { cancelable: false },
           );
-          navigation.navigate('MainScreen');
+          handleBackPress();
         }
       });
   };
@@ -113,7 +114,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}
-              inventoryStatus={'pending'}
             />
           </>
         )}
@@ -137,7 +137,6 @@ const TreeInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={inCompleteInventory}
-              inventoryStatus={INCOMPLETE_INVENTORY}
             />
           </>
         )}
@@ -210,11 +209,11 @@ const TreeInventory = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <SafeAreaView />
-      {allInventory && allInventory.length > 0
+      {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
@@ -283,6 +282,7 @@ const PermissionBlockedAlert = ({
       onPressSecondaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
       }}
+      showSecondaryButton={true}
     />
   );
 };

@@ -6,7 +6,7 @@ import { LogTypes } from '../utils/constants';
 import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { getAuthenticatedRequest, getRequest, postAuthenticatedRequest } from '../utils/api';
+import { getAuthenticatedRequest, getRequest, postRequest } from '../utils/api';
 import AsyncStorage from '@react-native-community/async-storage';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
@@ -271,7 +271,7 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
 export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
-    postAuthenticatedRequest('/app/profile', payload)
+    postRequest('/app/profile', payload)
       .then((res) => {
         const { status, data } = res;
         if (status === 200) {

@@ -23,7 +23,6 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
           .catch((err) => {
             if (err === 'blocked' || err === 'denied') {
               reject(err);
-              console.log('rejecting', err);
             }
             console.error(err);
             bugsnag.notify(err);

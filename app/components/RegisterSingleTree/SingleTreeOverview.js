@@ -1,7 +1,9 @@
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
+  BackHandler,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -16,18 +18,18 @@ import {
   View,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import LinearGradient from 'react-native-linear-gradient';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, Typography } from '_styles';
+import { Colors, CommonStyles, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   changeInventoryStatus,
   deleteInventory,
   getInventory,
+  updateInventory,
   updateLastScreen,
   updatePlantingDate,
   updateSingleTreeSpecie,
@@ -35,14 +37,38 @@ import {
   updateSpecieHeight,
   updateTreeTag,
 } from '../../repositories/inventory';
+import dbLog from '../../repositories/logs';
 import { getUserInformation } from '../../repositories/user';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
-import { Header, PrimaryButton } from '../Common';
-import ManageSpecies from '../ManageSpecies';
-import AlertModal from '../Common/AlertModal';
 import { bugsnag } from '../../utils';
+import {
+  cmToInch,
+  diameterMaxCm,
+  diameterMaxInch,
+  diameterMinCm,
+  diameterMinInch,
+  footToMeter,
+  heightMaxFoot,
+  heightMaxM,
+  heightMinFoot,
+  heightMinM,
+  inchToCm,
+  LogTypes,
+  meterToFoot,
+  nonISUCountries,
+} from '../../utils/constants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  MULTI,
+  ON_SITE,
+  PENDING_DATA_UPLOAD,
+  SINGLE,
+} from '../../utils/inventoryConstants';
+import { Header, PrimaryButton } from '../Common';
+import AlertModal from '../Common/AlertModal';
+import ManageSpecies from '../ManageSpecies';
 
-const SingleTreeOverview = ({ navigation }) => {
+const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -63,67 +89,155 @@ const SingleTreeOverview = ({ navigation }) => {
   const [isShowManageSpecies, setIsShowManageSpecies] = useState(false);
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [isSampleTree, setIsSampleTree] = useState(false);
+  const [sampleTreeIndex, setSampleTreeIndex] = useState();
+
+  const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
-    let data = { inventory_id: inventoryState.inventoryID, last_screen: 'SingleTreeOverview' };
-    updateLastScreen(data);
+    if (route?.params?.isSampleTree) {
+      setSampleTreeIndex(route.params.sampleTreeIndex);
+    }
+  }, [route.params]);
+
+  useEffect(() => {
+    if (!route?.params?.isSampleTree) {
+      let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
+      updateLastScreen(data);
+    }
     const unsubscribe = navigation.addListener('focus', () => {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventory) => {
-        setInventory(inventory);
-        setStatus(inventory.status);
-        setSpecieText(inventory.species[0].aliases);
-        setLocateTree(inventory.locate_tree);
-        setRegistrationType(inventory.tree_type);
-        setSpecieDiameter(Math.round(inventory.species_diameter * 100) / 100);
-        setSpecieEditDiameter(Math.round(inventory.species_diameter * 100) / 100);
-        setSpecieHeight(Math.round(inventory.species_height * 100) / 100);
-        setSpecieEditHeight(Math.round(inventory.species_height * 100) / 100);
-        setPlantationDate(inventory.plantation_date);
-        setTagId(inventory.tag_id);
-        setEditedTagId(inventory.tag_id);
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+        setStatus(inventoryData.status);
+        setLocateTree(inventoryData.locateTree);
+        setRegistrationType(inventoryData.treeType);
+
+        getUserInformation().then((data) => {
+          setCountryCode(data.country);
+          if (
+            inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
+            (route?.params?.isSampleTree &&
+              (route?.params?.sampleTreeIndex === 0 || route?.params?.sampleTreeIndex))
+          ) {
+            const index = route?.params?.isSampleTree
+              ? route?.params?.sampleTreeIndex
+              : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
+              ? inventoryData.completedSampleTreesCount - 1
+              : inventoryData.completedSampleTreesCount;
+
+            const currentSampleTree = inventoryData.sampleTrees[index];
+            const diameter = nonISUCountries.includes(data.country)
+              ? Math.round(currentSampleTree.specieDiameter * cmToInch * 100) / 100
+              : currentSampleTree.specieDiameter;
+            const height = nonISUCountries.includes(data.country)
+              ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
+              : currentSampleTree.specieHeight;
+
+            setSampleTreeIndex(index);
+            setIsSampleTree(true);
+            setSpecieText(currentSampleTree.specieName);
+            setSpecieDiameter(diameter);
+            setSpecieEditDiameter(diameter);
+            setSpecieHeight(height);
+            setSpecieEditHeight(height);
+            setPlantationDate(currentSampleTree.plantationDate);
+            setTagId(currentSampleTree.tagId);
+            setEditedTagId(currentSampleTree.tagId);
+          } else {
+            const diameter = nonISUCountries.includes(data.country)
+              ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
+              : inventoryData.specieDiameter;
+            const height = nonISUCountries.includes(data.country)
+              ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
+              : inventoryData.specieHeight;
+
+            setSpecieText(inventoryData.species[0].aliases);
+            setSpecieDiameter(diameter);
+            setSpecieEditDiameter(diameter);
+            setSpecieHeight(height);
+            setSpecieEditHeight(height);
+            setPlantationDate(inventoryData.plantation_date);
+            setTagId(inventoryData.tagId);
+            setEditedTagId(inventoryData.tagId);
+          }
+        });
       });
     });
-    Country();
+
     return unsubscribe;
   }, [isShowManageSpecies, navigation]);
 
-  // useEffect(() => {
-  //   BackHandler.addEventListener('hardwareBackPress', onPressSave);
-  //   return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
-  // }, []);
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onPressSave);
+    return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+  }, []);
 
   const onSubmitInputField = (action) => {
-    const dimensionRegex = /^\d{0,4}(\.\d{1,3})?$/;
+    const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
+
+    const diameterMinValue = nonISUCountries.includes(countryCode)
+      ? diameterMinInch
+      : diameterMinCm;
+    const diameterMaxValue = nonISUCountries.includes(countryCode)
+      ? diameterMaxInch
+      : diameterMaxCm;
+
+    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
+    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
+
     if (
       action === 'diameter' &&
       specieEditDiameter !== '' &&
-      Number(specieEditDiameter) !== 0 &&
+      Number(specieEditDiameter) >= diameterMinValue &&
+      Number(specieEditDiameter) <= diameterMaxValue &&
       dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
-      updateSpecieDiameter({
-        inventory_id: inventory.inventory_id,
-        speciesDiameter: Number(specieEditDiameter),
-      });
+      const refactoredSpecieDiameter = nonISUCountries.includes(countryCode)
+        ? Number(specieEditDiameter) * inchToCm
+        : Number(specieEditDiameter);
+
+      if (!isSampleTree && !route?.params?.isSampleTree) {
+        updateSpecieDiameter({
+          inventory_id: inventory.inventory_id,
+          speciesDiameter: refactoredSpecieDiameter,
+        });
+      } else {
+        updateSampleTree(action, refactoredSpecieDiameter);
+      }
       setIsOpenModal(false);
     } else if (
       action === 'height' &&
       specieEditHeight !== '' &&
-      Number(specieEditHeight) !== 0 &&
+      Number(specieEditHeight) >= heightMinValue &&
+      Number(specieEditHeight) <= heightMaxValue &&
       dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
-      updateSpecieHeight({
-        inventory_id: inventory.inventory_id,
-        speciesHeight: Number(specieEditHeight),
-      });
+      const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
+        ? Number(specieEditHeight) * footToMeter
+        : Number(specieEditHeight);
+
+      if (!isSampleTree && !route?.params?.isSampleTree) {
+        updateSpecieHeight({
+          inventory_id: inventory.inventory_id,
+          speciesHeight: refactoredSpecieHeight,
+        });
+      } else {
+        updateSampleTree(action, refactoredSpecieHeight);
+      }
       setIsOpenModal(false);
     } else if (action === 'tagId') {
       setTagId(editedTagId);
-      updateTreeTag({
-        inventoryId: inventory.inventory_id,
-        tagId: editedTagId,
-      });
+      if (!isSampleTree && !route?.params?.isSampleTree) {
+        updateTreeTag({
+          inventoryId: inventory.inventory_id,
+          tagId: editedTagId,
+        });
+      } else {
+        updateSampleTree(action);
+      }
       setIsOpenModal(false);
     } else {
       // TODO:i18n - if this is used, please add translations
@@ -133,13 +247,98 @@ const SingleTreeOverview = ({ navigation }) => {
     setEditEnable('');
   };
 
-  const Country = () => {
-    getUserInformation().then((data) => {
-      setCountryCode(data.country);
-    });
-  };
+  const updateSampleTree = (toUpdate, value = null) => {
+    let updatedSampleTrees = inventory.sampleTrees;
+    let sampleTree = updatedSampleTrees[sampleTreeIndex];
+    let inventoryData = {};
+    switch (toUpdate) {
+      case 'diameter': {
+        sampleTree = {
+          ...sampleTree,
+          specieDiameter: value,
+        };
+        break;
+      }
+      case 'height': {
+        sampleTree = {
+          ...sampleTree,
+          specieHeight: value,
+        };
+        break;
+      }
+      case 'tagId': {
+        sampleTree = {
+          ...sampleTree,
+          tagId: editedTagId,
+        };
+        break;
+      }
+      case 'plantationDate': {
+        sampleTree = {
+          ...sampleTree,
+          plantationDate: value,
+        };
+        break;
+      }
+      case 'specie': {
+        sampleTree = {
+          ...sampleTree,
+          specieId: value?.guid,
+          specieName: value?.scientificName,
+        };
+        break;
+      }
+      case 'changeStatusToPending': {
+        sampleTree = {
+          ...sampleTree,
+          status: PENDING_DATA_UPLOAD,
+        };
+        inventoryData = {
+          ...inventoryData,
+          completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
+        };
+        break;
+      }
+      default:
+        break;
+    }
+    updatedSampleTrees[sampleTreeIndex] = sampleTree;
 
-  const Countries = ['US', 'LR', 'MM'];
+    inventoryData = {
+      ...inventoryData,
+      sampleTrees: [...updatedSampleTrees],
+    };
+
+    updateInventory({
+      inventory_id: inventory.inventory_id,
+      inventoryData,
+    })
+      .then(() => {
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully modified ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+        });
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          setInventory(inventoryData);
+        });
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to modify ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+        });
+        console.error(
+          `Failed to modify ${toUpdate} for sample tree #${
+            sampleTreeIndex + 1
+          } having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
+      });
+  };
 
   const renderInputModal = () => {
     return (
@@ -150,23 +349,23 @@ const SingleTreeOverview = ({ navigation }) => {
             <KeyboardAvoidingView
               behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
               style={styles.bgWhite}>
-              <View style={styles.externalInputContainer}>
-                <Text style={styles.labelModal}>
+              <View style={CommonStyles.bottomInputContainer}>
+                <Text style={CommonStyles.bottomInputLabel}>
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
-                  style={styles.value}
+                  style={CommonStyles.bottomInputText}
                   autoFocus
                   placeholderTextColor={Colors.TEXT_COLOR}
                   keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
@@ -201,31 +400,47 @@ const SingleTreeOverview = ({ navigation }) => {
       setIsShowManageSpecies(true);
     } else {
       setEditEnable(action);
+      if (action === 'diameter') {
+        setSpecieEditDiameter(specieDiameter);
+      } else if (action === 'height') {
+        setSpecieEditHeight(specieHeight);
+      } else if (action === 'tagId') {
+        setEditedTagId(tagId);
+      }
       setIsOpenModal(true);
     }
   };
 
   const addSpecieNameToInventory = (specie) => {
-    updateSingleTreeSpecie({
-      inventory_id: inventory.inventory_id,
-      species: [
-        {
-          id: specie.guid,
-          treeCount: 1,
-          aliases: specie.scientificName,
-        },
-      ],
-    });
+    if (!isSampleTree && !route?.params?.isSampleTree) {
+      updateSingleTreeSpecie({
+        inventory_id: inventory.inventory_id,
+        species: [
+          {
+            id: specie.guid,
+            treeCount: 1,
+            aliases: specie.scientificName,
+          },
+        ],
+      });
+    } else {
+      updateSampleTree('specie', specie);
+    }
     setSpecieText(specie.scientificName);
   };
 
   const onChangeDate = (selectedDate) => {
+    if (!isSampleTree && !route?.params?.isSampleTree) {
+      updatePlantingDate({
+        inventory_id: inventoryState.inventoryID,
+        plantation_date: selectedDate,
+      });
+    } else {
+      updateSampleTree('plantationDate', selectedDate);
+    }
+
     setIsShowDate(false);
     setPlantationDate(selectedDate);
-    updatePlantingDate({
-      inventory_id: inventoryState.inventoryID,
-      plantation_date: selectedDate,
-    });
   };
 
   const renderDateModal = () => {
@@ -258,7 +473,16 @@ const SingleTreeOverview = ({ navigation }) => {
 
   if (inventory) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
-    filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
+    if (inventory.treeType === SINGLE) {
+      filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
+    } else if (
+      inventory.treeType === MULTI &&
+      (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === 'complete') &&
+      (sampleTreeIndex === 0 || sampleTreeIndex)
+    ) {
+      filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
+    }
+
     imageSource = filePath
       ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
       : false;
@@ -270,7 +494,12 @@ const SingleTreeOverview = ({ navigation }) => {
       coords = polygons[0].coordinates[0];
     }
     let shouldEdit;
-    if (inventory && (inventory.status === INCOMPLETE_INVENTORY || inventory.status == null)) {
+    if (
+      inventory &&
+      (inventory.status === INCOMPLETE ||
+        inventory.status === INCOMPLETE_SAMPLE_TREE ||
+        !inventory.status)
+    ) {
       shouldEdit = true;
     } else {
       shouldEdit = false;
@@ -317,9 +546,11 @@ const SingleTreeOverview = ({ navigation }) => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                Countries.includes(countryCode)
-                  ? `${Math.round(specieDiameter * 100) / 100}inches`
-                  : `${Math.round(specieDiameter * 100) / 100}cm`
+                  nonISUCountries.includes(countryCode)
+                  ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
+                      'label.select_species_inches',
+                    )}`
+                  : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -337,9 +568,10 @@ const SingleTreeOverview = ({ navigation }) => {
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {specieHeight
-                ? Countries.includes(countryCode)
-                  ? `${Math.round(specieHeight * 100) / 100}foot`
-                  : `${Math.round(specieHeight * 100) / 100}m`
+                ? nonISUCountries.includes(countryCode)
+                  ? ` ${Math.round(specieHeight * 100) / 100} ` +
+                    i18next.t('label.select_species_feet')
+                  : ` ${Math.round(specieHeight * 100) / 100} m`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
@@ -382,7 +614,9 @@ const SingleTreeOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status == 'complete') {
+    if (route?.params?.isSampleTree) {
+      navigation.goBack();
+    } else if (inventory.status === 'complete' || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       navigation.navigate('TreeInventory');
     } else {
       if (specieText) {
@@ -397,8 +631,23 @@ const SingleTreeOverview = ({ navigation }) => {
     }
   };
 
+  const onPressContinueToSpecies = () => {
+    updateSampleTree('changeStatusToPending');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 3,
+        routes: [
+          { name: 'MainScreen' },
+          { name: 'TreeInventory' },
+          { name: 'InventoryOverview' },
+          { name: 'TotalTreesSpecies' },
+        ],
+      }),
+    );
+  };
+
   const onPressNextTree = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
+    if (inventory.status === INCOMPLETE) {
       changeInventoryStatus(
         { inventory_id: inventoryState.inventoryID, status: 'pending' },
         dispatch,
@@ -406,8 +655,24 @@ const SingleTreeOverview = ({ navigation }) => {
         deleteInventoryId()(dispatch);
         navigation.navigate('RegisterSingleTree');
       });
-    } else {
-      navigation.goBack('TreeInventory');
+    } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
+      updateSampleTree('changeStatusToPending');
+
+      let data = {
+        inventory_id: inventory.inventory_id,
+        lastScreen: 'RecordSampleTrees',
+      };
+      updateLastScreen(data);
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            { name: 'RecordSampleTrees' },
+          ],
+        }),
+      );
     }
   };
 
@@ -427,8 +692,9 @@ const SingleTreeOverview = ({ navigation }) => {
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
       registrationType={registrationType}
-      addSpecieNameToInventory={addSpecieNameToInventory}
+      addSpecieToInventory={addSpecieNameToInventory}
       editOnlySpecieName={true}
+      isSampleTree={isSampleTree}
     />
   ) : (
     <SafeAreaView style={styles.mainContainer}>
@@ -437,51 +703,61 @@ const SingleTreeOverview = ({ navigation }) => {
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 0 }}>
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingVertical: 0,
+              marginBottom: 24,
+            }}>
             <Header
               closeIcon
               onBackPress={onPressSave}
               headingText={
-                locateTree === 'off-site'
+                isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
+                  ? i18next.t('label.sample_tree_review_tree_number', {
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    })
+                  : status === 'complete'
                   ? i18next.t('label.tree_review_details')
                   : i18next.t('label.tree_review_header')
               }
             />
-            <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
-              <Text
-                style={{
-                  fontFamily: Typography.FONT_FAMILY_REGULAR,
-                  fontSize: Typography.FONT_SIZE_18,
-                  lineHeight: Typography.LINE_HEIGHT_24,
-                }}>
-                {i18next.t('label.tree_review_delete')}
-              </Text>
-            </TouchableOpacity>
+            {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && (
+              <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
+                <Text
+                  style={{
+                    fontFamily: Typography.FONT_FAMILY_REGULAR,
+                    fontSize: Typography.FONT_SIZE_18,
+                    lineHeight: Typography.LINE_HEIGHT_24,
+                  }}>
+                  {i18next.t('label.tree_review_delete')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <View style={styles.scrollViewContainer}>
-            {inventory && locateTree !== 'on-site' && (
-              <>
-                {imageSource && <Image source={imageSource} style={styles.bgImage} />}
-                <LinearGradient
-                  colors={[
-                    'rgba(255,255,255,0)',
-                    imageSource ? Colors.GRAY_LIGHTEST : 'rgba(255,255,255,0)',
-                  ]}
-                  style={styles.detailContainer}>
-                  {renderDetails(inventory)}
-                </LinearGradient>
-              </>
-            )}
-            {locateTree === 'on-site' && (
-              <>
-                {imageSource && <Image source={imageSource} style={styles.imgSpecie} />}
-                {renderDetails(inventory)}
-              </>
-            )}
-          </View>
+          {inventory && (
+            <View style={styles.scrollViewContainer}>
+              {imageSource && (
+                <Image
+                  source={imageSource}
+                  style={locateTree === ON_SITE ? styles.imgSpecie : styles.bgImage}
+                />
+              )}
+              {renderDetails(inventory)}
+            </View>
+          )}
         </ScrollView>
-        {status === INCOMPLETE_INVENTORY ? (
+
+        {inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressContinueToSpecies}
+              btnText={i18next.t('label.tree_review_continue_to_species')}
+            />
+          </View>
+        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
+          !route?.params?.isSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressNextTree}
@@ -504,6 +780,7 @@ const SingleTreeOverview = ({ navigation }) => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
       />
     </SafeAreaView>
   );
@@ -572,31 +849,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     lineHeight: Typography.LINE_HEIGHT_30,
   },
-  externalInputContainer: {
-    flexDirection: 'row',
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
-  },
   defaultFontColor: {
     color: Colors.TEXT_COLOR,
   },
@@ -604,11 +856,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   imgSpecie: {
-    // marginTop: 0,
     width: '100%',
     height: Dimensions.get('window').height * 0.3,
     borderRadius: 13,
-    marginTop: 24,
   },
   detailHead: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

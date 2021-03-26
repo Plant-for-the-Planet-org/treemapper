@@ -1,3 +1,4 @@
+import { CommonActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
@@ -7,12 +8,11 @@ import { bugsnag } from '_utils';
 import { InventoryContext } from '../../reducers/inventory';
 import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import { INCOMPLETE, OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryConstants';
+import { Loader } from '../Common';
 import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
-import MapMarking from './MapMarking';
-import { CommonActions } from '@react-navigation/native';
-import { Loader } from '../Common';
+import MapMarking from '../Common/MapMarking';
 const IS_ANDROID = Platform.OS === 'android';
 
 const RegisterSingleTree = ({ navigation }) => {
@@ -27,10 +27,10 @@ const RegisterSingleTree = ({ navigation }) => {
       setScreenState('');
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
-          if (InventoryData.status === INCOMPLETE_INVENTORY) {
+          if (InventoryData.status === INCOMPLETE) {
             let data = {
               inventory_id: inventoryState.inventoryID,
-              last_screen: 'RegisterSingleTree',
+              lastScreen: 'RegisterSingleTree',
             };
             updateLastScreen(data);
 
@@ -50,15 +50,16 @@ const RegisterSingleTree = ({ navigation }) => {
                       //set onsite
                       addLocateTree({
                         inventory_id: inventoryState.inventoryID,
-                        locate_tree: 'on-site',
+                        locateTree: ON_SITE,
                       });
                       updateScreenState('ImageCapturing');
                     } else {
                       //set offsite
                       addLocateTree({
                         inventory_id: inventoryState.inventoryID,
-                        locate_tree: 'off-site',
+                        locateTree: OFF_SITE,
                       });
+                      updateScreenState('MapMarking');
                       navigation.navigate('SelectSpecies');
                     }
                   },
@@ -116,27 +117,22 @@ const RegisterSingleTree = ({ navigation }) => {
   const permission = async () => {
     if (IS_ANDROID) {
       try {
-        console.log('Asking permission');
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
         switch (granted) {
           case PermissionsAndroid.RESULTS.GRANTED:
-            console.log('Permission granted');
             setIsGranted(true);
             return true;
           case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
-            console.log('Permission Blocked');
             setIsPermissionBlockedAlertShow(true);
             return false;
           case PermissionsAndroid.RESULTS.DENIED:
-            console.log('Permission Denied');
             setIsPermissionDeniedAlertShow(true);
             return false;
         }
       } catch (err) {
         bugsnag.notify(err);
-        console.log(err, 'Permission error');
         return false;
       }
     } else {
@@ -146,13 +142,9 @@ const RegisterSingleTree = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {screenState == 'MapMarking' &&
+      {screenState === 'MapMarking' &&
         (isGranted ? (
-          <MapMarking
-            updateScreenState={updateScreenState}
-            // inventoryState={inventoryState}
-            resetRouteStack={resetRouteStack}
-          />
+          <MapMarking updateScreenState={updateScreenState} treeType={SINGLE} />
         ) : isPermissionDeniedAlertShow ? (
           <PermissionDeniedAlert
             isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
@@ -168,8 +160,8 @@ const RegisterSingleTree = ({ navigation }) => {
           />
         ))}
 
-      {screenState == 'ImageCapturing' && (
-        <ImageCapturing updateScreenState={updateScreenState} inventoryType="single" />
+      {screenState === 'ImageCapturing' && (
+        <ImageCapturing updateScreenState={updateScreenState} inventoryType={SINGLE} />
       )}
 
       {screenState === '' && <Loader isLoaderShow={true} />}
@@ -206,6 +198,7 @@ const PermissionDeniedAlert = ({
         setIsPermissionDeniedAlertShow(false);
         resetRouteStack();
       }}
+      showSecondaryButton={true}
     />
   );
 };
@@ -231,6 +224,7 @@ const PermissionBlockedAlert = ({
         setIsPermissionBlockedAlertShow(false);
         resetRouteStack();
       }}
+      showSecondaryButton={true}
     />
   );
 };

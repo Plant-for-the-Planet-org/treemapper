@@ -1,26 +1,24 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { Header, LargeButton, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { cloud_upload_gray } from '../../assets';
-import { Colors, Typography } from '_styles';
-import { updateLastScreen, addLocateTree } from '../../repositories/inventory';
-import JailMonkey from 'jail-monkey';
-import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
+import JailMonkey from 'jail-monkey';
+import React, { useContext, useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Colors, Typography } from '_styles';
+import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { addLocateTree } from '../../repositories/inventory';
+import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
+import { Header, LargeButton, PrimaryButton } from '../Common';
 
 const LocateTree = ({ navigation }) => {
   const isRooted = JailMonkey.isJailBroken();
 
-  const { state } = useContext(InventoryContext);
+  const { state, dispatch } = useContext(InventoryContext);
 
   useEffect(() => {
-    let data = { inventory_id: state.inventoryID, last_screen: 'LocateTree' };
-    updateLastScreen(data);
+    deleteInventoryId()(dispatch);
   }, []);
 
-  const [locateTree, setLocateTree] = useState('on-site');
+  const [locateTree, setLocateTree] = useState(ON_SITE);
   const [isSelectCoordinates, setIsSelectCoordinates] = useState(false);
 
   const onPressItem = (value) => {
@@ -29,17 +27,15 @@ const LocateTree = ({ navigation }) => {
   };
 
   const onPressContinue = () => {
-    let data = { inventory_id: state.inventoryID, locate_tree: locateTree };
+    let data = { inventory_id: state.inventoryID, locateTree };
     if (isSelectCoordinates) {
-      data.locate_tree = 'off-site';
+      data.locateTree = OFF_SITE;
       addLocateTree(data).then(() => {
         navigation.navigate('SelectCoordinates');
       });
-      return;
+    } else {
+      navigation.navigate('CreatePolygon', { locateTree });
     }
-    addLocateTree(data).then(() => {
-      navigation.navigate('CreatePolygon');
-    });
   };
 
   const onPressSelectCoordinates = async () => {
@@ -58,19 +54,19 @@ const LocateTree = ({ navigation }) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <LargeButton
             disabled={isRooted}
-            onPress={() => onPressItem('on-site')}
+            onPress={() => onPressItem(ON_SITE)}
             heading={i18next.t('label.locate_tree_heading')}
             subHeading={i18next.t('label.locate_tree_sub_heading')}
-            active={locateTree == 'on-site'}
+            active={locateTree == ON_SITE}
             subHeadingStyle={{ fontStyle: 'italic' }}
             testID={'page_on_site_polygon'}
             accessibilityLabel={'On Site'}
           />
           <LargeButton
-            onPress={() => onPressItem('off-site')}
+            onPress={() => onPressItem(OFF_SITE)}
             heading={i18next.t('label.locate_tree_off_site')}
             subHeading={i18next.t('label.locate_tree_off_site_sub_heading')}
-            active={locateTree == 'off-site'}
+            active={locateTree === OFF_SITE}
             subHeadingStyle={{ fontStyle: 'italic' }}
             testID={'page_off_site_polygon'}
             accessibilityLabel={'Off Site Polygon'}
@@ -84,12 +80,13 @@ const LocateTree = ({ navigation }) => {
             testID={'page_off_site_point'}
             accessibilityLabel={'Off Site Point'}
           />
-          <LargeButton
+          {/* <LargeButton
             onPress={onPressSelectCoordinates}
             heading={i18next.t('label.locate_tree_geo_json')}
             subHeadingStyle={{ fontStyle: 'italic' }}
             rightIcon={<SvgXml xml={cloud_upload_gray} />}
-          />
+            disabled
+          /> */}
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
         <PrimaryButton
