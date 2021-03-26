@@ -17,7 +17,6 @@ import {
 } from 'react-native';
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
-import LinearGradient from 'react-native-linear-gradient';
 import { Colors, Typography } from '_styles';
 import { AlertModal, Header } from '../';
 import { initiateInventoryState } from '../../../actions/inventory';
@@ -715,8 +714,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -753,25 +752,23 @@ export default function MapMarking({
         loader={loader}
       />
 
-      <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
-        <SafeAreaView />
-        <Header
-          onBackPress={onPressBack}
-          closeIcon
-          headingText={
-            treeType === SAMPLE
-              ? i18next.t('label.sample_tree_marking_heading', {
+      <SafeAreaView />
+      <Header
+        onBackPress={onPressBack}
+        closeIcon
+        headingText={
+          treeType === SAMPLE
+            ? i18next.t('label.sample_tree_marking_heading', {
                 ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
               })
-              : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
-                  alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
-                }`
-                : i18next.t('label.tree_map_marking_header')
-          }
-          TitleRightComponent={renderAccuracyInfo}
-        />
-      </LinearGradient>
+            : treeType === MULTI
+            ? `${i18next.t('label.locate_tree_location')} ${
+                alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
+              }`
+            : i18next.t('label.tree_map_marking_header')
+        }
+        TitleRightComponent={renderAccuracyInfo}
+      />
       {renderAccuracyModal()}
       {renderConfirmationModal()}
       {renderLocationAlert()}
