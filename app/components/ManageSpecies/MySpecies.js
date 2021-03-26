@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SvgXml } from 'react-native-svg';
 import PrimaryButton from '../Common/PrimaryButton';
 import { FlatList, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
@@ -8,6 +8,7 @@ import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { useNavigation } from '@react-navigation/native';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
+import { deleteUserSpecieFromServer } from '../../utils/addUserSpecies';
 
 const MySpecies = ({
   registrationType,
@@ -19,6 +20,12 @@ const MySpecies = ({
   isSampleTree,
 }) => {
   const navigation = useNavigation();
+  // useEffect(() => {
+  //   for (const specie of specieList) {
+  //     console.log(specie, 'specie');
+  //     deleteUserSpecieFromServer(specie);
+  //   }
+  // }, []);
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity

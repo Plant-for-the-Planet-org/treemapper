@@ -183,6 +183,7 @@ const ScientificSpecies = {
     image: { type: 'string', default: '' },
     localImage: { type: 'string', default: '' },
     description: { type: 'string', default: '' },
+    isDeleted: { type: 'bool', default: false },
   },
 };
 

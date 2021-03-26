@@ -4,7 +4,7 @@ import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import { getSchema } from './default';
 import AsyncStorage from '@react-native-community/async-storage';
-
+import { deleteUserSpecieFromServer } from '../utils/addUserSpecies';
 export const updateAndSyncLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
@@ -117,18 +117,22 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 'ScientificSpecies',
                 specie.scientificSpecies,
               );
-              specieResult.isUploaded = true;
-              specieResult.isUserSpecies = true;
-              specieResult.specieId = specie.id;
-              console.log(specie.aliases, 'specie.aliases');
-              if (specie.aliases) {
-                specieResult.aliases = specie.aliases;
-              }
-              if (specie.image) {
-                specieResult.image = specie.image;
-              }
-              if (specie.description) {
-                specieResult.description = specie.description;
+              if (specieResult.isDeleted === false) {
+                specieResult.isUploaded = true;
+                specieResult.isUserSpecies = true;
+                specieResult.specieId = specie.id;
+                console.log(specie.aliases, 'specie.aliases');
+                if (specie.aliases) {
+                  specieResult.aliases = specie.aliases;
+                }
+                if (specie.image) {
+                  specieResult.image = specie.image;
+                }
+                if (specie.description) {
+                  specieResult.description = specie.description;
+                }
+              } else if (specieResult.isDeleted === true) {
+                deleteUserSpecieFromServer(specieResult);
               }
               // logging the success in to the db
               dbLog.info({
@@ -239,6 +243,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
           specieResult.specieId = '';
           specieResult.isUploaded = false;
           specieResult.isUserSpecies = false;
+          specieResult.isDeleted = false;
         });
         // logging the success in to the db
         dbLog.info({

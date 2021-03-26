@@ -168,7 +168,7 @@ export const deleteUserSpecie = (specieId) => {
       .catch((err) => {
         // logs the error
         console.error(
-          `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}`,
+          `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}, ${err}`,
         );
         // logs the error of the failed request in DB
         dbLog.error({

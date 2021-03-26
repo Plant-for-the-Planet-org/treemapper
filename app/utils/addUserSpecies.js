@@ -116,7 +116,7 @@ const addFromAlreadySyncedSpecies = (scientificSpecieGuid, alreadySyncedSpecies)
  * @param {Array} speciesToSync  - array of species that are not synced on the server
  * @param {Array} alreadySyncedSpecies - array of species which are already synced on the server
  */
-const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
+export const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
   // iterates through the list of [speciesToSync] to add the specie on server and if result is success
   // then updates the [isUploaded] property in local DB to [true] else logs the error
   for (const specie of speciesToSync) {
@@ -193,11 +193,12 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
  *
  * @param {object} specie - user specie which is to be deleted from the server
  */
-const deleteUserSpecieFromServer = (specie) => {
+export const deleteUserSpecieFromServer = (specie) => {
   // calls the api function with user token and specie to delete the specie from the server
   deleteUserSpecie(specie.specieId)
     .then((result) => {
       if (result) {
+        console.log(result, 'result');
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,

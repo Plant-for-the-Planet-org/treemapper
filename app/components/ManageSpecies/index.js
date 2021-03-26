@@ -102,8 +102,14 @@ const ManageSpecies = ({
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (addSpecie) {
               specieToToggle.isUserSpecies = true;
+              specieToToggle.isDeleted = false;
             } else {
+              console.log('Above', specieToToggle.isUserSpecies);
               specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+              console.log('Below', specieToToggle.isUserSpecies);
+              if (specieToToggle.isUserSpecies === true) {
+                specieToToggle.isDeleted = false;
+              }
             }
             // copies the current search list in variable currentSearchList
             const currentSearchList = [...searchList];

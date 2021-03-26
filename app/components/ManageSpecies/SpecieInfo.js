@@ -144,7 +144,7 @@ const SpecieInfo = ({ route }) => {
                     borderRadius: 13,
                     width: '100%',
                     height: Dimensions.get('window').height * 0.3,
-                    transform: [{ rotate: '90deg' }],
+                    // transform: [{ rotate: '90deg' }],
                   }}
                 />
               )}
