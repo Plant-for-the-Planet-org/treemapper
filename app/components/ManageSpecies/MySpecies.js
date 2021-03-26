@@ -34,7 +34,9 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          addSpecieToInventory(item);
+          if (registrationType || isSampleTree) {
+            addSpecieToInventory(item);
+          }
           if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
             onPressBack();
           } else if (registrationType === SINGLE && !editOnlySpecieName) {

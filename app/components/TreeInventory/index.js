@@ -48,6 +48,7 @@ const TreeInventory = ({ navigation }) => {
 
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
+    // navigation.goBack();
   };
 
   const initialState = () => {
@@ -78,7 +79,7 @@ const TreeInventory = ({ navigation }) => {
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        handleBackPress();
+        // handleBackPress();
       })
       .catch((err) => {
         if (err?.response?.status === 303) {
@@ -90,6 +91,7 @@ const TreeInventory = ({ navigation }) => {
           setEmailAlert(true);
         }
       });
+    navigation.goBack();
   };
 
   const renderInventory = () => {
@@ -205,8 +207,8 @@ const TreeInventory = ({ navigation }) => {
       {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
