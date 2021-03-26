@@ -1,21 +1,20 @@
+import RNFS from 'react-native-fs';
 import {
-  getInventoryByStatus,
-  changeInventoryStatusAndLocationId,
   changeInventoryStatus,
+  changeInventoryStatusAndLocationId,
+  getInventoryByStatus,
   updateInventory,
 } from '../repositories/inventory';
-import RNFS from 'react-native-fs';
-import { updateCount, updateIsUploading } from './inventory';
 import dbLog from '../repositories/logs';
-import { LogTypes } from '../utils/constants';
 import { bugsnag } from '../utils';
-import { permission } from '../utils/permissions';
 import {
-  postAuthenticatedRequest,
   getAuthenticatedRequest,
+  postAuthenticatedRequest,
   putAuthenticatedRequest,
 } from '../utils/api';
+import { LogTypes } from '../utils/constants';
 import {
+  MULTI,
   OFF_SITE,
   ON_SITE,
   PENDING_DATA_UPLOAD,
@@ -24,8 +23,9 @@ import {
   POLYGON,
   SINGLE,
   SYNCED,
-  MULTI,
 } from '../utils/inventoryConstants';
+import { permission } from '../utils/permissions';
+import { updateCount, updateIsUploading } from './inventory';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
@@ -68,7 +68,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                   )
                     .then(() => resolve())
                     .catch((err) => {
-                      console.error(`Error at: /action/upload/changeInventoryStatus`, err);
+                      console.error('Error at: /action/upload/changeInventoryStatus', err);
                       reject();
                       bugsnag.notify(err);
                     });
@@ -82,14 +82,14 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           })
           .catch((err) => {
             reject(err);
-            console.error(`Error at: /action/upload/changeInventoryStatusAndLocationId, -> `, err);
+            console.error('Error at: /action/upload/changeInventoryStatusAndLocationId, -> ', err);
             bugsnag.notify(err);
           });
       }
     } catch (err) {
       reject(err);
       bugsnag.notify(err);
-      console.error(`Error at: /action/upload/changeStatusAndUpload, -> `, err);
+      console.error('Error at: /action/upload/changeStatusAndUpload, -> ', err);
     }
   });
 };
@@ -154,7 +154,7 @@ export const uploadInventory = (dispatch) => {
                       updateIsUploading(false)(dispatch);
                       reject(err);
                     }
-                    console.error(`Error at: /action/upload, changeStatusAndUpload -> `, err);
+                    console.error('Error at: /action/upload, changeStatusAndUpload -> ', err);
                     bugsnag.notify(err);
                   });
               } else {
@@ -169,7 +169,7 @@ export const uploadInventory = (dispatch) => {
                 reject(err);
               }
               console.error(
-                `Error at: /action/upload, POST - /treemapper/plantLocations -> `,
+                'Error at: /action/upload, POST - /treemapper/plantLocations -> ',
                 err.response,
               );
               dbLog.error({
@@ -427,7 +427,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
     return { allUploadCompleted: completedUploadCount === responseCoords.length };
   } catch (err) {
     bugsnag.notify(err);
-    console.error(`Error at /actions/upload/checkAndUploadImage, -> `, err);
+    console.error('Error at /actions/upload/checkAndUploadImage, -> ', err);
     return { allUploadCompleted: false };
   }
 };
@@ -479,7 +479,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
       return false;
     }
   } catch (err) {
-    console.error(`Error at: action/upload/uploadImage, base64 image -> `, err);
+    console.error('Error at: action/upload/uploadImage, base64 image -> ', err);
     dbLog.error({
       logType: LogTypes.DATA_SYNC,
       message: `Error while fetching base64 image from file system for id: ${inventoryId} and coordinate id: ${coordinateId}`,

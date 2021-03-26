@@ -1,6 +1,6 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import i18next from 'i18next';
-import { default as React, default as React, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,

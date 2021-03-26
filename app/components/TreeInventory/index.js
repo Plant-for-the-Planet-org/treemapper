@@ -3,25 +3,25 @@ import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  View,
   Alert,
   BackHandler,
   Linking,
   Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
-import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { uploadInventoryData } from '../../utils/uploadInventory';
-import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
+import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { bugsnag } from '../../utils';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
+import { uploadInventoryData } from '../../utils/uploadInventory';
+import { AlertModal, Header, InventoryList, PrimaryButton, SmallHeader } from '../Common';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -212,8 +212,8 @@ const TreeInventory = ({ navigation }) => {
       {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-        ? renderLoadingInventoryList()
-        : renderEmptyInventoryList()}
+          ? renderLoadingInventoryList()
+          : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}

@@ -22,6 +22,7 @@ import {
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getUserInformation } from '../../repositories/user';
+import { bugsnag } from '../../utils';
 import {
   diameterMaxCm,
   diameterMaxInch,
@@ -39,8 +40,6 @@ import {
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
-import { updateSingleTreeSpecie } from '../../repositories/inventory';
-import { bugsnag } from '../../utils';
 
 const SelectSpecies = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);

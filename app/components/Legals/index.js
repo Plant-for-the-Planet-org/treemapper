@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Linking, StyleSheet, SafeAreaView, Text, TouchableOpacity } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Header from '../Common/Header';
-import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React from 'react';
+import { Linking, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors, Typography } from '_styles';
 import { version } from '../../../package';
+import Header from '../Common/Header';
 
 export default function Legals() {
   const navigation = useNavigation();
@@ -31,56 +31,35 @@ export default function Legals() {
         />
       </View>
       <View style={styles.defaultSpacing}>
-        <TouchableOpacity
-          key='version'
-          style={styles.touchable}>
+        <TouchableOpacity key="version" style={styles.touchable}>
           <View>
-            <Text style={styles.itemText}>
-              {version}
-            </Text>
+            <Text style={styles.itemText}>{version}</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          key='privacy_policy'
-          style={styles.touchable}
-          onPress={onPressPolicy}>
+        <TouchableOpacity key="privacy_policy" style={styles.touchable} onPress={onPressPolicy}>
           <View>
-            <Text style={styles.itemText}>
-              {i18next.t('label.privacy_policy')}
-            </Text>
+            <Text style={styles.itemText}>{i18next.t('label.privacy_policy')}</Text>
+          </View>
+          <Ionicons name="chevron-forward-outline" size={20} />
+        </TouchableOpacity>
+        <TouchableOpacity key="imprint" style={styles.touchable} onPress={onPressImprint}>
+          <View>
+            <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
+          </View>
+          <Ionicons name="chevron-forward-outline" size={20} />
+        </TouchableOpacity>
+        <TouchableOpacity key="terms_of_service" style={styles.touchable} onPress={onPressTerms}>
+          <View>
+            <Text style={styles.itemText}>{i18next.t('label.terms_of_service')}</Text>
           </View>
           <Ionicons name="chevron-forward-outline" size={20} />
         </TouchableOpacity>
         <TouchableOpacity
-          key='imprint'
-          style={styles.touchable}
-          onPress={onPressImprint}>
-          <View>
-            <Text style={styles.itemText}>
-              {i18next.t('label.imprint')}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward-outline" size={20} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          key='terms_of_service'
-          style={styles.touchable}
-          onPress={onPressTerms}>
-          <View>
-            <Text style={styles.itemText}>
-              {i18next.t('label.terms_of_service')}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward-outline" size={20} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          key='open_source_license'
+          key="open_source_license"
           style={styles.touchable}
           onPress={onPressOpenSource}>
           <View>
-            <Text style={styles.itemText}>
-              {i18next.t('label.open_source_license')}
-            </Text>
+            <Text style={styles.itemText}>{i18next.t('label.open_source_license')}</Text>
           </View>
           <Ionicons name="chevron-forward-outline" size={20} />
         </TouchableOpacity>
