@@ -12,15 +12,14 @@ import {
   Text,
   TextInput,
   View,
+  TouchableOpacity,
 } from 'react-native';
-import Config from 'react-native-config';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as RNLocalize from 'react-native-localize';
 import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
 import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
-import { SignupService } from '../../actions/user';
+import { getCdnUrls, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getUserDetails } from '../../repositories/user';
@@ -58,6 +57,13 @@ const SignUp = ({ navigation }) => {
   const textInputCity = useRef(null);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
+  const [cdnUrls, setCdnUrls] = useState({});
+
+  useEffect(() => {
+    getCdnUrls(i18next.language).then((cdnMedia) => {
+      setCdnUrls(cdnMedia);
+    });
+  }, []);
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
@@ -66,19 +72,19 @@ const SignUp = ({ navigation }) => {
     let name;
     switch (type) {
       case 'individual':
-        name = 'INIDIVDUAL';
+        name = i18next.t('label.individual');
         break;
       case 'tpo':
-        name = 'TREE PLANTING ORGANISATION';
+        name = i18next.t('label.tpo_title');
         break;
       case 'education':
-        name = 'SCHOOL';
+        name = i18next.t('label.education_title');
         break;
       case 'company':
-        name = 'COMPANY';
+        name = i18next.t('label.company');
         break;
       default:
-        name = 'TREE PLANTING ORGANISATION';
+        name = i18next.t('label.tpo');
         break;
     }
     return name;
@@ -113,7 +119,7 @@ const SignUp = ({ navigation }) => {
     let userData;
     if (accountType === '') {
       Snackbar.show({
-        text: 'Select Role Type',
+        text: i18next.t('label.select_role_type'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -121,7 +127,7 @@ const SignUp = ({ navigation }) => {
     if (firstname === '') {
       setFirstNameError(true);
       Snackbar.show({
-        text: 'Enter first name',
+        text: i18next.t('label.enter_first_name'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -129,7 +135,7 @@ const SignUp = ({ navigation }) => {
     if (lastname === '') {
       setLastNameError(true);
       Snackbar.show({
-        text: 'Enter last name',
+        text: i18next.t('label.enter_last_name'),
         duration: Snackbar.LENGTH_SHORT,
       });
     }
@@ -137,28 +143,28 @@ const SignUp = ({ navigation }) => {
       if (city === '') {
         setCityError(true);
         Snackbar.show({
-          text: 'Enter City Name',
+          text: i18next.t('label.enter_city_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (zipCode === '') {
         setZipCodeError(true);
         Snackbar.show({
-          text: 'Enter zipcode',
+          text: i18next.t('label.enter_zipcode'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (address === '') {
         setAddressError(true);
         Snackbar.show({
-          text: 'Enter Address',
+          text: i18next.t('label.enter_address'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
-          text: 'Enter Organisation Name',
+          text: i18next.t('label.enter_organisation_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
@@ -183,7 +189,7 @@ const SignUp = ({ navigation }) => {
       if (nameOfOrg === '') {
         setNameError(true);
         Snackbar.show({
-          text: 'Enter Organisation Name',
+          text: i18next.t('label.enter_organisation_name'),
           duration: Snackbar.LENGTH_SHORT,
         });
       }
@@ -336,7 +342,10 @@ const SignUp = ({ navigation }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
                 <TextInput
-                  style={styles.value(firstNameError)}
+                  style={[
+                    styles.value,
+                    firstNameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={firstname}
                   onChangeText={(text) => setFirstName(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -348,7 +357,10 @@ const SignUp = ({ navigation }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
                 <TextInput
-                  style={styles.value(lastNameError)}
+                  style={[
+                    styles.value,
+                    lastNameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={lastname}
                   onChangeText={(text) => setLastName(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -365,11 +377,15 @@ const SignUp = ({ navigation }) => {
               </View>
             </View>
             <View style={{ marginVertical: 20 }}>
-              <Text>COUNTRY</Text>
+              <Text>{i18next.t('label.country')}</Text>
               <View style={styles.countryContainer}>
                 <Image
                   source={{
-                    uri: country ? `${Config.CDN_URL}${country.currencyCountryFlag}.png` : null,
+                    // not using currencyCountryFlag any more as we have flags for every country
+                    uri:
+                      country && cdnUrls.images
+                        ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png`
+                        : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
@@ -381,7 +397,7 @@ const SignUp = ({ navigation }) => {
                     <View>
                       <Text
                         style={{ paddingBottom: 8, fontFamily: Typography.FONT_FAMILY_REGULAR }}>
-                        {country ? country.countryName : 'Select Country'}
+                        {country ? country.countryName : i18next.t('label.select_country')}
                       </Text>
                       <View style={{ flexDirection: 'row' }}>
                         <Text
@@ -389,7 +405,7 @@ const SignUp = ({ navigation }) => {
                             color: Colors.PRIMARY,
                             fontFamily: Typography.FONT_FAMILY_REGULAR,
                           }}>
-                          Change
+                          {i18next.t('label.change')}
                         </Text>
                         <Ionicons
                           name="angle-right"
@@ -411,15 +427,23 @@ const SignUp = ({ navigation }) => {
               </TouchableOpacity> */}
             </View>
             {modalVisible ? (
-              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
+              <Modal
+                visible={modalVisible}
+                openModal={openModal}
+                userCountry={userCountry}
+                cdnUrls={cdnUrls}
+              />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
-              <View style={styles.emailContainer()}>
+              <View style={styles.emailContainer}>
                 <Text style={styles.label}>
                   {i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}
                 </Text>
                 <TextInput
-                  style={styles.value(nameError)}
+                  style={[
+                    styles.value,
+                    nameError ? styles.borderBottomRed : styles.borderBottomBlack,
+                  ]}
                   value={nameOfOrg}
                   onChangeText={(text) => setNameOfOrg(text)}
                   returnKeyType={completeCheck ? 'done' : 'next'}
@@ -430,7 +454,7 @@ const SignUp = ({ navigation }) => {
                 />
               </View>
             ) : null}
-            <View style={styles.emailContainer('email')}>
+            <View style={[styles.emailContainer, styles.primaryColor]}>
               <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
               <TextInput
                 style={styles.inputColor}
@@ -441,10 +465,13 @@ const SignUp = ({ navigation }) => {
             </View>
             {accountType === 'tpo' ? (
               <View>
-                <View style={styles.emailContainer()}>
+                <View style={styles.emailContainer}>
                   <Text style={styles.label}>{i18next.t('label.address')}</Text>
                   <TextInput
-                    style={styles.value(addressError)}
+                    style={[
+                      styles.value,
+                      addressError ? styles.borderBottomRed : styles.borderBottomBlack,
+                    ]}
                     value={address}
                     onChangeText={(text) => setAddress(text)}
                     returnKeyType={completeCheck ? 'done' : 'next'}
@@ -459,7 +486,10 @@ const SignUp = ({ navigation }) => {
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.city')}</Text>
                     <TextInput
-                      style={styles.value(cityError)}
+                      style={[
+                        styles.value,
+                        cityError ? styles.borderBottomRed : styles.borderBottomBlack,
+                      ]}
                       value={city}
                       onChangeText={(text) => setCity(text)}
                       returnKeyType={completeCheck ? 'done' : 'next'}
@@ -474,7 +504,10 @@ const SignUp = ({ navigation }) => {
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
                     <TextInput
-                      style={styles.value(zipCodeError)}
+                      style={[
+                        styles.value,
+                        zipCodeError ? styles.borderBottomRed : styles.borderBottomBlack,
+                      ]}
                       value={zipCode}
                       onChangeText={(text) => setZipCode(text)}
                       returnKeyType={completeCheck ? 'done' : 'next'}
@@ -574,16 +607,19 @@ const styles = StyleSheet.create({
   },
   marginRight: { marginRight: 5 },
   marginLeft: { marginLeft: 5 },
-  value: (invalid) => ({
+  value: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: 20,
-    // color: Colors.TEXT_COLOR,
-    // fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     flex: 1,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: invalid ? 'red' : Colors.TEXT_COLOR,
-  }),
+  },
+  borderBottomRed: {
+    borderBottomColor: 'red',
+  },
+  borderBottomBlack: {
+    borderBottomColor: Colors.TEXT_COLOR,
+  },
   label: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
@@ -593,12 +629,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '46.7%',
   },
-  emailContainer: (email) => ({
+  emailContainer: {
     width: '100%',
-    color: email === 'email' ? Colors.PRIMARY : null,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginVertical: 20,
-  }),
+  },
+  primaryColor: { color: Colors.PRIMARY },
   getNewsText: {
     // paddingTop: 60,
     marginTop: 130,
