@@ -39,7 +39,6 @@ import {
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
-import { updateSingleTreeSpecie } from '../../repositories/inventory';
 
 const SelectSpecies = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);

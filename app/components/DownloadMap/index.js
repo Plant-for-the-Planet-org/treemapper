@@ -1,5 +1,3 @@
-import { SafeAreaView, Linking, Platform } from 'react-native';
-import { getAreaName, getAllOfflineMaps, createOfflineMap } from '../../repositories/maps';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import i18next from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
