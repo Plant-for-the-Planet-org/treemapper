@@ -1,12 +1,15 @@
+// schema version
+const schemaVersion = 5;
+
 // SCHEMAS
 const Coordinates = {
   name: 'Coordinates',
   properties: {
-    latitude: 'float',
-    longitude: 'float',
+    latitude: 'double',
+    longitude: 'double',
     imageUrl: 'string?',
-    currentloclat: 'float',
-    currentloclong: 'float',
+    currentloclat: 'double',
+    currentloclong: 'double',
     isImageUploaded: 'bool?',
   },
 };
@@ -27,6 +30,7 @@ const Species = {
     id: 'string?',
   },
 };
+
 const OfflineMaps = {
   name: 'OfflineMaps',
   primaryKey: 'name',
@@ -37,26 +41,78 @@ const OfflineMaps = {
   },
 };
 
+// used to record the sample trees
+const SampleTrees = {
+  name: 'SampleTrees',
+  properties: {
+    // stores the latitude of the tree
+    latitude: 'double',
+    // stores the longitude of the tree
+    longitude: 'double',
+    // stores the latitude of the device when location was marked
+    deviceLatitude: 'double',
+    // stores the longitude of the device when location was marked
+    deviceLongitude: 'double',
+    // stores accuracy of location when the location was marked
+    locationAccuracy: 'double?',
+    // URL of the image if picture was clicked
+    imageUrl: 'string?',
+    // specie id for this sample tree
+    specieId: 'string?',
+    // specie name of specie id for this sample tree
+    specieName: 'string?',
+    // diameter of selected specie
+    specieDiameter: 'double?',
+    // height of selected specie
+    specieHeight: 'double?',
+    // tag id of the tree if the tree has one
+    tagId: 'string?',
+    // current status of the tree. Refer to inventoryConstants for different status
+    status: { type: 'string', default: 'INCOMPLETE' },
+    // stores the date when the tree was planted
+    plantationDate: 'date?',
+    // stores the location id when the data upload is successful
+    locationId: 'string?',
+    // stores the tree type which is always sample tree
+    treeType: { type: 'string', default: 'sample' },
+  },
+};
+
 const Inventory = {
   name: 'Inventory',
   primaryKey: 'inventory_id',
   properties: {
     inventory_id: 'string',
     plantation_date: 'date?',
-    tree_type: 'string?',
+    treeType: 'string?',
     status: 'string?',
-    project_id: 'string?',
-    donation_type: 'string?',
-    locate_tree: 'string?',
-    last_screen: 'string?',
+    projectId: 'string?',
+    donationType: 'string?',
+    locateTree: 'string?',
+    lastScreen: 'string?',
     species: 'Species[]',
     polygons: 'Polygons[]',
-    specei_name: 'string?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    species_diameter: 'float?',
-    species_height: 'float?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
-    response: 'string?',
-    tag_id: 'string?',
-    registration_date: 'date?',
+    specieDiameter: 'double?',
+    specieHeight: 'double?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
+    tagId: 'string?',
+    registrationDate: 'date?',
+    // stores the count of sample trees which are to be recorded
+    sampleTreesCount: 'int?',
+    // stores the sample trees having length equal to tree count
+    sampleTrees: 'SampleTrees[]',
+    // stores the number of sample trees which are already recorded
+    completedSampleTreesCount: {
+      type: 'int?',
+      default: 0,
+    },
+    // stores the number of sample trees which are uploaded to server
+    uploadedSampleTreesCount: {
+      type: 'int?',
+      default: 0,
+    },
+    // stores the location id of the plant location which is available
+    // when the inventory data is uploaded
+    locationId: 'string?',
   },
 };
 
@@ -142,7 +198,8 @@ export default {
     Inventory,
     ScientificSpecies,
     ActivityLogs,
+    SampleTrees,
   ],
-  schemaVersion: 5,
+  schemaVersion,
   migration,
 };

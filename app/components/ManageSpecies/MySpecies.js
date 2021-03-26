@@ -19,7 +19,6 @@ const MySpecies = ({
   isSampleTree,
 }) => {
   const navigation = useNavigation();
-
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -34,11 +33,14 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          addSpecieToInventory(item);
           if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+            addSpecieToInventory(item);
             onPressBack();
           } else if (registrationType === SINGLE && !editOnlySpecieName) {
+            addSpecieToInventory(item);
             onPressSpeciesSingle(item);
+          } else if (registrationType === MULTI || isSampleTree) {
+            addSpecieToInventory(item);
           }
         }}>
         <View>

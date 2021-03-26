@@ -146,7 +146,6 @@ const ManageSpecies = ({
       setSearchList([]);
     }
   };
-  console.log(specieList, 'specieList');
 
   const handleSpeciePress = (specie) => {
     if (registrationType === MULTI && isSampleTreeCompleted) {

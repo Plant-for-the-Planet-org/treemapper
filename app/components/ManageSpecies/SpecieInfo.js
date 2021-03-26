@@ -100,7 +100,7 @@ const SpecieInfo = ({ route }) => {
           <Header
             headingTextInput={aliases}
             TitleRightComponent={checkIcon}
-            setAliases={setAliases}
+            setHeadingText={setAliases}
             onSubmitInputField={onSubmitInputField}
           />
           <ScrollView showsVerticalScrollIndicator={false}>

@@ -9,7 +9,7 @@ const Header = ({
   closeIcon,
   headingText,
   headingTextInput,
-  setAliases,
+  setHeadingText,
   onSubmitInputField,
   subHeadingText,
   onBackPress,
@@ -87,7 +87,7 @@ const Header = ({
             }}
             multiline={true}
             blurOnSubmit={true}
-            onChangeText={(text) => setAliases(text)}
+            onChangeText={(text) => setHeadingText(text)}
             value={headingTextInput}
             placeholder="Type Aliases Here"
             returnKeyType={'done'}
