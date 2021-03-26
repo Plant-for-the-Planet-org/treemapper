@@ -7,16 +7,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { useNavigation } from '@react-navigation/native';
+import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
-  onSaveMultipleSpecies,
   registrationType,
   onPressSpeciesSingle,
-  onPressSpeciesMultiple,
   specieList,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
   onPressBack,
+  isSampleTree,
 }) => {
   const navigation = useNavigation();
 
@@ -34,15 +34,11 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          if (registrationType == 'single') {
-            addSpecieNameToInventory(item);
-            if (editOnlySpecieName) {
-              onPressBack();
-            } else {
-              onPressSpeciesSingle(item);
-            }
-          } else if (registrationType == 'multiple') {
-            onPressSpeciesMultiple(item, index);
+          addSpecieToInventory(item);
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
+            onPressSpeciesSingle(item);
           }
         }}>
         <View>
@@ -54,9 +50,7 @@ const MySpecies = ({
             {item.scientificName}
           </Text>
         </View>
-        {registrationType == 'multiple' ? (
-          <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : item.guid !== 'unknown' ? (
+        {item.guid !== 'unknown' ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
             <Ionicons name="information-circle-outline" size={20} />
@@ -99,19 +93,15 @@ const MySpecies = ({
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>{i18next.t('label.select_species_looks_empty_here')}</Text>
-            <Text style={styles.subHeadingText}>{i18next.t('label.select_species_add_species_desscription')}</Text>
+            <Text style={styles.headerText}>
+              {i18next.t('label.select_species_looks_empty_here')}
+            </Text>
+            <Text style={styles.subHeadingText}>
+              {i18next.t('label.select_species_add_species_desscription')}
+            </Text>
           </View>
         )}
       </View>
-      {registrationType === 'multiple' && (
-        <PrimaryButton
-          onPress={onSaveMultipleSpecies}
-          btnText={i18next.t('label.select_species_btn_text')}
-          testID={'btn_save_and_continue_species'}
-          accessibilityLabel={'Save and Continue Species'}
-        />
-      )}
     </View>
   );
 };

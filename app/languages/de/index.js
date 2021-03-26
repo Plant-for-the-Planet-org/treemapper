@@ -14,6 +14,7 @@ import SelectSpecies from './user/selectSpecies.json';
 import MapMarking from './user/mapMarking.json';
 import TreeInventory from './user/treeInventory.json';
 import Review from './user/treeReview.json';
+import SampleTrees from './user/sampleTrees.json';
 import SpeciesSyncError from './user/speciesSyncError';
 
 export default {
@@ -32,6 +33,7 @@ export default {
   ...SelectSpecies,
   ...InitialScreen,
   ...Logs,
+  ...SampleTrees,
   ...MapMarking,
   ...SpeciesSyncError,
 };
