@@ -24,7 +24,7 @@ export default function Legals() {
     try {
       const url = link;
       if (await InAppBrowser.isAvailable()) {
-        const result = await InAppBrowser.open(url);
+        await InAppBrowser.open(url);
       } else Linking.openURL(url);
     } catch (error) {
       console.log(error);
