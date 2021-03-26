@@ -1,17 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TextInput,
   KeyboardAvoidingView,
-  SafeAreaView,
+  Modal,
   Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { Colors, Typography } from '_styles';
-import Ionicons from 'react-native-vector-icons/MaterialIcons';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/MaterialIcons';
+import { Colors, CommonStyles, Typography } from '_styles';
 
 const Accordian = ({
   data,
@@ -62,15 +62,15 @@ const Accordian = ({
             <KeyboardAvoidingView
               behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
               style={styles.bgWhite}>
-              <View style={styles.externalInputContainer}>
-                <Text style={styles.labelModal}>
+              <View style={CommonStyles.bottomInputContainer}>
+                <Text style={CommonStyles.bottomInputLabel}>
                   {isNameOfTreesShow ? 'Name of trees' : 'Tree Count'}
                 </Text>
                 {isNameOfTreesShow ? (
                   <TextInput
                     value={nameOfTree}
                     onChangeText={(txt) => setNameOfTree(txt)}
-                    style={styles.value}
+                    style={CommonStyles.bottomInputText}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     onSubmitEditing={() => onSubmit('nameOfTrees')}
@@ -80,7 +80,7 @@ const Accordian = ({
                     value={treeCount}
                     onChangeText={(txt) => setTreeCount(txt)}
                     ref={treeCountInput}
-                    style={styles.value}
+                    style={CommonStyles.bottomInputText}
                     autoFocus
                     placeholderTextColor={Colors.TEXT_COLOR}
                     onSubmitEditing={() => onSubmit('treeCount')}
@@ -198,30 +198,5 @@ const styles = StyleSheet.create({
   },
   primary: {
     color: Colors.PRIMARY,
-  },
-  externalInputContainer: {
-    flexDirection: 'row',
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
   },
 });

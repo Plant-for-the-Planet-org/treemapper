@@ -15,7 +15,8 @@ import Loader from './Loader/Index';
 import Sync from './Syncing';
 import InventoryList from './InventoryList';
 import SpeciesSyncError from './SpeciesSyncError';
-// import Loader from './Loader';
+import TopRightBackground from './TopRightBackground';
+import TreeCountModal from './TreeCountModal';
 
 export {
   Header,
@@ -35,4 +36,6 @@ export {
   Sync,
   InventoryList,
   SpeciesSyncError,
+  TopRightBackground,
+  TreeCountModal,
 };

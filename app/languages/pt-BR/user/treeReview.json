@@ -21,5 +21,7 @@
   "tree_review_details": "Detalhes da Árvore",
   "tree_review_not_tagged": "Não etiquetado",
   "tree_review_delete_not_yet_uploaded_registration": "Ainda não foi feito o upload de registro para Plant-for-the-Planet. Uma vez apagado, ele será perdido para sempre.",
-  "tree_review_delete_uploaded_registration": "Este registo está seguro na nuvem. Uma vez eliminado este registro, atualmente não é possível recuperá-lo neste aplicativo."
+  "tree_review_delete_uploaded_registration": "Este registo está seguro na nuvem. Uma vez eliminado este registro, atualmente não é possível recuperá-lo neste aplicativo.",
+  "tree_review_continue_to_species": "Continuar com as espécies",
+  "tree_review_continue_to_review": "Continuar a revisão"
 }

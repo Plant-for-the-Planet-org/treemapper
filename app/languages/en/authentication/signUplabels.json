@@ -7,7 +7,6 @@
   "lastname": "LAST NAME",
   "tpo_title": "Tree Planting Organisation",
   "education_title": "School",
-  "education": "Education",
   "signup_confirm": "Please confirm your details.",
   "individual": "Individual",
   "company": "Company",
@@ -16,5 +15,15 @@
   "city": "CITY",
   "address": "ADDRESS",
   "zipcode": "ZIP CODE",
-  "account_type": "Account Type"
+  "account_type": "Account Type",
+  "select_country": "Select Country",
+  "select_role_type": "Select role type",
+  "enter_first_name": "Enter first name",
+  "enter_last_name": "Enter last name",
+  "enter_city_name": "Enter city Name",
+  "enter_zipcode": "Enter zipcode",
+  "enter_address": "Enter address",
+  "enter_organisation_name": "Enter organisation name",
+  "country": "COUNTRY",
+  "change": "change"
 }
