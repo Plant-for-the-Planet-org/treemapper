@@ -152,7 +152,6 @@ const SpecieInfo = ({ route }) => {
             </KeyboardAvoidingView>
           </ScrollView>
         </View>
-        <RenderInputModal />
       </SafeAreaView>
     );
   }
