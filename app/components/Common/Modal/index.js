@@ -31,7 +31,7 @@ export default function index({ visible, openModal, userCountry, cdnUrls }) {
         <Image
           source={{
             // not using currencyCountryFlag any more as we have flags for every country
-            uri: `${cdnUrls.images}/flags/png/256/${title.countryCode}.png`,
+            uri: cdnUrls.images ? `${cdnUrls.images}/flags/png/256/${title.countryCode}.png` : null,
           }}
           style={styles.countryFlag}
           resizeMode="contain"

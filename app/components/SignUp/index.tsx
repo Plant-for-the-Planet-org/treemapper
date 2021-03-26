@@ -382,9 +382,10 @@ const SignUp = ({ navigation }) => {
                 <Image
                   source={{
                     // not using currencyCountryFlag any more as we have flags for every country
-                    uri: country
-                      ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png`
-                      : null,
+                    uri:
+                      country && cdnUrls.images
+                        ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png`
+                        : null,
                   }}
                   resizeMode="contain"
                   style={styles.countryFlag}
