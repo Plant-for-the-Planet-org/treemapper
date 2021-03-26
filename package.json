@@ -14,6 +14,8 @@
   "dependencies": {
     "@react-native-community/async-storage": "^1.12.0",
     "@react-native-community/datetimepicker": "^3.0.9",
+    "@react-native-community/masked-view": "^0.1.10",
+    "@react-native-community/toolbar-android": "0.1.0-rc.2",
     "@react-native-mapbox-gl/maps": "^8.2.0-beta1",
     "@react-navigation/native": "^5.7.6",
     "@react-navigation/stack": "^5.12.8",
@@ -40,6 +42,8 @@
     "react-native-localize": "^1.4.3",
     "react-native-modal-datetime-picker": "^8.9.3",
     "react-native-reanimated": "^1.13.2",
+    "react-native-safe-area-context": "^3.2.0",
+    "react-native-screens": "^2.18.1",
     "react-native-share": "^5.1.0",
     "react-native-snackbar": "^2.2.3",
     "react-native-svg": "^12.1.0",
