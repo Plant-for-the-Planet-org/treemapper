@@ -15,6 +15,7 @@ import {
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
 import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 import { permission } from '../../utils/permissions';
@@ -29,6 +30,8 @@ const DownloadMap = ({ navigation }) => {
   const [numberOfOfflineMaps, setNumberOfOfflineMaps] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(0);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
+  const [offlineModal, setOfflineModal] = useState(false);
+  const netInfo = useNetInfo();
 
   const MapBoxGLRef = useRef();
   const camera = useRef();
@@ -88,56 +91,60 @@ const DownloadMap = ({ navigation }) => {
 
   const onPressDownloadArea = async () => {
     let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
-    setIsLoaderShow(true);
-    let coords = await MapBoxGLRef.current.getCenter();
-    let bounds = await MapBoxGLRef.current.getVisibleBounds();
-    getAreaName({ coords })
-      .then(async (areaName) => {
-        setAreaName(areaName);
-        const progressListener = (offlineRegion, status) => {
-          if (status.percentage == 100) {
-            createOfflineMap({
-              name: offllineMapId,
-              size: status.completedTileSize,
-              areaName: areaName,
-            })
-              .then(() => {
-                setIsLoaderShow(false);
-                setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
-                getAllOfflineMapslocal();
-                setAreaName('');
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      setIsLoaderShow(true);
+      let coords = await MapBoxGLRef.current.getCenter();
+      let bounds = await MapBoxGLRef.current.getVisibleBounds();
+      getAreaName({ coords })
+        .then(async (areaName) => {
+          setAreaName(areaName);
+          const progressListener = (offlineRegion, status) => {
+            if (status.percentage == 100) {
+              createOfflineMap({
+                name: offllineMapId,
+                size: status.completedTileSize,
+                areaName: areaName,
               })
-              .catch((err) => {
-                setIsLoaderShow(false);
-                setAreaName('');
-                alert(i18next.t('label.download_map_area_exists'));
-              });
-          }
-        };
-        const errorListener = (offlineRegion, err) => {
-          if (err.message !== 'timeout') {
-            setIsLoaderShow(false);
-            setAreaName('');
-            alert(err.message);
-          }
-        };
-        await MapboxGL.offlineManager.createPack(
-          {
-            name: offllineMapId,
-            styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
-            minZoom: 14,
-            maxZoom: 20,
-            bounds: bounds,
-          },
-          progressListener,
-          errorListener,
-        );
-      })
-      .catch((err) => {
-        setIsLoaderShow(false);
-        setAreaName('');
-        alert(i18next.t('label.download_map_area_failed'));
-      });
+                .then(() => {
+                  setIsLoaderShow(false);
+                  setTimeout(() => alert(i18next.t('label.download_map_complete')), 1000);
+                  getAllOfflineMapslocal();
+                  setAreaName('');
+                })
+                .catch((err) => {
+                  setIsLoaderShow(false);
+                  setAreaName('');
+                  alert(i18next.t('label.download_map_area_exists'));
+                });
+            }
+          };
+          const errorListener = (offlineRegion, err) => {
+            if (err.message !== 'timeout') {
+              setIsLoaderShow(false);
+              setAreaName('');
+              alert(err.message);
+            }
+          };
+          await MapboxGL.offlineManager.createPack(
+            {
+              name: offllineMapId,
+              styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
+              minZoom: 14,
+              maxZoom: 20,
+              bounds: bounds,
+            },
+            progressListener,
+            errorListener,
+          );
+        })
+        .catch((err) => {
+          setIsLoaderShow(false);
+          setAreaName('');
+          alert(i18next.t('label.download_map_area_failed'));
+        });
+    } else {
+      setOfflineModal(true);
+    }
   };
 
   const renderLoaderModal = () => {
@@ -209,6 +216,13 @@ const DownloadMap = ({ navigation }) => {
           </View>
         )}
       </View>
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setOfflineModal(false)}
+      />
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}

@@ -4,5 +4,7 @@
   "download_map": "Download",
   "download_map_view": "View All",
   "download_map_area_failed": "Could not download the map. Please try again later.",
-  "download_map_area_exists": "The map was already downloaded."
+  "download_map_area_exists": "The map was already downloaded.",
+  "network_error": "Network Error",
+  "network_error_message": "No internet connection. Please try again later."
 }

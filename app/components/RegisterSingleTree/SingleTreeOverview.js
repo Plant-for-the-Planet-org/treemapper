@@ -65,16 +65,19 @@ import {
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { UserContext } from '../../reducers/user';
+import { useNetInfo } from '@react-native-community/netinfo';
 import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
   const [plantationDate, setPlantationDate] = useState(new Date());
   const [specieText, setSpecieText] = useState('');
-  // const [specieEditText, setSpecieEditText] = useState('');
   const [specieDiameter, setSpecieDiameter] = useState('');
   const [specieEditDiameter, setSpecieEditDiameter] = useState('');
   const [specieHeight, setSpecieHeight] = useState('');
@@ -88,9 +91,12 @@ const SingleTreeOverview = () => {
   const [isShowManageSpecies, setIsShowManageSpecies] = useState(false);
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showInputError, setShowInputError] = useState(false);
+
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
 
+  const netInfo = useNetInfo();
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -240,7 +246,7 @@ const SingleTreeOverview = () => {
       setIsOpenModal(false);
     } else {
       // TODO:i18n - if this is used, please add translations
-      Alert.alert('Error', 'Please Enter Valid Input', [{ text: 'OK' }], { cancelable: false });
+      setShowInputError(true);
       setIsOpenModal(false);
     }
     setEditEnable('');
@@ -621,6 +627,14 @@ const SingleTreeOverview = () => {
       if (specieText) {
         let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
+          console.log('Syncing');
+          checkLoginAndSync({
+            sync: true,
+            dispatch,
+            userDispatch,
+            connected: netInfo.isConnected,
+            internet: netInfo.isInternetReachable,
+          });
           navigation.navigate('TreeInventory');
         });
       } else {
@@ -652,6 +666,13 @@ const SingleTreeOverview = () => {
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
+        checkLoginAndSync({
+          sync: true,
+          dispatch,
+          userDispatch,
+          connected: netInfo.isConnected,
+          internet: netInfo.isInternetReachable,
+        });
         navigation.navigate('RegisterSingleTree');
       });
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
@@ -746,8 +767,21 @@ const SingleTreeOverview = () => {
             </View>
           )}
         </ScrollView>
-
-        {inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
+        {inventory?.treeType === SINGLE && status === INCOMPLETE ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <PrimaryButton
+              onPress={() => onPressSave()}
+              btnText={i18next.t('label.tree_review_Save')}
+              theme={'white'}
+              halfWidth={true}
+            />
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+              halfWidth={true}
+            />
+          </View>
+        ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressContinueToSpecies}
@@ -779,6 +813,13 @@ const SingleTreeOverview = () => {
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
         showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showInputError}
+        heading={i18next.t('label.tree_inventory_input_error')}
+        message={i18next.t('label.tree_inventory_input_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setShowInputError(false)}
       />
     </SafeAreaView>
   );

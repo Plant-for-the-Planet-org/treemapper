@@ -114,7 +114,7 @@ const SelectSpecies = () => {
         <View style={{ flex: 1 }}>
           <SafeAreaView style={styles.mainContainer}>
             <View style={styles.container}>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
                 <Header
                   headingText={i18next.t('label.select_species_add_measurements')}
                   onBackPress={() => {
@@ -125,7 +125,12 @@ const SelectSpecies = () => {
               <KeyboardAvoidingView
                 behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
-                <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}>
                   <View>
                     <View style={styles.inputBox}>
                       <View
