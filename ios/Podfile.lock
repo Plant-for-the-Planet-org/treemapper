@@ -284,6 +284,7 @@ PODS:
   - react-native-mapbox-gl/StaticLibraryFixer (8.2.0-beta1):
     - Mapbox-iOS-SDK (~> 5.9.0)
     - React
+    - React-Core
   - react-native-netinfo (6.0.0):
     - React-Core
   - react-native-safe-area-context (0.7.3):
