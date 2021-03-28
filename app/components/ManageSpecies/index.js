@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
@@ -181,76 +182,76 @@ const ManageSpecies = ({
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
-        <View style={styles.container}>
-          <Header
-            closeIcon
-            onBackPress={onPressBack ? onPressBack : onPressHome}
-            headingText={
-              registrationType
-                ? i18next.t('label.select_species_header')
-                : i18next.t('label.select_species_tree_species')
-            }
-          />
-          <View>
-            <SpeciesSyncError />
-          </View>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchText}
-              placeholder={i18next.t('label.select_species_search_species')}
-              onChangeText={handleSpeciesSearch}
-              value={searchText}
-              returnKeyType={'search'}
-              autoCorrect={false}
+        <ScrollView style={{ flex: 1 }}>
+          <View style={styles.container}>
+            <Header
+              closeIcon
+              onBackPress={onPressBack ? onPressBack : onPressHome}
+              headingText={
+                registrationType
+                  ? i18next.t('label.select_species_header')
+                  : i18next.t('label.select_species_tree_species')
+              }
             />
-            {searchText ? (
-              <TouchableOpacity
-                onPress={() => {
-                  setSearchText('');
-                }}>
-                <Ionicons name="md-close" size={20} style={styles.closeIcon} />
-              </TouchableOpacity>
+            <SpeciesSyncError />
+            <View style={styles.searchBar}>
+              <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchText}
+                placeholder={i18next.t('label.select_species_search_species')}
+                onChangeText={handleSpeciesSearch}
+                value={searchText}
+                returnKeyType={'search'}
+                autoCorrect={false}
+              />
+              {searchText ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchText('');
+                  }}>
+                  <Ionicons name="md-close" size={20} style={styles.closeIcon} />
+                </TouchableOpacity>
+              ) : (
+                []
+              )}
+            </View>
+            {showSearchSpecies ? (
+              searchText.length < 3 ? (
+                <Text style={styles.notPresentText}>
+                  {i18next.t('label.select_species_search_atleast_3_characters')}
+                </Text>
+              ) : searchList && searchList.length > 0 ? (
+                <SearchSpecies
+                  searchList={searchList}
+                  registrationType={registrationType}
+                  onPressSpeciesSingle={onPressSpeciesSingle}
+                  toggleUserSpecies={toggleUserSpecies}
+                  addSpecieToInventory={handleSpeciePress}
+                  editOnlySpecieName={editOnlySpecieName}
+                  onPressBack={onPressBack}
+                  clearSearchText={() => setSearchText('')}
+                  isSampleTree={isSampleTree}
+                />
+              ) : (
+                <Text style={styles.notPresentText}>
+                  {i18next.t('label.select_species_search_specie_not_present', {
+                    searchText,
+                  })}
+                </Text>
+              )
             ) : (
-              []
-            )}
-          </View>
-          {showSearchSpecies ? (
-            searchText.length < 3 ? (
-              <Text style={styles.notPresentText}>
-                {i18next.t('label.select_species_search_atleast_3_characters')}
-              </Text>
-            ) : searchList && searchList.length > 0 ? (
-              <SearchSpecies
-                searchList={searchList}
+              <MySpecies
                 registrationType={registrationType}
                 onPressSpeciesSingle={onPressSpeciesSingle}
-                toggleUserSpecies={toggleUserSpecies}
+                specieList={specieList}
                 addSpecieToInventory={handleSpeciePress}
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
-                clearSearchText={() => setSearchText('')}
                 isSampleTree={isSampleTree}
               />
-            ) : (
-              <Text style={styles.notPresentText}>
-                {i18next.t('label.select_species_search_specie_not_present', {
-                  searchText,
-                })}
-              </Text>
-            )
-          ) : (
-            <MySpecies
-              registrationType={registrationType}
-              onPressSpeciesSingle={onPressSpeciesSingle}
-              specieList={specieList}
-              addSpecieToInventory={handleSpeciePress}
-              editOnlySpecieName={editOnlySpecieName}
-              onPressBack={onPressBack}
-              isSampleTree={isSampleTree}
-            />
-          )}
-        </View>
+            )}
+          </View>
+        </ScrollView>
       </DismissKeyBoard>
       <TreeCountModal
         showTreeCountModal={showTreeCountModal}

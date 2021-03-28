@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  Alert,
   BackHandler,
   Linking,
   Platform,
@@ -21,6 +20,7 @@ import { uploadInventoryData } from '../../utils/uploadInventory';
 import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
+import VerifyEmailAlert from '../Common/EmailAlert';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -30,6 +30,7 @@ const TreeInventory = ({ navigation }) => {
 
   const [allInventory, setAllInventory] = useState(null);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
+  const [emailAlert, setEmailAlert] = useState(false);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
@@ -47,6 +48,7 @@ const TreeInventory = ({ navigation }) => {
 
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
+    // navigation.goBack();
   };
 
   const initialState = () => {
@@ -77,7 +79,7 @@ const TreeInventory = ({ navigation }) => {
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
       .then(() => {
-        handleBackPress();
+        // handleBackPress();
       })
       .catch((err) => {
         if (err?.response?.status === 303) {
@@ -86,15 +88,10 @@ const TreeInventory = ({ navigation }) => {
           setIsPermissionBlockedAlertShow(true);
         } else if (err?.error !== 'a0.session.user_cancelled') {
           // TODO:i18n - if this is used, please add translations
-          Alert.alert(
-            'Verify your Email',
-            'Please verify your email before logging in.',
-            [{ text: 'OK' }],
-            { cancelable: false },
-          );
-          handleBackPress();
+          setEmailAlert(true);
         }
       });
+    navigation.goBack();
   };
 
   const renderInventory = () => {
@@ -217,6 +214,7 @@ const TreeInventory = ({ navigation }) => {
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
         handleBackPress={handleBackPress}
       />
+      <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </View>
   );
 };

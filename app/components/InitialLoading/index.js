@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
@@ -94,6 +94,7 @@ export default function InitialLoading() {
         ) : (
           <Text style={styles.descriptionText}>{descriptionText}</Text>
         )}
+        <ActivityIndicator size="large" color={Colors.PRIMARY} style={{ paddingVertical: 20 }} />
       </View>
     </SafeAreaView>
   );

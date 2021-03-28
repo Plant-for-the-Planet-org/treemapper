@@ -40,14 +40,13 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+          if (registrationType || isSampleTree) {
             addSpecieToInventory(item);
+          }
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
             onPressBack();
           } else if (registrationType === SINGLE && !editOnlySpecieName) {
-            addSpecieToInventory(item);
             onPressSpeciesSingle(item);
-          } else if (registrationType === MULTI || isSampleTree) {
-            addSpecieToInventory(item);
           }
         }}>
         <View>
@@ -105,7 +104,7 @@ const MySpecies = ({
             keyboardShouldPersistTaps="always"
           />
         ) : (
-          <View style={{ flex: 1, alignItems: 'center' }}>
+          <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
             <SvgXml
               xml={empty}
               style={{

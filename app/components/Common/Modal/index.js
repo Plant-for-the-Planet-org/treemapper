@@ -13,9 +13,9 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';
-import Config from 'react-native-config';
+import i18next from 'i18next';
 
-export default function index({ visible, openModal, userCountry }) {
+export default function index({ visible, openModal, userCountry, cdnUrls }) {
   const [countryData, setCountryData] = useState(null);
   const [search, setSearch] = useState(null);
 
@@ -30,14 +30,15 @@ export default function index({ visible, openModal, userCountry }) {
       <View style={{ flexDirection: 'row' }}>
         <Image
           source={{
-            uri: `${Config.CDN_URL}${title.currencyCountryFlag}.png`,
+            // not using currencyCountryFlag any more as we have flags for every country
+            uri: cdnUrls.images ? `${cdnUrls.images}/flags/png/256/${title.countryCode}.png` : null,
           }}
           style={styles.countryFlag}
           resizeMode="contain"
         />
         <View style={{ paddingLeft: 20 }}>
           {/* <Text style={{color: 'black'}}>{title.currencyCode}</Text> */}
-          <Text style={{ color: 'black', paddingTop: 15 }}>{title.countryName}</Text>
+          <Text style={{ color: 'black', paddingTop: 12 }}>{title.countryName}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -93,15 +94,15 @@ export default function index({ visible, openModal, userCountry }) {
             <View />
           </View>
           <View style={{ paddingLeft: 10, paddingTop: 15 }}>
-            <Text style={styles.headerText}>Select Country</Text>
+            <Text style={styles.headerText}>{i18next.t('label.select_country')}</Text>
           </View>
           {/* <View style={{paddingLeft: 10}}>
-            <Header headingText="Select Country" />
+            <Header headingText={i18next.t('label.select_country')} />
           </View> */}
           <View style={styles.modalView}>
             {/* <View style={styles.searchContainer}>
-              <TextInput 
-                placeholder='Select country'
+              <TextInput
+                placeholder={i18next.t('label.select_country')}
                 style={styles.searchInput}
                 placeholderTextColor="black"
                 onChangeText={text => setSearch(text)}
@@ -163,17 +164,18 @@ const styles = StyleSheet.create({
   //   paddingLeft: 10
   // },
   item: {
-    padding: 10,
-    marginVertical: 8,
+    padding: 4,
+    marginVertical: 0,
     marginHorizontal: 16,
   },
   itemContainer: {
     backgroundColor: 'white',
+    paddingBottom: 160,
   },
   countryFlag: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
+    height: 40,
+    width: 40,
+    borderRadius: 0,
   },
   headerText: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
