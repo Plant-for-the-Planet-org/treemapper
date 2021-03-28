@@ -17,7 +17,7 @@
   "zipcode": "ZIP CODE",
   "account_type": "Account Type",
   "select_country": "Select Country",
-  "select_role_type": "Select role type",
+  "select_role_type": "Select account type",
   "enter_first_name": "Enter first name",
   "enter_last_name": "Enter last name",
   "enter_city_name": "Enter city Name",
