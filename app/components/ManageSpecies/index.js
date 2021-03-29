@@ -105,11 +105,9 @@ const ManageSpecies = ({
               specieToToggle.isUserSpecies = true;
               specieToToggle.isDeleted = false;
             } else {
-              console.log('Above', specieToToggle.isUserSpecies);
               specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-              console.log('Below', specieToToggle.isUserSpecies);
-              if (specieToToggle.isUserSpecies === true) {
-                specieToToggle.isDeleted = false;
+              if (specieToToggle.isUserSpecies === false) {
+                specieToToggle.isDeleted = true;
               }
             }
             // copies the current search list in variable currentSearchList

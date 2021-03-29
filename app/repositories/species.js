@@ -121,7 +121,6 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 specieResult.isUploaded = true;
                 specieResult.isUserSpecies = true;
                 specieResult.specieId = specie.id;
-                console.log(specie.aliases, 'specie.aliases');
                 if (specie.aliases) {
                   specieResult.aliases = specie.aliases;
                 }

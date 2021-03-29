@@ -123,7 +123,7 @@ export const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
     if (specie.isUserSpecies && !specie.isUploaded) {
       addUserSpecieToServer(specie, alreadySyncedSpecies);
     } else if (!specie.isUserSpecies && specie.isUploaded) {
-      deleteUserSpecieFromServer(specie);
+      // deleteUserSpecieFromServer(specie);
     }
   }
 };
@@ -198,7 +198,6 @@ export const deleteUserSpecieFromServer = (specie) => {
   deleteUserSpecie(specie.specieId)
     .then((result) => {
       if (result) {
-        console.log(result, 'result');
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
