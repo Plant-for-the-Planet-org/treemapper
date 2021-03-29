@@ -7,7 +7,6 @@
   "lastname": "Apellidos",
   "tpo_title": "Organización de plantación de árboles",
   "education_title": "Escuela",
-  "education": "Educación",
   "signup_confirm": "Por favor, confirma tus datos.",
   "individual": "Individual",
   "company": "Empresa",
@@ -16,5 +15,6 @@
   "city": "Ciudad",
   "address": "Dirección",
   "zipcode": "Código Postal",
-  "account_type": "Tipo de cuenta"
+  "account_type": "Tipo de cuenta",
+  "select_country": "Selecciona un país"
 }
