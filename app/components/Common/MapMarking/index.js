@@ -17,7 +17,6 @@ import {
 } from 'react-native';
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
-import LinearGradient from 'react-native-linear-gradient';
 import { Colors, Typography } from '_styles';
 import { AlertModal, Header } from '../';
 import { initiateInventoryState } from '../../../actions/inventory';
@@ -753,7 +752,7 @@ export default function MapMarking({
         loader={loader}
       />
 
-      <LinearGradient style={styles.headerCont} colors={[Colors.WHITE, 'rgba(255, 255, 255, 0)']}>
+      <View style={styles.headerCont}>
         <SafeAreaView />
         <Header
           onBackPress={onPressBack}
@@ -771,7 +770,7 @@ export default function MapMarking({
           }
           TitleRightComponent={renderAccuracyInfo}
         />
-      </LinearGradient>
+      </View>
       {renderAccuracyModal()}
       {renderConfirmationModal()}
       {renderLocationAlert()}
