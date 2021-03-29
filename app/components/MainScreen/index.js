@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   ImageBackground,
   Linking,
   Modal,
@@ -14,6 +13,7 @@ import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
@@ -42,6 +42,9 @@ import {
   SpeciesSyncError,
 } from '../Common';
 import ProfileModal from '../ProfileModal';
+import VerifyEmailAlert from '../Common/EmailAlert';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { useIsFocused } from '@react-navigation/native';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -53,19 +56,27 @@ const MainScreen = ({ navigation }) => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
   const [cdnUrls, setCdnUrls] = useState({});
-
+  const [emailAlert, setEmailAlert] = useState(false);
+  const [pendingInventory, setPendingInventory] = useState(0);
+  const netInfo = useNetInfo();
+  const isFocused = useIsFocused();
   useEffect(() => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
       getInventoryByStatus('all').then((data) => {
         let count = 0;
+        let pendingInventoryCount = 0;
         for (const inventory of data) {
           if (inventory.status === 'pending' || inventory.status === 'uploading') {
             count++;
           }
+          if (inventory.status === 'pending') {
+            pendingInventoryCount++;
+          }
         }
         updateCount({ type: 'pending', count })(dispatch);
+        setPendingInventory(pendingInventoryCount);
         setNumberOfInventory(data ? data.length : 0);
       });
 
@@ -84,16 +95,34 @@ const MainScreen = ({ navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    getUserDetails().then((userDetails) => {
-      if (userDetails) {
-        setUserInfo(userDetails);
-        setIsUserLogin(userDetails.accessToken ? true : false);
-      }
-    });
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      setCdnUrls(cdnMedia);
-    });
+    if (!loadingState.isLoading) {
+      getUserDetails().then((userDetails) => {
+        if (userDetails) {
+          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+          if (stringifiedUserDetails) {
+            setUserInfo(stringifiedUserDetails);
+            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+          }
+        }
+      });
+      getCdnUrls(i18next.language).then((cdnMedia) => {
+        setCdnUrls(cdnMedia);
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    console.log(netInfo, 'netInfo', pendingInventory, 'isFocused', isFocused);
+    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+      checkLoginAndSync({
+        sync: true,
+        dispatch,
+        userDispatch,
+        connected: netInfo.isConnected,
+        internet: netInfo.isInternetReachable,
+      });
+    }
+  }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData, changes) {
@@ -126,18 +155,19 @@ const MainScreen = ({ navigation }) => {
       // Observe collection notifications.
       userObject.addListener(listener);
     } catch (err) {
-      console.error(`Error at /components/MainScreen/initializeRealm, ${JSON.stringify(err)}`);
+      console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
   };
 
   const checkIsSignedInAndUpdate = (userDetail) => {
-    if (userDetail.isSignUpRequired) {
+    const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
+    if (stringifiedUserDetails.isSignUpRequired) {
       navigation.navigate('SignUp');
     } else {
       // dispatch function sets the passed user details into the user state
-      setUserDetails(userDetail)(userDispatch);
-      setUserInfo(userDetail);
-      setIsUserLogin(userDetail.accessToken ? true : false);
+      setUserDetails(stringifiedUserDetails)(userDispatch);
+      setUserInfo(stringifiedUserDetails);
+      setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
     }
   };
 
@@ -157,18 +187,20 @@ const MainScreen = ({ navigation }) => {
       auth0Login(userDispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
+          console.log('log in successful');
+          checkLoginAndSync({
+            sync: true,
+            dispatch,
+            userDispatch,
+            connected: netInfo.isConnected,
+            internet: netInfo.isInternetReachable,
+          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
-            // TODO:i18n - if this is used, please add translations
-            Alert.alert(
-              'Verify your Email',
-              'Please verify your email before logging in.',
-              [{ text: 'OK' }],
-              { cancelable: false },
-            );
+            setEmailAlert(true);
           }
           stopLoading()(loadingDispatch);
         });
@@ -177,7 +209,11 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout(userDispatch);
+    auth0Logout(userDispatch).then((result) => {
+      if (result) {
+        setUserInfo({});
+      }
+    });
   };
 
   const renderVideoModal = () => {
@@ -234,6 +270,7 @@ const MainScreen = ({ navigation }) => {
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
                 isUserLogin={isUserLogin}
+                setEmailAlert={setEmailAlert}
               />
               <MainScreenHeader
                 onPressLogin={onPressLogin}
@@ -330,6 +367,7 @@ const MainScreen = ({ navigation }) => {
         userInfo={userInfo}
         cdnUrls={cdnUrls}
       />
+      <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>
   );
 };
