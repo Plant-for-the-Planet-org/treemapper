@@ -125,7 +125,10 @@ export default function MapMarking({
           }
         });
       }
-      if (treeType === SAMPLE || treeType === MULTI || inventoryState.inventoryID) {
+      if (
+        (treeType === SAMPLE || treeType === MULTI || treeType === SINGLE) &&
+        inventoryState.inventoryID
+      ) {
         initializeState();
       }
       if (treeType === MULTI) {
@@ -317,7 +320,6 @@ export default function MapMarking({
       if (result) {
         initiateInventoryState(result)(dispatch);
         addLocateTree({ inventory_id: result.inventory_id, locateTree });
-
         getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
           setInventory(inventoryData);
         });
@@ -715,8 +717,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -761,13 +763,13 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
+              ? `${i18next.t('label.locate_tree_location')} ${
                   alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           TitleRightComponent={renderAccuracyInfo}
         />
