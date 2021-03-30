@@ -112,7 +112,7 @@ export const auth0Logout = (userDispatch = null) => {
       .clearSession()
       .then(async () => {
         // deletes the user from DB
-        deleteUser();
+        await deleteUser();
 
         // removes [isInitialSyncDone] item from AsyncStorage
         await AsyncStorage.removeItem('isInitialSyncDone');
@@ -271,10 +271,16 @@ export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
     postRequest('/app/profile', payload)
-      .then((res) => {
+      .then(async (res) => {
         const { status, data } = res;
         if (status === 200) {
-          modifyUserDetails({
+          await modifyUserDetails({
+            firstName: data.firstname,
+            lastName: data.lastname,
+            email: data.email,
+            displayName: data.displayName,
+            country: data.country,
+            tpoId: data.id,
             isSignUpRequired: false,
           });
           // logging the success in to the db

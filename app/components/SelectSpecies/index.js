@@ -82,15 +82,17 @@ const SelectSpecies = () => {
   }, []);
 
   const Inventory = () => {
-    getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      setInventory(inventory);
+    if (state.inventoryID) {
+      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+        setInventory(inventory);
 
-      if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-        setIsShowTreeMeasurementModal(true);
-        setSingleTreeSpecie(inventory.species[0]);
-      }
-      setRegistrationType(inventory.treeType);
-    });
+        if (inventory.species.length > 0 && inventory.specieDiameter == null) {
+          setIsShowTreeMeasurementModal(true);
+          setSingleTreeSpecie(inventory.species[0]);
+        }
+        setRegistrationType(inventory.treeType);
+      });
+    }
   };
 
   const Country = () => {

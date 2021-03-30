@@ -124,6 +124,7 @@ const ProfileModal = ({
                     height: 50,
                     marginLeft: 10,
                     marginRight: 4,
+                    borderRadius: 50,
                   }}
                   source={{ uri: avatar }}
                 />

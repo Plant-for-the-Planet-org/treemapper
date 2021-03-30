@@ -19,9 +19,7 @@ export default function AppNavigator() {
   const { dispatch: userDispatch } = useContext(UserContext);
 
   const autoSync = () => {
-    console.log(netInfo.type, 'netInfo.type', netInfo.isConnected, netInfo.isInternetReachable);
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      console.log('connected');
       checkLoginAndSync({
         sync: true,
         dispatch: dispatch,

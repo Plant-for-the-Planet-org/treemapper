@@ -19,7 +19,7 @@ import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
 import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
-import { getCdnUrls, SignupService } from '../../actions/user';
+import { auth0Logout, getCdnUrls, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getUserDetails } from '../../repositories/user';
@@ -58,6 +58,7 @@ const SignUp = ({ navigation }) => {
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const [cdnUrls, setCdnUrls] = useState({});
+  const lang = RNLocalize.getLocales()[0];
 
   useEffect(() => {
     getCdnUrls(i18next.language).then((cdnMedia) => {
@@ -67,7 +68,7 @@ const SignUp = ({ navigation }) => {
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
-  const lang = RNLocalize.getLocales()[0];
+
   const SelectType = (type) => {
     let name;
     switch (type) {
@@ -239,6 +240,17 @@ const SignUp = ({ navigation }) => {
         });
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      getUserDetails().then(async (userDetails) => {
+        if (userDetails?.isSignUpRequired) {
+          await auth0Logout(userDispatch);
+        }
+      });
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     stopLoading()(loadingDispatch);

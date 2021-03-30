@@ -95,18 +95,6 @@ export default function SampleTreesCount() {
               <Text style={[styles.description, styles.descriptionMarginTop]}>
                 {i18next.t('label.recommend_at_least_sample_trees')}
               </Text>
-              <Text style={styles.description}>
-                {i18next.t('label.next_step_to_measure_sample_trees_text')}
-              </Text>
-              <Text style={[styles.description, styles.descriptionMarginTop]}>
-                {i18next.t('label.recommend_at_least_sample_trees')}
-              </Text>
-              <Text style={styles.description}>
-                {i18next.t('label.next_step_to_measure_sample_trees_text')}
-              </Text>
-              <Text style={[styles.description, styles.descriptionMarginTop]}>
-                {i18next.t('label.recommend_at_least_sample_trees')}
-              </Text>
               <Text
                 style={[
                   styles.description,
