@@ -124,7 +124,10 @@ export default function MapMarking({
           }
         });
       }
-      if (treeType === SAMPLE || treeType === MULTI || inventoryState.inventoryID) {
+      if (
+        (treeType === SAMPLE || treeType === MULTI || treeType === SINGLE) &&
+        inventoryState.inventoryID
+      ) {
         initializeState();
       }
       if (treeType === MULTI) {
@@ -330,7 +333,6 @@ export default function MapMarking({
       if (result) {
         initiateInventoryState(result)(dispatch);
         addLocateTree({ inventory_id: result.inventory_id, locateTree });
-
         getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
           setInventory(inventoryData);
         });

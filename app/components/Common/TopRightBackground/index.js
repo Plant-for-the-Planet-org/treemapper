@@ -15,9 +15,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    left: 20,
+    left: 0,
   },
   backgroundImageView: {
     height: 140,
+    // width: 200,
   },
 });

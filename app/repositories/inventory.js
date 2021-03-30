@@ -170,6 +170,7 @@ export const getInventory = ({ inventoryID }) => {
         resolve(JSON.parse(JSON.stringify(inventory)));
       })
       .catch((err) => {
+        console.log(`Error while fetching inventory with inventory_id: ${inventoryID}`);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,

@@ -83,41 +83,57 @@ export default function SampleTreesCount() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
-        <TopRightBackground />
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <Header headingText={i18next.t('label.sample_trees')} />
-          {/* container for description of what sample trees are and how to proceed */}
-          <View style={styles.descriptionContainer}>
-            <Text style={styles.description}>
-              {i18next.t('label.next_step_to_measure_sample_trees_text')}
-            </Text>
-            <Text style={[styles.description, styles.descriptionMarginTop]}>
-              {i18next.t('label.recommend_at_least_sample_trees')}
-            </Text>
-            <Text
-              style={[
-                styles.description,
-                styles.descriptionMarginTop,
-                { fontFamily: Typography.FONT_FAMILY_BOLD },
-              ]}>
-              {i18next.t('label.how_many_sample_trees_to_record')}
-            </Text>
-          </View>
+        <ScrollView style={{}} showsVerticalScrollIndicator={false}>
+          <TopRightBackground style={{ paddingHorizontal: 0, resizeMode: 'cover' }} />
+          <View style={{ paddingHorizontal: 25 }}>
+            <Header headingText={i18next.t('label.sample_trees')} />
+            {/* container for description of what sample trees are and how to proceed */}
+            <View style={styles.descriptionContainer}>
+              <Text style={styles.description}>
+                {i18next.t('label.next_step_to_measure_sample_trees_text')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text style={styles.description}>
+                {i18next.t('label.next_step_to_measure_sample_trees_text')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text style={styles.description}>
+                {i18next.t('label.next_step_to_measure_sample_trees_text')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text
+                style={[
+                  styles.description,
+                  styles.descriptionMarginTop,
+                  { fontFamily: Typography.FONT_FAMILY_BOLD },
+                ]}>
+                {i18next.t('label.how_many_sample_trees_to_record')}
+              </Text>
+            </View>
 
-          {/* container for sample tree count selection options */}
-          <TreeNumberSelection
-            sampleTreesCount={sampleTreesCount}
-            selectedTreeCount={selectedTreeCount}
-            setSelectedTreeCount={setSelectedTreeCount}
-          />
+            {/* container for sample tree count selection options */}
+            <TreeNumberSelection
+              sampleTreesCount={sampleTreesCount}
+              selectedTreeCount={selectedTreeCount}
+              setSelectedTreeCount={setSelectedTreeCount}
+            />
+          </View>
         </ScrollView>
-        <PrimaryButton
-          onPress={onPressContinue}
-          btnText={i18next.t('label.continue')}
-          theme={'primary'}
-          testID={'sample_tree_count_continue'}
-          accessibilityLabel={'sample_tree_count_continue'}
-        />
+        <View style={{ paddingHorizontal: 25 }}>
+          <PrimaryButton
+            onPress={onPressContinue}
+            btnText={i18next.t('label.continue')}
+            theme={'primary'}
+            testID={'sample_tree_count_continue'}
+            accessibilityLabel={'sample_tree_count_continue'}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -126,7 +142,7 @@ export default function SampleTreesCount() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
     position: 'relative',
   },
@@ -146,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'stretch',
-    marginTop: 30,
+    marginVertical: 30,
   },
   treeCountSelection: {
     borderRadius: 8,
