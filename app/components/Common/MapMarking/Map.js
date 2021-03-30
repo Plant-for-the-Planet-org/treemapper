@@ -5,7 +5,7 @@ import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import { active_marker, marker_png } from '../../../assets';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -51,6 +51,26 @@ export default function Map({
     return markers;
   };
 
+  const SampleTreeMarkers = () => {
+    const markers = [];
+    for (let i = 1; i < geoJSON.features.length; i++) {
+      let onePoint = geoJSON.features[i];
+
+      let oneMarker = onePoint.geometry.coordinates;
+      markers.push(
+        <MapboxGL.PointAnnotation
+          key={`sampleTree-${i}`}
+          id={`sampleTree-${i}`}
+          coordinate={oneMarker}>
+          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+            <Text style={styles.markerText}>#{i}</Text>
+          </ImageBackground>
+        </MapboxGL.PointAnnotation>,
+      );
+    }
+    return markers;
+  };
+
   return (
     <View style={styles.container}>
       <MapboxGL.MapView
@@ -65,7 +85,8 @@ export default function Map({
         logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        {treeType === MULTI && <Markers />}
+        {treeType === MULTI && Markers()}
+        {treeType === SAMPLE && SampleTreeMarkers()}
 
         <MapboxGL.Camera
           ref={(el) => {
@@ -125,8 +146,8 @@ const styles = StyleSheet.create({
     width: 30,
     height: 43,
     color: Colors.WHITE,
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
     textAlign: 'center',
     paddingTop: 4,
   },

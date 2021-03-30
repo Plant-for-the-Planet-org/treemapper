@@ -10,8 +10,8 @@
     "lint": "eslint app --fix",
     "lint:errors": "eslint app --quiet",
     "format": "prettier --write app",
-    "clean-android":"./clean-android.sh",
-    "clean-ios":"./clean-ios.sh"
+    "clean-android": "./clean-android.sh",
+    "clean-ios": "./clean-ios.sh"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.12.0",

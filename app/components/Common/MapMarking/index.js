@@ -176,18 +176,26 @@ export default function MapMarking({
             },
           };
         });
-        let geoJSONData = {
-          type: 'FeatureCollection',
-          features: featureList,
-        };
 
         if (
           treeType === MULTI &&
           activeMarkerIndex !== null &&
-          activeMarkerIndex < geoJSONData.features[0].geometry.coordinates.length
+          activeMarkerIndex < featureList[0].geometry.coordinates.length
         ) {
-          updateActiveMarkerIndex(geoJSONData.features[0].geometry.coordinates.length);
+          updateActiveMarkerIndex(featureList[0].geometry.coordinates.length);
         } else if (treeType === SAMPLE) {
+          if (inventoryData.sampleTrees.length > 0) {
+            for (const sampleTree of inventoryData.sampleTrees) {
+              featureList.push({
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Point',
+                  coordinates: [sampleTree.longitude, sampleTree.latitude],
+                },
+              });
+            }
+          }
           setCenterCoordinate(turfCenter(featureList[0]));
           setBounds(bbox(featureList[0]));
           setPolygonCoordinates({
@@ -195,6 +203,10 @@ export default function MapMarking({
             coordinates: [featureList[0].geometry.coordinates],
           });
         }
+        let geoJSONData = {
+          type: 'FeatureCollection',
+          features: featureList,
+        };
         setGeoJSON(geoJSONData);
       } else if (updateActiveMarkerIndex) {
         updateActiveMarkerIndex(0);
@@ -246,7 +258,9 @@ export default function MapMarking({
         'K',
       );
       let distanceInMeters = distance * 1000;
-      if (distanceInMeters < 10) {
+      // if the current marker position is less than one meter to already present markers nearby,
+      // then makes the current marker position invalid
+      if (distanceInMeters < 1) {
         isValidMarkers = false;
       }
     }
@@ -714,8 +728,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -760,13 +774,13 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
+              ? `${i18next.t('label.locate_tree_location')} ${
                   alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           TitleRightComponent={renderAccuracyInfo}
         />
@@ -916,20 +930,6 @@ const styles = StyleSheet.create({
   myLocationIconContainer: {
     top: 1.5,
     left: 0.8,
-  },
-  markerContainer: {
-    width: 30,
-    height: 43,
-    paddingBottom: 85,
-  },
-  markerText: {
-    width: 30,
-    height: 43,
-    color: Colors.WHITE,
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingTop: 4,
   },
   bottomBtnWith: {
     width: '90%',

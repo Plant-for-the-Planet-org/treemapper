@@ -1,7 +1,15 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ImageBackground,
+} from 'react-native';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
@@ -15,6 +23,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import Config from 'react-native-config';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
+import { marker_png } from '../../assets';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -222,6 +231,18 @@ export default function TotalTreesSpecies() {
             },
           };
         });
+        if (inventoryData.sampleTrees.length > 0) {
+          for (const sampleTree of inventoryData.sampleTrees) {
+            featureList.push({
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Point',
+                coordinates: [sampleTree.longitude, sampleTree.latitude],
+              },
+            });
+          }
+        }
         let geoJSONData = {
           type: 'FeatureCollection',
           features: featureList,
@@ -234,6 +255,26 @@ export default function TotalTreesSpecies() {
         setGeoJSON(geoJSONData);
       }
     });
+  };
+
+  const SampleTreeMarkers = () => {
+    const markers = [];
+    for (let i = 1; i < geoJSON.features.length; i++) {
+      let onePoint = geoJSON.features[i];
+
+      let oneMarker = onePoint.geometry.coordinates;
+      markers.push(
+        <MapboxGL.PointAnnotation
+          key={`sampleTree-${i}`}
+          id={`sampleTree-${i}`}
+          coordinate={oneMarker}>
+          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+            <Text style={styles.markerText}>#{i}</Text>
+          </ImageBackground>
+        </MapboxGL.PointAnnotation>,
+      );
+    }
+    return markers;
   };
 
   const renderMapView = () => {
@@ -258,6 +299,7 @@ export default function TotalTreesSpecies() {
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
           </MapboxGL.ShapeSource>
         )}
+        {SampleTreeMarkers()}
       </MapboxGL.MapView>
     );
   };
@@ -289,8 +331,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <PrimaryButton
@@ -362,6 +404,21 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  markerContainer: {
+    width: 30,
+    height: 43,
+    paddingBottom: 85,
+    zIndex: 100000,
+  },
+  markerText: {
+    width: 30,
+    height: 43,
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    textAlign: 'center',
+    paddingTop: 4,
   },
 });
 
