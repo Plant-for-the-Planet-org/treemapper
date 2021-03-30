@@ -117,15 +117,15 @@ export default function MapAlrightyModal({
             treeType === SAMPLE
               ? skipPicture
               : treeType === MULTI
-              ? updateAndCompletePolygon
-              : onPressClose
+                ? updateAndCompletePolygon
+                : onPressClose
           }
           onPressContinue={
             treeType === MULTI
               ? () => setShowAlrightyModal(false)
               : locateTree === OFF_SITE
-              ? offSiteContinue
-              : moveScreen
+                ? offSiteContinue
+                : moveScreen
           }
           heading={heading}
           subHeading={subHeading}
