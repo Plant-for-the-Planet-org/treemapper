@@ -4,20 +4,23 @@ import { top_right_tree } from '../../../assets';
 
 export default function TopRightBackground() {
   return (
-    <ImageBackground id={'inventorybtn'} source={top_right_tree} style={styles.backgroundImage}>
-      <View style={styles.backgroundImageView}></View>
-    </ImageBackground>
+    <View style={styles.backgroundImageView}>
+      <ImageBackground source={top_right_tree} style={{}}>
+        <View style={styles.innerView}></View>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
+  backgroundImageView: {
     position: 'absolute',
     top: 0,
     right: 0,
-    left: 20,
+    width: 360,
+    height: 100,
   },
-  backgroundImageView: {
-    height: 140,
+  innerView: {
+    height: 130,
   },
 });

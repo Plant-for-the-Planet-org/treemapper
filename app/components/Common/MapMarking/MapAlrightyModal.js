@@ -3,9 +3,9 @@ import { View, Modal, StyleSheet } from 'react-native';
 import { SAMPLE, OFF_SITE, MULTI, ON_SITE } from '../../../utils/inventoryConstants';
 import { Alrighty } from '../';
 import i18next from 'i18next';
-import { useNavigation } from '@react-navigation/core';
 import { updateLastScreen, polygonUpdate, addCoordinates } from '../../../repositories/inventory';
 import { off_site_enable_banner } from '../../../assets';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 
 const infographicText = [
   {
@@ -84,8 +84,17 @@ export default function MapAlrightyModal({
       currentCoords: { latitude: location.coords.latitude, longitude: location.coords.longitude },
     }).then(() => {
       if (locateTree !== ON_SITE) {
-        // For off site
-        navigation.navigate('InventoryOverview');
+        // resets the navigation stack with MainScreen => TreeInventory => InventoryOverview
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 2,
+            routes: [
+              { name: 'MainScreen' },
+              { name: 'TreeInventory' },
+              { name: 'InventoryOverview' },
+            ],
+          }),
+        );
       }
     });
   };

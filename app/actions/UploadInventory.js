@@ -71,13 +71,13 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                       console.error(
                         `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(err)}`,
                       );
-                      reject();
+                      reject(err);
                     });
                 } else {
-                  reject();
+                  reject(new Error('Some sample tree upload are pending'));
                 }
               } else {
-                reject();
+                reject(new Error('Some image upload are pending'));
               }
             }
           })
@@ -133,7 +133,7 @@ export const uploadInventory = (dispatch) => {
             } catch (err) {
               if (inventoryData.length - 1 === i) {
                 updateIsUploading(false)(dispatch);
-                reject();
+                reject(err);
               }
               bugsnag.notify(err);
               console.error(err);
@@ -168,7 +168,7 @@ export const uploadInventory = (dispatch) => {
               } else {
                 if (inventoryData.length - 1 === i) {
                   updateIsUploading(false)(dispatch);
-                  reject(false);
+                  reject(new Error('No data returned while creating plant location'));
                 }
               }
             } catch (err) {

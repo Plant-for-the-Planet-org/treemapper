@@ -19,9 +19,9 @@ export const permission = () => {
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             resolve('granted');
           } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            reject('blocked');
+            reject(new Error('blocked'));
           } else {
-            reject('denied');
+            reject(new Error('denied'));
           }
         })
         .catch((err) => console.warn(err));
@@ -30,7 +30,7 @@ export const permission = () => {
         if (permissionStatus === 'granted') {
           resolve();
         } else {
-          reject('blocked');
+          reject(new Error('blocked'));
         }
       });
     }

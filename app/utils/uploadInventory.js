@@ -8,7 +8,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
       if (!isUserLogin) {
         auth0Login(userDispatch)
           .then((isUserLogin) => {
-            isUserLogin ? resolve() : reject();
+            isUserLogin ? resolve() : reject(new Error('User is not logged in'));
           })
           .catch((err) => {
             reject(err);
@@ -19,7 +19,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
             resolve();
           })
           .catch((err) => {
-            if (err === 'blocked' || err === 'denied') {
+            if (err?.message === 'blocked' || err?.message === 'denied') {
               reject(err);
             }
             console.error(err);

@@ -5,9 +5,29 @@ import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import { active_marker, marker_png } from '../../../assets';
-import { Colors } from '_styles';
+import { Colors, Typography } from '_styles';
+import SampleTreeMarkers from '../SampleTreeMarkers';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+
+const Markers = ({ geoJSON, alphabets }) => {
+  const markers = [];
+  for (let i = 0; i < geoJSON.features.length; i++) {
+    let onePolygon = geoJSON.features[i];
+
+    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
+      let oneMarker = onePolygon.geometry.coordinates[j];
+      markers.push(
+        <MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
+          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+            <Text style={styles.markerText}>{alphabets[j]}</Text>
+          </ImageBackground>
+        </MapboxGL.PointAnnotation>,
+      );
+    }
+  }
+  return markers;
+};
 
 export default function Map({
   geoJSON,
@@ -29,28 +49,6 @@ export default function Map({
 
   const onChangeRegionComplete = () => setLoader(false);
 
-  const Markers = () => {
-    const markers = [];
-    for (let i = 0; i < geoJSON.features.length; i++) {
-      let onePolygon = geoJSON.features[i];
-
-      for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
-        let oneMarker = onePolygon.geometry.coordinates[j];
-        markers.push(
-          <MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
-            <ImageBackground
-              source={marker_png}
-              style={styles.markerContainer}
-              resizeMode={'cover'}>
-              <Text style={styles.markerText}>{alphabets[j]}</Text>
-            </ImageBackground>
-          </MapboxGL.PointAnnotation>,
-        );
-      }
-    }
-    return markers;
-  };
-
   return (
     <View style={styles.container}>
       <MapboxGL.MapView
@@ -65,7 +63,8 @@ export default function Map({
         logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        {treeType === MULTI && <Markers />}
+        {treeType === MULTI && <Markers geoJSON={geoJSON} alphabets={alphabets} />}
+        {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera
           ref={(el) => {
@@ -125,8 +124,8 @@ const styles = StyleSheet.create({
     width: 30,
     height: 43,
     color: Colors.WHITE,
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
     textAlign: 'center',
     paddingTop: 4,
   },

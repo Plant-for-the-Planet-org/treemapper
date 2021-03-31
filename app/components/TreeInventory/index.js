@@ -84,7 +84,7 @@ const TreeInventory = ({ navigation }) => {
       .catch((err) => {
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
-        } else if (err === 'blocked') {
+        } else if (err?.message === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
         } else if (err?.error !== 'a0.session.user_cancelled') {
           // TODO:i18n - if this is used, please add translations

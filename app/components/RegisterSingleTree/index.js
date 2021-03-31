@@ -34,56 +34,62 @@ const RegisterSingleTree = ({ navigation }) => {
             };
             updateLastScreen(data);
 
-            permission().then((granted) => {
-              if (granted && InventoryData.polygons[0]) {
-                Geolocation.getCurrentPosition(
-                  (position) => {
-                    let distanceInMeters =
-                      distanceCalculator(
-                        position.coords.latitude,
-                        position.coords.longitude,
-                        InventoryData.polygons[0].coordinates[0].latitude,
-                        InventoryData.polygons[0].coordinates[0].longitude,
-                        'K',
-                      ) * 1000;
-                    if (distanceInMeters && distanceInMeters < 100) {
-                      //set onsite
-                      addLocateTree({
-                        inventory_id: inventoryState.inventoryID,
-                        locateTree: ON_SITE,
-                      });
-                      updateScreenState('ImageCapturing');
-                    } else {
-                      //set offsite
-                      addLocateTree({
-                        inventory_id: inventoryState.inventoryID,
-                        locateTree: OFF_SITE,
-                      });
-                      updateScreenState('MapMarking');
-                      navigation.navigate('SelectSpecies');
-                    }
-                  },
-                  (err) => {
-                    console.log(err);
-                  },
-                  {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 20000,
-                    accuracy: {
-                      android: 'high',
-                      ios: 'bestForNavigation',
+            permission()
+              .then((granted) => {
+                if (granted && InventoryData.polygons[0]) {
+                  Geolocation.getCurrentPosition(
+                    (position) => {
+                      let distanceInMeters =
+                        distanceCalculator(
+                          position.coords.latitude,
+                          position.coords.longitude,
+                          InventoryData.polygons[0].coordinates[0].latitude,
+                          InventoryData.polygons[0].coordinates[0].longitude,
+                          'K',
+                        ) * 1000;
+                      if (distanceInMeters && distanceInMeters < 100) {
+                        //set onsite
+                        addLocateTree({
+                          inventory_id: inventoryState.inventoryID,
+                          locateTree: ON_SITE,
+                        });
+                        updateScreenState('ImageCapturing');
+                      } else {
+                        //set offsite
+                        addLocateTree({
+                          inventory_id: inventoryState.inventoryID,
+                          locateTree: OFF_SITE,
+                        });
+                        updateScreenState('MapMarking');
+                        navigation.navigate('SelectSpecies');
+                      }
                     },
-                  },
-                );
-              } else {
-                setScreenState('MapMarking');
-              }
-            });
+                    (err) => {
+                      console.log(err);
+                    },
+                    {
+                      enableHighAccuracy: true,
+                      timeout: 5000,
+                      maximumAge: 20000,
+                      accuracy: {
+                        android: 'high',
+                        ios: 'bestForNavigation',
+                      },
+                    },
+                  );
+                } else {
+                  setScreenState('MapMarking');
+                }
+              })
+              .catch((err) => {
+                console.error(err);
+              });
           }
         });
       } else {
-        permission().then(() => setScreenState('MapMarking'));
+        permission()
+          .then(() => setScreenState('MapMarking'))
+          .catch((err) => console.error(err));
       }
     });
     return () => {
@@ -192,7 +198,7 @@ const PermissionDeniedAlert = ({
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionDeniedAlertShow(false);
-        permission();
+        permission().catch((err) => console.error(err));
       }}
       onPressSecondaryBtn={() => {
         setIsPermissionDeniedAlertShow(false);
