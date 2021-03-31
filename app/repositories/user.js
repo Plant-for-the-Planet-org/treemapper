@@ -181,7 +181,6 @@ export const modifyUserDetails = (userDetails) => {
             'modified',
           );
         });
-        console.log('modified user details', userDetails);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.USER,

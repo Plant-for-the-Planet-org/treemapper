@@ -87,13 +87,13 @@ export const auth0Login = (dispatch) => {
           // if any error is found then deletes the user and clear the user app state
           deleteUser();
           clearUserDetails()(dispatch);
+          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
         }
         reject(err);
       });
@@ -137,13 +137,13 @@ export const auth0Logout = (userDispatch = null) => {
             logStack: JSON.stringify(err),
           });
           resolve(false);
+          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
         }
       });
   });
@@ -195,8 +195,8 @@ export const getNewAccessToken = async (refreshToken) => {
  * @param {Error} error - error of api response to check for 401 error code.
  * @returns {boolean} - returns true if user is logged out else returns false
  */
-export const checkErrorCode = async (error, userDispatch) => {
-  if (error?.response?.status === 401) {
+export const checkErrorCode = async (error, userDispatch = null) => {
+  if (error?.response?.status === 401 || error?.response?.status === 403) {
     return await auth0Logout(userDispatch);
   }
   if (error?.response?.status === 303) {

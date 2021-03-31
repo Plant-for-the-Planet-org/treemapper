@@ -7,6 +7,7 @@ import { bugsnag } from './index';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-community/async-storage';
+import { checkErrorCode } from '../actions/user';
 
 const { protocol, url: baseURL } = APIConfig;
 
@@ -36,7 +37,19 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error(`Error while setting up axios interceptor, ${JSON.stringify(error)}`);
+    console.error('Error while setting up axios request interceptor,', error);
+  },
+);
+
+// Add a response interceptor which checks for error code for all the requests
+axiosInstance.interceptors.response.use(
+  undefined,
+  async (err) => {
+    checkErrorCode(err);
+    return Promise.reject(err);
+  },
+  (error) => {
+    console.error('Error while setting up axios response interceptor,', error);
   },
 );
 

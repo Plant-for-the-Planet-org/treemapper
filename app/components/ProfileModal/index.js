@@ -98,65 +98,86 @@ const ProfileModal = ({
     },
   ];
 
+  const signUpItem = {
+    media: 'exclamation-circle',
+    mediaType: 'icon',
+    onPressFunction: () => {
+      navigation.navigate('SignUp');
+      onPressCloseProfileModal();
+    },
+    text: 'complete_signup',
+  };
+
   return (
     <Modal visible={isProfileModalVisible} transparent>
       <View style={styles.container}>
-        {userInfo.email && (
-          <View style={styles.subContainer}>
-            <View style={styles.headerContainer}>
-              <TouchableOpacity
-                style={styles.closeButtonContainer}
-                onPress={onPressCloseProfileModal}
-                accessible={true}
-                accessibilityLabel="Profile Modal"
-                testID="profile_modal">
-                <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
-              </TouchableOpacity>
-              <View style={styles.logoContainer}>
-                <SvgXml xml={logo} />
-              </View>
-            </View>
-            <View style={styles.profileSection1}>
-              {avatar ? (
-                <Image
-                  style={{
-                    width: 50,
-                    height: 50,
-                    marginLeft: 10,
-                    marginRight: 4,
-                    borderRadius: 50,
-                  }}
-                  source={{ uri: avatar }}
-                />
-              ) : (
-                <AvatarIcon name={userInfo.firstName} style={{ marginLeft: 10, marginRight: 14 }} />
-              )}
-              <View style={styles.nameAndEmailContainer}>
-                {userName ? <Text style={styles.userEmail}>{`${userName}`}</Text> : []}
-
-                <Text style={styles.userName}>{userInfo.email}</Text>
-              </View>
-            </View>
-            {profileListItems.map((item, index) => (
-              <ProfileListItem key={index} {...item} />
-            ))}
-            <View style={styles.horizontalBar} />
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-evenly',
-                marginHorizontal: 50,
-              }}>
-              <Text onPress={onPressLegals} style={styles.textAlignCenter}>
-                {i18next.t('label.legal_docs')}
-              </Text>
-              <Text>•</Text>
-              <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-                {i18next.t('label.support')}
-              </Text>
+        <View style={styles.subContainer}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              style={styles.closeButtonContainer}
+              onPress={onPressCloseProfileModal}
+              accessible={true}
+              accessibilityLabel="Profile Modal"
+              testID="profile_modal">
+              <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
+            </TouchableOpacity>
+            <View style={styles.logoContainer}>
+              <SvgXml xml={logo} />
             </View>
           </View>
-        )}
+          {userInfo.email ? (
+            <>
+              <View style={styles.profileSection1}>
+                {avatar ? (
+                  <Image
+                    style={{
+                      width: 50,
+                      height: 50,
+                      marginLeft: 10,
+                      marginRight: 4,
+                      borderRadius: 50,
+                    }}
+                    source={{ uri: avatar }}
+                  />
+                ) : (
+                  <AvatarIcon
+                    name={userInfo.firstName}
+                    style={{ marginLeft: 10, marginRight: 14 }}
+                  />
+                )}
+                <View style={styles.nameAndEmailContainer}>
+                  {userName ? <Text style={styles.userEmail}>{`${userName}`}</Text> : []}
+
+                  <Text style={styles.userName}>{userInfo.email}</Text>
+                </View>
+              </View>
+              {profileListItems.map((item, index) => (
+                <ProfileListItem key={index} {...item} />
+              ))}
+            </>
+          ) : (
+            <View style={{ marginTop: 20 }}>
+              <ProfileListItem key={0} {...signUpItem} />
+              <ProfileListItem key={1} {...profileListItems[profileListItems.length - 1]} />
+            </View>
+          )}
+          <View style={styles.horizontalBar} />
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-evenly',
+              marginHorizontal: 50,
+            }}>
+            <Text onPress={onPressLegals} style={styles.textAlignCenter}>
+              {i18next.t('label.legal_docs')}
+            </Text>
+            <Text>•</Text>
+            <Text onPress={onPressSupport} style={styles.textAlignCenter}>
+              {i18next.t('label.support')}
+            </Text>
+          </View>
+        </View>
+
         <View />
       </View>
     </Modal>
