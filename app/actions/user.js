@@ -84,7 +84,6 @@ export const auth0Login = (dispatch) => {
             message: 'Error while logging in from auth0',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           // if any error is found then deletes the user and clear the user app state
           deleteUser();
           clearUserDetails()(dispatch);
@@ -94,6 +93,7 @@ export const auth0Login = (dispatch) => {
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
+          bugsnag.notify(err);
         }
         reject(err);
       });
@@ -136,7 +136,6 @@ export const auth0Logout = (userDispatch = null) => {
             message: 'Error while Logging Out',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           resolve(false);
         } else {
           dbLog.info({
@@ -144,6 +143,7 @@ export const auth0Logout = (userDispatch = null) => {
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
+          bugsnag.notify(err);
         }
       });
   });

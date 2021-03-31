@@ -58,9 +58,9 @@ const request = async (url, method = 'GET', isAuthenticated = false, data = unde
     if (isAuthenticated) {
       const accessToken = await getUserToken();
       if (!accessToken) {
-        throw {
+        throw new Error({
           message: 'Access token is not available.',
-        };
+        });
       }
 
       // adds Authorization to headers in options

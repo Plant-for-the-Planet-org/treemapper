@@ -164,10 +164,14 @@ export const getInventory = ({ inventoryID }) => {
           logType: LogTypes.INVENTORY,
           message: `Fetched inventory with inventory_id: ${inventoryID}`,
         });
-        // by doing stringify and parsing of inventory result it removes the
-        // reference of realm type Inventory from the result this helps to
-        // avoid any conflicts when data is modified outside the realm scope
-        resolve(JSON.parse(JSON.stringify(inventory)));
+        if (inventory) {
+          // by doing stringify and parsing of inventory result it removes the
+          // reference of realm type Inventory from the result this helps to
+          // avoid any conflicts when data is modified outside the realm scope
+          resolve(JSON.parse(JSON.stringify(inventory)));
+        } else {
+          resolve(inventory);
+        }
       })
       .catch((err) => {
         console.log(`Error while fetching inventory with inventory_id: ${inventoryID}`);

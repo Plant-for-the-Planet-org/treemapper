@@ -77,7 +77,7 @@ const updateSpeciesFromFile = (jsonFilePath, setUpdatingSpeciesState) => {
           message: `Error while reading file at path ${jsonFilePath} for updating local species`,
           logStack: JSON.stringify(err),
         });
-        reject({ err, isJsonCorrupted });
+        reject(new Error({ err, isJsonCorrupted }));
       });
   });
 };
@@ -165,7 +165,7 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
                     .catch(reject);
                 }
               } else {
-                reject();
+                reject(error);
               }
             });
         } else if (doesZipPathExist) {
@@ -246,6 +246,7 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesSta
                 message: `Error while deleting ZIP file at path ${zipFilePath} for updating local species`,
                 logStack: JSON.stringify(err),
               });
+              bugsnag.notify(err);
             });
         } else {
           dbLog.error({
@@ -253,9 +254,9 @@ const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesSta
             message: 'Error while unzipping or updating data in DB',
             logStack: JSON.stringify(err),
           });
+          bugsnag.notify(err);
         }
-        bugsnag.notify(err);
-        reject();
+        reject(err);
       });
   });
 };
@@ -301,7 +302,7 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
             'Error while downloading scientific species zip, GET - /scientificSpeciesArchive',
           logStack: JSON.stringify(err),
         });
-        reject();
+        reject(err);
       });
   });
 };
