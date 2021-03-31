@@ -6,8 +6,28 @@ import { SvgXml } from 'react-native-svg';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import { active_marker, marker_png } from '../../../assets';
 import { Colors, Typography } from '_styles';
+import SampleTreeMarkers from '../SampleTreeMarkers';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+
+const Markers = ({ geoJSON, alphabets }) => {
+  const markers = [];
+  for (let i = 0; i < geoJSON.features.length; i++) {
+    let onePolygon = geoJSON.features[i];
+
+    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
+      let oneMarker = onePolygon.geometry.coordinates[j];
+      markers.push(
+        <MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
+          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
+            <Text style={styles.markerText}>{alphabets[j]}</Text>
+          </ImageBackground>
+        </MapboxGL.PointAnnotation>,
+      );
+    }
+  }
+  return markers;
+};
 
 export default function Map({
   geoJSON,
@@ -29,48 +49,6 @@ export default function Map({
 
   const onChangeRegionComplete = () => setLoader(false);
 
-  const Markers = () => {
-    const markers = [];
-    for (let i = 0; i < geoJSON.features.length; i++) {
-      let onePolygon = geoJSON.features[i];
-
-      for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
-        let oneMarker = onePolygon.geometry.coordinates[j];
-        markers.push(
-          <MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
-            <ImageBackground
-              source={marker_png}
-              style={styles.markerContainer}
-              resizeMode={'cover'}>
-              <Text style={styles.markerText}>{alphabets[j]}</Text>
-            </ImageBackground>
-          </MapboxGL.PointAnnotation>,
-        );
-      }
-    }
-    return markers;
-  };
-
-  const SampleTreeMarkers = () => {
-    const markers = [];
-    for (let i = 1; i < geoJSON.features.length; i++) {
-      let onePoint = geoJSON.features[i];
-
-      let oneMarker = onePoint.geometry.coordinates;
-      markers.push(
-        <MapboxGL.PointAnnotation
-          key={`sampleTree-${i}`}
-          id={`sampleTree-${i}`}
-          coordinate={oneMarker}>
-          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-            <Text style={styles.markerText}>#{i}</Text>
-          </ImageBackground>
-        </MapboxGL.PointAnnotation>,
-      );
-    }
-    return markers;
-  };
-
   return (
     <View style={styles.container}>
       <MapboxGL.MapView
@@ -85,8 +63,8 @@ export default function Map({
         logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        {treeType === MULTI && Markers()}
-        {treeType === SAMPLE && SampleTreeMarkers()}
+        {treeType === MULTI && <Markers geoJSON={geoJSON} alphabets={alphabets} />}
+        {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera
           ref={(el) => {

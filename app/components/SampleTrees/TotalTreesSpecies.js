@@ -1,15 +1,11 @@
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState, useRef } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ImageBackground,
-} from 'react-native';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
@@ -18,12 +14,8 @@ import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import Config from 'react-native-config';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
-import { marker_png } from '../../assets';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -162,7 +154,7 @@ export default function TotalTreesSpecies() {
         key={index}
         style={{
           paddingVertical: 20,
-          paddingRight: 10,
+          marginHorizontal: 25,
           borderBottomWidth: 1,
           borderColor: '#E1E0E061',
           flexDirection: 'row',
@@ -259,26 +251,6 @@ export default function TotalTreesSpecies() {
     }
   };
 
-  const SampleTreeMarkers = () => {
-    const markers = [];
-    for (let i = 1; i < geoJSON.features.length; i++) {
-      let onePoint = geoJSON.features[i];
-
-      let oneMarker = onePoint.geometry.coordinates;
-      markers.push(
-        <MapboxGL.PointAnnotation
-          key={`sampleTree-${i}`}
-          id={`sampleTree-${i}`}
-          coordinate={oneMarker}>
-          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-            <Text style={styles.markerText}>#{i}</Text>
-          </ImageBackground>
-        </MapboxGL.PointAnnotation>,
-      );
-    }
-    return markers;
-  };
-
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
     return (
@@ -301,7 +273,7 @@ export default function TotalTreesSpecies() {
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
           </MapboxGL.ShapeSource>
         )}
-        {SampleTreeMarkers()}
+        <SampleTreeMarkers geoJSON={geoJSON} />
       </MapboxGL.MapView>
     );
   };
@@ -412,21 +384,6 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-  },
-  markerContainer: {
-    width: 30,
-    height: 43,
-    paddingBottom: 85,
-    zIndex: 100000,
-  },
-  markerText: {
-    width: 30,
-    height: 43,
-    color: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-    textAlign: 'center',
-    paddingTop: 4,
   },
 });
 
