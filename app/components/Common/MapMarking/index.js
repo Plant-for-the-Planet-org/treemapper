@@ -522,14 +522,14 @@ export default function MapMarking({
           currentCoords: { latitude: currentCoords[0], longitude: currentCoords[1] },
         }).then(() => {
           if (isPointForMultipleTree) {
-            // resets the navigation stack with MainScreen => TreeInventory => InventoryOverview
+            // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
             navigation.dispatch(
               CommonActions.reset({
                 index: 2,
                 routes: [
                   { name: 'MainScreen' },
                   { name: 'TreeInventory' },
-                  { name: 'InventoryOverview' },
+                  { name: 'TotalTreesSpecies' },
                 ],
               }),
             );

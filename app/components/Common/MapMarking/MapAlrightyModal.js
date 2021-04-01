@@ -84,14 +84,14 @@ export default function MapAlrightyModal({
       currentCoords: { latitude: location.coords.latitude, longitude: location.coords.longitude },
     }).then(() => {
       if (locateTree !== ON_SITE) {
-        // resets the navigation stack with MainScreen => TreeInventory => InventoryOverview
+        // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
         navigation.dispatch(
           CommonActions.reset({
             index: 2,
             routes: [
               { name: 'MainScreen' },
               { name: 'TreeInventory' },
-              { name: 'InventoryOverview' },
+              { name: 'TotalTreesSpecies' },
             ],
           }),
         );

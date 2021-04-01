@@ -5,9 +5,7 @@ import { Colors, Typography } from '_styles';
 const Label = ({ leftText, rightText, onPressRightText, leftTextStyle, rightTextStyle, style }) => {
   return (
     <View style={[styles.container, style]}>
-      <View>
-        <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
-      </View>
+      <Text style={[styles.leftText, leftTextStyle]}>{leftText}</Text>
       <TouchableOpacity onPress={onPressRightText}>
         <Text
           style={[styles.rightText, rightTextStyle]}
@@ -27,6 +25,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 15,
+    flex: 1,
   },
   headerText: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
@@ -37,6 +36,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_20,
     color: Colors.TEXT_COLOR,
+    flex: 1,
   },
   rightText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

@@ -37,6 +37,7 @@ import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/invent
 import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { CommonActions } from '@react-navigation/routers';
+import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -121,7 +122,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn={inventory.status === 'complete'}
+                      activeBtn={true}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -234,35 +235,8 @@ const InventoryOverview = ({ navigation }) => {
   const onPressExportJSON = async () => {
     const exportGeoJSONFile = () => {
       if (inventory.polygons.length > 0) {
-        const featureList = inventory.polygons.map((onePolygon) => {
-          return {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
-                oneCoordinate.longitude,
-                oneCoordinate.latitude,
-              ]),
-            },
-          };
-        });
-        if (inventory.sampleTrees.length > 0) {
-          for (const sampleTree of inventory.sampleTrees) {
-            featureList.push({
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Point',
-                coordinates: [sampleTree.longitude, sampleTree.latitude],
-              },
-            });
-          }
-        }
-        const geoJSON = {
-          type: 'FeatureCollection',
-          features: featureList,
-        };
+        const geoJSON = getGeoJsonData(inventory);
+
         const options = {
           url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
           message: i18next.t('label.inventory_overview_export_json_message'),
@@ -425,7 +399,7 @@ const InventoryOverview = ({ navigation }) => {
                   <Label
                     leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
                     rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
-                    style={{ marginVertical: 5 }}
+                    style={{ marginVertical: 10 }}
                     leftTextStyle={{ paddingLeft: 20, fontFamily: Typography.FONT_FAMILY_REGULAR }}
                     rightTextStyle={{ color: Colors.TEXT_COLOR }}
                   />
