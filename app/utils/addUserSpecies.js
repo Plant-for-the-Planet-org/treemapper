@@ -8,7 +8,7 @@ import {
 } from '../repositories/species';
 import { LogTypes } from './constants';
 import AsyncStorage from '@react-native-community/async-storage';
-
+import { UpdateSpeciesDataOnServer } from '../utils/specieImageUpload';
 /**
  * This function first checks if the scientific species are updated in local DB then only checks
  * for already uploaded species of user from server and updates the status of same in local DB.
@@ -24,7 +24,7 @@ export const checkAndAddUserSpecies = async () => {
     let isFirstUpdate = await AsyncStorage.getItem('isInitialSyncDone');
 
     // if string value of [isFirstUpdate] is ["true"] then sets [true] as boolean else [false]
-    isFirstUpdate = isFirstUpdate === 'true';
+    isFirstUpdate = isFirstUpdate !== 'true';
     console.log(isFirstUpdate, 'isFirstUpdate');
     // checks and sync the species only if the local species are updated
     if (isSpeciesLoaded === 'true') {
@@ -34,12 +34,15 @@ export const checkAndAddUserSpecies = async () => {
           // passes already synced species fetched from server to update the local species and gets the
           // local species which are not uploaded to server
           console.log(alreadySyncedSpecies, 'alreadySyncedSpecies');
-          updateAndGetUserSpeciesToSync(alreadySyncedSpecies)
+          updateAndGetUserSpeciesToSync(isFirstUpdate ? alreadySyncedSpecies : null)
             .then((speciesToSync) => {
               // checks if [speciesToSync] is present and has data to iterate
               if (speciesToSync && speciesToSync.length > 0) {
                 // adds or deletes the species
-                addOrDeleteUserSpecies(speciesToSync, alreadySyncedSpecies);
+                addOrDeleteUserSpecies(speciesToSync, alreadySyncedSpecies).then(() => {
+                  // console.log(speciesToSync, 'speciesToSync');
+                  UpdateSpeciesDataOnServer(speciesToSync);
+                });
 
                 // logging the success in to the db after all the species are synced
                 dbLog.info({
@@ -117,15 +120,18 @@ const addFromAlreadySyncedSpecies = (scientificSpecieGuid, alreadySyncedSpecies)
  * @param {Array} alreadySyncedSpecies - array of species which are already synced on the server
  */
 export const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
-  // iterates through the list of [speciesToSync] to add the specie on server and if result is success
-  // then updates the [isUploaded] property in local DB to [true] else logs the error
-  for (const specie of speciesToSync) {
-    if (specie.isUserSpecies && !specie.isUploaded) {
-      addUserSpecieToServer(specie, alreadySyncedSpecies);
-    } else if (!specie.isUserSpecies && specie.isUploaded) {
-      // deleteUserSpecieFromServer(specie);
+  return new Promise((resolve, reject) => {
+    // iterates through the list of [speciesToSync] to add the specie on server and if result is success
+    // then updates the [isUploaded] property in local DB to [true] else logs the error
+    for (const specie of speciesToSync) {
+      if (specie.isUserSpecies && !specie.isUploaded) {
+        addUserSpecieToServer(specie, alreadySyncedSpecies);
+      } else if (!specie.isUserSpecies && specie.isUploaded) {
+        deleteUserSpecieFromServer(specie);
+      }
     }
-  }
+    resolve(true);
+  });
 };
 
 /**

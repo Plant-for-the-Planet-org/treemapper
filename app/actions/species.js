@@ -13,6 +13,10 @@ import {
   postAuthenticatedRequest,
   putAuthenticatedRequest,
 } from '../utils/api';
+import { getSchema } from '../repositories/default';
+import Realm from 'realm';
+import RNFS from 'react-native-fs';
+import { changeIsUpdatedStatus } from '../repositories/species';
 
 /**
  * This function dispatches type SET_SPECIES_LIST with payload list of species to add in species state
@@ -182,7 +186,12 @@ export const deleteUserSpecie = (specieId) => {
   });
 };
 
-export const setSpecieAliases = ({ specieId, aliases, description }) => {
+export const addAliasesAndDescriptionOnServer = ({
+  scientificSpecieGuid,
+  specieId,
+  aliases,
+  description,
+}) => {
   return new Promise((resolve, reject) => {
     const data = { aliases, description };
     console.log(data, 'data');
@@ -199,6 +208,7 @@ export const setSpecieAliases = ({ specieId, aliases, description }) => {
             message: `Set aliases to species having id ${specieId}, PUT - /species`,
             statusCode: status,
           });
+          changeIsUpdatedStatus({ scientificSpecieGuid, isDataUpdated: true });
           resolve(true);
         } else {
           resolve(false);
@@ -206,7 +216,11 @@ export const setSpecieAliases = ({ specieId, aliases, description }) => {
       })
       .catch((err) => {
         // logs the error
-        console.error(`Error at /actions/species/setAliases, ${JSON.stringify(err?.response)}`);
+        // console.error(
+        //   `Error at /actions/species/addAliasesAndDescriptionOnServer, ${JSON.stringify(
+        //     err?.response,
+        //   )}`,
+        // );
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
@@ -216,5 +230,36 @@ export const setSpecieAliases = ({ specieId, aliases, description }) => {
         });
         reject(err);
       });
+  });
+};
+
+export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then((realm) => {
+      realm.write(async () => {
+        // const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
+        // let userToken = UpdateSpeciesImageUser.accessToken;
+        await RNFS.readFile(image, 'base64').then(async (base64) => {
+          let body = {
+            imageFile: `data:image/jpeg;base64,${base64}`,
+          };
+          await putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
+            .then((res) => {
+              const { status, data } = res;
+              //   console.log(res, data);
+              if (status === 200) {
+                // console.log(res, 'res');
+                // updateStatusForUserSpecies({ id: speciesId });
+                changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isImageUpdated: true });
+                resolve(true);
+              }
+            })
+            .catch((err) => {
+              // console.log(err, 'create error');
+              reject(err);
+            });
+        });
+      });
+    });
   });
 };

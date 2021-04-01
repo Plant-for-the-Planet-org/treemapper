@@ -103,11 +103,11 @@ const ManageSpecies = ({
             let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (addSpecie) {
               specieToToggle.isUserSpecies = true;
-              specieToToggle.isDeleted = false;
+              // specieToToggle.isDeleted = false;
             } else {
               specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
               if (specieToToggle.isUserSpecies === false) {
-                specieToToggle.isDeleted = true;
+                // specieToToggle.isDeleted = true;
               }
             }
             // copies the current search list in variable currentSearchList
@@ -246,6 +246,7 @@ const ManageSpecies = ({
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
                 isSampleTree={isSampleTree}
+                toggleUserSpecies={toggleUserSpecies}
               />
             )}
           </View>

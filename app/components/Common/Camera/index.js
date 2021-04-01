@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import i18next from 'i18next';
 import { copyImageAndGetData } from '../../../utils/copyToFS';
 
-export default function index({ handleCamera }) {
+export default function Camera({ handleCamera }) {
   const camera = useRef();
 
   const takePicture = async () => {

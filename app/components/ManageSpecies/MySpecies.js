@@ -18,6 +18,7 @@ const MySpecies = ({
   editOnlySpecieName,
   onPressBack,
   isSampleTree,
+  toggleUserSpecies,
 }) => {
   const navigation = useNavigation();
   // useEffect(() => {
@@ -69,6 +70,7 @@ const MySpecies = ({
                 SpecieDescription: item.description,
                 SpecieImage: item.image,
                 SpecieLocalImage: item.localImage,
+                toggleUserSpecies,
               })
             }>
             <Ionicons name="information-circle-outline" size={20} />

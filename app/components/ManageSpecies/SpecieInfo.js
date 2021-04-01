@@ -16,37 +16,72 @@ import { Colors, Typography } from '_styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import RNFS from 'react-native-fs';
-import { UpdateSpeciesImage } from './../../utils/specieImageUpload';
-import { addAliases, addLocalImage } from './../../repositories/species';
-import { setSpecieAliases } from '../../actions/species';
+import {
+  addAliasesAndDescription,
+  addLocalImage,
+  changeIsUpdatedStatus,
+} from './../../repositories/species';
+import { addAliasesAndDescriptionOnServer, UpdateSpeciesImage } from '../../actions/species';
+import { getCdnUrls } from '../../actions/user';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import i18next from '../../languages/languages';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
-  const [aliases, setAliases] = useState('');
+  const [aliases, setAliases] = useState();
   const [localImageUrl, setLocalImageUrl] = useState('');
+  const [description, setDescription] = useState();
+  const [cdnUrl, setCdnUrl] = useState();
   const specieName = route.params.SpecieName;
   const SpecieGuid = route.params.SpecieGuid;
   const SpecieId = route.params.SpecieId;
   let SpecieDescription = route.params.SpecieDescription;
+  const toggleUserSpecies = route.params.toggleUserSpecies;
+
+  const navigation = useNavigation();
+  const netInfo = useNetInfo();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
+    console.log(
+      route.params.SpecieDescription,
+      route.params.SpecieAliases,
+      'route.params.SpecieDescription',
+    );
     setAliases(route.params.SpecieAliases);
+    setDescription(route.params.SpecieDescription);
+    getCdnUrls(i18next.language).then((cdnMedia) => {
+      console.log(cdnMedia, 'cdnMedia');
+      setCdnUrl(cdnMedia.cache);
+    });
     if (route.params.SpecieLocalImage) {
       setLocalImageUrl(route.params.SpecieLocalImage);
     }
-    if (route.params.SpecieImage && !route.params.SpecieLocalImage)
-      RNFS.downloadFile({
-        fromUrl: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/species/default/${route.params.SpecieImage}`,
-        toFile: `${RNFS.DocumentDirectoryPath}/${route.params.SpecieImage}`,
-      }).promise.then((r) => {
-        console.log(r, 'Done');
-        addLocalImage(route.params.SpecieGuid, route.params.SpecieImage).then(() => {
-          setLocalImageUrl(route.params.SpecieImage);
+    if (route.params.SpecieImage && !route.params.SpecieLocalImage) {
+      getCdnUrls(i18next.language).then((cdnMedia) => {
+        setCdnUrl(cdnMedia.cache);
+        RNFS.downloadFile({
+          fromUrl: `${cdnMedia.cache}/species/default/${route.params.SpecieImage}`,
+          toFile: `${RNFS.DocumentDirectoryPath}/${route.params.SpecieImage}`,
+        }).promise.then((r) => {
+          console.log(r, 'Done');
+          addLocalImage(route.params.SpecieGuid, route.params.SpecieImage).then(() => {
+            setLocalImageUrl(route.params.SpecieImage);
+          });
         });
       });
-    return () => {};
+    }
   }, []);
+
+  useEffect(() => {
+    if (!isFocused) {
+      onSubmitInputField();
+    }
+  }, [isFocused]);
 
   const InfoCard = () => {
     const [descriptionText, setDescriptionText] = useState('');
@@ -62,15 +97,26 @@ const SpecieInfo = ({ route }) => {
           style={styles.InfoCard_text}
           placeholder={'Type the Description here'}
           value={descriptionText}
-          onChangeText={(text) => setDescriptionText(text)}
+          onChangeText={(text) => {
+            setDescriptionText(text);
+            setDescription(text);
+          }}
           onSubmitEditing={() => onSubmitInputField(descriptionText)}
         />
       </View>
     );
   };
-  const onSubmitInputField = (description) => {
-    addAliases({ scientificSpecieGuid: SpecieGuid, aliases, description });
-    setSpecieAliases({ specieId: SpecieId, aliases, description });
+  const onSubmitInputField = () => {
+    console.log(aliases, description, 'onSubmitInputField');
+    addAliasesAndDescription({ scientificSpecieGuid: SpecieGuid, aliases, description });
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      addAliasesAndDescriptionOnServer({
+        scientificSpecieGuid: SpecieGuid,
+        specieId: SpecieId,
+        aliases,
+        description,
+      });
+    }
   };
 
   const handleCamera = (data, fsurl) => {
@@ -78,7 +124,7 @@ const SpecieInfo = ({ route }) => {
     console.log(fsurl, 'fsurl');
     setLocalImageUrl(fsurl);
     addLocalImage(SpecieGuid, fsurl);
-    UpdateSpeciesImage(data, SpecieId)
+    UpdateSpeciesImage(data, SpecieId, SpecieGuid)
       .then(() => {
         console.log('UpdateSpeciesImage Done');
       })
@@ -88,7 +134,20 @@ const SpecieInfo = ({ route }) => {
   };
 
   const checkIcon = () => {
-    return <Icon name={'check-circle'} size={30} style={{ color: Colors.PRIMARY }} />;
+    const [isUserSpecies, setIsUserSpecies] = useState(true);
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          toggleUserSpecies(SpecieGuid);
+          setIsUserSpecies(!isUserSpecies);
+        }}>
+        {isUserSpecies ? (
+          <Icon name={'check-circle'} size={30} style={{ color: Colors.PRIMARY }} />
+        ) : (
+          <Icon name={'check-circle'} size={30} style={{ color: Colors.GRAY_MEDIUM }} />
+        )}
+      </TouchableOpacity>
+    );
   };
 
   if (isCamera) {
@@ -137,18 +196,39 @@ const SpecieInfo = ({ route }) => {
                 //     alignSelf: 'center',
                 //   }}
                 // />
-                <Image
-                  source={{ uri: `file://${RNFS.DocumentDirectoryPath}/${localImageUrl}` }}
-                  style={{
-                    marginTop: 25,
-                    borderRadius: 13,
-                    width: '100%',
-                    height: Dimensions.get('window').height * 0.3,
-                    // transform: [{ rotate: '90deg' }],
-                  }}
-                />
+                <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
+                  <Image
+                    source={{
+                      uri: IS_ANDROID
+                        ? `file://${RNFS.DocumentDirectoryPath}/${localImageUrl}`
+                        : `${RNFS.DocumentDirectoryPath}/${localImageUrl}`,
+                    }}
+                    style={{
+                      marginTop: 25,
+                      borderRadius: 13,
+                      width: '100%',
+                      height: Dimensions.get('window').height * 0.3,
+                      // transform: [{ rotate: '90deg' }],
+                    }}
+                  />
+                </TouchableOpacity>
               )}
-              <InfoCard />
+              {/* <InfoCard /> */}
+              <View style={{ flex: 1, flexDirection: 'column' }}>
+                <Text style={styles.InfoCard_heading}>Specie Name</Text>
+                <Text style={styles.InfoCard_text}>{specieName}</Text>
+                <Text style={styles.InfoCard_heading}>Description</Text>
+                <TextInput
+                  style={styles.InfoCard_text}
+                  placeholder={'Type the Description here'}
+                  value={description}
+                  onChangeText={(text) => {
+                    // setDescriptionText(text);
+                    setDescription(text);
+                  }}
+                  onSubmitEditing={() => onSubmitInputField()}
+                />
+              </View>
             </KeyboardAvoidingView>
           </ScrollView>
         </View>

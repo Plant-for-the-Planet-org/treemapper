@@ -117,22 +117,25 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 'ScientificSpecies',
                 specie.scientificSpecies,
               );
-              if (specieResult.isDeleted === false) {
-                specieResult.isUploaded = true;
-                specieResult.isUserSpecies = true;
-                specieResult.specieId = specie.id;
-                if (specie.aliases) {
-                  specieResult.aliases = specie.aliases;
-                }
-                if (specie.image) {
-                  specieResult.image = specie.image;
-                }
-                if (specie.description) {
-                  specieResult.description = specie.description;
-                }
-              } else if (specieResult.isDeleted === true) {
-                deleteUserSpecieFromServer(specieResult);
+              // if (specieResult.isDeleted === false) {
+              specieResult.isUploaded = true;
+              specieResult.isUserSpecies = true;
+              specieResult.specieId = specie.id;
+              // if (specie.aliases && !specieResult.aliases) {
+              specieResult.aliases = specie.aliases;
+              // }
+              // else {
+              // }
+              if (specie.image) {
+                specieResult.image = specie.image;
               }
+              if (specie.description) {
+                specieResult.description = specie.description;
+              }
+              // }
+              // else if (specieResult.isDeleted === true) {
+              // deleteUserSpecieFromServer(specieResult);
+              // }
               // logging the success in to the db
               dbLog.info({
                 logType: LogTypes.MANAGE_SPECIES,
@@ -160,7 +163,9 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
         let species = realm.objects('ScientificSpecies');
 
         // filters by [isUserSpecies = true] OR [isUploaded = true] to get species to sync to server
-        let userSpeciesToSync = species.filtered('isUserSpecies = true || isUploaded = true');
+        let userSpeciesToSync = species.filtered(
+          'isUserSpecies = true || isUploaded = true || isDataUpdated = false || isImageUpdated = false',
+        );
 
         // logging the success in to the db
         dbLog.info({
@@ -242,7 +247,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
           specieResult.specieId = '';
           specieResult.isUploaded = false;
           specieResult.isUserSpecies = false;
-          specieResult.isDeleted = false;
+          // specieResult.isDeleted = false;
         });
         // logging the success in to the db
         dbLog.info({
@@ -264,23 +269,31 @@ export const removeSpecieId = (scientificSpecieGuid) => {
   });
 };
 
-export const addAliases = ({ scientificSpecieGuid, aliases, description }) => {
+export const addAliasesAndDescription = ({ scientificSpecieGuid, aliases, description }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
+          // console.log(aliases, description, 'aliases, description');
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
           let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          specieResult.aliases = aliases;
-          specieResult.description = description;
+          console.log(specieResult, 'specieResult');
+          if (aliases !== undefined) {
+            specieResult.aliases = aliases;
+          }
+          if (description !== undefined) {
+            specieResult.description = description;
+          }
         });
+        changeIsUpdatedStatus({ scientificSpecieGuid, isDataUpdated: false });
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Added Aliases to a specie having scientific specie guid: ${scientificSpecieGuid}`,
         });
         resolve(true);
+        console.log('added');
       })
       .catch((err) => {
         dbLog.error({
@@ -288,7 +301,7 @@ export const addAliases = ({ scientificSpecieGuid, aliases, description }) => {
           message: `Error while adding Aliases to a specie having scientific specie guid: ${scientificSpecieGuid}`,
           logStack: JSON.stringify(err),
         });
-        console.error(`Error at /repositories/species/addAliases, ${err}`);
+        console.error(`Error at /repositories/species/addAliasesAndDescription, ${err}`);
         bugsnag.notify(err);
         reject(err);
       });
@@ -304,6 +317,7 @@ export const addLocalImage = (scientificSpecieGuid, localImage) => {
           // modifies [isUploaded] and [isUserSpecies] to [false]
           let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
           specieResult.localImage = localImage;
+          specieResult.isImageUpdated = false;
           // specieResult.description = description;
         });
         // logging the success in to the db
@@ -320,6 +334,39 @@ export const addLocalImage = (scientificSpecieGuid, localImage) => {
           logStack: JSON.stringify(err),
         });
         console.error(`Error at /repositories/species/addLocalImage, ${JSON.stringify(err)}`);
+        bugsnag.notify(err);
+        reject(err);
+      });
+  });
+};
+
+export const changeIsUpdatedStatus = ({ scientificSpecieGuid, isDataUpdated, isImageUpdated }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
+          if (isDataUpdated !== undefined) {
+            specieResult.isDataUpdated = isDataUpdated;
+          }
+          if (isImageUpdated !== undefined) {
+            specieResult.isImageUpdated = isImageUpdated;
+          }
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Changed update status of specie having scientific specie guid: ${scientificSpecieGuid}`,
+        });
+        resolve(true);
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Error while Changing update status of specie having scientific specie guid: ${scientificSpecieGuid}`,
+          logStack: JSON.stringify(err),
+        });
+        console.error(`Error at /repositories/species/changeIsUpdatedStatus, ${err}`);
         bugsnag.notify(err);
         reject(err);
       });
