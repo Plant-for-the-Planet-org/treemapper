@@ -64,21 +64,8 @@ const MainScreen = ({ navigation }) => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
-      getInventoryByStatus('all').then((data) => {
-        let count = 0;
-        let pendingInventoryCount = 0;
-        for (const inventory of data) {
-          if (inventory.status === 'pending' || inventory.status === 'uploading') {
-            count++;
-          }
-          if (inventory.status === 'pending') {
-            pendingInventoryCount++;
-          }
-        }
-        updateCount({ type: 'pending', count })(dispatch);
-        setPendingInventory(pendingInventoryCount);
-        setNumberOfInventory(data ? data.length : 0);
-      });
+      fetchInventory();
+      fetchUserDetails();
 
       realm = await Realm.open(getSchema());
       initializeRealm(realm);
@@ -94,7 +81,25 @@ const MainScreen = ({ navigation }) => {
     };
   }, [navigation]);
 
-  useEffect(() => {
+  const fetchInventory = () => {
+    getInventoryByStatus('all').then((data) => {
+      let count = 0;
+      let pendingInventoryCount = 0;
+      for (const inventory of data) {
+        if (inventory.status === 'pending' || inventory.status === 'uploading') {
+          count++;
+        }
+        if (inventory.status === 'pending') {
+          pendingInventoryCount++;
+        }
+      }
+      updateCount({ type: 'pending', count })(dispatch);
+      setPendingInventory(pendingInventoryCount);
+      setNumberOfInventory(data ? data.length : 0);
+    });
+  };
+
+  const fetchUserDetails = () => {
     if (!loadingState.isLoading) {
       getUserDetails().then((userDetails) => {
         if (userDetails) {
@@ -109,10 +114,13 @@ const MainScreen = ({ navigation }) => {
         setCdnUrls(cdnMedia);
       });
     }
-  }, []);
+  };
 
   useEffect(() => {
-    console.log(netInfo, 'netInfo', pendingInventory, 'isFocused', isFocused);
+    fetchUserDetails();
+  }, [loadingState.isLoading]);
+
+  useEffect(() => {
     if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
       checkLoginAndSync({
         sync: true,
@@ -187,7 +195,7 @@ const MainScreen = ({ navigation }) => {
       auth0Login(userDispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
-          console.log('log in successful');
+          fetchUserDetails();
           checkLoginAndSync({
             sync: true,
             dispatch,

@@ -1,7 +1,11 @@
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
@@ -10,11 +14,8 @@ import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import Config from 'react-native-config';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -153,7 +154,7 @@ export default function TotalTreesSpecies() {
         key={index}
         style={{
           paddingVertical: 20,
-          paddingRight: 10,
+          marginHorizontal: 25,
           borderBottomWidth: 1,
           borderColor: '#E1E0E061',
           flexDirection: 'row',
@@ -192,10 +193,10 @@ export default function TotalTreesSpecies() {
   };
 
   useEffect(() => {
-    if (isCameraRefVisible && bounds.length > 0) {
+    if (isCameraRefVisible && bounds.length > 0 && camera?.current?.fitBounds) {
       camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
     }
-    if (isCameraRefVisible && centerCoordinate > 0) {
+    if (isCameraRefVisible && centerCoordinate > 0 && camera?.current?.setCamera) {
       camera.current.setCamera({
         centerCoordinate,
       });
@@ -204,36 +205,50 @@ export default function TotalTreesSpecies() {
 
   // initializes the state by updating state
   const initializeState = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-      setInventory(inventoryData);
-      if (inventoryData.polygons.length > 0) {
-        let featureList = inventoryData.polygons.map((onePolygon) => {
-          return {
-            type: 'Feature',
-            properties: {
-              isPolygonComplete: onePolygon.isPolygonComplete,
-            },
-            geometry: {
-              type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
-                oneCoordinate.longitude,
-                oneCoordinate.latitude,
-              ]),
-            },
+    if (inventoryState.inventoryID) {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+        if (inventoryData.polygons.length > 0) {
+          let featureList = inventoryData.polygons.map((onePolygon) => {
+            return {
+              type: 'Feature',
+              properties: {
+                isPolygonComplete: onePolygon.isPolygonComplete,
+              },
+              geometry: {
+                type: 'LineString',
+                coordinates: onePolygon.coordinates.map((oneCoordinate) => [
+                  oneCoordinate.longitude,
+                  oneCoordinate.latitude,
+                ]),
+              },
+            };
+          });
+          if (inventoryData.sampleTrees.length > 0) {
+            for (const sampleTree of inventoryData.sampleTrees) {
+              featureList.push({
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Point',
+                  coordinates: [sampleTree.longitude, sampleTree.latitude],
+                },
+              });
+            }
+          }
+          let geoJSONData = {
+            type: 'FeatureCollection',
+            features: featureList,
           };
-        });
-        let geoJSONData = {
-          type: 'FeatureCollection',
-          features: featureList,
-        };
 
-        setCenterCoordinate(turfCenter(featureList[0]));
+          setCenterCoordinate(turfCenter(featureList[0]));
 
-        setBounds(bbox(featureList[0]));
+          setBounds(bbox(featureList[0]));
 
-        setGeoJSON(geoJSONData);
-      }
-    });
+          setGeoJSON(geoJSONData);
+        }
+      });
+    }
   };
 
   const renderMapView = () => {
@@ -258,6 +273,7 @@ export default function TotalTreesSpecies() {
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
           </MapboxGL.ShapeSource>
         )}
+        <SampleTreeMarkers geoJSON={geoJSON} />
       </MapboxGL.MapView>
     );
   };
@@ -277,9 +293,11 @@ export default function TotalTreesSpecies() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
-        <TopRightBackground />
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <Header headingText={i18next.t('label.total_trees_header')} />
+          <TopRightBackground />
+          <View style={{ paddingHorizontal: 25 }}>
+            <Header headingText={i18next.t('label.total_trees_header')} />
+          </View>
 
           {/* container for description of what sample trees are and how to proceed */}
           <View style={styles.descriptionContainer}>
@@ -293,20 +311,22 @@ export default function TotalTreesSpecies() {
             ))
             : renderMapView()}
         </ScrollView>
-        <PrimaryButton
-          onPress={() => setShowManageSpecies(true)}
-          btnText={i18next.t('label.select_species_add_species')}
-          theme={'primary'}
-          testID={'sample_tree_count_continue'}
-          accessibilityLabel={'sample_tree_count_continue'}
-        />
-        <PrimaryButton
-          onPress={() => navigation.navigate('InventoryOverview')}
-          btnText={i18next.t('label.tree_review_continue_to_review')}
-          theme={'primary'}
-          testID={'sample_tree_count_continue'}
-          accessibilityLabel={'sample_tree_count_continue'}
-        />
+        <View style={{ paddingHorizontal: 25 }}>
+          <PrimaryButton
+            onPress={() => setShowManageSpecies(true)}
+            btnText={i18next.t('label.select_species_add_species')}
+            theme={'primary'}
+            testID={'sample_tree_count_continue'}
+            accessibilityLabel={'sample_tree_count_continue'}
+          />
+          <PrimaryButton
+            onPress={() => navigation.navigate('InventoryOverview')}
+            btnText={i18next.t('label.tree_review_continue_to_review')}
+            theme={'primary'}
+            testID={'sample_tree_count_continue'}
+            accessibilityLabel={'sample_tree_count_continue'}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -315,17 +335,19 @@ export default function TotalTreesSpecies() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
+
     backgroundColor: Colors.WHITE,
     position: 'relative',
   },
   mapContainer: {
     backgroundColor: Colors.WHITE,
     height: 230,
-    marginTop: 40,
+    marginVertical: 40,
+    paddingHorizontal: 25,
   },
   descriptionContainer: {
     marginTop: 40,
+    paddingHorizontal: 25,
   },
   description: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

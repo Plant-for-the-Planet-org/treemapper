@@ -83,9 +83,11 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-      setInventory(inventoryData);
-    });
+    if (state.inventoryID) {
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+      });
+    }
   };
 
   const renderPolygon = (polygons, locationType) => {

@@ -1,3 +1,4 @@
+import { bugsnag } from './';
 import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../actions/user';
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
@@ -15,7 +16,7 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
         // uploadInventoryData(dispatch, userDispatch);
       } else {
         // fetches the user details from server by passing the accessToken which is used while requesting the API
-        getUserDetailsFromServer(newAccessToken);
+        getUserDetailsFromServer(newAccessToken).catch((err) => bugsnag.notify(err));
         checkAndAddUserSpecies();
       }
     } else {

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -243,9 +243,29 @@ const ImageCapturing = ({
         }).then(() => {
           setIsAlrightyModalShow(false);
           if (inventory.locateTree === ON_SITE) {
-            navigation.navigate('SampleTreesCount');
+            // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'SampleTreesCount' },
+                ],
+              }),
+            );
           } else {
-            navigation.navigate('InventoryOverview');
+            // resets the navigation stack with MainScreen => TreeInventory => InventoryOverview
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'InventoryOverview' },
+                ],
+              }),
+            );
           }
         });
       });

@@ -79,7 +79,7 @@ const DownloadMap = ({ navigation }) => {
         );
       })
       .catch((err) => {
-        if (err === 'blocked') {
+        if (err.message === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
         }
       });
