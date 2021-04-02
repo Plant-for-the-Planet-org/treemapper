@@ -63,13 +63,12 @@ const MySpecies = ({
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('SpecieInfo', {
-                SpecieName: item.scientificName,
-                SpecieGuid: item.guid,
-                SpecieId: item.specieId,
-                SpecieAliases: item.aliases,
-                SpecieDescription: item.description,
-                SpecieImage: item.image,
-                SpecieLocalImage: item.image,
+                specieName: item.scientificName,
+                specieGuid: item.guid,
+                specieId: item.specieId,
+                specieAliases: item.aliases,
+                specieDescription: item.description,
+                specieImage: item.image,
                 toggleUserSpecies,
               })
             }>

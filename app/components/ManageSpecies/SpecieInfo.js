@@ -1,85 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  Text,
-  Image,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  TextInput,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { Header, Camera } from '../Common';
-import { Colors, Typography } from '_styles';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import RNFS from 'react-native-fs';
-import {
-  addAliasesAndDescription,
-  addLocalImage,
-  changeIsUpdatedStatus,
-} from './../../repositories/species';
-import { updateDataOnServer } from '../../actions/species';
-import { ScrollView } from 'react-native-gesture-handler';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { getCdnUrls } from '../../actions/user';
-import i18next from '../../languages/languages';
-
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Colors, Typography } from '_styles';
+import { updateUserSpecie } from '../../actions/species';
+import { Camera, Header } from '../Common';
+import { updateSpecieData, addLocalImage } from './../../repositories/species';
 const IS_ANDROID = Platform.OS === 'android';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
   const [aliases, setAliases] = useState();
-  const [localImageUrl, setLocalImageUrl] = useState('');
+  const [localImageUrl, setLocalImageUrl] = useState();
   const [description, setDescription] = useState();
-  const specieName = route.params.SpecieName;
-  const SpecieGuid = route.params.SpecieGuid;
-  const SpecieId = route.params.SpecieId;
-  let SpecieDescription = route.params.SpecieDescription;
+  const specieName = route.params.specieName;
+  const specieGuid = route.params.specieGuid;
+  const specieId = route.params.specieId;
   const toggleUserSpecies = route.params.toggleUserSpecies;
 
-  const navigation = useNavigation();
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    setAliases(route.params.SpecieAliases);
-    setDescription(route.params.SpecieDescription);
-    if (route.params.SpecieLocalImage) {
-      setLocalImageUrl(route.params.SpecieLocalImage);
-    }
-    if (route.params.SpecieImage && !route.params.SpecieLocalImage) {
-      getCdnUrls(i18next.language).then((cdnMedia) => {
-        setCdnUrl(cdnMedia.cache);
-        RNFS.downloadFile({
-          fromUrl: `${cdnMedia.cache}/species/default/${route.params.SpecieImage}`,
-          toFile: `${RNFS.DocumentDirectoryPath}/${route.params.SpecieImage}`,
-        }).promise.then((r) => {
-          addLocalImage(route.params.SpecieGuid, route.params.SpecieImage).then(() => {
-            setLocalImageUrl(route.params.SpecieImage);
-          });
-        });
-      });
-    }
+    setAliases(route.params.specieAliases);
+    setDescription(route.params.specieDescription);
+    setLocalImageUrl(route.params.specieImage);
   }, []);
 
   useEffect(() => {
     if (!isFocused) {
+      console.log('screen is not focused');
       onSubmitInputField();
     }
   }, [isFocused]);
 
   const onSubmitInputField = () => {
-    addAliasesAndDescription({ scientificSpecieGuid: SpecieGuid, aliases, description });
+    updateSpecieData({
+      scientificSpecieGuid: specieGuid,
+      aliases,
+      description,
+      image: localImageUrl,
+    });
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      updateDataOnServer({
-        scientificSpecieGuid: SpecieGuid,
-        specieId: SpecieId,
+      updateUserSpecie({
+        scientificSpecieGuid: specieGuid,
+        specieId: specieId,
         aliases,
         description,
+        image: localImageUrl,
       });
     }
   };
@@ -87,20 +70,6 @@ const SpecieInfo = ({ route }) => {
   const handleCamera = (data, fsurl, base64Image) => {
     setIsCamera(!isCamera);
     setLocalImageUrl(`data:image/jpeg;base64,${base64Image}`);
-    addLocalImage(SpecieGuid, base64Image);
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      updateDataOnServer({
-        image: `data:image/jpeg;base64,${base64Image}`,
-        specieId: SpecieId,
-        scientificSpecieGuid: SpecieGuid,
-      })
-        .then(() => {
-          console.log('UpdateSpeciesImage Done');
-        })
-        .catch((err) => {
-          console.log(err, 'UpdateSpeciesImage Error');
-        });
-    }
   };
 
   const checkIcon = () => {
@@ -108,13 +77,21 @@ const SpecieInfo = ({ route }) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          toggleUserSpecies(SpecieGuid);
+          toggleUserSpecies(specieGuid);
           setIsUserSpecies(!isUserSpecies);
         }}>
         {isUserSpecies ? (
-          <Icon name={'check-circle'} size={30} style={{ color: Colors.PRIMARY }} />
+          <Ionicons
+            name={'ios-checkmark-circle-sharp'}
+            size={30}
+            style={{ color: Colors.PRIMARY }}
+          />
         ) : (
-          <Icon name={'check-circle'} size={30} style={{ color: Colors.GRAY_MEDIUM }} />
+          <MaterialCommunityIcons
+            name={'checkbox-blank-circle-outline'}
+            size={30}
+            style={{ color: Colors.GRAY_MEDIUM }}
+          />
         )}
       </TouchableOpacity>
     );
@@ -187,14 +164,14 @@ const SpecieInfo = ({ route }) => {
                 <Text style={styles.InfoCard_text}>{specieName}</Text>
                 <Text style={styles.InfoCard_heading}>Description</Text>
                 <TextInput
-                  style={styles.InfoCard_text}
+                  style={[styles.InfoCard_text, { padding: 0 }]}
                   placeholder={'Type the Description here'}
                   value={description}
-                  onChangeText={(text) => {
-                    // setDescriptionText(text);
-                    setDescription(text);
-                  }}
-                  onSubmitEditing={() => onSubmitInputField()}
+                  onChangeText={setDescription}
+                  multiline
+                  textAlignVertical="top"
+                  maxLength={255}
+                  onSubmitEditing={onSubmitInputField}
                 />
               </View>
             </KeyboardAvoidingView>

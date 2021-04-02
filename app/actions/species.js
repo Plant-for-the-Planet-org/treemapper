@@ -1,22 +1,22 @@
-import { bugsnag } from '../utils';
+import RNFS from 'react-native-fs';
+import i18next from '../languages/languages';
 import dbLog from '../repositories/logs';
-import { LogTypes } from '../utils/constants';
-import {
-  SET_SPECIES_LIST,
-  SET_SPECIE_ID,
-  SET_MULTIPLE_TREES_SPECIES_LIST,
-  ADD_MULTIPLE_TREE_SPECIE,
-} from './Types';
+import { changeIsUpdatedStatus } from '../repositories/species';
+import { bugsnag } from '../utils';
 import {
   deleteAuthenticatedRequest,
   getAuthenticatedRequest,
   postAuthenticatedRequest,
   putAuthenticatedRequest,
 } from '../utils/api';
-import { getSchema } from '../repositories/default';
-import Realm from 'realm';
-import RNFS from 'react-native-fs';
-import { changeIsUpdatedStatus } from '../repositories/species';
+import { LogTypes } from '../utils/constants';
+import {
+  ADD_MULTIPLE_TREE_SPECIE,
+  SET_MULTIPLE_TREES_SPECIES_LIST,
+  SET_SPECIES_LIST,
+  SET_SPECIE_ID,
+} from './Types';
+import { getCdnUrls } from './user';
 
 /**
  * This function dispatches type SET_SPECIES_LIST with payload list of species to add in species state
@@ -105,6 +105,8 @@ export const getSpeciesList = () => {
  *                              aliases as property (a name given by user to that scientific specie)
  */
 export const addUserSpecie = (specieData) => {
+  console.log('addUserSpecie', specieData);
+
   return new Promise((resolve, reject) => {
     // makes an authorized POST request on /species to add a specie of user.
     postAuthenticatedRequest('/treemapper/species', specieData)
@@ -116,7 +118,7 @@ export const addUserSpecie = (specieData) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Added scientific species having id ${specieData.scientificSpecies}, POST - /species`,
+            message: `Successfully added user specie to server with scientific specie guid: ${specieData.scientificSpecies}, POST - /species`,
             statusCode: status,
           });
           resolve(data);
@@ -161,7 +163,7 @@ export const deleteUserSpecie = (specieId) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Deleted user species having id ${specieId}, DELETE - /species`,
+            message: `Successfully deleted user specie from server with specie id: ${specieId}, DELETE - /species`,
             statusCode: status,
           });
           resolve(true);
@@ -186,7 +188,7 @@ export const deleteUserSpecie = (specieId) => {
   });
 };
 
-export const updateDataOnServer = ({
+export const updateUserSpecie = ({
   scientificSpecieGuid,
   specieId,
   aliases,
@@ -205,7 +207,7 @@ export const updateDataOnServer = ({
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Set aliases to species having id ${specieId}, PUT - /species`,
+            message: `Updated specie with specie id ${specieId}, PUT - /treemapper/species`,
             statusCode: status,
           });
           changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: true });
@@ -215,16 +217,10 @@ export const updateDataOnServer = ({
         }
       })
       .catch((err) => {
-        // logs the error
-        // console.error(
-        //   `Error at /actions/species/updateDataOnServer, ${JSON.stringify(
-        //     err?.response,
-        //   )}`,
-        // );
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Failed to set aliases to species having id ${specieId}, PUT - /species`,
+          message: `Failed to update specie with specie id ${specieId}, PUT - /treemapper/species`,
           statusCode: err?.response?.status,
           logStack: JSON.stringify(err?.response),
         });
@@ -235,28 +231,52 @@ export const updateDataOnServer = ({
 
 export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
   return new Promise((resolve, reject) => {
-    Realm.open(getSchema()).then((realm) => {
-      realm.write(async () => {
-        // const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
-        // let userToken = UpdateSpeciesImageUser.accessToken;
-        // await RNFS.readFile(image, 'base64').then(async (base64) => {
-        let body = {
-          imageFile: `data:image/jpeg;base64,${image}`,
-        };
-        await putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
-          .then((res) => {
-            const { status, data } = res;
-            if (status === 200) {
-              changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
-              resolve(true);
-            }
-          })
-          .catch((err) => {
-            // console.log(err, 'create error');
-            reject(err);
-          });
-        // });
+    let body = {
+      imageFile: `data:image/jpeg;base64,${image}`,
+    };
+
+    putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
+      .then((res) => {
+        const { status, data } = res;
+        if (status === 200) {
+          changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
+          resolve(true);
+        }
+      })
+      .catch((err) => {
+        reject(err);
       });
-    });
+  });
+};
+
+export const getBase64ImageFromURL = async (specieImage) => {
+  return new Promise(async (resolve, reject) => {
+    await getCdnUrls(i18next.language)
+      .then(async (cdnMedia) => {
+        await RNFS.downloadFile({
+          fromUrl: `${cdnMedia.cache}/species/default/${specieImage}`,
+          toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
+        }).promise.then(async (r) => {
+          console.log(r, 'Done');
+          await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64').then(
+            (data) => {
+              resolve(data);
+            },
+          );
+          await RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`)
+            .then(() => {
+              console.log('Image deleted from FS');
+            })
+            // `unlink` will throw an error, if the item to unlink does not exist
+            .catch((err) => {
+              resolve();
+              console.log(err.message);
+            });
+        });
+      })
+      .catch((err) => {
+        bugsnag.notify(err);
+        resolve();
+      });
   });
 };

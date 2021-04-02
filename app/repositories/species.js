@@ -4,11 +4,7 @@ import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import { getSchema } from './default';
 import AsyncStorage from '@react-native-community/async-storage';
-import { deleteUserSpecieFromServer } from '../utils/addUserSpecies';
-import { getCdnUrls } from '../actions/user';
-import i18next from '../languages/languages';
-import { toBase64 } from '../utils/base64';
-import RNFS from 'react-native-fs';
+import { getBase64ImageFromURL, updateUserSpecie } from '../actions/species';
 
 export const updateAndSyncLocalSpecies = (speciesData) => {
   return new Promise((resolve, reject) => {
@@ -114,89 +110,43 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
       .then(async (realm) => {
         if (alreadySyncedSpecies) {
           // iterates through all the user preferred species which are already synced and updates the same in DB
-          // realm.write(
-          // realm.write(() => {
-          // let base64Image;
+
           for (const specie of alreadySyncedSpecies) {
             console.log(specie, 'specie');
+            let base64Image = null;
+            if (specie.image) {
+              base64Image = await getBase64ImageFromURL(specie.image);
+            }
             // find the scientific specie using scientific specie guid and update the properties to
             // [isUploaded = true] and [isUserSpecies = true]
             realm.write(() => {
-              imageUpdateInDBFromServer({
-                scientificSpecieGuid: specie.scientificSpecies,
-                specieImage: specie.image,
-              }).then((base64Image) => {
-                let specieResult = realm.objectForPrimaryKey(
-                  'ScientificSpecies',
-                  specie.scientificSpecies,
-                );
+              let specieResult = realm.objectForPrimaryKey(
+                'ScientificSpecies',
+                specie.scientificSpecies,
+              );
 
-                specieResult.image = `data:image/jpeg;base64,${base64Image}`;
-                specieResult.isUploaded = true;
-                specieResult.isUserSpecies = true;
-                specieResult.specieId = specie.id;
-                if (specie.aliases) {
-                  specieResult.aliases = specie.aliases;
-                } else {
-                  specieResult.aliases = specieResult.scientificName;
-                }
-                if (specie.description) {
-                  specieResult.description = specie.description;
-                }
-              });
+              specieResult.image = base64Image ? `data:image/jpeg;base64, ${base64Image}` : '';
+              specieResult.isUploaded = true;
+              specieResult.isUserSpecies = true;
+              specieResult.specieId = specie.id;
+              if (specie.aliases) {
+                specieResult.aliases = specie.aliases;
+              } else {
+                specieResult.aliases = specieResult.scientificName;
+              }
+              if (specie.description) {
+                specieResult.description = specie.description;
+              }
             });
-            if (specie.image) {
-              // await getCdnUrls(i18next.language).then(async (cdnMedia) => {
-              //   await RNFS.downloadFile({
-              //     fromUrl: `${cdnMedia.cache}/species/default/${specie.image}`,
-              //     toFile: `${RNFS.DocumentDirectoryPath}/${specie.image}`,
-              //   }).promise.then(async (r) => {
-              //     console.log(r, 'Done');
-              //     await RNFS.readFile(
-              //       `${RNFS.DocumentDirectoryPath}/${specie.image}`,
-              //       'base64',
-              //     ).then((data) => {
-              //       base64Image = data;
-              //     });
-              //     await RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specie.image}`)
-              //       .then(() => {
-              //         console.log('Image deleted from FS');
-              //       })
-              //       // `unlink` will throw an error, if the item to unlink does not exist
-              //       .catch((err) => {
-              //         console.log(err.message);
-              //       });
-              //   });
-              // });
-              // console.log(base64Image, 'base64Image');
-              // realm.write(() => {
-              //   // let specieResult = realm.objectForPrimaryKey(
-              //   //   'ScientificSpecies',
-              //   //   specie.scientificSpecies,
-              //   // );
-              //   specieResult.image = `data:image/jpeg;base64,${base64Image}`;
-              // });
-            }
-            // specieResult.isUploaded = true;
-            // specieResult.isUserSpecies = true;
-            // specieResult.specieId = specie.id;
-            // if (specie.aliases) {
-            //   specieResult.aliases = specie.aliases;
-            // } else {
-            //   specieResult.aliases = specieResult.scientificName;
-            // }
-            // if (specie.description) {
-            //   specieResult.description = specie.description;
-            // }
-            // });
+
+            console.log('base64 image', base64Image ? `data:image/jpeg;base64, true` : 'null');
+
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.MANAGE_SPECIES,
               message: `Marked local specie with guid: ${specie.scientificSpecies} as isUserSpecies and isUploaded`,
             });
           }
-          // });
-          // );
 
           // calls the AsyncStorage function and stores [isInitialSyncDone] as ["true"]
           await AsyncStorage.setItem('isInitialSyncDone', 'true');
@@ -216,17 +166,23 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
         // fetches all the scientific species
         let species = realm.objects('ScientificSpecies');
 
-        // filters by [isUserSpecies = true] OR [isUploaded = true] to get species to sync to server
-        let userSpeciesToSync = species.filtered(
-          'isUserSpecies = true || isUploaded = true || isUpdated = false',
+        let speciesToAdd = species.filtered('isUserSpecies = true && isUploaded = false');
+        console.log('speciesToAdd length', speciesToAdd.length);
+
+        let speciesToDelete = species.filtered('isUserSpecies = false && isUploaded = true');
+        console.log('speciesToDelete length', speciesToDelete.length);
+
+        let speciesToUpdate = species.filtered(
+          'isUserSpecies = true && isUploaded = true && isUpdated = false',
         );
+        console.log('speciesToUpdate length', speciesToUpdate.length);
 
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Fetched not uploaded user species from DB',
         });
-        resolve(userSpeciesToSync);
+        resolve({ speciesToAdd, speciesToDelete, speciesToUpdate });
       })
       .catch((err) => {
         dbLog.error({
@@ -250,17 +206,49 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
  * @param {string} scientificSpecieGuid - scientific specie guid to search from and update the specie id
  * @param {string} specieId - specie id which is to be updated
  */
-export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specieId) => {
+export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
-        realm.write(() => {
+        realm.write(async () => {
           // find the scientific specie using scientific specie guid and updates the specieId
           // modifies [isUploaded] and [isUserSpecies] to [true]
           let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          specieResult.specieId = specieId;
+          specieResult.specieId = specie.id;
           specieResult.isUploaded = true;
           specieResult.isUserSpecies = true;
+          if (!specieResult.isUpdated) {
+            const specieData = {
+              scientificSpecieGuid: specieResult.guid,
+              specieId: specieResult.specieId,
+              aliases: specieResult.aliases,
+              description: specieResult.description,
+              image: specieResult.image,
+            };
+            if (!specieResult.aliases || specieResult.aliases === specieResult.guid) {
+              specieData.aliases = specie.aliases;
+              specieResult.aliases = specie.aliases;
+            }
+            if (!specieResult.description & specie.description) {
+              specieData.description = specie.description;
+              specieResult.description = specie.description;
+            }
+            if (!specieResult.image && specie.image) {
+              let base64Image;
+              base64Image = await getBase64ImageFromURL(specie.image);
+              specieData.image = base64Image;
+              specieResult.image = base64Image;
+            }
+            if (
+              specieData.hasOwnProperty('aliases') ||
+              specieData.hasOwnProperty('description') ||
+              specieData.hasOwnProperty('image')
+            ) {
+              updateUserSpecie(specieData);
+            } else {
+              specieResult.isUpdated = true;
+            }
+          }
         });
         // logging the success in to the db
         dbLog.info({
@@ -301,7 +289,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
           specieResult.specieId = '';
           specieResult.isUploaded = false;
           specieResult.isUserSpecies = false;
-          // specieResult.isDeleted = false;
+          specieResult.isUpdated = true;
         });
         // logging the success in to the db
         dbLog.info({
@@ -323,7 +311,7 @@ export const removeSpecieId = (scientificSpecieGuid) => {
   });
 };
 
-export const addAliasesAndDescription = ({ scientificSpecieGuid, aliases, description }) => {
+export const updateSpecieData = ({ scientificSpecieGuid, aliases, description, image }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -331,11 +319,14 @@ export const addAliasesAndDescription = ({ scientificSpecieGuid, aliases, descri
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
           let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          if (aliases !== undefined) {
+          if (aliases) {
             specieResult.aliases = aliases;
           }
-          if (description !== undefined) {
+          if (description) {
             specieResult.description = description;
+          }
+          if (image) {
+            specieResult.image = image;
           }
         });
         changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: false });
@@ -352,7 +343,7 @@ export const addAliasesAndDescription = ({ scientificSpecieGuid, aliases, descri
           message: `Error while adding Aliases to a specie having scientific specie guid: ${scientificSpecieGuid}`,
           logStack: JSON.stringify(err),
         });
-        console.error(`Error at /repositories/species/addAliasesAndDescription, ${err}`);
+        console.error(`Error at /repositories/species/updateSpecieData, ${err}`);
         bugsnag.notify(err);
         reject(err);
       });
@@ -418,54 +409,5 @@ export const changeIsUpdatedStatus = ({ scientificSpecieGuid, isUpdated }) => {
         bugsnag.notify(err);
         reject(err);
       });
-  });
-};
-
-export const imageUpdateInDBFromServer = async ({ scientificSpecieGuid, specieImage }) => {
-  return new Promise(async (resolve, reject) => {
-    // Realm.open(getSchema()).then((realm) => {
-    //   realm
-    //     .write(async () => {
-    let base64Image;
-    // let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-    // console.log(specieResult, 'imageUpdateInDBFromServer');
-    await getCdnUrls(i18next.language).then(async (cdnMedia) => {
-      await RNFS.downloadFile({
-        fromUrl: `${cdnMedia.cache}/species/default/${specieImage}`,
-        toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
-      }).promise.then(async (r) => {
-        console.log(r, 'Done');
-        await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64').then(
-          (data) => {
-            base64Image = data;
-          },
-        );
-        await RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`)
-          .then(() => {
-            console.log('Image deleted from FS');
-          })
-          // `unlink` will throw an error, if the item to unlink does not exist
-          .catch((err) => {
-            console.log(err.message);
-          });
-      });
-    });
-    // resolve(base64Image);
-    // specieResult.image = `data:image/jpeg;base64,${base64Image}`;
-    // logging the success in to the db
-    resolve(base64Image);
-    dbLog.info({
-      logType: LogTypes.MANAGE_SPECIES,
-      message: `Changed update status of specie having scientific specie guid: ${scientificSpecieGuid}`,
-    });
-  }).catch((err) => {
-    dbLog.error({
-      logType: LogTypes.MANAGE_SPECIES,
-      message: `Error while Changing update status of specie having scientific specie guid: ${scientificSpecieGuid}`,
-      logStack: JSON.stringify(err),
-    });
-    console.error(`Error at /repositories/species/changeIsUpdatedStatus, ${err}`);
-    bugsnag.notify(err);
-    reject(err);
   });
 };
