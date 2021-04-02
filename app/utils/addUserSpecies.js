@@ -5,6 +5,7 @@ import {
   updateAndGetUserSpeciesToSync,
   addSpecieIdFromSyncedSpecie,
   removeSpecieId,
+  imageUpdateInDBFromServer,
 } from '../repositories/species';
 import { LogTypes } from './constants';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -33,16 +34,22 @@ export const checkAndAddUserSpecies = async () => {
         .then(async (alreadySyncedSpecies) => {
           // passes already synced species fetched from server to update the local species and gets the
           // local species which are not uploaded to server
-          console.log(alreadySyncedSpecies, 'alreadySyncedSpecies');
+          // for (const specie of alreadySyncedSpecies) {
+          //   imageUpdateInDBFromServer({
+          //     scientificSpecieGuid: specie.scientificSpecies,
+          //     specieImage: specie.image,
+          //   }).then(() => console.log('Resolved'));
+          // }
           updateAndGetUserSpeciesToSync(isFirstUpdate ? alreadySyncedSpecies : null)
             .then((speciesToSync) => {
               // checks if [speciesToSync] is present and has data to iterate
               if (speciesToSync && speciesToSync.length > 0) {
                 // adds or deletes the species
-                addOrDeleteUserSpecies(speciesToSync, alreadySyncedSpecies).then(() => {
-                  // console.log(speciesToSync, 'speciesToSync');
-                  UpdateSpeciesDataOnServer(speciesToSync);
-                });
+                addOrDeleteUserSpecies(speciesToSync, alreadySyncedSpecies);
+                // .then(() => {
+                //   // console.log(speciesToSync, 'speciesToSync');
+                //   UpdateSpeciesDataOnServer(speciesToSync);
+                // });
 
                 // logging the success in to the db after all the species are synced
                 dbLog.info({
@@ -128,6 +135,8 @@ export const addOrDeleteUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
         addUserSpecieToServer(specie, alreadySyncedSpecies);
       } else if (!specie.isUserSpecies && specie.isUploaded) {
         deleteUserSpecieFromServer(specie);
+      } else if (specie.isUserSpecies && specie.isUploaded && !specie.isUpdated) {
+        UpdateSpeciesDataOnServer(specie);
       }
     }
     resolve(true);
@@ -145,7 +154,9 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
   // calls the api function with user token and specie to add specie on the server
   addUserSpecie({
     scientificSpecies: specie.guid,
-    aliases: specie.scientificName,
+    aliases: specie.aliases,
+    description: specie.description,
+    imageFile: specie.image,
   })
     .then((result) => {
       if (result) {

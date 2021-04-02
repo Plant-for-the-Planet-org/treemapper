@@ -21,11 +21,11 @@ import {
   addLocalImage,
   changeIsUpdatedStatus,
 } from './../../repositories/species';
-import { addAliasesAndDescriptionOnServer, UpdateSpeciesImage } from '../../actions/species';
-import { getCdnUrls } from '../../actions/user';
+import { updateDataOnServer } from '../../actions/species';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { getCdnUrls } from '../../actions/user';
 import i18next from '../../languages/languages';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -35,7 +35,6 @@ const SpecieInfo = ({ route }) => {
   const [aliases, setAliases] = useState();
   const [localImageUrl, setLocalImageUrl] = useState('');
   const [description, setDescription] = useState();
-  const [cdnUrl, setCdnUrl] = useState();
   const specieName = route.params.SpecieName;
   const SpecieGuid = route.params.SpecieGuid;
   const SpecieId = route.params.SpecieId;
@@ -47,17 +46,8 @@ const SpecieInfo = ({ route }) => {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    console.log(
-      route.params.SpecieDescription,
-      route.params.SpecieAliases,
-      'route.params.SpecieDescription',
-    );
     setAliases(route.params.SpecieAliases);
     setDescription(route.params.SpecieDescription);
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      console.log(cdnMedia, 'cdnMedia');
-      setCdnUrl(cdnMedia.cache);
-    });
     if (route.params.SpecieLocalImage) {
       setLocalImageUrl(route.params.SpecieLocalImage);
     }
@@ -68,7 +58,6 @@ const SpecieInfo = ({ route }) => {
           fromUrl: `${cdnMedia.cache}/species/default/${route.params.SpecieImage}`,
           toFile: `${RNFS.DocumentDirectoryPath}/${route.params.SpecieImage}`,
         }).promise.then((r) => {
-          console.log(r, 'Done');
           addLocalImage(route.params.SpecieGuid, route.params.SpecieImage).then(() => {
             setLocalImageUrl(route.params.SpecieImage);
           });
@@ -83,34 +72,10 @@ const SpecieInfo = ({ route }) => {
     }
   }, [isFocused]);
 
-  const InfoCard = () => {
-    const [descriptionText, setDescriptionText] = useState('');
-    useEffect(() => {
-      setDescriptionText(SpecieDescription);
-    }, []);
-    return (
-      <View style={{ flex: 1, flexDirection: 'column' }}>
-        <Text style={styles.InfoCard_heading}>Specie Name</Text>
-        <Text style={styles.InfoCard_text}>{specieName}</Text>
-        <Text style={styles.InfoCard_heading}>Description</Text>
-        <TextInput
-          style={styles.InfoCard_text}
-          placeholder={'Type the Description here'}
-          value={descriptionText}
-          onChangeText={(text) => {
-            setDescriptionText(text);
-            setDescription(text);
-          }}
-          onSubmitEditing={() => onSubmitInputField(descriptionText)}
-        />
-      </View>
-    );
-  };
   const onSubmitInputField = () => {
-    console.log(aliases, description, 'onSubmitInputField');
     addAliasesAndDescription({ scientificSpecieGuid: SpecieGuid, aliases, description });
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      addAliasesAndDescriptionOnServer({
+      updateDataOnServer({
         scientificSpecieGuid: SpecieGuid,
         specieId: SpecieId,
         aliases,
@@ -119,18 +84,23 @@ const SpecieInfo = ({ route }) => {
     }
   };
 
-  const handleCamera = (data, fsurl) => {
+  const handleCamera = (data, fsurl, base64Image) => {
     setIsCamera(!isCamera);
-    console.log(fsurl, 'fsurl');
-    setLocalImageUrl(fsurl);
-    addLocalImage(SpecieGuid, fsurl);
-    UpdateSpeciesImage(data, SpecieId, SpecieGuid)
-      .then(() => {
-        console.log('UpdateSpeciesImage Done');
+    setLocalImageUrl(`data:image/jpeg;base64,${base64Image}`);
+    addLocalImage(SpecieGuid, base64Image);
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      updateDataOnServer({
+        image: `data:image/jpeg;base64,${base64Image}`,
+        specieId: SpecieId,
+        scientificSpecieGuid: SpecieGuid,
       })
-      .catch((err) => {
-        console.log(err, 'UpdateSpeciesImage Error');
-      });
+        .then(() => {
+          console.log('UpdateSpeciesImage Done');
+        })
+        .catch((err) => {
+          console.log(err, 'UpdateSpeciesImage Error');
+        });
+    }
   };
 
   const checkIcon = () => {
@@ -199,9 +169,7 @@ const SpecieInfo = ({ route }) => {
                 <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
                   <Image
                     source={{
-                      uri: IS_ANDROID
-                        ? `file://${RNFS.DocumentDirectoryPath}/${localImageUrl}`
-                        : `${RNFS.DocumentDirectoryPath}/${localImageUrl}`,
+                      uri: `${localImageUrl}`,
                     }}
                     style={{
                       marginTop: 25,

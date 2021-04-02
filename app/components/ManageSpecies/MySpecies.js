@@ -69,7 +69,7 @@ const MySpecies = ({
                 SpecieAliases: item.aliases,
                 SpecieDescription: item.description,
                 SpecieImage: item.image,
-                SpecieLocalImage: item.localImage,
+                SpecieLocalImage: item.image,
                 toggleUserSpecies,
               })
             }>

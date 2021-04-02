@@ -181,12 +181,8 @@ const ScientificSpecies = {
     specieId: 'string?',
     aliases: { type: 'string', default: '' },
     image: { type: 'string', default: '' },
-    localImage: { type: 'string', default: '' },
     description: { type: 'string', default: '' },
-    // isDeleted: { type: 'bool', default: false },
-    shouldUpdate: { type: 'bool', default: true },
-    isDataUpdated: { type: 'bool', default: true },
-    isImageUpdated: { type: 'bool', default: true },
+    isUpdated: { type: 'bool', default: true },
   },
 };
 

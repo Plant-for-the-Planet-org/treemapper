@@ -186,15 +186,15 @@ export const deleteUserSpecie = (specieId) => {
   });
 };
 
-export const addAliasesAndDescriptionOnServer = ({
+export const updateDataOnServer = ({
   scientificSpecieGuid,
   specieId,
   aliases,
   description,
+  image,
 }) => {
   return new Promise((resolve, reject) => {
-    const data = { aliases, description };
-    console.log(data, 'data');
+    const data = { aliases, description, imageFile: image };
     // makes an authorized DELETE request on /species to delete a specie of user.
     putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)
       .then((res) => {
@@ -208,7 +208,7 @@ export const addAliasesAndDescriptionOnServer = ({
             message: `Set aliases to species having id ${specieId}, PUT - /species`,
             statusCode: status,
           });
-          changeIsUpdatedStatus({ scientificSpecieGuid, isDataUpdated: true });
+          changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: true });
           resolve(true);
         } else {
           resolve(false);
@@ -217,7 +217,7 @@ export const addAliasesAndDescriptionOnServer = ({
       .catch((err) => {
         // logs the error
         // console.error(
-        //   `Error at /actions/species/addAliasesAndDescriptionOnServer, ${JSON.stringify(
+        //   `Error at /actions/species/updateDataOnServer, ${JSON.stringify(
         //     err?.response,
         //   )}`,
         // );
@@ -239,26 +239,23 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
       realm.write(async () => {
         // const UpdateSpeciesImageUser = realm.objectForPrimaryKey('User', 'id0001');
         // let userToken = UpdateSpeciesImageUser.accessToken;
-        await RNFS.readFile(image, 'base64').then(async (base64) => {
-          let body = {
-            imageFile: `data:image/jpeg;base64,${base64}`,
-          };
-          await putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
-            .then((res) => {
-              const { status, data } = res;
-              //   console.log(res, data);
-              if (status === 200) {
-                // console.log(res, 'res');
-                // updateStatusForUserSpecies({ id: speciesId });
-                changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isImageUpdated: true });
-                resolve(true);
-              }
-            })
-            .catch((err) => {
-              // console.log(err, 'create error');
-              reject(err);
-            });
-        });
+        // await RNFS.readFile(image, 'base64').then(async (base64) => {
+        let body = {
+          imageFile: `data:image/jpeg;base64,${image}`,
+        };
+        await putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
+          .then((res) => {
+            const { status, data } = res;
+            if (status === 200) {
+              changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
+              resolve(true);
+            }
+          })
+          .catch((err) => {
+            // console.log(err, 'create error');
+            reject(err);
+          });
+        // });
       });
     });
   });
