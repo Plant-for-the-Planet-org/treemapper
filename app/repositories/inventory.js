@@ -672,6 +672,7 @@ export const addCoordinateSingleRegisterTree = ({
                   isImageUploaded: false,
                 },
               ],
+              isPolygonComplete: true
             },
           ];
           if (locateTree) {

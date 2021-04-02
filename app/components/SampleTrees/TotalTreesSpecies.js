@@ -12,6 +12,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
@@ -32,6 +33,7 @@ export default function TotalTreesSpecies() {
   // reference for map
   const map = useRef(null);
   const [showManageSpecies, setShowManageSpecies] = useState(false);
+  const [isPointForMultipleTree, setIsPointForMultipleTree] = useState(false);
   const [inventory, setInventory] = useState();
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
@@ -60,6 +62,54 @@ export default function TotalTreesSpecies() {
     updateLastScreen(data);
     initializeState();
   }, []);
+
+  useEffect(() => {
+    if (
+      isCameraRefVisible &&
+      bounds.length > 0 &&
+      camera?.current?.fitBounds &&
+      !isPointForMultipleTree
+    ) {
+      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 30, 1000);
+    }
+    if (isCameraRefVisible && centerCoordinate.length > 0 && camera?.current?.setCamera) {
+      let config = {
+        centerCoordinate,
+      };
+      if (isPointForMultipleTree) {
+        config.zoomLevel = 18;
+      }
+      camera.current.setCamera(config);
+    }
+  }, [isCameraRefVisible, bounds, centerCoordinate]);
+
+  // initializes the state by updating state
+  const initializeState = () => {
+    if (inventoryState.inventoryID) {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+        if (inventoryData.polygons.length > 0) {
+          const geoJSONData = getGeoJsonData(inventoryData);
+          if (
+            inventoryData.polygons[0].coordinates.length === 1 &&
+            inventoryData.polygons[0].isPolygonComplete
+          ) {
+            setIsPointForMultipleTree(true);
+            setCenterCoordinate([
+              inventoryData.polygons[0].coordinates[0].longitude,
+              inventoryData.polygons[0].coordinates[0].latitude,
+            ]);
+          } else {
+            setCenterCoordinate(turfCenter(geoJSONData.features[0]));
+
+            setBounds(bbox(geoJSONData.features[0]));
+          }
+
+          setGeoJSON(geoJSONData);
+        }
+      });
+    }
+  };
 
   const deleteSpecie = (index) => {
     let species = [...inventory.species];
@@ -192,65 +242,6 @@ export default function TotalTreesSpecies() {
     );
   };
 
-  useEffect(() => {
-    if (isCameraRefVisible && bounds.length > 0 && camera?.current?.fitBounds) {
-      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 20, 1000);
-    }
-    if (isCameraRefVisible && centerCoordinate > 0 && camera?.current?.setCamera) {
-      camera.current.setCamera({
-        centerCoordinate,
-      });
-    }
-  }, [isCameraRefVisible, bounds, centerCoordinate]);
-
-  // initializes the state by updating state
-  const initializeState = () => {
-    if (inventoryState.inventoryID) {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-        setInventory(inventoryData);
-        if (inventoryData.polygons.length > 0) {
-          let featureList = inventoryData.polygons.map((onePolygon) => {
-            return {
-              type: 'Feature',
-              properties: {
-                isPolygonComplete: onePolygon.isPolygonComplete,
-              },
-              geometry: {
-                type: 'LineString',
-                coordinates: onePolygon.coordinates.map((oneCoordinate) => [
-                  oneCoordinate.longitude,
-                  oneCoordinate.latitude,
-                ]),
-              },
-            };
-          });
-          if (inventoryData.sampleTrees.length > 0) {
-            for (const sampleTree of inventoryData.sampleTrees) {
-              featureList.push({
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Point',
-                  coordinates: [sampleTree.longitude, sampleTree.latitude],
-                },
-              });
-            }
-          }
-          let geoJSONData = {
-            type: 'FeatureCollection',
-            features: featureList,
-          };
-
-          setCenterCoordinate(turfCenter(featureList[0]));
-
-          setBounds(bbox(featureList[0]));
-
-          setGeoJSON(geoJSONData);
-        }
-      });
-    }
-  };
-
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
     return (
@@ -268,12 +259,12 @@ export default function TotalTreesSpecies() {
             setIsCameraRefVisible(!!el);
           }}
         />
-        {shouldRenderShape && (
+        {shouldRenderShape && !isPointForMultipleTree && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
           </MapboxGL.ShapeSource>
         )}
-        <SampleTreeMarkers geoJSON={geoJSON} />
+        <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
       </MapboxGL.MapView>
     );
   };
