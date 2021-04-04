@@ -194,6 +194,16 @@ const migration = (oldRealm, newRealm) => {
       newInventory[index].tagId = oldInventory[index].tag_id;
       newInventory[index].lastScreen = oldInventory[index].last_screen;
       newInventory[index].registrationDate = oldInventory[index].registration_date;
+      for (const coordinateIndex in newInventory[index].polygons[0].coordinates) {
+        newInventory[index].polygons[0].coordinates[coordinateIndex].latitude =
+          oldInventory[index].polygons[0].coordinates[coordinateIndex].latitude;
+        newInventory[index].polygons[0].coordinates[coordinateIndex].longitude =
+          oldInventory[index].polygons[0].coordinates[coordinateIndex].longitude;
+        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat =
+          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat;
+        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong =
+          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong;
+      }
     }
   }
 };
