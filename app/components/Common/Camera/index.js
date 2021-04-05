@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import i18next from 'i18next';
 import { copyImageAndGetData } from '../../../utils/copyToFS';
 import { toBase64 } from '../../../utils/base64';
+
 export default function Camera({ handleCamera }) {
   const camera = useRef();
 
@@ -16,7 +17,7 @@ export default function Camera({ handleCamera }) {
     // setImagePath(data.uri);
     const base64Image = data.base64;
     const fsurl = await copyImageAndGetData(data.uri);
-    handleCamera(data.uri, fsurl, base64Image);
+    handleCamera({ uri: data.uri, fsurl, base64Image });
   };
   return (
     <RNCamera

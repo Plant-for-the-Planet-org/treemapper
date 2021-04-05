@@ -1,6 +1,6 @@
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -14,65 +14,88 @@ import {
   View,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
-import { updateUserSpecie } from '../../actions/species';
+import { clearSpecie, updateUserSpecie } from '../../actions/species';
+import { SpeciesContext } from '../../reducers/species';
+import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
-import { updateSpecieData, addLocalImage } from './../../repositories/species';
-const IS_ANDROID = Platform.OS === 'android';
+import { updateSpecieData } from './../../repositories/species';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
-  const [aliases, setAliases] = useState();
-  const [localImageUrl, setLocalImageUrl] = useState();
-  const [description, setDescription] = useState();
-  const specieName = route.params.specieName;
-  const specieGuid = route.params.specieGuid;
-  const specieId = route.params.specieId;
+  const [aliases, setAliases] = useState('');
+  const [image, setImage] = useState('');
+  const [description, setDescription] = useState('');
+
+  const [specieName, setSpecieName] = useState('');
+  const [specieGuid, setSpecieGuid] = useState('');
+  const [specieId, setSpecieId] = useState('');
   const toggleUserSpecies = route.params.toggleUserSpecies;
+
+  const { state: specieState, dispatch } = useContext(SpeciesContext);
 
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    setAliases(route.params.specieAliases);
-    setDescription(route.params.specieDescription);
-    setLocalImageUrl(route.params.specieImage);
-  }, []);
+    if (specieState.specie) {
+      const { specie } = specieState;
+      setAliases(specie.aliases);
+      setDescription(specie.description);
+      setImage(specie.image);
+
+      setSpecieName(specie.scientificName);
+      setSpecieGuid(specie.guid);
+      setSpecieId(specie.specieId);
+    }
+  }, [specieState.specie]);
 
   useEffect(() => {
     if (!isFocused) {
-      console.log('screen is not focused');
       onSubmitInputField();
+      clearSpecie()(dispatch);
     }
   }, [isFocused]);
 
   const onSubmitInputField = () => {
-    updateSpecieData({
-      scientificSpecieGuid: specieGuid,
-      aliases,
-      description,
-      image: localImageUrl,
-    });
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      updateUserSpecie({
+    const isImageChanged = specieState.specie.image !== image;
+    const isDescriptionChanged = specieState.specie.description !== description;
+    const isAliasesChanged = specieState.specie.aliases !== aliases;
+    const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
+
+    if (shouldUpdateData) {
+      updateSpecieData({
         scientificSpecieGuid: specieGuid,
-        specieId: specieId,
         aliases,
         description,
-        image: localImageUrl,
-      });
+        image: image,
+      })
+        .then(async () => {
+          const userToken = await getUserToken();
+          if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
+            updateUserSpecie({
+              scientificSpecieGuid: specieGuid,
+              specieId: specieId,
+              aliases,
+              description,
+              image: image,
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('something went wrong');
+        });
     }
   };
 
-  const handleCamera = (data, fsurl, base64Image) => {
+  const handleCamera = ({ base64Image }) => {
     setIsCamera(!isCamera);
-    setLocalImageUrl(`data:image/jpeg;base64,${base64Image}`);
+    setImage(`data:image/jpeg;base64,${base64Image}`);
   };
 
-  const checkIcon = () => {
+  const CheckIcon = () => {
     const [isUserSpecies, setIsUserSpecies] = useState(true);
     return (
       <TouchableOpacity
@@ -105,13 +128,13 @@ const SpecieInfo = ({ route }) => {
         <View style={styles.container}>
           <Header
             headingTextInput={aliases}
-            TitleRightComponent={checkIcon}
+            TitleRightComponent={CheckIcon}
             setHeadingText={setAliases}
             onSubmitInputField={onSubmitInputField}
           />
           <ScrollView showsVerticalScrollIndicator={false}>
             <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
-              {!localImageUrl ? (
+              {!image ? (
                 <TouchableOpacity
                   style={styles.image_container}
                   onPress={() => setIsCamera(!isCamera)}>
@@ -126,27 +149,10 @@ const SpecieInfo = ({ route }) => {
                   </View>
                 </TouchableOpacity>
               ) : (
-                // <Image
-                //   source={{
-                //     uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/species/default/${SpecieImage}`,
-                //   }}
-                //   resizeMode={'contain'}
-                //   style={{
-                //     // flex: 1,
-                //     flexDirection: 'row',
-                //     height: 200,
-                //     width: 230,
-                //     // marginHorizontal: 25,
-                //     marginTop: 25,
-                //     transform: [{ rotate: '90deg' }],
-                //     borderRadius: 5,
-                //     alignSelf: 'center',
-                //   }}
-                // />
                 <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
                   <Image
                     source={{
-                      uri: `${localImageUrl}`,
+                      uri: `${image}`,
                     }}
                     style={{
                       marginTop: 25,
@@ -165,7 +171,7 @@ const SpecieInfo = ({ route }) => {
                 <Text style={styles.InfoCard_heading}>Description</Text>
                 <TextInput
                   style={[styles.InfoCard_text, { padding: 0 }]}
-                  placeholder={'Type the Description here'}
+                  placeholder={'Type description here'}
                   value={description}
                   onChangeText={setDescription}
                   multiline

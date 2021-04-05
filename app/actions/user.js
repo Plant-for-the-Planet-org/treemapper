@@ -48,7 +48,7 @@ export const auth0Login = (dispatch) => {
         setUserInitialState(credentials)(dispatch);
 
         // fetches the user details from server by passing the accessToken which is used while requesting the API
-        getUserDetailsFromServer(credentials.accessToken, dispatch)
+        getUserDetailsFromServer(dispatch)
           .then((userDetails) => {
             // destructured and modified variable names which is used to set user state
             const {
@@ -209,9 +209,9 @@ export const checkErrorCode = async (error, userDispatch = null) => {
 
 /**
  * Fetches the detail of the user from the server using the accessToken and requesting the GET api - /app/profile
- * @param {string} userToken - used to pass in authorization header of the api
+ * @param {string} userDispatch - used to clear the data if the error occurred will lead to logout
  */
-export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
+export const getUserDetailsFromServer = (userDispatch) => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile')
       .then((data) => {

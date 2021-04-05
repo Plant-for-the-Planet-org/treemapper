@@ -15,6 +15,7 @@ export const updateAndSyncLocalSpecies = (speciesData) => {
             realm.create('ScientificSpecies', {
               guid: specie.guid,
               scientificName: specie.scientific_name,
+              aliases: specie.scientific_name,
             });
             if (index === speciesData.length - 1) {
               // logging the success in to the db
@@ -125,15 +126,12 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 specie.scientificSpecies,
               );
 
-              specieResult.image = base64Image ? `data:image/jpeg;base64, ${base64Image}` : '';
+              specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
               specieResult.isUploaded = true;
               specieResult.isUserSpecies = true;
               specieResult.specieId = specie.id;
-              if (specie.aliases) {
-                specieResult.aliases = specie.aliases;
-              } else {
-                specieResult.aliases = specieResult.scientificName;
-              }
+              specieResult.aliases = specie.aliases ? specie.aliases : specieResult.scientificName;
+
               if (specie.description) {
                 specieResult.description = specie.description;
               }
@@ -204,7 +202,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
  * This function is used when specie is already uploaded on the server.
  * Used to add specie id to scientific species using scientific species guid
  * @param {string} scientificSpecieGuid - scientific specie guid to search from and update the specie id
- * @param {string} specieId - specie id which is to be updated
+ * @param {Object} specie - specie which is to be updated
  */
 export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
   return new Promise((resolve, reject) => {
@@ -236,8 +234,8 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
             if (!specieResult.image && specie.image) {
               let base64Image;
               base64Image = await getBase64ImageFromURL(specie.image);
-              specieData.image = base64Image;
-              specieResult.image = base64Image;
+              specieData.image = `data:image/jpeg;base64,${base64Image}`;
+              specieResult.image = `data:image/jpeg;base64,${base64Image}`;
             }
             if (
               specieData.hasOwnProperty('aliases') ||
@@ -253,14 +251,14 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Added specie id from already synced specie with scientific specie guid: ${scientificSpecieGuid} and specie id: ${specieId}`,
+          message: `Added specie id from already synced specie with scientific specie guid: ${scientificSpecieGuid} and specie id: ${specie.id}`,
         });
         resolve(true);
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while adding specie id from already synced specie with scientific specie guid: ${scientificSpecieGuid} and specie id: ${specieId}`,
+          message: `Error while adding specie id from already synced specie with scientific specie guid: ${scientificSpecieGuid} and specie id: ${specie.id}`,
           logStack: JSON.stringify(err),
         });
         console.error(
@@ -326,7 +324,7 @@ export const updateSpecieData = ({ scientificSpecieGuid, aliases, description, i
             specieResult.description = description;
           }
           if (image) {
-            specieResult.image = image;
+            specieResult.image = `${image}`;
           }
         });
         changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: false });

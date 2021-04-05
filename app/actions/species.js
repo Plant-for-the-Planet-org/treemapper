@@ -10,55 +10,27 @@ import {
   putAuthenticatedRequest,
 } from '../utils/api';
 import { LogTypes } from '../utils/constants';
-import {
-  ADD_MULTIPLE_TREE_SPECIE,
-  SET_MULTIPLE_TREES_SPECIES_LIST,
-  SET_SPECIES_LIST,
-  SET_SPECIE_ID,
-} from './Types';
+import { SET_SPECIE, CLEAR_SPECIE } from './Types';
 import { getCdnUrls } from './user';
 
 /**
- * This function dispatches type SET_SPECIES_LIST with payload list of species to add in species state
+ * This function dispatches type SET_SPECIE with payload specie to show specie detail on SpecieInfo screen
  * It requires the following param
- * @param {array} speciesList - list of species which should be added/updated in app state
+ * @param {Object} specie - specie which is to be shown or updated
  */
-export const setSpeciesList = (speciesList) => (dispatch) => {
+export const setSpecie = (specie) => (dispatch) => {
   dispatch({
-    type: SET_SPECIES_LIST,
-    payload: speciesList,
-  });
-};
-
-/**
- * This function dispatches type SET_SPECIE_ID with payload specie id to add in species state
- * It requires the following param
- * @param {string} specieId - specie id which should be added/updated in app state
- */
-export const setSpecieId = (specieId) => (dispatch) => {
-  dispatch({
-    type: SET_SPECIE_ID,
-    payload: specieId,
-  });
-};
-
-/**
- * This function dispatches type SET_MULTIPLE_TREES_SPECIES_LIST with payload having list of species selected during
- * multiple trees registration to add in species state.
- * It requires the following param
- * @param {string} speciesList - List of species selected for multiple tree registration to set in app's species state
- */
-export const setMultipleTreesSpeciesList = (speciesList) => (dispatch) => {
-  dispatch({
-    type: SET_MULTIPLE_TREES_SPECIES_LIST,
-    payload: speciesList,
-  });
-};
-
-export const addMultipleTreesSpecie = (specie) => (dispatch) => {
-  dispatch({
-    type: ADD_MULTIPLE_TREE_SPECIE,
+    type: SET_SPECIE,
     payload: specie,
+  });
+};
+
+/**
+ * This function dispatches type CLEAR_SPECIE to clear the species after navigated back from SpecieInfo screen
+ */
+export const clearSpecie = () => (dispatch) => {
+  dispatch({
+    type: CLEAR_SPECIE,
   });
 };
 

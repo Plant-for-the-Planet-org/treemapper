@@ -186,7 +186,17 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {};
+const migration = (oldRealm, newRealm) => {
+  if (oldRealm.schemaVersion < schemaVersion) {
+    const oldScientificSpecies = oldRealm.objects('ScientificSpecies');
+    let newScientificSpecies = newRealm.objects('ScientificSpecies');
+    for (const index in oldScientificSpecies) {
+      newScientificSpecies[index].aliases = oldScientificSpecies[index].scientificName;
+      newScientificSpecies[index].isUpdated = true;
+      newScientificSpecies[index].description = '';
+    }
+  }
+};
 
 export default {
   schema: [

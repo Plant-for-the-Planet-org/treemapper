@@ -132,15 +132,17 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
         deleteUserSpecieFromServer(specie);
       });
       speciesToSync.speciesToUpdate.forEach((specie) => {
-        updateUserSpecie({
-          scientificSpecieGuid: specie.guid,
-          specieId: specie.specieId,
-          aliases: specie.aliases,
-          description: specie.description,
-          image: specie.image,
-        }).catch((err) => {
-          console.error('Failed to update specie with id', specie.specieId);
-        });
+        if (specie.specieId) {
+          updateUserSpecie({
+            scientificSpecieGuid: specie.guid,
+            specieId: specie.specieId,
+            aliases: specie.aliases,
+            description: specie.description,
+            image: specie.image,
+          }).catch((err) => {
+            console.error('Failed to update specie with id', specie.specieId);
+          });
+        }
       });
     }
     resolve(true);
@@ -170,7 +172,7 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
     .then((result) => {
       if (result) {
         try {
-          addSpecieIdFromSyncedSpecie(specie.guid, result.id);
+          addSpecieIdFromSyncedSpecie(specie.guid, result);
         } catch (err) {
           console.error(
             `Error at /utils/addUserSpecies/addUserSpecieToServer, ${JSON.stringify(err)}`,

@@ -22,11 +22,11 @@ export const IS_UPLOADING = 'IS_UPLOADING';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_SIGNUP_LOADING = 'SET_SIGNUP_LOADING';
 
-export const SET_SPECIES_LIST = 'SET_SPECIES_LIST';
-export const SET_SPECIE_ID = 'SET_SPECIE_ID';
+// Type used to show specie on SpecieInfo screen
+export const SET_SPECIE = 'SET_SPECIE';
 
-export const SET_MULTIPLE_TREES_SPECIES_LIST = 'SET_MULTIPLE_TREES_SPECIES_LIST';
-export const ADD_MULTIPLE_TREE_SPECIE = 'ADD_MULTIPLE_TREE_SPECIE';
+// Type used to clear specie state after navigated back from SpecieInfo screen
+export const CLEAR_SPECIE = 'CLEAR_SPECIE';
 
 // used when user is successfully logged in into the app this type is used to add tokens and set user as logged in
 export const SET_INITIAL_USER_STATE = 'SET_INITIAL_USER_STATE';

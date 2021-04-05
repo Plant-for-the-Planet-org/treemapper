@@ -1,14 +1,11 @@
-import React, { useEffect } from 'react';
-import { SvgXml } from 'react-native-svg';
-import PrimaryButton from '../Common/PrimaryButton';
-import { FlatList, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import i18next from 'i18next';
+import React from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
-import { useNavigation } from '@react-navigation/native';
-import { MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { deleteUserSpecieFromServer } from '../../utils/addUserSpecies';
+import { empty } from '../../assets';
+import { SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
   registrationType,
@@ -18,15 +15,8 @@ const MySpecies = ({
   editOnlySpecieName,
   onPressBack,
   isSampleTree,
-  toggleUserSpecies,
+  navigateToSpecieInfo,
 }) => {
-  const navigation = useNavigation();
-  // useEffect(() => {
-  //   for (const specie of specieList) {
-  //     console.log(specie, 'specie');
-  //     deleteUserSpecieFromServer(specie);
-  //   }
-  // }, []);
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -60,18 +50,7 @@ const MySpecies = ({
           </Text>
         </View>
         {item.guid !== 'unknown' ? (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('SpecieInfo', {
-                specieName: item.scientificName,
-                specieGuid: item.guid,
-                specieId: item.specieId,
-                specieAliases: item.aliases,
-                specieDescription: item.description,
-                specieImage: item.image,
-                toggleUserSpecies,
-              })
-            }>
+          <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
         ) : (
