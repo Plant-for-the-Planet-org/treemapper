@@ -1,5 +1,5 @@
 PODS:
-  - A0Auth0 (2.6.0):
+  - A0Auth0 (2.8.0):
     - React
   - boost-for-react-native (1.63.0)
   - BugsnagReactNative (2.23.10):
@@ -249,13 +249,13 @@ PODS:
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
-  - react-native-camera (3.40.0):
+  - react-native-camera (3.43.1):
     - React-Core
-    - react-native-camera/RCT (= 3.40.0)
-    - react-native-camera/RN (= 3.40.0)
-  - react-native-camera/RCT (3.40.0):
+    - react-native-camera/RCT (= 3.43.1)
+    - react-native-camera/RN (= 3.43.1)
+  - react-native-camera/RCT (3.43.1):
     - React-Core
-  - react-native-camera/RN (3.40.0):
+  - react-native-camera/RN (3.43.1):
     - React-Core
   - react-native-config (1.4.1):
     - react-native-config/App (= 1.4.1)
@@ -263,7 +263,7 @@ PODS:
     - React-Core
   - react-native-geolocation-service (5.2.0):
     - React
-  - react-native-get-random-values (1.5.1):
+  - react-native-get-random-values (1.6.0):
     - React-Core
   - react-native-mapbox-gl (8.2.0-beta1):
     - Mapbox-iOS-SDK (~> 5.9.0)
@@ -355,24 +355,24 @@ PODS:
     - React-Core
   - RNCMaskedView (0.1.10):
     - React
-  - RNDateTimePicker (3.0.9):
+  - RNDateTimePicker (3.4.3):
     - React-Core
   - RNFS (2.16.6):
     - React
-  - RNGestureHandler (1.9.0):
+  - RNGestureHandler (1.10.3):
     - React-Core
   - RNInAppBrowser (3.5.1):
     - React-Core
   - RNLocalize (1.4.3):
     - React-Core
-  - RNReanimated (1.13.2):
+  - RNReanimated (1.13.3):
     - React-Core
   - RNScreens (2.18.1):
     - React-Core
-  - RNShare (5.1.0):
+  - RNShare (5.1.7):
     - React-Core
-  - RNSnackbar (2.2.3):
-    - React
+  - RNSnackbar (2.4.0):
+    - React-Core
   - RNSVG (12.1.0):
     - React
   - RNVectorIcons (6.7.0):
@@ -595,7 +595,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  A0Auth0: 2919855112dbfadfea2c55418fa6114f274ee6de
+  A0Auth0: b22979300d6c6962c2d4e0c3a083dbf130f80776
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -627,10 +627,10 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-camera: 5c1fbfecf63b802b8ca4a71c60d30a71550fb348
+  react-native-camera: e3098d679484282acf95f7a346ede7dbfbe46393
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
-  react-native-get-random-values: 41f0c91ac0da870e47b307e07752e9e54bc2dc7e
+  react-native-get-random-values: f0fc24a5887a3341589515a86282a574407b59e4
   react-native-mapbox-gl: b147c5e106c69870198ae6bd16b190a261ecbbcc
   react-native-netinfo: 34f4d7a42f49157f3b45c14217d256bce7dc9682
   react-native-safe-area-context: e471852c5ed67eea4b10c5d9d43c1cebae3b231d
@@ -648,15 +648,15 @@ SPEC CHECKSUMS:
   RealmJS: 5195064e9aeccf94ae3756bd9d0f2301b9074b07
   RNCAsyncStorage: cb9a623793918c6699586281f0b51cbc38f046f9
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
-  RNDateTimePicker: 986d4794006e5caaebd089a724f54d35631a8dd4
+  RNDateTimePicker: e1c24487ab8aa0850403bd90dba75eff8a4e9b84
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
-  RNGestureHandler: 9b7e605a741412e20e13c512738a31bd1611759b
+  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNInAppBrowser: 3733c1aa6699983a1c9b4963e85d5e5a48ad297e
   RNLocalize: ff8b96bffbe096a158f952a170741208f2c18746
-  RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
+  RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
   RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
-  RNShare: fed99fd743f80ca255903c1da46fc9a6430efab6
-  RNSnackbar: 57932b2527096e609a86b1da2a2dfa46d624dc7c
+  RNShare: 503c37af86611beadccba46156fcc42170c9fb42
+  RNSnackbar: b6cbf294923b8d6c6056592bca87527c81a0130b
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
   RNZipArchive: 0c9463e46a56d93b29cd8a306e051f24397f5dfa
