@@ -1,5 +1,6 @@
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useIsFocused } from '@react-navigation/native';
+import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -21,11 +22,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { Colors, Typography } from '_styles';
 import { clearSpecie, updateUserSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
+import { toggleUserSpecies } from '../../repositories/species';
 import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
-import { toggleUserSpecies } from '../../repositories/species';
-import i18next from 'i18next';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
@@ -148,7 +148,7 @@ const SpecieInfo = ({ route }) => {
                       size={80}
                       color={Colors.GRAY_LIGHTEST}
                     />
-                    <Text style={styles.addImage}>Add Image</Text>
+                    <Text style={styles.addImage}>{i18next.t('label.add_image')}</Text>
                   </View>
                 </TouchableOpacity>
               ) : (
@@ -237,12 +237,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: 50,
     marginTop: 25,
-    height: Dimensions.get('window').height * 0.4,
+    // height: Dimensions.get('window').height * 0.4,
   },
   imageView: {
-    resizeMode: 'contain',
+    borderRadius: 8,
+    resizeMode: 'cover',
+    width: '100%',
     height: Dimensions.get('window').height * 0.4,
-
     backgroundColor: Colors.TEXT_COLOR,
   },
   imageControls: {

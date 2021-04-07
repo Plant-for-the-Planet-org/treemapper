@@ -1,14 +1,11 @@
 import i18next from 'i18next';
 import React, { useRef, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import React, { useRef } from 'react';
-import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import Header from '../Header';
-import { copyImageAndGetData } from '../../../utils/copyToFS';
-import PrimaryButton from '../PrimaryButton';
-import { Colors } from '_styles';
 import { Colors, Typography } from '_styles';
+import { copyImageAndGetData } from '../../../utils/copyToFS';
+import Header from '../Header';
+import PrimaryButton from '../PrimaryButton';
 
 export default function Camera({ handleCamera }) {
   const camera = useRef();
@@ -40,14 +37,11 @@ export default function Camera({ handleCamera }) {
     }
   };
 
-  
-
   const onClickOpenSettings = async () => {
     if (Platform.OS === 'ios') {
       Linking.openURL('app-settings:');
     }
   };
-
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -56,19 +50,16 @@ export default function Camera({ handleCamera }) {
         ref={camera}
         style={styles.cameraContainer}
         notAuthorizedView={
-          <View
-          style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={styles.message}>
-            {i18next.t('label.permission_camera_message')}
-          </Text>
-          {Platform.OS === 'ios' ? (
-            <Text style={styles.message} onPress={onClickOpenSettings}>
-              {i18next.t('label.open_settings')}
-            </Text>
-          ) : (
-            []
-          )}
-        </View>
+          <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text>
+            {Platform.OS === 'ios' ? (
+              <Text style={styles.message} onPress={onClickOpenSettings}>
+                {i18next.t('label.open_settings')}
+              </Text>
+            ) : (
+              []
+            )}
+          </View>
         }
         androidCameraPermissionOptions={{
           title: i18next.t('label.permission_camera_title'),
@@ -124,6 +115,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE,

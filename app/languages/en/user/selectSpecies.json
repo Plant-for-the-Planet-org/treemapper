@@ -44,6 +44,7 @@
   "select_species_add_species_desscription": "Add species to your list by searching the species",
   "select_species_tree_species": "Tree Species",
   "species_name": "Specie Name",
+  "add_image": "Add Image",
   "species_description": "Description",
   "type_description_here": "Type description here"
 }
