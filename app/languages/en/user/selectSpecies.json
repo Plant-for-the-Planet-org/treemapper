@@ -42,5 +42,8 @@
   "select_species_search_atleast_3_characters": "Enter at least 3 characters to get a better result",
   "select_species_looks_empty_here": "Looks Empty Here!",
   "select_species_add_species_desscription": "Add species to your list by searching the species",
-  "select_species_tree_species": "Tree Species"
+  "select_species_tree_species": "Tree Species",
+  "species_name": "Specie Name",
+  "species_description": "Description",
+  "type_description_here": "Type description here"
 }

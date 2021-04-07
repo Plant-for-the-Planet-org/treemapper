@@ -42,5 +42,8 @@
   "select_species_search_atleast_3_characters": "Gib mindestens 3 Zeichen ein, um ein besseres Ergebnis zu erhalten",
   "select_species_looks_empty_here": "Sieht leer aus hier!",
   "select_species_add_species_desscription": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
-  "select_species_tree_species": "Baumarten"
+  "select_species_tree_species": "Baumarten",
+  "species_name": "Artenname",
+  "species_description": "Beschreibung",
+  "type_description_here": "Beschreibung eingeben"
 }
