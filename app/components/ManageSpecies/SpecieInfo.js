@@ -1,5 +1,5 @@
 import { useNetInfo } from '@react-native-community/netinfo';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -139,7 +139,7 @@ const SpecieInfo = ({ route }) => {
               {!image ? (
                 <TouchableOpacity
                   style={styles.emptyImageContainer}
-                  onPress={() => setIsCamera(!isCamera)}>
+                  onPress={() => setIsCamera(true)}>
                   <View>
                     <Ionicons
                       name={'md-cloud-upload-outline'}
@@ -165,7 +165,7 @@ const SpecieInfo = ({ route }) => {
                     }}
                   />
                   <View style={styles.imageControls}>
-                    <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
+                    <TouchableOpacity onPress={() => setIsCamera(true)}>
                       <View style={[styles.iconContainer, { marginRight: 10 }]}>
                         <FA5Icon name={'pen'} size={16} color={Colors.GRAY_LIGHTEST} />
                       </View>

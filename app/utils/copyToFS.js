@@ -24,8 +24,7 @@ export const copyImageAndGetData = async (imagePath) => {
     }
     // copies the image to destination folder
     await RNFS.copyFile(inputPath, outputPath);
-    let imageUrl = `${fileName}.${fileExtension}`;
-    return imageUrl;
+    return `${fileName}.${fileExtension}`;
   } catch (err) {
     console.error('error while saving file', err);
   }

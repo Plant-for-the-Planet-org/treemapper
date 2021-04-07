@@ -206,7 +206,7 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
 
     putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
       .then((res) => {
-        const { status, data } = res;
+        const { status } = res;
         if (status === 200) {
           changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
           resolve(true);

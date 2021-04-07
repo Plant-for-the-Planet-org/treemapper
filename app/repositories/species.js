@@ -221,7 +221,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
               specieData.aliases = specie.aliases;
               specieResult.aliases = specie.aliases;
             }
-            if (!specieResult.description & specie.description) {
+            if (!specieResult.description && specie.description) {
               specieData.description = specie.description;
               specieResult.description = specie.description;
             }

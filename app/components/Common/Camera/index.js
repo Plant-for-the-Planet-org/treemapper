@@ -1,10 +1,9 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import i18next from 'i18next';
+import React, { useRef } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import i18next from 'i18next';
 import { copyImageAndGetData } from '../../../utils/copyToFS';
-import { toBase64 } from '../../../utils/base64';
 
 export default function Camera({ handleCamera }) {
   const camera = useRef();
