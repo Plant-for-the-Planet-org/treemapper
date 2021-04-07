@@ -1,9 +1,10 @@
 import i18next from 'i18next';
 import React, { useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { copyImageAndGetData } from '../../../utils/copyToFS';
+import { Colors, Typography } from '_styles';
 
 export default function Camera({ handleCamera }) {
   const camera = useRef();
@@ -18,6 +19,13 @@ export default function Camera({ handleCamera }) {
     const fsurl = await copyImageAndGetData(data.uri);
     handleCamera({ uri: data.uri, fsurl, base64Image });
   };
+
+  const onClickOpenSettings = async () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    }
+  };
+
   return (
     <RNCamera
       ratio={'1:1'}
@@ -25,8 +33,18 @@ export default function Camera({ handleCamera }) {
       ref={camera}
       style={{ flex: 1 }}
       notAuthorizedView={
-        <View>
-          <Text>{i18next.t('label.permission_camera_message')}</Text>
+        <View
+          style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={styles.message}>
+            {i18next.t('label.permission_camera_message')}
+          </Text>
+          {Platform.OS === 'ios' ? (
+            <Text style={styles.message} onPress={onClickOpenSettings}>
+              {i18next.t('label.open_settings')}
+            </Text>
+          ) : (
+            []
+          )}
         </View>
       }
       androidCameraPermissionOptions={{
@@ -52,5 +70,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
+  message: {
+    color: Colors.TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    lineHeight: Typography.LINE_HEIGHT_30,
+    textAlign: 'center',
+    padding: 20,
   },
 });
