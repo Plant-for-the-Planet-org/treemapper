@@ -22,6 +22,7 @@ const Header = ({
   onPressFunction,
   TopRightComponent,
   TitleRightComponent,
+  whiteBackIcon,
 }) => {
   const navigation = useNavigation();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
@@ -38,7 +39,7 @@ const Header = ({
             <Ionicons
               name={closeIcon ? 'md-close' : 'md-arrow-back'}
               size={30}
-              color={Colors.TEXT_COLOR}
+              color={whiteBackIcon ? Colors.WHITE : Colors.TEXT_COLOR}
             />
           </TouchableOpacity>
         ) : (
@@ -61,10 +62,10 @@ const Header = ({
         style={
           TitleRightComponent
             ? {
-              flexDirection: 'row-reverse',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }
+                flexDirection: 'row-reverse',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
             : {}
         }>
         {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}

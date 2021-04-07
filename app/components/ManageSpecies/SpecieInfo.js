@@ -24,6 +24,7 @@ import { SpeciesContext } from '../../reducers/species';
 import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
+import { toggleUserSpecies } from '../../repositories/species';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
@@ -34,7 +35,6 @@ const SpecieInfo = ({ route }) => {
   const [specieName, setSpecieName] = useState('');
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
-  const toggleUserSpecies = route.params.toggleUserSpecies;
 
   const { state: specieState, dispatch } = useContext(SpeciesContext);
 
@@ -156,13 +156,7 @@ const SpecieInfo = ({ route }) => {
                     source={{
                       uri: `${image}`,
                     }}
-                    style={{
-                      marginTop: 25,
-                      borderRadius: 13,
-                      width: '100%',
-                      height: Dimensions.get('window').height * 0.3,
-                      // transform: [{ rotate: '90deg' }],
-                    }}
+                    style={styles.imageView}
                   />
                   <View style={styles.imageControls}>
                     <TouchableOpacity onPress={() => setIsCamera(true)}>
@@ -179,7 +173,7 @@ const SpecieInfo = ({ route }) => {
                 </View>
               )}
               {/* <InfoCard /> */}
-              <View style={{ flex: 1, flexDirection: 'column' }}>
+              <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
                 <Text style={styles.infoCardHeading}>Specie Name</Text>
                 <Text style={styles.infoCardText}>{specieName}</Text>
                 <Text style={styles.infoCardHeading}>Description</Text>
@@ -240,10 +234,19 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
+    borderRadius: 50,
+    marginTop: 25,
+    height: Dimensions.get('window').height * 0.4,
+  },
+  imageView: {
+    resizeMode: 'contain',
+    height: Dimensions.get('window').height * 0.4,
+
+    backgroundColor: Colors.TEXT_COLOR,
   },
   imageControls: {
     position: 'absolute',
-    top: 30,
+    top: 10,
     right: 10,
     flexDirection: 'row',
   },

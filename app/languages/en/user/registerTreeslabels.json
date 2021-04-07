@@ -17,7 +17,7 @@
   "image_capturing_required": "Image is required",
   "coming_soon": "Coming Soon!",
   "image_click_picture": "Take picture",
-  "image_reclick": "Again",
+  "image_retake": "Retake",
   "sample_tree_marking_heading": "Sample Tree #{{ongoingSampleTreeNumber}}",
   "sample_tree_review_tree_number": "Review Tree #{{ongoingSampleTreeNumber}}",
   "alright_modal_skip": "Skip",

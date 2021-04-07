@@ -106,8 +106,7 @@ const ImageCapturing = ({
       setImagePath('');
       return;
     }
-    const options = { quality: 0.5 };
-    const data = await camera.current.takePictureAsync(options).catch((err) => {
+    const data = await camera.current.takePictureAsync().catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
       setImagePath('');
       return;
@@ -206,7 +205,11 @@ const ImageCapturing = ({
   };
 
   const onPressCompletePolygon = async () => {
-    let data = await copyImageAndGetData();
+    const imageUrl = await copyImageAndGetData(imagePath);
+    let data = {
+      inventory_id: state.inventoryID,
+      imageUrl,
+    };
     data.index = activeMarkerIndex;
 
     insertImageAtIndexCoordinate(data).then(() => {
@@ -325,7 +328,7 @@ const ImageCapturing = ({
         <PrimaryButton
           onPress={onPressCamera}
           btnText={
-            imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')
+            imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
           }
           theme={imagePath ? 'white' : null}
           halfWidth={imagePath}
