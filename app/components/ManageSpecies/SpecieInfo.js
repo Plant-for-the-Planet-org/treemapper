@@ -24,6 +24,7 @@ import { SpeciesContext } from '../../reducers/species';
 import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
+import i18next from 'i18next';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
@@ -180,12 +181,12 @@ const SpecieInfo = ({ route }) => {
               )}
               {/* <InfoCard /> */}
               <View style={{ flex: 1, flexDirection: 'column' }}>
-                <Text style={styles.infoCardHeading}>Specie Name</Text>
+                <Text style={styles.infoCardHeading}>{i18next.t('label.species_name')}</Text>
                 <Text style={styles.infoCardText}>{specieName}</Text>
-                <Text style={styles.infoCardHeading}>Description</Text>
+                <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
                 <TextInput
                   style={[styles.infoCardText, { padding: 0 }]}
-                  placeholder={'Type description here'}
+                  placeholder={i18next.t('label.type_description_here')}
                   value={description}
                   onChangeText={setDescription}
                   multiline
