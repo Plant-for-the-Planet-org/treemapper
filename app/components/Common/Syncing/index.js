@@ -49,17 +49,13 @@ export default function Syncing({
   }, [pendingCount, uploadCount, isUploading]);
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch, userDispatch)
-      .then(() => {
-        console.log('uploaded successfully');
-      })
-      .catch((err) => {
-        if (err?.response?.status === 303) {
-          navigation.navigate('SignUp');
-        } else if (err.error !== 'a0.session.user_cancelled') {
-          setEmailAlert(true);
-        }
-      });
+    uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      if (err?.response?.status === 303) {
+        navigation.navigate('SignUp');
+      } else if (err.error !== 'a0.session.user_cancelled') {
+        setEmailAlert(true);
+      }
+    });
   };
 
   const renderSyncContainer = () => {

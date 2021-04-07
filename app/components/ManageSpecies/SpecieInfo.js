@@ -14,6 +14,8 @@ import {
   View,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography } from '_styles';
@@ -70,7 +72,7 @@ const SpecieInfo = ({ route }) => {
         scientificSpecieGuid: specieGuid,
         aliases,
         description,
-        image: image,
+        image,
       })
         .then(async () => {
           const userToken = await getUserToken();
@@ -80,7 +82,7 @@ const SpecieInfo = ({ route }) => {
               specieId: specieId,
               aliases,
               description,
-              image: image,
+              image: image ? image : null,
             });
           }
         })
@@ -136,7 +138,7 @@ const SpecieInfo = ({ route }) => {
             <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
               {!image ? (
                 <TouchableOpacity
-                  style={styles.image_container}
+                  style={styles.emptyImageContainer}
                   onPress={() => setIsCamera(!isCamera)}>
                   <View>
                     <Ionicons
@@ -145,11 +147,11 @@ const SpecieInfo = ({ route }) => {
                       size={80}
                       color={Colors.GRAY_LIGHTEST}
                     />
-                    <Text style={styles.add_image}>Add Image</Text>
+                    <Text style={styles.addImage}>Add Image</Text>
                   </View>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
+                <View style={styles.imageContainer}>
                   <Image
                     source={{
                       uri: `${image}`,
@@ -162,15 +164,27 @@ const SpecieInfo = ({ route }) => {
                       // transform: [{ rotate: '90deg' }],
                     }}
                   />
-                </TouchableOpacity>
+                  <View style={styles.imageControls}>
+                    <TouchableOpacity onPress={() => setIsCamera(!isCamera)}>
+                      <View style={[styles.iconContainer, { marginRight: 10 }]}>
+                        <FA5Icon name={'pen'} size={16} color={Colors.GRAY_LIGHTEST} />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setImage('')}>
+                      <View style={styles.iconContainer}>
+                        <FAIcon name={'trash'} size={18} color={Colors.GRAY_LIGHTEST} />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               )}
               {/* <InfoCard /> */}
               <View style={{ flex: 1, flexDirection: 'column' }}>
-                <Text style={styles.InfoCard_heading}>Specie Name</Text>
-                <Text style={styles.InfoCard_text}>{specieName}</Text>
-                <Text style={styles.InfoCard_heading}>Description</Text>
+                <Text style={styles.infoCardHeading}>Specie Name</Text>
+                <Text style={styles.infoCardText}>{specieName}</Text>
+                <Text style={styles.infoCardHeading}>Description</Text>
                 <TextInput
-                  style={[styles.InfoCard_text, { padding: 0 }]}
+                  style={[styles.infoCardText, { padding: 0 }]}
                   placeholder={'Type description here'}
                   value={description}
                   onChangeText={setDescription}
@@ -196,16 +210,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    // paddingTop: 20,
     backgroundColor: Colors.WHITE,
   },
-  bgImage: {
-    margin: 10,
-    width: '90%',
-    height: '30%',
-    borderRadius: 10,
-  },
-  image_container: {
+  emptyImageContainer: {
     marginTop: 25,
     height: 180,
     backgroundColor: Colors.GRAY_LIGHT,
@@ -216,56 +223,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  add_image: {
+  addImage: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.PRIMARY,
   },
-  InfoCard_heading: {
+  infoCardHeading: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     paddingTop: 25,
   },
-  InfoCard_text: {
+  infoCardText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
     paddingTop: 5,
   },
-  InfoCard_heading_editable: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
-    paddingTop: 25,
+  imageContainer: {
+    position: 'relative',
   },
-  cont: {
-    flex: 1,
-  },
-  bgWhite: {
-    backgroundColor: Colors.WHITE,
-  },
-  externalInputContainer: {
+  imageControls: {
+    position: 'absolute',
+    top: 30,
+    right: 10,
     flexDirection: 'row',
-    height: 65,
+  },
+  iconContainer: {
+    backgroundColor: Colors.WHITE,
+    borderRadius: 20,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-  },
-  labelModal: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    color: Colors.TEXT_COLOR,
-    marginRight: 10,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
   },
 });
 

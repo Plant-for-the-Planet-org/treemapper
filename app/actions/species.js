@@ -77,8 +77,6 @@ export const getSpeciesList = () => {
  *                              aliases as property (a name given by user to that scientific specie)
  */
 export const addUserSpecie = (specieData) => {
-  console.log('addUserSpecie', specieData);
-
   return new Promise((resolve, reject) => {
     // makes an authorized POST request on /species to add a specie of user.
     postAuthenticatedRequest('/treemapper/species', specieData)
@@ -173,7 +171,6 @@ export const updateUserSpecie = ({
     putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)
       .then((res) => {
         const { status } = res;
-        console.log(status, 'status');
         // checks if the status code is 204 then resolves the promise
         if (status === 200) {
           // logging the success in to the db
@@ -222,28 +219,21 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
 };
 
 export const getBase64ImageFromURL = async (specieImage) => {
-  return new Promise(async (resolve, reject) => {
-    await getCdnUrls(i18next.language)
+  return new Promise((resolve) => {
+    getCdnUrls(i18next.language)
       .then(async (cdnMedia) => {
-        await RNFS.downloadFile({
+        RNFS.downloadFile({
           fromUrl: `${cdnMedia.cache}/species/default/${specieImage}`,
           toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
         }).promise.then(async (r) => {
-          console.log(r, 'Done');
-          await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64').then(
-            (data) => {
-              resolve(data);
-            },
-          );
-          await RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`)
-            .then(() => {
-              console.log('Image deleted from FS');
-            })
+          RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64').then((data) => {
+            resolve(data);
+          });
+          RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
             // `unlink` will throw an error, if the item to unlink does not exist
-            .catch((err) => {
-              resolve();
-              console.log(err.message);
-            });
+            resolve();
+            console.log(err.message);
+          });
         });
       })
       .catch((err) => {

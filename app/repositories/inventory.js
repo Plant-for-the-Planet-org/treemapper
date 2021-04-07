@@ -174,7 +174,7 @@ export const getInventory = ({ inventoryID }) => {
         }
       })
       .catch((err) => {
-        console.log(`Error while fetching inventory with inventory_id: ${inventoryID}`);
+        console.error(`Error while fetching inventory with inventory_id: ${inventoryID}`);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
@@ -672,7 +672,7 @@ export const addCoordinateSingleRegisterTree = ({
                   isImageUploaded: false,
                 },
               ],
-              isPolygonComplete: true
+              isPolygonComplete: true,
             },
           ];
           if (locateTree) {

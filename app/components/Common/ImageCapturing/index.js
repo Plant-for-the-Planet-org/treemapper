@@ -33,6 +33,7 @@ import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Alrighty from '../Alrighty';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
+import { copyImageAndGetData } from '../../../utils/copyToFS';
 
 const infographicText = [
   {
@@ -101,36 +102,6 @@ const ImageCapturing = ({
     setALPHABETS(array);
   };
 
-  const copyImageAndGetData = async () => {
-    // splits and stores the image path directories
-    let splittedPath = imagePath.split('/');
-    // splits and stores the file name and extension which is present on last index
-    let fileName = splittedPath.pop();
-    // splits and stores the file parent directory which is present on last index after pop
-    const parentDirectory = splittedPath.pop();
-    // splits and stores the file extension
-    const fileExtension = fileName.split('.').pop();
-    // splits and stores the file name
-    fileName = fileName.split('.')[0];
-
-    // stores the destination path in which image should be stored
-    const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
-
-    // stores the path from which the image should be copied
-    const inputPath = `${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
-    try {
-      // copies the image to destination folder
-      await RNFS.copyFile(inputPath, outputPath);
-      let data = {
-        inventory_id: state.inventoryID,
-        imageUrl: `${fileName}.${fileExtension}`,
-      };
-      return data;
-    } catch (err) {
-      console.error('error while saving file', err);
-    }
-  };
-
   const onPressCamera = async () => {
     if (imagePath) {
       setImagePath('');
@@ -154,7 +125,11 @@ const ImageCapturing = ({
   const onPressContinue = async () => {
     if (imagePath) {
       try {
-        let data = await copyImageAndGetData();
+        const imageUrl = await copyImageAndGetData(imagePath);
+        let data = {
+          inventory_id: state.inventoryID,
+          imageUrl,
+        };
         if (inventoryType === MULTI && !isSampleTree) {
           data.index = activeMarkerIndex;
           insertImageAtIndexCoordinate(data).then(() => {

@@ -17,7 +17,11 @@ export const copyImageAndGetData = async (imagePath) => {
 
   // stores the path from which the image should be copied
   const inputPath = `${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
+
   try {
+    if (await RNFS.exists(outputPath)) {
+      await RNFS.unlink(outputPath);
+    }
     // copies the image to destination folder
     await RNFS.copyFile(inputPath, outputPath);
     let imageUrl = `${fileName}.${fileExtension}`;

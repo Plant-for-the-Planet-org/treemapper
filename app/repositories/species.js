@@ -113,7 +113,6 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
           // iterates through all the user preferred species which are already synced and updates the same in DB
 
           for (const specie of alreadySyncedSpecies) {
-            console.log(specie, 'specie');
             let base64Image = null;
             if (specie.image) {
               base64Image = await getBase64ImageFromURL(specie.image);
@@ -136,8 +135,6 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 specieResult.description = specie.description;
               }
             });
-
-            console.log('base64 image', base64Image ? `data:image/jpeg;base64, true` : 'null');
 
             // logging the success in to the db
             dbLog.info({
@@ -165,15 +162,12 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
         let species = realm.objects('ScientificSpecies');
 
         let speciesToAdd = species.filtered('isUserSpecies = true && isUploaded = false');
-        console.log('speciesToAdd length', speciesToAdd.length);
 
         let speciesToDelete = species.filtered('isUserSpecies = false && isUploaded = true');
-        console.log('speciesToDelete length', speciesToDelete.length);
 
         let speciesToUpdate = species.filtered(
           'isUserSpecies = true && isUploaded = true && isUpdated = false',
         );
-        console.log('speciesToUpdate length', speciesToUpdate.length);
 
         // logging the success in to the db
         dbLog.info({
@@ -234,13 +228,13 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
             if (!specieResult.image && specie.image) {
               let base64Image;
               base64Image = await getBase64ImageFromURL(specie.image);
-              specieData.image = `data:image/jpeg;base64,${base64Image}`;
-              specieResult.image = `data:image/jpeg;base64,${base64Image}`;
+              specieData.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
+              specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
             }
             if (
-              specieData.hasOwnProperty('aliases') ||
-              specieData.hasOwnProperty('description') ||
-              specieData.hasOwnProperty('image')
+              Object.prototype.hasOwnProperty.call(specieData, 'aliases') ||
+              Object.prototype.hasOwnProperty.call(specieData, 'description') ||
+              Object.prototype.hasOwnProperty.call(specieData, 'image')
             ) {
               updateUserSpecie(specieData);
             } else {
@@ -323,7 +317,7 @@ export const updateSpecieData = ({ scientificSpecieGuid, aliases, description, i
           if (description) {
             specieResult.description = description;
           }
-          if (image) {
+          if (image || image === '') {
             specieResult.image = `${image}`;
           }
         });
