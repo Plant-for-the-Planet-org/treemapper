@@ -37,7 +37,9 @@ const LogoutWarning: React.FunctionComponent<LogoutWarningProps> = (props) => {
   };
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <Header />
+      <View style={styles.container}>
+        <Header />
+      </View>
       <View style={styles.bannerContainer}>
         <SvgXml xml={sync_to_cloud} />
       </View>
@@ -80,19 +82,18 @@ const LogoutWarning: React.FunctionComponent<LogoutWarningProps> = (props) => {
 export default LogoutWarning;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 25,
+  },
   bottomBtnsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingHorizontal: 25,
   },
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
     justifyContent: 'space-between',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.WHITE,
   },
   syncMessage: {
     color: Colors.TEXT_COLOR,
@@ -101,6 +102,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   messageContainer: {
+    flex: 1,
     marginVertical: 20,
   },
   bannerContainer: {
