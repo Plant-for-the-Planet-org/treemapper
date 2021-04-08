@@ -27,7 +27,7 @@ export default function Legals() {
         await InAppBrowser.open(url);
       } else Linking.openURL(url);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       bugsnag.notify(error);
       Alert.alert(error.message);
     }

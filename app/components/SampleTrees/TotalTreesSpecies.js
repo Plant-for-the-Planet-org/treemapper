@@ -162,7 +162,7 @@ export default function TotalTreesSpecies() {
         species = [
           ...species,
           {
-            aliases: specie.scientificName,
+            aliases: specie.aliases ? specie.aliases : specie.scientificName,
             id: specie.guid,
             treeCount: specie.treeCount,
           },

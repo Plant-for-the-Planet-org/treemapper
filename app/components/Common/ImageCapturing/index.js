@@ -13,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import RNFS from 'react-native-fs';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import {
@@ -28,6 +27,7 @@ import {
 } from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
+import { copyImageAndGetData } from '../../../utils/copyToFS';
 import { MULTI, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Alrighty from '../Alrighty';
@@ -101,43 +101,12 @@ const ImageCapturing = ({
     setALPHABETS(array);
   };
 
-  const copyImageAndGetData = async () => {
-    // splits and stores the image path directories
-    let splittedPath = imagePath.split('/');
-    // splits and stores the file name and extension which is present on last index
-    let fileName = splittedPath.pop();
-    // splits and stores the file parent directory which is present on last index after pop
-    const parentDirectory = splittedPath.pop();
-    // splits and stores the file extension
-    const fileExtension = fileName.split('.').pop();
-    // splits and stores the file name
-    fileName = fileName.split('.')[0];
-
-    // stores the destination path in which image should be stored
-    const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
-
-    // stores the path from which the image should be copied
-    const inputPath = `${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
-    try {
-      // copies the image to destination folder
-      await RNFS.copyFile(inputPath, outputPath);
-      let data = {
-        inventory_id: state.inventoryID,
-        imageUrl: `${fileName}.${fileExtension}`,
-      };
-      return data;
-    } catch (err) {
-      console.error('error while saving file', err);
-    }
-  };
-
   const onPressCamera = async () => {
     if (imagePath) {
       setImagePath('');
       return;
     }
-    const options = { quality: 0.5 };
-    const data = await camera.current.takePictureAsync(options).catch((err) => {
+    const data = await camera.current.takePictureAsync().catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
       setImagePath('');
       return;
@@ -154,7 +123,11 @@ const ImageCapturing = ({
   const onPressContinue = async () => {
     if (imagePath) {
       try {
-        let data = await copyImageAndGetData();
+        const imageUrl = await copyImageAndGetData(imagePath);
+        let data = {
+          inventory_id: state.inventoryID,
+          imageUrl,
+        };
         if (inventoryType === MULTI && !isSampleTree) {
           data.index = activeMarkerIndex;
           insertImageAtIndexCoordinate(data).then(() => {
@@ -232,7 +205,11 @@ const ImageCapturing = ({
   };
 
   const onPressCompletePolygon = async () => {
-    let data = await copyImageAndGetData();
+    const imageUrl = await copyImageAndGetData(imagePath);
+    let data = {
+      inventory_id: state.inventoryID,
+      imageUrl,
+    };
     data.index = activeMarkerIndex;
 
     insertImageAtIndexCoordinate(data).then(() => {
@@ -351,7 +328,7 @@ const ImageCapturing = ({
         <PrimaryButton
           onPress={onPressCamera}
           btnText={
-            imagePath ? i18next.t('label.image_reclick') : i18next.t('label.image_click_picture')
+            imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
           }
           theme={imagePath ? 'white' : null}
           halfWidth={imagePath}

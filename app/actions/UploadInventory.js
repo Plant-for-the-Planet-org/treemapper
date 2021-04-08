@@ -10,11 +10,7 @@ import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { bugsnag } from '../utils';
 import { permission } from '../utils/permissions';
-import {
-  postAuthenticatedRequest,
-  getAuthenticatedRequest,
-  putAuthenticatedRequest,
-} from '../utils/api';
+import { postAuthenticatedRequest, getAuthenticatedRequest, putRequest } from '../utils/api';
 import {
   OFF_SITE,
   ON_SITE,
@@ -192,7 +188,7 @@ export const uploadInventory = (dispatch) => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         reject(err);
         return err;
       });
@@ -447,7 +443,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
 
     try {
       // makes the PUT request to upload the image and stores the result of the same
-      const result = await putAuthenticatedRequest(
+      const result = await putRequest(
         `/treemapper/plantLocations/${locationId}/coordinates/${coordinateId}`,
         body,
       );

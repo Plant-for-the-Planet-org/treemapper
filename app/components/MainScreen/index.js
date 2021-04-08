@@ -45,6 +45,7 @@ import ProfileModal from '../ProfileModal';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import { useIsFocused } from '@react-navigation/native';
+import { shouldSpeciesUpdate } from '../../repositories/species';
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -217,11 +218,19 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout(userDispatch).then((result) => {
-      if (result) {
-        setUserInfo({});
-      }
-    });
+    shouldSpeciesUpdate()
+      .then((isSyncRequired) => {
+        if (isSyncRequired) {
+          navigation.navigate('LogoutWarning');
+        } else {
+          auth0Logout(userDispatch).then((result) => {
+            if (result) {
+              setUserInfo({});
+            }
+          });
+        }
+      })
+      .catch((err) => console.error(err));
   };
 
   const renderVideoModal = () => {
