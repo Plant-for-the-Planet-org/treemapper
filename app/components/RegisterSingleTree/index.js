@@ -65,7 +65,7 @@ const RegisterSingleTree = ({ navigation }) => {
                       }
                     },
                     (err) => {
-                      console.log(err);
+                      console.error(err);
                     },
                     {
                       enableHighAccuracy: true,

@@ -124,15 +124,18 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
                 'ScientificSpecies',
                 specie.scientificSpecies,
               );
+              if (specieResult) {
+                specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
+                specieResult.isUploaded = true;
+                specieResult.isUserSpecies = true;
+                specieResult.specieId = specie.id;
+                specieResult.aliases = specie.aliases
+                  ? specie.aliases
+                  : specieResult.scientificName;
 
-              specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
-              specieResult.isUploaded = true;
-              specieResult.isUserSpecies = true;
-              specieResult.specieId = specie.id;
-              specieResult.aliases = specie.aliases ? specie.aliases : specieResult.scientificName;
-
-              if (specie.description) {
-                specieResult.description = specie.description;
+                if (specie.description) {
+                  specieResult.description = specie.description;
+                }
               }
             });
 
@@ -236,7 +239,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
               Object.prototype.hasOwnProperty.call(specieData, 'description') ||
               Object.prototype.hasOwnProperty.call(specieData, 'image')
             ) {
-              updateUserSpecie(specieData);
+              updateUserSpecie(specieData).then(resolve).catch(reject);
             } else {
               specieResult.isUpdated = true;
             }
@@ -406,7 +409,7 @@ export const changeIsUpdatedStatus = ({ scientificSpecieGuid, isUpdated }) => {
 
 // This function adds or removes the specie from User Species
 export const toggleUserSpecies = (guid, addSpecie = false) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
@@ -428,13 +431,94 @@ export const toggleUserSpecies = (guid, addSpecie = false) => {
         resolve();
       })
       .catch((err) => {
-        console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+        console.error('Error at /repositories/species/toggleUserSpecies, ', err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
           logStack: JSON.stringify(err),
         });
+        reject(err);
+      });
+  });
+};
+
+// This function removes the user species which are not uploaded or updated
+export const shouldSpeciesUpdate = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          // fetches all the scientific species
+          let species = realm.objects('ScientificSpecies');
+
+          let speciesToAdd = species.filtered('isUserSpecies = true && isUploaded = false');
+
+          let speciesToDelete = species.filtered('isUserSpecies = false && isUploaded = true');
+
+          let speciesToUpdate = species.filtered(
+            'isUserSpecies = true && isUploaded = true && isUpdated = false',
+          );
+
+          const shouldSpeciesSync =
+            speciesToAdd.length > 0 || speciesToDelete.length > 0 || speciesToUpdate.length > 0;
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Specie sync is ${shouldSpeciesSync ? '' : 'not'} required`,
+          });
+          resolve(shouldSpeciesSync);
+        });
+      })
+      .catch((err) => {
+        console.error('Error at /repositories/species/isSpeciesToUpdate,', err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while checking if species sync is required',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+      });
+  });
+};
+
+// This function removes the user species which are not uploaded or updated
+export const resetAllSpecies = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          // fetches all the scientific species
+          let species = realm.objects('ScientificSpecies').filtered('isUserSpecies = true');
+
+          for (let specie of species) {
+            specie.isUpdated = true;
+            specie.isUploaded = false;
+            specie.description = '';
+            specie.specieId = '';
+            specie.image = '';
+            specie.isUserSpecies = false;
+          }
+
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: 'Reset of all species done',
+          });
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        console.error('Error at /repositories/species/resetAllSpecies,', err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: 'Error while resetting all user species',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
       });
   });
 };

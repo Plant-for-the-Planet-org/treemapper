@@ -23,6 +23,7 @@ import Legals from './Legals';
 import SampleTreesCount from './SampleTrees/SampleTreesCount';
 import RecordSampleTrees from './SampleTrees/RecordSampleTrees';
 import TotalTreesSpecies from './SampleTrees/TotalTreesSpecies';
+import LogoutWarning from './LogoutWarning';
 export {
   RegisterTree,
   MultipleTrees,
@@ -49,4 +50,5 @@ export {
   SampleTreesCount,
   RecordSampleTrees,
   TotalTreesSpecies,
+  LogoutWarning,
 };

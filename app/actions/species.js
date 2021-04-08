@@ -221,19 +221,24 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
 export const getBase64ImageFromURL = async (specieImage) => {
   return new Promise((resolve) => {
     getCdnUrls(i18next.language)
-      .then(async (cdnMedia) => {
+      .then((cdnMedia) => {
         RNFS.downloadFile({
           fromUrl: `${cdnMedia.cache}/species/default/${specieImage}`,
           toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
-        }).promise.then(async (r) => {
-          RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64').then((data) => {
-            resolve(data);
-          });
-          RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
-            // `unlink` will throw an error, if the item to unlink does not exist
+        }).promise.then((response) => {
+          if (response.statusCode === 200) {
+            RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64')
+              .then((data) => {
+                resolve(data);
+                RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
+                  // `unlink` will throw an error, if the item to unlink does not exist
+                  console.error(err.message);
+                });
+              })
+              .catch((err) => console.error('Error while reading file image'));
+          } else {
             resolve();
-            console.log(err.message);
-          });
+          }
         });
       })
       .catch((err) => {

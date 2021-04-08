@@ -188,7 +188,7 @@ export const uploadInventory = (dispatch) => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         reject(err);
         return err;
       });
