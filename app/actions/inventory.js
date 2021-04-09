@@ -1,3 +1,4 @@
+import { getAuthenticatedRequest } from '../utils/api';
 import {
   INITIATE_INVENTORY_STATE,
   IS_UPLOADING,
@@ -63,5 +64,13 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   dispatch({
     type: IS_UPLOADING,
     payload: isUploading,
+  });
+};
+
+export const getAllInventoryFromServer = () => {
+  return new Promise((resolve, reject) => {
+    getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
+      resolve(data.data);
+    });
   });
 };

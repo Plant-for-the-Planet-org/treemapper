@@ -6,6 +6,7 @@ import { uploadInventoryData } from '../utils/uploadInventory';
 
 export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connected, internet }) => {
   const dbUserDetails = await getUserDetails();
+  // console.log(dbUserDetails, 'dbUserDetails');
   if (dbUserDetails && dbUserDetails.accessToken && sync && internet && connected) {
     // uploadInventoryData(dispatch, userDispatch);
   } else if (dbUserDetails && dbUserDetails.refreshToken && internet && connected) {

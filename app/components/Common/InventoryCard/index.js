@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { single_tree_png, placeholder_image, map_img } from '../../../assets';
@@ -6,26 +6,47 @@ import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
+import { getCdnUrls } from './../../../actions/user';
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
+  const [imageSource, setImageSource] = useState();
+  useEffect(() => {
+    if (data.imageURL) {
+      const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
+      RNFS.exists(`${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`).then(
+        (existence) => {
+          // const existence = pathExistence(data.imageURL);
+          if (existence) {
+            setImageSource({
+              uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`,
+            });
+            console.log(
+              existence,
+              '=====================existence=====================',
+              data.imageURL,
+            );
+          } else {
+            setImageSource({
+              uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${data.imageURL}`,
+            });
+          }
+        },
+      );
+    } else if (
+      activeBtn === true ||
+      data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
+    ) {
+      setImageSource(map_img);
+    } else if (activeBtn === false) {
+      setImageSource(placeholder_image);
+    } else {
+      setImageSource(single_tree_png);
+    }
+    return () => {};
+  }, []);
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-
-  let imageSource;
-  if (data.imageURL) {
-    const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
-    imageSource = { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}` };
-  } else if (
-    activeBtn === true ||
-    data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-  ) {
-    imageSource = map_img;
-  } else if (activeBtn === false) {
-    imageSource = placeholder_image;
-  } else {
-    imageSource = single_tree_png;
-  }
 
   return (
     <View style={styles.container}>

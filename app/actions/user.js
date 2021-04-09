@@ -157,6 +157,7 @@ export const auth0Logout = (userDispatch = null) => {
 export const getNewAccessToken = async (refreshToken) => {
   return new Promise((resolve) => {
     // calls the refreshToken function of auth0 by passing the refreshToken
+    // console.log(refreshToken, 'refreshToken');
     auth0.auth
       .refreshToken({ refreshToken })
       .then((data) => {

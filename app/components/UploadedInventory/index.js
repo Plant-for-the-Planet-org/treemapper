@@ -14,22 +14,37 @@ import { Colors, Typography } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-
+import NetInfo, { useNetInfo } from '@react-native-community/netinfo';
+import { getAllInventoryFromServer } from '../../actions/inventory';
+import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
+  const netInfo = useNetInfo();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      initialState();
+      initialState(netInfo.isConnected, netInfo.isInternetReachable);
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const initialState = () => {
-    getInventoryByStatus('complete').then((allInventory) => {
-      setAllInventory(allInventory);
+  const initialState = (isConnected, isInternetReachable) => {
+    console.log(isConnected, isInternetReachable, 'NetInfo');
+    NetInfo.fetch().then((internet) => {
+      console.log('Connection type', internet.type);
+      console.log('Is connected?', internet.isConnected);
+      if (!internet.isConnected && internet.isInternetReachable) {
+        // getAllInventoryFromServer().then((allInventory) => {
+        //   console.log(allInventory, 'All inventory Data');
+        // });
+        addInventoryFromServer();
+      } else {
+        getInventoryByStatus('complete').then((allInventory) => {
+          setAllInventory(allInventory);
+        });
+      }
     });
   };
 
@@ -116,8 +131,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

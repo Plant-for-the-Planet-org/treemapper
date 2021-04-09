@@ -21,6 +21,7 @@ import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '.
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
+import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -54,6 +55,7 @@ const TreeInventory = ({ navigation }) => {
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
       setAllInventory(allInventory);
+      // addInventoryFromServer();
     });
   };
 
@@ -207,8 +209,8 @@ const TreeInventory = ({ navigation }) => {
       {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
