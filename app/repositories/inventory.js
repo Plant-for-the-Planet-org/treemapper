@@ -921,10 +921,18 @@ export const addInventoryToDB = (inventoryFromServer) => {
             species.push({ aliases, treeCount, id });
           } else if (inventoryFromServer.plantedSpecies) {
             for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
-              let id = plantedSpecie.scientificSpecies;
-              let specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
-              let aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              let id;
+              let specie;
+              let aliases;
               let treeCount = plantedSpecie.treeCount;
+              if (plantedSpecie.scientificSpecies && !plantedSpecie.otherSpecies) {
+                id = plantedSpecie.scientificSpecies;
+                specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
+                aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              } else {
+                id = 'unknown';
+                aliases = 'Unknown';
+              }
               species.push({ aliases, treeCount, id });
             }
           }
@@ -1036,10 +1044,18 @@ export const addSampleTree = (sampleTreeFromServer) => {
             .filtered(`locationId="${sampleTreeFromServer.parent}"`);
 
           console.log(inventory, 'inventory');
-          let specie = realm.objectForPrimaryKey(
-            'ScientificSpecies',
-            `${sampleTreeFromServer.scientificSpecies}`,
-          );
+          // let specie;
+          let specieName;
+          if (sampleTreeFromServer.scientificSpecies) {
+            let specie = realm.objectForPrimaryKey(
+              'ScientificSpecies',
+              `${sampleTreeFromServer.scientificSpecies}`,
+            );
+            specieName = specie.scientificName;
+          } else {
+            specieName = 'Unknown';
+          }
+          console.log(sampleTreeFromServer, 'specie');
           let latitude = sampleTreeFromServer.geometry.coordinates[0];
           let longitude = sampleTreeFromServer.geometry.coordinates[1];
           let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
@@ -1047,7 +1063,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
           // let locationAccuracy;
           let imageUrl = sampleTreeFromServer.coordinates[0].image;
           let specieId = sampleTreeFromServer.scientificSpecies;
-          let specieName = specie.scientificName;
+          // let specieName = specie.scientificName ? specie.scientificName : 'Unknown';
           let specieDiameter = sampleTreeFromServer.measurements.width;
           let specieHeight = sampleTreeFromServer.measurements.height;
           let tagId = sampleTreeFromServer.tag;

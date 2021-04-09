@@ -2,6 +2,7 @@ import { auth0Logout, getNewAccessToken, getUserDetailsFromServer } from '../act
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 import { bugsnag } from './';
+import { addInventoryFromServer } from './addInventoryFromServer';
 
 export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connected, internet }) => {
   const dbUserDetails = await getUserDetails();
@@ -16,7 +17,10 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
       } else {
         // fetches the user details from server by passing the accessToken which is used while requesting the API
         getUserDetailsFromServer(userDispatch).catch((err) => bugsnag.notify(err));
-        checkAndAddUserSpecies();
+        checkAndAddUserSpecies().then(() => {
+          console.log('adding inventory from server');
+          addInventoryFromServer();
+        });
       }
     } else {
       auth0Logout();

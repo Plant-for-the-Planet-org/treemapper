@@ -6,7 +6,15 @@ export const addInventoryFromServer = () => {
     console.log(allInventoryFromServer.length, 'allInventoryFromServer');
     getInventoryByStatus('complete').then((allInventory) => {
       console.log(allInventory.length, 'allInventory');
+
       for (const inventoryFromServer of allInventoryFromServer) {
+        if (allInventory.length === 0) {
+          addInventoryToDB(inventoryFromServer).then(() => {
+            if (inventoryFromServer.type === 'sample') {
+              addSampleTree(inventoryFromServer);
+            }
+          });
+        }
         for (const inventory of allInventory) {
           if (inventoryFromServer.id === inventory.locationId) {
             // console.log(inventoryFromServer.id, 'Already Exists');
