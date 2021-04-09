@@ -1076,10 +1076,12 @@ export const addSampleTree = (sampleTreeFromServer) => {
 
           sampleTrees.push(sampleTreeData);
           inventory[0].sampleTrees = sampleTrees;
-          inventory[0].sampleTreesCount = inventory.sampleTreesCount + parseInt(1);
+          inventory[0].sampleTreesCount = inventory[0].sampleTreesCount + parseInt(1);
           inventory[0].completedSampleTreesCount =
             inventory[0].completedSampleTreesCount + parseInt(1);
-          inventory[0].uploadedSampleTreesCount = inventory.uploadedSampleTreesCount = parseInt(1);
+          inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
+            1,
+          );
           resolve(true);
         });
       })
