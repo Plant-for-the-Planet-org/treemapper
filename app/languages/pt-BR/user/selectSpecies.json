@@ -31,6 +31,8 @@
   "select_species_done": "Feito",
   "select_species_add_name": "Adicionar Nome",
   "select_species_my_species": "Minhas espécies",
+  "select_species_diameter_more_than_error": "O diâmetro deve ser entre {{minValue}} e {{maxValue}}",
+  "select_species_height_more_than_error": "A altura deve ser entre {{minValue}} e {{maxValue}}",
   "select_species_diameter_invalid": "O diâmetro é inválido",
   "select_species_height_invalid": "A altura é inválida",
   "select_species_tag_id_required": "É necessária a identificação da etiqueta",
@@ -40,5 +42,7 @@
   "select_species_search_atleast_3_characters": "Digite pelo menos 3 caracteres para obter um resultado melhor",
   "select_species_looks_empty_here": "Aqui está vazio!",
   "select_species_add_species_desscription": "Adicione espécies à sua lista, pesquisando as espécies",
-  "select_species_tree_species": "Espécies de Árvores"
+  "select_species_tree_species": "Espécies de Árvores",
+  "add_image": "Adicionar imagem",
+  "species_description": "Descrição"
 }

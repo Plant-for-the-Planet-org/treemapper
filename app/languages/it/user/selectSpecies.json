@@ -6,5 +6,7 @@
   "select_species_continue": "CONTINUA",
   "select_species_error": "Errore",
   "select_species_ok": "OK",
-  "select_species_tree_species": "Specie di alberi"
+  "select_species_tree_species": "Specie di alberi",
+  "add_image": "Aggiungi immagine",
+  "species_description": "Digitare una descrizione (si espande con il testo)"
 }

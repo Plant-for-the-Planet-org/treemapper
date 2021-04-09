@@ -14,5 +14,6 @@
   "all_backed_up": "Todos los cambios se han guardado",
   "upload_pending": "{{count}}pendiente",
   "sync_remaining": "Sincronización - {{count}} restante",
-  "support": "Ayuda"
+  "support": "Ayuda",
+  "complete_signup": "Inscripción completa"
 }

@@ -47,8 +47,8 @@
   "add_image": "Add Image",
   "species_description": "Description",
   "type_description_here": "Type description here",
-  "sync":"Sync",
-  "species_sync_might_take_time":"Syncing species, this might take some time.",
-  "all_species_synced":"All species are synced.",
-  "sync_required_message":"Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first."
+  "sync": "Sync",
+  "species_sync_might_take_time": "Syncing species, this might take some time.",
+  "all_species_synced": "All species are synced.",
+  "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first."
 }
