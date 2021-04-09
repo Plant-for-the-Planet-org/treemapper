@@ -42,5 +42,7 @@
   "select_species_search_atleast_3_characters": "Entrer au moins 3 caractères pour obtenir un meilleur résultat",
   "select_species_looks_empty_here": "Ça a l'air vide ici!",
   "select_species_add_species_desscription": "Ajouter des espèces à votre liste par recherche",
-  "select_species_tree_species": "Espèces d'Arbres"
+  "select_species_tree_species": "Espèces d'Arbres",
+  "add_image": "Ajouter une image",
+  "species_description": "Description"
 }
