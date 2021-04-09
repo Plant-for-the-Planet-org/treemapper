@@ -436,7 +436,7 @@ const InventoryOverview = ({ navigation }) => {
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }
-        primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
