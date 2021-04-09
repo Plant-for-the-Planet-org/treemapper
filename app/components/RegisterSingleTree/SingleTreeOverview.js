@@ -426,7 +426,7 @@ const SingleTreeOverview = () => {
           {
             id: specie.guid,
             treeCount: 1,
-            aliases: specie.scientificName,
+            aliases: specie.aliases ? specie.aliases : specie.scientificName,
           },
         ],
       });

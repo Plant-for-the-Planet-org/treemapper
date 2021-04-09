@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 4;
+const schemaVersion = 5;
 
 // SCHEMAS
 const Coordinates = {
@@ -179,31 +179,21 @@ const ScientificSpecies = {
     isUploaded: { type: 'bool', default: false },
     // stores the specieId which is uploaded on server
     specieId: 'string?',
+    aliases: { type: 'string', default: '' },
+    image: { type: 'string', default: '' },
+    description: { type: 'string', default: '' },
+    isUpdated: { type: 'bool', default: true },
   },
 };
 
 const migration = (oldRealm, newRealm) => {
   if (oldRealm.schemaVersion < schemaVersion) {
-    const oldInventory = oldRealm.objects('Inventory');
-    let newInventory = newRealm.objects('Inventory');
-    for (const index in oldInventory) {
-      newInventory[index].treeType = oldInventory[index].tree_type;
-      newInventory[index].specieDiameter = oldInventory[index].species_diameter;
-      newInventory[index].specieHeight = oldInventory[index].species_height;
-      newInventory[index].locateTree = oldInventory[index].locate_tree;
-      newInventory[index].tagId = oldInventory[index].tag_id;
-      newInventory[index].lastScreen = oldInventory[index].last_screen;
-      newInventory[index].registrationDate = oldInventory[index].registration_date;
-      for (const coordinateIndex in newInventory[index].polygons[0].coordinates) {
-        newInventory[index].polygons[0].coordinates[coordinateIndex].latitude =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].latitude;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].longitude =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].longitude;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong;
-      }
+    const oldScientificSpecies = oldRealm.objects('ScientificSpecies');
+    let newScientificSpecies = newRealm.objects('ScientificSpecies');
+    for (const index in oldScientificSpecies) {
+      newScientificSpecies[index].aliases = oldScientificSpecies[index].scientificName;
+      newScientificSpecies[index].isUpdated = true;
+      newScientificSpecies[index].description = '';
     }
   }
 };

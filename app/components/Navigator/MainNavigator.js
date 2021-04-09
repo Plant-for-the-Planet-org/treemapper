@@ -28,6 +28,7 @@ import {
   SampleTreesCount,
   RecordSampleTrees,
   TotalTreesSpecies,
+  LogoutWarning,
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 
@@ -96,6 +97,7 @@ export default function MainNavigator() {
       <Stack.Screen name="SampleTreesCount" component={SampleTreesCount} options={MyTransition} />
       <Stack.Screen name="RecordSampleTrees" component={RecordSampleTrees} options={MyTransition} />
       <Stack.Screen name="TotalTreesSpecies" component={TotalTreesSpecies} options={MyTransition} />
+      <Stack.Screen name="LogoutWarning" component={LogoutWarning} options={MyTransition} />
     </Stack.Navigator>
   );
 }

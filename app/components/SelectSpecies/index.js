@@ -104,7 +104,7 @@ const SelectSpecies = () => {
   const onPressSaveBtn = (item) => {
     setSingleTreeSpecie({
       id: item.guid,
-      aliases: item.scientificName,
+      aliases: item.aliases ? item.aliases : item.scientificName,
       treeCount: 1,
     });
     setIsShowTreeMeasurementModal(true);

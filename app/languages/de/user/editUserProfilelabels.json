@@ -1,6 +1,7 @@
 {
   "edit_profile": "Profil bearbeiten",
   "logout": "Abmelden",
+  "logout_anyway": "Trotzdem abmelden",
   "privacy_policy": "Datenschutzerklärung",
   "terms_of_service": "AGB",
   "imprint": "Impressum",
@@ -14,5 +15,6 @@
   "all_backed_up": "Alle Änderungen gesichert",
   "upload_pending": "{{count}} ausstehend",
   "sync_remaining": "Synchronisiere - {{count}} verbleibend",
-  "support": "Unterstützen"
+  "support": "Unterstützen",
+  "complete_signup": "Registrierung vervollständigen"
 }

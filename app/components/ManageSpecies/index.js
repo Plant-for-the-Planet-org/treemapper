@@ -1,6 +1,6 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Keyboard,
   SafeAreaView,
@@ -15,6 +15,8 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
 import { Colors, Typography } from '_styles';
+import { setSpecie } from '../../actions/species';
+import { SpeciesContext } from '../../reducers/species';
 import { getSchema } from '../../repositories/default';
 import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
@@ -49,6 +51,8 @@ const ManageSpecies = ({
   const [showTreeCountModal, setShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpecie, setActiveSpecie] = useState(undefined);
+
+  const { dispatch } = useContext(SpeciesContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
@@ -173,6 +177,11 @@ const ManageSpecies = ({
     );
   };
 
+  const navigateToSpecieInfo = (specie) => {
+    setSpecie(specie)(dispatch);
+    navigation.navigate('SpecieInfo');
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
@@ -242,6 +251,8 @@ const ManageSpecies = ({
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack}
                 isSampleTree={isSampleTree}
+                toggleUserSpecies={toggleUserSpecies}
+                navigateToSpecieInfo={navigateToSpecieInfo}
               />
             )}
           </View>

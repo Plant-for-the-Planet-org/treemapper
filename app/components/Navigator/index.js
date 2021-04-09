@@ -34,6 +34,8 @@ export default function AppNavigator() {
     if (!state.showInitialStack) {
       checkLoginAndSync({
         sync: false,
+        dispatch: dispatch,
+        userDispatch: userDispatch,
         connected: netInfo.isConnected,
         internet: netInfo.isInternetReachable,
       });

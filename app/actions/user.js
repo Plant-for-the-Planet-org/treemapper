@@ -1,13 +1,14 @@
-import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
+import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
-import { LogTypes } from '../utils/constants';
-import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
+import { resetAllSpecies } from '../repositories/species';
+import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 import { getAuthenticatedRequest, getRequest, postRequest } from '../utils/api';
-import AsyncStorage from '@react-native-community/async-storage';
+import { LogTypes } from '../utils/constants';
+import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -48,7 +49,7 @@ export const auth0Login = (dispatch) => {
         setUserInitialState(credentials)(dispatch);
 
         // fetches the user details from server by passing the accessToken which is used while requesting the API
-        getUserDetailsFromServer(credentials.accessToken, dispatch)
+        getUserDetailsFromServer(dispatch)
           .then((userDetails) => {
             // destructured and modified variable names which is used to set user state
             const {
@@ -114,6 +115,8 @@ export const auth0Logout = (userDispatch = null) => {
         // deletes the user from DB
         await deleteUser();
 
+        await resetAllSpecies();
+
         // removes [isInitialSyncDone] item from AsyncStorage
         await AsyncStorage.removeItem('isInitialSyncDone');
 
@@ -144,6 +147,7 @@ export const auth0Logout = (userDispatch = null) => {
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
+          resolve(false);
         }
       });
   });
@@ -210,9 +214,9 @@ export const checkErrorCode = async (error, userDispatch = null) => {
 
 /**
  * Fetches the detail of the user from the server using the accessToken and requesting the GET api - /app/profile
- * @param {string} userToken - used to pass in authorization header of the api
+ * @param {string} userDispatch - used to clear the data if the error occurred will lead to logout
  */
-export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
+export const getUserDetailsFromServer = (userDispatch) => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile')
       .then((data) => {

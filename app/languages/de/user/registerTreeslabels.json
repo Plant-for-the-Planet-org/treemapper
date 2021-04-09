@@ -17,7 +17,7 @@
   "image_capturing_required": "Bild ist erforderlich",
   "coming_soon": "Demnächst!",
   "image_click_picture": "Bild aufnehmen",
-  "image_reclick": "Nochmal",
+  "image_retake": "Noch einmal",
   "sample_tree_marking_heading": "Beispielbaum #{{ongoingSampleTreeNumber}}",
   "sample_tree_review_tree_number": "Überprüfe Baum #{{ongoingSampleTreeNumber}}",
   "alright_modal_skip": "Überspringen",
