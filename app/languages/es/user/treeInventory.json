@@ -10,7 +10,6 @@
   "tree_inventory_list_container_sub_header": "El inventario se limpiará después de que se complete la carga",
   "tree_inventory_upload_list_header": "Artículos cargados",
   "tree_inventory_upload_empty_btn_text": "Volver a Inventario",
-  "tree_inventory_alert_header": "¿Estás seguro?",
   "tree_inventory_alert_sub_header": "Los registros están seguros en la nube. Una vez que los registros son eliminados, actualmente no es posible recuperarlos en esta aplicación.",
   "tree_inventory_alert_primary_btn_text": "Borrar Seguro",
   "tree_inventory_clear_all": "Limpiar todo",

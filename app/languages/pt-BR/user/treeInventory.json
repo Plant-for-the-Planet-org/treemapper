@@ -10,7 +10,6 @@
   "tree_inventory_list_container_sub_header": "O inventário será limpo após a conclusão do upload",
   "tree_inventory_upload_list_header": "Itens Carregados",
   "tree_inventory_upload_empty_btn_text": "Voltar para Inventário.",
-  "tree_inventory_alert_header": "Tem certeza?",
   "tree_inventory_alert_sub_header": "Os registos estão seguros na nuvem. Uma vez eliminados os registos, atualmente não é possível recuperá-los neste app.",
   "tree_inventory_alert_primary_btn_text": "Confirmar exclusão",
   "tree_inventory_clear_all": "Limpar tudo",
