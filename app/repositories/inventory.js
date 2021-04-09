@@ -920,7 +920,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
             let id = inventoryFromServer.scientificSpecies;
             species.push({ aliases, treeCount, id });
           } else if (inventoryFromServer.plantedSpecies) {
-            for (plantedSpecie of inventoryFromServer.plantedSpecies) {
+            for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
               let id = plantedSpecie.scientificSpecies;
               let specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
               let aliases = specie.aliases ? specie.aliases : specie.scientificName;
