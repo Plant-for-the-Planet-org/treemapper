@@ -31,7 +31,7 @@ export const auth0Login = (dispatch) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
       .authorize(
-        { scope: 'openid email profile offline_access', federated: true, prompt: 'login' },
+        { scope: 'openid email profile offline_access', federated: true, prompt: 'login', audience: 'urn:plant-for-the-planet' },
         { ephemeralSession: true },
       )
       .then((credentials) => {
