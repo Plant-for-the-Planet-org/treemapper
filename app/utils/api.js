@@ -78,7 +78,7 @@ const request = async (url, method = 'GET', isAuthenticated = false, data = unde
 
       // adds Authorization to headers in options
       options.headers = {
-        Authorization: `OAuth ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       };
     }
 
