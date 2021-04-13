@@ -1,6 +1,5 @@
 import RegisterTree from './RegisterTree';
 import MultipleTrees from './MultipleTrees';
-import SelectProject from './SelectProject';
 import TPOQuestion from './TPOQuestion';
 import LocateTree from './LocateTree';
 import CreatePolygon from './CreatePolygon';
@@ -24,10 +23,12 @@ import SampleTreesCount from './SampleTrees/SampleTreesCount';
 import RecordSampleTrees from './SampleTrees/RecordSampleTrees';
 import TotalTreesSpecies from './SampleTrees/TotalTreesSpecies';
 import LogoutWarning from './LogoutWarning';
+import ManageProjects from './Projects/ManageProjects';
+import SelectProject from './Projects/SelectProject';
+
 export {
   RegisterTree,
   MultipleTrees,
-  SelectProject,
   TPOQuestion,
   LocateTree,
   CreatePolygon,
@@ -51,4 +52,6 @@ export {
   RecordSampleTrees,
   TotalTreesSpecies,
   LogoutWarning,
+  ManageProjects,
+  SelectProject,
 };

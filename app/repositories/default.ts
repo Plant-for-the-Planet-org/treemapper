@@ -12,7 +12,7 @@ export const schemas = [schema0, schema1, schema2, schema3, schema4, schema5];
 export const getSchema = () => schemas[schemas.length - 1];
 
 export function migrateRealm() {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     try {
       // The first schema to update to is the current schema version
       // since the first schema in our array is at nextSchemaIndex

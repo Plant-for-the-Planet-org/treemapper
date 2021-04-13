@@ -356,6 +356,51 @@ export const getCdnUrls = (language = 'en') => {
   });
 };
 
+export const getAllProjects = (dispatch) => {
+  // try {
+  return new Promise((resolve, reject) => {
+    getAuthenticatedRequest('/app/profile/projects')
+      .then(async (res) => {
+        const { status, data } = res;
+        if (status === 200) {
+          await modifyUserDetails({
+            firstName: data.firstname,
+            lastName: data.lastname,
+            email: data.email,
+            displayName: data.displayName,
+            country: data.country,
+            tpoId: data.id,
+            isSignUpRequired: false,
+          });
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Successfully Signed up',
+            statusCode: status,
+          });
+          resolve(data);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          `Error at /actions/user/SignupService: POST - /app/profile, ${JSON.stringify(
+            err.response,
+          )}`,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Failed to Sign up',
+          statusCode: err?.response?.status,
+        });
+        // if any error is found then deletes the user and clear the user app state
+        deleteUser();
+        clearUserDetails()(dispatch);
+        reject(err);
+      });
+  });
+};
+
 /* === API server functions - ENDS === */
 
 /* ================================== *\

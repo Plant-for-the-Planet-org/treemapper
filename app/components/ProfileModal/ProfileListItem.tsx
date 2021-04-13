@@ -1,9 +1,27 @@
 import i18next from 'i18next';
 import React, { useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  GestureResponderEvent,
+  Image,
+  ImageSourcePropType,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors, Typography } from '_styles';
+
+interface ProfileListItemProps {
+  media: string | ImageSourcePropType;
+  mediaType: string;
+  text: string;
+  onPressFunction?: (event?: GestureResponderEvent) => void;
+  containerStyle?: any;
+  mediaStyle?: any;
+}
 
 export default function ProfileListItem({
   media,
@@ -12,7 +30,7 @@ export default function ProfileListItem({
   onPressFunction,
   containerStyle,
   mediaStyle,
-}) {
+}: ProfileListItemProps) {
   // const [isEnabled, setIsEnabled] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   // useEffect(() => {

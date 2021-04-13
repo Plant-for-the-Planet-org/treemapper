@@ -1,22 +1,22 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View, Image } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { auth0Logout } from '../../actions/user';
-import { sync_to_cloud } from '../../assets';
 import { shouldSpeciesUpdate } from '../../repositories/species';
-import { Typography, Colors } from '../../styles';
+import { Colors, Typography } from '../../styles';
 import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
 import { Header, PrimaryButton } from '../Common';
 
-interface LogoutWarningProps {}
+interface ManageProjectsProps {}
 
-export default function LogoutWarning(props: LogoutWarningProps) {
+export default function ManageProjects({}: ManageProjectsProps) {
   const [isSyncRequired, setIsSyncRequired] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [shouldSelectProject, setShouldSelectProject] = useState<boolean>(false);
 
   const navigation = useNavigation();
+  const route: any = useRoute();
 
   const onPressContinueAnyway = () => {
     auth0Logout().then(() => navigation.goBack());
@@ -35,44 +35,27 @@ export default function LogoutWarning(props: LogoutWarningProps) {
         });
     });
   };
+
+  useEffect(() => {
+    setShouldSelectProject(route.params?.shouldSelectProject);
+  }, [route.params]);
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
-        <Header />
-      </View>
-      <View style={styles.bannerContainer}>
-        <SvgXml xml={sync_to_cloud} />
+        <Header
+          headingText={
+            shouldSelectProject
+              ? i18next.t('label.select_project')
+              : i18next.t('label.manage_projects')
+          }
+        />
       </View>
 
-      <View style={styles.messageContainer}>
-        <Text style={[styles.syncMessage, isSyncing ? { marginBottom: 20 } : {}]}>
-          {isSyncing
-            ? i18next.t('label.species_sync_might_take_time')
-            : isSyncRequired
-            ? i18next.t('label.sync_required_message')
-            : i18next.t('label.all_species_synced')}
-        </Text>
-        {isSyncing ? (
-          <ActivityIndicator size="large" color={Colors.PRIMARY} style={{ paddingVertical: 20 }} />
-        ) : (
-          []
-        )}
-      </View>
       <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
-        {isSyncRequired && (
-          <PrimaryButton
-            disabled={isSyncing}
-            onPress={onPressSync}
-            btnText={i18next.t('label.sync')}
-            theme={'white'}
-            halfWidth={true}
-          />
-        )}
         <PrimaryButton
-          disabled={isSyncing}
           onPress={onPressContinueAnyway}
           btnText={isSyncRequired ? i18next.t('label.logout_anyway') : i18next.t('label.logout')}
-          halfWidth={isSyncRequired}
         />
       </View>
     </SafeAreaView>

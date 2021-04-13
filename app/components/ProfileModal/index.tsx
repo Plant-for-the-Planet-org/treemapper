@@ -9,13 +9,21 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AvatarIcon from '../Common/AvatarIcon';
 
+interface ProfileModalProps {
+  onPressCloseProfileModal: any;
+  isProfileModalVisible: any;
+  onPressLogout: any;
+  userInfo: any;
+  cdnUrls: any;
+}
+
 const ProfileModal = ({
   onPressCloseProfileModal,
   isProfileModalVisible,
   onPressLogout,
   userInfo,
   cdnUrls,
-}) => {
+}: ProfileModalProps) => {
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const navigation = useNavigation();
 
@@ -54,24 +62,35 @@ const ProfileModal = ({
     navigation.navigate('ManageSpecies');
   };
 
+  const onPressManageProjects = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('ManageProjects');
+  };
+
+  const onPressActivityLogs = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('Logs');
+  };
+
   const profileListItems = [
     {
       media: 'user-edit',
       mediaType: 'icon',
-      onPressFunction: onPressEdit,
       text: 'edit_profile',
+      onPressFunction: onPressEdit,
     },
     {
       media: 'leaf',
       mediaType: 'icon',
-      onPressFunction: onPressManageSpecies,
       text: 'manage_species',
+      onPressFunction: onPressManageSpecies,
     },
-    // {
-    //   media: 'map-marked',
-    //   mediaType: 'icon',
-    //   text: 'manage_offline',
-    // },
+    {
+      media: 'map-marked',
+      mediaType: 'icon',
+      text: 'manage_projects',
+      onPressFunction: onPressManageProjects,
+    },
     // {
     //   media: 'pulse-outline',
     //   text: 'activity_logging',
@@ -85,16 +104,13 @@ const ProfileModal = ({
       media: 'history',
       mediaType: 'icon',
       text: 'activity_logs',
-      onPressFunction: () => {
-        navigation.navigate('Logs');
-        onPressCloseProfileModal();
-      },
+      onPressFunction: onPressActivityLogs,
     },
     {
       media: logout,
       mediaType: 'image',
-      onPressFunction: onPressLogout,
       text: 'logout',
+      onPressFunction: onPressLogout,
     },
   ];
 

@@ -4,8 +4,10 @@ import { Header, LargeButton, PrimaryButton } from '../Common';
 import { SafeAreaView } from 'react-native';
 import { Colors, Typography } from '_styles';
 
+interface SelectProjectProps {}
+
 // TODO:i18n - if this file is used, please add translations
-const SelectProject = () => {
+export default function SelectProject({}: SelectProjectProps) {
   return (
     <SafeAreaView style={styles.container}>
       <Header
@@ -30,8 +32,7 @@ const SelectProject = () => {
       <PrimaryButton btnText={'Continue'} />
     </SafeAreaView>
   );
-};
-export default SelectProject;
+}
 
 const styles = StyleSheet.create({
   container: {
