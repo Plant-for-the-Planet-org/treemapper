@@ -19,13 +19,16 @@ import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
 import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
-import { auth0Logout, getCdnUrls, SignupService } from '../../actions/user';
+import { auth0Logout, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getUserDetails } from '../../repositories/user';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { Header, Loader, PrimaryButton } from '../Common';
 import Modal from '../Common/Modal';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 // TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
@@ -57,14 +60,7 @@ const SignUp = ({ navigation }) => {
   const textInputCity = useRef(null);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
-  const [cdnUrls, setCdnUrls] = useState({});
   const lang = RNLocalize.getLocales()[0];
-
-  useEffect(() => {
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      setCdnUrls(cdnMedia);
-    });
-  }, []);
 
   const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
   const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
@@ -395,8 +391,8 @@ const SignUp = ({ navigation }) => {
                   source={{
                     // not using currencyCountryFlag any more as we have flags for every country
                     uri:
-                      country && cdnUrls.images
-                        ? `${cdnUrls.images}/flags/png/256/${country.countryCode}.png`
+                      country && cdnUrl
+                        ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png`
                         : null,
                   }}
                   resizeMode="contain"
@@ -443,7 +439,6 @@ const SignUp = ({ navigation }) => {
                 visible={modalVisible}
                 openModal={openModal}
                 userCountry={userCountry}
-                cdnUrls={cdnUrls}
               />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
