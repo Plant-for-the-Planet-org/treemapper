@@ -242,7 +242,6 @@ export const getBase64ImageFromURL = async (specieImage) => {
         }
       });
     } else {
-      bugsnag.notify(err);
       resolve();
     }
   });
