@@ -1,13 +1,10 @@
 {
   "register_trees": "Registrar árboles ",
-  "register_trees_description": "Puedes encontrar registros incompletos en el Inventario de Árboles",
   "tree_registration_type_1": "Un solo Árbol",
-  "tree_registration_type_2": "Múltiples árboles",
   "tree_registration_type_1_sub_header": "Permite mediciones de alta precisión",
   "tree_registration_type_2_sub_header": "Suma muchos árboles con diferentes cuentas",
   "tree_map_marking_header": "Ubicación del árbol",
   "tree_map_marking_btn": "Selecciona la ubicación y continúa",
-  "alright_modal_sub_header": "Cuando estés cerca del árbol, puedes tomar una foto en el siguiente paso. Por favor, haz clic en continuar cuando estés listo.",
   "alright_modal_header": "¡Hora de la foto!",
   "alright_modal_white_btn": "Volver",
   "alright_modal_off_site_sub_header": "Vemos que estás muy lejos del árbol. Por favor, haz clic en continuar para añadir detalles sobre el árbol.",

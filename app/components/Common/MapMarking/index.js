@@ -610,7 +610,9 @@ export default function MapMarking({
               }}>
               {i18next.t('label.gps_accuracy')}
             </Text>
-            <Text style={styles.accuracyModalText}>{i18next.t('label.accuracy_info')}</Text>
+            <Text style={[styles.accuracyModalText, { marginBottom: 16 }]}>
+              {i18next.t('label.accuracy_info')}
+            </Text>
             <Text style={styles.accuracyModalText}>
               <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
                 {i18next.t('label.green')}
@@ -859,11 +861,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   gpsContainer: {
-    width: 100,
+    width: 110,
     backgroundColor: '#FFC400',
     borderRadius: 25,
   },
   gpsText: {
+    textAlign: 'center',
     color: '#FFFFFF',
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
@@ -890,7 +893,7 @@ const styles = StyleSheet.create({
   },
   accuracyModalText: {
     color: '#000000',
-    lineHeight: 26,
+    lineHeight: Typography.LINE_HEIGHT_20,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
   },
