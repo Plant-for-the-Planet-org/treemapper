@@ -86,6 +86,7 @@ const InventoryOverview = ({ navigation }) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        console.log(inventoryData, 'inventory');
         setInventory(inventoryData);
       });
     }

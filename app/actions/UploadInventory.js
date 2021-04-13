@@ -3,6 +3,8 @@ import {
   changeInventoryStatusAndLocationId,
   changeInventoryStatus,
   updateInventory,
+  addCdnUrl,
+  addCoordinateID,
 } from '../repositories/inventory';
 import RNFS from 'react-native-fs';
 import { updateCount, updateIsUploading } from './inventory';
@@ -27,8 +29,8 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
     try {
       if (oneInventory.locateTree === OFF_SITE) {
-        changeInventoryStatus(
-          { inventory_id: oneInventory.inventory_id, status: 'complete' },
+        changeInventoryStatusAndLocationId(
+          { inventory_id: oneInventory.inventory_id, status: 'complete', locationId: response.id },
           dispatch,
         ).then(() => {
           dbLog.info({
@@ -149,6 +151,7 @@ export const uploadInventory = (dispatch) => {
                   .then(async () => {
                     if (inventoryData.length - 1 === i) {
                       updateIsUploading(false)(dispatch);
+                      // addCoordinateID(oneInventory.inventory_id, data.data.coordinates, false);
                       resolve();
                     }
                   })
@@ -321,7 +324,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
         if (response && response.coordinates[0].status === 'pending' && sampleTree.imageUrl) {
           sampleTree.status = PENDING_IMAGE_UPLOAD;
           sampleTree.locationId = response.id;
-
+          // addCoordinateID(inventory.inventory_id, response.coordinates, response.id)
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
             console.error('Error while updating sample tree data', err);
           });
@@ -331,6 +334,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
             response.id,
             response.coordinates[0].id,
             inventory.inventory_id,
+            true,
           );
 
           if (uploadResult) {
@@ -417,6 +421,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
         locationId,
         oneResponseCoords.id,
         oneInventory.inventory_id,
+        false,
       );
       if (isUploaded) {
         completedUploadCount++;
@@ -431,7 +436,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
   }
 };
 
-const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
+const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSampleTree) => {
   try {
     // fetches the image from device file system and stores it in base64 format which is used for uploading
     const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');
@@ -460,6 +465,14 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId) => {
             imageUrl,
           }),
           referenceId: inventoryId,
+        });
+        console.log(result.data, 'Result of Image Upload');
+        addCdnUrl({
+          inventoryID: inventoryId,
+          coordinateIndex: result.data.coordinateIndex,
+          cdnImageUrl: result.data.image,
+          locationId,
+          isSampleTree,
         });
         return true;
       }

@@ -554,6 +554,10 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
           logType: LogTypes.INVENTORY,
           message: `Successfully fetched coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
         });
+        console.log(
+          { coordsLength, coord: coords[index] },
+          '{ coordsLength, coord: coords[index] }',
+        );
         resolve({ coordsLength, coord: coords[index] });
       })
       .catch((err) => {
@@ -955,11 +959,11 @@ export const addInventoryToDB = (inventoryFromServer) => {
             let longitude = coordinate[1];
             let currentloclat = coordinate[0];
             let currentloclong = coordinate[1];
-            let imageUrl;
+            let cdnImageUrl;
             if (inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE) {
-              imageUrl = inventoryFromServer.coordinates[0].image;
+              cdnImageUrl = inventoryFromServer.coordinates[0].image;
             } else {
-              imageUrl =
+              cdnImageUrl =
                 index === inventoryFromServer.geometry.coordinates[0].length - 1
                   ? inventoryFromServer.coordinates[0].image
                   : inventoryFromServer.coordinates[index].image;
@@ -970,7 +974,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
               longitude,
               currentloclat,
               currentloclong,
-              imageUrl,
+              cdnImageUrl,
               isImageUploaded,
             });
           }
@@ -1061,7 +1065,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
           let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
           // let locationAccuracy;
-          let imageUrl = sampleTreeFromServer.coordinates[0].image;
+          let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
           let specieId = sampleTreeFromServer.scientificSpecies;
           // let specieName = specie.scientificName ? specie.scientificName : 'Unknown';
           let specieDiameter = sampleTreeFromServer.measurements.width;
@@ -1078,7 +1082,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
             longitude,
             deviceLatitude,
             deviceLongitude,
-            imageUrl,
+            cdnImageUrl,
             specieId,
             specieName,
             specieDiameter,
@@ -1112,5 +1116,106 @@ export const addSampleTree = (sampleTreeFromServer) => {
         bugsnag.notify(err);
         resolve(false);
       });
+  });
+};
+
+// export const addCoordinateID = (inventoryID, coordinates, sampleTreeID) => {
+//   return new Promise((resolve, reject) => {
+//     Realm.open(getSchema()).then((realm) => {
+//       realm.write(() => {
+//         let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryID}`);
+//         if (!sampleTreeID) {
+//           for (let i = 0; i < coordinates.length; i++) {
+//             inventory.polygons[0].coordinates[i].coordinateID = coordinates[i].id;
+//           }
+//         } else {
+//           for (let sampleTree of inventory.sampleTrees) {
+//             if (sampleTree.locationId === sampleTreeID) {
+//             }
+//           }
+//         }
+//         resolve(true);
+//       });
+//     });
+//   });
+// };
+
+export const addCdnUrl = ({
+  inventoryID,
+  coordinateIndex,
+  cdnImageUrl,
+  locationId,
+  isSampleTree,
+}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then((realm) => {
+      let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryID}`);
+      console.log(inventoryID, coordinateIndex, cdnImageUrl, locationId, isSampleTree, 'addCdnUrl');
+      if (!isSampleTree) {
+        realm.write(() => {
+          inventory.polygons[0].coordinates[coordinateIndex].cdnImageUrl = cdnImageUrl;
+          inventory.polygons[0].coordinates[coordinateIndex].isImageUploaded = true;
+        });
+      } else if (isSampleTree) {
+        let newSampleTrees = [...inventory.sampleTrees];
+        for (let index = 0; index < newSampleTrees.length; index++) {
+          console.log(newSampleTrees[index].locationId, locationId, 'locationId');
+          if (newSampleTrees[index].locationId === locationId) {
+            console.log('adding CDN');
+            newSampleTrees[index].cdnImageUrl = cdnImageUrl;
+            console.log(newSampleTrees[index].cdnImageUrl, 'cdnUrl');
+            break;
+          }
+        }
+        console.log(newSampleTrees, 'newSampleTrees');
+        // inventory.sampleTrees = newSampleTrees;
+        realm.write(() => {
+          realm.create(
+            'Inventory',
+            {
+              inventory_id: `${inventoryID}`,
+              sampleTrees: newSampleTrees,
+            },
+            'modified',
+          );
+        });
+      }
+      resolve();
+    });
+  });
+};
+export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then((realm) => {
+      realm.write(async () => {
+        let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+        console.log(inventoryId, coordinateIndex, sampleTreeId, 'removeImageUrl');
+        if (!sampleTreeId && inventory.polygons[0].coordinates[coordinateIndex].imageUrl) {
+          console.log('!!!!!!!!!!!!!!!!!sampleTreeId!!!!!!!!!!!!!!!!');
+          console.log(
+            inventory.polygons[0].coordinates[coordinateIndex].imageUrl,
+            'imageUrl before',
+            inventory,
+          );
+          inventory.polygons[0].coordinates[coordinateIndex].imageUrl = '';
+          console.log(
+            inventory.polygons[0].coordinates[coordinateIndex].imageUrl,
+            'imageUrl after',
+          );
+        } else if (sampleTreeId) {
+          console.log('==========sampleTreeId===========');
+          for (let index = 0; index < inventory.sampleTrees.length; index++) {
+            console.log(inventory.sampleTrees[index].locationId, sampleTreeId, 'locationId');
+            if (inventory.sampleTrees[index].locationId === sampleTreeId) {
+              console.log('deleting images');
+              inventory.sampleTrees[index].imageUrl = '';
+              console.log(inventory.sampleTrees[index].imageUrl, 'inventory');
+              break;
+            }
+          }
+        }
+        resolve();
+      });
+    });
   });
 };

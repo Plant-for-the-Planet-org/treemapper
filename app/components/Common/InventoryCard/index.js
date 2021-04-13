@@ -11,27 +11,34 @@ import { getCdnUrls } from './../../../actions/user';
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
   const [imageSource, setImageSource] = useState();
   useEffect(() => {
+    getCdnUrls(i18next.language).then((cdnMedia) => {
+      console.log(cdnMedia, 'cdnMedia');
+    });
     if (data.imageURL) {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
-      RNFS.exists(`${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`).then(
-        (existence) => {
-          // const existence = pathExistence(data.imageURL);
-          if (existence) {
-            setImageSource({
-              uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`,
-            });
-            console.log(
-              existence,
-              '=====================existence=====================',
-              data.imageURL,
-            );
-          } else {
-            setImageSource({
-              uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${data.imageURL}`,
-            });
-          }
-        },
-      );
+      // RNFS.exists(`${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`).then(
+      // (existence) => {
+      // const existence = pathExistence(data.imageURL);
+      // if (existence) {
+      setImageSource({
+        uri: `${RNFS.DocumentDirectoryPath}/${data.imageURL}`,
+      });
+      //   console.log(
+      //     existence,
+      //     '=====================existence=====================',
+      //     data.imageURL,
+      //   );
+      // } else {
+      //   setImageSource({
+      //     uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${data.imageURL}`,
+      //   });
+      // }
+      //   },
+      // );
+    } else if (data.cdnImageUrl) {
+      setImageSource({
+        uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${data.cdnImageUrl}`,
+      });
     } else if (
       activeBtn === true ||
       data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
