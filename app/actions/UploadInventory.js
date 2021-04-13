@@ -336,9 +336,9 @@ const checkSampleTreesAndUpload = async (inventory) => {
             inventory.inventory_id,
             true,
           );
-
           if (uploadResult) {
             sampleTree.status = SYNCED;
+            sampleTree.cdnImageUrl = uploadResult;
             await updateSampleTreeByIndex(inventory, sampleTree, index, true)
               .then(() => {
                 uploadedCount += 1;
@@ -467,14 +467,14 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
           referenceId: inventoryId,
         });
         console.log(result.data, 'Result of Image Upload');
-        addCdnUrl({
+        await addCdnUrl({
           inventoryID: inventoryId,
           coordinateIndex: result.data.coordinateIndex,
           cdnImageUrl: result.data.image,
           locationId,
           isSampleTree,
         });
-        return true;
+        return result.data.image;
       }
     } catch (err) {
       console.error(

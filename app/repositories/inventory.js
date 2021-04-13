@@ -1148,40 +1148,29 @@ export const addCdnUrl = ({
   isSampleTree,
 }) => {
   return new Promise((resolve, reject) => {
-    Realm.open(getSchema()).then((realm) => {
-      let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryID}`);
-      console.log(inventoryID, coordinateIndex, cdnImageUrl, locationId, isSampleTree, 'addCdnUrl');
-      if (!isSampleTree) {
+    Realm.open(getSchema())
+      .then((realm) => {
         realm.write(() => {
-          inventory.polygons[0].coordinates[coordinateIndex].cdnImageUrl = cdnImageUrl;
-          inventory.polygons[0].coordinates[coordinateIndex].isImageUploaded = true;
-        });
-      } else if (isSampleTree) {
-        let newSampleTrees = [...inventory.sampleTrees];
-        for (let index = 0; index < newSampleTrees.length; index++) {
-          console.log(newSampleTrees[index].locationId, locationId, 'locationId');
-          if (newSampleTrees[index].locationId === locationId) {
-            console.log('adding CDN');
-            newSampleTrees[index].cdnImageUrl = cdnImageUrl;
-            console.log(newSampleTrees[index].cdnImageUrl, 'cdnUrl');
-            break;
-          }
-        }
-        console.log(newSampleTrees, 'newSampleTrees');
-        // inventory.sampleTrees = newSampleTrees;
-        realm.write(() => {
-          realm.create(
-            'Inventory',
-            {
-              inventory_id: `${inventoryID}`,
-              sampleTrees: newSampleTrees,
-            },
-            'modified',
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryID}`);
+          console.log(
+            inventoryID,
+            coordinateIndex,
+            cdnImageUrl,
+            locationId,
+            isSampleTree,
+            'addCdnUrl',
           );
+          if (!isSampleTree) {
+            inventory.polygons[0].coordinates[coordinateIndex].cdnImageUrl = cdnImageUrl;
+            inventory.polygons[0].coordinates[coordinateIndex].isImageUploaded = true;
+          }
+          resolve();
         });
-      }
-      resolve();
-    });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
   });
 };
 export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId }) => {
