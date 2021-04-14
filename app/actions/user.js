@@ -70,7 +70,7 @@ export const auth0Login = (dispatch) => {
               lastname: lastName,
               image,
               country,
-              id: tpoId,
+              id: userId,
             } = userDetails;
 
             // dispatch function sets the passed user details into the user state
@@ -80,7 +80,7 @@ export const auth0Login = (dispatch) => {
               lastName,
               image,
               country,
-              tpoId,
+              userId,
             })(dispatch);
 
             checkAndAddUserSpecies();
@@ -249,19 +249,19 @@ export const getUserDetailsFromServer = (userDispatch) => {
           lastname: lastName,
           image,
           country,
-          id: tpoId,
+          id: userId,
           type,
           displayName,
         } = data.data;
 
-        // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
+        // calls modifyUserDetails function to add user's email, firstName, lastName, userId, image, accessToken and country in DB
         modifyUserDetails({
           email,
           firstName,
           lastName,
           image,
           country,
-          tpoId,
+          userId,
           type,
           displayName,
         });
@@ -307,7 +307,7 @@ export const SignupService = (payload, dispatch) => {
             email: data.email,
             displayName: data.displayName,
             country: data.country,
-            tpoId: data.id,
+            userId: data.id,
             isSignUpRequired: false,
           });
           // logging the success in to the db
@@ -399,7 +399,7 @@ export const setUserInitialState = (loginData) => (dispatch) => {
 /**
  * dispatches type SET_USER_DETAILS with payload as userDetails to add user details in the user state of the app
  * @param {object} userDetails - used to add details of user in the app state. The object should include
- *                               accessToken?, idToken?, firstName, lastName, image, tpoId, email, country
+ *                               accessToken?, idToken?, firstName, lastName, image, userId, email, country
  */
 export const setUserDetails = (userDetails) => (dispatch) => {
   dispatch({
