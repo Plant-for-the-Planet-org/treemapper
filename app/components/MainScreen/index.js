@@ -21,7 +21,6 @@ import {
   auth0Login,
   auth0Logout,
   clearUserDetails,
-  getCdnUrls,
   setUserDetails,
 } from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
@@ -46,6 +45,9 @@ import VerifyEmailAlert from '../Common/EmailAlert';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import { useIsFocused } from '@react-navigation/native';
 import { shouldSpeciesUpdate } from '../../repositories/species';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -56,7 +58,6 @@ const MainScreen = ({ navigation }) => {
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
-  const [cdnUrls, setCdnUrls] = useState({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [pendingInventory, setPendingInventory] = useState(0);
   const netInfo = useNetInfo();
@@ -110,9 +111,6 @@ const MainScreen = ({ navigation }) => {
             setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
           }
         }
-      });
-      getCdnUrls(i18next.language).then((cdnMedia) => {
-        setCdnUrls(cdnMedia);
       });
     }
   };
@@ -295,8 +293,8 @@ const MainScreen = ({ navigation }) => {
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
                 photo={
-                  cdnUrls && cdnUrls.cache && userInfo.image
-                    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
+                  cdnUrl && userInfo.image
+                    ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
                     : ''
                 }
                 name={userInfo ? userInfo.firstName : ''}
@@ -382,7 +380,6 @@ const MainScreen = ({ navigation }) => {
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
-        cdnUrls={cdnUrls}
       />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>

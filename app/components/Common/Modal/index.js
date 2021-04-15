@@ -14,8 +14,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';
 import i18next from 'i18next';
+import { APIConfig } from '../../../actions/Config';
 
-export default function index({ visible, openModal, userCountry, cdnUrls }) {
+const { protocol, cdnUrl } = APIConfig;
+
+export default function index({ visible, openModal, userCountry }) {
   const [countryData, setCountryData] = useState(null);
   const [search, setSearch] = useState(null);
 
@@ -31,7 +34,7 @@ export default function index({ visible, openModal, userCountry, cdnUrls }) {
         <Image
           source={{
             // not using currencyCountryFlag any more as we have flags for every country
-            uri: cdnUrls.images ? `${cdnUrls.images}/flags/png/256/${title.countryCode}.png` : null,
+            uri: cdnUrl ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${title.countryCode}.png` : null,
           }}
           style={styles.countryFlag}
           resizeMode="contain"
