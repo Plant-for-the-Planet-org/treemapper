@@ -1,4 +1,5 @@
 import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
 
 export const copyImageAndGetData = async (imagePath) => {
   // splits and stores the image path directories
