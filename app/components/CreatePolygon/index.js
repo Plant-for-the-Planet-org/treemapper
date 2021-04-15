@@ -21,7 +21,6 @@ const CreatePolygon = ({ route }) => {
       let data = { inventory_id: state.inventoryID, lastScreen: 'CreatePolygon' };
       updateLastScreen(data);
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-        console.log(inventory.polygons[0].coordinates, 'inventory');
         let coordinatesLength = inventory.polygons[0].coordinates.length;
         if (!inventory.polygons[0].coordinates[coordinatesLength - 1].imageUrl) {
           updateActiveMarkerIndex(coordinatesLength - 1);
@@ -37,7 +36,6 @@ const CreatePolygon = ({ route }) => {
   const checkIsEdit = () => {
     if (route.params?.isEdit && state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-        console.log(inventory, '==========inventory===========');
         setIsMapMarkingState(false);
         setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
         setLocateTree(inventory.locateTree);
@@ -50,10 +48,8 @@ const CreatePolygon = ({ route }) => {
   };
 
   const updateActiveMarkerIndex = (index) => {
-    console.log(index, isMapMarkingState, 'markerIndex Changing');
     setActiveMarkerIndex(index);
   };
-  console.log(activeMarkerIndex, '=======activeMarkerIndex========');
   return (
     <View style={styles.container} fourceInset={{ bottom: 'never', top: 'never' }}>
       <View style={styles.container}>

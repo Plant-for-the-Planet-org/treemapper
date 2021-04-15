@@ -33,7 +33,12 @@ import {
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  OFF_SITE,
+  PENDING_DATA_UPLOAD,
+} from '../../utils/inventoryConstants';
 import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { CommonActions } from '@react-navigation/routers';
@@ -86,7 +91,6 @@ const InventoryOverview = ({ navigation }) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-        console.log(inventoryData, 'inventory');
         setInventory(inventoryData);
       });
     }
@@ -118,6 +122,7 @@ const InventoryOverview = ({ navigation }) => {
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
                     date: i18next.t('label.inventory_overview_view_location'),
                     imageURL: oneCoordinate.imageUrl,
+                    cdnImageUrl: oneCoordinate.cdnImageUrl,
                     index: index,
                   };
                   return (
@@ -361,7 +366,6 @@ const InventoryOverview = ({ navigation }) => {
   }
 
   let status = inventory ? inventory.status : 'pending';
-
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -374,6 +378,26 @@ const InventoryOverview = ({ navigation }) => {
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
+                // TopRightComponent={
+                //   status == INCOMPLETE_SAMPLE_TREE ? (
+                //     <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => {}}>
+                //       <Text
+                //         style={{
+                //           fontFamily: Typography.FONT_FAMILY_REGULAR,
+                //           fontSize: Typography.FONT_SIZE_18,
+                //           lineHeight: Typography.LINE_HEIGHT_24,
+                //         }}>
+                //         {i18next.t('label.tree_review_delete')}
+                //       </Text>
+                //     </TouchableOpacity>
+                //   ) : (
+                //     []
+                //   )
+                // }
+                rightText={
+                  status == INCOMPLETE_SAMPLE_TREE ? i18next.t('label.tree_review_delete') : []
+                }
+                onPressFunction={() => setShowDeleteAlert(true)}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}

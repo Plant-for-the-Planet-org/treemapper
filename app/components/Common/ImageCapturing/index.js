@@ -70,7 +70,6 @@ const ImageCapturing = ({
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     if (inventoryType === MULTI && !isSampleTree) {
-      console.log(activeMarkerIndex, 'activeMarkerIndex==========');
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
         if (

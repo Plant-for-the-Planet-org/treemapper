@@ -36,15 +36,9 @@ const UploadedInventory = ({ navigation }) => {
   }, [navigation]);
 
   const initialState = (isConnected, isInternetReachable) => {
-    console.log(isConnected, isInternetReachable, 'NetInfo');
     NetInfo.fetch().then((internet) => {
-      console.log('Connection type', internet.type);
-      console.log('Is connected?', internet.isConnected);
       if (!internet.isConnected && internet.isInternetReachable) {
-        // getAllInventoryFromServer().then((allInventory) => {
-        //   console.log(allInventory, 'All inventory Data');
-        // });
-        addInventoryFromServer();
+        // addInventoryFromServer();
       } else {
         getInventoryByStatus('complete').then((allInventory) => {
           setAllInventory(allInventory);
@@ -56,11 +50,10 @@ const UploadedInventory = ({ navigation }) => {
   const freeUpSpace = () => {
     // clearAllUploadedInventory().then(() => {
     //   initialState();
-    //   toogleIsShowFreeUpSpaceAlert();
+    toogleIsShowFreeUpSpaceAlert();
     // });
     getInventoryByStatus('complete').then((allInventory) => {
-      for (inventory of allInventory) {
-        console.log(inventory.polygons[0].coordinates.length, 'LENGTH');
+      for (let inventory of allInventory) {
         for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
           if (inventory.polygons[0].coordinates[index].imageUrl) {
             console.log(
@@ -78,13 +71,13 @@ const UploadedInventory = ({ navigation }) => {
           }
         }
         if (inventory.sampleTrees) {
-          for (let sampleTree of inventory.sampleTrees) {
-            if (sampleTree.imageUrl) {
-              console.log(sampleTree, 'sampleTree');
-              deleteFromFS(sampleTree.imageUrl).then(() => {
+          for (let i = 0; i < inventory.sampleTrees.length; i++) {
+            if (inventory.sampleTrees[i].imageUrl) {
+              deleteFromFS(inventory.sampleTrees[i].imageUrl, inventory, i).then((data) => {
                 removeImageUrl({
                   inventoryId: inventory.inventory_id,
-                  sampleTreeId: sampleTree.locationId,
+                  sampleTreeId: inventory.sampleTrees[i].locationId,
+                  sampleTreeIndex: data.index,
                 });
               });
             }
@@ -175,7 +168,7 @@ const UploadedInventory = ({ navigation }) => {
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
-        message={i18next.t('label.tree_inventory_alert_sub_header')}
+        message={i18next.t('label.tree_inventory_alert_sub_header2')}
         primaryBtnText={i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={freeUpSpace}

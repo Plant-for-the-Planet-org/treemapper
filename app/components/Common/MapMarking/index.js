@@ -108,7 +108,6 @@ export default function MapMarking({
     let isCancelled = false;
 
     if (!isCancelled) {
-      console.log(activeMarkerIndex, 'activeMarkerIndex==========');
       if (IS_ANDROID) {
         MapboxGL.requestAndroidLocationPermissions().then((permission) => {
           if (permission) {
