@@ -1,8 +1,8 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   BackHandler,
   Dimensions,
   Image,
@@ -25,6 +25,7 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, CommonStyles, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import {
   changeInventoryStatus,
   deleteInventory,
@@ -38,7 +39,9 @@ import {
   updateTreeTag,
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
+import { getProjectById } from '../../repositories/projects';
 import { getUserInformation } from '../../repositories/user';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
   diameterMaxCm,
@@ -65,9 +68,6 @@ import {
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { UserContext } from '../../reducers/user';
-import { useNetInfo } from '@react-native-community/netinfo';
 import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = () => {
@@ -92,6 +92,8 @@ const SingleTreeOverview = () => {
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showInputError, setShowInputError] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
 
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
@@ -119,7 +121,7 @@ const SingleTreeOverview = () => {
           setLocateTree(inventoryData.locateTree);
           setRegistrationType(inventoryData.treeType);
 
-          getUserInformation().then((data) => {
+          getUserInformation().then(async (data) => {
             setCountryCode(data.country);
             if (
               inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
@@ -129,8 +131,8 @@ const SingleTreeOverview = () => {
               const index = route?.params?.isSampleTree
                 ? route?.params?.sampleTreeIndex
                 : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
-                  ? inventoryData.completedSampleTreesCount - 1
-                  : inventoryData.completedSampleTreesCount;
+                ? inventoryData.completedSampleTreesCount - 1
+                : inventoryData.completedSampleTreesCount;
 
               const currentSampleTree = inventoryData.sampleTrees[index];
               const diameter = nonISUCountries.includes(data.country)
@@ -157,6 +159,17 @@ const SingleTreeOverview = () => {
               const height = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
                 : inventoryData.specieHeight;
+
+              if (inventoryData.projectId) {
+                const project = await getProjectById(inventoryData.projectId);
+                if (project) {
+                  setSelectedProjectName(project.name);
+                  setSelectedProjectId(project.id);
+                }
+              } else {
+                setSelectedProjectName('');
+                setSelectedProjectId('');
+              }
 
               setSpecieText(inventoryData.species[0].aliases);
               setSpecieDiameter(diameter);
@@ -361,16 +374,16 @@ const SingleTreeOverview = () => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={CommonStyles.bottomInputText}
                   autoFocus
@@ -405,6 +418,8 @@ const SingleTreeOverview = () => {
   const onPressEditSpecies = (action) => {
     if (action === 'species') {
       setIsShowManageSpecies(true);
+    } else if (action === 'project') {
+      navigation.navigate('SelectProject', { selectedProjectId });
     } else {
       setEditEnable(action);
       if (action === 'diameter') {
@@ -553,10 +568,10 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                nonISUCountries.includes(countryCode)
+                  nonISUCountries.includes(countryCode)
                   ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
-                    'label.select_species_inches',
-                  )}`
+                      'label.select_species_inches',
+                    )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -596,6 +611,24 @@ const SingleTreeOverview = () => {
               {i18next.t('label.inventory_overview_date', {
                 date: new Date(plantationDate),
               })}{' '}
+              {shouldEdit && <MIcon name={'edit'} size={20} />}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ marginBottom: 15 }}>
+          <Text style={detailHeaderStyle}>
+            {i18next.t('label.tree_review_project').toUpperCase()}
+          </Text>
+          <TouchableOpacity
+            disabled={!shouldEdit}
+            onPress={() => onPressEditSpecies('project')}
+            accessible={true}
+            accessibilityLabel="register_project"
+            testID="register_project">
+            <Text style={styles.detailText}>
+              {selectedProjectName
+                ? selectedProjectName
+                : i18next.t('label.tree_review_unassigned')}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
@@ -735,11 +768,11 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                  })
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    })
                   : status === 'complete'
-                    ? i18next.t('label.tree_review_details')
-                    : i18next.t('label.tree_review_header')
+                  ? i18next.t('label.tree_review_details')
+                  : i18next.t('label.tree_review_header')
               }
             />
             {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && (
@@ -791,15 +824,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                onPress={onPressNextTree}
-                btnText={i18next.t('label.tree_review_next_btn')}
-              />
-            </View>
-          ) : (
-            []
-          )}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showDeleteAlert}

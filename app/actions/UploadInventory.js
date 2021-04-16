@@ -222,7 +222,6 @@ const getBodyData = (inventory) => {
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
     registrationDate: inventory.registrationDate.toISOString().split('T')[0],
-    plantProject: null,
   };
 
   // if inventory type is scientific species then adds measurements and scientific species to body
@@ -238,6 +237,9 @@ const getBodyData = (inventory) => {
     }
     if (inventory.tagId) {
       bodyData.tag = inventory.tagId;
+    }
+    if (inventory.projectId) {
+      bodyData.plantProject = inventory.projectId;
     }
 
     body = {

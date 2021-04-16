@@ -189,10 +189,9 @@ const ScientificSpecies = {
 // used to store all the available scientific species extracted from zip
 const Projects = {
   name: 'Projects',
-  primaryKey: 'guid',
+  primaryKey: 'id',
   properties: {
-    // stores the guid of scientific specie
-    guid: 'string',
+    id: 'string',
     slug: 'string',
     allowDonations: 'bool',
     countPlanted: 'int',
