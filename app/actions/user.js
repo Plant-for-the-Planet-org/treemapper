@@ -320,45 +320,8 @@ export const SignupService = (payload, dispatch) => {
 };
 
 /**
- * Request for config details and returns the CDN URLs object containing media URLs
- * @param {string} language - used to call the config API based on the language of the app
+ * Fetches all the projects of the user
  */
-export const getCdnUrls = (language = 'en') => {
-  return new Promise((resolve) => {
-    getRequest(`/public/v1.2/${language}/config`)
-      .then((res) => {
-        const { status, data } = res;
-        // checks if status is 200 then returns the CDN media URLs else returns false
-        if (status === 200) {
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.USER,
-            message: 'Fetched CDN URL',
-            statusCode: status,
-          });
-          resolve(data.cdnMedia);
-        } else {
-          resolve(false);
-        }
-      })
-      .catch((err) => {
-        console.error(
-          `Error at /actions/user/getCdnUrls: GET - /public/v1.2/${language}/config, ${JSON.stringify(
-            err?.response,
-          )}`,
-        );
-        // logs the error of the failed request in DB
-        dbLog.error({
-          logType: LogTypes.USER,
-          message: 'Failed to fetch CDN URL',
-          statusCode: err?.response?.status,
-          logStack: JSON.stringify(err?.response),
-        });
-        resolve(false);
-      });
-  });
-};
-
 export const getAllProjects = () => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile/projects')
@@ -377,7 +340,7 @@ export const getAllProjects = () => {
       })
       .catch((err) => {
         console.error(
-          `Error at /actions/user/getAllProjects: GET - /app/profile/projects,`,
+          'Error at /actions/user/getAllProjects: GET - /app/profile/projects,',
           err.response ? err.response : err,
         );
         // logs the error of the failed request in DB

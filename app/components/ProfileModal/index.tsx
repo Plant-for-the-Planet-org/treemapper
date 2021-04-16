@@ -8,6 +8,9 @@ import ProfileListItem from './ProfileListItem';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AvatarIcon from '../Common/AvatarIcon';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 interface ProfileModalProps {
   onPressCloseProfileModal: any;
@@ -22,7 +25,6 @@ const ProfileModal = ({
   isProfileModalVisible,
   onPressLogout,
   userInfo,
-  cdnUrls,
 }: ProfileModalProps) => {
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const navigation = useNavigation();
@@ -55,7 +57,10 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar = userInfo.image ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}` : '';
+  let avatar =
+    cdnUrl && userInfo.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+      : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();

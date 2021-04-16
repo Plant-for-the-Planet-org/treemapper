@@ -1,9 +1,11 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { APIConfig } from '../../actions/Config';
 import { getAllProjects } from '../../repositories/projects';
 import { Colors, Typography } from '../../styles';
 import { LargeButton } from '../Common';
+const { protocol, cdnUrl } = APIConfig;
 
 interface ProjectListProps {
   isSelectable?: boolean;
@@ -74,8 +76,11 @@ const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId
   return (
     <View
       style={[styles.listItemContainer, isProjectSelected ? { borderColor: Colors.PRIMARY } : {}]}>
-      {item.image ? (
-        <Image source={item.image} style={styles.image} />
+      {item.image && cdnUrl ? (
+        <Image
+          source={{ uri: `${protocol}://${cdnUrl}/media/cache/project/medium/${item.image}` }}
+          style={styles.image}
+        />
       ) : (
         <View style={styles.image} />
       )}
