@@ -44,6 +44,8 @@ import {
 import ProfileModal from '../ProfileModal';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
+import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
 import { useIsFocused } from '@react-navigation/native';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 
@@ -203,6 +205,10 @@ const MainScreen = ({ navigation }) => {
             userDispatch,
             connected: netInfo.isConnected,
             internet: netInfo.isInternetReachable,
+          });
+          checkAndAddUserSpecies().then(() => {
+            console.log('adding inventory from server');
+            addInventoryFromServer();
           });
         })
         .catch((err) => {

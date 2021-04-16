@@ -129,8 +129,8 @@ const SingleTreeOverview = () => {
               const index = route?.params?.isSampleTree
                 ? route?.params?.sampleTreeIndex
                 : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
-                  ? inventoryData.completedSampleTreesCount - 1
-                  : inventoryData.completedSampleTreesCount;
+                ? inventoryData.completedSampleTreesCount - 1
+                : inventoryData.completedSampleTreesCount;
 
               const currentSampleTree = inventoryData.sampleTrees[index];
               const diameter = nonISUCountries.includes(data.country)
@@ -361,16 +361,16 @@ const SingleTreeOverview = () => {
                   {editEnable === 'diameter'
                     ? i18next.t('label.tree_review_diameter')
                     : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
+                    ? i18next.t('label.tree_review_height')
+                    : i18next.t('label.tree_review_tree_tag_header')}
                 </Text>
                 <TextInput
                   value={
                     editEnable === 'diameter'
                       ? specieEditDiameter.toString()
                       : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
+                      ? specieEditHeight.toString()
+                      : editedTagId
                   }
                   style={CommonStyles.bottomInputText}
                   autoFocus
@@ -488,28 +488,33 @@ const SingleTreeOverview = () => {
       }
     } else if (
       inventory.treeType === MULTI &&
-      (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === 'complete') &&
+      (inventory.status === INCOMPLETE_SAMPLE_TREE ||
+        inventory.status === 'complete' ||
+        inventory.status === 'pending') &&
       (sampleTreeIndex === 0 || sampleTreeIndex)
     ) {
       if (inventory.sampleTrees[sampleTreeIndex]?.imageUrl) {
         filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
-      } else if (inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl) {
+      } else if (
+        inventory.sampleTrees.length &&
+        inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl
+      ) {
         filePath = inventory.sampleTrees[sampleTreeIndex].cdnImageUrl;
       }
     }
     if (
-      inventory.polygons[0]?.coordinates[0]?.imageUrl ||
-      inventory.sampleTrees[sampleTreeIndex]?.imageUrl
+      (inventory.polygons[0]?.coordinates[0]?.imageUrl && inventory.treeType !== MULTI) ||
+      (inventory.sampleTrees[sampleTreeIndex]?.imageUrl && inventory.sampleTrees)
     ) {
       imageSource = {
         uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}`,
       };
     } else if (
       inventory.polygons[0]?.coordinates[0]?.cdnImageUrl ||
-      inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl
+      (inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl && inventory.sampleTrees.length !== 0)
     ) {
       imageSource = {
-        uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${inventory.sampleTrees[sampleTreeIndex].cdnImageUrl}`,
+        uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${filePath}`,
       };
     } else {
       imageSource = false;
@@ -574,10 +579,10 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                nonISUCountries.includes(countryCode)
+                  nonISUCountries.includes(countryCode)
                   ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
-                    'label.select_species_inches',
-                  )}`
+                      'label.select_species_inches',
+                    )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -757,11 +762,11 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                  })
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    })
                   : status === 'complete'
-                    ? i18next.t('label.tree_review_details')
-                    : i18next.t('label.tree_review_header')
+                  ? i18next.t('label.tree_review_details')
+                  : i18next.t('label.tree_review_header')
               }
               rightText={
                 status !== INCOMPLETE_SAMPLE_TREE &&
@@ -821,15 +826,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                onPress={onPressNextTree}
-                btnText={i18next.t('label.tree_review_next_btn')}
-              />
-            </View>
-          ) : (
-            []
-          )}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showDeleteAlert}

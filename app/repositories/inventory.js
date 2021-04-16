@@ -951,10 +951,10 @@ export const addInventoryToDB = (inventoryFromServer) => {
             } else {
               coordinate = inventoryFromServer.geometry.coordinates;
             }
-            let latitude = coordinate[0];
-            let longitude = coordinate[1];
-            let currentloclat = coordinate[0];
-            let currentloclong = coordinate[1];
+            let latitude = coordinate[1];
+            let longitude = coordinate[0];
+            let currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
+            let currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
             let cdnImageUrl;
             if (inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE) {
               cdnImageUrl = inventoryFromServer.coordinates[0].image;
@@ -998,16 +998,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
                 : null,
             tagId: inventoryFromServer.tag,
             registrationDate: inventoryFromServer.registrationDate,
-            // sampleTreesCount: 'int?',
-            // sampleTrees: 'SampleTrees[]',
-            // completedSampleTreesCount: {
-            //   type: 'int?',
-            //   default: 0,
-            // },
-            // uploadedSampleTreesCount: {
-            //   type: 'int?',
-            //   default: 0,
-            // },
             locationId: inventoryFromServer.id,
           };
           inventoryFromServer.type !== SAMPLE ? realm.create('Inventory', inventoryData) : null;
