@@ -628,7 +628,7 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {selectedProjectName
                 ? selectedProjectName
-                : i18next.t('label.tree_review_unassigned')}
+                : i18next.t('label.tree_review_unassigned')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>

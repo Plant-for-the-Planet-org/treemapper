@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { Colors } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory } from '../../repositories/inventory';
@@ -12,7 +12,6 @@ import ProjectList from './ProjectList';
 
 interface SelectProjectProps {}
 
-// TODO:i18n - if this file is used, please add translations
 export default function SelectProject({}: SelectProjectProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
@@ -57,26 +56,31 @@ export default function SelectProject({}: SelectProjectProps) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header
-        headingText={i18next.t('label.select_project')}
-        subHeadingText={i18next.t('label.select_project_desc')}
-      />
+    <SafeAreaView style={styles.mainContainer}>
+      <View style={styles.container}>
+        <Header
+          headingText={i18next.t('label.select_project')}
+          subHeadingText={i18next.t('label.select_project_desc')}
+        />
 
-      <ProjectList
-        isSelectable
-        onProjectPress={onProjectPress}
-        selectedProjectId={selectedProjectId}
-      />
-      <PrimaryButton onPress={onPressContinue} btnText={i18next.t('label.continue')} />
+        <ProjectList
+          isSelectable
+          onProjectPress={onProjectPress}
+          selectedProjectId={selectedProjectId}
+        />
+        <PrimaryButton onPress={onPressContinue} btnText={i18next.t('label.continue')} />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE,
   },
 });
