@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 6;
+const schemaVersion = 7;
 
 // SCHEMAS
 const Coordinates = {
