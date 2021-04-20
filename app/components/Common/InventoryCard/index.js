@@ -7,6 +7,9 @@ import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
 import { getCdnUrls } from './../../../actions/user';
+import { APIConfig } from './../../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
   const [imageSource, setImageSource] = useState();
@@ -21,7 +24,8 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
       });
     } else if (data.cdnImageUrl) {
       setImageSource({
-        uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
+        // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
+        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
       });
     } else if (
       activeBtn === true ||
