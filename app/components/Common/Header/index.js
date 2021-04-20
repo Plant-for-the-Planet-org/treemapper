@@ -11,6 +11,7 @@ const Header = ({
   headingTextInput,
   setHeadingText,
   onSubmitInputField,
+  onFocusFunction,
   subHeadingText,
   onBackPress,
   textAlignStyle,
@@ -62,10 +63,10 @@ const Header = ({
         style={
           TitleRightComponent
             ? {
-              flexDirection: 'row-reverse',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }
+                flexDirection: 'row-reverse',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
             : {}
         }>
         {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
@@ -92,6 +93,7 @@ const Header = ({
             value={headingTextInput}
             placeholder="Type Aliases Here"
             returnKeyType={'done'}
+            onFocus={() => onFocusFunction()}
             onSubmitEditing={() => onSubmitInputField()}
           />
         ) : (

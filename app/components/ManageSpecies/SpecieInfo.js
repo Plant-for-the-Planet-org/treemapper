@@ -13,13 +13,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography, CommonStyles } from '_styles';
 import { clearSpecie, updateUserSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { toggleUserSpecies } from '../../repositories/species';
@@ -32,11 +34,13 @@ const SpecieInfo = ({ route }) => {
   const [aliases, setAliases] = useState('');
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
-
+  const [isOpenModal, setIsOpenModal] = useState(false);
   const [specieName, setSpecieName] = useState('');
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
-
+  // const [editAliases, setEditAliases] = useState('');
+  // const [editDescription, setEditDescription] = useState('');
+  const [editEnable, setEditEnable] = useState('');
   const { state: specieState, dispatch } = useContext(SpeciesContext);
 
   const netInfo = useNetInfo();
@@ -62,7 +66,64 @@ const SpecieInfo = ({ route }) => {
     }
   }, [isFocused]);
 
-  const onSubmitInputField = () => {
+  const InputModal = () => {
+    const [editAliases, setEditAliases] = useState(aliases);
+    const [editDescription, setEditDescription] = useState(description);
+    return (
+      <Modal transparent={true} visible={isOpenModal}>
+        <View style={styles.cont}>
+          <View style={styles.cont}>
+            <View style={styles.cont} />
+            <KeyboardAvoidingView
+              behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+              style={styles.bgWhite}>
+              <View style={CommonStyles.bottomInputContainer}>
+                <Text style={CommonStyles.bottomInputLabel}>{editEnable ? editEnable : null}</Text>
+                <TextInput
+                  value={
+                    editEnable === 'aliases'
+                      ? editAliases
+                      : editEnable === 'description'
+                      ? editDescription
+                      : null
+                  }
+                  style={CommonStyles.bottomInputText}
+                  autoFocus
+                  placeholderTextColor={Colors.TEXT_COLOR}
+                  // keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
+                  onChangeText={(text) => {
+                    if (editEnable === 'aliases') {
+                      setEditAliases(text);
+                    } else if (editEnable === 'description') {
+                      setEditDescription(text);
+                    }
+                  }}
+                  onSubmitEditing={() => {
+                    onSubmitInputField(editAliases, editDescription);
+                    setIsOpenModal(false);
+                  }}
+                />
+                <MCIcon
+                  onPress={() => {
+                    onSubmitInputField(editAliases, editDescription);
+                    setIsOpenModal(false);
+                  }}
+                  name={'arrow-right'}
+                  size={30}
+                  color={Colors.PRIMARY}
+                />
+              </View>
+              <SafeAreaView />
+            </KeyboardAvoidingView>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  const onSubmitInputField = (aliases, description) => {
+    setAliases(aliases);
+    setDescription(description);
     const isImageChanged = specieState.specie.image !== image;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
@@ -88,7 +149,7 @@ const SpecieInfo = ({ route }) => {
           }
         })
         .catch((err) => {
-          console.error('something went wrong');
+          console.error('something went wrong', err);
         });
     }
   };
@@ -134,6 +195,10 @@ const SpecieInfo = ({ route }) => {
             TitleRightComponent={CheckIcon}
             setHeadingText={setAliases}
             onSubmitInputField={onSubmitInputField}
+            onFocusFunction={() => {
+              setEditEnable('aliases');
+              setIsOpenModal(true);
+            }}
           />
           <ScrollView showsVerticalScrollIndicator={false}>
             <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
@@ -173,12 +238,11 @@ const SpecieInfo = ({ route }) => {
                   </View>
                 </View>
               )}
-              {/* <InfoCard /> */}
               <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_name')}</Text>
                 <Text style={styles.infoCardText}>{specieName}</Text>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
-                <TextInput
+                {/* <TextInput
                   style={[styles.infoCardText, { padding: 0 }]}
                   placeholder={i18next.t('label.type_description_here')}
                   value={description}
@@ -187,8 +251,20 @@ const SpecieInfo = ({ route }) => {
                   textAlignVertical="top"
                   maxLength={255}
                   onSubmitEditing={onSubmitInputField}
-                />
+                  onFocus={() => {
+                    setEditEnable('description');
+                    setIsOpenModal(true);
+                  }}
+                /> */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setEditEnable('description');
+                    setIsOpenModal(true);
+                  }}>
+                  <Text style={[styles.infoCardText, { padding: 0 }]}>{description}</Text>
+                </TouchableOpacity>
               </View>
+              <InputModal />
             </KeyboardAvoidingView>
           </ScrollView>
         </View>
@@ -205,6 +281,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
+    backgroundColor: Colors.WHITE,
+  },
+  cont: {
+    flex: 1,
+  },
+  bgWhite: {
     backgroundColor: Colors.WHITE,
   },
   emptyImageContainer: {

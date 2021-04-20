@@ -13,6 +13,7 @@ import Realm from 'realm';
  * @returns {boolean} - returns a promise with boolean value on whether the operation was successful or not.
  */
 const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack }) => {
+  const pjson = require('../../package.json');
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -25,7 +26,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
             logLevel,
             timestamp: new Date(),
             message,
-            appVersion: 'TM v1.0.0',
+            appVersion: `TM v${pjson.version}`,
           };
           // checks if referenceId is present then adds it to logData
           if (referenceId) {
