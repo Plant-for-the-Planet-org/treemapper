@@ -129,11 +129,14 @@ const User = {
     image: 'string?',
     country: 'string?',
     isLogEnabled: 'bool?',
-    tpoId: 'string?',
+    userId: 'string?',
+    userType: 'string?',
     refreshToken: 'string?',
     isSignUpRequired: 'bool?',
     type: 'string?',
     displayName: 'string?',
+    // stores the expiry time of token in seconds
+    expirationTime: 'int?',
   },
 };
 

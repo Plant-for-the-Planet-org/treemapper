@@ -189,7 +189,7 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {
+const migration = (oldRealm: any, newRealm: any) => {
   if (oldRealm.schemaVersion < schemaVersion) {
     const oldUser = oldRealm.objects('User');
     let newUser = newRealm.objects('User');
