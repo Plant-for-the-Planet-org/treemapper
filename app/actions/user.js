@@ -7,7 +7,12 @@ import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { getAuthenticatedRequest, getRequest, postRequest } from '../utils/api';
+import {
+  getAuthenticatedRequest,
+  getRequest,
+  postRequest,
+  getExpirationTimeStamp,
+} from '../utils/api';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 
@@ -32,10 +37,17 @@ export const auth0Login = (dispatch) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
       .authorize(
-        { scope: 'openid email profile offline_access', federated: true, prompt: 'login' },
+        {
+          scope: 'openid email profile offline_access',
+          federated: true,
+          prompt: 'login',
+          audience: 'urn:plant-for-the-planet',
+        },
         { ephemeralSession: true },
       )
       .then((credentials) => {
+        const expirationTime = getExpirationTimeStamp(credentials.accessToken);
+
         // logs success info in DB
         dbLog.info({
           logType: LogTypes.USER,
@@ -44,7 +56,7 @@ export const auth0Login = (dispatch) => {
 
         // creates the user after successful login by passing the credentials having accessToken, idToken
         // and refreshToken to store in DB
-        createOrModifyUserToken(credentials);
+        createOrModifyUserToken({ ...credentials, expirationTime });
 
         // sets the accessToken and idToken in the user state of the app
         setUserInitialState(credentials)(dispatch);
@@ -59,7 +71,7 @@ export const auth0Login = (dispatch) => {
               lastname: lastName,
               image,
               country,
-              id: tpoId,
+              id: userId,
             } = userDetails;
 
             // dispatch function sets the passed user details into the user state
@@ -69,7 +81,7 @@ export const auth0Login = (dispatch) => {
               lastName,
               image,
               country,
-              tpoId,
+              userId,
             })(dispatch);
 
             getAllProjects();
@@ -163,31 +175,42 @@ export const auth0Logout = (userDispatch = null) => {
  */
 export const getNewAccessToken = async (refreshToken) => {
   return new Promise((resolve) => {
-    // calls the refreshToken function of auth0 by passing the refreshToken
-    auth0.auth
-      .refreshToken({ refreshToken })
-      .then((data) => {
-        // calls the repo function which modifies the accessToken, idToken and refreshToken from the fetched data
-        createOrModifyUserToken(data);
-        // logs the success to DB
-        dbLog.info({
-          logType: LogTypes.USER,
-          message: 'New access token fetched successfully',
+    if (refreshToken) {
+      // calls the refreshToken function of auth0 by passing the refreshToken
+      auth0.auth
+        .refreshToken({ refreshToken })
+        .then((data) => {
+          const expirationTime = getExpirationTimeStamp(data.accessToken);
+          // calls the repo function which modifies the accessToken, idToken and refreshToken from the fetched data
+          createOrModifyUserToken({ ...data, expirationTime });
+          // logs the success to DB
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'New access token fetched successfully',
+          });
+          // resolves the access token
+          resolve(data.accessToken);
+        })
+        .catch((err) => {
+          auth0Logout();
+          // logs the error in Db and notifies the same to bugsnag
+          console.error('Error at /actions/user/getNewAccessToken', err);
+          bugsnag.notify(err);
+          dbLog.error({
+            logType: LogTypes.USER,
+            message: 'Error while fetching new access token',
+            logStack: JSON.stringify(err),
+          });
+          resolve(false);
         });
-        // resolves the access token
-        resolve(data.accessToken);
-      })
-      .catch((err) => {
-        // logs the error in Db and notifies the same to bugsnag
-        console.error('Error at /actions/user/getNewAccessToken', err);
-        bugsnag.notify(err);
-        dbLog.error({
-          logType: LogTypes.USER,
-          message: 'Error while fetching new access token',
-          logStack: JSON.stringify(err),
-        });
-        resolve(false);
+    } else {
+      auth0Logout();
+      dbLog.error({
+        logType: LogTypes.USER,
+        message: 'No refresh token was passed',
       });
+      resolve(false);
+    }
   });
 };
 
@@ -229,19 +252,19 @@ export const getUserDetailsFromServer = (userDispatch) => {
           lastname: lastName,
           image,
           country,
-          id: tpoId,
+          id: userId,
           type,
           displayName,
         } = data.data;
 
-        // calls modifyUserDetails function to add user's email, firstName, lastName, tpoId, image, accessToken and country in DB
+        // calls modifyUserDetails function to add user's email, firstName, lastName, userId, image, accessToken and country in DB
         modifyUserDetails({
           email,
           firstName,
           lastName,
           image,
           country,
-          tpoId,
+          userId,
           type,
           displayName,
         });
@@ -287,7 +310,7 @@ export const SignupService = (payload, dispatch) => {
             email: data.email,
             displayName: data.displayName,
             country: data.country,
-            tpoId: data.id,
+            userId: data.id,
             isSignUpRequired: false,
           });
           // logging the success in to the db
@@ -375,7 +398,7 @@ export const setUserInitialState = (loginData) => (dispatch) => {
 /**
  * dispatches type SET_USER_DETAILS with payload as userDetails to add user details in the user state of the app
  * @param {object} userDetails - used to add details of user in the app state. The object should include
- *                               accessToken?, idToken?, firstName, lastName, image, tpoId, email, country
+ *                               accessToken?, idToken?, firstName, lastName, image, userId, email, country
  */
 export const setUserDetails = (userDetails) => (dispatch) => {
   dispatch({
