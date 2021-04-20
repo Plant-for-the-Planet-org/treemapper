@@ -1,11 +1,22 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Image,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { APIConfig } from '../../actions/Config';
 import { getAllProjects } from '../../repositories/projects';
 import { Colors, Typography } from '../../styles';
+import { bugsnag } from '../../utils';
 import { LargeButton } from '../Common';
-const { protocol, cdnUrl } = APIConfig;
+const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProjectListProps {
   isSelectable?: boolean;
@@ -24,7 +35,17 @@ export default function ProjectList({
     getAllProjects().then((projectsData: any) => (projectsData ? setProjects(projectsData) : {}));
   }, []);
 
-  console.log('selectedProjectId', selectedProjectId);
+  const openWebView = async (link: string) => {
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(link);
+      } else Linking.openURL(link);
+    } catch (error) {
+      console.error(error);
+      bugsnag.notify(error);
+      Alert.alert(error.message);
+    }
+  };
 
   return (
     <FlatList
@@ -45,7 +66,7 @@ export default function ProjectList({
       ListFooterComponent={() => {
         return (
           <LargeButton
-            onPress={() => {}}
+            onPress={() => openWebView(`${protocol}://${webAppUrl}/manage-projects/add-project`)}
             style={{ marginTop: 20 }}
             heading={i18next.t('label.add_new_project')}
             subHeading={i18next.t('label.add_new_project_desc')}
