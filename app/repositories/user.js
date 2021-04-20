@@ -88,7 +88,7 @@ export const getUserDetails = () => {
  * @param {object} tokenData - should have accessToken, idToken, refreshToken to update in user's data
  * @returns {boolean} - can be used to check if the operation was successful or not
  */
-export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken }) => {
+export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken, expirationTime }) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -100,6 +100,7 @@ export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken }) 
               accessToken,
               idToken,
               refreshToken,
+              expirationTime,
             },
             'modified',
           );
