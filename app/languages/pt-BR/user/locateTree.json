@@ -16,6 +16,10 @@
   "locate_tree_map_marking_sub_header": "Por favor, vá até o primeiro ponto do polígono do plantio e selecione sua localização.",
   "locate_tree_add_marker_valid": "Você está no mesmo local. Por favor, caminhe até ao próximo local.",
   "locate_tree_add_marker_invalid": "Você está muito longe de sua localização atual.",
+  "locate_tree_cannot_mark_location": "Não foi possível marcar este local",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "locate_tree_location": "Localização"
+  "locate_tree_location": "Localização",
+  "locate_tree_cannot_record_tree": "Não foi possível registrar árvore de amostra",
+  "locate_tree_cannot_record_tree_outside_polygon": "A árvore de amostra só pode ser registada dentro do local marcado.",
+  "locate_tree_unable_to_retrieve_location": "Incapaz de recuperar a localização."
 }

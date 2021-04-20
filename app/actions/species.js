@@ -1,59 +1,38 @@
-import { bugsnag } from '../utils';
+import RNFS from 'react-native-fs';
+import i18next from '../languages/languages';
 import dbLog from '../repositories/logs';
-import { LogTypes } from '../utils/constants';
-import {
-  SET_SPECIES_LIST,
-  SET_SPECIE_ID,
-  SET_MULTIPLE_TREES_SPECIES_LIST,
-  ADD_MULTIPLE_TREE_SPECIE,
-} from './Types';
+import { changeIsUpdatedStatus } from '../repositories/species';
+import { bugsnag } from '../utils';
 import {
   deleteAuthenticatedRequest,
   getAuthenticatedRequest,
   postAuthenticatedRequest,
+  putAuthenticatedRequest,
 } from '../utils/api';
+import { LogTypes } from '../utils/constants';
+import { SET_SPECIE, CLEAR_SPECIE } from './Types';
+import { APIConfig } from './Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 /**
- * This function dispatches type SET_SPECIES_LIST with payload list of species to add in species state
+ * This function dispatches type SET_SPECIE with payload specie to show specie detail on SpecieInfo screen
  * It requires the following param
- * @param {array} speciesList - list of species which should be added/updated in app state
+ * @param {Object} specie - specie which is to be shown or updated
  */
-export const setSpeciesList = (speciesList) => (dispatch) => {
+export const setSpecie = (specie) => (dispatch) => {
   dispatch({
-    type: SET_SPECIES_LIST,
-    payload: speciesList,
-  });
-};
-
-/**
- * This function dispatches type SET_SPECIE_ID with payload specie id to add in species state
- * It requires the following param
- * @param {string} specieId - specie id which should be added/updated in app state
- */
-export const setSpecieId = (specieId) => (dispatch) => {
-  dispatch({
-    type: SET_SPECIE_ID,
-    payload: specieId,
-  });
-};
-
-/**
- * This function dispatches type SET_MULTIPLE_TREES_SPECIES_LIST with payload having list of species selected during
- * multiple trees registration to add in species state.
- * It requires the following param
- * @param {string} speciesList - List of species selected for multiple tree registration to set in app's species state
- */
-export const setMultipleTreesSpeciesList = (speciesList) => (dispatch) => {
-  dispatch({
-    type: SET_MULTIPLE_TREES_SPECIES_LIST,
-    payload: speciesList,
-  });
-};
-
-export const addMultipleTreesSpecie = (specie) => (dispatch) => {
-  dispatch({
-    type: ADD_MULTIPLE_TREE_SPECIE,
+    type: SET_SPECIE,
     payload: specie,
+  });
+};
+
+/**
+ * This function dispatches type CLEAR_SPECIE to clear the species after navigated back from SpecieInfo screen
+ */
+export const clearSpecie = () => (dispatch) => {
+  dispatch({
+    type: CLEAR_SPECIE,
   });
 };
 
@@ -111,7 +90,7 @@ export const addUserSpecie = (specieData) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Added scientific species having id ${specieData.scientificSpecies}, POST - /species`,
+            message: `Successfully added user specie to server with scientific specie guid: ${specieData.scientificSpecies}, POST - /species`,
             statusCode: status,
           });
           resolve(data);
@@ -156,7 +135,7 @@ export const deleteUserSpecie = (specieId) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
-            message: `Deleted user species having id ${specieId}, DELETE - /species`,
+            message: `Successfully deleted user specie from server with specie id: ${specieId}, DELETE - /species`,
             statusCode: status,
           });
           resolve(true);
@@ -167,7 +146,7 @@ export const deleteUserSpecie = (specieId) => {
       .catch((err) => {
         // logs the error
         console.error(
-          `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}`,
+          `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}, ${err}`,
         );
         // logs the error of the failed request in DB
         dbLog.error({
@@ -178,5 +157,92 @@ export const deleteUserSpecie = (specieId) => {
         });
         reject(err);
       });
+  });
+};
+
+export const updateUserSpecie = ({
+  scientificSpecieGuid,
+  specieId,
+  aliases,
+  description,
+  image,
+}) => {
+  return new Promise((resolve, reject) => {
+    const data = { aliases, description, imageFile: image };
+    // makes an authorized DELETE request on /species to delete a specie of user.
+    putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)
+      .then((res) => {
+        const { status } = res;
+        // checks if the status code is 204 then resolves the promise
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.MANAGE_SPECIES,
+            message: `Updated specie with specie id ${specieId}, PUT - /treemapper/species`,
+            statusCode: status,
+          });
+          changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: true });
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to update specie with specie id ${specieId}, PUT - /treemapper/species`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+        reject(err);
+      });
+  });
+};
+
+export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
+  return new Promise((resolve, reject) => {
+    let body = {
+      imageFile: `data:image/jpeg;base64,${image}`,
+    };
+
+    putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
+      .then((res) => {
+        const { status } = res;
+        if (status === 200) {
+          changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
+          resolve(true);
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const getBase64ImageFromURL = async (specieImage) => {
+  return new Promise((resolve) => {
+    if (cdnUrl) {
+      RNFS.downloadFile({
+        fromUrl: `${protocol}://${cdnUrl}/media/cache/species/default/${specieImage}`,
+        toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
+      }).promise.then((response) => {
+        if (response.statusCode === 200) {
+          RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64')
+            .then((data) => {
+              resolve(data);
+              RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
+                // `unlink` will throw an error, if the item to unlink does not exist
+                console.error(err.message);
+              });
+            })
+            .catch((err) => console.error('Error while reading file image'));
+        } else {
+          resolve();
+        }
+      });
+    } else {
+      resolve();
+    }
   });
 };

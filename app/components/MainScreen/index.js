@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   ImageBackground,
   Linking,
   Modal,
@@ -14,6 +13,7 @@ import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
@@ -21,7 +21,6 @@ import {
   auth0Login,
   auth0Logout,
   clearUserDetails,
-  getCdnUrls,
   setUserDetails,
 } from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
@@ -32,8 +31,23 @@ import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
-import { Header, LargeButton, Loader, MainScreenHeader, PrimaryButton, Sync } from '../Common';
+import {
+  Header,
+  LargeButton,
+  Loader,
+  MainScreenHeader,
+  PrimaryButton,
+  Sync,
+  SpeciesSyncError,
+} from '../Common';
 import ProfileModal from '../ProfileModal';
+import VerifyEmailAlert from '../Common/EmailAlert';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { useIsFocused } from '@react-navigation/native';
+import { shouldSpeciesUpdate } from '../../repositories/species';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -44,22 +58,16 @@ const MainScreen = ({ navigation }) => {
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
-  const [cdnUrls, setCdnUrls] = useState({});
-
+  const [emailAlert, setEmailAlert] = useState(false);
+  const [pendingInventory, setPendingInventory] = useState(0);
+  const netInfo = useNetInfo();
+  const isFocused = useIsFocused();
   useEffect(() => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
-      getInventoryByStatus('all').then((data) => {
-        let count = 0;
-        for (const inventory of data) {
-          if (inventory.status === 'pending' || inventory.status === 'uploading') {
-            count++;
-          }
-        }
-        updateCount({ type: 'pending', count })(dispatch);
-        setNumberOfInventory(data ? data.length : 0);
-      });
+      fetchInventory();
+      fetchUserDetails();
 
       realm = await Realm.open(getSchema());
       initializeRealm(realm);
@@ -75,17 +83,53 @@ const MainScreen = ({ navigation }) => {
     };
   }, [navigation]);
 
-  useEffect(() => {
-    getUserDetails().then((userDetails) => {
-      if (userDetails) {
-        setUserInfo(userDetails);
-        setIsUserLogin(userDetails.accessToken ? true : false);
+  const fetchInventory = () => {
+    getInventoryByStatus('all').then((data) => {
+      let count = 0;
+      let pendingInventoryCount = 0;
+      for (const inventory of data) {
+        if (inventory.status === 'pending' || inventory.status === 'uploading') {
+          count++;
+        }
+        if (inventory.status === 'pending') {
+          pendingInventoryCount++;
+        }
       }
+      updateCount({ type: 'pending', count })(dispatch);
+      setPendingInventory(pendingInventoryCount);
+      setNumberOfInventory(data ? data.length : 0);
     });
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      setCdnUrls(cdnMedia);
-    });
-  }, []);
+  };
+
+  const fetchUserDetails = () => {
+    if (!loadingState.isLoading) {
+      getUserDetails().then((userDetails) => {
+        if (userDetails) {
+          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+          if (stringifiedUserDetails) {
+            setUserInfo(stringifiedUserDetails);
+            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+          }
+        }
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [loadingState.isLoading]);
+
+  useEffect(() => {
+    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+      checkLoginAndSync({
+        sync: true,
+        dispatch,
+        userDispatch,
+        connected: netInfo.isConnected,
+        internet: netInfo.isInternetReachable,
+      });
+    }
+  }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData, changes) {
@@ -118,18 +162,19 @@ const MainScreen = ({ navigation }) => {
       // Observe collection notifications.
       userObject.addListener(listener);
     } catch (err) {
-      console.error(`Error at /components/MainScreen/initializeRealm, ${JSON.stringify(err)}`);
+      console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
   };
 
   const checkIsSignedInAndUpdate = (userDetail) => {
-    if (userDetail.isSignUpRequired) {
+    const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
+    if (stringifiedUserDetails.isSignUpRequired) {
       navigation.navigate('SignUp');
     } else {
       // dispatch function sets the passed user details into the user state
-      setUserDetails(userDetail)(userDispatch);
-      setUserInfo(userDetail);
-      setIsUserLogin(userDetail.accessToken ? true : false);
+      setUserDetails(stringifiedUserDetails)(userDispatch);
+      setUserInfo(stringifiedUserDetails);
+      setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
     }
   };
 
@@ -149,17 +194,20 @@ const MainScreen = ({ navigation }) => {
       auth0Login(userDispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
+          fetchUserDetails();
+          checkLoginAndSync({
+            sync: true,
+            dispatch,
+            userDispatch,
+            connected: netInfo.isConnected,
+            internet: netInfo.isInternetReachable,
+          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
-          } else if (err.error !== 'a0.session.user_cancelled') {
-            Alert.alert(
-              'Verify your Email',
-              'Please verify your email before logging in.',
-              [{ text: 'OK' }],
-              { cancelable: false },
-            );
+          } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
+            setEmailAlert(true);
           }
           stopLoading()(loadingDispatch);
         });
@@ -168,7 +216,19 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
-    auth0Logout(userDispatch);
+    shouldSpeciesUpdate()
+      .then((isSyncRequired) => {
+        if (isSyncRequired) {
+          navigation.navigate('LogoutWarning');
+        } else {
+          auth0Logout(userDispatch).then((result) => {
+            if (result) {
+              setUserInfo({});
+            }
+          });
+        }
+      })
+      .catch((err) => console.error(err));
   };
 
   const renderVideoModal = () => {
@@ -201,7 +261,10 @@ const MainScreen = ({ navigation }) => {
   };
 
   const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() => alert('Can write mail to support@plant-for-the-planet.org'));
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      // TODO:i18n - if this is used, please add translations
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
   };
 
   return (
@@ -222,6 +285,7 @@ const MainScreen = ({ navigation }) => {
                 pendingCount={state.pendingCount}
                 isUploading={state.isUploading}
                 isUserLogin={isUserLogin}
+                setEmailAlert={setEmailAlert}
               />
               <MainScreenHeader
                 onPressLogin={onPressLogin}
@@ -229,13 +293,14 @@ const MainScreen = ({ navigation }) => {
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
                 photo={
-                  cdnUrls && cdnUrls.cache && userInfo.image
-                    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
+                  cdnUrl && userInfo.image
+                    ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
                     : ''
                 }
+                name={userInfo ? userInfo.firstName : ''}
               />
             </View>
-            {/* <View> */}
+            <SpeciesSyncError />
             <View style={styles.bannerImgContainer}>
               <SvgXml xml={main_screen_banner} />
             </View>
@@ -244,7 +309,6 @@ const MainScreen = ({ navigation }) => {
               hideBackIcon
               textAlignStyle={{ textAlign: 'center' }}
             />
-            {/* </View> */}
             <View>
               <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
                 <LargeButton
@@ -316,8 +380,8 @@ const MainScreen = ({ navigation }) => {
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
-        cdnUrls={cdnUrls}
       />
+      <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>
   );
 };

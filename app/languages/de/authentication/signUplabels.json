@@ -5,9 +5,8 @@
   "getNews": "Ich bin damit einverstanden, dass ich von der Kinder- und Jugendorganisation Plant-for-the-Planet im Rahmen von Neuigkeiten und Herausforderungen im Zusammenhang mit Baumpflanzungen kontaktiert werden kann.",
   "firstname": "VORNAME",
   "lastname": "NACHNAME",
-  "tpo_title": "Baumpflanzungs-Organisation",
+  "tpo_title": "Wiederaufforstung-Organisation",
   "education_title": "Schule",
-  "education": "Bildung",
   "signup_confirm": "Bitte bestätige deine Angaben.",
   "individual": "Einzelperson",
   "company": "Unternehmen",
@@ -16,5 +15,15 @@
   "city": "STADT",
   "address": "ADRESSE",
   "zipcode": "PLZ",
-  "account_type": "Kontotyp"
+  "account_type": "Kontotyp",
+  "select_country": "Land auswählen",
+  "select_role_type": "Kontotyp auswählen",
+  "enter_first_name": "Vorname eingeben",
+  "enter_last_name": "Nachname eingeben",
+  "enter_city_name": "Stadt eingeben",
+  "enter_zipcode": "PLZ eingeben",
+  "enter_address": "Adresse eingeben",
+  "enter_organisation_name": "Name der Organisation eingeben",
+  "country": "LAND",
+  "change": "wechseln"
 }

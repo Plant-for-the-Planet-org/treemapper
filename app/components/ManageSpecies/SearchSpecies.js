@@ -2,17 +2,18 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '_styles';
 import Icon from 'react-native-vector-icons/Feather';
+import { SINGLE } from '../../utils/inventoryConstants';
 
 const SearchSpecies = ({
   searchList,
   toggleUserSpecies,
   registrationType,
   onPressSpeciesSingle,
-  onPressSpeciesMultiple,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
   onPressBack,
   clearSearchText,
+  isSampleTree,
 }) => {
   const renderSearchSpecieCard = ({ item, index }) => {
     const isCheck = item.isUserSpecies;
@@ -49,17 +50,18 @@ const SearchSpecies = ({
         key={index}
         style={styles.specieListItem}
         onPress={() => {
-          if (registrationType == 'single') {
-            addSpecieNameToInventory(item);
-            toggleUserSpecies(item.guid, 'add');
+          toggleUserSpecies(item.guid, true);
+          if (registrationType || isSampleTree) {
+            addSpecieToInventory(item);
+          }
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
+            onPressSpeciesSingle(item);
+          }
+
+          if (registrationType === SINGLE) {
             clearSearchText();
-            if (editOnlySpecieName) {
-              onPressBack();
-            } else {
-              onPressSpeciesSingle(item);
-            }
-          } else if (registrationType == 'multiple') {
-            onPressSpeciesMultiple(item, index);
           }
         }}>
         <SpecieListItem />

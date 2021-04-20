@@ -10,7 +10,7 @@
   "inventory_overview_export_json_message": "Wähle das Ziel für den Export",
   "inventory_overview_export_json_title": "GeoJSON-Export",
   "inventory_overview_add_species": "Gepflanzte Arten",
-  "inventory_overview_header_text": "Rezension",
+  "inventory_overview_header_text": "Überprüfung",
   "inventory_overview_sub_header": "Bäume werden zu deinem Inventar hinzugefügt, um sie zu synchronisieren, wenn du Internet hast.",
   "inventory_overview_left_text": "Pflanzdatum",
   "inventory_overview_left_text_planted_species": "Gepflanzte Arten",
@@ -19,5 +19,8 @@
   "inventory_overview_loc_export_json": "GeoJson exportieren",
   "inventory_overview_loc_next_tree": "Nächster Baum",
   "inventory_overview_loc_save": "Speichern",
-  "inventory_overview_date": "{{date, ll}}"
+  "inventory_overview_date": "{{date, ll}}",
+  "inventory_overview_cancel": "Abbrechen",
+  "inventory_overview_confirm": "Bestätigen",
+  "inventory_overview_pick_a_date": "Wähle ein Datum"
 }

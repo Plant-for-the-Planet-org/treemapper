@@ -16,6 +16,10 @@
   "locate_tree_map_marking_sub_header": "Bitte besuche die erste Ecke der Plantage und wähle deinen Standort",
   "locate_tree_add_marker_valid": "Du befindest dich am selben Ort. Bitte gehe zum nächsten Standort.",
   "locate_tree_add_marker_invalid": "Du bist sehr weit von deinem derzeitigen Standort entfernt.",
+  "locate_tree_cannot_mark_location": "Kann diese Stelle nicht markieren.",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "locate_tree_location": "Standort"
+  "locate_tree_location": "Standort",
+  "locate_tree_cannot_record_tree": "Beispielbaum konnte nicht erfasst werden",
+  "locate_tree_cannot_record_tree_outside_polygon": "Der Beispielbaum kann nur innerhalb der markierten Stelle aufgenommen werden.",
+  "locate_tree_unable_to_retrieve_location": "Standort kann nicht abgerufen werden."
 }

@@ -32,7 +32,11 @@ export const getAreaName = ({ coords }) => {
             )} but area name not present`,
             logStack: `Response ${JSON.stringify(res)}`,
           });
-          reject();
+          reject(
+            new Error(
+              `Got response for coordinates: ${JSON.stringify(coords)} but area name not present`,
+            ),
+          );
         }
       })
       .catch((err) => {
