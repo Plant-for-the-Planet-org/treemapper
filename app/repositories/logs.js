@@ -54,7 +54,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
         resolve(true);
       })
       .catch((err) => {
-        console.error(`Error while creating log, ${JSON.stringify(err)}`);
+        console.error('Error while creating log', err);
         bugsnag.notify(err);
         resolve(false);
       });
@@ -88,7 +88,7 @@ export const getLogs = (type) => {
         }
       })
       .catch((err) => {
-        console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
+        console.error(`Error while fetching logs of type ${type}`, err);
         bugsnag.notify(err);
         resolve(false);
       });

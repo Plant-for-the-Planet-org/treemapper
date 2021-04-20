@@ -1,6 +1,9 @@
 // used to set the inventory id of an inventory
 export const SET_INVENTORY_ID = 'SET_INVENTORY_ID';
 
+// used to delete the inventory id from the inventory state
+export const DELETE_INVENTORY_ID = 'DELETE_INVENTORY_ID';
+
 // used when the inventory is initiated
 export const INITIATE_INVENTORY_STATE = 'INITIATE_INVENTORY_STATE';
 
@@ -19,11 +22,11 @@ export const IS_UPLOADING = 'IS_UPLOADING';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_SIGNUP_LOADING = 'SET_SIGNUP_LOADING';
 
-export const SET_SPECIES_LIST = 'SET_SPECIES_LIST';
-export const SET_SPECIE_ID = 'SET_SPECIE_ID';
+// Type used to show specie on SpecieInfo screen
+export const SET_SPECIE = 'SET_SPECIE';
 
-export const SET_MULTIPLE_TREES_SPECIES_LIST = 'SET_MULTIPLE_TREES_SPECIES_LIST';
-export const ADD_MULTIPLE_TREE_SPECIE = 'ADD_MULTIPLE_TREE_SPECIE';
+// Type used to clear specie state after navigated back from SpecieInfo screen
+export const CLEAR_SPECIE = 'CLEAR_SPECIE';
 
 // used when user is successfully logged in into the app this type is used to add tokens and set user as logged in
 export const SET_INITIAL_USER_STATE = 'SET_INITIAL_USER_STATE';
@@ -33,3 +36,9 @@ export const SET_USER_DETAILS = 'SET_USER_DETAILS';
 
 // Type to reset the user state to initialState. Used when user is logged out or no user data is present
 export const CLEAR_USER_DETAILS = 'CLEAR_USER_DETAILS';
+
+// Type to show the initial screens navigation stack
+export const SET_SHOW_INITIAL_STACK = 'SET_SHOW_INITIAL_STACK';
+
+// Type to show main screens navigation stack
+export const SET_SHOW_MAIN_STACK = 'SET_SHOW_MAIN_STACK';

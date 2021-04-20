@@ -1,45 +1,26 @@
 import React, { createContext, useReducer } from 'react';
-import {
-  SET_SPECIES_LIST,
-  SET_SPECIE_ID,
-  SET_MULTIPLE_TREES_SPECIES_LIST,
-  ADD_MULTIPLE_TREE_SPECIE,
-} from '../actions/Types';
+import { SET_SPECIE, CLEAR_SPECIE } from '../actions/Types';
 
 // stores the initial properties of the species state
 const initialState = {
-  species: [],
-  specieId: null,
-  multipleTreesSpecies: [],
+  specie: null,
 };
 
 // Species reducer function which takes the state and action param
 const speciesReducer = (state = initialState, action) => {
   // used to switch between the action types
   switch (action.type) {
-    // updates the species data
-    case SET_SPECIES_LIST:
+    // updates the specie data
+    case SET_SPECIE:
       return {
         ...state,
-        species: action.payload,
+        specie: action.payload,
       };
-    // updates the specie ID
-    case SET_SPECIE_ID:
+    // clears the specie from the state
+    case CLEAR_SPECIE:
       return {
         ...state,
-        specieId: action.payload,
-      };
-    // updates the species list for multiple trees registration
-    case SET_MULTIPLE_TREES_SPECIES_LIST:
-      return {
-        ...state,
-        multipleTreesSpecies: action.payload,
-      };
-    // adds new specie in multipleTreesSpecies for multiple trees registration
-    case ADD_MULTIPLE_TREE_SPECIE:
-      return {
-        ...state,
-        multipleTreesSpecies: [...state.multipleTreesSpecies, action.payload],
+        specie: null,
       };
     // returns the state as is if no type is found
     default:

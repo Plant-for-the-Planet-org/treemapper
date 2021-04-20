@@ -1,0 +1,10 @@
+{
+  "updating_species": "Arten aktualisieren",
+  "running_migration": "Ausführen einer Migration",
+  "migration_description": "Du hast deine App kürzlich aktualisiert. Bitte schließe die App nicht, da wir Änderungen vornehmen, um die Kompatibilität sicherzustellen.",
+  "species_data_status": "Statusüberprüfung der Artendatenbank.",
+  "downloading_archive": "Herunterladen des Artenarchivs.",
+  "unzipping_archive": "Entpacken des Artenarchivs.",
+  "fetch_and_add_species_to_database": "Hinzufügen von Arten in die Datenbank.",
+  "species_data_loaded": "Artendatenbank geladen."
+}

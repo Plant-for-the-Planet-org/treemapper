@@ -1,0 +1,21 @@
+{
+  "permission_blocked": "Autorisation bloquée",
+  "permission_blocked_message": "Donner l'autorisation de localisation pour vous inscrire un arbre sur le site.",
+  "open_settings": "Ouvrir les paramètres",
+  "back": "Retour",
+  "ok": "OK",
+  "permission_denied": "Permission refusée",
+  "permission_denied_message": "Donner l'autorisation de localisation pour vous inscrire un arbre sur le site.",
+  "gps_accuracy": "Précision GPS",
+  "green": "Vert",
+  "yellow": "Jaune",
+  "red": "Vert",
+  "close": "Fermer",
+  "poor_accuracy": "Mauvaise précision",
+  "poor_accuracy_message": "La précision de votre position est FAIBLE, ce qui n'est pas recommandé. Es-tu sur de vouloir continuer?",
+  "try_again": "Essayer à nouveau",
+  "continue": "Pousuivre",
+  "location_service": "Service de localisation",
+  "location_service_message": "Les paramètres de localisation ne sont pas complets.",
+  "cancel": "Annuler"
+}
