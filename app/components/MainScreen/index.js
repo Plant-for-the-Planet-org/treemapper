@@ -17,12 +17,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
-import {
-  auth0Login,
-  auth0Logout,
-  clearUserDetails,
-  setUserDetails,
-} from '../../actions/user';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
 import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
@@ -205,7 +200,7 @@ const MainScreen = ({ navigation }) => {
             internet: netInfo.isInternetReachable,
           });
           checkAndAddUserSpecies().then(() => {
-            console.log('adding inventory from server');
+            console.log('adding inventory from server after Login');
             addInventoryFromServer();
           });
         })
