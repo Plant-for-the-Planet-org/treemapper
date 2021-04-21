@@ -114,22 +114,21 @@ export default function MapAlrightyModal({
           bannerImage={bannerImage}
           onPressClose={onPressClose}
           onPressWhiteButton={
-            treeType === SAMPLE
-              ? skipPicture
-              : treeType === MULTI
-                ? updateAndCompletePolygon
-                : onPressClose
+            // treeType === SAMPLE
+            //   ? skipPicture
+            //   :
+            treeType === MULTI ? updateAndCompletePolygon : onPressClose
           }
           onPressContinue={
             treeType === MULTI
               ? () => setShowAlrightyModal(false)
               : locateTree === OFF_SITE
-                ? offSiteContinue
-                : moveScreen
+              ? offSiteContinue
+              : moveScreen
           }
           heading={heading}
           subHeading={subHeading}
-          whiteBtnText={whiteBtnText}
+          whiteBtnText={treeType !== SAMPLE ? whiteBtnText : null}
         />
       </View>
     </Modal>

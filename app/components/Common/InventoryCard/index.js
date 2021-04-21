@@ -6,7 +6,6 @@ import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
-import { getCdnUrls } from './../../../actions/user';
 import { APIConfig } from './../../../actions/Config';
 
 const { protocol, cdnUrl } = APIConfig;
@@ -14,9 +13,6 @@ const { protocol, cdnUrl } = APIConfig;
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
   const [imageSource, setImageSource] = useState();
   useEffect(() => {
-    getCdnUrls(i18next.language).then((cdnMedia) => {
-      // console.log(cdnMedia, 'cdnMedia');
-    });
     if (data.imageURL) {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
       setImageSource({

@@ -482,7 +482,6 @@ const SingleTreeOverview = () => {
   let filePath, imageSource;
 
   if (inventory) {
-    console.log(protocol, cdnUrl, 'CDNURL');
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     if (inventory.treeType === SINGLE) {
       if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
@@ -507,15 +506,18 @@ const SingleTreeOverview = () => {
       }
     }
     if (
-      (inventory.polygons[0]?.coordinates[0]?.imageUrl && inventory.treeType !== MULTI) ||
-      (inventory.sampleTrees[sampleTreeIndex]?.imageUrl && inventory.sampleTrees)
+      ((inventory.polygons[0]?.coordinates[0]?.imageUrl && inventory.treeType !== MULTI) ||
+        (inventory.sampleTrees[sampleTreeIndex]?.imageUrl && inventory.sampleTrees)) &&
+      filePath
     ) {
       imageSource = {
         uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}`,
       };
     } else if (
-      inventory.polygons[0]?.coordinates[0]?.cdnImageUrl ||
-      (inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl && inventory.sampleTrees.length !== 0)
+      (inventory.polygons[0]?.coordinates[0]?.cdnImageUrl ||
+        (inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl &&
+          inventory.sampleTrees.length !== 0)) &&
+      filePath
     ) {
       imageSource = {
         // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${filePath}`,

@@ -366,6 +366,7 @@ const InventoryOverview = ({ navigation }) => {
   }
 
   let status = inventory ? inventory.status : 'pending';
+  console.log(status, 'status');
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -395,7 +396,9 @@ const InventoryOverview = ({ navigation }) => {
                 //   )
                 // }
                 rightText={
-                  status == INCOMPLETE_SAMPLE_TREE ? i18next.t('label.tree_review_delete') : []
+                  status == INCOMPLETE_SAMPLE_TREE || status == INCOMPLETE
+                    ? i18next.t('label.tree_review_delete')
+                    : []
                 }
                 onPressFunction={() => setShowDeleteAlert(true)}
               />
