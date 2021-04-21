@@ -33,7 +33,6 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
     } else {
       setImageSource(single_tree_png);
     }
-    return () => {};
   }, []);
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);

@@ -21,7 +21,6 @@ import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '.
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -55,7 +54,6 @@ const TreeInventory = ({ navigation }) => {
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
       setAllInventory(allInventory);
-      // addInventoryFromServer();
     });
   };
 

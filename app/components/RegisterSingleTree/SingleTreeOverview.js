@@ -784,18 +784,6 @@ const SingleTreeOverview = () => {
               }
               onPressFunction={() => setShowDeleteAlert(true)}
             />
-            {/* {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && (
-              <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
-                <Text
-                  style={{
-                    fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    fontSize: Typography.FONT_SIZE_18,
-                    lineHeight: Typography.LINE_HEIGHT_24,
-                  }}>
-                  {i18next.t('label.tree_review_delete')}
-                </Text>
-              </TouchableOpacity>
-            )} */}
           </View>
 
           {inventory && (

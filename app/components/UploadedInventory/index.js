@@ -9,18 +9,12 @@ import {
 } from 'react-native';
 import { Header, InventoryList, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import {
-  getInventoryByStatus,
-  clearAllUploadedInventory,
-  removeImageUrl,
-} from '../../repositories/inventory';
+import { getInventoryByStatus, removeImageUrl } from '../../repositories/inventory';
 import { Colors, Typography } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import NetInfo, { useNetInfo } from '@react-native-community/netinfo';
-import { getAllInventoryFromServer } from '../../actions/inventory';
-import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
 import { deleteFromFS } from '../../utils/FSInteration';
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);

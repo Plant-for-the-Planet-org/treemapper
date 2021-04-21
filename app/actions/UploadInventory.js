@@ -4,7 +4,6 @@ import {
   changeInventoryStatus,
   updateInventory,
   addCdnUrl,
-  addCoordinateID,
 } from '../repositories/inventory';
 import RNFS from 'react-native-fs';
 import { updateCount, updateIsUploading } from './inventory';
@@ -151,7 +150,6 @@ export const uploadInventory = (dispatch) => {
                   .then(async () => {
                     if (inventoryData.length - 1 === i) {
                       updateIsUploading(false)(dispatch);
-                      // addCoordinateID(oneInventory.inventory_id, data.data.coordinates, false);
                       resolve();
                     }
                   })

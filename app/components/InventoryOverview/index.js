@@ -33,12 +33,7 @@ import {
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import {
-  INCOMPLETE,
-  INCOMPLETE_SAMPLE_TREE,
-  OFF_SITE,
-  PENDING_DATA_UPLOAD,
-} from '../../utils/inventoryConstants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { CommonActions } from '@react-navigation/routers';

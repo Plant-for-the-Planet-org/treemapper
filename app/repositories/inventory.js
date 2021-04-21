@@ -8,7 +8,6 @@ import {
   ON_SITE,
   SAMPLE,
   SINGLE,
-  SYNCED,
   MULTI,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
@@ -908,7 +907,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
       .then((realm) => {
         realm.write(() => {
           let species = [];
-          // let polygons = [];
           let coordinates = [];
           if (inventoryFromServer.scientificSpecies) {
             let specie = realm.objectForPrimaryKey(
@@ -1000,7 +998,10 @@ export const addInventoryToDB = (inventoryFromServer) => {
             registrationDate: inventoryFromServer.registrationDate,
             locationId: inventoryFromServer.id,
           };
-          inventoryFromServer.type !== SAMPLE ? realm.create('Inventory', inventoryData) : null;
+          if (inventoryFromServer.type !== SAMPLE) {
+            realm.create('Inventory', inventoryData);
+          }
+          // inventoryFromServer.type !== SAMPLE ? realm.create('Inventory', inventoryData) : null;
           // setInventoryId(inventoryID)(dispatch);
           // logging the success in to the db
           // dbLog.info({
@@ -1047,7 +1048,6 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let longitude = sampleTreeFromServer.geometry.coordinates[1];
           let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
           let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
-          // let locationAccuracy;
           let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
           let specieId = sampleTreeFromServer.scientificSpecies;
           let specieDiameter = sampleTreeFromServer.measurements.width;
@@ -1091,11 +1091,11 @@ export const addSampleTree = (sampleTreeFromServer) => {
       .catch((err) => {
         console.error(`Error at /repositories/addSampleTree -> ${JSON.stringify(err)}, ${err}`);
         // logging the error in to the db
-        // dbLog.error({
-        //   logType: LogTypes.INVENTORY,
-        //   message: `Error while initiating inventory for tree type ${treeType}`,
-        //   logStack: JSON.stringify(err),
-        // });
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while Adding Sample Tree having location Id ${sampleTreeFromServer.id}`,
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
         resolve(false);
       });
