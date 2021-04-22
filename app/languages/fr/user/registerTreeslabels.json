@@ -1,13 +1,10 @@
 {
   "register_trees": "Enregistrer les arbres",
-  "register_trees_description": "You can find incomplete registrations sur l'Inventaire Forestier",
   "tree_registration_type_1": "Arbre seul",
-  "tree_registration_type_2": "Arbre multiple",
   "tree_registration_type_1_sub_header": "Permet des mesures de haute précision",
   "tree_registration_type_2_sub_header": "Ajouter de nombreux arbres avec des nombres différents.",
   "tree_map_marking_header": "Emplacement de l'arbre",
   "tree_map_marking_btn": "Sélectionner l'emplacement et continuer",
-  "alright_modal_sub_header": "Lorsque vous êtes près de l’arbre, vous pouvez prendre une photo à l’étape suivante. Cliquer sur continuer lorsque vous êtes prêt.",
   "alright_modal_header": "Date/heure de la photo!",
   "alright_modal_white_btn": "Retourner",
   "alright_modal_off_site_sub_header": "Nous voyons que vous êtes loin de l’arbre. Cliquer sur continuer pour ajouter des détails sur l'arborescence.",
@@ -17,5 +14,5 @@
   "image_capturing_required": "La photo est requise.",
   "coming_soon": "Arrive bientôt!",
   "image_click_picture": "Prendre une photo",
-  "image_reclick": "A nouveau"
+  "total_trees_header": "Total des arbres"
 }

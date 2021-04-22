@@ -2,8 +2,18 @@
   "edit_profile": "Editar Perfil",
   "logout": "Cerrar Sesión",
   "privacy_policy": "Política de privacidad",
+  "terms_of_service": "Condiciones de servicio",
   "imprint": "Aviso Legal",
+  "legal_docs": "Documentos legales",
   "open_source_license": "Licencia de código abierto",
   "edit": "Editar",
-  "support": "Ayuda"
+  "manage_offline": "Administrar los mapas fuera de línea",
+  "manage_species": "Gestión de especies",
+  "activity_logging": "Registro de actividades",
+  "activity_logs": "Registro de actividades",
+  "all_backed_up": "Todos los cambios se han guardado",
+  "upload_pending": "{{count}}pendiente",
+  "sync_remaining": "Sincronización - {{count}} restante",
+  "support": "Ayuda",
+  "complete_signup": "Inscripción completa"
 }

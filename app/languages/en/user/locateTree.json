@@ -16,6 +16,10 @@
   "locate_tree_map_marking_sub_header": "Please visit first corner of the plantation and select your location",
   "locate_tree_add_marker_valid": "You are at the same location. Please walk to the next location.",
   "locate_tree_add_marker_invalid": "You are very far from your current location.",
+  "locate_tree_cannot_mark_location": "Cannot mark this location.",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "locate_tree_location": "Location"
+  "locate_tree_location": "Location",
+  "locate_tree_cannot_record_tree": "Cannot record sample tree.",
+  "locate_tree_cannot_record_tree_outside_polygon": "Sample tree can only be recorded inside the marked site.",
+  "locate_tree_unable_to_retrieve_location": "Unable to retrieve location."
 }

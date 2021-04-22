@@ -1,6 +1,21 @@
 {
+  "permission_blocked": "Permiso bloqueado",
+  "permission_blocked_message": "Es necesario dar permiso de localización para registrar el árbol in situ.",
+  "open_settings": "Abrir Configuración",
   "back": "Volver",
+  "ok": "OK",
+  "permission_denied": "Permiso denegado",
+  "permission_denied_message": "Es necesario dar permiso de localización para registrar el árbol in situ.",
+  "gps_accuracy": "Precisión del GPS",
+  "green": "Verde",
+  "yellow": "Amarillo",
+  "red": "Rojo",
   "close": "Cerrar",
+  "poor_accuracy": "Poca precisión",
+  "poor_accuracy_message": "Tu precisión de localización es POBRE, lo cual no es recomendable. ¿Estás seguro de que quieres continuar?",
+  "try_again": "Inténtalo de nuevo",
   "continue": "Continuar",
+  "location_service": "Servicio de ubicación",
+  "location_service_message": "La configuración de la ubicación no es correcta",
   "cancel": "Cancelar"
 }

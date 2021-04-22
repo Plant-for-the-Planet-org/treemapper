@@ -1,13 +1,14 @@
-import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
+import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
-import { LogTypes } from '../utils/constants';
-import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from './Types';
+import { resetAllSpecies } from '../repositories/species';
+import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { getAuthenticatedRequest, getRequest, postAuthenticatedRequest } from '../utils/api';
-import AsyncStorage from '@react-native-community/async-storage';
+import { getAuthenticatedRequest, getRequest, postRequest } from '../utils/api';
+import { LogTypes } from '../utils/constants';
+import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -48,7 +49,7 @@ export const auth0Login = (dispatch) => {
         setUserInitialState(credentials)(dispatch);
 
         // fetches the user details from server by passing the accessToken which is used while requesting the API
-        getUserDetailsFromServer(credentials.accessToken, dispatch)
+        getUserDetailsFromServer(dispatch)
           .then((userDetails) => {
             // destructured and modified variable names which is used to set user state
             const {
@@ -84,10 +85,10 @@ export const auth0Login = (dispatch) => {
             message: 'Error while logging in from auth0',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           // if any error is found then deletes the user and clear the user app state
           deleteUser();
           clearUserDetails()(dispatch);
+          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
@@ -112,7 +113,9 @@ export const auth0Logout = (userDispatch = null) => {
       .clearSession()
       .then(async () => {
         // deletes the user from DB
-        deleteUser();
+        await deleteUser();
+
+        await resetAllSpecies();
 
         // removes [isInitialSyncDone] item from AsyncStorage
         await AsyncStorage.removeItem('isInitialSyncDone');
@@ -130,20 +133,21 @@ export const auth0Logout = (userDispatch = null) => {
       })
       .catch((err) => {
         if (err?.error !== 'a0.session.user_cancelled') {
-          console.error(`Error at /actions/user/auth0Logout, ${JSON.stringify(err)}`);
+          console.error('Error at /actions/user/auth0Logout', err);
           dbLog.error({
             logType: LogTypes.USER,
             message: 'Error while Logging Out',
             logStack: JSON.stringify(err),
           });
-          bugsnag.notify(err);
           resolve(false);
+          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
             message: 'User cancelled auth0 login',
             logStack: JSON.stringify(err),
           });
+          resolve(false);
         }
       });
   });
@@ -172,7 +176,7 @@ export const getNewAccessToken = async (refreshToken) => {
       })
       .catch((err) => {
         // logs the error in Db and notifies the same to bugsnag
-        console.error(`Error at /actions/user/getNewAccessToken, ${JSON.stringify(err)}`);
+        console.error('Error at /actions/user/getNewAccessToken', err);
         bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.USER,
@@ -195,8 +199,8 @@ export const getNewAccessToken = async (refreshToken) => {
  * @param {Error} error - error of api response to check for 401 error code.
  * @returns {boolean} - returns true if user is logged out else returns false
  */
-export const checkErrorCode = async (error, userDispatch) => {
-  if (error?.response?.status === 401) {
+export const checkErrorCode = async (error, userDispatch = null) => {
+  if (error?.response?.status === 401 || error?.response?.status === 403) {
     return await auth0Logout(userDispatch);
   }
   if (error?.response?.status === 303) {
@@ -209,9 +213,9 @@ export const checkErrorCode = async (error, userDispatch) => {
 
 /**
  * Fetches the detail of the user from the server using the accessToken and requesting the GET api - /app/profile
- * @param {string} userToken - used to pass in authorization header of the api
+ * @param {string} userDispatch - used to clear the data if the error occurred will lead to logout
  */
-export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
+export const getUserDetailsFromServer = (userDispatch) => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile')
       .then((data) => {
@@ -251,9 +255,9 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
         // calls this function to check for the error code and either logout the user or ask to signup
         await checkErrorCode(err, userDispatch);
         console.error(
-          `Error at /actions/user/getUserDetailsFromServer: GET - /app/profile, ${JSON.stringify(
-            err.response,
-          )}`,
+          'Error at /actions/user/getUserDetailsFromServer: GET - /app/profile,',
+          err.response,
+          err,
         );
 
         dbLog.error({
@@ -270,11 +274,17 @@ export const getUserDetailsFromServer = (userToken, userDispatch = null) => {
 export const SignupService = (payload, dispatch) => {
   // try {
   return new Promise((resolve, reject) => {
-    postAuthenticatedRequest('/app/profile', payload)
-      .then((res) => {
+    postRequest('/app/profile', payload)
+      .then(async (res) => {
         const { status, data } = res;
         if (status === 200) {
-          modifyUserDetails({
+          await modifyUserDetails({
+            firstName: data.firstname,
+            lastName: data.lastname,
+            email: data.email,
+            displayName: data.displayName,
+            country: data.country,
+            tpoId: data.id,
             isSignUpRequired: false,
           });
           // logging the success in to the db

@@ -1,10 +1,10 @@
-import { bugsnag } from '../utils';
-import { updateCount, setInventoryId } from '../actions/inventory';
-import { INCOMPLETE_INVENTORY } from '../utils/inventoryStatuses';
-import dbLog from './logs';
-import { LogTypes } from '../utils/constants';
-import { getSchema } from './default';
 import Realm from 'realm';
+import { setInventoryId, updateCount } from '../actions/inventory';
+import { bugsnag } from '../utils';
+import { LogTypes } from '../utils/constants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, ON_SITE, SINGLE } from '../utils/inventoryConstants';
+import { getSchema } from './default';
+import dbLog from './logs';
 
 export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   return new Promise((resolve) => {
@@ -12,7 +12,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_diameter = Math.round(speciesDiameter * 100) / 100;
+          inventory.specieDiameter = Math.round(speciesDiameter * 100) / 100;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -40,7 +40,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.species_height = Math.round(speciesHeight * 100) / 100;
+          inventory.specieHeight = Math.round(speciesHeight * 100) / 100;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -68,7 +68,7 @@ export const updateTreeTag = ({ inventoryId, tagId }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
-          inventory.tag_id = tagId;
+          inventory.tagId = tagId;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -125,10 +125,10 @@ export const initiateInventory = ({ treeType }, dispatch) => {
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
-            tree_type: treeType,
-            status: INCOMPLETE_INVENTORY,
+            treeType,
+            status: INCOMPLETE,
             plantation_date: new Date(),
-            last_screen: treeType === 'single' ? 'RegisterSingleTree' : 'LocateTree',
+            lastScreen: treeType === SINGLE ? 'RegisterSingleTree' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
           setInventoryId(inventoryID)(dispatch);
@@ -164,12 +164,17 @@ export const getInventory = ({ inventoryID }) => {
           logType: LogTypes.INVENTORY,
           message: `Fetched inventory with inventory_id: ${inventoryID}`,
         });
-        // by doing stringify and parsing of inventory result it removes the
-        // reference of realm type Inventory from the result this helps to
-        // avoid any conflicts when data is modified outside the realm scope
-        resolve(JSON.parse(JSON.stringify(inventory)));
+        if (inventory) {
+          // by doing stringify and parsing of inventory result it removes the
+          // reference of realm type Inventory from the result this helps to
+          // avoid any conflicts when data is modified outside the realm scope
+          resolve(JSON.parse(JSON.stringify(inventory)));
+        } else {
+          resolve(inventory);
+        }
       })
       .catch((err) => {
+        console.error(`Error while fetching inventory with inventory_id: ${inventoryID}`);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
@@ -181,7 +186,10 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
-export const changeInventoryStatusAndResponse = ({ inventory_id, status, response }, dispatch) => {
+export const changeInventoryStatusAndLocationId = (
+  { inventory_id, status, locationId },
+  dispatch,
+) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -191,7 +199,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
             {
               inventory_id: `${inventory_id}`,
               status,
-              response,
+              locationId,
             },
             'modified',
           );
@@ -199,7 +207,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated status and response for inventory_id: ${inventory_id} to ${status}`,
+            message: `Successfully updated status and locationId for inventory_id: ${inventory_id} to ${status}`,
           });
 
           if (status === 'complete') {
@@ -215,7 +223,7 @@ export const changeInventoryStatusAndResponse = ({ inventory_id, status, respons
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while updating status and response for inventory_id: ${inventory_id}`,
+          message: `Error while updating status and locationId for inventory_id: ${inventory_id}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -234,7 +242,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
         };
         // adds registration date if the status is pending
         if (status === 'pending') {
-          inventoryObject.registration_date = new Date();
+          inventoryObject.registrationDate = new Date();
         }
         realm.write(() => {
           realm.create('Inventory', inventoryObject, 'modified');
@@ -367,7 +375,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
   });
 };
 
-export const updateLastScreen = ({ last_screen, inventory_id }) => {
+export const updateLastScreen = ({ lastScreen, inventory_id }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -376,7 +384,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              last_screen: last_screen,
+              lastScreen,
             },
             'modified',
           );
@@ -384,7 +392,7 @@ export const updateLastScreen = ({ last_screen, inventory_id }) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${last_screen}`,
+            message: `Successfully updated last screen for inventory_id: ${inventory_id} to ${lastScreen}`,
           });
           resolve();
         });
@@ -408,7 +416,8 @@ export const clearAllIncompleteInventory = () => {
         realm.write(() => {
           let allInventory = realm
             .objects('Inventory')
-            .filtered(`status == "${INCOMPLETE_INVENTORY}"`);
+            .filtered(`status == "${INCOMPLETE}" || status == "${INCOMPLETE_SAMPLE_TREE}"`);
+
           realm.delete(allInventory);
 
           // logging the success in to the db
@@ -467,10 +476,10 @@ export const updateSpecieAndMeasurements = ({ inventoryId, species, diameter, he
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
-          inventory.species_diameter = Number(diameter);
-          inventory.species_height = Number(height);
+          inventory.specieDiameter = Number(diameter);
+          inventory.specieHeight = Number(height);
           inventory.species = species;
-          inventory.tag_id = tagId;
+          inventory.tagId = tagId;
         });
         // logging the success in to the db
         dbLog.info({
@@ -663,11 +672,11 @@ export const addCoordinateSingleRegisterTree = ({
                   isImageUploaded: false,
                 },
               ],
+              isPolygonComplete: true,
             },
           ];
-          // inventory.species_diameter = 10;
           if (locateTree) {
-            inventory.locate_tree = locateTree;
+            inventory.locateTree = locateTree;
           }
           inventory.plantation_date = new Date();
           // logging the success in to the db
@@ -759,7 +768,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
   });
 };
 
-export const addLocateTree = ({ locate_tree, inventory_id }) => {
+export const addLocateTree = ({ locateTree, inventory_id }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -768,7 +777,7 @@ export const addLocateTree = ({ locate_tree, inventory_id }) => {
             'Inventory',
             {
               inventory_id: `${inventory_id}`,
-              locate_tree: locate_tree,
+              locateTree,
             },
             'modified',
           );
@@ -820,7 +829,7 @@ export const polygonUpdate = ({ inventory_id }) => {
   });
 };
 
-export const completePolygon = ({ inventory_id }) => {
+export const completePolygon = ({ inventory_id, locateTree }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -828,6 +837,9 @@ export const completePolygon = ({ inventory_id }) => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
           inventory.polygons[0].isPolygonComplete = true;
           inventory.polygons[0].coordinates.push(inventory.polygons[0].coordinates[0]);
+          if (locateTree === ON_SITE) {
+            inventory.status = INCOMPLETE_SAMPLE_TREE;
+          }
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -841,6 +853,39 @@ export const completePolygon = ({ inventory_id }) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Error while updating polygon completion and last coordinate for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+
+/**
+ * updates the inventory with the data provided using the inventory id
+ * @param {object} - takes [inventory_id] and [inventoryData] as properties
+ *                   to update the inventory
+ */
+export const updateInventory = ({ inventory_id, inventoryData }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+
+          let newInventory = {
+            ...JSON.parse(JSON.stringify(inventory)),
+            ...inventoryData,
+          };
+          realm.create('Inventory', newInventory, 'modified');
+          resolve();
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating inventory with inventory_id: ${inventory_id}`,
           logStack: JSON.stringify(err),
         });
         reject(err);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
@@ -9,7 +9,13 @@ import i18next from 'i18next';
 import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
 
-export default function Syncing({ uploadCount, pendingCount, isUploading, isUserLogin }) {
+export default function Syncing({
+  uploadCount,
+  pendingCount,
+  isUploading,
+  isUserLogin,
+  setEmailAlert,
+}) {
   const [syncText, setSyncText] = useState('');
 
   const navigation = useNavigation();
@@ -43,23 +49,13 @@ export default function Syncing({ uploadCount, pendingCount, isUploading, isUser
   }, [pendingCount, uploadCount, isUploading]);
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch, userDispatch)
-      .then(() => {
-        console.log('uploaded successfully');
-      })
-      .catch((err) => {
-        if (err?.response?.status === 303) {
-          navigation.navigate('SignUp');
-        } else if (err.error !== 'a0.session.user_cancelled') {
-          // TODO:i18n - if this is used, please add translations
-          Alert.alert(
-            'Verify your Email',
-            'Please verify your email before logging in.',
-            [{ text: 'OK' }],
-            { cancelable: false },
-          );
-        }
-      });
+    uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      if (err?.response?.status === 303) {
+        navigation.navigate('SignUp');
+      } else if (err.error !== 'a0.session.user_cancelled') {
+        setEmailAlert(true);
+      }
+    });
   };
 
   const renderSyncContainer = () => {

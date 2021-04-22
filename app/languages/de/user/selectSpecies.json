@@ -31,8 +31,8 @@
   "select_species_done": "Fertig",
   "select_species_add_name": "Name hinzufügen",
   "select_species_my_species": "Meine Arten",
-  "select_species_diameter_more_than_error": "Durchmesser muss größer als 0.1 sein",
-  "select_species_height_more_than_error": "Höhe muss größer als 0.1 sein",
+  "select_species_diameter_more_than_error": "Durchmesser muss zwischen {{minValue}} und {{maxValue}} liegen.",
+  "select_species_height_more_than_error": "Höhe muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_diameter_invalid": "Durchmesser ist ungültig",
   "select_species_height_invalid": "Höhe ist ungültig",
   "select_species_tag_id_required": "Tag-ID wird benötigt",
@@ -42,5 +42,13 @@
   "select_species_search_atleast_3_characters": "Gib mindestens 3 Zeichen ein, um ein besseres Ergebnis zu erhalten",
   "select_species_looks_empty_here": "Sieht leer aus hier!",
   "select_species_add_species_desscription": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
-  "select_species_tree_species": "Baumarten"
+  "select_species_tree_species": "Baumarten",
+  "species_name": "Artenname",
+  "add_image": "Bild hinzufügen",
+  "species_description": "Beschreibung",
+  "type_description_here": "Beschreibung eingeben",
+  "sync": "Sync",
+  "species_sync_might_take_time": "Synchronisiere Arten - dies kann einige Zeit dauern.",
+  "all_species_synced": "Alle Arten wurden synchronisiert.",
+  "sync_required_message": "Deine Arten wurden nicht vollständig synchronisiert!\n\nDurch das Abmelden werden diese Arten entfernt, also synchronisiere sie bitte zuerst."
 }

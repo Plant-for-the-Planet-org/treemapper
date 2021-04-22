@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Text,
   View,
+  BackHandler,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -27,12 +28,16 @@ import {
   getInventory,
   updateLastScreen,
   updatePlantingDate,
+  deleteInventory,
 } from '../../repositories/inventory';
 import { ALPHABETS, bugsnag } from '../../utils';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
-import SelectSpecies from '../SelectSpecies/index';
-import { INCOMPLETE_INVENTORY } from '../../utils/inventoryStatuses';
+import AlertModal from '../Common/AlertModal';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { toBase64 } from '../../utils/base64';
+import SampleTreesReview from '../SampleTrees/SampleTreesReview';
+import { CommonActions } from '@react-navigation/routers';
+import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -44,20 +49,46 @@ const InventoryOverview = ({ navigation }) => {
   const [selectedLOC, setSelectedLOC] = useState(null);
   const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
   const [showDate, setShowDate] = useState(false);
-  const [isShowSpeciesListModal, setIsShowSpeciesListModal] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
-      let data = { inventory_id: state.inventoryID, last_screen: 'InventoryOverview' };
+      let data = { inventory_id: state.inventoryID, lastScreen: 'InventoryOverview' };
       updateLastScreen(data);
     });
+    const unsubscribeBlur = navigation.addListener('focus', () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+    });
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
+    };
   }, []);
 
+  const hardBackHandler = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'MainScreen' },
+          {
+            name: 'TreeInventory',
+          },
+        ],
+      }),
+    );
+    return true;
+  };
+
   const initialState = () => {
-    getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-      setInventory(inventory);
-    });
+    if (state.inventoryID) {
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+      });
+    }
   };
 
   const renderPolygon = (polygons, locationType) => {
@@ -91,7 +122,7 @@ const InventoryOverview = ({ navigation }) => {
                   return (
                     <InventoryCard
                       data={normalizeData}
-                      activeBtn={inventory.status === 'complete' ? true : false}
+                      activeBtn={true}
                       onPressActiveBtn={onPressViewLOC}
                     />
                   );
@@ -114,7 +145,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressSave = () => {
-    if (inventory.status === INCOMPLETE_INVENTORY) {
+    if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       if (inventory.species.length > 0) {
         let data = { inventory_id: state.inventoryID, status: 'pending' };
         changeInventoryStatus(data, dispatch).then(() => {
@@ -132,7 +163,7 @@ const InventoryOverview = ({ navigation }) => {
     cameraRef.current.setCamera({
       centerCoordinate: selectedLOC,
       zoomLevel: 18,
-      animationDuration: 2000,
+      animationDuration: 1000,
     });
   };
 
@@ -204,23 +235,8 @@ const InventoryOverview = ({ navigation }) => {
   const onPressExportJSON = async () => {
     const exportGeoJSONFile = () => {
       if (inventory.polygons.length > 0) {
-        const featureList = inventory.polygons.map((onePolygon) => {
-          return {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
-                oneCoordinate.longitude,
-                oneCoordinate.latitude,
-              ]),
-            },
-          };
-        });
-        const geoJSON = {
-          type: 'FeatureCollection',
-          features: featureList,
-        };
+        const geoJSON = getGeoJsonData(inventory);
+
         const options = {
           url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
           message: i18next.t('label.inventory_overview_export_json_message'),
@@ -269,7 +285,7 @@ const InventoryOverview = ({ navigation }) => {
           minimumDate={new Date(2006, 0, 1)}
           testID="dateTimePicker"
           timeZoneOffsetInMinutes={0}
-          date={inventory.plantation_date}
+          date={new Date(inventory.plantation_date)}
           mode={'date'}
           is24Hour={true}
           display="default"
@@ -282,9 +298,9 @@ const InventoryOverview = ({ navigation }) => {
 
   const renderAddSpeciesButton = (status) => {
     return (
-      status === INCOMPLETE_INVENTORY && (
+      (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) && (
         <TouchableOpacity
-          onPress={() => setIsShowSpeciesListModal(true)}
+          onPress={handleSelectSpecies}
           style={{
             flexDirection: 'row',
             justifyContent: 'space-around',
@@ -310,32 +326,24 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const onPressDate = (status) => {
-    if (status === INCOMPLETE_INVENTORY && inventory.locate_tree == 'off-site') {
+    if (status === INCOMPLETE && inventory.locateTree === OFF_SITE) {
       setShowDate(true);
     }
   };
 
-  const onPressSaveAndContinueMultiple = (selectedSpeciesList) => {
-    //  Add it to local Db
-    addSpeciesAction({ inventory_id: state.inventoryID, species: selectedSpeciesList }).then(() => {
-      initialState();
-    });
+  const handleSelectSpecies = () => {
+    navigation.navigate('TotalTreesSpecies');
   };
 
-  const renderSelectSpeciesModal = () => {
-    const closeSelectSpeciesModal = () => setIsShowSpeciesListModal(false);
-    if (inventory) {
-      return (
-        <SelectSpecies
-          invent={inventory}
-          visible={isShowSpeciesListModal}
-          closeSelectSpeciesModal={closeSelectSpeciesModal}
-          onPressSaveAndContinueMultiple={onPressSaveAndContinueMultiple}
-        />
-      );
-    } else {
-      return;
-    }
+  const handleDeleteInventory = () => {
+    deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
+      .then(() => {
+        setShowDeleteAlert(!showDeleteAlert);
+        navigation.navigate('TreeInventory');
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   let locationType;
@@ -346,12 +354,13 @@ const InventoryOverview = ({ navigation }) => {
       ? i18next.t('label.tree_inventory_point')
       : i18next.t('label.tree_inventory_polygon');
     locateType =
-      inventory.locate_tree == 'off-site'
+      inventory.locateTree === OFF_SITE
         ? i18next.t('label.tree_inventory_off_site')
         : i18next.t('label.tree_inventory_on_site');
   }
 
   let status = inventory ? inventory.status : 'pending';
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -368,7 +377,7 @@ const InventoryOverview = ({ navigation }) => {
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
                 rightText={i18next.t('label.inventory_overview_date', {
-                  date: inventory.plantation_date,
+                  date: new Date(inventory.plantation_date),
                 })}
                 onPressRightText={() => onPressDate(status)}
               />
@@ -377,8 +386,12 @@ const InventoryOverview = ({ navigation }) => {
               )}
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={status === INCOMPLETE_INVENTORY ? i18next.t('label.edit') : ''}
-                onPressRightText={() => setIsShowSpeciesListModal(true)}
+                rightText={
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    ? i18next.t('label.edit')
+                    : ''
+                }
+                onPressRightText={handleSelectSpecies}
               />
               <FlatList
                 data={inventory.species}
@@ -386,13 +399,17 @@ const InventoryOverview = ({ navigation }) => {
                   <Label
                     leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
                     rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
-                    style={{ marginVertical: 5 }}
-                    leftTextStyle={{ paddingLeft: 20, fontWeight: 'normal' }}
+                    style={{ marginVertical: 10 }}
+                    leftTextStyle={{ paddingLeft: 20, fontFamily: Typography.FONT_FAMILY_REGULAR }}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
                   />
                 )}
               />
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
               {renderPolygon(inventory.polygons, locationType)}
+              {inventory?.sampleTrees.length > 0 && (
+                <SampleTreesReview sampleTrees={inventory.sampleTrees} navigation={navigation} />
+              )}
               <LargeButton
                 onPress={onPressExportJSON}
                 heading={i18next.t('label.inventory_overview_loc_export_json')}
@@ -400,25 +417,32 @@ const InventoryOverview = ({ navigation }) => {
                 medium
               />
             </ScrollView>
-            <View>
+            {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>
-                <PrimaryButton
-                  btnText={i18next.t('label.inventory_overview_loc_next_tree')}
-                  halfWidth
-                  theme={'white'}
-                />
                 <PrimaryButton
                   onPress={onPressSave}
                   btnText={i18next.t('label.inventory_overview_loc_save')}
-                  halfWidth
                 />
               </View>
-            </View>
+            )}
           </View>
         ) : null}
       </View>
+      <AlertModal
+        visible={showDeleteAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={
+          status === 'complete'
+            ? i18next.t('label.tree_review_delete_uploaded_registration')
+            : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
+        }
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
+        onPressPrimaryBtn={handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
+      />
       {renderDatePicker()}
-      {renderSelectSpeciesModal()}
     </SafeAreaView>
   );
 };

@@ -1,7 +1,21 @@
 {
+  "permission_blocked": "Permissão Bloqueada",
+  "permission_blocked_message": "Você precisa dar permissão de localização para registrar a árvore no local.",
+  "open_settings": "Configurações Abertas",
   "back": "Voltar",
+  "ok": "OK",
+  "permission_denied": "Permissão negada",
+  "permission_denied_message": "Você precisa dar permissão de localização para registrar a árvore no local.",
+  "gps_accuracy": "Precisão do GPS",
+  "green": "Verde",
+  "yellow": "Amarelo",
+  "red": "Vermelho",
   "close": "Fechar",
+  "poor_accuracy": "Baixa Precisão",
+  "poor_accuracy_message": "A sua precisão de localização está classificada como RUIM, o que não é recomendado. Tem a certeza que quer continuar?",
   "try_again": "Tente novamente",
   "continue": "Continuar",
+  "location_service": "Localização",
+  "location_service_message": "As configurações de localização não são satisfeitas.",
   "cancel": "Cancelar"
 }

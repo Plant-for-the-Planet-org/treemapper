@@ -25,14 +25,16 @@ const MultipleTrees = ({ navigation, route }) => {
   }, []);
 
   const initialState = () => {
-    let data = { inventory_id: state.inventoryID, last_screen: 'MultipleTrees' };
-    updateLastScreen(data);
-    getInventory({ inventoryID: state.inventoryID }).then((data) => {
-      if (data.plantation_date) {
-        setPlantingDate(data.plantation_date);
-        setSpecies(data.species);
-      }
-    });
+    if (state.inventoryID) {
+      let data = { inventory_id: state.inventoryID, lastScreen: 'MultipleTrees' };
+      updateLastScreen(data);
+      getInventory({ inventoryID: state.inventoryID }).then((data) => {
+        if (data.plantation_date) {
+          setPlantingDate(data.plantation_date);
+          setSpecies(data.species);
+        }
+      });
+    }
   };
 
   const onChangeDate = (event, selectedDate) => {

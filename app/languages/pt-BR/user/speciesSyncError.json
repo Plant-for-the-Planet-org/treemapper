@@ -1,1 +1,8 @@
-{ }
+{
+  "speciesSyncError_heading": "A sincronização das espécies está incompleta!",
+  "speciesSyncError_text": "A sincronização das espécies é necessária para adicionar espécies no inventário. Sincronize quando a conexão com a internet estiver disponível.",
+  "something_went_wrong": "Alguma coisa deu errado. ",
+  "no_internet_connection": "Sem conexão com a Internet!",
+  "verify_email": "Verifique o seu e-mail",
+  "verify_email_message": "Por favor, verifique o seu e-mail antes de fazer o login."
+}
