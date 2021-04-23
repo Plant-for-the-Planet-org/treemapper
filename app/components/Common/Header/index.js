@@ -8,10 +8,8 @@ const Header = ({
   hideBackIcon,
   closeIcon,
   headingText,
-  headingTextInput,
-  setHeadingText,
-  onSubmitInputField,
-  onFocusFunction,
+  headingTextEditable,
+  onPressHeading,
   subHeadingText,
   onBackPress,
   textAlignStyle,
@@ -63,10 +61,10 @@ const Header = ({
         style={
           TitleRightComponent
             ? {
-              flexDirection: 'row-reverse',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }
+                flexDirection: 'row-reverse',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
             : {}
         }>
         {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
@@ -79,7 +77,7 @@ const Header = ({
             ]}>
             {headingText}
           </Text>
-        ) : headingTextInput !== undefined ? (
+        ) : headingTextEditable !== undefined ? (
           // <TextInput
           //   style={{
           //     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
@@ -96,7 +94,7 @@ const Header = ({
           //   onFocus={() => onFocusFunction()}
           //   onSubmitEditing={() => onSubmitInputField()}
           // />
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => onFocusFunction()}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => onPressHeading()}>
             <Text
               style={{
                 fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
@@ -104,7 +102,7 @@ const Header = ({
                 color: Colors.TEXT_COLOR,
                 // flex: 1,
               }}>
-              {headingTextInput}
+              {headingTextEditable}
             </Text>
           </TouchableOpacity>
         ) : (

@@ -98,8 +98,8 @@ const SpecieInfo = ({ route }) => {
                     editEnable === 'aliases'
                       ? editAliases
                       : editEnable === 'description'
-                        ? editDescription
-                        : null
+                      ? editDescription
+                      : null
                   }
                   ref={textInput}
                   style={CommonStyles.bottomInputText}
@@ -120,7 +120,6 @@ const SpecieInfo = ({ route }) => {
                 />
                 <MCIcon
                   onPress={() => {
-                    console.log('Clicked', editAliases, editDescription);
                     setIsOpenModal(false);
                     Keyboard.dismiss();
                     onSubmitInputField(editAliases, editDescription);
@@ -145,13 +144,12 @@ const SpecieInfo = ({ route }) => {
     editEnable === 'aliases'
       ? setAliases(inputValue)
       : editEnable === 'description'
-        ? setDescription(inputValue)
-        : null;
+      ? setDescription(inputValue)
+      : null;
     const isImageChanged = specieState.specie.image !== image;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
     const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
-
     if (shouldUpdateData) {
       updateSpecieData({
         scientificSpecieGuid: specieGuid,
@@ -207,7 +205,6 @@ const SpecieInfo = ({ route }) => {
       </TouchableOpacity>
     );
   };
-  console.log(description, 'Description');
   if (isCamera) {
     return <Camera handleCamera={handleCamera} />;
   } else {
@@ -216,11 +213,11 @@ const SpecieInfo = ({ route }) => {
         {/* <InputModal /> */}
         <View style={styles.container}>
           <Header
-            headingTextInput={aliases}
+            headingTextEditable={aliases}
             TitleRightComponent={CheckIcon}
-            setHeadingText={setAliases}
-            onSubmitInputField={onSubmitInputField}
-            onFocusFunction={() => {
+            // setHeadingText={setAliases}
+            // onSubmitInputField={onSubmitInputField}
+            onPressHeading={() => {
               setEditEnable('aliases');
               setInputValue(aliases);
               setIsOpenModal(true);
@@ -266,22 +263,10 @@ const SpecieInfo = ({ route }) => {
               )}
               <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_name')}</Text>
-                <Text style={styles.infoCardText}>{specieName}</Text>
+                <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
+                  {specieName}
+                </Text>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
-                {/* <TextInput
-                  style={[styles.infoCardText, { padding: 0 }]}
-                  placeholder={i18next.t('label.type_description_here')}
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  textAlignVertical="top"
-                  maxLength={255}
-                  onSubmitEditing={onSubmitInputField}
-                  onFocus={() => {
-                    setEditEnable('description');
-                    setIsOpenModal(true);
-                  }}
-                /> */}
                 <TouchableOpacity
                   onPress={() => {
                     setEditEnable('description');
@@ -301,22 +286,8 @@ const SpecieInfo = ({ route }) => {
               </View>
             </KeyboardAvoidingView>
             <InputModal
-              value={
-                // editEnable === 'aliases'
-                //   ? aliases
-                //   : editEnable === 'description'
-                //   ? description
-                //   : null
-                inputValue
-              }
-              setValue={
-                // editEnable === 'aliases'
-                //   ? setAliases
-                //   : editEnable === 'description'
-                //   ? setDescription
-                //   : null
-                setInputValue
-              }
+              value={inputValue}
+              setValue={setInputValue}
               onSubmitInputField={onSubmitInputField}
               isOpenModal={isOpenModal}
               setIsOpenModal={setIsOpenModal}

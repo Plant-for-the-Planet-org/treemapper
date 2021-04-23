@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, Typography, CommonStyles } from '_styles';
+import { Colors, CommonStyles } from '_styles';
 
 const InputModal = ({
   value,
@@ -20,8 +20,6 @@ const InputModal = ({
   setIsOpenModal,
   inputType,
 }) => {
-  //   const [editAliases, setEditAliases] = useState(aliases);
-  //   const [editDescription, setEditDescription] = useState(description);
   const textInput = useRef(null);
   // useEffect(() => {
   //   if (isOpenModal) {
@@ -55,7 +53,7 @@ const InputModal = ({
                 ref={textInput}
                 keyboardType={inputType === 'text' ? 'default' : 'decimal-pad'}
                 style={CommonStyles.bottomInputText}
-                autoFocus={true}
+                // autoFocus={true}
                 placeholderTextColor={Colors.TEXT_COLOR}
                 multiline={true}
                 onChangeText={(text) => {
@@ -77,7 +75,6 @@ const InputModal = ({
               />
               <MCIcon
                 onPress={() => {
-                  console.log('Clicked');
                   setIsOpenModal(false);
                   Keyboard.dismiss();
                   onSubmitInputField();
