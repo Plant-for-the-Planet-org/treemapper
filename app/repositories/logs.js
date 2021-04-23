@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import Realm from 'realm';
-
+import { version } from '../../package.json';
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
  * It writes to realm while creating a log
@@ -13,7 +13,6 @@ import Realm from 'realm';
  * @returns {boolean} - returns a promise with boolean value on whether the operation was successful or not.
  */
 const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack }) => {
-  const pjson = require('../../package.json');
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -26,7 +25,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
             logLevel,
             timestamp: new Date(),
             message,
-            appVersion: `TM v${pjson.version}`,
+            appVersion: `TM v${version}`,
           };
           // checks if referenceId is present then adds it to logData
           if (referenceId) {

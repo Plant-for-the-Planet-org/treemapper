@@ -80,22 +80,33 @@ const Header = ({
             {headingText}
           </Text>
         ) : headingTextInput !== undefined ? (
-          <TextInput
-            style={{
-              fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-              fontSize: Typography.FONT_SIZE_27,
-              color: Colors.TEXT_COLOR,
-              flex: 1,
-            }}
-            multiline={true}
-            blurOnSubmit={true}
-            onChangeText={(text) => setHeadingText(text)}
-            value={headingTextInput}
-            placeholder="Type Aliases Here"
-            returnKeyType={'done'}
-            onFocus={() => onFocusFunction()}
-            onSubmitEditing={() => onSubmitInputField()}
-          />
+          // <TextInput
+          //   style={{
+          //     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+          //     fontSize: Typography.FONT_SIZE_27,
+          //     color: Colors.TEXT_COLOR,
+          //     flex: 1,
+          //   }}
+          //   multiline={true}
+          //   blurOnSubmit={true}
+          //   onChangeText={(text) => setHeadingText(text)}
+          //   value={headingTextInput}
+          //   placeholder="Type Aliases Here"
+          //   returnKeyType={'done'}
+          //   onFocus={() => onFocusFunction()}
+          //   onSubmitEditing={() => onSubmitInputField()}
+          // />
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => onFocusFunction()}>
+            <Text
+              style={{
+                fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+                fontSize: Typography.FONT_SIZE_27,
+                color: Colors.TEXT_COLOR,
+                // flex: 1,
+              }}>
+              {headingTextInput}
+            </Text>
+          </TouchableOpacity>
         ) : (
           []
         )}
