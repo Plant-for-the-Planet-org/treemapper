@@ -82,16 +82,17 @@ export default function LogoutWarning(props: LogoutWarningProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
   },
   bottomBtnsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
   },
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
     justifyContent: 'space-between',
+    paddingHorizontal: 25
   },
   syncMessage: {
     color: Colors.TEXT_COLOR,
@@ -106,5 +107,6 @@ const styles = StyleSheet.create({
   bannerContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 50
   },
 });

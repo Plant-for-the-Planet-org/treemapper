@@ -1,7 +1,7 @@
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useIsFocused } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import {
   Dimensions,
   Image,
@@ -10,7 +10,6 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -26,17 +25,19 @@ import { toggleUserSpecies } from '../../repositories/species';
 import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
+import InputModal from '../Common/InputModal';
 
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
   const [aliases, setAliases] = useState('');
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
-
+  const [isOpenModal, setIsOpenModal] = useState(false);
   const [specieName, setSpecieName] = useState('');
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
-
+  const [inputValue, setInputValue] = useState('');
+  const [editEnable, setEditEnable] = useState('');
   const { state: specieState, dispatch } = useContext(SpeciesContext);
 
   const netInfo = useNetInfo();
@@ -63,11 +64,15 @@ const SpecieInfo = ({ route }) => {
   }, [isFocused]);
 
   const onSubmitInputField = () => {
+    editEnable === 'aliases'
+      ? setAliases(inputValue)
+      : editEnable === 'description'
+        ? setDescription(inputValue)
+        : [];
     const isImageChanged = specieState.specie.image !== image;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
     const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
-
     if (shouldUpdateData) {
       updateSpecieData({
         scientificSpecieGuid: specieGuid,
@@ -76,6 +81,7 @@ const SpecieInfo = ({ route }) => {
         image,
       })
         .then(async () => {
+          console.log('Updated Data');
           const userToken = await getUserToken();
           if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
             updateUserSpecie({
@@ -88,7 +94,7 @@ const SpecieInfo = ({ route }) => {
           }
         })
         .catch((err) => {
-          console.error('something went wrong');
+          console.error('something went wrong', err);
         });
     }
   };
@@ -122,7 +128,6 @@ const SpecieInfo = ({ route }) => {
       </TouchableOpacity>
     );
   };
-
   if (isCamera) {
     return <Camera handleCamera={handleCamera} />;
   } else {
@@ -130,12 +135,15 @@ const SpecieInfo = ({ route }) => {
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
           <Header
-            headingTextInput={aliases}
+            headingTextEditable={aliases}
             TitleRightComponent={CheckIcon}
-            setHeadingText={setAliases}
-            onSubmitInputField={onSubmitInputField}
+            onPressHeading={() => {
+              setEditEnable('aliases');
+              setInputValue(aliases);
+              setIsOpenModal(true);
+            }}
           />
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'handled'}>
             <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
               {!image ? (
                 <TouchableOpacity
@@ -173,23 +181,38 @@ const SpecieInfo = ({ route }) => {
                   </View>
                 </View>
               )}
-              {/* <InfoCard /> */}
               <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_name')}</Text>
-                <Text style={styles.infoCardText}>{specieName}</Text>
+                <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
+                  {specieName}
+                </Text>
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
-                <TextInput
-                  style={[styles.infoCardText, { padding: 0 }]}
-                  placeholder={i18next.t('label.type_description_here')}
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  textAlignVertical="top"
-                  maxLength={255}
-                  onSubmitEditing={onSubmitInputField}
-                />
+                <TouchableOpacity
+                  onPress={() => {
+                    setEditEnable('description');
+                    setInputValue(description);
+                    setIsOpenModal(true);
+                  }}>
+                  {description && description !== '' ? (
+                    <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
+                      {description}
+                    </Text>
+                  ) : (
+                    <Text style={[styles.infoCardText, { padding: 0, color: Colors.GRAY_DARK }]}>
+                      Add Description
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
+            <InputModal
+              value={inputValue}
+              setValue={setInputValue}
+              onSubmitInputField={onSubmitInputField}
+              isOpenModal={isOpenModal}
+              setIsOpenModal={setIsOpenModal}
+              inputType={'text'}
+            />
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -205,6 +228,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
+    backgroundColor: Colors.WHITE,
+  },
+  cont: {
+    flex: 1,
+  },
+  bgWhite: {
     backgroundColor: Colors.WHITE,
   },
   emptyImageContainer: {
