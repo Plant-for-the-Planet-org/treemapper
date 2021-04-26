@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   Modal,
   View,
@@ -21,11 +21,6 @@ const InputModal = ({
   inputType,
 }) => {
   const textInput = useRef(null);
-  // useEffect(() => {
-  //   if (isOpenModal) {
-  //     textInput.current.focus();
-  //   }
-  // }, []);
   return (
     <Modal
       transparent={true}
@@ -40,16 +35,8 @@ const InputModal = ({
             behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
             style={styles.bgWhite}>
             <View style={CommonStyles.bottomInputContainer}>
-              {/* <Text style={CommonStyles.bottomInputLabel}>{editEnable ? editEnable : null}</Text> */}
               <TextInput
-                value={
-                  //   editEnable === 'aliases'
-                  //     ? editAliases
-                  //     : editEnable === 'description'
-                  //     ? editDescription
-                  //     : null
-                  value
-                }
+                value={value}
                 ref={textInput}
                 keyboardType={inputType === 'text' ? 'default' : 'decimal-pad'}
                 style={CommonStyles.bottomInputText}
@@ -57,11 +44,6 @@ const InputModal = ({
                 placeholderTextColor={Colors.TEXT_COLOR}
                 multiline={true}
                 onChangeText={(text) => {
-                  //   if (editEnable === 'aliases') {
-                  //     setEditAliases(text);
-                  //   } else if (editEnable === 'description') {
-                  //     setEditDescription(text);
-                  //   }
                   if (inputType === 'text') {
                     setValue(text);
                   } else {

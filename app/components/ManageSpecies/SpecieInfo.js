@@ -10,19 +10,15 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  Keyboard,
-  Modal,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, Typography, CommonStyles } from '_styles';
+import { Colors, Typography } from '_styles';
 import { clearSpecie, updateUserSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { toggleUserSpecies } from '../../repositories/species';
@@ -40,8 +36,6 @@ const SpecieInfo = ({ route }) => {
   const [specieName, setSpecieName] = useState('');
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
-  // const [editAliases, setEditAliases] = useState('');
-  // const [editDescription, setEditDescription] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [editEnable, setEditEnable] = useState('');
   const { state: specieState, dispatch } = useContext(SpeciesContext);
@@ -69,83 +63,12 @@ const SpecieInfo = ({ route }) => {
     }
   }, [isFocused]);
 
-  const InputModall = () => {
-    const [editAliases, setEditAliases] = useState(aliases);
-    const [editDescription, setEditDescription] = useState(description);
-    const textInput = useRef(null);
-    // useEffect(() => {
-    //   if (isOpenModal) {
-    //     textInput.current.focus();
-    //   }
-    // }, []);
-    return (
-      <Modal
-        transparent={true}
-        visible={isOpenModal}
-        onShow={() => {
-          textInput.current.focus();
-        }}>
-        <View style={styles.cont}>
-          <View style={styles.cont}>
-            <View style={styles.cont} />
-            <KeyboardAvoidingView
-              behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-              style={styles.bgWhite}>
-              <View style={CommonStyles.bottomInputContainer}>
-                {/* <Text style={CommonStyles.bottomInputLabel}>{editEnable ? editEnable : null}</Text> */}
-                <TextInput
-                  value={
-                    editEnable === 'aliases'
-                      ? editAliases
-                      : editEnable === 'description'
-                        ? editDescription
-                        : null
-                  }
-                  ref={textInput}
-                  style={CommonStyles.bottomInputText}
-                  autoFocus={true}
-                  placeholderTextColor={Colors.TEXT_COLOR}
-                  multiline={true}
-                  onChangeText={(text) => {
-                    if (editEnable === 'aliases') {
-                      setEditAliases(text);
-                    } else if (editEnable === 'description') {
-                      setEditDescription(text);
-                    }
-                  }}
-                  onSubmitEditing={() => {
-                    onSubmitInputField(editAliases, editDescription);
-                    setIsOpenModal(false);
-                  }}
-                />
-                <MCIcon
-                  onPress={() => {
-                    setIsOpenModal(false);
-                    Keyboard.dismiss();
-                    onSubmitInputField(editAliases, editDescription);
-                  }}
-                  name={'arrow-right'}
-                  size={30}
-                  color={Colors.PRIMARY}
-                />
-              </View>
-              <SafeAreaView />
-            </KeyboardAvoidingView>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   const onSubmitInputField = () => {
-    // console.log(aliases, description, 'onSubmitInputField');
-    // setAliases(aliases);
-    // setDescription(description);
     editEnable === 'aliases'
       ? setAliases(inputValue)
       : editEnable === 'description'
         ? setDescription(inputValue)
-        : null;
+        : [];
     const isImageChanged = specieState.specie.image !== image;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
@@ -210,13 +133,10 @@ const SpecieInfo = ({ route }) => {
   } else {
     return (
       <SafeAreaView style={styles.mainContainer}>
-        {/* <InputModal /> */}
         <View style={styles.container}>
           <Header
             headingTextEditable={aliases}
             TitleRightComponent={CheckIcon}
-            // setHeadingText={setAliases}
-            // onSubmitInputField={onSubmitInputField}
             onPressHeading={() => {
               setEditEnable('aliases');
               setInputValue(aliases);

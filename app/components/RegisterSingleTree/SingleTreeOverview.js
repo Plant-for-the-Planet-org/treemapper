@@ -2,27 +2,22 @@ import { CommonActions, useNavigation, useRoute } from '@react-navigation/native
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Alert,
   BackHandler,
   Dimensions,
   Image,
-  KeyboardAvoidingView,
-  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, CommonStyles, Typography } from '_styles';
+import { Colors, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -347,61 +342,6 @@ const SingleTreeOverview = () => {
       });
   };
 
-  const renderInputModal = () => {
-    return (
-      <Modal transparent={true} visible={isOpenModal}>
-        <View style={styles.cont}>
-          <View style={styles.cont}>
-            <View style={styles.cont} />
-            <KeyboardAvoidingView
-              behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-              style={styles.bgWhite}>
-              <View style={CommonStyles.bottomInputContainer}>
-                <Text style={CommonStyles.bottomInputLabel}>
-                  {editEnable === 'diameter'
-                    ? i18next.t('label.tree_review_diameter')
-                    : editEnable === 'height'
-                      ? i18next.t('label.tree_review_height')
-                      : i18next.t('label.tree_review_tree_tag_header')}
-                </Text>
-                <TextInput
-                  value={
-                    editEnable === 'diameter'
-                      ? specieEditDiameter.toString()
-                      : editEnable === 'height'
-                        ? specieEditHeight.toString()
-                        : editedTagId
-                  }
-                  style={CommonStyles.bottomInputText}
-                  autoFocus
-                  placeholderTextColor={Colors.TEXT_COLOR}
-                  keyboardType={editEnable === 'tagId' ? 'default' : 'decimal-pad'}
-                  onChangeText={(text) => {
-                    if (editEnable === 'diameter') {
-                      setSpecieEditDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-                    } else if (editEnable === 'height') {
-                      setSpecieEditHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-                    } else {
-                      setEditedTagId(text);
-                    }
-                  }}
-                  onSubmitEditing={() => onSubmitInputField(editEnable)}
-                />
-                <MCIcon
-                  onPress={() => onSubmitInputField(editEnable)}
-                  name={'arrow-right'}
-                  size={30}
-                  color={Colors.PRIMARY}
-                />
-              </View>
-              <SafeAreaView />
-            </KeyboardAvoidingView>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   const onPressEditSpecies = (action) => {
     if (action === 'species') {
       setIsShowManageSpecies(true);
@@ -718,7 +658,6 @@ const SingleTreeOverview = () => {
     />
   ) : (
     <SafeAreaView style={styles.mainContainer}>
-      {/* {renderInputModal()} */}
       <InputModal
         isOpenModal={isOpenModal}
         setIsOpenModal={setIsOpenModal}
