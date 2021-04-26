@@ -11,7 +11,7 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
     getUserDetailsFromServer(userDispatch)
       .then(() =>
         checkAndAddUserSpecies().then(() => {
-          console.log('adding inventory from server');
+          console.log('adding inventory from server checkLoginAndSync');
           addInventoryFromServer();
         }),
       )

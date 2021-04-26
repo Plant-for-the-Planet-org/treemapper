@@ -116,17 +116,19 @@ const MainScreen = ({ navigation }) => {
     fetchUserDetails();
   }, [loadingState.isLoading]);
 
-  useEffect(() => {
-    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
-      checkLoginAndSync({
-        sync: true,
-        dispatch,
-        userDispatch,
-        connected: netInfo.isConnected,
-        internet: netInfo.isInternetReachable,
-      });
-    }
-  }, [pendingInventory, netInfo, isFocused]);
+  // ! Need to changed when auto upload is implemented
+  // useEffect(() => {
+  //   if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+  //     console.log('use effect checkLoginAndSync');
+  //     checkLoginAndSync({
+  //       sync: true,
+  //       dispatch,
+  //       userDispatch,
+  //       connected: netInfo.isConnected,
+  //       internet: netInfo.isInternetReachable,
+  //     });
+  //   }
+  // }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData, changes) {
@@ -192,17 +194,6 @@ const MainScreen = ({ navigation }) => {
         .then(() => {
           stopLoading()(loadingDispatch);
           fetchUserDetails();
-          checkLoginAndSync({
-            sync: true,
-            dispatch,
-            userDispatch,
-            connected: netInfo.isConnected,
-            internet: netInfo.isInternetReachable,
-          });
-          checkAndAddUserSpecies().then(() => {
-            console.log('adding inventory from server after Login');
-            addInventoryFromServer();
-          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
