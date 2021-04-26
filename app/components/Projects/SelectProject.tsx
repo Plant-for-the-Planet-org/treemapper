@@ -68,7 +68,11 @@ export default function SelectProject({}: SelectProjectProps) {
           onProjectPress={onProjectPress}
           selectedProjectId={selectedProjectId}
         />
-        <PrimaryButton onPress={onPressContinue} btnText={i18next.t('label.continue')} />
+        <PrimaryButton
+          onPress={onPressContinue}
+          btnText={i18next.t('label.continue')}
+          style={{ marginTop: 10 }}
+        />
       </View>
     </SafeAreaView>
   );

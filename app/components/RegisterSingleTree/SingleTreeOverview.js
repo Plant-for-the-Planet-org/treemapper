@@ -615,24 +615,28 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginBottom: 15 }}>
-          <Text style={detailHeaderStyle}>
-            {i18next.t('label.tree_review_project').toUpperCase()}
-          </Text>
-          <TouchableOpacity
-            disabled={!shouldEdit}
-            onPress={() => onPressEditSpecies('project')}
-            accessible={true}
-            accessibilityLabel="register_project"
-            testID="register_project">
-            <Text style={styles.detailText}>
-              {selectedProjectName
-                ? selectedProjectName
-                : i18next.t('label.tree_review_unassigned')}{' '}
-              {shouldEdit && <MIcon name={'edit'} size={20} />}
+        {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree ? (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={detailHeaderStyle}>
+              {i18next.t('label.tree_review_project').toUpperCase()}
             </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              disabled={!shouldEdit}
+              onPress={() => onPressEditSpecies('project')}
+              accessible={true}
+              accessibilityLabel="register_project"
+              testID="register_project">
+              <Text style={styles.detailText}>
+                {selectedProjectName
+                  ? selectedProjectName
+                  : i18next.t('label.tree_review_unassigned')}{' '}
+                {shouldEdit && <MIcon name={'edit'} size={20} />}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          []
+        )}
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_tree_tag_header')}</Text>
           <TouchableOpacity

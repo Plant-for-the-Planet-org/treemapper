@@ -10,7 +10,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AvatarIcon from '../Common/AvatarIcon';
 import { APIConfig } from '../../actions/Config';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProfileModalProps {
   onPressCloseProfileModal: any;
@@ -55,7 +55,7 @@ const ProfileModal = ({
     );
   };
   const onPressEdit = () => {
-    Linking.openURL('https://www.trilliontreecampaign.org/login');
+    Linking.openURL(`${protocol}://${webAppUrl}/login`);
   };
   let avatar =
     cdnUrl && userInfo.image

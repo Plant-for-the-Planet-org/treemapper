@@ -15,7 +15,10 @@ import { APIConfig } from '../../actions/Config';
 import { getAllProjects } from '../../repositories/projects';
 import { Colors, Typography } from '../../styles';
 import { bugsnag } from '../../utils';
+import { handleFilter } from '../../utils/CountryDataFilter';
 import { LargeButton } from '../Common';
+import { trees } from '../../assets';
+import { SvgXml } from 'react-native-svg';
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProjectListProps {
@@ -94,6 +97,11 @@ export default function ProjectList({
 
 const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId?: string }) => {
   const isProjectSelected = selectedProjectId === item.id;
+  let country: any = handleFilter(item.country);
+  if (country) {
+    country = country[0].countryName;
+  }
+  console.log('country', country);
   return (
     <View
       style={[styles.listItemContainer, isProjectSelected ? { borderColor: Colors.PRIMARY } : {}]}>
@@ -103,17 +111,18 @@ const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId
           style={styles.image}
         />
       ) : (
-        <View style={styles.image} />
+        <View style={[styles.image, { backgroundColor: Colors.GRAY_LIGHT, paddingBottom: 10 }]}>
+          <SvgXml xml={trees} />
+        </View>
       )}
       <Text style={[styles.projectText, isProjectSelected ? { color: Colors.PRIMARY } : {}]}>
         {item.name}
       </Text>
-      {item.location ||
-        (item.country && (
-          <Text style={[styles.projectText, { fontFamily: Typography.FONT_FAMILY_REGULAR }]}>
-            {item.location ? item.location : item.country}
-          </Text>
-        ))}
+      {(country || item.country) && (
+        <Text style={[styles.projectText, { fontFamily: Typography.FONT_FAMILY_REGULAR }]}>
+          {country ? country : item.country}
+        </Text>
+      )}
     </View>
   );
 };
@@ -146,7 +155,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 160,
     borderRadius: 10,
-    backgroundColor: Colors.PRIMARY,
     marginBottom: 10,
   },
   projectText: {

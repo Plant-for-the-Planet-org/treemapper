@@ -392,6 +392,11 @@ const InventoryOverview = ({ navigation }) => {
                   date: new Date(inventory.plantation_date),
                 })}
                 onPressRightText={() => onPressDate(status)}
+                rightTextStyle={
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    ? { color: Colors.PRIMARY }
+                    : { color: Colors.TEXT_COLOR }
+                }
               />
               {!isSingleCoordinate && (
                 <Label leftText={`${locateType} Registration`} rightText={''} />
@@ -404,11 +409,15 @@ const InventoryOverview = ({ navigation }) => {
                     : i18next.t('label.tree_review_unassigned')
                 }
                 onPressRightText={() =>
-                  status === INCOMPLETE
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
                     ? navigation.navigate('SelectProject', { selectedProjectId })
                     : {}
                 }
-                rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                rightTextStyle={
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    ? { color: Colors.PRIMARY }
+                    : { color: Colors.TEXT_COLOR }
+                }
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
@@ -448,6 +457,7 @@ const InventoryOverview = ({ navigation }) => {
                 <PrimaryButton
                   onPress={onPressSave}
                   btnText={i18next.t('label.inventory_overview_loc_save')}
+                  style={{ marginTop: 10 }}
                 />
               </View>
             )}
