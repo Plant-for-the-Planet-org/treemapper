@@ -908,6 +908,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
         realm.write(() => {
           let species = [];
           let coordinates = [];
+          //for single tree
           if (inventoryFromServer.scientificSpecies) {
             let specie = realm.objectForPrimaryKey(
               'ScientificSpecies',
@@ -917,7 +918,9 @@ export const addInventoryToDB = (inventoryFromServer) => {
             let treeCount = parseInt(1);
             let id = inventoryFromServer.scientificSpecies;
             species.push({ aliases, treeCount, id });
-          } else if (inventoryFromServer.plantedSpecies) {
+          }
+          //for multiple trees
+          else if (inventoryFromServer.plantedSpecies) {
             for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
               let id;
               let specie;

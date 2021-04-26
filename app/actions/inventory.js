@@ -67,10 +67,21 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   });
 };
 
-export const getAllInventoryFromServer = () => {
+export const getAllInventoryFromServer = (type) => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
-      resolve(data.data);
+      if (type !== 'sample') {
+        let filteredData = data.data.filter((inventory) => {
+          return inventory.type !== 'sample';
+        });
+        resolve(filteredData);
+      } else {
+        let filteredData = data.data.filter((inventory) => {
+          return inventory.type === 'sample';
+        });
+        resolve(filteredData);
+      }
+      // resolve(data.data);
     });
   });
 };
