@@ -1,6 +1,14 @@
 import i18next from 'i18next';
 import React, { useRef, useState } from 'react';
-import { Linking, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import {
+  Linking,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  ImageBackground,
+} from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { Colors, Typography } from '_styles';
 import { copyImageAndGetData } from '../../../utils/FSInteration';
@@ -45,51 +53,76 @@ export default function Camera({ handleCamera }) {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <RNCamera
-        captureAudio={false}
-        ref={camera}
-        style={styles.cameraContainer}
-        notAuthorizedView={
-          <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text>
-            {Platform.OS === 'ios' ? (
-              <Text style={styles.message} onPress={onClickOpenSettings}>
-                {i18next.t('label.open_settings')}
-              </Text>
+      {imagePath ? (
+        <ImageBackground source={{ uri: imagePath }} style={styles.cameraContainer}>
+          <Header whiteBackIcon />
+          <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
+            <PrimaryButton
+              onPress={onPressCamera}
+              btnText={
+                imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
+              }
+              theme={imagePath ? 'white' : null}
+              halfWidth={imagePath}
+            />
+            {imagePath ? (
+              <PrimaryButton
+                disabled={imagePath ? false : true}
+                onPress={onPressContinue}
+                btnText={i18next.t('label.continue')}
+                halfWidth={true}
+              />
             ) : (
               []
             )}
           </View>
-        }
-        androidCameraPermissionOptions={{
-          title: i18next.t('label.permission_camera_title'),
-          message: i18next.t('label.permission_camera_message'),
-          buttonPositive: i18next.t('label.permission_camera_ok'),
-          buttonNegative: i18next.t('label.permission_camera_cancel'),
-        }}>
-        <Header whiteBackIcon />
-
-        <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
-          <PrimaryButton
-            onPress={onPressCamera}
-            btnText={
-              imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
-            }
-            theme={imagePath ? 'white' : null}
-            halfWidth={imagePath}
-          />
-          {imagePath ? (
+        </ImageBackground>
+      ) : (
+        <RNCamera
+          captureAudio={false}
+          ref={camera}
+          style={styles.cameraContainer}
+          notAuthorizedView={
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text>
+              {Platform.OS === 'ios' ? (
+                <Text style={styles.message} onPress={onClickOpenSettings}>
+                  {i18next.t('label.open_settings')}
+                </Text>
+              ) : (
+                []
+              )}
+            </View>
+          }
+          androidCameraPermissionOptions={{
+            title: i18next.t('label.permission_camera_title'),
+            message: i18next.t('label.permission_camera_message'),
+            buttonPositive: i18next.t('label.permission_camera_ok'),
+            buttonNegative: i18next.t('label.permission_camera_cancel'),
+          }}>
+          <Header whiteBackIcon />
+          <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
             <PrimaryButton
-              disabled={imagePath ? false : true}
-              onPress={onPressContinue}
-              btnText={i18next.t('label.continue')}
-              halfWidth={true}
+              onPress={onPressCamera}
+              btnText={
+                imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
+              }
+              theme={imagePath ? 'white' : null}
+              halfWidth={imagePath}
             />
-          ) : (
-            []
-          )}
-        </View>
-      </RNCamera>
+            {imagePath ? (
+              <PrimaryButton
+                disabled={imagePath ? false : true}
+                onPress={onPressContinue}
+                btnText={i18next.t('label.continue')}
+                halfWidth={true}
+              />
+            ) : (
+              []
+            )}
+          </View>
+        </RNCamera>
+      )}
     </SafeAreaView>
   );
 }
@@ -105,11 +138,12 @@ const styles = StyleSheet.create({
   bottomBtnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: 25,
   },
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
   },
   cameraContainer: {
     flex: 1,
