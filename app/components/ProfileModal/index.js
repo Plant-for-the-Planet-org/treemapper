@@ -49,7 +49,10 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar = cdnUrl && userInfo.image ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}` : '';
+  let avatar =
+    cdnUrl && userInfo.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+      : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
@@ -93,8 +96,8 @@ const ProfileModal = ({
       },
     },
     {
-      media: logout,
-      mediaType: 'image',
+      media: 'sign-out-alt',
+      mediaType: 'icon',
       onPressFunction: onPressLogout,
       text: 'logout',
     },
