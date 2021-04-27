@@ -361,7 +361,6 @@ const InventoryOverview = ({ navigation }) => {
   }
 
   let status = inventory ? inventory.status : 'pending';
-  console.log(status, 'status');
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}

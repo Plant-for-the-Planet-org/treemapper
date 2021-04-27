@@ -661,16 +661,18 @@ const SingleTreeOverview = () => {
     } else {
       if (specieText) {
         let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
-        changeInventoryStatus(data, dispatch).then(() => {
-          checkLoginAndSync({
-            sync: true,
-            dispatch,
-            userDispatch,
-            connected: netInfo.isConnected,
-            internet: netInfo.isInternetReachable,
+        changeInventoryStatus(data, dispatch)
+          // For Auto-upload check the case duplication of inventory while uploading
+          .then(() => {
+            //   checkLoginAndSync({
+            //     sync: true,
+            //     dispatch,
+            //     userDispatch,
+            //     connected: netInfo.isConnected,
+            //     internet: netInfo.isInternetReachable,
+            //   });
+            navigation.navigate('TreeInventory');
           });
-          navigation.navigate('TreeInventory');
-        });
       } else {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
@@ -729,7 +731,6 @@ const SingleTreeOverview = () => {
       );
     }
   };
-
   const handleDeleteInventory = () => {
     deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
@@ -775,13 +776,7 @@ const SingleTreeOverview = () => {
                     ? i18next.t('label.tree_review_details')
                     : i18next.t('label.tree_review_header')
               }
-              rightText={
-                status !== INCOMPLETE_SAMPLE_TREE &&
-                !route?.params?.isSampleTree &&
-                status !== 'pending'
-                  ? i18next.t('label.tree_review_delete')
-                  : []
-              }
+              rightText={status === INCOMPLETE ? i18next.t('label.tree_review_delete') : []}
               onPressFunction={() => setShowDeleteAlert(true)}
             />
           </View>
