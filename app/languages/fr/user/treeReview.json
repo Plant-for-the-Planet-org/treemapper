@@ -8,6 +8,8 @@
   "tree_review_location": "EMPLACEMENT",
   "tree_review_specie": "ESPÈCE",
   "tree_review_unable": "Impossible d'identifier",
+  "tree_review_diameter_header": "DIAMÈTRE",
+  "tree_review_height_header": "HAUTEUR",
   "tree_review_tree_tag_header": "ÉTIQUETTE D'ARBRE ",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
@@ -16,5 +18,8 @@
   "tree_review_alrighty": "Compléter",
   "tree_review_register_planting_date": "Enregistrer la date de plantation",
   "tree_review_delete": "Effacer",
-  "tree_review_details": "Détails de l'arbre"
+  "tree_review_details": "Détails de l'arbre",
+  "tree_review_not_tagged": "Non étiqueté",
+  "tree_review_delete_not_yet_uploaded_registration": "L'enregistrement n'est pas encore téléchargé sur Plant-for-the-Planet. Une fois supprimé, il sera perdu à jamais.",
+  "tree_review_delete_uploaded_registration": "Cet enregistrement est sécurisé sur le cloud. Une fois cet enregistrement supprimé, il n'est actuellement pas possible de le récupérer sur cette application"
 }

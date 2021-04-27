@@ -53,6 +53,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
         totalTreeCount += Number(species[i].treeCount);
       }
       if (totalTreeCount < 2) {
+        // TODO:i18n - if this is used, please add translations
         alert('Tree count should be greater than one.');
         return;
       }

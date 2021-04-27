@@ -7,7 +7,6 @@
   "lastname": "Sobrenome",
   "tpo_title": "Organização de Plantio de Árvores",
   "education_title": "Escola",
-  "education": "Educação",
   "signup_confirm": "Por favor, confirme seus dados.",
   "individual": "Indivíduo",
   "company": "Empresa",
@@ -16,5 +15,15 @@
   "city": "CIDADE",
   "address": "ENDEREÇO",
   "zipcode": "CÓDIGO POSTAL",
-  "account_type": "TIPO DE CONTA"
+  "account_type": "TIPO DE CONTA",
+  "select_country": "Selecione o país",
+  "select_role_type": "Selecione o tipo de conta",
+  "enter_first_name": "Digite o primeiro nome",
+  "enter_last_name": "Digite o sobrenome",
+  "enter_city_name": "Nome da cidade",
+  "enter_zipcode": "Zipcode",
+  "enter_address": "Endereço",
+  "enter_organisation_name": "Nome da organização",
+  "country": "PAÍS",
+  "change": "alteração"
 }

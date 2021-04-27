@@ -1,41 +1,129 @@
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import {RNCamera} from 'react-native-camera';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import i18next from 'i18next';
+import React, { useRef, useState } from 'react';
+import {
+  Linking,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  ImageBackground,
+} from 'react-native';
+import { RNCamera } from 'react-native-camera';
+import { Colors, Typography } from '_styles';
+import { copyImageAndGetData } from '../../../utils/copyToFS';
+import Header from '../Header';
+import PrimaryButton from '../PrimaryButton';
 
-export default function index({handleCamera}) {
+export default function Camera({ handleCamera }) {
   const camera = useRef();
-  // const [imagePath, setImagePath] = useState(null);
+  const [imagePath, setImagePath] = useState('');
+  const [base64Image, setBase64Image] = useState('');
 
-  const takePicture =async () => {
-    const options = { quality: 0.5 };
+  const onPressContinue = async () => {
+    const fsurl = await copyImageAndGetData(imagePath);
+    handleCamera({ uri: imagePath, fsurl, base64Image });
+  };
+
+  const onPressCamera = async () => {
+    if (imagePath) {
+      setImagePath('');
+      setBase64Image('');
+      return;
+    }
+    const options = { base64: true };
     const data = await camera.current.takePictureAsync(options).catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
+      setImagePath('');
+      setBase64Image('');
+      return;
     });
-    // setImagePath(data.uri);
-    handleCamera(data.uri);
+
+    if (data) {
+      setBase64Image(data.base64);
+      setImagePath(data.uri);
+    }
   };
+
+  const onClickOpenSettings = async () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    }
+  };
+
   return (
-    <RNCamera
-      ratio={'1:1'}
-      captureAudio={false}
-      ref={camera}
-      style={{flex: 1}}
-      notAuthorizedView={(<View><Text>{i18next.t('label.permission_camera_message')}</Text></View>)}
-      androidCameraPermissionOptions={{
-        title: i18next.t('label.permission_camera_title'),
-        message: i18next.t('label.permission_camera_message'),
-        buttonPositive: i18next.t('label.permission_camera_ok'),
-        buttonNegative: i18next.t('label.permission_camera_cancel'),
-      }}>
-      <TouchableOpacity
-        activeOpacity={0.5}
-        style={styles.btnAlignment}
-        onPress={() => takePicture()}>
-        <Icon name="camera" size={50} color="#fff" />
-      </TouchableOpacity>
-    </RNCamera>
+    <SafeAreaView style={styles.mainContainer}>
+      {imagePath ? (
+        <ImageBackground source={{ uri: imagePath }} style={styles.cameraContainer}>
+          <Header whiteBackIcon />
+          <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
+            <PrimaryButton
+              onPress={onPressCamera}
+              btnText={
+                imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
+              }
+              theme={imagePath ? 'white' : null}
+              halfWidth={imagePath}
+            />
+            {imagePath ? (
+              <PrimaryButton
+                disabled={imagePath ? false : true}
+                onPress={onPressContinue}
+                btnText={i18next.t('label.continue')}
+                halfWidth={true}
+              />
+            ) : (
+              []
+            )}
+          </View>
+        </ImageBackground>
+      ) : (
+        <RNCamera
+          captureAudio={false}
+          ref={camera}
+          style={styles.cameraContainer}
+          notAuthorizedView={
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text>
+              {Platform.OS === 'ios' ? (
+                <Text style={styles.message} onPress={onClickOpenSettings}>
+                  {i18next.t('label.open_settings')}
+                </Text>
+              ) : (
+                []
+              )}
+            </View>
+          }
+          androidCameraPermissionOptions={{
+            title: i18next.t('label.permission_camera_title'),
+            message: i18next.t('label.permission_camera_message'),
+            buttonPositive: i18next.t('label.permission_camera_ok'),
+            buttonNegative: i18next.t('label.permission_camera_cancel'),
+          }}>
+          <Header whiteBackIcon />
+          <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
+            <PrimaryButton
+              onPress={onPressCamera}
+              btnText={
+                imagePath ? i18next.t('label.image_retake') : i18next.t('label.image_click_picture')
+              }
+              theme={imagePath ? 'white' : null}
+              halfWidth={imagePath}
+            />
+            {imagePath ? (
+              <PrimaryButton
+                disabled={imagePath ? false : true}
+                onPress={onPressContinue}
+                btnText={i18next.t('label.continue')}
+                halfWidth={true}
+              />
+            ) : (
+              []
+            )}
+          </View>
+        </RNCamera>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -46,5 +134,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  bottomBtnsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 25,
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+    // paddingHorizontal: 25,
+  },
+  cameraContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: Colors.WHITE,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
+  message: {
+    color: Colors.TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    lineHeight: Typography.LINE_HEIGHT_30,
+    textAlign: 'center',
+    padding: 20,
   },
 });

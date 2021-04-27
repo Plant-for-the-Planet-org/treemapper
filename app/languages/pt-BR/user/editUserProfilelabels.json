@@ -1,14 +1,20 @@
 {
   "edit_profile": "Editar perfil",
   "logout": "Sair",
+  "logout_anyway": "Confirmar Logout",
   "privacy_policy": "Política de Privacidade",
   "terms_of_service": "Termos de Serviço",
   "imprint": "Impresso",
+  "legal_docs": "Documentos legais",
   "open_source_license": "Licença de código aberto (open source)",
   "edit": "Editar",
   "manage_offline": "Gerenciar mapas off-line",
   "manage_species": "Administrar espécies",
+  "activity_logging": "Registro de Atividades",
+  "activity_logs": "Registros de atividades",
   "all_backed_up": "Todas as mudanças salvas",
   "upload_pending": "{{count}}pendente",
-  "support": "Suporte"
+  "sync_remaining": "Sincronizando - {{count}} restante",
+  "support": "Suporte",
+  "complete_signup": "Inscrição completa"
 }
