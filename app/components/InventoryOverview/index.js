@@ -30,6 +30,7 @@ import {
   updateLastScreen,
   updatePlantingDate,
 } from '../../repositories/inventory';
+import { getUserDetails } from '../../repositories/user';
 import { getProjectById } from '../../repositories/projects';
 import { ALPHABETS, bugsnag } from '../../utils';
 import { toBase64 } from '../../utils/base64';
@@ -52,8 +53,20 @@ const InventoryOverview = ({ navigation }) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [selectedProjectName, setSelectedProjectName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showProject, setShowProject] = useState(false);
 
   useEffect(() => {
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+        if (stringifiedUserDetails?.type === 'tpo') {
+          setShowProject(true);
+        } else {
+          setShowProject(false);
+        }
+      }
+    });
+
     const unsubscribeFocus = navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
@@ -401,24 +414,29 @@ const InventoryOverview = ({ navigation }) => {
               {!isSingleCoordinate && (
                 <Label leftText={`${locateType} Registration`} rightText={''} />
               )}
-              <Label
-                leftText={i18next.t('label.tree_review_project')}
-                rightText={
-                  selectedProjectName
-                    ? selectedProjectName
-                    : i18next.t('label.tree_review_unassigned')
-                }
-                onPressRightText={() =>
-                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
-                    ? navigation.navigate('SelectProject', { selectedProjectId })
-                    : {}
-                }
-                rightTextStyle={
-                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
-                    ? { color: Colors.PRIMARY }
-                    : { color: Colors.TEXT_COLOR }
-                }
-              />
+              {showProject ? (
+                <Label
+                  leftText={i18next.t('label.tree_review_project')}
+                  rightText={
+                    selectedProjectName
+                      ? selectedProjectName
+                      : i18next.t('label.tree_review_unassigned')
+                  }
+                  onPressRightText={() =>
+                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                      ? navigation.navigate('SelectProject', { selectedProjectId })
+                      : {}
+                  }
+                  rightTextStyle={
+                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                      ? { color: Colors.PRIMARY }
+                      : { color: Colors.TEXT_COLOR }
+                  }
+                />
+              ) : (
+                []
+              )}
+
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={

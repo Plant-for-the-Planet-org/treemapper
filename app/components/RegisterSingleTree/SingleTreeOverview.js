@@ -36,7 +36,7 @@ import {
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getProjectById } from '../../repositories/projects';
-import { getUserInformation } from '../../repositories/user';
+import { getUserInformation, getUserDetails } from '../../repositories/user';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
@@ -90,6 +90,7 @@ const SingleTreeOverview = () => {
   const [showInputError, setShowInputError] = useState(false);
   const [selectedProjectName, setSelectedProjectName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showProject, setShowProject] = useState(false);
 
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
@@ -109,6 +110,16 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+        if (stringifiedUserDetails?.type === 'tpo') {
+          setShowProject(true);
+        } else {
+          setShowProject(false);
+        }
+      }
+    });
     const unsubscribe = navigation.addListener('focus', () => {
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
@@ -556,7 +567,7 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree ? (
+        {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
           <View style={{ marginBottom: 15 }}>
             <Text style={detailHeaderStyle}>
               {i18next.t('label.tree_review_project').toUpperCase()}

@@ -26,41 +26,9 @@ const ProfileModal = ({
   onPressLogout,
   userInfo,
 }: ProfileModalProps) => {
-  const [visibility, setVisibility] = useState(isProfileModalVisible);
-  const navigation = useNavigation();
-
-  // adds the user name according to the available data
-  let userName = '';
-  if (userInfo.firstName) {
-    userName += userInfo.firstName;
-    if (userInfo.lastName) {
-      userName += ` ${userInfo.lastName}`;
-    }
-  } else if (userInfo.type === 'tpo' && userInfo.displayName) {
-    userName = userInfo.displayName;
-  }
-
-  useEffect(() => {
-    setVisibility(isProfileModalVisible);
-  }, [navigation, visibility]);
-
-  const onPressLegals = () => {
-    onPressCloseProfileModal();
-    navigation.navigate('Legals');
-  };
-  const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
-      // TODO:i18n - if this is used, please add translations
-      alert('Can write mail to support@plant-for-the-planet.org'),
-    );
-  };
   const onPressEdit = () => {
     Linking.openURL(`${protocol}://${webAppUrl}/login`);
   };
-  let avatar =
-    cdnUrl && userInfo.image
-      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
-      : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
@@ -77,47 +45,87 @@ const ProfileModal = ({
     navigation.navigate('Logs');
   };
 
-  const profileListItems = [
+  const [visibility, setVisibility] = useState(isProfileModalVisible);
+  const [profileListItems, setProfileListItems] = useState<any>([]);
+  const navigation = useNavigation();
+  const profileItems = [
     {
       media: 'user-edit',
       mediaType: 'icon',
       text: 'edit_profile',
       onPressFunction: onPressEdit,
+      isVisible: true,
     },
     {
       media: 'leaf',
       mediaType: 'icon',
       text: 'manage_species',
       onPressFunction: onPressManageSpecies,
+      isVisible: true,
     },
     {
       media: 'map-marked',
       mediaType: 'icon',
       text: 'manage_projects',
       onPressFunction: onPressManageProjects,
+      isVisible: true,
     },
-    // {
-    //   media: 'pulse-outline',
-    //   text: 'activity_logging',
-    //   mediaType: 'ionicon',
-    // onPressFunction: () => {
-    //   navigation.navigate('Logs');
-    //   onPressCloseProfileModal();
-    // },
-    // },
     {
       media: 'history',
       mediaType: 'icon',
       text: 'activity_logs',
       onPressFunction: onPressActivityLogs,
+      isVisible: true,
     },
     {
       media: logout,
       mediaType: 'image',
       text: 'logout',
       onPressFunction: onPressLogout,
+      isVisible: true,
     },
   ];
+
+  useEffect(() => {
+    let updatedListItems = profileItems.map((profileItem: any) => {
+      if (profileItem.text === 'manage_projects') {
+        profileItem.isVisible = userInfo?.type === 'tpo';
+      }
+      return profileItem;
+    });
+    setProfileListItems(updatedListItems);
+  }, [userInfo]);
+
+  useEffect(() => {
+    setVisibility(isProfileModalVisible);
+  }, [navigation, visibility]);
+
+  // adds the user name according to the available data
+  let userName = '';
+  if (userInfo.firstName) {
+    userName += userInfo.firstName;
+    if (userInfo.lastName) {
+      userName += ` ${userInfo.lastName}`;
+    }
+  } else if (userInfo.type === 'tpo' && userInfo.displayName) {
+    userName = userInfo.displayName;
+  }
+
+  let avatar =
+    cdnUrl && userInfo.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+      : '';
+
+  const onPressLegals = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('Legals');
+  };
+  const onPressSupport = () => {
+    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
+      // TODO:i18n - if this is used, please add translations
+      alert('Can write mail to support@plant-for-the-planet.org'),
+    );
+  };
 
   const signUpItem = {
     media: 'exclamation-circle',
@@ -172,9 +180,9 @@ const ProfileModal = ({
                   <Text style={styles.userName}>{userInfo.email}</Text>
                 </View>
               </View>
-              {profileListItems.map((item, index) => (
-                <ProfileListItem key={index} {...item} />
-              ))}
+              {profileListItems.map((item: any, index: number) =>
+                item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
+              )}
             </>
           ) : (
             <View style={{ marginTop: 20 }}>
