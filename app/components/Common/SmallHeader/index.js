@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import RotatingView from '../../Common/RotatingView';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, style, sync }) => {
   return (
@@ -28,7 +27,7 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, styl
             <MCIcons name={icon} size={22} style={styles.activeText} />
           ) : sync ? (
             <RotatingView isClockwise={false}>
-              <Icon size={24} name="sync" color={Colors.PRIMARY} />
+              <MCIcons size={24} name="sync" color={Colors.PRIMARY} />
             </RotatingView>
           ) : (
             []

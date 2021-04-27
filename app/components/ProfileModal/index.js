@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { logo, logout } from '../../assets';
+import { logo } from '../../assets';
 import { Colors, Typography } from '_styles';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';

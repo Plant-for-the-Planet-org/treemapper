@@ -14,30 +14,22 @@ import { Colors, Typography } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-import NetInfo, { useNetInfo } from '@react-native-community/netinfo';
 import { deleteFromFS } from '../../utils/FSInteration';
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
-  const netInfo = useNetInfo();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      initialState(netInfo.isConnected, netInfo.isInternetReachable);
+      initialState();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const initialState = (isConnected, isInternetReachable) => {
-    NetInfo.fetch().then((internet) => {
-      if (!internet.isConnected && internet.isInternetReachable) {
-        // addInventoryFromServer();
-      } else {
-        getInventoryByStatus('complete').then((allInventory) => {
-          setAllInventory(allInventory);
-        });
-      }
+  const initialState = () => {
+    getInventoryByStatus('complete').then((allInventory) => {
+      setAllInventory(allInventory);
     });
   };
 

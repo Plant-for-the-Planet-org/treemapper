@@ -81,7 +81,6 @@ export const getAllInventoryFromServer = (type) => {
         });
         resolve(filteredData);
       }
-      // resolve(data.data);
     });
   });
 };

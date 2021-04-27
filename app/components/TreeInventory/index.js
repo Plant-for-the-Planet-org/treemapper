@@ -8,12 +8,11 @@ import {
   StyleSheet,
   View,
   BackHandler,
-  Text,
   Linking,
   Platform,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '_styles';
+import { Colors } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
@@ -22,7 +21,6 @@ import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '.
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import RotatingView from '../Common/RotatingView';
 
 const IS_ANDROID = Platform.OS === 'android';
 
