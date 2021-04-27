@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography, CommonStyles } from '_styles';
 
 const Input = ({ label, value, editable, placeholder, style }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +19,7 @@ const Input = ({ label, value, editable, placeholder, style }) => {
         accessible={true}
         accessibilityLabel="Input Button"
         testID="input_btn">
-        <Text style={styles.value}>{value ? value : placeholder}</Text>
+        <Text style={CommonStyles.bottomInputText}>{value ? value : placeholder}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -36,14 +36,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
     color: Colors.TEXT_COLOR,
-  },
-  value: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
-    flex: 1,
-    paddingVertical: 10,
   },
   valueContainer: {
     borderBottomWidth: 2,

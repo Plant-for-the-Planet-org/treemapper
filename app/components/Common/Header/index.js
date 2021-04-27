@@ -8,6 +8,8 @@ const Header = ({
   hideBackIcon,
   closeIcon,
   headingText,
+  headingTextEditable,
+  onPressHeading,
   subHeadingText,
   onBackPress,
   textAlignStyle,
@@ -17,9 +19,12 @@ const Header = ({
   accessibilityLabel,
   rightText,
   onPressFunction,
+  TopRightComponent,
+  TitleRightComponent,
+  whiteBackIcon,
 }) => {
   const navigation = useNavigation();
-  const onPressBack = () => (onBackPress ? onBackPress() : navigation.goBack());
+  const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
   return (
     <View style={style}>
       <View style={styles.arrowContainer}>
@@ -33,7 +38,7 @@ const Header = ({
             <Ionicons
               name={closeIcon ? 'md-close' : 'md-arrow-back'}
               size={30}
-              color={Colors.TEXT_COLOR}
+              color={whiteBackIcon ? Colors.WHITE : Colors.TEXT_COLOR}
             />
           </TouchableOpacity>
         ) : (
@@ -48,13 +53,62 @@ const Header = ({
           ) : (
             <Text style={styles.rightText}>{rightText}</Text>
           )
+        ) : TopRightComponent ? (
+          <TopRightComponent />
         ) : null}
       </View>
-      {headingText ? (
-        <View style={{ marginVertical: 0 }}>
-          <Text style={[styles.headerText, textAlignStyle]}>{headingText}</Text>
-        </View>
-      ) : null}
+      <View
+        style={
+          TitleRightComponent
+            ? {
+              flexDirection: 'row-reverse',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }
+            : {}
+        }>
+        {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
+        {headingText ? (
+          <Text
+            style={[
+              styles.headerText,
+              textAlignStyle,
+              TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
+            ]}>
+            {headingText}
+          </Text>
+        ) : headingTextEditable !== undefined ? (
+          // <TextInput
+          //   style={{
+          //     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+          //     fontSize: Typography.FONT_SIZE_27,
+          //     color: Colors.TEXT_COLOR,
+          //     flex: 1,
+          //   }}
+          //   multiline={true}
+          //   blurOnSubmit={true}
+          //   onChangeText={(text) => setHeadingText(text)}
+          //   value={headingTextInput}
+          //   placeholder="Type Aliases Here"
+          //   returnKeyType={'done'}
+          //   onFocus={() => onFocusFunction()}
+          //   onSubmitEditing={() => onSubmitInputField()}
+          // />
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => onPressHeading()}>
+            <Text
+              style={{
+                fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+                fontSize: Typography.FONT_SIZE_27,
+                color: Colors.TEXT_COLOR,
+                // flex: 1,
+              }}>
+              {headingTextEditable}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          []
+        )}
+      </View>
       {subHeadingText ? (
         <View style={{ marginVertical: 10 }}>
           <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
@@ -73,7 +127,6 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
     color: Colors.TEXT_COLOR,
   },
   subHeadingText: {
@@ -82,7 +135,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
-  backArrow: {},
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

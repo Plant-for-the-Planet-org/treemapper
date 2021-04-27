@@ -1,3 +1,6 @@
+// schema version
+const schemaVersion = 0;
+
 // SCHEMAS
 const Coordinates = {
   name: 'Coordinates',
@@ -120,5 +123,5 @@ export default {
     ScientificSpecies,
     ActivityLogs,
   ],
-  schemaVersion: 0,
+  schemaVersion,
 };

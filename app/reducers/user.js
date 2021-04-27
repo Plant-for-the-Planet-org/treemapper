@@ -11,7 +11,7 @@ const initialState = {
   image: null,
   country: null,
   idLogEnabled: null,
-  tpoId: null,
+  userId: null,
 };
 
 // User reducer function which takes the state and action param
@@ -25,7 +25,7 @@ const userReducer = (state = initialState, action) => {
         accessToken: action.payload.accessToken,
         idToken: action.payload.idToken,
       };
-    // adds accessToken, idToken, email, firstName, lastName, image, country, idLogEnabled and tpoId
+    // adds accessToken, idToken, email, firstName, lastName, image, country, idLogEnabled and userId
     case SET_USER_DETAILS:
       return {
         ...state,

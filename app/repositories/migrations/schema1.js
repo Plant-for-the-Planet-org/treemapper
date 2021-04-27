@@ -1,3 +1,6 @@
+// schema version
+const schemaVersion = 1;
+
 // SCHEMAS
 const Coordinates = {
   name: 'Coordinates',
@@ -116,7 +119,7 @@ const ScientificSpecies = {
 };
 
 const migration = (oldRealm, newRealm) => {
-  if (oldRealm.schemaVersion < 1) {
+  if (oldRealm.schemaVersion < schemaVersion) {
     const oldUserObject = oldRealm.objects('User');
     const newUserObject = newRealm.objects('User');
     for (const index in oldUserObject) {
@@ -138,6 +141,6 @@ export default {
     ScientificSpecies,
     ActivityLogs,
   ],
-  schemaVersion: 1,
+  schemaVersion,
   migration,
 };

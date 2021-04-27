@@ -14,8 +14,11 @@ import FlatButton from './FlatButton';
 import Loader from './Loader/Index';
 import Sync from './Syncing';
 import InventoryList from './InventoryList';
-// import Loader from './Loader';
-
+import SpeciesSyncError from './SpeciesSyncError';
+import Camera from './Camera';
+import TopRightBackground from './TopRightBackground';
+import TreeCountModal from './TreeCountModal';
+import InputModal from './InputModal';
 export {
   Header,
   LargeButton,
@@ -33,4 +36,9 @@ export {
   Loader,
   Sync,
   InventoryList,
+  SpeciesSyncError,
+  Camera,
+  TopRightBackground,
+  TreeCountModal,
+  InputModal,
 };

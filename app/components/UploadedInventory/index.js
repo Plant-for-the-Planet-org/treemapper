@@ -75,7 +75,7 @@ const UploadedInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_upload_list_header')}
           style={{ marginHorizontal: 25 }}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };
@@ -122,10 +122,11 @@ const UploadedInventory = ({ navigation }) => {
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
         message={i18next.t('label.tree_inventory_alert_sub_header')}
-        primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={freeUpSpace}
         onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert}
+        showSecondaryButton={true}
       />
     </View>
   );
