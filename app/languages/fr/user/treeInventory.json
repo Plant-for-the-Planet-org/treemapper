@@ -10,6 +10,7 @@
   "tree_inventory_list_container_sub_header": "L'inventaire sera effacé une fois le téléchargement terminé",
   "tree_inventory_upload_list_header": "Éléments téléchargés",
   "tree_inventory_upload_empty_btn_text": "Retour à l'inventaire",
+  "tree_inventory_alert_header": "Êtes-vous sûr?",
   "tree_inventory_alert_sub_header": "Les inscriptions sont sécurisées sur le cloud. Une fois les inscriptions supprimées, il n'est actuellement pas possible de les récupérer sur cette application.",
   "tree_inventory_alert_primary_btn_text": "Suppression sécurisée",
   "tree_inventory_clear_all": "Tout effacer",

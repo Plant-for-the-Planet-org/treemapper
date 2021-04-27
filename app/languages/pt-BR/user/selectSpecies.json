@@ -43,6 +43,12 @@
   "select_species_looks_empty_here": "Aqui está vazio!",
   "select_species_add_species_desscription": "Adicione espécies à sua lista, pesquisando as espécies",
   "select_species_tree_species": "Espécies de Árvores",
+  "species_name": "Nome da Espécie",
   "add_image": "Adicionar imagem",
-  "species_description": "Descrição"
+  "species_description": "Descrição",
+  "type_description_here": "Descrição do tipo aqui",
+  "sync": "Sincronizar",
+  "species_sync_might_take_time": "Sincronizando espécies, isso pode levar um tempo.",
+  "all_species_synced": "Todas as espécies estão sincronizadas.",
+  "sync_required_message": "A sua espécie não sincronizou completamente online!\n\nA desconexão irá remover estas espécies, por isso, considere sincronizá-las primeiro."
 }
