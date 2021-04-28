@@ -61,10 +61,10 @@ const Header = ({
         style={
           TitleRightComponent
             ? {
-              flexDirection: 'row-reverse',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }
+                flexDirection: 'row-reverse',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
             : {}
         }>
         {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}

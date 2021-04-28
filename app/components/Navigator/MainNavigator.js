@@ -31,6 +31,7 @@ import {
   LogoutWarning,
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
+import AdditionalData from '../AdditionalData';
 
 const Stack = createStackNavigator();
 
@@ -98,6 +99,7 @@ export default function MainNavigator() {
       <Stack.Screen name="RecordSampleTrees" component={RecordSampleTrees} options={MyTransition} />
       <Stack.Screen name="TotalTreesSpecies" component={TotalTreesSpecies} options={MyTransition} />
       <Stack.Screen name="LogoutWarning" component={LogoutWarning} options={MyTransition} />
+      <Stack.Screen name="AdditionalData" component={AdditionalData} options={MyTransition} />
     </Stack.Navigator>
   );
 }

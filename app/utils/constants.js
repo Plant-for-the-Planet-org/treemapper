@@ -12,6 +12,8 @@ export const LogTypes = {
   USER: 'USER',
   // log type used for other functionality
   OTHER: 'OTHER',
+  // log type used for other functionality
+  ADDITIONAL_DATA: 'ADDITIONAL_DATA',
 };
 
 // defines the log levels

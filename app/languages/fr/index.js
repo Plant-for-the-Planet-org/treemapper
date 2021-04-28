@@ -15,7 +15,8 @@ import MapMarking from './user/mapMarking.json';
 import TreeInventory from './user/treeInventory.json';
 import Review from './user/treeReview.json';
 import SampleTrees from './user/sampleTrees.json';
-import SpeciesSyncError from './user/speciesSyncError';
+import SpeciesSyncError from './user/speciesSyncError.json';
+import AdditionalData from './user/additionalData.json';
 
 export default {
   ...WelcomeScreen,
@@ -36,4 +37,5 @@ export default {
   ...SampleTrees,
   ...MapMarking,
   ...SpeciesSyncError,
+  ...AdditionalData,
 };

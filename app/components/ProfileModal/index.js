@@ -49,11 +49,19 @@ const ProfileModal = ({
   const onPressEdit = () => {
     Linking.openURL('https://www.trilliontreecampaign.org/login');
   };
-  let avatar = cdnUrl && userInfo.image ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}` : '';
+  let avatar =
+    cdnUrl && userInfo.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+      : '';
 
   const onPressManageSpecies = () => {
     onPressCloseProfileModal();
     navigation.navigate('ManageSpecies');
+  };
+
+  const onPressAdditionalData = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('AdditionalData');
   };
 
   const profileListItems = [
@@ -68,6 +76,12 @@ const ProfileModal = ({
       mediaType: 'icon',
       onPressFunction: onPressManageSpecies,
       text: 'manage_species',
+    },
+    {
+      media: 'file-alt',
+      mediaType: 'icon',
+      onPressFunction: onPressAdditionalData,
+      text: 'additional_data',
     },
     // {
     //   media: 'map-marked',
