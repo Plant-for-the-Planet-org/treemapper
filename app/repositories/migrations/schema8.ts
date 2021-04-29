@@ -239,7 +239,7 @@ const Metadata = {
   },
 };
 
-const migration = (oldRealm: any, newRealm: any) => {};
+const migration = () => {};
 
 export default {
   schema: [

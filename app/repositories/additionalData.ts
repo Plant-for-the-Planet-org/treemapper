@@ -14,7 +14,7 @@ export const getForms = () => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Fetched all forms`,
+          message: 'Fetched all forms',
         });
         resolve(Form);
       })
@@ -22,7 +22,7 @@ export const getForms = () => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while fetching forms`,
+          message: 'Error while fetching forms',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -40,7 +40,7 @@ export const getMetadata = () => {
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Fetched metadata`,
+          message: 'Fetched metadata',
         });
         resolve(Metadata);
       })
@@ -48,7 +48,7 @@ export const getMetadata = () => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while fetching metadata`,
+          message: 'Error while fetching metadata',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -74,7 +74,7 @@ export const addForm = ({ fieldData, order }: any) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
-            message: `Added new form`,
+            message: 'Added new form',
           });
           resolve(true);
         });
@@ -83,7 +83,7 @@ export const addForm = ({ fieldData, order }: any) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while adding new form`,
+          message: 'Error while adding new form',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -103,7 +103,7 @@ export const addField = ({ fieldData, formId }: any) => {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
-            message: `Added new field`,
+            message: 'Added new field',
           });
           resolve(true);
         });
@@ -112,7 +112,7 @@ export const addField = ({ fieldData, formId }: any) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while adding new field`,
+          message: 'Error while adding new field',
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
