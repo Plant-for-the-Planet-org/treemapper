@@ -38,7 +38,7 @@
     "react": "16.14.0",
     "react-native": "0.63.4",
     "react-native-auth0": "^2.6.0",
-    "react-native-camera": "^3.40.0",
+    "react-native-camera": "^3.41.0",
     "react-native-config": "1.4.1",
     "react-native-fs": "^2.16.6",
     "react-native-geolocation-service": "^5.2.0",
