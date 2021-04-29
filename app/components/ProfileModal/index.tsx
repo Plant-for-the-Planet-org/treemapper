@@ -64,8 +64,8 @@ const ProfileModal = ({
       isVisible: true,
     },
     {
-      media: 'map-marked',
-      mediaType: 'icon',
+      media: 'project',
+      mediaType: 'octicon',
       text: 'manage_projects',
       onPressFunction: onPressManageProjects,
       isVisible: true,
@@ -94,7 +94,7 @@ const ProfileModal = ({
       return profileItem;
     });
     setProfileListItems(updatedListItems);
-  }, [userInfo]);
+  }, [userInfo, onPressCloseProfileModal]);
 
   useEffect(() => {
     setVisibility(isProfileModalVisible);

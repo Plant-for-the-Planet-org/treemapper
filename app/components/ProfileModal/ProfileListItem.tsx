@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Octicons from 'react-native-vector-icons/Octicons';
 import { Colors, Typography } from '_styles';
 
 interface ProfileListItemProps {
@@ -71,6 +72,8 @@ export default function ProfileListItem({
         <Image source={media} style={[styles.imgIcon, mediaStyle ? mediaStyle : {}]} />
       ) : mediaType === 'icon' ? (
         <Icon name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
+      ) : mediaType === 'octicon' ? (
+        <Octicons name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
       ) : (
         <Ionicons name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
       )}

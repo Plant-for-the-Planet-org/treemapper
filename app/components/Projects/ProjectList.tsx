@@ -101,7 +101,6 @@ const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId
   if (country) {
     country = country[0].countryName;
   }
-  console.log('country', country);
   return (
     <View
       style={[styles.listItemContainer, isProjectSelected ? { borderColor: Colors.PRIMARY } : {}]}>
