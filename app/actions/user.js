@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
+import { addProjects } from '../repositories/projects';
 import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
@@ -82,6 +83,8 @@ export const auth0Login = (dispatch) => {
               country,
               userId,
             })(dispatch);
+
+            getAllProjects();
 
             checkAndAddUserSpecies();
             resolve(true);
@@ -334,6 +337,42 @@ export const SignupService = (payload, dispatch) => {
         // if any error is found then deletes the user and clear the user app state
         deleteUser();
         clearUserDetails()(dispatch);
+        reject(err);
+      });
+  });
+};
+
+/**
+ * Fetches all the projects of the user
+ */
+export const getAllProjects = () => {
+  return new Promise((resolve, reject) => {
+    getAuthenticatedRequest('/app/profile/projects')
+      .then(async (res) => {
+        const { status, data } = res;
+        if (status === 200) {
+          await addProjects(data);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Successfully Fetched all projects: GET - /app/profile/projects',
+            statusCode: status,
+          });
+          resolve(true);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Error at /actions/user/getAllProjects: GET - /app/profile/projects,',
+          err.response ? err.response : err,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while fetching projects',
+          statusCode: err?.response?.status,
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
+        });
         reject(err);
       });
   });

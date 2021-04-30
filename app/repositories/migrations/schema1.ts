@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 2;
+const schemaVersion = 1;
 
 // SCHEMAS
 const Coordinates = {
@@ -108,32 +108,24 @@ const ActivityLogs = {
   },
 };
 
-// used to store all the available scientific species extracted from zip
 const ScientificSpecies = {
   name: 'ScientificSpecies',
   primaryKey: 'guid',
   properties: {
-    // stores the guid of scientific specie
     guid: 'string',
-    // stores the name of scientific specie and indexed for better search
-    scientificName: { type: 'string', indexed: true },
-    // used to check if this specie is preferred by user or not. Default to [false]
+    scientific_name: { type: 'string', indexed: true },
     isUserSpecies: { type: 'bool', default: false },
-    // used to check whether this specie is synced to server or not. Defaults to [false]
-    // This property is used with [isUserSpecies]
-    isUploaded: { type: 'bool', default: false },
-    // stores the specieId which is uploaded on server
-    specieId: 'string?',
   },
 };
 
-const migration = (oldRealm, newRealm) => {
+const migration = (oldRealm: any, newRealm: any) => {
   if (oldRealm.schemaVersion < schemaVersion) {
-    const oldScientificSpeciesObject = oldRealm.objects('ScientificSpecies');
-    const newScientificSpeciesObject = newRealm.objects('ScientificSpecies');
-    for (const index in oldScientificSpeciesObject) {
-      newScientificSpeciesObject[index].scientificName =
-        oldScientificSpeciesObject[index].scientific_name;
+    const oldUserObject = oldRealm.objects('User');
+    const newUserObject = newRealm.objects('User');
+    for (const index in oldUserObject) {
+      newUserObject[index].firstName = oldUserObject[index].firstname;
+      newUserObject[index].lastName = oldUserObject[index].lastname;
+      newUserObject[index].isLogEnabled = oldUserObject[index].IsLogEnabled;
     }
   }
 };

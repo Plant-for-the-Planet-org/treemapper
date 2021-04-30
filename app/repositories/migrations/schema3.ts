@@ -129,7 +129,7 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {};
+const migration = () => {};
 
 export default {
   schema: [

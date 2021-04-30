@@ -1,64 +1,82 @@
-// defines the types of logs supported by the application
-export const LogTypes = {
+interface ILogTypes {
   // log type used for inventory feature
-  INVENTORY: 'INVENTORY',
+  INVENTORY: 'INVENTORY';
   // log type used for maps feature
-  MAPS: 'MAPS',
+  MAPS: 'MAPS';
   // log type for manage species features
-  MANAGE_SPECIES: 'MANAGE_SPECIES',
+  MANAGE_SPECIES: 'MANAGE_SPECIES';
   // log type used while performing sync
-  DATA_SYNC: 'DATA_SYNC',
+  DATA_SYNC: 'DATA_SYNC';
   // log type used for user based functionality
-  USER: 'USER',
+  USER: 'USER';
+  // log type used for managing projects
+  PROJECTS: 'PROJECTS';
   // log type used for other functionality
+  OTHER: 'OTHER';
+}
+// defines the types of logs supported by the application
+export const LogTypes: ILogTypes = {
+  INVENTORY: 'INVENTORY',
+  MAPS: 'MAPS',
+  MANAGE_SPECIES: 'MANAGE_SPECIES',
+  DATA_SYNC: 'DATA_SYNC',
+  USER: 'USER',
+  PROJECTS: 'PROJECTS',
   OTHER: 'OTHER',
 };
 
 // defines the log levels
-export const LogLevels = {
+interface ILogLevels {
   // this is used when the expected behaviour is correct
-  INFO: 'INFO',
+  INFO: 'INFO';
   // this is used when behaviour of the app is correct but some precaution or suspicious activity needs to be attended
-  WARN: 'WARN',
+  WARN: 'WARN';
   // this is used when some error occurred and needs to be attended on priority
+  ERROR: 'ERROR';
+}
+
+// defines the log levels
+export const LogLevels: ILogLevels = {
+  INFO: 'INFO',
+  WARN: 'WARN',
   ERROR: 'ERROR',
 };
 
 // multiplication factor to convert foot to meter
-export const footToMeter = 0.3048;
+export const footToMeter: number = 0.3048;
 
 // multiplication factor to convert inch to centimeter
-export const inchToCm = 2.54;
+export const inchToCm: number = 2.54;
 
 // multiplication factor to convert meter to foot
-export const meterToFoot = 1 / footToMeter;
+export const meterToFoot: number = 1 / footToMeter;
 
 // multiplication factor to convert centimeter to inch
-export const cmToInch = 1 / inchToCm;
+export const cmToInch: number = 1 / inchToCm;
 
 // min diameter value in centimeter
-export const diameterMinCm = 0.1;
+export const diameterMinCm: number = 0.1;
 
 // max diameter value in centimeter
-export const diameterMaxCm = 10000;
+export const diameterMaxCm: number = 10000;
 
 // min height value in meter
-export const heightMinM = 0.01;
+export const heightMinM: number = 0.01;
 
 // max height value in meter
-export const heightMaxM = 200;
+export const heightMaxM: number = 200;
 
 // min diameter value in inch
-export const diameterMinInch = 0.03937;
+export const diameterMinInch: number = 0.03937;
 
 // max diameter value in inch
-export const diameterMaxInch = 3937.0079;
+export const diameterMaxInch: number = 3937.0079;
 
 // min height value in foot
-export const heightMinFoot = 0.0328;
+export const heightMinFoot: number = 0.0328;
 
 // max height value in foot
-export const heightMaxFoot = 656.1679;
+export const heightMaxFoot: number = 656.1679;
 
 // countries which does not follow International System of Units for measurements
 export const nonISUCountries = ['US', 'LR', 'MM'];

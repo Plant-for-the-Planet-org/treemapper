@@ -88,6 +88,7 @@ jobs:
         AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
         CDN_URL: ${{ secrets.CDN_URL }}
+        WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
         echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
@@ -95,6 +96,7 @@ jobs:
         echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
         echo "API_ENDPOINT=$API_ENDPOINT" >> .env
         echo "CDN_URL=$CDN_URL" >> .env
+        echo "WEB_APP_URL=$WEB_APP_URL" >> .env
         cp .env .env.staging
 
     # - name: Caching Pods

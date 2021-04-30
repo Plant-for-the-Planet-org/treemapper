@@ -81,7 +81,6 @@ const SpecieInfo = ({ route }) => {
         image,
       })
         .then(async () => {
-          console.log('Updated Data');
           const userToken = await getUserToken();
           if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
             updateUserSpecie({
