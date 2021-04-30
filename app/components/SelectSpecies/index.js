@@ -207,7 +207,10 @@ const SelectSpecies = () => {
                             <OutlinedInput
                               value={tagId}
                               label={i18next.t('label.select_species_tree_tag')}
-                              onChangeText={(text) => setTagId(text)}
+                              onChangeText={(text) => {
+                                setTagIdError('');
+                                setTagId(text);
+                              }}
                               passiveBorderColor={tagIdError ? Colors.ALERT : undefined}
                               passiveLabelColor={tagIdError ? Colors.ALERT : undefined}
                             />
@@ -468,7 +471,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   switchText: {
     color: Colors.TEXT_COLOR,
