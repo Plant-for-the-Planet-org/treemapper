@@ -1,7 +1,7 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import jwtDecode from 'jwt-decode';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState, createRef } from 'react';
 import {
   Image,
   Platform,
@@ -27,6 +27,7 @@ import { handleFilter } from '../../utils/CountryDataFilter';
 import { Header, Loader, PrimaryButton } from '../Common';
 import Modal from '../Common/Modal';
 import { APIConfig } from '../../actions/Config';
+import OutlinedInput from '../Common/OutlinedInput';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -53,7 +54,8 @@ const SignUp = ({ navigation }) => {
   const [completeCheck, setCompleteCheck] = useState(false);
   const [country, setCountry] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const textInput = useRef(null);
+  // const textInput = useRef(null);
+  const textInput = createRef();
   const textInputZipCode = useRef(null);
   const textInputNameOfOrg = useRef(null);
   const textInputAddress = useRef(null);
@@ -345,10 +347,15 @@ const SignUp = ({ navigation }) => {
               </View>
             </View>
             <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20 }}>
+              style={{
+                flex: 1,
+                flexDirection: 'column',
+                // justifyContent: 'space-between',
+                marginVertical: 20,
+              }}>
               {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
+              <View style={{ marginVertical: 10 }}>
+                {/* <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
                 <TextInput
                   style={[
                     styles.value,
@@ -360,11 +367,21 @@ const SignUp = ({ navigation }) => {
                   blurOnSubmit={false}
                   onSubmitEditing={() => textInput.current.focus()}
                   // placeholder='Paulina'
+                /> */}
+                <OutlinedInput
+                  value={firstname}
+                  onChangeText={(text: string) => setFirstName(text)}
+                  label={i18next.t('label.firstname')}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
+                  blurOnSubmit={false}
+                  // onSubmitEditing={() => textInput.current.focus()}
+                  passiveBorderColor={firstNameError ? Colors.ALERT : undefined}
+                  passiveLabelColor={firstNameError ? Colors.ALERT : undefined}
                 />
               </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>{i18next.t('label.lastname')}</Text>
-                <TextInput
+              <View style={{ marginVertical: 10 }}>
+                {/* <Text style={styles.label}>{i18next.t('label.lastname')}</Text> */}
+                {/* <TextInput
                   style={[
                     styles.value,
                     lastNameError ? styles.borderBottomRed : styles.borderBottomBlack,
@@ -381,6 +398,23 @@ const SignUp = ({ navigation }) => {
                       ? () => textInputNameOfOrg.current.focus()
                       : null
                   }
+                /> */}
+                <OutlinedInput
+                  value={lastname}
+                  onChangeText={(text: string) => setLastName(text)}
+                  label={i18next.t('label.lastname')}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
+                  passiveBorderColor={lastNameError ? Colors.ALERT : undefined}
+                  passiveLabelColor={lastNameError ? Colors.ALERT : undefined}
+                  ref={textInput}
+                  blurOnSubmit={false}
+                  // onSubmitEditing={
+                  //   accountType === 'company' ||
+                  //   accountType === 'education' ||
+                  //   accountType === 'tpo'
+                  //     ? () => textInputNameOfOrg.current.focus()
+                  //     : null
+                  // }
                 />
               </View>
             </View>
@@ -435,15 +469,11 @@ const SignUp = ({ navigation }) => {
               </TouchableOpacity> */}
             </View>
             {modalVisible ? (
-              <Modal
-                visible={modalVisible}
-                openModal={openModal}
-                userCountry={userCountry}
-              />
+              <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer}>
-                <Text style={styles.label}>
+                {/* <Text style={styles.label}>
                   {i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}
                 </Text>
                 <TextInput
@@ -458,22 +488,47 @@ const SignUp = ({ navigation }) => {
                   blurOnSubmit={completeCheck ? true : false}
                   onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
                   // placeholder="Forest in Africa"
+                /> */}
+                <OutlinedInput
+                  value={nameOfOrg}
+                  onChangeText={(text: string) => setNameOfOrg(text)}
+                  label={i18next.t('label.tpo_title_organisation', {
+                    roleText: SelectType(accountType),
+                  })}
+                  returnKeyType={completeCheck ? 'done' : 'next'}
+                  passiveBorderColor={nameError ? Colors.ALERT : undefined}
+                  passiveLabelColor={nameError ? Colors.ALERT : undefined}
+                  // ref={textInputNameOfOrg}
+                  blurOnSubmit={completeCheck ? true : false}
+                  // onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
                 />
               </View>
             ) : null}
             <View style={[styles.emailContainer, styles.primaryColor]}>
-              <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
+              {/* <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
               <TextInput
                 style={styles.inputColor}
                 value={email}
                 onChangeText={(text) => setEmail(text)}
                 editable={false}
+              /> */}
+              <OutlinedInput
+                value={email}
+                onChangeText={(text: string) => setNameOfOrg(text)}
+                // label={i18next.t('label.email')}
+                editable={false}
+                // returnKeyType={completeCheck ? 'done' : 'next'}
+                // passiveBorderColor={nameError ? Colors.ALERT : undefined}
+                // passiveLabelColor={nameError ? Colors.ALERT : undefined}
+                // ref={textInputNameOfOrg}
+                // blurOnSubmit={completeCheck ? true : false}
+                // onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
               />
             </View>
             {accountType === 'tpo' ? (
               <View>
                 <View style={styles.emailContainer}>
-                  <Text style={styles.label}>{i18next.t('label.address')}</Text>
+                  {/* <Text style={styles.label}>{i18next.t('label.address')}</Text>
                   <TextInput
                     style={[
                       styles.value,
@@ -486,12 +541,24 @@ const SignUp = ({ navigation }) => {
                     blurOnSubmit={completeCheck ? true : false}
                     onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
                     // placeholder="Some Address"
+                  />*/}
+                  <OutlinedInput
+                    value={address}
+                    onChangeText={(text: string) => setCity(text)}
+                    label={i18next.t('label.address')}
+                    returnKeyType={completeCheck ? 'done' : 'next'}
+                    passiveBorderColor={addressError ? Colors.ALERT : undefined}
+                    passiveLabelColor={addressError ? Colors.ALERT : undefined}
+                    // ref={textInputAddress}
+                    blurOnSubmit={completeCheck ? true : false}
+                    // onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
                   />
                 </View>
+
                 <View
                   style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15 }}>
                   <View style={styles.inputContainer}>
-                    <Text style={styles.label}>{i18next.t('label.city')}</Text>
+                    {/* <Text style={styles.label}>{i18next.t('label.city')}</Text>
                     <TextInput
                       style={[
                         styles.value,
@@ -506,10 +573,23 @@ const SignUp = ({ navigation }) => {
                         completeCheck ? null : () => textInputZipCode.current.focus()
                       }
                       // placeholder="Chur"
+                    /> */}
+                    <OutlinedInput
+                      value={city}
+                      onChangeText={(text: string) => setCity(text)}
+                      label={i18next.t('label.city')}
+                      returnKeyType={completeCheck ? 'done' : 'next'}
+                      passiveBorderColor={cityError ? Colors.ALERT : undefined}
+                      passiveLabelColor={cityError ? Colors.ALERT : undefined}
+                      // ref={textInputCity}
+                      blurOnSubmit={completeCheck ? true : false}
+                      // onSubmitEditing={
+                      // completeCheck ? null : () => textInputZipCode.current.focus()
+                      // }
                     />
                   </View>
                   <View style={styles.inputContainer}>
-                    <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
+                    {/* <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
                     <TextInput
                       style={[
                         styles.value,
@@ -520,6 +600,17 @@ const SignUp = ({ navigation }) => {
                       returnKeyType={completeCheck ? 'done' : 'next'}
                       ref={textInputZipCode}
                       // placeholder='98212'
+                    /> */}
+                    <OutlinedInput
+                      value={zipCode}
+                      onChangeText={(text: string) => setZipCode(text)}
+                      label={i18next.t('label.zipcode')}
+                      returnKeyType={completeCheck ? 'done' : 'next'}
+                      passiveBorderColor={zipCodeError ? Colors.ALERT : undefined}
+                      passiveLabelColor={zipCodeError ? Colors.ALERT : undefined}
+                      // ref={textInputZipCode}
+                      keyboardType={'number-pad'}
+                      // blurOnSubmit={completeCheck ? true : false}
                     />
                   </View>
                 </View>
@@ -635,6 +726,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: '46.7%',
+    marginVertical: 10,
   },
   emailContainer: {
     width: '100%',

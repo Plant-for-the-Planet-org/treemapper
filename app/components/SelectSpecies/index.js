@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   View,
+  Keyboard,
 } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
@@ -39,6 +40,7 @@ import {
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
 import ManageSpecies from '../ManageSpecies';
+import OutlinedInput from '../Common/OutlinedInput/index';
 
 const SelectSpecies = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);
@@ -136,12 +138,13 @@ const SelectSpecies = () => {
                   <View>
                     <View style={styles.inputBox}>
                       <View
-                        style={{
-                          flex: 1,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
+                      // style={{
+                      //   flex: 1,
+                      //   flexDirection: 'row',
+                      //   justifyContent: 'space-between',
+                      // }}
+                      >
+                        {/* <TextInput
                           value={diameter}
                           style={styles.input}
                           autoFocus
@@ -151,8 +154,24 @@ const SelectSpecies = () => {
                             setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
                           }
                           keyboardType={'decimal-pad'}
+                        /> */}
+                        <OutlinedInput
+                          value={diameter}
+                          onChangeText={(text) => {
+                            setDiameterError('');
+                            setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+                          }}
+                          label={i18next.t('label.select_species_diameter')}
+                          keyboardType={'decimal-pad'}
+                          rightText={
+                            nonISUCountries.includes(countryCode)
+                              ? i18next.t('label.select_species_inches')
+                              : 'cm'
+                          }
+                          passiveBorderColor={diameterError ? Colors.ALERT : undefined}
+                          passiveLabelColor={diameterError ? Colors.ALERT : undefined}
                         />
-                        <Text
+                        {/* <Text
                           style={{
                             fontSize: Typography.FONT_SIZE_18,
                             padding: 10,
@@ -161,19 +180,20 @@ const SelectSpecies = () => {
                           {nonISUCountries.includes(countryCode)
                             ? i18next.t('label.select_species_inches')
                             : 'cm'}
-                        </Text>
+                        </Text> */}
                       </View>
                     </View>
                     {diameterError ? <Text style={styles.errorText}>{diameterError}</Text> : []}
 
                     <View style={styles.inputBox}>
                       <View
-                        style={{
-                          flex: 1,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
+                      // style={{
+                      //   flex: 1,
+                      //   flexDirection: 'row',
+                      //   justifyContent: 'space-between',
+                      // }}
+                      >
+                        {/* <TextInput
                           value={height}
                           style={styles.input}
                           placeholder={i18next.t('label.select_species_height')}
@@ -182,8 +202,29 @@ const SelectSpecies = () => {
                             setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
                           }
                           keyboardType={'decimal-pad'}
+                        /> */}
+                        <OutlinedInput
+                          value={height}
+                          onChangeText={(text) => {
+                            setHeightError('');
+                            setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+                          }}
+                          label={i18next.t('label.select_species_height')}
+                          keyboardType={'decimal-pad'}
+                          rightText={
+                            nonISUCountries.includes(countryCode)
+                              ? i18next.t('label.select_species_feet')
+                              : 'm'
+                          }
+                          // activeValueColor="#6c63fe"
+                          // activeBorderColor="#6c63fe"
+                          // activeLabelColor="#6c63fe"
+                          passiveBorderColor={heightError ? Colors.ALERT : undefined}
+                          passiveLabelColor={heightError ? Colors.ALERT : undefined}
+                          // passiveLabelColor="#bbb7ff"
+                          // passiveValueColor="#bbb7ff"
                         />
-                        <Text
+                        {/* <Text
                           style={{
                             fontSize: Typography.FONT_SIZE_18,
                             padding: 10,
@@ -192,7 +233,7 @@ const SelectSpecies = () => {
                           {nonISUCountries.includes(countryCode)
                             ? i18next.t('label.select_species_feet')
                             : 'm'}
-                        </Text>
+                        </Text> */}
                       </View>
                     </View>
                     {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
@@ -254,6 +295,7 @@ const SelectSpecies = () => {
   const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
 
   const onPressMeasurementBtn = () => {
+    Keyboard.dismiss();
     let isDiameterValid = false;
     let isHeightValid = false;
     let isTagIdValid = false;
@@ -465,13 +507,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   inputBox: {
-    borderWidth: 1,
-    borderColor: Colors.PRIMARY,
-    padding: 0,
+    // borderWidth: 1,
+    // borderColor: Colors.PRIMARY,
+    // padding: 0,
     marginVertical: 12,
-    width: '100%',
-    borderRadius: 5,
-    height: 50,
+    // width: '100%',
+    // borderRadius: 5,
+    // height: 50,
   },
   input: {
     flex: 1,
