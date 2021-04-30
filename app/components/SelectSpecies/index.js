@@ -196,18 +196,20 @@ const SelectSpecies = () => {
                     {isTagIdPresent ? (
                       <>
                         <View style={styles.inputBox}>
-                          <View
-                            style={{
-                              flex: 1,
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                            }}>
-                            <TextInput
+                          <View>
+                            {/* <TextInput
                               value={tagId}
                               style={styles.input}
                               placeholder={i18next.t('label.select_species_tree_tag')}
                               placeholderTextColor={Colors.TEXT_COLOR}
                               onChangeText={(text) => setTagId(text)}
+                            /> */}
+                            <OutlinedInput
+                              value={tagId}
+                              label={i18next.t('label.select_species_tree_tag')}
+                              onChangeText={(text) => setTagId(text)}
+                              passiveBorderColor={tagIdError ? Colors.ALERT : undefined}
+                              passiveLabelColor={tagIdError ? Colors.ALERT : undefined}
                             />
                           </View>
                         </View>
@@ -449,7 +451,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   inputBox: {
-    marginVertical: 12,
+    marginTop: 24,
+    marginBottom: 4,
   },
   input: {
     flex: 1,
@@ -459,6 +462,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.ALERT,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
   },
   switchContainer: {
     flexDirection: 'row',
