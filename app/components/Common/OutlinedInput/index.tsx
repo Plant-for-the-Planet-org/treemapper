@@ -6,7 +6,7 @@ type secureTextEntryType = true | false;
 type autoCapitalizeType = 'characters' | 'words' | 'sentences' | 'none';
 
 interface PropTypes {
-  label: string;
+  label?: string;
   onChangeText?: any;
   value?: string;
   secureTextEntry?: secureTextEntryType;

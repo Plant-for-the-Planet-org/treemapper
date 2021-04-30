@@ -353,21 +353,7 @@ const SignUp = ({ navigation }) => {
                 // justifyContent: 'space-between',
                 marginVertical: 20,
               }}>
-              {/* <Input label={i18next.t('label.firstname')} value={'Paulina'} /> */}
               <View style={{ marginVertical: 10 }}>
-                {/* <Text style={styles.label}>{i18next.t('label.firstname')}</Text>
-                <TextInput
-                  style={[
-                    styles.value,
-                    firstNameError ? styles.borderBottomRed : styles.borderBottomBlack,
-                  ]}
-                  value={firstname}
-                  onChangeText={(text) => setFirstName(text)}
-                  returnKeyType={completeCheck ? 'done' : 'next'}
-                  blurOnSubmit={false}
-                  onSubmitEditing={() => textInput.current.focus()}
-                  // placeholder='Paulina'
-                /> */}
                 <OutlinedInput
                   value={firstname}
                   onChangeText={(text: string) => setFirstName(text)}
@@ -380,25 +366,6 @@ const SignUp = ({ navigation }) => {
                 />
               </View>
               <View style={{ marginVertical: 10 }}>
-                {/* <Text style={styles.label}>{i18next.t('label.lastname')}</Text> */}
-                {/* <TextInput
-                  style={[
-                    styles.value,
-                    lastNameError ? styles.borderBottomRed : styles.borderBottomBlack,
-                  ]}
-                  value={lastname}
-                  onChangeText={(text) => setLastName(text)}
-                  returnKeyType={completeCheck ? 'done' : 'next'}
-                  ref={textInput}
-                  blurOnSubmit={false}
-                  onSubmitEditing={
-                    accountType === 'company' ||
-                    accountType === 'education' ||
-                    accountType === 'tpo'
-                      ? () => textInputNameOfOrg.current.focus()
-                      : null
-                  }
-                /> */}
                 <OutlinedInput
                   value={lastname}
                   onChangeText={(text: string) => setLastName(text)}
@@ -461,34 +428,12 @@ const SignUp = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
               </View>
-              {/* <Text style={styles.label}>COUNTRY</Text>
-              <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.countryContainer}>
-                <Text style={styles.countryValue}
-                  ref={textInputCountry}
-                >{country ? country : ''}</Text>
-              </TouchableOpacity> */}
             </View>
             {modalVisible ? (
               <Modal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
             ) : null}
             {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
               <View style={styles.emailContainer}>
-                {/* <Text style={styles.label}>
-                  {i18next.t('label.tpo_title_organisation', { roleText: SelectType(accountType) })}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.value,
-                    nameError ? styles.borderBottomRed : styles.borderBottomBlack,
-                  ]}
-                  value={nameOfOrg}
-                  onChangeText={(text) => setNameOfOrg(text)}
-                  returnKeyType={completeCheck ? 'done' : 'next'}
-                  ref={textInputNameOfOrg}
-                  blurOnSubmit={completeCheck ? true : false}
-                  onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
-                  // placeholder="Forest in Africa"
-                /> */}
                 <OutlinedInput
                   value={nameOfOrg}
                   onChangeText={(text: string) => setNameOfOrg(text)}
@@ -505,43 +450,15 @@ const SignUp = ({ navigation }) => {
               </View>
             ) : null}
             <View style={[styles.emailContainer, styles.primaryColor]}>
-              {/* <Text style={styles.emailLabel}>{i18next.t('label.email')}</Text>
-              <TextInput
-                style={styles.inputColor}
-                value={email}
-                onChangeText={(text) => setEmail(text)}
-                editable={false}
-              /> */}
               <OutlinedInput
                 value={email}
                 onChangeText={(text: string) => setNameOfOrg(text)}
-                // label={i18next.t('label.email')}
                 editable={false}
-                // returnKeyType={completeCheck ? 'done' : 'next'}
-                // passiveBorderColor={nameError ? Colors.ALERT : undefined}
-                // passiveLabelColor={nameError ? Colors.ALERT : undefined}
-                // ref={textInputNameOfOrg}
-                // blurOnSubmit={completeCheck ? true : false}
-                // onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
               />
             </View>
             {accountType === 'tpo' ? (
               <View>
                 <View style={styles.emailContainer}>
-                  {/* <Text style={styles.label}>{i18next.t('label.address')}</Text>
-                  <TextInput
-                    style={[
-                      styles.value,
-                      addressError ? styles.borderBottomRed : styles.borderBottomBlack,
-                    ]}
-                    value={address}
-                    onChangeText={(text) => setAddress(text)}
-                    returnKeyType={completeCheck ? 'done' : 'next'}
-                    ref={textInputAddress}
-                    blurOnSubmit={completeCheck ? true : false}
-                    onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
-                    // placeholder="Some Address"
-                  />*/}
                   <OutlinedInput
                     value={address}
                     onChangeText={(text: string) => setCity(text)}
@@ -558,22 +475,6 @@ const SignUp = ({ navigation }) => {
                 <View
                   style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15 }}>
                   <View style={styles.inputContainer}>
-                    {/* <Text style={styles.label}>{i18next.t('label.city')}</Text>
-                    <TextInput
-                      style={[
-                        styles.value,
-                        cityError ? styles.borderBottomRed : styles.borderBottomBlack,
-                      ]}
-                      value={city}
-                      onChangeText={(text) => setCity(text)}
-                      returnKeyType={completeCheck ? 'done' : 'next'}
-                      ref={textInputCity}
-                      blurOnSubmit={completeCheck ? true : false}
-                      onSubmitEditing={
-                        completeCheck ? null : () => textInputZipCode.current.focus()
-                      }
-                      // placeholder="Chur"
-                    /> */}
                     <OutlinedInput
                       value={city}
                       onChangeText={(text: string) => setCity(text)}
@@ -589,18 +490,6 @@ const SignUp = ({ navigation }) => {
                     />
                   </View>
                   <View style={styles.inputContainer}>
-                    {/* <Text style={styles.label}>{i18next.t('label.zipcode')}</Text>
-                    <TextInput
-                      style={[
-                        styles.value,
-                        zipCodeError ? styles.borderBottomRed : styles.borderBottomBlack,
-                      ]}
-                      value={zipCode}
-                      onChangeText={(text) => setZipCode(text)}
-                      returnKeyType={completeCheck ? 'done' : 'next'}
-                      ref={textInputZipCode}
-                      // placeholder='98212'
-                    /> */}
                     <OutlinedInput
                       value={zipCode}
                       onChangeText={(text: string) => setZipCode(text)}

@@ -137,24 +137,7 @@ const SelectSpecies = () => {
                   }}>
                   <View>
                     <View style={styles.inputBox}>
-                      <View
-                      // style={{
-                      //   flex: 1,
-                      //   flexDirection: 'row',
-                      //   justifyContent: 'space-between',
-                      // }}
-                      >
-                        {/* <TextInput
-                          value={diameter}
-                          style={styles.input}
-                          autoFocus
-                          placeholder={i18next.t('label.select_species_diameter')}
-                          placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) =>
-                            setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
-                          }
-                          keyboardType={'decimal-pad'}
-                        /> */}
+                      <View>
                         <OutlinedInput
                           value={diameter}
                           onChangeText={(text) => {
@@ -171,38 +154,12 @@ const SelectSpecies = () => {
                           passiveBorderColor={diameterError ? Colors.ALERT : undefined}
                           passiveLabelColor={diameterError ? Colors.ALERT : undefined}
                         />
-                        {/* <Text
-                          style={{
-                            fontSize: Typography.FONT_SIZE_18,
-                            padding: 10,
-                            paddingRight: 20,
-                          }}>
-                          {nonISUCountries.includes(countryCode)
-                            ? i18next.t('label.select_species_inches')
-                            : 'cm'}
-                        </Text> */}
                       </View>
                     </View>
                     {diameterError ? <Text style={styles.errorText}>{diameterError}</Text> : []}
 
                     <View style={styles.inputBox}>
-                      <View
-                      // style={{
-                      //   flex: 1,
-                      //   flexDirection: 'row',
-                      //   justifyContent: 'space-between',
-                      // }}
-                      >
-                        {/* <TextInput
-                          value={height}
-                          style={styles.input}
-                          placeholder={i18next.t('label.select_species_height')}
-                          placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) =>
-                            setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
-                          }
-                          keyboardType={'decimal-pad'}
-                        /> */}
+                      <View>
                         <OutlinedInput
                           value={height}
                           onChangeText={(text) => {
@@ -216,24 +173,9 @@ const SelectSpecies = () => {
                               ? i18next.t('label.select_species_feet')
                               : 'm'
                           }
-                          // activeValueColor="#6c63fe"
-                          // activeBorderColor="#6c63fe"
-                          // activeLabelColor="#6c63fe"
                           passiveBorderColor={heightError ? Colors.ALERT : undefined}
                           passiveLabelColor={heightError ? Colors.ALERT : undefined}
-                          // passiveLabelColor="#bbb7ff"
-                          // passiveValueColor="#bbb7ff"
                         />
-                        {/* <Text
-                          style={{
-                            fontSize: Typography.FONT_SIZE_18,
-                            padding: 10,
-                            paddingRight: 20,
-                          }}>
-                          {nonISUCountries.includes(countryCode)
-                            ? i18next.t('label.select_species_feet')
-                            : 'm'}
-                        </Text> */}
                       </View>
                     </View>
                     {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
@@ -507,13 +449,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   inputBox: {
-    // borderWidth: 1,
-    // borderColor: Colors.PRIMARY,
-    // padding: 0,
     marginVertical: 12,
-    // width: '100%',
-    // borderRadius: 5,
-    // height: 50,
   },
   input: {
     flex: 1,
