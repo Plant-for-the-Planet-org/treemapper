@@ -2,6 +2,7 @@ import { CommonActions, useNavigation, useRoute } from '@react-navigation/native
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,9 +10,7 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
-  Keyboard,
 } from 'react-native';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
@@ -39,8 +38,8 @@ import {
 } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
-import ManageSpecies from '../ManageSpecies';
 import OutlinedInput from '../Common/OutlinedInput/index';
+import ManageSpecies from '../ManageSpecies';
 
 const SelectSpecies = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);
@@ -151,12 +150,10 @@ const SelectSpecies = () => {
                               ? i18next.t('label.select_species_inches')
                               : 'cm'
                           }
-                          passiveBorderColor={diameterError ? Colors.ALERT : undefined}
-                          passiveLabelColor={diameterError ? Colors.ALERT : undefined}
+                          error={diameterError}
                         />
                       </View>
                     </View>
-                    {diameterError ? <Text style={styles.errorText}>{diameterError}</Text> : []}
 
                     <View style={styles.inputBox}>
                       <View>
@@ -173,12 +170,10 @@ const SelectSpecies = () => {
                               ? i18next.t('label.select_species_feet')
                               : 'm'
                           }
-                          passiveBorderColor={heightError ? Colors.ALERT : undefined}
-                          passiveLabelColor={heightError ? Colors.ALERT : undefined}
+                          error={heightError}
                         />
                       </View>
                     </View>
-                    {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
 
                     <View style={styles.switchContainer}>
                       <Text style={styles.switchText}>
@@ -197,13 +192,6 @@ const SelectSpecies = () => {
                       <>
                         <View style={styles.inputBox}>
                           <View>
-                            {/* <TextInput
-                              value={tagId}
-                              style={styles.input}
-                              placeholder={i18next.t('label.select_species_tree_tag')}
-                              placeholderTextColor={Colors.TEXT_COLOR}
-                              onChangeText={(text) => setTagId(text)}
-                            /> */}
                             <OutlinedInput
                               value={tagId}
                               label={i18next.t('label.select_species_tree_tag')}
@@ -211,12 +199,10 @@ const SelectSpecies = () => {
                                 setTagIdError('');
                                 setTagId(text);
                               }}
-                              passiveBorderColor={tagIdError ? Colors.ALERT : undefined}
-                              passiveLabelColor={tagIdError ? Colors.ALERT : undefined}
+                              error={tagIdError}
                             />
                           </View>
                         </View>
-                        {tagIdError ? <Text style={styles.errorText}>{tagIdError}</Text> : []}
                       </>
                     ) : (
                       []

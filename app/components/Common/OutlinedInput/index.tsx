@@ -1,5 +1,5 @@
-import React, { memo, useRef, useState, useCallback, forwardRef } from 'react';
-import { Animated, Easing, EasingFunction, StyleSheet, View, TextInput, Text } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, EasingFunction, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Colors, Typography } from '_styles';
 
 type secureTextEntryType = true | false;
@@ -29,6 +29,7 @@ interface PropTypes {
   onSubmitEditing?: any;
   ref?: any;
   editable?: boolean;
+  error?: string | boolean;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -42,6 +43,8 @@ interface LabelStylePropTypes {
   initialTopValue: number;
   activeLabelColor: string;
   passiveLabelColor: string;
+  isError: boolean;
+  errorColor: string;
 }
 
 interface InputStyleProps {
@@ -49,11 +52,10 @@ interface InputStyleProps {
   height: number;
   fontSize: number;
   isFocused: boolean;
-  // activeBorderColor: string;
-  // passiveBorderColor: string;
   activeValueColor: string;
   passiveValueColor: string;
-  // keyboardType: string;
+  isError: boolean;
+  errorColor: string;
 }
 
 const OutlinedInput = ({
@@ -80,8 +82,10 @@ const OutlinedInput = ({
   onSubmitEditing,
   ref,
   editable,
+  error = '',
 }: PropTypes) => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [borderColor, setBorderColor] = useState<string>(Colors.GRAY_LIGHTEST);
   const lineHeightValue: number = fontSize + 2;
   const initialTopValue: number = (height - lineHeightValue) / 2;
   const labelPositionEmptyValue: number = 0;
@@ -89,6 +93,7 @@ const OutlinedInput = ({
   const padding: number = 8;
   const labelPositionFillValue: number = lineHeightValue / 2 + initialTopValue;
   const inputHeight: number = height;
+  const errorColor = Colors.ALERT;
 
   const labelPositionRef = useRef(
     new Animated.Value(value ? labelPositionFillValue : labelPositionEmptyValue),
@@ -103,6 +108,18 @@ const OutlinedInput = ({
     useNativeDriver: false,
     easing,
   };
+
+  useEffect(() => {
+    if (error) {
+      setBorderColor(errorColor);
+    } else if (isFocused) {
+      setBorderColor(activeBorderColor);
+    } else if (value) {
+      setBorderColor(passiveValueColor);
+    } else {
+      setBorderColor(passiveBorderColor);
+    }
+  }, [error, isFocused, value]);
 
   const onBlur: () => void = useCallback(() => {
     setIsFocused(false);
@@ -167,6 +184,8 @@ const OutlinedInput = ({
         initialTopValue,
         activeLabelColor,
         passiveLabelColor,
+        isError: !!error,
+        errorColor,
       }),
       { fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily },
     ],
@@ -203,36 +222,41 @@ const OutlinedInput = ({
         // passiveBorderColor,
         activeValueColor,
         passiveValueColor,
+        isError: !!error,
+        errorColor,
       }),
     ],
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.View {...animatedViewProps}>
-        <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
-      </Animated.View>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          borderWidth: 1,
-          borderRadius: 5,
-          borderColor: isFocused ? activeBorderColor : passiveBorderColor,
-        }}>
-        <TextInput {...inputProps} />
-        <Text
+    <>
+      <View style={styles.container}>
+        <Animated.View {...animatedViewProps}>
+          <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
+        </Animated.View>
+        <View
           style={{
-            color: Colors.TEXT_COLOR,
-            fontFamily,
-            fontSize: Typography.FONT_SIZE_18,
-            padding: 10,
-            paddingRight: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderRadius: 5,
+            borderColor,
           }}>
-          {rightText}
-        </Text>
+          <TextInput {...inputProps} />
+          <Text
+            style={{
+              color: Colors.TEXT_COLOR,
+              fontFamily,
+              fontSize: Typography.FONT_SIZE_18,
+              padding: 10,
+              paddingRight: 20,
+            }}>
+            {rightText}
+          </Text>
+        </View>
       </View>
-    </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : []}
+    </>
   );
 };
 
@@ -241,11 +265,13 @@ const LabelStyle = ({
   initialTopValue,
   activeLabelColor,
   passiveLabelColor,
+  isError,
+  errorColor,
 }: LabelStylePropTypes) => ({
   fontStyle: 'normal',
   fontWeight: 'normal',
-  color: isFocused ? activeLabelColor : passiveLabelColor,
-  backgroundColor: '#FFFFFF',
+  color: isError ? errorColor : isFocused ? activeLabelColor : passiveLabelColor,
+  backgroundColor: Colors.WHITE,
   paddingRight: 5,
   paddingLeft: 5,
   top: initialTopValue,
@@ -255,7 +281,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     marginRight: 5,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.WHITE,
+  },
+  errorText: {
+    color: Colors.ALERT,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    marginTop: 6,
   },
 });
 
@@ -266,6 +298,8 @@ const InputStyle = ({
   isFocused,
   activeValueColor,
   passiveValueColor,
+  isError,
+  errorColor,
 }: // activeBorderColor,
 // passiveBorderColor,
 InputStyleProps) => ({
@@ -276,7 +310,7 @@ InputStyleProps) => ({
   // borderWidth: 1,
   // borderColor: isFocused ? activeBorderColor : passiveBorderColor,
   // borderRadius: 6,
-  color: isFocused ? activeValueColor : passiveValueColor,
+  color: isError ? errorColor : isFocused ? activeValueColor : passiveValueColor,
 });
 
 export default memo(OutlinedInput);

@@ -1,7 +1,7 @@
 import { StackActions } from '@react-navigation/native';
 import i18next from 'i18next';
 import jwtDecode from 'jwt-decode';
-import React, { useContext, useEffect, useRef, useState, createRef } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Image,
   Platform,
@@ -10,14 +10,14 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
-  View,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import * as RNLocalize from 'react-native-localize';
 import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
+import { APIConfig } from '../../actions/Config';
 import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
 import { auth0Logout, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
@@ -26,7 +26,6 @@ import { getUserDetails } from '../../repositories/user';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { Header, Loader, PrimaryButton } from '../Common';
 import Modal from '../Common/Modal';
-import { APIConfig } from '../../actions/Config';
 import OutlinedInput from '../Common/OutlinedInput';
 
 const { protocol, cdnUrl } = APIConfig;
@@ -38,10 +37,10 @@ const SignUp = ({ navigation }) => {
   const [firstname, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [nameOfOrg, setNameOfOrg] = useState('');
-  const [isPrivate, setisPrivate] = useState(true);
-  const [getNews, setgetNews] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(true);
+  const [getNews, setGetNews] = useState(false);
   const [authDetail, setAuthDetails] = useState({});
-  const [oAuthAccessToken, setAuthtAccessToken] = useState('');
+  const [oAuthAccessToken, setAuthAccessToken] = useState('');
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
   const [address, setAddress] = useState('');
@@ -54,18 +53,13 @@ const SignUp = ({ navigation }) => {
   const [completeCheck, setCompleteCheck] = useState(false);
   const [country, setCountry] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  // const textInput = useRef(null);
-  const textInput = createRef();
-  const textInputZipCode = useRef(null);
-  const textInputNameOfOrg = useRef(null);
-  const textInputAddress = useRef(null);
-  const textInputCity = useRef(null);
+
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const lang = RNLocalize.getLocales()[0];
 
-  const toggleSwitchPublish = () => setisPrivate((previousState) => !previousState);
-  const toggleSwitchContact = () => setgetNews((previousState) => !previousState);
+  const toggleSwitchPublish = () => setIsPrivate((previousState) => !previousState);
+  const toggleSwitchContact = () => setGetNews((previousState) => !previousState);
 
   const SelectType = (type) => {
     let name;
@@ -168,7 +162,6 @@ const SignUp = ({ navigation }) => {
         });
       }
       if (completeCheck) {
-        // setCompleteCheck(true);
         userData = {
           firstname,
           lastname,
@@ -220,7 +213,6 @@ const SignUp = ({ navigation }) => {
           type: accountType,
         };
       }
-      // SignupService(userData);
     }
 
     if (completeCheck) {
@@ -255,7 +247,7 @@ const SignUp = ({ navigation }) => {
     getUserDetails().then((User) => {
       if (User) {
         let decode = jwtDecode(User.idToken);
-        setAuthtAccessToken(User.accessToken);
+        setAuthAccessToken(User.accessToken);
         setAuthDetails(decode);
         setEmail(decode.email);
         setCountry(handleFilter(lang.countryCode)[0]);
@@ -275,6 +267,13 @@ const SignUp = ({ navigation }) => {
     setCountry(data);
     setModalVisible(!modalVisible);
   };
+
+  const checkAndAlert = (error) => {
+    if (error) {
+      return Colors.ALERT;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {loadingState.isSignUpLoading ? (
@@ -359,12 +358,8 @@ const SignUp = ({ navigation }) => {
                   onChangeText={(text: string) => setFirstName(text)}
                   label={i18next.t('label.firstname')}
                   returnKeyType={completeCheck ? 'done' : 'next'}
+                  error={firstNameError}
                   blurOnSubmit={false}
-                  // onSubmitEditing={() => textInput.current.focus()}
-                  passiveBorderColor={
-                    firstNameError ? Colors.ALERT : firstname ? Colors.TEXT_COLOR : undefined
-                  }
-                  passiveLabelColor={firstNameError ? Colors.ALERT : undefined}
                 />
               </View>
               <View style={{ marginVertical: 14 }}>
@@ -373,28 +368,12 @@ const SignUp = ({ navigation }) => {
                   onChangeText={(text: string) => setLastName(text)}
                   label={i18next.t('label.lastname')}
                   returnKeyType={completeCheck ? 'done' : 'next'}
-                  passiveBorderColor={
-                    lastNameError ? Colors.ALERT : lastname ? Colors.TEXT_COLOR : undefined
-                  }
-                  passiveLabelColor={lastNameError ? Colors.ALERT : undefined}
-                  // ref={textInput}
+                  error={lastNameError}
                   blurOnSubmit={false}
-                  // onSubmitEditing={
-                  //   accountType === 'company' ||
-                  //   accountType === 'education' ||
-                  //   accountType === 'tpo'
-                  //     ? () => textInputNameOfOrg.current.focus()
-                  //     : null
-                  // }
                 />
               </View>
             </View>
-            <View
-              style={
-                {
-                  // marginVertical: 20
-                }
-              }>
+            <View>
               <Text>{i18next.t('label.country')}</Text>
               <View style={styles.countryContainer}>
                 <Image
@@ -430,7 +409,6 @@ const SignUp = ({ navigation }) => {
                           size={25}
                           color={Colors.PRIMARY}
                           style={styles.iconStyle}
-                          // onPress={modalOpen}
                         />
                       </View>
                     </View>
@@ -450,22 +428,16 @@ const SignUp = ({ navigation }) => {
                     roleText: SelectType(accountType),
                   })}
                   returnKeyType={completeCheck ? 'done' : 'next'}
-                  passiveBorderColor={
-                    nameError ? Colors.ALERT : nameOfOrg ? Colors.TEXT_COLOR : undefined
-                  }
-                  passiveLabelColor={nameError ? Colors.ALERT : undefined}
-                  // ref={textInputNameOfOrg}
-                  blurOnSubmit={completeCheck ? true : false}
-                  // onSubmitEditing={completeCheck ? null : () => textInputAddress.current.focus()}
+                  error={nameError}
+                  blurOnSubmit={completeCheck}
                 />
               </View>
             ) : null}
             <View style={[styles.emailContainer, styles.primaryColor]}>
               <OutlinedInput
                 value={email}
-                onChangeText={(text: string) => setNameOfOrg(text)}
+                onChangeText={(text: string) => setEmail(text)}
                 editable={false}
-                passiveBorderColor={Colors.TEXT_COLOR}
               />
             </View>
             {accountType === 'tpo' ? (
@@ -476,13 +448,8 @@ const SignUp = ({ navigation }) => {
                     onChangeText={(text: string) => setAddress(text)}
                     label={i18next.t('label.address')}
                     returnKeyType={completeCheck ? 'done' : 'next'}
-                    passiveBorderColor={
-                      addressError ? Colors.ALERT : address ? Colors.TEXT_COLOR : undefined
-                    }
-                    passiveLabelColor={addressError ? Colors.ALERT : undefined}
-                    // ref={textInputAddress}
-                    blurOnSubmit={completeCheck ? true : false}
-                    // onSubmitEditing={completeCheck ? null : () => textInputCity.current.focus()}
+                    error={addressError}
+                    blurOnSubmit={completeCheck}
                   />
                 </View>
 
@@ -493,15 +460,8 @@ const SignUp = ({ navigation }) => {
                       onChangeText={(text: string) => setCity(text)}
                       label={i18next.t('label.city')}
                       returnKeyType={completeCheck ? 'done' : 'next'}
-                      passiveBorderColor={
-                        cityError ? Colors.ALERT : city ? Colors.TEXT_COLOR : undefined
-                      }
-                      passiveLabelColor={cityError ? Colors.ALERT : undefined}
-                      // ref={textInputCity}
-                      blurOnSubmit={completeCheck ? true : false}
-                      // onSubmitEditing={
-                      // completeCheck ? null : () => textInputZipCode.current.focus()
-                      // }
+                      error={cityError}
+                      blurOnSubmit={completeCheck}
                     />
                   </View>
                   <View style={styles.inputContainer}>
@@ -510,13 +470,7 @@ const SignUp = ({ navigation }) => {
                       onChangeText={(text: string) => setZipCode(text)}
                       label={i18next.t('label.zipcode')}
                       returnKeyType={completeCheck ? 'done' : 'next'}
-                      passiveBorderColor={
-                        zipCodeError ? Colors.ALERT : zipCode ? Colors.TEXT_COLOR : undefined
-                      }
-                      passiveLabelColor={zipCodeError ? Colors.ALERT : undefined}
-                      // ref={textInputZipCode}
-                      keyboardType={'number-pad'}
-                      // blurOnSubmit={completeCheck ? true : false}
+                      error={zipCodeError}
                     />
                   </View>
                 </View>
