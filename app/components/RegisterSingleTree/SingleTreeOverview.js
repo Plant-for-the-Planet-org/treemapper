@@ -1,3 +1,4 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import {
   changeInventoryStatus,
   deleteInventory,
@@ -33,7 +35,9 @@ import {
   updateTreeTag,
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
-import { getUserInformation } from '../../repositories/user';
+import { getProjectById } from '../../repositories/projects';
+import { getUserInformation, getUserDetails } from '../../repositories/user';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
   diameterMaxCm,
@@ -60,9 +64,6 @@ import {
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, InputModal } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { UserContext } from '../../reducers/user';
-import { useNetInfo } from '@react-native-community/netinfo';
 import ManageSpecies from '../ManageSpecies';
 
 const SingleTreeOverview = () => {
@@ -87,6 +88,9 @@ const SingleTreeOverview = () => {
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showInputError, setShowInputError] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showProject, setShowProject] = useState(false);
 
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
@@ -106,6 +110,16 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+        if (stringifiedUserDetails?.type === 'tpo') {
+          setShowProject(true);
+        } else {
+          setShowProject(false);
+        }
+      }
+    });
     const unsubscribe = navigation.addListener('focus', () => {
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
@@ -114,7 +128,7 @@ const SingleTreeOverview = () => {
           setLocateTree(inventoryData.locateTree);
           setRegistrationType(inventoryData.treeType);
 
-          getUserInformation().then((data) => {
+          getUserInformation().then(async (data) => {
             setCountryCode(data.country);
             if (
               inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
@@ -152,6 +166,17 @@ const SingleTreeOverview = () => {
               const height = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
                 : inventoryData.specieHeight;
+
+              if (inventoryData.projectId) {
+                const project = await getProjectById(inventoryData.projectId);
+                if (project) {
+                  setSelectedProjectName(project.name);
+                  setSelectedProjectId(project.id);
+                }
+              } else {
+                setSelectedProjectName('');
+                setSelectedProjectId('');
+              }
 
               setSpecieText(inventoryData.species[0].aliases);
               setSpecieDiameter(diameter);
@@ -345,6 +370,8 @@ const SingleTreeOverview = () => {
   const onPressEditSpecies = (action) => {
     if (action === 'species') {
       setIsShowManageSpecies(true);
+    } else if (action === 'project') {
+      navigation.navigate('SelectProject', { selectedProjectId });
     } else {
       setEditEnable(action);
       if (action === 'diameter') {
@@ -540,6 +567,28 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={detailHeaderStyle}>
+              {i18next.t('label.tree_review_project').toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              disabled={!shouldEdit}
+              onPress={() => onPressEditSpecies('project')}
+              accessible={true}
+              accessibilityLabel="register_project"
+              testID="register_project">
+              <Text style={styles.detailText}>
+                {selectedProjectName
+                  ? selectedProjectName
+                  : i18next.t('label.tree_review_unassigned')}{' '}
+                {shouldEdit && <MIcon name={'edit'} size={20} />}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          []
+        )}
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_tree_tag_header')}</Text>
           <TouchableOpacity

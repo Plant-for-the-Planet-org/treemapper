@@ -7,13 +7,14 @@ import schema3 from './migrations/schema3';
 import schema4 from './migrations/schema4';
 import schema5 from './migrations/schema5';
 import schema6 from './migrations/schema6';
+import schema7 from './migrations/schema7';
 
-export const schemas = [schema0, schema1, schema2, schema3, schema4, schema5, schema6];
+export const schemas = [schema0, schema1, schema2, schema3, schema4, schema5, schema6, schema7];
 
 export const getSchema = () => schemas[schemas.length - 1];
 
 export function migrateRealm() {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     try {
       // The first schema to update to is the current schema version
       // since the first schema in our array is at nextSchemaIndex

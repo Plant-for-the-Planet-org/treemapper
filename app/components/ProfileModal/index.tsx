@@ -10,16 +10,95 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AvatarIcon from '../Common/AvatarIcon';
 import { APIConfig } from '../../actions/Config';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol, cdnUrl, webAppUrl } = APIConfig;
+
+interface ProfileModalProps {
+  onPressCloseProfileModal: any;
+  isProfileModalVisible: any;
+  onPressLogout: any;
+  userInfo: any;
+  cdnUrls: any;
+}
 
 const ProfileModal = ({
   onPressCloseProfileModal,
   isProfileModalVisible,
   onPressLogout,
   userInfo,
-}) => {
+}: ProfileModalProps) => {
+  const onPressEdit = () => {
+    Linking.openURL(`${protocol}://${webAppUrl}/login`);
+  };
+
+  const onPressManageSpecies = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('ManageSpecies');
+  };
+
+  const onPressManageProjects = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('ManageProjects');
+  };
+
+  const onPressActivityLogs = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('Logs');
+  };
+
   const [visibility, setVisibility] = useState(isProfileModalVisible);
+  const [profileListItems, setProfileListItems] = useState<any>([]);
   const navigation = useNavigation();
+  const profileItems = [
+    {
+      media: 'user-edit',
+      mediaType: 'icon',
+      text: 'edit_profile',
+      onPressFunction: onPressEdit,
+      isVisible: true,
+    },
+    {
+      media: 'leaf',
+      mediaType: 'icon',
+      text: 'manage_species',
+      onPressFunction: onPressManageSpecies,
+      isVisible: true,
+    },
+    {
+      media: 'project',
+      mediaType: 'octicon',
+      text: 'manage_projects',
+      onPressFunction: onPressManageProjects,
+      isVisible: true,
+    },
+    {
+      media: 'history',
+      mediaType: 'icon',
+      text: 'activity_logs',
+      onPressFunction: onPressActivityLogs,
+      isVisible: true,
+    },
+    {
+      media: logout,
+      mediaType: 'image',
+      text: 'logout',
+      onPressFunction: onPressLogout,
+      isVisible: true,
+    },
+  ];
+
+  useEffect(() => {
+    let updatedListItems = profileItems.map((profileItem: any) => {
+      if (profileItem.text === 'manage_projects') {
+        profileItem.isVisible = userInfo?.type === 'tpo';
+      }
+      return profileItem;
+    });
+    setProfileListItems(updatedListItems);
+  }, [userInfo, onPressCloseProfileModal]);
+
+  useEffect(() => {
+    setVisibility(isProfileModalVisible);
+  }, [navigation, visibility]);
 
   // adds the user name according to the available data
   let userName = '';
@@ -32,9 +111,10 @@ const ProfileModal = ({
     userName = userInfo.displayName;
   }
 
-  useEffect(() => {
-    setVisibility(isProfileModalVisible);
-  }, [navigation, visibility]);
+  let avatar =
+    cdnUrl && userInfo.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+      : '';
 
   const onPressLegals = () => {
     onPressCloseProfileModal();
@@ -46,59 +126,6 @@ const ProfileModal = ({
       alert('Can write mail to support@plant-for-the-planet.org'),
     );
   };
-  const onPressEdit = () => {
-    Linking.openURL('https://www.trilliontreecampaign.org/login');
-  };
-  let avatar = cdnUrl && userInfo.image ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}` : '';
-
-  const onPressManageSpecies = () => {
-    onPressCloseProfileModal();
-    navigation.navigate('ManageSpecies');
-  };
-
-  const profileListItems = [
-    {
-      media: 'user-edit',
-      mediaType: 'icon',
-      onPressFunction: onPressEdit,
-      text: 'edit_profile',
-    },
-    {
-      media: 'leaf',
-      mediaType: 'icon',
-      onPressFunction: onPressManageSpecies,
-      text: 'manage_species',
-    },
-    // {
-    //   media: 'map-marked',
-    //   mediaType: 'icon',
-    //   text: 'manage_offline',
-    // },
-    // {
-    //   media: 'pulse-outline',
-    //   text: 'activity_logging',
-    //   mediaType: 'ionicon',
-    // onPressFunction: () => {
-    //   navigation.navigate('Logs');
-    //   onPressCloseProfileModal();
-    // },
-    // },
-    {
-      media: 'history',
-      mediaType: 'icon',
-      text: 'activity_logs',
-      onPressFunction: () => {
-        navigation.navigate('Logs');
-        onPressCloseProfileModal();
-      },
-    },
-    {
-      media: logout,
-      mediaType: 'image',
-      onPressFunction: onPressLogout,
-      text: 'logout',
-    },
-  ];
 
   const signUpItem = {
     media: 'exclamation-circle',
@@ -153,9 +180,9 @@ const ProfileModal = ({
                   <Text style={styles.userName}>{userInfo.email}</Text>
                 </View>
               </View>
-              {profileListItems.map((item, index) => (
-                <ProfileListItem key={index} {...item} />
-              ))}
+              {profileListItems.map((item: any, index: number) =>
+                item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
+              )}
             </>
           ) : (
             <View style={{ marginTop: 20 }}>
