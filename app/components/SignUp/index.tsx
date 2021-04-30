@@ -351,9 +351,9 @@ const SignUp = ({ navigation }) => {
                 flex: 1,
                 flexDirection: 'column',
                 // justifyContent: 'space-between',
-                marginVertical: 20,
+                marginVertical: 10,
               }}>
-              <View style={{ marginVertical: 10 }}>
+              <View style={{ marginVertical: 14 }}>
                 <OutlinedInput
                   value={firstname}
                   onChangeText={(text: string) => setFirstName(text)}
@@ -361,19 +361,23 @@ const SignUp = ({ navigation }) => {
                   returnKeyType={completeCheck ? 'done' : 'next'}
                   blurOnSubmit={false}
                   // onSubmitEditing={() => textInput.current.focus()}
-                  passiveBorderColor={firstNameError ? Colors.ALERT : undefined}
+                  passiveBorderColor={
+                    firstNameError ? Colors.ALERT : firstname ? Colors.TEXT_COLOR : undefined
+                  }
                   passiveLabelColor={firstNameError ? Colors.ALERT : undefined}
                 />
               </View>
-              <View style={{ marginVertical: 10 }}>
+              <View style={{ marginVertical: 14 }}>
                 <OutlinedInput
                   value={lastname}
                   onChangeText={(text: string) => setLastName(text)}
                   label={i18next.t('label.lastname')}
                   returnKeyType={completeCheck ? 'done' : 'next'}
-                  passiveBorderColor={lastNameError ? Colors.ALERT : undefined}
+                  passiveBorderColor={
+                    lastNameError ? Colors.ALERT : lastname ? Colors.TEXT_COLOR : undefined
+                  }
                   passiveLabelColor={lastNameError ? Colors.ALERT : undefined}
-                  ref={textInput}
+                  // ref={textInput}
                   blurOnSubmit={false}
                   // onSubmitEditing={
                   //   accountType === 'company' ||
@@ -385,7 +389,12 @@ const SignUp = ({ navigation }) => {
                 />
               </View>
             </View>
-            <View style={{ marginVertical: 20 }}>
+            <View
+              style={
+                {
+                  // marginVertical: 20
+                }
+              }>
               <Text>{i18next.t('label.country')}</Text>
               <View style={styles.countryContainer}>
                 <Image
@@ -441,7 +450,9 @@ const SignUp = ({ navigation }) => {
                     roleText: SelectType(accountType),
                   })}
                   returnKeyType={completeCheck ? 'done' : 'next'}
-                  passiveBorderColor={nameError ? Colors.ALERT : undefined}
+                  passiveBorderColor={
+                    nameError ? Colors.ALERT : nameOfOrg ? Colors.TEXT_COLOR : undefined
+                  }
                   passiveLabelColor={nameError ? Colors.ALERT : undefined}
                   // ref={textInputNameOfOrg}
                   blurOnSubmit={completeCheck ? true : false}
@@ -454,6 +465,7 @@ const SignUp = ({ navigation }) => {
                 value={email}
                 onChangeText={(text: string) => setNameOfOrg(text)}
                 editable={false}
+                passiveBorderColor={Colors.TEXT_COLOR}
               />
             </View>
             {accountType === 'tpo' ? (
@@ -461,10 +473,12 @@ const SignUp = ({ navigation }) => {
                 <View style={styles.emailContainer}>
                   <OutlinedInput
                     value={address}
-                    onChangeText={(text: string) => setCity(text)}
+                    onChangeText={(text: string) => setAddress(text)}
                     label={i18next.t('label.address')}
                     returnKeyType={completeCheck ? 'done' : 'next'}
-                    passiveBorderColor={addressError ? Colors.ALERT : undefined}
+                    passiveBorderColor={
+                      addressError ? Colors.ALERT : address ? Colors.TEXT_COLOR : undefined
+                    }
                     passiveLabelColor={addressError ? Colors.ALERT : undefined}
                     // ref={textInputAddress}
                     blurOnSubmit={completeCheck ? true : false}
@@ -472,15 +486,16 @@ const SignUp = ({ navigation }) => {
                   />
                 </View>
 
-                <View
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <View style={styles.inputContainer}>
                     <OutlinedInput
                       value={city}
                       onChangeText={(text: string) => setCity(text)}
                       label={i18next.t('label.city')}
                       returnKeyType={completeCheck ? 'done' : 'next'}
-                      passiveBorderColor={cityError ? Colors.ALERT : undefined}
+                      passiveBorderColor={
+                        cityError ? Colors.ALERT : city ? Colors.TEXT_COLOR : undefined
+                      }
                       passiveLabelColor={cityError ? Colors.ALERT : undefined}
                       // ref={textInputCity}
                       blurOnSubmit={completeCheck ? true : false}
@@ -495,7 +510,9 @@ const SignUp = ({ navigation }) => {
                       onChangeText={(text: string) => setZipCode(text)}
                       label={i18next.t('label.zipcode')}
                       returnKeyType={completeCheck ? 'done' : 'next'}
-                      passiveBorderColor={zipCodeError ? Colors.ALERT : undefined}
+                      passiveBorderColor={
+                        zipCodeError ? Colors.ALERT : zipCode ? Colors.TEXT_COLOR : undefined
+                      }
                       passiveLabelColor={zipCodeError ? Colors.ALERT : undefined}
                       // ref={textInputZipCode}
                       keyboardType={'number-pad'}
@@ -615,12 +632,12 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: '46.7%',
-    marginVertical: 10,
+    marginVertical: 14,
   },
   emailContainer: {
     width: '100%',
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    marginVertical: 20,
+    marginVertical: 14,
   },
   primaryColor: { color: Colors.PRIMARY },
   getNewsText: {
@@ -664,7 +681,7 @@ const styles = StyleSheet.create({
   countryContainer: {
     width: '100%',
     paddingTop: 13,
-    paddingBottom: 10,
+    paddingBottom: 14,
     color: Colors.PRIMARY,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     flexDirection: 'row',
