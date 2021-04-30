@@ -1,5 +1,5 @@
 PODS:
-  - A0Auth0 (2.8.0):
+  - A0Auth0 (2.8.2):
     - React
   - boost-for-react-native (1.63.0)
   - BugsnagReactNative (2.23.10):
@@ -606,7 +606,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  A0Auth0: b22979300d6c6962c2d4e0c3a083dbf130f80776
+  A0Auth0: 8a88e39e1e987a30ee3a0ebe17d758055a3d6762
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
