@@ -64,7 +64,9 @@ export default function AddField() {
       <Header headingText={headingText} />
       <FieldSwitcher elementType={elementType} />
       <TypeSelection
+        selectedTreeType={selectedTreeType}
         setSelectedTreeType={setSelectedTreeType}
+        selectedRegistrationType={selectedRegistrationType}
         setSelectedRegistrationType={setSelectedRegistrationType}
       />
       <PrimaryButton

@@ -3,117 +3,139 @@ import { StyleSheet, Text, View } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import i18next from 'i18next';
 import { Colors, Typography } from '../../styles';
+import { useNavigation } from '@react-navigation/core';
 
 interface ITypeSelectionProps {
+  selectedTreeType: any;
   setSelectedTreeType: any;
+  selectedRegistrationType: any;
   setSelectedRegistrationType: any;
 }
 
-const treeTypesInitialState = {
-  single: {
-    isSelected: false,
-    isDisabled: false,
-    name: i18next.t('label.single'),
-  },
-  sample: {
-    isSelected: false,
-    isDisabled: false,
-    name: i18next.t('label.sample'),
-  },
-  multiple: {
-    isSelected: false,
-    isDisabled: false,
-    name: i18next.t('label.multiple'),
-  },
-};
+const treeTypesInitialState = [
+  { type: 'single', isSelected: false, isDisabled: true, name: i18next.t('label.single') },
+  { type: 'sample', isSelected: false, isDisabled: true, name: i18next.t('label.sample') },
+  { type: 'multiple', isSelected: false, isDisabled: true, name: i18next.t('label.multiple') },
+];
+
+const registrationTypesInitialState = [
+  { type: 'onsite', isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
+  { type: 'offsite', isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
+  { type: 'review', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
+];
 
 export default function TypeSelection({
+  selectedTreeType,
   setSelectedTreeType,
+  selectedRegistrationType,
   setSelectedRegistrationType,
 }: ITypeSelectionProps) {
-  const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>({
-    onsite: {
-      isSelected: false,
-      isDisabled: false,
-      name: i18next.t('label.on_site'),
-    },
-    offsite: {
-      isSelected: false,
-      isDisabled: false,
-      name: i18next.t('label.off_site'),
-    },
-    review: {
-      isSelected: false,
-      isDisabled: false,
-      name: i18next.t('label.review'),
-    },
-  });
+  const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>(
+    registrationTypesInitialState,
+  );
 
   const [treeTypeCheckBoxes, setTreeTypeCheckBoxes] = useState<any>(treeTypesInitialState);
 
   useEffect(() => {
-    let { single, sample, multiple } = treeTypesInitialState;
-    const { review, offsite, onsite } = registrationTypeCheckBoxes;
+    setRegistrationTypeCheckBoxes(registrationTypesInitialState);
+    setTreeTypeCheckBoxes(treeTypesInitialState);
+  }, []);
 
-    sample.isSelected = onsite.isSelected ? sample.isSelected : false;
-    sample.isDisabled = !onsite.isSelected;
-
-    multiple.isSelected = offsite.isSelected || onsite.isSelected ? multiple.isSelected : false;
-    multiple.isDisabled = !offsite.isSelected && !onsite.isSelected && review.isSelected;
-
-    single.isDisabled = !offsite.isSelected && !onsite.isSelected && review.isSelected;
-    if (!offsite.isSelected && !onsite.isSelected && review.isSelected) {
-      single.isSelected = true;
-    } else if (!offsite.isSelected && !onsite.isSelected && !review.isSelected) {
-      single.isSelected = false;
-    }
-
-    setTreeTypeCheckBoxes({
-      single,
-      sample,
-      multiple,
-    });
-  }, [registrationTypeCheckBoxes]);
-
-  const toggleTreeTypeCheckBox = (treeTypeKey: string, value: boolean) => {
-    setTreeTypeCheckBoxes((treeTypeBoxes: any) => {
-      return {
-        ...treeTypeBoxes,
-        [treeTypeKey]: {
+  const toggleTreeTypeCheckBox = (treeType: string, value: boolean) => {
+    const updatedCheckBoxes = treeTypeCheckBoxes.map((tree: any) => {
+      if (tree.type === treeType) {
+        return {
+          ...tree,
           isSelected: value,
-          isDisabled: treeTypeBoxes[treeTypeKey].isDisabled,
-        },
-      };
+        };
+      }
+      return tree;
     });
+    setTreeTypeCheckBoxes(updatedCheckBoxes);
 
-    setSelectedTreeType(treeTypeCheckBoxes.filter((treeType: any) => treeType.isSelected));
+    let treeTypes: any = [];
+    for (const tree of updatedCheckBoxes) {
+      if (tree.isSelected) {
+        treeTypes.push(tree.type);
+      }
+    }
+    setSelectedTreeType(treeTypes);
   };
 
-  const toggleRegistrationTypeCheckBox = (registrationTypeKey: string, value: boolean) => {
-    setRegistrationTypeCheckBoxes((registrationTypeBoxes: any) => {
-      return {
-        ...registrationTypeBoxes,
-        [registrationTypeKey]: {
+  const toggleRegistrationTypeCheckBox = (registrationType: string, value: boolean) => {
+    const updatedCheckBoxes = registrationTypeCheckBoxes.map((registration: any) => {
+      if (registration.type === registrationType) {
+        return {
+          ...registration,
           isSelected: value,
-          isDisabled: registrationTypeBoxes[registrationTypeKey].isDisabled,
-        },
-      };
+        };
+      }
+      return registration;
     });
-    setSelectedRegistrationType(
-      registrationTypeCheckBoxes.filter((registrationType: any) => registrationType.isSelected),
-    );
+
+    setRegistrationTypeCheckBoxes(updatedCheckBoxes);
+
+    let registrationTypes: any = [];
+    for (const registration of updatedCheckBoxes) {
+      if (registration.isSelected) {
+        registrationTypes.push(registration.type);
+      }
+    }
+    setSelectedRegistrationType(registrationTypes);
+
+    if (registrationTypes.length === 0) {
+      setTreeTypeCheckBoxes(treeTypesInitialState);
+      setSelectedTreeType([]);
+    } else {
+      let updatedTreeBoxes = [...treeTypesInitialState];
+      for (const i in updatedTreeBoxes) {
+        switch (updatedTreeBoxes[i].type) {
+          case 'sample':
+            updatedTreeBoxes[i].isSelected = registrationTypes.includes('onsite')
+              ? updatedTreeBoxes[i].isSelected
+              : false;
+
+            updatedTreeBoxes[i].isDisabled = !registrationTypes.includes('onsite');
+            break;
+          case 'multiple':
+            updatedTreeBoxes[i].isSelected =
+              registrationTypes.includes('onsite') || registrationTypes.includes('offsite')
+                ? updatedTreeBoxes[i].isSelected
+                : false;
+
+            updatedTreeBoxes[i].isDisabled =
+              !registrationTypes.includes('onsite') &&
+              !registrationTypes.includes('offsite') &&
+              registrationTypes.includes('review');
+            break;
+          case 'single':
+            updatedTreeBoxes[i].isSelected =
+              !registrationTypes.includes('onsite') &&
+              !registrationTypes.includes('offsite') &&
+              registrationTypes.includes('review')
+                ? true
+                : updatedTreeBoxes[i].isSelected;
+
+            updatedTreeBoxes[i].isDisabled =
+              !registrationTypes.includes('onsite') &&
+              !registrationTypes.includes('offsite') &&
+              registrationTypes.includes('review');
+            break;
+        }
+      }
+    }
   };
 
   const checkGroupBoxes: any = [
     {
       title: i18next.t('label.registrationType'),
       checkBoxes: registrationTypeCheckBoxes,
-      toggleCheckBox: toggleTreeTypeCheckBox,
+      toggleCheckBox: toggleRegistrationTypeCheckBox,
     },
     {
       title: i18next.t('label.treeType'),
       checkBoxes: treeTypeCheckBoxes,
-      toggleCheckBox: toggleRegistrationTypeCheckBox,
+      toggleCheckBox: toggleTreeTypeCheckBox,
     },
   ];
 
@@ -142,14 +164,14 @@ const CheckBoxGroup = ({ title, checkBoxes, toggleCheckBox }: ICheckBoxGroupProp
     <>
       <Text style={styles.selectionTypeText}>{title}</Text>
       <View style={styles.checkBoxParent}>
-        {Object.keys(checkBoxes).map((key: string, index: number) => (
-          <View style={styles.checkBoxContainer} key={`tree-type-${index}`}>
+        {checkBoxes.map((checkBox: any, index: number) => (
+          <View style={styles.checkBoxContainer} key={`${checkBox.type}-${index}`}>
             <CheckBox
-              disabled={checkBoxes[key].isDisabled}
-              value={checkBoxes[key].isSelected}
-              onValueChange={(newValue) => toggleCheckBox(key, newValue)}
+              disabled={checkBox.isDisabled}
+              value={checkBox.isSelected}
+              onValueChange={(newValue) => toggleCheckBox(checkBox.type, newValue)}
             />
-            <Text style={styles.checkboxText}>{checkBoxes[key].name}</Text>
+            <Text style={styles.checkboxText}>{checkBox.name}</Text>
           </View>
         ))}
       </View>

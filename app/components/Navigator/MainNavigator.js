@@ -32,6 +32,7 @@ import {
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AdditionalData from '../AdditionalData';
+import AddField from '../AdditionalData/AddField';
 
 const Stack = createStackNavigator();
 
@@ -100,6 +101,7 @@ export default function MainNavigator() {
       <Stack.Screen name="TotalTreesSpecies" component={TotalTreesSpecies} options={MyTransition} />
       <Stack.Screen name="LogoutWarning" component={LogoutWarning} options={MyTransition} />
       <Stack.Screen name="AdditionalData" component={AdditionalData} options={MyTransition} />
+      <Stack.Screen name="AddField" component={AddField} options={MyTransition} />
     </Stack.Navigator>
   );
 }
