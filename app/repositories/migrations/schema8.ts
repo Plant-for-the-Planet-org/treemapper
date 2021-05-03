@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 7;
+const schemaVersion = 8;
 
 // SCHEMAS
 const Coordinates = {
@@ -193,7 +193,25 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {};
+// used to store all the available scientific species extracted from zip
+const Projects = {
+  name: 'Projects',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    slug: 'string',
+    allowDonations: 'bool',
+    countPlanted: 'int',
+    countTarget: 'int',
+    currency: 'string',
+    image: 'string',
+    country: 'string',
+    name: 'string',
+    treeCost: 'double',
+  },
+};
+
+const migration = () => {};
 
 export default {
   schema: [
@@ -206,6 +224,7 @@ export default {
     ScientificSpecies,
     ActivityLogs,
     SampleTrees,
+    Projects,
   ],
   schemaVersion,
   migration,
