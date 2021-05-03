@@ -1,6 +1,7 @@
 import {
   createStackNavigator,
   HeaderStyleInterpolators,
+  StackNavigationOptions,
   TransitionSpecs,
 } from '@react-navigation/stack';
 import React from 'react';
@@ -29,6 +30,7 @@ import {
   RecordSampleTrees,
   TotalTreesSpecies,
   LogoutWarning,
+  ManageProjects,
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AdditionalData from '../AdditionalData';
@@ -36,7 +38,7 @@ import AddField from '../AdditionalData/AddField';
 
 const Stack = createStackNavigator();
 
-const MyTransition = {
+const MyTransition: StackNavigationOptions = {
   gestureDirection: 'vertical',
   transitionSpec: {
     open: TransitionSpecs.TransitionIOSSpec,
@@ -93,8 +95,8 @@ export default function MainNavigator() {
       <Stack.Screen name="UploadedInventory" component={UploadedInventory} options={MyTransition} />
       <Stack.Screen name="SelectSpecies" component={SelectSpecies} options={MyTransition} />
       <Stack.Screen name="Logs" component={Logs} options={MyTransition} />
-      <Stack.Screen name="ManageSpecies" component={ManageSpecies} option={MyTransition} />
-      <Stack.Screen name="SpecieInfo" component={SpecieInfo} option={MyTransition} />
+      <Stack.Screen name="ManageSpecies" component={ManageSpecies} options={MyTransition} />
+      <Stack.Screen name="SpecieInfo" component={SpecieInfo} options={MyTransition} />
       <Stack.Screen name="Legals" component={Legals} options={MyTransition} />
       <Stack.Screen name="SampleTreesCount" component={SampleTreesCount} options={MyTransition} />
       <Stack.Screen name="RecordSampleTrees" component={RecordSampleTrees} options={MyTransition} />
@@ -102,6 +104,7 @@ export default function MainNavigator() {
       <Stack.Screen name="LogoutWarning" component={LogoutWarning} options={MyTransition} />
       <Stack.Screen name="AdditionalData" component={AdditionalData} options={MyTransition} />
       <Stack.Screen name="AddField" component={AddField} options={MyTransition} />
+      <Stack.Screen name="ManageProjects" component={ManageProjects} options={MyTransition} />
     </Stack.Navigator>
   );
 }

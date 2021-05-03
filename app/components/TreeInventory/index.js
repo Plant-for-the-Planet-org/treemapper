@@ -175,6 +175,7 @@ const TreeInventory = ({ navigation }) => {
           <PrimaryButton
             onPress={() => navigation.navigate('RegisterTree')}
             btnText={i18next.t('label.register_tree')}
+            style={{ marginTop: 10 }}
           />
         </View>
       </View>
@@ -195,6 +196,7 @@ const TreeInventory = ({ navigation }) => {
         <PrimaryButton
           onPress={() => navigation.navigate('RegisterTree')}
           btnText={i18next.t('label.register_tree')}
+          style={{ marginTop: 10 }}
         />
         <SafeAreaView />
       </View>

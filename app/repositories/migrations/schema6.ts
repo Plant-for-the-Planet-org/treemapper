@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 4;
+const schemaVersion = 6;
 
 // SCHEMAS
 const Coordinates = {
@@ -129,11 +129,14 @@ const User = {
     image: 'string?',
     country: 'string?',
     isLogEnabled: 'bool?',
-    tpoId: 'string?',
+    userId: 'string?',
+    userType: 'string?',
     refreshToken: 'string?',
     isSignUpRequired: 'bool?',
     type: 'string?',
     displayName: 'string?',
+    // stores the expiry time of token in seconds
+    expirationTime: 'int?',
   },
 };
 
@@ -179,31 +182,19 @@ const ScientificSpecies = {
     isUploaded: { type: 'bool', default: false },
     // stores the specieId which is uploaded on server
     specieId: 'string?',
+    aliases: { type: 'string', default: '' },
+    image: { type: 'string', default: '' },
+    description: { type: 'string', default: '' },
+    isUpdated: { type: 'bool', default: true },
   },
 };
 
-const migration = (oldRealm, newRealm) => {
+const migration = (oldRealm: any, newRealm: any) => {
   if (oldRealm.schemaVersion < schemaVersion) {
-    const oldInventory = oldRealm.objects('Inventory');
-    let newInventory = newRealm.objects('Inventory');
-    for (const index in oldInventory) {
-      newInventory[index].treeType = oldInventory[index].tree_type;
-      newInventory[index].specieDiameter = oldInventory[index].species_diameter;
-      newInventory[index].specieHeight = oldInventory[index].species_height;
-      newInventory[index].locateTree = oldInventory[index].locate_tree;
-      newInventory[index].tagId = oldInventory[index].tag_id;
-      newInventory[index].lastScreen = oldInventory[index].last_screen;
-      newInventory[index].registrationDate = oldInventory[index].registration_date;
-      for (const coordinateIndex in newInventory[index].polygons[0].coordinates) {
-        newInventory[index].polygons[0].coordinates[coordinateIndex].latitude =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].latitude;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].longitude =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].longitude;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclat;
-        newInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong =
-          oldInventory[index].polygons[0].coordinates[coordinateIndex].currentloclong;
-      }
+    const oldUser = oldRealm.objects('User');
+    let newUser = newRealm.objects('User');
+    for (const index in oldUser) {
+      newUser[index].userId = oldUser[index].tpoId;
     }
   }
 };

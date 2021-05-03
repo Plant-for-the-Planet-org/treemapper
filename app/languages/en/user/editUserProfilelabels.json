@@ -17,5 +17,7 @@
   "sync_remaining": "Syncing - {{count}} remaining",
   "support": "Support",
   "complete_signup": "Complete Signup",
+  "manage_projects":"Manage Projects",
+  "select_project":"Select Project",
   "additional_data": "Additional Data"
 }
