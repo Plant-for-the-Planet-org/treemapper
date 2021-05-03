@@ -36,44 +36,50 @@ export default function LogoutWarning(props: LogoutWarningProps) {
     });
   };
   return (
-    <SafeAreaView style={styles.mainContainer}>
-      <View style={styles.container}>
-        <Header />
-      </View>
-      <View style={styles.bannerContainer}>
-        <SvgXml xml={sync_to_cloud} />
-      </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.mainContainer}>
+        <View style={styles.container}>
+          <Header />
+        </View>
+        <View style={styles.bannerContainer}>
+          <SvgXml xml={sync_to_cloud} />
+        </View>
 
-      <View style={styles.messageContainer}>
-        <Text style={[styles.syncMessage, isSyncing ? { marginBottom: 20 } : {}]}>
-          {isSyncing
-            ? i18next.t('label.species_sync_might_take_time')
-            : isSyncRequired
-            ? i18next.t('label.sync_required_message')
-            : i18next.t('label.all_species_synced')}
-        </Text>
-        {isSyncing ? (
-          <ActivityIndicator size="large" color={Colors.PRIMARY} style={{ paddingVertical: 20 }} />
-        ) : (
-          []
-        )}
-      </View>
-      <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
-        {isSyncRequired && (
+        <View style={styles.messageContainer}>
+          <Text style={[styles.syncMessage, isSyncing ? { marginBottom: 20 } : {}]}>
+            {isSyncing
+              ? i18next.t('label.species_sync_might_take_time')
+              : isSyncRequired
+              ? i18next.t('label.sync_required_message')
+              : i18next.t('label.all_species_synced')}
+          </Text>
+          {isSyncing ? (
+            <ActivityIndicator
+              size="large"
+              color={Colors.PRIMARY}
+              style={{ paddingVertical: 20 }}
+            />
+          ) : (
+            []
+          )}
+        </View>
+        <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
+          {isSyncRequired && (
+            <PrimaryButton
+              disabled={isSyncing}
+              onPress={onPressSync}
+              btnText={i18next.t('label.sync')}
+              theme={'white'}
+              halfWidth={true}
+            />
+          )}
           <PrimaryButton
             disabled={isSyncing}
-            onPress={onPressSync}
-            btnText={i18next.t('label.sync')}
-            theme={'white'}
-            halfWidth={true}
+            onPress={onPressContinueAnyway}
+            btnText={isSyncRequired ? i18next.t('label.logout_anyway') : i18next.t('label.logout')}
+            halfWidth={isSyncRequired}
           />
-        )}
-        <PrimaryButton
-          disabled={isSyncing}
-          onPress={onPressContinueAnyway}
-          btnText={isSyncRequired ? i18next.t('label.logout_anyway') : i18next.t('label.logout')}
-          halfWidth={isSyncRequired}
-        />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -92,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
     justifyContent: 'space-between',
-    paddingHorizontal: 25
+    paddingHorizontal: 25,
   },
   syncMessage: {
     color: Colors.TEXT_COLOR,
@@ -107,6 +113,6 @@ const styles = StyleSheet.create({
   bannerContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 50
+    paddingBottom: 50,
   },
 });
