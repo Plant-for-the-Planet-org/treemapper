@@ -105,7 +105,7 @@ const MainScreen = ({ navigation }) => {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
             setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+            setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
         }
       });

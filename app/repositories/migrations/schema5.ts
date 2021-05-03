@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 6;
+const schemaVersion = 5;
 
 // SCHEMAS
 const Coordinates = {
@@ -129,14 +129,11 @@ const User = {
     image: 'string?',
     country: 'string?',
     isLogEnabled: 'bool?',
-    userId: 'string?',
-    userType: 'string?',
+    tpoId: 'string?',
     refreshToken: 'string?',
     isSignUpRequired: 'bool?',
     type: 'string?',
     displayName: 'string?',
-    // stores the expiry time of token in seconds
-    expirationTime: 'int?',
   },
 };
 
@@ -189,12 +186,14 @@ const ScientificSpecies = {
   },
 };
 
-const migration = (oldRealm, newRealm) => {
+const migration = (oldRealm: any, newRealm: any) => {
   if (oldRealm.schemaVersion < schemaVersion) {
-    const oldUser = oldRealm.objects('User');
-    let newUser = newRealm.objects('User');
-    for (const index in oldUser) {
-      newUser[index].userId = oldUser[index].tpoId;
+    const oldScientificSpecies = oldRealm.objects('ScientificSpecies');
+    let newScientificSpecies = newRealm.objects('ScientificSpecies');
+    for (const index in oldScientificSpecies) {
+      newScientificSpecies[index].aliases = oldScientificSpecies[index].scientificName;
+      newScientificSpecies[index].isUpdated = true;
+      newScientificSpecies[index].description = '';
     }
   }
 };

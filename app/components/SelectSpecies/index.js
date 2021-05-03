@@ -2,6 +2,7 @@ import { CommonActions, useNavigation, useRoute } from '@react-navigation/native
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,7 +10,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { Colors, Typography } from '_styles';
@@ -38,6 +38,7 @@ import {
 } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton } from '../Common';
+import OutlinedInput from '../Common/OutlinedInput/index';
 import ManageSpecies from '../ManageSpecies';
 
 const SelectSpecies = () => {
@@ -135,67 +136,44 @@ const SelectSpecies = () => {
                   }}>
                   <View>
                     <View style={styles.inputBox}>
-                      <View
-                        style={{
-                          flex: 1,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
+                      <View>
+                        <OutlinedInput
                           value={diameter}
-                          style={styles.input}
-                          autoFocus
-                          placeholder={i18next.t('label.select_species_diameter')}
-                          placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) =>
-                            setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
-                          }
+                          onChangeText={(text) => {
+                            setDiameterError('');
+                            setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+                          }}
+                          label={i18next.t('label.select_species_diameter')}
                           keyboardType={'decimal-pad'}
+                          rightText={
+                            nonISUCountries.includes(countryCode)
+                              ? i18next.t('label.select_species_inches')
+                              : 'cm'
+                          }
+                          error={diameterError}
                         />
-                        <Text
-                          style={{
-                            fontSize: Typography.FONT_SIZE_18,
-                            padding: 10,
-                            paddingRight: 20,
-                          }}>
-                          {nonISUCountries.includes(countryCode)
-                            ? i18next.t('label.select_species_inches')
-                            : 'cm'}
-                        </Text>
                       </View>
                     </View>
-                    {diameterError ? <Text style={styles.errorText}>{diameterError}</Text> : []}
 
                     <View style={styles.inputBox}>
-                      <View
-                        style={{
-                          flex: 1,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}>
-                        <TextInput
+                      <View>
+                        <OutlinedInput
                           value={height}
-                          style={styles.input}
-                          placeholder={i18next.t('label.select_species_height')}
-                          placeholderTextColor={Colors.TEXT_COLOR}
-                          onChangeText={(text) =>
-                            setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''))
-                          }
+                          onChangeText={(text) => {
+                            setHeightError('');
+                            setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+                          }}
+                          label={i18next.t('label.select_species_height')}
                           keyboardType={'decimal-pad'}
+                          rightText={
+                            nonISUCountries.includes(countryCode)
+                              ? i18next.t('label.select_species_feet')
+                              : 'm'
+                          }
+                          error={heightError}
                         />
-                        <Text
-                          style={{
-                            fontSize: Typography.FONT_SIZE_18,
-                            padding: 10,
-                            paddingRight: 20,
-                          }}>
-                          {nonISUCountries.includes(countryCode)
-                            ? i18next.t('label.select_species_feet')
-                            : 'm'}
-                        </Text>
                       </View>
                     </View>
-                    {heightError ? <Text style={styles.errorText}>{heightError}</Text> : []}
 
                     <View style={styles.switchContainer}>
                       <Text style={styles.switchText}>
@@ -213,22 +191,18 @@ const SelectSpecies = () => {
                     {isTagIdPresent ? (
                       <>
                         <View style={styles.inputBox}>
-                          <View
-                            style={{
-                              flex: 1,
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                            }}>
-                            <TextInput
+                          <View>
+                            <OutlinedInput
                               value={tagId}
-                              style={styles.input}
-                              placeholder={i18next.t('label.select_species_tree_tag')}
-                              placeholderTextColor={Colors.TEXT_COLOR}
-                              onChangeText={(text) => setTagId(text)}
+                              label={i18next.t('label.select_species_tree_tag')}
+                              onChangeText={(text) => {
+                                setTagIdError('');
+                                setTagId(text);
+                              }}
+                              error={tagIdError}
                             />
                           </View>
                         </View>
-                        {tagIdError ? <Text style={styles.errorText}>{tagIdError}</Text> : []}
                       </>
                     ) : (
                       []
@@ -254,6 +228,7 @@ const SelectSpecies = () => {
   const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
 
   const onPressMeasurementBtn = () => {
+    Keyboard.dismiss();
     let isDiameterValid = false;
     let isHeightValid = false;
     let isTagIdValid = false;
@@ -465,13 +440,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   inputBox: {
-    borderWidth: 1,
-    borderColor: Colors.PRIMARY,
-    padding: 0,
-    marginVertical: 12,
-    width: '100%',
-    borderRadius: 5,
-    height: 50,
+    marginTop: 24,
+    marginBottom: 4,
   },
   input: {
     flex: 1,
@@ -481,12 +451,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.ALERT,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
   },
   switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   switchText: {
     color: Colors.TEXT_COLOR,

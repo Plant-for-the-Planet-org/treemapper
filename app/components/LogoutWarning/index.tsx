@@ -12,7 +12,7 @@ import { Header, PrimaryButton } from '../Common';
 
 interface LogoutWarningProps {}
 
-const LogoutWarning: React.FunctionComponent<LogoutWarningProps> = (props) => {
+export default function LogoutWarning(props: LogoutWarningProps) {
   const [isSyncRequired, setIsSyncRequired] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
@@ -77,9 +77,7 @@ const LogoutWarning: React.FunctionComponent<LogoutWarningProps> = (props) => {
       </View>
     </SafeAreaView>
   );
-};
-
-export default LogoutWarning;
+}
 
 const styles = StyleSheet.create({
   container: {

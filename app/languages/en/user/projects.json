@@ -1,0 +1,8 @@
+{
+    "add_new_project": "Add new project",
+    "add_new_project_desc":"Add projects to showcase your past progress or to receive donations to plant more.",
+    "select_project":"Select Project",
+    "select_project_desc":"Trees you register can be associated to a specific project.",
+    "continue_without_project":"Continue without a Project",
+    "continue_without_project_desc":"Trees wont be associated with a project."
+}

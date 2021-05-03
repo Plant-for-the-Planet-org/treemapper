@@ -34,6 +34,7 @@ import mobile_download from './images/mobile_download';
 import cloud_sync from './images/cloud_sync';
 import sample_trees_vector from './images/sample_trees_vector';
 import sync_to_cloud from './images/sync_to_cloud';
+import trees from './images/trees';
 
 export {
   arrow_up,
@@ -68,4 +69,5 @@ export {
   sample_trees_vector,
   top_right_tree,
   sync_to_cloud,
+  trees,
 };

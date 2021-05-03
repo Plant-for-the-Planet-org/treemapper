@@ -1,8 +1,10 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import { CommonActions } from '@react-navigation/routers';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  BackHandler,
   FlatList,
   ImageBackground,
   Modal,
@@ -13,31 +15,30 @@ import {
   StyleSheet,
   Text,
   View,
-  BackHandler,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { SvgXml } from 'react-native-svg';
 import Share from 'react-native-share';
+import { SvgXml } from 'react-native-svg';
 import { Colors, Typography } from '_styles';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
-  addSpeciesAction,
   changeInventoryStatus,
+  deleteInventory,
   getInventory,
   updateLastScreen,
   updatePlantingDate,
-  deleteInventory,
 } from '../../repositories/inventory';
+import { getUserDetails } from '../../repositories/user';
+import { getProjectById } from '../../repositories/projects';
 import { ALPHABETS, bugsnag } from '../../utils';
+import { toBase64 } from '../../utils/base64';
+import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
-import { toBase64 } from '../../utils/base64';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
-import { CommonActions } from '@react-navigation/routers';
-import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 
 const InventoryOverview = ({ navigation }) => {
   const cameraRef = useRef();
@@ -50,8 +51,22 @@ const InventoryOverview = ({ navigation }) => {
   const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
   const [showDate, setShowDate] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showProject, setShowProject] = useState(false);
 
   useEffect(() => {
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+        if (stringifiedUserDetails?.type === 'tpo') {
+          setShowProject(true);
+        } else {
+          setShowProject(false);
+        }
+      }
+    });
+
     const unsubscribeFocus = navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
@@ -85,8 +100,18 @@ const InventoryOverview = ({ navigation }) => {
 
   const initialState = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
+        if (inventoryData.projectId) {
+          const project = await getProjectById(inventoryData.projectId);
+          if (project) {
+            setSelectedProjectName(project.name);
+            setSelectedProjectId(project.id);
+          }
+        } else {
+          setSelectedProjectName('');
+          setSelectedProjectId('');
+        }
       });
     }
   };
@@ -402,10 +427,38 @@ const InventoryOverview = ({ navigation }) => {
                   date: new Date(inventory.plantation_date),
                 })}
                 onPressRightText={() => onPressDate(status)}
+                rightTextStyle={
+                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    ? { color: Colors.PRIMARY }
+                    : { color: Colors.TEXT_COLOR }
+                }
               />
               {!isSingleCoordinate && (
                 <Label leftText={`${locateType} Registration`} rightText={''} />
               )}
+              {showProject ? (
+                <Label
+                  leftText={i18next.t('label.tree_review_project')}
+                  rightText={
+                    selectedProjectName
+                      ? selectedProjectName
+                      : i18next.t('label.tree_review_unassigned')
+                  }
+                  onPressRightText={() =>
+                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                      ? navigation.navigate('SelectProject', { selectedProjectId })
+                      : {}
+                  }
+                  rightTextStyle={
+                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                      ? { color: Colors.PRIMARY }
+                      : { color: Colors.TEXT_COLOR }
+                  }
+                />
+              ) : (
+                []
+              )}
+
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
                 rightText={
@@ -444,6 +497,7 @@ const InventoryOverview = ({ navigation }) => {
                 <PrimaryButton
                   onPress={onPressSave}
                   btnText={i18next.t('label.inventory_overview_loc_save')}
+                  style={{ marginTop: 10 }}
                 />
               </View>
             )}
