@@ -2,13 +2,22 @@ import { getAllInventoryFromServer } from '../actions/inventory';
 import { getInventoryByStatus, addInventoryToDB, addSampleTree } from '../repositories/inventory';
 
 export const addInventoryFromServer = () => {
-  getAllInventoryFromServer('exceptSample')
-    .then((allInventoryFromServer) => {
-      console.log(allInventoryFromServer.length, 'allInventoryFromServer');
-      getInventoryByStatus('complete').then((allInventory) => {
+  let exceptSampleTrees;
+  let allSampleTrees;
+  getAllInventoryFromServer().then((allInventoryFromServer) => {
+    console.log(
+      allInventoryFromServer[0].length,
+      'allInventoryFromServer',
+      allInventoryFromServer[1].length,
+      'allSampleTreesFromServer',
+    );
+    exceptSampleTrees = allInventoryFromServer[0];
+    allSampleTrees = allInventoryFromServer[1];
+    getInventoryByStatus('complete')
+      .then((allInventory) => {
         console.log(allInventory.length, 'allInventory');
 
-        for (const inventoryFromServer of allInventoryFromServer) {
+        for (const inventoryFromServer of exceptSampleTrees) {
           if (allInventory.length === 0) {
             addInventoryToDB(inventoryFromServer);
           }
@@ -20,13 +29,11 @@ export const addInventoryFromServer = () => {
             }
           }
         }
-      });
-    })
-    .then(() => {
-      getAllInventoryFromServer('sample').then((allSampleTreesFromServer) => {
-        for (const sampleTreeFromServer of allSampleTreesFromServer) {
+      })
+      .then(() => {
+        for (const sampleTreeFromServer of allSampleTrees) {
           addSampleTree(sampleTreeFromServer);
         }
       });
-    });
+  });
 };

@@ -67,20 +67,16 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   });
 };
 
-export const getAllInventoryFromServer = (type) => {
+export const getAllInventoryFromServer = () => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
-      if (type !== 'sample') {
-        let filteredData = data.data.filter((inventory) => {
-          return inventory.type !== 'sample';
-        });
-        resolve(filteredData);
-      } else {
-        let filteredData = data.data.filter((inventory) => {
-          return inventory.type === 'sample';
-        });
-        resolve(filteredData);
-      }
+      let exceptSampleTrees = data.data.filter((inventory) => {
+        return inventory.type !== 'sample';
+      });
+      let sampleTrees = data.data.filter((inventory) => {
+        return inventory.type === 'sample';
+      });
+      resolve([exceptSampleTrees, sampleTrees]);
     });
   });
 };
