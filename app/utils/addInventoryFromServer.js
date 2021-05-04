@@ -1,5 +1,5 @@
 import { getAllInventoryFromServer } from '../actions/inventory';
-import { getInventoryByStatus, addInventoryToDB, addSampleTree } from '../repositories/inventory';
+import { addInventoryToDB, addSampleTree, getInventoryByStatus } from '../repositories/inventory';
 
 export const addInventoryFromServer = () => {
   let exceptSampleTrees;

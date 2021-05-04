@@ -5,10 +5,10 @@ import { LogTypes } from '../utils/constants';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
+  MULTI,
   ON_SITE,
   SAMPLE,
   SINGLE,
-  MULTI,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';

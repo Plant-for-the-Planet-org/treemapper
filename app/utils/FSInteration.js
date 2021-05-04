@@ -1,5 +1,4 @@
 import RNFS from 'react-native-fs';
-import { Platform } from 'react-native';
 
 export const copyImageAndGetData = async (imagePath) => {
   // splits and stores the image path directories
@@ -33,7 +32,7 @@ export const copyImageAndGetData = async (imagePath) => {
 
 export const deleteFromFS = (file, inventory, index) => {
   return new Promise((resolve, reject) => {
-    const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
+    // const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${file}`)
       .then(() => {
         console.log(`============${file} FILE DELETED===========`);

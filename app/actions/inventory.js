@@ -1,11 +1,11 @@
 import { getAuthenticatedRequest } from '../utils/api';
 import {
+  DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
   IS_UPLOADING,
   SET_INVENTORY_ID,
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
-  DELETE_INVENTORY_ID,
 } from './Types';
 
 /**

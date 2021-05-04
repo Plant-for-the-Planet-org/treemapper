@@ -1,3 +1,5 @@
+import { useNetInfo } from '@react-native-community/netinfo';
+import { useIsFocused } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ImageBackground,
@@ -6,15 +8,15 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  View,
   Text,
+  View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';
-import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
+import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
@@ -25,6 +27,7 @@ import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
 import {
   Header,
@@ -32,17 +35,11 @@ import {
   Loader,
   MainScreenHeader,
   PrimaryButton,
-  Sync,
   SpeciesSyncError,
+  Sync,
 } from '../Common';
-import ProfileModal from '../ProfileModal';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { addInventoryFromServer } from '../../utils/addInventoryFromServer';
-import { checkAndAddUserSpecies } from '../../utils/addUserSpecies';
-import { useIsFocused } from '@react-navigation/native';
-import { shouldSpeciesUpdate } from '../../repositories/species';
-import { APIConfig } from '../../actions/Config';
+import ProfileModal from '../ProfileModal';
 
 const { protocol, cdnUrl } = APIConfig;
 
