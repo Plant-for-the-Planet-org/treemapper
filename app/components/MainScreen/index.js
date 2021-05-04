@@ -24,7 +24,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
-import { getInventoryByStatus } from '../../repositories/inventory';
+import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
 import {
   Header,
@@ -137,12 +137,14 @@ const MainScreen = ({ navigation }) => {
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
     }
+
     // Update UI in response to inserted objects
     changes.insertions.forEach((index) => {
       if (userData[index].id === 'id0001') {
         checkIsSignedInAndUpdate(userData[index]);
       }
     });
+
     // Update UI in response to modified objects
     changes.modifications.forEach((index) => {
       if (userData[index].id === 'id0001') {
@@ -151,15 +153,28 @@ const MainScreen = ({ navigation }) => {
     });
   }
 
+  function inventoryListener(data, changes) {
+    if (changes.deletions.length > 0) {
+      fetchInventory();
+    }
+    if (changes.insertions.length > 0) {
+      fetchInventory();
+    }
+    if (changes.modifications.length > 0) {
+      fetchInventory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm) => {
     try {
       // gets the user object from realm
       const userObject = realm.objects('User');
-
+      const plantLocationObject = realm.objects('Inventory');
       // Observe collection notifications.
       userObject.addListener(listener);
+      plantLocationObject.addListener(inventoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -208,6 +223,7 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
+    clearAllUploadedInventory();
     shouldSpeciesUpdate()
       .then((isSyncRequired) => {
         if (isSyncRequired) {

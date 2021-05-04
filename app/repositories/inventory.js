@@ -1087,7 +1087,8 @@ export const addSampleTree = (sampleTreeFromServer) => {
             inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
               1,
             );
-            resolve(console.log('Sample Tree Added...'));
+            resolve();
+            // console.log('Sample Tree Added...')
           }
         });
       })
