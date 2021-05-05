@@ -8,12 +8,20 @@ import { single_tree_png } from '../../assets';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import Label from '../Common/Label';
 import { getUserInformation } from '../../repositories/user';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
-    : single_tree_png;
+    : sampleTree.cdnImageUrl
+      ? {
+        // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
+        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
+      }
+      : single_tree_png;
 
   const specieHeight = nonISUCountries.includes(countryCode)
     ? sampleTree.specieHeight * meterToFoot
@@ -22,8 +30,12 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
     ? sampleTree.specieDiameter * cmToInch
     : sampleTree.specieDiameter;
 
-  const heightUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_feet') : 'm';
-  const diameterUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_inches') : 'cm';
+  const heightUnit = nonISUCountries.includes(countryCode)
+    ? i18next.t('label.select_species_feet')
+    : 'm';
+  const diameterUnit = nonISUCountries.includes(countryCode)
+    ? i18next.t('label.select_species_inches')
+    : 'cm';
 
   return (
     <TouchableOpacity
@@ -103,6 +115,6 @@ const styles = StyleSheet.create({
   image: {
     height: 60,
     width: 60,
-    borderRadius: 8,
+    borderRadius: 2,
   },
 });

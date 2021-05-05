@@ -2,6 +2,7 @@ import { getAllProjects, getUserDetailsFromServer } from '../actions/user';
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 import { bugsnag } from './';
+import { addInventoryFromServer } from './addInventoryFromServer';
 
 export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connected, internet }) => {
   const dbUserDetails = await getUserDetails();
@@ -10,7 +11,11 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
     getUserDetailsFromServer(userDispatch)
       .then(() => {
         getAllProjects();
-        checkAndAddUserSpecies();
+
+        checkAndAddUserSpecies().then(() => {
+          console.log('adding inventory from server checkLoginAndSync');
+          addInventoryFromServer();
+        });
       })
       .catch((err) => bugsnag.notify(err));
   }

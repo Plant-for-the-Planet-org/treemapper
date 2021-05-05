@@ -29,3 +29,19 @@ export const copyImageAndGetData = async (imagePath) => {
     console.error('error while saving file', err);
   }
 };
+
+export const deleteFromFS = (file, inventory, index) => {
+  return new Promise((resolve, reject) => {
+    // const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
+    RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${file}`)
+      .then(() => {
+        console.log(`============${file} FILE DELETED===========`);
+        resolve({ inventory, index });
+      })
+      // `unlink` will throw an error, if the item to unlink does not exist
+      .catch((err) => {
+        console.log(file, err.message);
+        reject(err);
+      });
+  });
+};

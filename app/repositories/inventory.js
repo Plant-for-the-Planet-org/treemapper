@@ -2,7 +2,14 @@ import Realm from 'realm';
 import { setInventoryId, updateCount } from '../actions/inventory';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, ON_SITE, SINGLE } from '../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  MULTI,
+  ON_SITE,
+  SAMPLE,
+  SINGLE,
+} from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';
 
@@ -893,3 +900,257 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
       });
   });
 };
+
+export const addInventoryToDB = (inventoryFromServer) => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let species = [];
+          let coordinates = [];
+          //for single tree
+          if (inventoryFromServer.scientificSpecies) {
+            let specie = realm.objectForPrimaryKey(
+              'ScientificSpecies',
+              `${inventoryFromServer.scientificSpecies}`,
+            );
+            let aliases = specie.aliases ? specie.aliases : specie.scientificName;
+            let treeCount = parseInt(1);
+            let id = inventoryFromServer.scientificSpecies;
+            species.push({ aliases, treeCount, id });
+          }
+          //for multiple trees
+          else if (inventoryFromServer.plantedSpecies) {
+            for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
+              let id;
+              let specie;
+              let aliases;
+              let treeCount = plantedSpecie.treeCount;
+              if (plantedSpecie.scientificSpecies && !plantedSpecie.otherSpecies) {
+                id = plantedSpecie.scientificSpecies;
+                specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
+                aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              } else {
+                id = 'unknown';
+                aliases = 'Unknown';
+              }
+              species.push({ aliases, treeCount, id });
+            }
+          }
+
+          for (
+            let index = 0;
+            index <
+            (inventoryFromServer.type === MULTI
+              ? inventoryFromServer.geometry.coordinates[0].length
+              : 1);
+            index++
+          ) {
+            let coordinate;
+            if (inventoryFromServer.type === MULTI) {
+              coordinate = inventoryFromServer.geometry.coordinates[0][index];
+            } else {
+              coordinate = inventoryFromServer.geometry.coordinates;
+            }
+            let latitude = coordinate[1];
+            let longitude = coordinate[0];
+            let currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
+            let currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
+            let cdnImageUrl;
+            if (inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE) {
+              cdnImageUrl = inventoryFromServer.coordinates[0].image;
+            } else {
+              cdnImageUrl =
+                index === inventoryFromServer.geometry.coordinates[0].length - 1
+                  ? inventoryFromServer.coordinates[0].image
+                  : inventoryFromServer.coordinates[index].image;
+            }
+            let isImageUploaded = true;
+            coordinates.push({
+              latitude,
+              longitude,
+              currentloclat,
+              currentloclong,
+              cdnImageUrl,
+              isImageUploaded,
+            });
+          }
+
+          let inventoryID = `${new Date().getTime()}`;
+          const inventoryData = {
+            inventory_id: inventoryID,
+            plantation_date: inventoryFromServer.plantDate,
+            treeType: inventoryFromServer.type,
+            status: 'complete',
+            projectId: inventoryFromServer.plantProject,
+            // donationType: 'string?',
+            locateTree: inventoryFromServer.captureMode,
+            lastScreen:
+              inventoryFromServer.type === SINGLE ? 'SingleTreeOverview' : 'InventoryOverview',
+            species: species,
+            polygons: [{ isPolygonComplete: true, coordinates }],
+            specieDiameter:
+              inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE
+                ? inventoryFromServer.measurements.height
+                : null,
+            specieHeight:
+              inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE
+                ? inventoryFromServer.measurements.width
+                : null,
+            tagId: inventoryFromServer.tag,
+            registrationDate: inventoryFromServer.registrationDate,
+            locationId: inventoryFromServer.id,
+          };
+          if (inventoryFromServer.type !== SAMPLE) {
+            realm.create('Inventory', inventoryData);
+          }
+          // inventoryFromServer.type !== SAMPLE ? realm.create('Inventory', inventoryData) : null;
+          // setInventoryId(inventoryID)(dispatch);
+          // logging the success in to the db
+          // dbLog.info({
+          //   logType: LogTypes.INVENTORY,
+          //   message: `Inventory initiated for tree type ${treeType} with inventory_id: ${inventoryID}`,
+          // });
+          resolve(inventoryData);
+        });
+      })
+      .catch((err) => {
+        console.error(`Error at /repositories/addInventoryToDB -> ${JSON.stringify(err)}, ${err}`);
+        // logging the error in to the db
+        // dbLog.error({
+        //   logType: LogTypes.INVENTORY,
+        //   message: `Error while initiating inventory for tree type ${treeType}`,
+        //   logStack: JSON.stringify(err),
+        // });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const addSampleTree = (sampleTreeFromServer) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm
+            .objects('Inventory')
+            .filtered(`locationId="${sampleTreeFromServer.parent}"`);
+
+          let specieName;
+          if (sampleTreeFromServer.scientificSpecies) {
+            let specie = realm.objectForPrimaryKey(
+              'ScientificSpecies',
+              `${sampleTreeFromServer.scientificSpecies}`,
+            );
+            specieName = specie.scientificName;
+          } else {
+            specieName = 'Unknown';
+          }
+          let latitude = sampleTreeFromServer.geometry.coordinates[0];
+          let longitude = sampleTreeFromServer.geometry.coordinates[1];
+          let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
+          let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
+          let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
+          let specieId = sampleTreeFromServer.scientificSpecies;
+          let specieDiameter = sampleTreeFromServer.measurements.width;
+          let specieHeight = sampleTreeFromServer.measurements.height;
+          let tagId = sampleTreeFromServer.tag;
+          let status = 'SYNCED';
+          let plantationDate = sampleTreeFromServer.plantDate;
+          let locationId = sampleTreeFromServer.id;
+          let treeType = 'sample';
+          let sampleTrees = inventory[0].sampleTrees;
+          const sampleTreeData = {
+            latitude,
+            longitude,
+            deviceLatitude,
+            deviceLongitude,
+            cdnImageUrl,
+            specieId,
+            specieName,
+            specieDiameter,
+            specieHeight,
+            tagId,
+            status,
+            plantationDate,
+            locationId,
+            treeType,
+          };
+          let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
+          if (!locationIds.includes(sampleTreeFromServer.id)) {
+            sampleTrees.push(sampleTreeData);
+            inventory[0].sampleTrees = sampleTrees;
+            inventory[0].sampleTreesCount = inventory[0].sampleTreesCount + parseInt(1);
+            inventory[0].completedSampleTreesCount =
+              inventory[0].completedSampleTreesCount + parseInt(1);
+            inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
+              1,
+            );
+            resolve();
+            // console.log('Sample Tree Added...')
+          }
+        });
+      })
+      .catch((err) => {
+        console.error(`Error at /repositories/addSampleTree -> ${JSON.stringify(err)}, ${err}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while Adding Sample Tree having location Id ${sampleTreeFromServer.id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const addCdnUrl = ({
+  inventoryID,
+  coordinateIndex,
+  cdnImageUrl,
+  locationId,
+  isSampleTree,
+}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryID}`);
+          if (!isSampleTree) {
+            inventory.polygons[0].coordinates[coordinateIndex].cdnImageUrl = cdnImageUrl;
+            inventory.polygons[0].coordinates[coordinateIndex].isImageUploaded = true;
+          }
+          resolve();
+        });
+      })
+      .catch((err) => {
+        reject(err);
+        bugsnag.notify(err);
+      });
+  });
+};
+export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sampleTreeIndex }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then((realm) => {
+      realm.write(async () => {
+        let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+        if (!sampleTreeId && inventory.polygons[0].coordinates[coordinateIndex].imageUrl) {
+          inventory.polygons[0].coordinates[coordinateIndex].imageUrl = '';
+        } else if (sampleTreeId) {
+          console.log('deleting images');
+          inventory.sampleTrees[sampleTreeIndex].imageUrl = '';
+          console.log(inventory.sampleTrees[sampleTreeIndex].imageUrl, 'inventory');
+        }
+        resolve();
+      });
+    });
+  });
+};
+
+function getFields(input, field) {
+  var output = [];
+  for (var i = 0; i < input.length; ++i) output.push(input[i][field]);
+  return output;
+}
