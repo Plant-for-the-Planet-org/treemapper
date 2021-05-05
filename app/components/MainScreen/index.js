@@ -1,5 +1,3 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import { useIsFocused } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ImageBackground,
@@ -54,8 +52,8 @@ const MainScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [pendingInventory, setPendingInventory] = useState(0);
-  const netInfo = useNetInfo();
-  const isFocused = useIsFocused();
+  // const netInfo = useNetInfo();
+  // const isFocused = useIsFocused();
   useEffect(() => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
