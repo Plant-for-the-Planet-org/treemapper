@@ -58,7 +58,7 @@ interface InputStyleProps {
   errorColor: string;
 }
 
-const OutlinedInput = ({
+const OutlinedInput = React.forwardRef(({
   label,
   onChangeText,
   value,
@@ -80,10 +80,9 @@ const OutlinedInput = ({
   returnKeyType,
   blurOnSubmit,
   onSubmitEditing,
-  ref,
   editable,
   error = '',
-}: PropTypes) => {
+}:PropTypes, ref) => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [borderColor, setBorderColor] = useState<string>(Colors.GRAY_LIGHTEST);
   const lineHeightValue: number = fontSize + 2;
@@ -203,7 +202,7 @@ const OutlinedInput = ({
     padding,
     paddingLeft: 15,
     fontSize: inputValueFontSize,
-    returnKeyType,
+    returnKeyType:"done",
     // activeBorderColor,
     // passiveBorderColor,
     keyboardType,
@@ -258,7 +257,7 @@ const OutlinedInput = ({
       {error ? <Text style={styles.errorText}>{error}</Text> : []}
     </>
   );
-};
+});
 
 const LabelStyle = ({
   isFocused,
