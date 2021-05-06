@@ -27,7 +27,7 @@ import {
 } from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
-import { copyImageAndGetData } from '../../../utils/copyToFS';
+import { copyImageAndGetData } from '../../../utils/FSInteration';
 import { MULTI, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Alrighty from '../Alrighty';

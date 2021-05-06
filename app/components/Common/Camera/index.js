@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { Colors, Typography } from '_styles';
-import { copyImageAndGetData } from '../../../utils/copyToFS';
+import { copyImageAndGetData } from '../../../utils/FSInteration';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 

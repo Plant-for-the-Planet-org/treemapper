@@ -36,6 +36,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
       keyExtractor={(item, index) => `inventory-${index}`}
       renderItem={({ item }) => {
         let imageURL;
+        let cdnImageUrl;
         let isOffSitePoint = false;
         if (
           item.polygons[0] &&
@@ -43,6 +44,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
           item.polygons[0].coordinates.length
         ) {
           imageURL = item.polygons[0].coordinates[0].imageUrl;
+          cdnImageUrl = item.polygons[0].coordinates[0].cdnImageUrl;
           isOffSitePoint = item.polygons[0].coordinates.length === 1;
         }
         let locateTreeAndType = '';
@@ -79,6 +81,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
             date: item.plantation_date,
           }),
           imageURL,
+          cdnImageUrl,
           status: item.status,
         };
 

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
+import { addProjects } from '../repositories/projects';
 import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
@@ -14,6 +15,7 @@ import {
 } from '../utils/api';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
+import { addInventoryFromServer } from '../utils/addInventoryFromServer';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -83,7 +85,11 @@ export const auth0Login = (dispatch) => {
               userId,
             })(dispatch);
 
-            checkAndAddUserSpecies();
+            getAllProjects();
+            checkAndAddUserSpecies().then(() => {
+              console.log('adding inventory from server');
+              addInventoryFromServer();
+            });
             resolve(true);
           })
           .catch((err) => {
@@ -334,6 +340,42 @@ export const SignupService = (payload, dispatch) => {
         // if any error is found then deletes the user and clear the user app state
         deleteUser();
         clearUserDetails()(dispatch);
+        reject(err);
+      });
+  });
+};
+
+/**
+ * Fetches all the projects of the user
+ */
+export const getAllProjects = () => {
+  return new Promise((resolve, reject) => {
+    getAuthenticatedRequest('/app/profile/projects')
+      .then(async (res) => {
+        const { status, data } = res;
+        if (status === 200) {
+          await addProjects(data);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.USER,
+            message: 'Successfully Fetched all projects: GET - /app/profile/projects',
+            statusCode: status,
+          });
+          resolve(true);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Error at /actions/user/getAllProjects: GET - /app/profile/projects,',
+          err.response ? err.response : err,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.USER,
+          message: 'Error while fetching projects',
+          statusCode: err?.response?.status,
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
+        });
         reject(err);
       });
   });

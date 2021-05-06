@@ -1,3 +1,4 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import {
   changeInventoryStatus,
   deleteInventory,
@@ -33,7 +35,9 @@ import {
   updateTreeTag,
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
-import { getUserInformation } from '../../repositories/user';
+import { getProjectById } from '../../repositories/projects';
+import { getUserInformation, getUserDetails } from '../../repositories/user';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
   diameterMaxCm,
@@ -60,10 +64,10 @@ import {
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, InputModal } from '../Common';
 import AlertModal from '../Common/AlertModal';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { UserContext } from '../../reducers/user';
-import { useNetInfo } from '@react-native-community/netinfo';
 import ManageSpecies from '../ManageSpecies';
+import { APIConfig } from '../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
@@ -87,6 +91,9 @@ const SingleTreeOverview = () => {
   const [registrationType, setRegistrationType] = useState(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showInputError, setShowInputError] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [showProject, setShowProject] = useState(false);
 
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
@@ -106,6 +113,16 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
+    getUserDetails().then((userDetails) => {
+      if (userDetails) {
+        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+        if (stringifiedUserDetails?.type === 'tpo') {
+          setShowProject(true);
+        } else {
+          setShowProject(false);
+        }
+      }
+    });
     const unsubscribe = navigation.addListener('focus', () => {
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
@@ -114,7 +131,7 @@ const SingleTreeOverview = () => {
           setLocateTree(inventoryData.locateTree);
           setRegistrationType(inventoryData.treeType);
 
-          getUserInformation().then((data) => {
+          getUserInformation().then(async (data) => {
             setCountryCode(data.country);
             if (
               inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
@@ -152,6 +169,17 @@ const SingleTreeOverview = () => {
               const height = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
                 : inventoryData.specieHeight;
+
+              if (inventoryData.projectId) {
+                const project = await getProjectById(inventoryData.projectId);
+                if (project) {
+                  setSelectedProjectName(project.name);
+                  setSelectedProjectId(project.id);
+                }
+              } else {
+                setSelectedProjectName('');
+                setSelectedProjectId('');
+              }
 
               setSpecieText(inventoryData.species[0].aliases);
               setSpecieDiameter(diameter);
@@ -345,6 +373,8 @@ const SingleTreeOverview = () => {
   const onPressEditSpecies = (action) => {
     if (action === 'species') {
       setIsShowManageSpecies(true);
+    } else if (action === 'project') {
+      navigation.navigate('SelectProject', { selectedProjectId });
     } else {
       setEditEnable(action);
       if (action === 'diameter') {
@@ -421,18 +451,48 @@ const SingleTreeOverview = () => {
   if (inventory) {
     const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
     if (inventory.treeType === SINGLE) {
-      filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
+      if (inventory.polygons[0]?.coordinates[0]?.imageUrl) {
+        filePath = inventory.polygons[0]?.coordinates[0]?.imageUrl;
+      } else if (inventory.polygons[0]?.coordinates[0]?.cdnImageUrl) {
+        filePath = inventory.polygons[0]?.coordinates[0]?.cdnImageUrl;
+      }
     } else if (
       inventory.treeType === MULTI &&
-      (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === 'complete') &&
+      (inventory.status === INCOMPLETE_SAMPLE_TREE ||
+        inventory.status === 'complete' ||
+        inventory.status === 'pending') &&
       (sampleTreeIndex === 0 || sampleTreeIndex)
     ) {
-      filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
+      if (inventory.sampleTrees[sampleTreeIndex]?.imageUrl) {
+        filePath = inventory.sampleTrees[sampleTreeIndex].imageUrl;
+      } else if (
+        inventory.sampleTrees.length &&
+        inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl
+      ) {
+        filePath = inventory.sampleTrees[sampleTreeIndex].cdnImageUrl;
+      }
     }
-
-    imageSource = filePath
-      ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}` }
-      : false;
+    if (
+      ((inventory.polygons[0]?.coordinates[0]?.imageUrl && inventory.treeType !== MULTI) ||
+        (inventory.sampleTrees[sampleTreeIndex]?.imageUrl && inventory.sampleTrees)) &&
+      filePath
+    ) {
+      imageSource = {
+        uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${filePath}`,
+      };
+    } else if (
+      (inventory.polygons[0]?.coordinates[0]?.cdnImageUrl ||
+        (inventory.sampleTrees[sampleTreeIndex]?.cdnImageUrl &&
+          inventory.sampleTrees.length !== 0)) &&
+      filePath
+    ) {
+      imageSource = {
+        // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/uploads/images/coordinate/${filePath}`,
+        uri: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${filePath}`,
+      };
+    } else {
+      imageSource = false;
+    }
   }
 
   const renderDetails = ({ polygons }) => {
@@ -540,6 +600,28 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={detailHeaderStyle}>
+              {i18next.t('label.tree_review_project').toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              disabled={!shouldEdit}
+              onPress={() => onPressEditSpecies('project')}
+              accessible={true}
+              accessibilityLabel="register_project"
+              testID="register_project">
+              <Text style={styles.detailText}>
+                {selectedProjectName
+                  ? selectedProjectName
+                  : i18next.t('label.tree_review_unassigned')}{' '}
+                {shouldEdit && <MIcon name={'edit'} size={20} />}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          []
+        )}
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_tree_tag_header')}</Text>
           <TouchableOpacity
@@ -568,16 +650,18 @@ const SingleTreeOverview = () => {
     } else {
       if (specieText) {
         let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
-        changeInventoryStatus(data, dispatch).then(() => {
-          checkLoginAndSync({
-            sync: true,
-            dispatch,
-            userDispatch,
-            connected: netInfo.isConnected,
-            internet: netInfo.isInternetReachable,
+        changeInventoryStatus(data, dispatch)
+          // For Auto-upload check the case duplication of inventory while uploading
+          .then(() => {
+            //   checkLoginAndSync({
+            //     sync: true,
+            //     dispatch,
+            //     userDispatch,
+            //     connected: netInfo.isConnected,
+            //     internet: netInfo.isInternetReachable,
+            //   });
+            navigation.navigate('TreeInventory');
           });
-          navigation.navigate('TreeInventory');
-        });
       } else {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
@@ -636,7 +720,6 @@ const SingleTreeOverview = () => {
       );
     }
   };
-
   const handleDeleteInventory = () => {
     deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
@@ -689,6 +772,7 @@ const SingleTreeOverview = () => {
               marginBottom: 24,
             }}>
             <Header
+              style={{ flex: 1 }}
               closeIcon
               onBackPress={onPressSave}
               headingText={
@@ -700,19 +784,9 @@ const SingleTreeOverview = () => {
                     ? i18next.t('label.tree_review_details')
                     : i18next.t('label.tree_review_header')
               }
+              rightText={status === INCOMPLETE ? i18next.t('label.tree_review_delete') : []}
+              onPressFunction={() => setShowDeleteAlert(true)}
             />
-            {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && (
-              <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => setShowDeleteAlert(true)}>
-                <Text
-                  style={{
-                    fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    fontSize: Typography.FONT_SIZE_18,
-                    lineHeight: Typography.LINE_HEIGHT_24,
-                  }}>
-                  {i18next.t('label.tree_review_delete')}
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {inventory && (

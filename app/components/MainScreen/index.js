@@ -6,30 +6,26 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  View,
   Text,
+  View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';
-import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
+import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
-import {
-  auth0Login,
-  auth0Logout,
-  clearUserDetails,
-  setUserDetails,
-} from '../../actions/user';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
 import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
-import { getInventoryByStatus } from '../../repositories/inventory';
+import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
 import {
   Header,
@@ -37,15 +33,11 @@ import {
   Loader,
   MainScreenHeader,
   PrimaryButton,
-  Sync,
   SpeciesSyncError,
+  Sync,
 } from '../Common';
-import ProfileModal from '../ProfileModal';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { useIsFocused } from '@react-navigation/native';
-import { shouldSpeciesUpdate } from '../../repositories/species';
-import { APIConfig } from '../../actions/Config';
+import ProfileModal from '../ProfileModal';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -60,8 +52,8 @@ const MainScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [pendingInventory, setPendingInventory] = useState(0);
-  const netInfo = useNetInfo();
-  const isFocused = useIsFocused();
+  // const netInfo = useNetInfo();
+  // const isFocused = useIsFocused();
   useEffect(() => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
@@ -108,7 +100,7 @@ const MainScreen = ({ navigation }) => {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
             setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+            setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
         }
       });
@@ -119,17 +111,19 @@ const MainScreen = ({ navigation }) => {
     fetchUserDetails();
   }, [loadingState.isLoading]);
 
-  useEffect(() => {
-    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
-      checkLoginAndSync({
-        sync: true,
-        dispatch,
-        userDispatch,
-        connected: netInfo.isConnected,
-        internet: netInfo.isInternetReachable,
-      });
-    }
-  }, [pendingInventory, netInfo, isFocused]);
+  // ! Need to changed when auto upload is implemented
+  // useEffect(() => {
+  //   if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+  //     console.log('use effect checkLoginAndSync');
+  //     checkLoginAndSync({
+  //       sync: true,
+  //       dispatch,
+  //       userDispatch,
+  //       connected: netInfo.isConnected,
+  //       internet: netInfo.isInternetReachable,
+  //     });
+  //   }
+  // }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData, changes) {
@@ -138,12 +132,14 @@ const MainScreen = ({ navigation }) => {
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
     }
+
     // Update UI in response to inserted objects
     changes.insertions.forEach((index) => {
       if (userData[index].id === 'id0001') {
         checkIsSignedInAndUpdate(userData[index]);
       }
     });
+
     // Update UI in response to modified objects
     changes.modifications.forEach((index) => {
       if (userData[index].id === 'id0001') {
@@ -152,15 +148,28 @@ const MainScreen = ({ navigation }) => {
     });
   }
 
+  function inventoryListener(data, changes) {
+    if (changes.deletions.length > 0) {
+      fetchInventory();
+    }
+    if (changes.insertions.length > 0) {
+      fetchInventory();
+    }
+    if (changes.modifications.length > 0) {
+      fetchInventory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm) => {
     try {
       // gets the user object from realm
       const userObject = realm.objects('User');
-
+      const plantLocationObject = realm.objects('Inventory');
       // Observe collection notifications.
       userObject.addListener(listener);
+      plantLocationObject.addListener(inventoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -195,13 +204,6 @@ const MainScreen = ({ navigation }) => {
         .then(() => {
           stopLoading()(loadingDispatch);
           fetchUserDetails();
-          checkLoginAndSync({
-            sync: true,
-            dispatch,
-            userDispatch,
-            connected: netInfo.isConnected,
-            internet: netInfo.isInternetReachable,
-          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
@@ -216,6 +218,7 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
+    clearAllUploadedInventory();
     shouldSpeciesUpdate()
       .then((isSyncRequired) => {
         if (isSyncRequired) {

@@ -1,14 +1,22 @@
-import { getUserDetailsFromServer } from '../actions/user';
+import { getAllProjects, getUserDetailsFromServer } from '../actions/user';
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
 import { bugsnag } from './';
+import { addInventoryFromServer } from './addInventoryFromServer';
 
 export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connected, internet }) => {
   const dbUserDetails = await getUserDetails();
   if (dbUserDetails && dbUserDetails.accessToken && internet && connected) {
     // fetches the user details from server by passing the accessToken which is used while requesting the API
     getUserDetailsFromServer(userDispatch)
-      .then(() => checkAndAddUserSpecies())
+      .then(() => {
+        getAllProjects();
+
+        checkAndAddUserSpecies().then(() => {
+          console.log('adding inventory from server checkLoginAndSync');
+          addInventoryFromServer();
+        });
+      })
       .catch((err) => bugsnag.notify(err));
   }
 

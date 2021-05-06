@@ -69,7 +69,7 @@ const SpecieInfo = ({ route }) => {
       : editEnable === 'description'
         ? setDescription(inputValue)
         : [];
-    const isImageChanged = specieState.specie.image !== image;
+    const isImageChanged = image ? specieState.specie.image !== image : true;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
     const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
@@ -81,7 +81,6 @@ const SpecieInfo = ({ route }) => {
         image,
       })
         .then(async () => {
-          console.log('Updated Data');
           const userToken = await getUserToken();
           if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
             updateUserSpecie({
@@ -89,7 +88,7 @@ const SpecieInfo = ({ route }) => {
               specieId: specieId,
               aliases,
               description,
-              image: image ? image : null,
+              image: image || image === '' ? image : null,
             });
           }
         })

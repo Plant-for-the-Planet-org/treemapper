@@ -317,7 +317,7 @@ export default function MapMarking({
 
   const showUnknownLocationAlert = () => {
     setShowSecondaryButton(false);
-    setAlertHeading(i18next.t('label.snackBarText'));
+    setAlertHeading(i18next.t('label.something_went_wrong'));
     setAlertSubHeading(i18next.t('label.locate_tree_unable_to_retrieve_location'));
     setShowAlert(true);
   };
@@ -797,7 +797,7 @@ export default function MapMarking({
         updateScreenState={updateScreenState}
         showAlrightyModal={showAlrightyModal}
         setShowAlrightyModal={setShowAlrightyModal}
-        skipPicture={skipPicture}
+        // skipPicture={skipPicture}
         locateTree={locateTree}
         setIsCompletePolygon={setIsCompletePolygon}
         activePolygonIndex={activePolygonIndex}
