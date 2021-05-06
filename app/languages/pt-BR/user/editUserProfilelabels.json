@@ -16,5 +16,6 @@
   "upload_pending": "{{count}}pendente",
   "sync_remaining": "Sincronizando - {{count}} restante",
   "support": "Suporte",
-  "complete_signup": "Inscrição completa"
+  "complete_signup": "Inscrição completa",
+  "manage_projects": "Gerenciar Projetos"
 }

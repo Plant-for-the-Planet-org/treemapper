@@ -16,5 +16,6 @@
   "upload_pending": "{{count}} ausstehend",
   "sync_remaining": "Synchronisiere - {{count}} verbleibend",
   "support": "Unterstützen",
-  "complete_signup": "Registrierung vervollständigen"
+  "complete_signup": "Registrierung vervollständigen",
+  "manage_projects": "Projekte verwalten"
 }
