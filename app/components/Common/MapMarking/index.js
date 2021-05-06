@@ -797,7 +797,7 @@ export default function MapMarking({
         updateScreenState={updateScreenState}
         showAlrightyModal={showAlrightyModal}
         setShowAlrightyModal={setShowAlrightyModal}
-        skipPicture={skipPicture}
+        // skipPicture={skipPicture}
         locateTree={locateTree}
         setIsCompletePolygon={setIsCompletePolygon}
         activePolygonIndex={activePolygonIndex}

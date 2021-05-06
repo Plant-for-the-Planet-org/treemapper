@@ -15,6 +15,7 @@ import {
 } from '../utils/api';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
+import { addInventoryFromServer } from '../utils/addInventoryFromServer';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -85,8 +86,10 @@ export const auth0Login = (dispatch) => {
             })(dispatch);
 
             getAllProjects();
-
-            checkAndAddUserSpecies();
+            checkAndAddUserSpecies().then(() => {
+              console.log('adding inventory from server');
+              addInventoryFromServer();
+            });
             resolve(true);
           })
           .catch((err) => {

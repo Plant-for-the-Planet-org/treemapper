@@ -20,6 +20,13 @@ const CreatePolygon = ({ route }) => {
     if (state.inventoryID) {
       let data = { inventory_id: state.inventoryID, lastScreen: 'CreatePolygon' };
       updateLastScreen(data);
+      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+        let coordinatesLength = inventory.polygons[0].coordinates.length;
+        if (!inventory.polygons[0].coordinates[coordinatesLength - 1].imageUrl) {
+          updateActiveMarkerIndex(coordinatesLength - 1);
+          setIsMapMarkingState(false);
+        }
+      });
     }
     if (route?.params?.locateTree) {
       setLocateTree(route.params.locateTree);
@@ -43,7 +50,6 @@ const CreatePolygon = ({ route }) => {
   const updateActiveMarkerIndex = (index) => {
     setActiveMarkerIndex(index);
   };
-
   return (
     <View style={styles.container} fourceInset={{ bottom: 'never', top: 'never' }}>
       <View style={styles.container}>
