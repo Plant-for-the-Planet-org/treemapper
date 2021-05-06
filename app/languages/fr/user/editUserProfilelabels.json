@@ -14,5 +14,6 @@
   "all_backed_up": "Tous les changements sauvegardés",
   "upload_pending": "{{count}} en attente",
   "sync_remaining": "Synchronisation - {{count}} restant(s)",
-  "support": "Soutien"
+  "support": "Soutien",
+  "complete_signup": "Inscription complète"
 }

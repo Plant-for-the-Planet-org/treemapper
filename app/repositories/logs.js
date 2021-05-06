@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import Realm from 'realm';
-
+import { version } from '../../package.json';
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
  * It writes to realm while creating a log
@@ -25,7 +25,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
             logLevel,
             timestamp: new Date(),
             message,
-            appVersion: 'TM v1.0.0',
+            appVersion: `TM v${version}`,
           };
           // checks if referenceId is present then adds it to logData
           if (referenceId) {
@@ -54,7 +54,7 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
         resolve(true);
       })
       .catch((err) => {
-        console.error(`Error while creating log, ${JSON.stringify(err)}`);
+        console.error('Error while creating log', err);
         bugsnag.notify(err);
         resolve(false);
       });
@@ -88,7 +88,7 @@ export const getLogs = (type) => {
         }
       })
       .catch((err) => {
-        console.error(`Error while fetching logs of type ${type}, ${JSON.stringify(err)}`);
+        console.error(`Error while fetching logs of type ${type}`, err);
         bugsnag.notify(err);
         resolve(false);
       });

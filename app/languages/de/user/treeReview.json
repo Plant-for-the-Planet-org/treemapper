@@ -1,5 +1,5 @@
 {
-  "tree_review_header": "Bewertung",
+  "tree_review_header": "Überprüfung",
   "tree_review_next_btn": "Nächster Baum",
   "tree_review_Save": "Speichern",
   "tree_review_name_of_species": "Name der Art",
@@ -21,5 +21,7 @@
   "tree_review_details": "Baumdetails",
   "tree_review_not_tagged": "Nicht getaggt",
   "tree_review_delete_not_yet_uploaded_registration": "Die Registrierung wurde noch nicht zu Plant-for-the-Planet hochgeladen. Sobald sie gelöscht wird, ist sie für immer verloren.",
-  "tree_review_delete_uploaded_registration": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen."
+  "tree_review_delete_uploaded_registration": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen.",
+  "tree_review_continue_to_species": "Weiter zu den Arten",
+  "tree_review_continue_to_review": "Weiter zur Überprüfung"
 }

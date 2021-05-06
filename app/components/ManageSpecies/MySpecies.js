@@ -1,25 +1,22 @@
-import React from 'react';
-import { SvgXml } from 'react-native-svg';
-import PrimaryButton from '../Common/PrimaryButton';
-import { FlatList, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import i18next from 'i18next';
+import React from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { empty } from '../../assets';
 import { Colors, Typography } from '_styles';
-import { useNavigation } from '@react-navigation/native';
+import { empty } from '../../assets';
+import { SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
-  onSaveMultipleSpecies,
   registrationType,
   onPressSpeciesSingle,
-  onPressSpeciesMultiple,
   specieList,
-  addSpecieNameToInventory,
+  addSpecieToInventory,
   editOnlySpecieName,
   onPressBack,
+  isSampleTree,
+  navigateToSpecieInfo,
 }) => {
-  const navigation = useNavigation();
-
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
@@ -34,15 +31,13 @@ const MySpecies = ({
           justifyContent: 'space-between',
         }}
         onPress={() => {
-          if (registrationType == 'single') {
-            addSpecieNameToInventory(item);
-            if (editOnlySpecieName) {
-              onPressBack();
-            } else {
-              onPressSpeciesSingle(item);
-            }
-          } else if (registrationType == 'multiple') {
-            onPressSpeciesMultiple(item, index);
+          if (registrationType || isSampleTree) {
+            addSpecieToInventory(item);
+          }
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
+            onPressSpeciesSingle(item);
           }
         }}>
         <View>
@@ -54,11 +49,8 @@ const MySpecies = ({
             {item.scientificName}
           </Text>
         </View>
-        {registrationType == 'multiple' ? (
-          <Text>{item.treeCount ? item.treeCount : 'NA'}</Text>
-        ) : item.guid !== 'unknown' ? (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SpecieInfo', { SpecieName: item.scientificName })}>
+        {item.guid !== 'unknown' ? (
+          <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
         ) : (
@@ -92,27 +84,22 @@ const MySpecies = ({
             keyboardShouldPersistTaps="always"
           />
         ) : (
-          <View style={{ flex: 1, alignItems: 'center' }}>
+          <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
             <SvgXml
               xml={empty}
               style={{
                 bottom: 10,
               }}
             />
-            <Text style={styles.headerText}>Looks Empty Here!</Text>
-            <Text style={styles.subHeadingText}>Add species to your list by </Text>
-            <Text style={styles.subHeadingText}>searching the species. </Text>
+            <Text style={styles.headerText}>
+              {i18next.t('label.select_species_looks_empty_here')}
+            </Text>
+            <Text style={styles.subHeadingText}>
+              {i18next.t('label.select_species_add_species_desscription')}
+            </Text>
           </View>
         )}
       </View>
-      {registrationType === 'multiple' && (
-        <PrimaryButton
-          onPress={onSaveMultipleSpecies}
-          btnText={i18next.t('label.select_species_btn_text')}
-          testID={'btn_save_and_continue_species'}
-          accessibilityLabel={'Save and Continue Species'}
-        />
-      )}
     </View>
   );
 };
@@ -131,6 +118,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
+    paddingLeft: 25,
+    paddingRight: 25,
+    textAlign: 'center',
   },
 });
 

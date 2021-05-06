@@ -48,6 +48,7 @@ jobs:
         AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
         CDN_URL: ${{ secrets.CDN_URL }}
+        WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
       run: |
         echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
         echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
@@ -55,6 +56,8 @@ jobs:
         echo "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" >> .env
         echo "API_ENDPOINT=$API_ENDPOINT" >> .env
         echo "CDN_URL=$CDN_URL" >> .env
+        echo "WEB_APP_URL=$WEB_APP_URL" >> .env
+        cp .env .env.staging
 
     - name: Preparing Android build
       env:
@@ -80,7 +83,7 @@ jobs:
           ${{ runner.os }}-gradle-treemapper2-
 
     - name: Android Build
-      run: ./gradlew assembleRelease --stacktrace --no-daemon
+      run: ./gradlew assembleStagingRelease --stacktrace --no-daemon
       working-directory: ./android
 
 # We only have 0.5GB space to store artifacts for GitHub actions
@@ -95,7 +98,7 @@ jobs:
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.apk
         echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
-        mv android/app/build/outputs/apk/release/app-release.apk uploads/$upload_file
+        mv android/app/build/outputs/apk/staging/release/app-staging-release.apk uploads/$upload_file
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload Android APK to Browserstack

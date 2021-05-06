@@ -72,7 +72,7 @@ const SavedAreas = ({ navigation }) => {
               {i18next.t('label.save_areas_offline')}
             </Text>
           ) : (
-            <ActivityIndicator />
+            <ActivityIndicator size="large" color={Colors.PRIMARY} />
           )}
         </ScrollView>
         <PrimaryButton onPress={onPressAddArea} btnText={i18next.t('label.save_areas_add_area')} />

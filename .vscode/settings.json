@@ -21,5 +21,6 @@
         "tree",
         "treemapper",
         "update"
-    ]
+    ],
+    "typescript.tsdk": "node_modules\\typescript\\lib"
 }

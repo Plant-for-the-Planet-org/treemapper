@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { Header, InventoryList, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { getInventoryByStatus, clearAllUploadedInventory } from '../../repositories/inventory';
+import { getInventoryByStatus, removeImageUrl } from '../../repositories/inventory';
 import { Colors, Typography } from '_styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
-
+import { deleteFromFS } from '../../utils/FSInteration';
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
@@ -34,9 +34,42 @@ const UploadedInventory = ({ navigation }) => {
   };
 
   const freeUpSpace = () => {
-    clearAllUploadedInventory().then(() => {
-      initialState();
-      toogleIsShowFreeUpSpaceAlert();
+    // clearAllUploadedInventory().then(() => {
+    //   initialState();
+    toogleIsShowFreeUpSpaceAlert();
+    // });
+    getInventoryByStatus('complete').then((allInventory) => {
+      for (let inventory of allInventory) {
+        for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
+          if (inventory.polygons[0].coordinates[index].imageUrl) {
+            console.log(
+              inventory.polygons[0].coordinates[index].imageUrl,
+              '===========deleteFromFS===========',
+            );
+            deleteFromFS(inventory.polygons[0].coordinates[index].imageUrl, inventory, index).then(
+              (data) => {
+                removeImageUrl({
+                  inventoryId: data.inventory.inventory_id,
+                  coordinateIndex: data.index,
+                });
+              },
+            );
+          }
+        }
+        if (inventory.sampleTrees) {
+          for (let i = 0; i < inventory.sampleTrees.length; i++) {
+            if (inventory.sampleTrees[i].imageUrl) {
+              deleteFromFS(inventory.sampleTrees[i].imageUrl, inventory, i).then((data) => {
+                removeImageUrl({
+                  inventoryId: inventory.inventory_id,
+                  sampleTreeId: inventory.sampleTrees[i].locationId,
+                  sampleTreeIndex: data.index,
+                });
+              });
+            }
+          }
+        }
+      }
     });
   };
 
@@ -75,7 +108,7 @@ const UploadedInventory = ({ navigation }) => {
           headingText={i18next.t('label.tree_inventory_upload_list_header')}
           style={{ marginHorizontal: 25 }}
         />
-        <ActivityIndicator size={25} color={Colors.PRIMARY} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
     );
   };
@@ -121,11 +154,12 @@ const UploadedInventory = ({ navigation }) => {
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
-        message={i18next.t('label.tree_inventory_alert_sub_header')}
-        primaryBtnText={i18next.t('label.tree_inventory_alert_primary_btn_text')}
+        message={i18next.t('label.tree_inventory_alert_sub_header2')}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={freeUpSpace}
         onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert}
+        showSecondaryButton={true}
       />
     </View>
   );

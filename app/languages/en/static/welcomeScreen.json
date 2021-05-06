@@ -1,6 +1,5 @@
 {
   "login": "Log in / Sign Up",
-  "continue": "Continue",
   "tree_mapper": "Tree Mapper",
   "tree_inventory": "Tree Inventory",
   "tree_inventory_sub_header": "of draft and pending registrations",
@@ -8,6 +7,5 @@
   "download_maps_sub_header": "for offline use",
   "learn": "Learn",
   "learn_sub_header": "how to use Tree Mapper",
-  "register_tree": "Register Tree",
-  "back": "Back"
+  "register_tree": "Register Trees"
 }

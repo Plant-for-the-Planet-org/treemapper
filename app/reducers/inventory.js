@@ -6,6 +6,7 @@ import {
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
   INITIATE_INVENTORY_STATE,
+  DELETE_INVENTORY_ID,
 } from '../actions/Types';
 
 // stores the initial properties of the inventory state
@@ -27,6 +28,13 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         inventoryID: action.payload,
+      };
+
+    // changes the inventory ID property of the state to null
+    case DELETE_INVENTORY_ID:
+      return {
+        ...state,
+        inventoryID: null,
       };
 
     // adds new inventory to the allInventory array property of the state

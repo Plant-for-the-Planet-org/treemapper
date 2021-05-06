@@ -1,0 +1,10 @@
+{
+  "updating_species": "Atualizando espécies",
+  "running_migration": "Executando uma migração",
+  "migration_description": "Você atualizou recentemente o seu aplicativo. Por favor, não feche o aplicativo, pois estamos aplicando alterações para garantir a compatibilidade.",
+  "species_data_status": "Verificando o status dos dados das espécies.",
+  "downloading_archive": "Fazendo download do arquivo de espécies",
+  "unzipping_archive": "Extraindo o arquivo de espécies",
+  "fetch_and_add_species_to_database": "Obtendo e adicionando espécies à base de dados.",
+  "species_data_loaded": "Dados das espécies carregados."
+}
