@@ -35,6 +35,7 @@ import {
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AdditionalData from '../AdditionalData';
 import AddField from '../AdditionalData/AddField';
+import SelectElement from '../AdditionalData/SelectElement';
 
 const Stack = createStackNavigator();
 
@@ -105,6 +106,7 @@ export default function MainNavigator() {
       <Stack.Screen name="AdditionalData" component={AdditionalData} options={MyTransition} />
       <Stack.Screen name="AddField" component={AddField} options={MyTransition} />
       <Stack.Screen name="ManageProjects" component={ManageProjects} options={MyTransition} />
+      <Stack.Screen name="SelectElement" component={SelectElement} options={MyTransition} />
     </Stack.Navigator>
   );
 }

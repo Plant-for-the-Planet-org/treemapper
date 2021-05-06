@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 
 interface MetadataProps {}
 
-export default function Metadata(props: MetadataProps) {
+export default function Metadata(props: MetadataProps): JSX.Element {
   return (
     <View>
       <Text>Metadata</Text>

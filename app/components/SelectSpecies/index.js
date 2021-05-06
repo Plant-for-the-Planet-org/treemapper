@@ -448,11 +448,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     paddingLeft: 15,
   },
-  errorText: {
-    color: Colors.ALERT,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
-  },
+
   switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

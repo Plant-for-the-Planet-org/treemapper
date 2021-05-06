@@ -30,6 +30,7 @@ interface PropTypes {
   ref?: any;
   editable?: boolean;
   error?: string | boolean;
+  style?: any;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -83,6 +84,7 @@ const OutlinedInput = ({
   ref,
   editable,
   error = '',
+  style = {},
 }: PropTypes) => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [borderColor, setBorderColor] = useState<string>(Colors.GRAY_LIGHTEST);
@@ -204,8 +206,6 @@ const OutlinedInput = ({
     paddingLeft: 15,
     fontSize: inputValueFontSize,
     returnKeyType,
-    // activeBorderColor,
-    // passiveBorderColor,
     keyboardType,
     blurOnSubmit,
     onSubmitEditing,
@@ -218,8 +218,6 @@ const OutlinedInput = ({
         height,
         fontSize,
         isFocused,
-        // activeBorderColor,
-        // passiveBorderColor,
         activeValueColor,
         passiveValueColor,
         isError: !!error,
@@ -229,7 +227,7 @@ const OutlinedInput = ({
   };
 
   return (
-    <>
+    <View style={style}>
       <View style={styles.container}>
         <Animated.View {...animatedViewProps}>
           <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
@@ -256,7 +254,7 @@ const OutlinedInput = ({
         </View>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : []}
-    </>
+    </View>
   );
 };
 
@@ -300,16 +298,10 @@ const InputStyle = ({
   passiveValueColor,
   isError,
   errorColor,
-}: // activeBorderColor,
-// passiveBorderColor,
-InputStyleProps) => ({
+}: InputStyleProps) => ({
   padding,
   height,
   fontSize,
-  // keyboardType,
-  // borderWidth: 1,
-  // borderColor: isFocused ? activeBorderColor : passiveBorderColor,
-  // borderRadius: 6,
   color: isError ? errorColor : isFocused ? activeValueColor : passiveValueColor,
 });
 

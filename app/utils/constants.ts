@@ -13,6 +13,8 @@ interface ILogTypes {
   PROJECTS: 'PROJECTS';
   // log type used for other functionality
   OTHER: 'OTHER';
+  // log type used for additional data feature
+  ADDITIONAL_DATA: 'ADDITIONAL_DATA';
 }
 // defines the types of logs supported by the application
 export const LogTypes: ILogTypes = {
@@ -23,7 +25,6 @@ export const LogTypes: ILogTypes = {
   USER: 'USER',
   PROJECTS: 'PROJECTS',
   OTHER: 'OTHER',
-  // log type used for other functionality
   ADDITIONAL_DATA: 'ADDITIONAL_DATA',
 };
 

@@ -80,6 +80,7 @@ const ProfileModal = ({
       mediaType: 'icon',
       onPressFunction: onPressAdditionalData,
       text: 'additional_data',
+      isVisible: true,
     },
     {
       media: 'history',

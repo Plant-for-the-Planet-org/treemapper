@@ -189,29 +189,105 @@ const ScientificSpecies = {
   },
 };
 
+// used to store all the available scientific species extracted from zip
+const Projects = {
+  name: 'Projects',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    slug: 'string',
+    allowDonations: 'bool',
+    countPlanted: 'int',
+    countTarget: 'int',
+    currency: 'string',
+    image: 'string',
+    country: 'string',
+    name: 'string',
+    treeCost: 'double',
+  },
+};
+
+// dropdown options for dropdown field
 const DropdownOption = {
   name: 'DropdownOption',
+  embedded: true,
   properties: {
     key: 'string',
     value: 'string',
   },
 };
 
-// Stores details of a single field which then is stores in form fields list
-const Field = {
-  name: 'Field',
+// Element Type - Dropdown
+const Dropdown = {
+  name: 'Dropdown',
+  primaryKey: 'id',
   properties: {
-    key: 'string',
-    name: 'string',
-    type: 'string',
+    id: 'string',
+    parentId: {
+      type: 'string',
+      indexed: true,
+    },
     defaultValue: 'string?',
     isRequired: {
       type: 'bool',
       default: false,
     },
+    dropdownOptions: 'DropdownOption[]',
+  },
+};
+
+// Element Type - Input
+const Input = {
+  name: 'Input',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    parentId: {
+      type: 'string',
+      indexed: true,
+    },
+    defaultValue: 'string?',
+    isRequired: {
+      type: 'bool',
+      default: false,
+    },
+    type: 'string',
+    regexValidation: 'string?',
+  },
+};
+
+// Element Type - YesNo
+const YesNo = {
+  name: 'YesNo',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    parentId: {
+      type: 'string',
+      indexed: true,
+    },
+    defaultValue: {
+      type: 'bool',
+      default: false,
+    },
+    isRequired: {
+      type: 'bool',
+      default: false,
+    },
+  },
+};
+
+// Stores details of a single field which then is stores in form fields list
+const Element = {
+  name: 'Element',
+  primaryKey: 'id',
+  properties: {
+    id: 'string',
+    key: 'string',
+    name: 'string',
+    type: 'string',
     treeType: 'string[]',
     registrationType: 'string[]',
-    dropdownOptions: 'DropdownOption[]',
   },
 };
 
@@ -222,8 +298,10 @@ const Form = {
   properties: {
     id: 'string',
     order: 'int',
-    // stores list of all the fields for a form
-    fields: 'Field[]',
+    // stores list of all the elements for a form
+    elements: 'Element[]',
+    title: 'string?',
+    description: 'string?',
   },
 };
 
@@ -252,8 +330,12 @@ export default {
     ScientificSpecies,
     ActivityLogs,
     SampleTrees,
+    Projects,
     DropdownOption,
-    Field,
+    Dropdown,
+    Input,
+    YesNo,
+    Element,
     Form,
     Metadata,
   ],

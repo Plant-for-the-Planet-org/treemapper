@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import i18next from 'i18next';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Typography } from '../../styles';
-import { useNavigation } from '@react-navigation/core';
 
 interface ITypeSelectionProps {
   selectedTreeType: any;
-  setSelectedTreeType: any;
+  setSelectedTreeType: React.Dispatch<React.SetStateAction<any>>;
+  treeTypeError: string;
   selectedRegistrationType: any;
-  setSelectedRegistrationType: any;
+  setSelectedRegistrationType: React.Dispatch<React.SetStateAction<any>>;
+  registrationTypeError: string;
 }
 
 const treeTypesInitialState = [
@@ -27,8 +28,10 @@ const registrationTypesInitialState = [
 export default function TypeSelection({
   selectedTreeType,
   setSelectedTreeType,
+  treeTypeError,
   selectedRegistrationType,
   setSelectedRegistrationType,
+  registrationTypeError,
 }: ITypeSelectionProps) {
   const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>(
     registrationTypesInitialState,
@@ -128,12 +131,12 @@ export default function TypeSelection({
 
   const checkGroupBoxes: any = [
     {
-      title: i18next.t('label.registrationType'),
+      title: 'registrationType',
       checkBoxes: registrationTypeCheckBoxes,
       toggleCheckBox: toggleRegistrationTypeCheckBox,
     },
     {
-      title: i18next.t('label.treeType'),
+      title: 'treeType',
       checkBoxes: treeTypeCheckBoxes,
       toggleCheckBox: toggleTreeTypeCheckBox,
     },
@@ -142,12 +145,19 @@ export default function TypeSelection({
   return (
     <>
       {checkGroupBoxes.map(({ title, checkBoxes, toggleCheckBox }: any, index: number) => (
-        <CheckBoxGroup
-          title={title}
-          checkBoxes={checkBoxes}
-          toggleCheckBox={toggleCheckBox}
-          key={`check-box-${index}`}
-        />
+        <View key={`check-box-${index}`}>
+          <CheckBoxGroup title={title} checkBoxes={checkBoxes} toggleCheckBox={toggleCheckBox} />
+          {title === 'registrationType' && registrationTypeError ? (
+            <Text style={styles.errorText}>{registrationTypeError}</Text>
+          ) : (
+            []
+          )}
+          {title === 'treeType' && treeTypeError ? (
+            <Text style={styles.errorText}>{treeTypeError}</Text>
+          ) : (
+            []
+          )}
+        </View>
       ))}
     </>
   );
@@ -162,7 +172,7 @@ interface ICheckBoxGroupProps {
 const CheckBoxGroup = ({ title, checkBoxes, toggleCheckBox }: ICheckBoxGroupProps) => {
   return (
     <>
-      <Text style={styles.selectionTypeText}>{title}</Text>
+      <Text style={styles.selectionTypeText}>{i18next.t(`label.${title}`)}</Text>
       <View style={styles.checkBoxParent}>
         {checkBoxes.map((checkBox: any, index: number) => (
           <View style={styles.checkBoxContainer} key={`${checkBox.type}-${index}`}>
@@ -202,5 +212,11 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     marginLeft: 6,
+  },
+  errorText: {
+    color: Colors.ALERT,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    marginTop: 8,
   },
 });

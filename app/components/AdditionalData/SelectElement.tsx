@@ -1,6 +1,7 @@
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
+import { RouteProp } from '@react-navigation/native';
 import i18next from 'i18next';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   SafeAreaView,
@@ -10,11 +11,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { addForm } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { elementsType } from '../../utils/additionalDataConstants';
 import { Header } from '../Common';
 
-interface Props {}
+type RootStackParamList = {
+  SelectElement: { formId: string; formOrder: number };
+};
+
+type SelectElementScreenRouteProp = RouteProp<RootStackParamList, 'SelectElement'>;
 
 const containerWidth = (Dimensions.get('window').width - 75) / 2;
 const elements = [
@@ -43,12 +49,6 @@ const elements = [
     type: elementsType.DROPDOWN,
   },
   {
-    icon: 'formula',
-    iconType: 'icon',
-    name: 'formula',
-    type: elementsType.FORMULA,
-  },
-  {
     icon: 'heading',
     iconType: 'icon',
     name: 'heading',
@@ -63,10 +63,28 @@ const elements = [
 ];
 
 const SelectElement = () => {
+  const [formId, setFormId] = useState<string>('');
+  const [formOrder, setFormOrder] = useState<number>(1);
   const navigation = useNavigation();
+  const route: SelectElementScreenRouteProp = useRoute();
+
+  useEffect(() => {
+    if (route.params?.formId) {
+      setFormId(route.params.formId);
+    }
+    if (route.params?.formOrder) {
+      setFormOrder(route.params.formOrder);
+    }
+  }, [route.params]);
 
   const handleElementPress = (elementType: string) => {
-    navigation.navigate('AddField', { elementType, formId: '123' });
+    console.log('elementType', elementType);
+    if (elementType === elementsType.PAGE) {
+      addForm({ order: formOrder + 1 });
+      navigation.goBack();
+    } else {
+      navigation.navigate('AddField', { elementType, formId });
+    }
   };
   return (
     <SafeAreaView style={styles.container}>
