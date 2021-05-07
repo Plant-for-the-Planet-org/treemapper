@@ -42,6 +42,7 @@ const ManageSpecies = ({
   editOnlySpecieName,
   isSampleTree,
   isSampleTreeCompleted,
+  screen,
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
@@ -253,6 +254,7 @@ const ManageSpecies = ({
                 isSampleTree={isSampleTree}
                 toggleUserSpecies={toggleUserSpecies}
                 navigateToSpecieInfo={navigateToSpecieInfo}
+                screen={screen ? screen : 'ManageSpecies'}
               />
             )}
           </View>

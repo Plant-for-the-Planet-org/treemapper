@@ -421,6 +421,7 @@ const SelectSpecies = () => {
         registrationType={registrationType}
         addSpecieToInventory={addSpecieToInventory}
         isSampleTree={isSampleTree}
+        screen={'SelectSpecies'}
       />
       {renderMeasurementModal()}
     </>
