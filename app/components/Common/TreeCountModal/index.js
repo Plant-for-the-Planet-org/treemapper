@@ -23,12 +23,31 @@ export default function TreeCountModal({
   treeCount,
   onPressTreeCountNextBtn,
 }) {
-  let specieName = showTreeCountModal ? activeSpecie?.scientificName : '';
+  let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
       <View style={styles.modalBackground}>
         <View style={styles.inputModal}>
-          <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+          <Image
+            source={activeSpecie?.image ? { uri: `${activeSpecie.image}` } : placeholder_image}
+            style={{
+              alignSelf: 'center',
+              marginVertical: 20,
+              width: 150,
+              height: 100,
+              borderRadius: 5,
+            }}
+          />
+          {/* {activeSpecie.image ? (
+            <Image
+              source={{
+                uri: `${activeSpecie.image}`,
+              }}
+              style={{ alignSelf: 'center', marginVertical: 20 }}
+            />
+          ) : (
+            []
+          )} */}
           <Header
             hideBackIcon
             subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}

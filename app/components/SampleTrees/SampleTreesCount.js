@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory, updateLastScreen } from '../../repositories/inventory';
@@ -13,6 +14,8 @@ import { Header, PrimaryButton, TopRightBackground } from '../Common';
  * @prop @param selectedTreeCount - count of tree for selected option
  */
 const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedTreeCount }) => {
+  const [isCustomSelected, setIsCustomSelected] = useState(false);
+
   return (
     <View style={styles.treeCountSelectionContainer}>
       {/* if sample tree count is present and has length greater than zero then maps the array */}
@@ -21,9 +24,13 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
         sampleTreesCount.map((treeCount, index) => {
           // used to show the selected tree count selected by user
           const isSelected = treeCount === selectedTreeCount;
+          console.log(`${treeCount},treeCount`);
           return (
             <TouchableOpacity
-              onPress={() => setSelectedTreeCount(treeCount)}
+              onPress={() => {
+                setIsCustomSelected(false);
+                setSelectedTreeCount(treeCount);
+              }}
               key={`tree-number-selection-${index}`}>
               <View
                 style={[
@@ -42,6 +49,39 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
             </TouchableOpacity>
           );
         })}
+      <View
+        style={[
+          styles.treeCountInputSelection,
+          isCustomSelected ? styles.treeCountSelectionActive : {},
+        ]}>
+        <TextInput
+          style={{
+            borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
+            borderBottomWidth: 1,
+            paddingVertical: 0,
+            color: 'white',
+            alignSelf: 'center',
+            // marginBottom: 4,
+          }}
+          selectionColor={'white'}
+          keyboardType={'numeric'}
+          onFocus={() => setIsCustomSelected(true)}
+          textAlign={'center'}
+          onChangeText={(text) => {
+            console.log(text);
+            setSelectedTreeCount(Number(text));
+          }}
+        />
+
+        {/* {treeCount + '\n'}{' '} */}
+        <Text
+          style={[
+            styles.treeCountSelectionText,
+            isCustomSelected ? styles.treeCountSelectionActiveText : {},
+          ]}>
+          {i18next.t('label.trees')}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -49,7 +89,7 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
 // shows the sample tree initial screen where user selects the number of sample trees to record.
 export default function SampleTreesCount() {
   // used to show the tree count selection option with values of array as number of trees to select
-  const sampleTreesCount = [2, 5, 10];
+  const sampleTreesCount = [5, 10, 20];
 
   // used to set the selected tree count
   const [selectedTreeCount, setSelectedTreeCount] = useState(5);
@@ -62,6 +102,7 @@ export default function SampleTreesCount() {
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
+    console.log(selectedTreeCount, 'selectedTreeCount');
     updateInventory({
       inventory_id: state.inventoryID,
       inventoryData: {
@@ -148,8 +189,9 @@ const styles = StyleSheet.create({
   },
   treeCountSelectionContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    alignItems: 'stretch',
+    // alignItems: 'stretch',
     marginVertical: 30,
   },
   treeCountSelection: {
@@ -157,7 +199,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.LIGHT_BORDER_COLOR,
     padding: 10,
-    minWidth: '28%',
+    marginBottom: 15,
+    minWidth: '45%',
+  },
+  treeCountInputSelection: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.LIGHT_BORDER_COLOR,
+    padding: 10,
+    paddingTop: 3,
+    marginBottom: 15,
+    minWidth: '45%',
   },
   treeCountSelectionActive: {
     borderWidth: 0,

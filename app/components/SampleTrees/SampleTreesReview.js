@@ -12,16 +12,16 @@ import { APIConfig } from '../../actions/Config';
 
 const { protocol, cdnUrl } = APIConfig;
 
-const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
+const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, countryCode }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
     : sampleTree.cdnImageUrl
-      ? {
+    ? {
         // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
         uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
       }
-      : single_tree_png;
+    : single_tree_png;
 
   const specieHeight = nonISUCountries.includes(countryCode)
     ? sampleTree.specieHeight * meterToFoot
@@ -39,9 +39,14 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
 
   return (
     <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('SingleTreeOverview', { isSampleTree: true, sampleTreeIndex: index })
-      }>
+      onPress={() => {
+        console.log(totalSampleTrees, 'totalSampleTrees');
+        navigation.navigate('SingleTreeOverview', {
+          isSampleTree: true,
+          sampleTreeIndex: index,
+          totalSampleTrees,
+        });
+      }}>
       <View style={styles.specieListItemContainer}>
         <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
         <View style={styles.specieListTextContainer}>
@@ -59,7 +64,7 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
   );
 };
 
-export default function SampleTreesReview({ sampleTrees, navigation }) {
+export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navigation }) {
   const [countryCode, setCountryCode] = useState('');
 
   useEffect(() => {
@@ -76,6 +81,7 @@ export default function SampleTreesReview({ sampleTrees, navigation }) {
           return (
             <SampleTreeListItem
               sampleTree={sampleTree}
+              totalSampleTrees={totalSampleTrees}
               index={index}
               navigation={navigation}
               countryCode={countryCode}

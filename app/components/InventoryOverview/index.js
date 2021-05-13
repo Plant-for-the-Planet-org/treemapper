@@ -101,6 +101,7 @@ const InventoryOverview = ({ navigation }) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
+        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.projectId) {
           const project = await getProjectById(inventoryData.projectId);
@@ -483,7 +484,11 @@ const InventoryOverview = ({ navigation }) => {
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
               {renderPolygon(inventory.polygons, locationType)}
               {inventory?.sampleTrees.length > 0 && (
-                <SampleTreesReview sampleTrees={inventory.sampleTrees} navigation={navigation} />
+                <SampleTreesReview
+                  sampleTrees={inventory.sampleTrees}
+                  navigation={navigation}
+                  totalSampleTrees={inventory.sampleTreesCount}
+                />
               )}
               <LargeButton
                 onPress={onPressExportJSON}

@@ -67,6 +67,7 @@ const ManageSpecies = ({
               guid: 'unknown',
               isUserSpecies: true,
               scientificName: i18next.t('label.select_species_unknown'),
+              aliases: i18next.t('label.select_species_unknown'),
             },
           ];
         } else {
@@ -75,6 +76,7 @@ const ManageSpecies = ({
               guid: 'unknown',
               isUserSpecies: true,
               scientificName: i18next.t('label.select_species_unknown'),
+              aliases: i18next.t('label.select_species_unknown'),
             },
           ];
         }

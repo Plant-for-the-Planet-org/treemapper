@@ -86,7 +86,6 @@ export default function MapMarking({
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
   const [polygonCoordinates, setPolygonCoordinates] = useState([]);
-
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -732,8 +731,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -778,13 +777,14 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-              })
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                  sampleTreesCount: inventory?.sampleTreesCount,
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
+              ? `${i18next.t('label.locate_tree_location')} ${
                   alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           TitleRightComponent={renderAccuracyInfo}
         />

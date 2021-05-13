@@ -52,7 +52,7 @@ const SelectSpecies = () => {
   const [inventory, setInventory] = useState(null);
   const [registrationType, setRegistrationType] = useState(null);
   const [countryCode, setCountryCode] = useState('');
-  const [isTagIdPresent, setIsTagIdPresent] = useState(false);
+  const [isTagIdPresent, setIsTagIdPresent] = useState(true);
   const [tagIdError, setTagIdError] = useState('');
   const [isSampleTree, setIsSampleTree] = useState(false);
 
@@ -88,7 +88,7 @@ const SelectSpecies = () => {
         setInventory(inventory);
 
         if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-          setIsShowTreeMeasurementModal(true);
+          setIsShowTreeMeasurementModal(false);
           setSingleTreeSpecie(inventory.species[0]);
         }
         setRegistrationType(inventory.treeType);
@@ -153,7 +153,8 @@ const SelectSpecies = () => {
                               : 'cm'
                           }
                           error={diameterError}
-                          onSubmitEditing={()=>heightRef.current.focus()}
+                          returnKeyType={'next'}
+                          onSubmitEditing={() => heightRef.current.focus()}
                         />
                       </View>
                     </View>
@@ -362,7 +363,11 @@ const SelectSpecies = () => {
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
-        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'SingleTreeOverview' }],
+        routes: [
+          { name: 'MainScreen' },
+          { name: 'TreeInventory' },
+          { name: 'SingleTreeOverview', params: { totalSampleTrees: inventory.sampleTreesCount } },
+        ],
       }),
     );
   };

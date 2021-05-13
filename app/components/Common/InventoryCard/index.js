@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { single_tree_png, placeholder_image, map_img } from '../../../assets';
+import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
 import { APIConfig } from './../../../actions/Config';
 
 const { protocol, cdnUrl } = APIConfig;
@@ -31,7 +31,11 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
     } else if (activeBtn === false) {
       setImageSource(placeholder_image);
     } else {
-      setImageSource(single_tree_png);
+      if (data.treeType === SINGLE) {
+        setImageSource(single_tree_png);
+      } else {
+        setImageSource(multiple_tree_png);
+      }
     }
   }, []);
   const onPressActiveButton = () => {

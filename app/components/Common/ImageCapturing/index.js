@@ -122,6 +122,7 @@ const ImageCapturing = ({
 
   const onPressContinue = async () => {
     if (imagePath) {
+      console.log('...........onPressContinue............');
       try {
         const imageUrl = await copyImageAndGetData(imagePath);
         let data = {
@@ -129,21 +130,27 @@ const ImageCapturing = ({
           imageUrl,
         };
         if (inventoryType === MULTI && !isSampleTree) {
+          console.log('=========onPressContinue========>>>>>>>>>');
           data.index = activeMarkerIndex;
           insertImageAtIndexCoordinate(data).then(() => {
             if (isCompletePolygon) {
               setIsAlrightyModalShow(false);
               if (inventory.locateTree === ON_SITE) {
+                console.log('=========onPressContinue========');
                 navigation.navigate('SampleTreesCount');
               } else {
                 navigation.navigate('InventoryOverview');
               }
+              // else {
+              //   navigation.navigate('InventoryOverview');
+              // }
             } else {
               updateActiveMarkerIndex(activeMarkerIndex + 1);
               toggleState();
             }
           });
         } else if (inventoryType === MULTI && isSampleTree) {
+          console.log('===============================');
           let updatedSampleTrees = [...inventory.sampleTrees];
           updatedSampleTrees[inventory.completedSampleTreesCount].imageUrl = data.imageUrl;
 
@@ -180,6 +187,7 @@ const ImageCapturing = ({
         } else {
           updateLastScreen({ inventory_id: inventory.inventory_id, lastScreen: 'SelectSpecies' });
           insertImageSingleRegisterTree(data).then(() => {
+            console.log('insertImageSingleRegisterTree');
             navigation.navigate('SelectSpecies', {
               inventory: inventory,
               visible: true,
@@ -227,7 +235,7 @@ const ImageCapturing = ({
                 routes: [
                   { name: 'MainScreen' },
                   { name: 'TreeInventory' },
-                  { name: 'SampleTreesCount' },
+                  { name: 'TotalTreesSpecies' },
                 ],
               }),
             );
