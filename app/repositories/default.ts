@@ -9,7 +9,7 @@ import schema5 from './migrations/schema5';
 import schema6 from './migrations/schema6';
 import schema7 from './migrations/schema7';
 import schema8 from './migrations/schema8';
-import schema8 from './migrations/schema9';
+import schema9 from './migrations/schema9';
 
 export const schemas = [
   schema0,

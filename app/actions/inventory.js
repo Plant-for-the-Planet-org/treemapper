@@ -1,10 +1,11 @@
+import { getAuthenticatedRequest } from '../utils/api';
 import {
+  DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
   IS_UPLOADING,
   SET_INVENTORY_ID,
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
-  DELETE_INVENTORY_ID,
 } from './Types';
 
 /**
@@ -63,5 +64,19 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   dispatch({
     type: IS_UPLOADING,
     payload: isUploading,
+  });
+};
+
+export const getAllInventoryFromServer = () => {
+  return new Promise((resolve, reject) => {
+    getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
+      let exceptSampleTrees = data.data.filter((inventory) => {
+        return inventory.type !== 'sample';
+      });
+      let sampleTrees = data.data.filter((inventory) => {
+        return inventory.type === 'sample';
+      });
+      resolve([exceptSampleTrees, sampleTrees]);
+    });
   });
 };

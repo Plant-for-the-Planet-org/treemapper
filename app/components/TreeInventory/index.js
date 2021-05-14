@@ -25,7 +25,7 @@ import VerifyEmailAlert from '../Common/EmailAlert';
 const IS_ANDROID = Platform.OS === 'android';
 
 const TreeInventory = ({ navigation }) => {
-  const { dispatch } = useContext(InventoryContext);
+  const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
 
   const [allInventory, setAllInventory] = useState(null);
@@ -87,7 +87,6 @@ const TreeInventory = ({ navigation }) => {
         } else if (err?.message === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
         } else if (err?.error !== 'a0.session.user_cancelled') {
-          // TODO:i18n - if this is used, please add translations
           setEmailAlert(true);
         }
       });
@@ -99,13 +98,23 @@ const TreeInventory = ({ navigation }) => {
       <View style={styles.cont}>
         {pendingInventory.length > 0 && (
           <>
-            <SmallHeader
-              onPressRight={onPressUploadNow}
-              leftText={i18next.t('label.tree_inventory_left_text')}
-              rightText={i18next.t('label.tree_inventory_right_text')}
-              icon={'cloud-upload'}
-              style={{ marginVertical: 15 }}
-            />
+            {!state.isUploading ? (
+              <SmallHeader
+                onPressRight={onPressUploadNow}
+                leftText={i18next.t('label.tree_inventory_left_text')}
+                rightText={i18next.t('label.tree_inventory_right_text')}
+                icon={'cloud-upload'}
+                style={{ marginVertical: 15 }}
+              />
+            ) : (
+              <SmallHeader
+                // onPressRight={onPressUploadNow}
+                leftText={i18next.t('label.tree_inventory_left_text')}
+                rightText={'Uploading'}
+                sync={true}
+                style={{ marginVertical: 15 }}
+              />
+            )}
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
               inventoryList={pendingInventory}

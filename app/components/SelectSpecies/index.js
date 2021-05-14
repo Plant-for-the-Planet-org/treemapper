@@ -111,6 +111,8 @@ const SelectSpecies = () => {
     setIsShowTreeMeasurementModal(true);
   };
 
+  const heightRef = React.createRef();
+
   const renderMeasurementModal = () => {
     return (
       <Modal visible={isShowTreeMeasurementModal} animationType={'slide'}>
@@ -151,6 +153,7 @@ const SelectSpecies = () => {
                               : 'cm'
                           }
                           error={diameterError}
+                          onSubmitEditing={()=>heightRef.current.focus()}
                         />
                       </View>
                     </View>
@@ -171,6 +174,7 @@ const SelectSpecies = () => {
                               : 'm'
                           }
                           error={heightError}
+                          ref={heightRef}
                         />
                       </View>
                     </View>

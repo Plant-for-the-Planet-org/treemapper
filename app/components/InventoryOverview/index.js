@@ -142,6 +142,7 @@ const InventoryOverview = ({ navigation }) => {
                     )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
                     date: i18next.t('label.inventory_overview_view_location'),
                     imageURL: oneCoordinate.imageUrl,
+                    cdnImageUrl: oneCoordinate.cdnImageUrl,
                     index: index,
                   };
                   return (
@@ -385,7 +386,6 @@ const InventoryOverview = ({ navigation }) => {
   }
 
   let status = inventory ? inventory.status : 'pending';
-
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -398,6 +398,28 @@ const InventoryOverview = ({ navigation }) => {
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
+                // TopRightComponent={
+                //   status == INCOMPLETE_SAMPLE_TREE ? (
+                //     <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => {}}>
+                //       <Text
+                //         style={{
+                //           fontFamily: Typography.FONT_FAMILY_REGULAR,
+                //           fontSize: Typography.FONT_SIZE_18,
+                //           lineHeight: Typography.LINE_HEIGHT_24,
+                //         }}>
+                //         {i18next.t('label.tree_review_delete')}
+                //       </Text>
+                //     </TouchableOpacity>
+                //   ) : (
+                //     []
+                //   )
+                // }
+                rightText={
+                  status == INCOMPLETE_SAMPLE_TREE || status == INCOMPLETE
+                    ? i18next.t('label.tree_review_delete')
+                    : []
+                }
+                onPressFunction={() => setShowDeleteAlert(true)}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
