@@ -92,15 +92,6 @@ export default function AddField() {
         typeProperties.defaultValue = !!defaultValue;
       }
 
-      console.log('typeProperties', typeProperties);
-      console.log('elementProperties', {
-        key: fieldKey,
-        name,
-        type: elementType,
-        treeType: selectedTreeType,
-        registrationType: selectedRegistrationType,
-      });
-
       addElement({
         elementProperties: {
           key: fieldKey,
@@ -158,7 +149,7 @@ export default function AddField() {
     if (
       route.params?.elementType === elementsType.DROPDOWN &&
       (!Array.isArray(dropdownOptions) ||
-        (Array.isArray(dropdownOptions) && dropdownOptions.length === 0))
+        (Array.isArray(dropdownOptions) && dropdownOptions.length < 2))
     ) {
       setDropdownOptionsError(i18next.t('label.atleast_2_dropdown_option_required'));
       isDropdownOptionsValid = false;

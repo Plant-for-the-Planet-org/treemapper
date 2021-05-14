@@ -1,10 +1,13 @@
 import { useNavigation } from '@react-navigation/core';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Typography } from '../../styles';
-import AdditionalDataButton from './AdditionalDataButton';
-import FeatherIcon from 'react-native-vector-icons/Feather';
 import i18next from 'i18next';
+import React, { useCallback, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import FeatherIcon from 'react-native-vector-icons/Feather';
+import { Colors, Typography } from '../../styles';
+import { marginTop24 } from '../../styles/design';
+import SwipeDeleteRow from '../Common/SwipeDeleteRow';
+import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
 
 interface IPageProps {
@@ -13,35 +16,73 @@ interface IPageProps {
   formId: string;
   handleDeletePress: any;
   formOrder: number;
+  updateForm: any;
+  deleteElement: (elementIndex: any) => void;
 }
 
-export default function Page({ step, elements, formId, handleDeletePress, formOrder }: IPageProps) {
+export default function Page({
+  step,
+  elements,
+  formId,
+  handleDeletePress,
+  formOrder,
+  updateForm,
+  deleteElement,
+}: IPageProps) {
+  const [dragging, setDragging] = useState<boolean>(false);
+
   const navigation = useNavigation();
 
   const handleButtonPress = () => {
     navigation.navigate('SelectElement', { formId, formOrder });
   };
 
+  const renderItem = useCallback(
+    ({ item, index, drag }: RenderItemParams<any>) => {
+      return (
+        <SwipeDeleteRow
+          style={marginTop24}
+          onSwipe={() => deleteElement(index)}
+          isDraggable
+          drag={drag}
+          dragging={dragging}
+          setDragging={setDragging}>
+          <ElementSwitcher {...item} />
+        </SwipeDeleteRow>
+      );
+    },
+    [dragging, setDragging],
+  );
+
   return (
     <View style={[styles.pageContainer, step > 1 ? styles.newPage : {}]}>
-      <View style={styles.formHeading}>
+      <View style={[styles.formHeading, styles.paddingLeft8]}>
         <Text style={styles.formHeadingText}>{i18next.t('label.form_step', { step })}</Text>
         <TouchableOpacity style={styles.deleteIcon} onPress={handleDeletePress}>
           <FeatherIcon name="trash-2" size={20} color={Colors.ALERT} />
         </TouchableOpacity>
       </View>
-      {elements.map((element: any) => (
-        <ElementSwitcher {...element} />
-      ))}
-      <AdditionalDataButton handleButtonPress={handleButtonPress} />
+      <DraggableFlatList
+        data={elements}
+        renderItem={renderItem}
+        keyExtractor={(item) => `elements-${item.id}`}
+        onDragEnd={({ data }) => {
+          setDragging(false);
+          updateForm(data);
+        }}
+        scrollEnabled={false}
+      />
+      <AdditionalDataButton handleButtonPress={handleButtonPress} style={styles.marginLeft8} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   pageContainer: {
-    paddingHorizontal: 25,
+    paddingRight: 25,
+    paddingLeft: 17,
     marginBottom: 80,
+    flex: 1,
   },
   newPage: {
     borderTopWidth: 2,
@@ -62,5 +103,11 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     padding: 10,
+  },
+  paddingLeft8: {
+    paddingLeft: 8,
+  },
+  marginLeft8: {
+    marginLeft: 8,
   },
 });

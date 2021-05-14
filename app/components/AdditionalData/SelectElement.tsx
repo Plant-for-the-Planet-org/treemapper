@@ -86,6 +86,7 @@ const SelectElement = () => {
       navigation.navigate('AddField', { elementType, formId });
     }
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>

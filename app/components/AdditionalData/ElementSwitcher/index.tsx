@@ -1,5 +1,4 @@
 import React from 'react';
-import { marginTop24 } from '../../../styles/design';
 import { elementsType } from '../../../utils/additionalDataConstants';
 import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
@@ -11,35 +10,28 @@ interface IElementSwitcherProps {
   id: string;
   type: any;
   name: string;
-  fieldKey: string;
   defaultValue: any;
-  dropdownOptions: any;
+  editable: boolean;
 }
 
 export default function ElementSwitcher({
   id,
   type,
   name,
-  fieldKey,
   defaultValue,
-  dropdownOptions,
+  editable = false,
 }: IElementSwitcherProps): JSX.Element {
   switch (type) {
     case elementsType.INPUT:
-      return <OutlinedInput editable={false} label={name} key={id} style={marginTop24} />;
+      return (
+        <OutlinedInput editable={editable} label={name} value={defaultValue || ' '} key={id} />
+      );
     case elementsType.DROPDOWN:
       return <Dropdown />;
     case elementsType.HEADING:
       return <Heading text={name} />;
     case elementsType.YES_NO:
-      return (
-        <YesNoButton
-          text={name}
-          isAgreed={defaultValue}
-          editable={false}
-          containerStyle={marginTop24}
-        />
-      );
+      return <YesNoButton text={name} isAgreed={defaultValue} editable={editable} />;
     case elementsType.GAP:
       return <GapElement />;
     default:

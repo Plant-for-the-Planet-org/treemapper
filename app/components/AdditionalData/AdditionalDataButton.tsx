@@ -4,18 +4,20 @@ import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '../../styles';
 
 interface Props {
-  buttonType?: string;
+  buttonType?: 'element' | 'field';
   handleButtonPress: any;
+  style?: any;
 }
 
 export default function AdditionalDataButton({
-  buttonType = 'form',
+  buttonType = 'element',
   handleButtonPress,
+  style = {},
 }: Props): JSX.Element {
   return (
-    <TouchableOpacity onPress={handleButtonPress} style={[styles.button]}>
+    <TouchableOpacity onPress={handleButtonPress} style={[styles.button, style]}>
       <Text style={styles.buttonText}>
-        {buttonType == 'form' ? i18next.t('label.add_element') : i18next.t('label.add_field')}
+        {buttonType == 'element' ? i18next.t('label.add_element') : i18next.t('label.add_field')}
       </Text>
     </TouchableOpacity>
   );
@@ -37,5 +39,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
+    alignSelf: 'flex-start',
   },
 });

@@ -14,7 +14,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
-    marginTop: 24,
     fontStyle: 'italic',
     fontWeight: 'bold',
     opacity: 0.5,

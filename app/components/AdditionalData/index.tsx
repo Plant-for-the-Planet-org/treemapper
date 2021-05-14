@@ -24,24 +24,24 @@ export default function AdditionalData() {
   });
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {/* <ScrollView style={{ flex: 1 }}> */}
-      <View style={styles.defaultSpacing}>
-        <Header
-          closeIcon
-          headingText={i18next.t('label.additional_data')}
-          onBackPress={() => navigation.goBack()}
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.defaultSpacing}>
+          <Header
+            closeIcon
+            headingText={i18next.t('label.additional_data')}
+            onBackPress={() => navigation.goBack()}
+          />
+        </View>
+        <TabView
+          navigationState={{ index: routeIndex, routes: tabRoutes }}
+          renderScene={renderScene}
+          onIndexChange={setRouteIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={(props) => (
+            <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
+          )}
         />
-      </View>
-      <TabView
-        navigationState={{ index: routeIndex, routes: tabRoutes }}
-        renderScene={renderScene}
-        onIndexChange={setRouteIndex}
-        initialLayout={{ width: layout.width }}
-        renderTabBar={(props) => (
-          <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
-        )}
-      />
-      {/* </ScrollView> */}
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -2,8 +2,15 @@ import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { addForm, deleteForm, getForms } from '../../repositories/additionalData';
+import {
+  addForm,
+  deleteForm,
+  deleteFormElement,
+  getForms,
+  updateFormElements,
+} from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
+import { sortByField } from '../../utils/sortBy';
 import { PrimaryButton } from '../Common';
 import Page from './Page';
 
@@ -21,12 +28,6 @@ export default function Form(): JSX.Element {
     return unsubscribe;
   }, [navigation]);
 
-  const sortFormByOrder = (formsData: any) => {
-    return formsData.sort((a: any, b: any) => {
-      return a.order - b.order;
-    });
-  };
-
   const addNewForm = async () => {
     await addForm({ order: Array.isArray(forms) ? forms.length + 1 : 1 });
     addFormsToState();
@@ -35,7 +36,7 @@ export default function Form(): JSX.Element {
   const addFormsToState = () => {
     getForms().then((formsData: any) => {
       if (formsData) {
-        setForms(sortFormByOrder(formsData));
+        setForms(sortByField('order', formsData));
       }
     });
   };
@@ -48,8 +49,24 @@ export default function Form(): JSX.Element {
     });
   };
 
+  const updateForm = async (elements: any, formId: any) => {
+    await updateFormElements({ elements, formId }).then((success) => {
+      if (success) {
+        addFormsToState();
+      }
+    });
+  };
+
+  const deleteElementFromForm = (formId: string, elementIndexToDelete: number) => {
+    deleteFormElement(formId, elementIndexToDelete).then((success) => {
+      if (success) {
+        addFormsToState();
+      }
+    });
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {Array.isArray(forms) && forms.length > 0 ? (
         forms.map((form: any, index) => (
           <Page
@@ -59,6 +76,8 @@ export default function Form(): JSX.Element {
             formId={form.id}
             handleDeletePress={() => deleteFormById(form.id)}
             formOrder={form.order}
+            updateForm={(elements: any) => updateForm(elements, form.id)}
+            deleteElement={(elementIndex: number) => deleteElementFromForm(form.id, elementIndex)}
           />
         ))
       ) : (
@@ -68,7 +87,7 @@ export default function Form(): JSX.Element {
           <PrimaryButton btnText={i18next.t('label.create_form')} onPress={addNewForm} />
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 }
 

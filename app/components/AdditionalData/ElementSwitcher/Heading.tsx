@@ -17,6 +17,5 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_22,
     color: Colors.TEXT_COLOR,
-    marginTop: 24,
   },
 });
