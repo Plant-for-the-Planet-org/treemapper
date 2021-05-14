@@ -8,9 +8,11 @@ const Coordinates = {
     latitude: 'double',
     longitude: 'double',
     imageUrl: 'string?',
+    cdnImageUrl: 'string?',
     currentloclat: 'double',
     currentloclong: 'double',
     isImageUploaded: 'bool?',
+    coordinateID: 'string?',
   },
 };
 
