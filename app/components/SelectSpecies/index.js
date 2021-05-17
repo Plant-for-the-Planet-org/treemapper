@@ -153,7 +153,7 @@ const SelectSpecies = () => {
                               : 'cm'
                           }
                           error={diameterError}
-                          onSubmitEditing={()=>heightRef.current.focus()}
+                          onSubmitEditing={() => heightRef.current.focus()}
                         />
                       </View>
                     </View>
@@ -362,7 +362,7 @@ const SelectSpecies = () => {
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
-        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'SingleTreeOverview' }],
+        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'AdditionalDataForm' }],
       }),
     );
   };

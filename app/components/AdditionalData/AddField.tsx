@@ -3,7 +3,6 @@ import { CommonActions, RouteProp, useNavigation } from '@react-navigation/nativ
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
-import { v4 } from 'uuid';
 import { addElement } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { elementsType } from '../../utils/additionalDataConstants';

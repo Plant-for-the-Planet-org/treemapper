@@ -24,7 +24,7 @@ export default function AdditionalData() {
   });
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <ScrollView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View style={styles.defaultSpacing}>
           <Header
             closeIcon
@@ -41,7 +41,7 @@ export default function AdditionalData() {
             <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
           )}
         />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

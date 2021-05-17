@@ -3,8 +3,16 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 
-const GapElement = () => {
-  return <Text style={styles.text}>{i18next.t('label.gap_element')}</Text>;
+interface IGapElementProps {
+  editable?: boolean;
+}
+
+const GapElement = ({ editable = false }: IGapElementProps) => {
+  if (!editable) {
+    return <Text style={styles.text}>{i18next.t('label.gap_element')}</Text>;
+  } else {
+    return <></>;
+  }
 };
 
 export default GapElement;

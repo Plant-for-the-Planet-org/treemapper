@@ -1,5 +1,5 @@
 // schema version
-const schemaVersion = 8;
+const schemaVersion = 9;
 
 // SCHEMAS
 const Coordinates = {
@@ -43,6 +43,14 @@ const OfflineMaps = {
   },
 };
 
+const AdditionalDetail = {
+  name: 'AdditionalDetail',
+  properties: {
+    key: 'string',
+    value: 'string',
+  },
+};
+
 // used to record the sample trees
 const SampleTrees = {
   name: 'SampleTrees',
@@ -59,6 +67,8 @@ const SampleTrees = {
     locationAccuracy: 'double?',
     // URL of the image if picture was clicked
     imageUrl: 'string?',
+    // CDN URL of the image if picture was clicked
+    cdnImageUrl: 'string?',
     // specie id for this sample tree
     specieId: 'string?',
     // specie name of specie id for this sample tree
@@ -77,6 +87,8 @@ const SampleTrees = {
     locationId: 'string?',
     // stores the tree type which is always sample tree
     treeType: { type: 'string', default: 'sample' },
+    // stores the additional details for the registration
+    additionalDetails: 'AdditionalDetail[]',
   },
 };
 
@@ -115,6 +127,8 @@ const Inventory = {
     // stores the location id of the plant location which is available
     // when the inventory data is uploaded
     locationId: 'string?',
+    // stores the additional details for the registration
+    additionalDetails: 'AdditionalDetail[]',
   },
 };
 
@@ -340,6 +354,7 @@ export default {
     Element,
     Form,
     Metadata,
+    AdditionalDetail,
   ],
   schemaVersion,
   migration,

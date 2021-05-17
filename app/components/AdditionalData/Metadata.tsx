@@ -109,9 +109,8 @@ export default function Metadata(props: MetadataProps): JSX.Element {
   };
 
   return (
-    <>
+    <View style={styles.container}>
       <DraggableFlatList
-        style={styles.container}
         data={metadata}
         renderItem={({ item, drag }: any) => (
           <View style={styles.fieldWrapper} key={`metadata-${item.id}`}>
@@ -183,7 +182,7 @@ export default function Metadata(props: MetadataProps): JSX.Element {
       ) : (
         []
       )}
-    </>
+    </View>
   );
 }
 

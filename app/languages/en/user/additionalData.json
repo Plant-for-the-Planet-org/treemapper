@@ -26,5 +26,6 @@
     "get_started_forms": "Get started with forms",
     "get_started_forms_description": "This form helps you to collect additional data for each registration.",
     "gap_element":"Gap Element",
-    "form_step":"Step {{step}}"
+    "form_step":"Step {{step}}",
+    "loading_form":"Loading form"
 }

@@ -1,14 +1,20 @@
+import i18next from 'i18next';
 import React from 'react';
 import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
-import { Colors } from '_styles';
+import { Colors, Typography } from '../../../styles';
 
-export default function Loader({ isLoaderShow }) {
+interface ILoaderProps {
+  isLoaderShow: boolean;
+  loadingText?: string;
+}
+
+export default function Loader({ isLoaderShow, loadingText }: ILoaderProps) {
   return (
     <Modal transparent visible={isLoaderShow}>
       <View style={styles.downloadModalContainer}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color={Colors.PRIMARY} />
-          <Text style={{ padding: 30, borderRadius: 10 }}>Please Wait.....</Text>
+          <Text style={styles.text}>{loadingText || i18next.t('label.loading_content')}</Text>
         </View>
       </View>
     </Modal>
@@ -21,5 +27,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  text: {
+    padding: 30,
+    borderRadius: 10,
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
 });

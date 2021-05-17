@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { elementsType } from '../../../utils/additionalDataConstants';
 import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
@@ -12,6 +12,8 @@ interface IElementSwitcherProps {
   name: string;
   defaultValue: any;
   editable: boolean;
+  fieldKey?: string;
+  setFormValuesCallback?: any;
 }
 
 export default function ElementSwitcher({
@@ -20,20 +22,45 @@ export default function ElementSwitcher({
   name,
   defaultValue,
   editable = false,
+  fieldKey,
+  setFormValuesCallback,
 }: IElementSwitcherProps): JSX.Element {
+  const [value, setValue] = useState<any>(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
+  useEffect(() => {
+    if (setFormValuesCallback && type !== elementsType.GAP && type !== elementsType.HEADING) {
+      const updatedValue = typeof value === 'boolean' ? (value ? 'yes' : 'no') : value;
+      setFormValuesCallback({
+        [`${fieldKey}`]: updatedValue,
+      });
+    }
+  }, [value]);
+
   switch (type) {
     case elementsType.INPUT:
       return (
-        <OutlinedInput editable={editable} label={name} value={defaultValue || ' '} key={id} />
+        <OutlinedInput
+          editable={editable}
+          label={name}
+          value={!editable ? value || ' ' : value}
+          onChangeText={(text: any) => setValue(text)}
+          key={id}
+        />
       );
     case elementsType.DROPDOWN:
       return <Dropdown />;
     case elementsType.HEADING:
       return <Heading text={name} />;
     case elementsType.YES_NO:
-      return <YesNoButton text={name} isAgreed={defaultValue} editable={editable} />;
+      return (
+        <YesNoButton text={name} isAgreed={!!value} setIsAgreed={setValue} editable={editable} />
+      );
     case elementsType.GAP:
-      return <GapElement />;
+      return <GapElement editable={editable} />;
     default:
       return <></>;
   }
