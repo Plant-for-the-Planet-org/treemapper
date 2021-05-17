@@ -17,11 +17,11 @@ const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, c
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
     : sampleTree.cdnImageUrl
-    ? {
+      ? {
         // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
         uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
       }
-    : single_tree_png;
+      : single_tree_png;
 
   const specieHeight = nonISUCountries.includes(countryCode)
     ? sampleTree.specieHeight * meterToFoot
