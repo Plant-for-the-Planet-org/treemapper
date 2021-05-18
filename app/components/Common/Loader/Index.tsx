@@ -3,22 +3,34 @@ import React from 'react';
 import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 
-interface ILoaderProps {
-  isLoaderShow: boolean;
+interface ILoaderContentProps {
   loadingText?: string;
 }
+interface ILoaderProps extends ILoaderContentProps {
+  isLoaderShow: boolean;
+  isModal?: boolean;
+}
 
-export default function Loader({ isLoaderShow, loadingText }: ILoaderProps) {
+const LoaderContent = ({ loadingText }: ILoaderContentProps) => {
   return (
-    <Modal transparent visible={isLoaderShow}>
-      <View style={styles.downloadModalContainer}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={Colors.PRIMARY} />
-          <Text style={styles.text}>{loadingText || i18next.t('label.loading_content')}</Text>
-        </View>
+    <View style={styles.downloadModalContainer}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
+        <Text style={styles.text}>{loadingText || i18next.t('label.loading_content')}</Text>
       </View>
-    </Modal>
+    </View>
   );
+};
+
+export default function Loader({ isLoaderShow, loadingText, isModal = true }: ILoaderProps) {
+  if (isModal) {
+    return (
+      <Modal transparent visible={isLoaderShow}>
+        <LoaderContent loadingText={loadingText} />
+      </Modal>
+    );
+  }
+  return <LoaderContent loadingText={loadingText} />;
 }
 
 const styles = StyleSheet.create({

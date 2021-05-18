@@ -90,15 +90,18 @@ const SelectElement = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <Header closeIcon headingText={i18next.t('label.select_element')} />
+        <Header
+          closeIcon
+          headingText={i18next.t('label.select_element')}
+          style={{ paddingHorizontal: 25 }}
+        />
         <View style={styles.elementParent}>
           {elements.map((element: any, index: number) => (
             <TouchableOpacity
               onPress={() => handleElementPress(element.type)}
-              key={`Element-${index}`}>
-              <View style={styles.elementContainer}>
-                <Text style={styles.name}>{i18next.t(`label.${element.name}`)}</Text>
-              </View>
+              key={`Element-${index}`}
+              style={styles.elementShadowContainer}>
+              <Text style={styles.name}>{i18next.t(`label.${element.name}`)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -112,24 +115,36 @@ export default SelectElement;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
-  elementContainer: {
-    padding: 20,
-    borderWidth: 2,
+  // elementContainer: {
+  //   padding: 20,
+  //   borderWidth: 2,
+  //   borderRadius: 8,
+  //   borderStyle: 'dashed',
+  //   borderColor: Colors.TEXT_COLOR,
+  //   backgroundColor: Colors.WHITE,
+  //   alignItems: 'center',
+  //   flex: 1,
+  // },
+  elementShadowContainer: {
     borderRadius: 8,
-    borderStyle: 'dashed',
-    borderColor: Colors.TEXT_COLOR,
+    elevation: 5,
+    marginTop: 25,
     height: 120,
     width: containerWidth,
-    marginTop: 25,
+    backgroundColor: Colors.WHITE,
+    padding: 20,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Colors.TEXT_COLOR,
     alignItems: 'center',
   },
   elementParent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    padding: 25,
   },
   name: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

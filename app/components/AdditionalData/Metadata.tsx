@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {
   addOrUpdateMetadataField,
@@ -109,9 +109,14 @@ export default function Metadata(props: MetadataProps): JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <DraggableFlatList
         data={metadata}
+        contentContainerStyle={
+          !showTempField && metadata && metadata.length === 0
+            ? styles.container
+            : { paddingBottom: 30 }
+        }
         renderItem={({ item, drag }: any) => (
           <View style={styles.fieldWrapper} key={`metadata-${item.id}`}>
             <SwipeDeleteRow
@@ -133,10 +138,15 @@ export default function Metadata(props: MetadataProps): JSX.Element {
         ListEmptyComponent={() => {
           if (!showTempField) {
             return (
-              <View style={styles.formMessageContainer}>
-                <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
-                <Text>{i18next.t('label.get_started_forms_description')}</Text>
-                <PrimaryButton btnText={i18next.t('label.create_form')} onPress={addTempField} />
+              <View style={[styles.emptyFormMessageContainer, styles.marginLeft8]}>
+                <Text style={styles.title}>{i18next.t('label.get_started_metadata')}</Text>
+                <Text style={styles.desc}>
+                  {i18next.t('label.get_started_metadata_description')}
+                </Text>
+                <PrimaryButton
+                  btnText={i18next.t('label.create_metadata')}
+                  onPress={addTempField}
+                />
               </View>
             );
           } else return <></>;
@@ -167,6 +177,7 @@ export default function Metadata(props: MetadataProps): JSX.Element {
             return <></>;
           }
         }}
+        scrollEnabled={false}
       />
       {showInputModal ? (
         <InputModal
@@ -178,11 +189,12 @@ export default function Metadata(props: MetadataProps): JSX.Element {
           value={toEdit === 'key' ? fieldKey : fieldValue}
           setValue={toEdit === 'key' ? setFieldKey : setFieldValue}
           isRequired
+          returnKeyType={'send'}
         />
       ) : (
         []
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -200,7 +212,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...marginTop24,
   },
-  formMessageContainer: {
+  emptyFormMessageContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -212,5 +224,13 @@ const styles = StyleSheet.create({
   },
   marginLeft8: {
     marginLeft: 8,
+  },
+  desc: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.TEXT_COLOR,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 40,
   },
 });

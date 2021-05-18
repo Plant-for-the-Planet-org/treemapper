@@ -12,11 +12,15 @@ export const updateAndSyncLocalSpecies = (speciesData) => {
       .then((realm) => {
         realm.write(() => {
           speciesData.forEach((specie, index) => {
-            realm.create('ScientificSpecies', {
-              guid: specie.guid,
-              scientificName: specie.scientific_name,
-              aliases: specie.scientific_name,
-            });
+            realm.create(
+              'ScientificSpecies',
+              {
+                guid: specie.guid,
+                scientificName: specie.scientific_name,
+                aliases: specie.scientific_name,
+              },
+              Realm.UpdateMode.Modified,
+            );
             if (index === speciesData.length - 1) {
               // logging the success in to the db
               dbLog.info({

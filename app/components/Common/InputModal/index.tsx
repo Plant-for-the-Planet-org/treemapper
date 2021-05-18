@@ -9,6 +9,7 @@ import {
   TextInput,
   StyleSheet,
   Text,
+  ReturnKeyTypeOptions,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, CommonStyles, Typography } from '../../../styles';
@@ -22,6 +23,7 @@ interface IInputModalProps {
   inputType: any;
   isRequired?: boolean;
   placeholder?: string;
+  returnKeyType?: ReturnKeyTypeOptions;
 }
 
 const InputModal = ({
@@ -33,6 +35,7 @@ const InputModal = ({
   inputType,
   isRequired = false,
   placeholder = '',
+  returnKeyType = 'default',
 }: IInputModalProps) => {
   const onSubmit = () => {
     if (isRequired && !value) {
@@ -72,6 +75,7 @@ const InputModal = ({
                 }
               }}
               onSubmitEditing={onSubmit}
+              returnKeyType={returnKeyType}
             />
             <MCIcon
               onPress={onSubmit}

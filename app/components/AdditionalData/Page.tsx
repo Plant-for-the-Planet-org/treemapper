@@ -11,7 +11,7 @@ import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
 
 interface IPageProps {
-  step: number;
+  pageNo: number;
   elements: any;
   formId: string;
   handleDeletePress: any;
@@ -21,7 +21,7 @@ interface IPageProps {
 }
 
 export default function Page({
-  step,
+  pageNo,
   elements,
   formId,
   handleDeletePress,
@@ -55,9 +55,9 @@ export default function Page({
   );
 
   return (
-    <View style={[styles.pageContainer, step > 1 ? styles.newPage : {}]}>
+    <View style={[styles.pageContainer, pageNo > 1 ? styles.newPage : {}]}>
       <View style={[styles.formHeading, styles.paddingLeft8]}>
-        <Text style={styles.formHeadingText}>{i18next.t('label.form_step', { step })}</Text>
+        <Text style={styles.formHeadingText}>{i18next.t('label.form_page', { pageNo })}</Text>
         <TouchableOpacity style={styles.deleteIcon} onPress={handleDeletePress}>
           <FeatherIcon name="trash-2" size={20} color={Colors.ALERT} />
         </TouchableOpacity>
@@ -71,8 +71,11 @@ export default function Page({
           updateForm(data);
         }}
         scrollEnabled={false}
+        contentContainerStyle={styles.pageContents}
+        ListFooterComponent={() => (
+          <AdditionalDataButton handleButtonPress={handleButtonPress} style={styles.marginLeft8} />
+        )}
       />
-      <AdditionalDataButton handleButtonPress={handleButtonPress} style={styles.marginLeft8} />
     </View>
   );
 }
@@ -81,8 +84,7 @@ const styles = StyleSheet.create({
   pageContainer: {
     paddingRight: 25,
     paddingLeft: 17,
-    marginBottom: 80,
-    flex: 1,
+    flexGrow: 1,
   },
   newPage: {
     borderTopWidth: 2,
@@ -90,6 +92,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     paddingTop: 40,
   },
+  pageContents: { paddingBottom: 30 },
   formHeading: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -25,20 +25,20 @@ export default function AdditionalDataButton({
 
 const styles = StyleSheet.create({
   button: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     marginTop: 30,
-    elevation: 5,
-    backgroundColor: Colors.WHITE,
+    borderWidth: 1,
     borderRadius: 6,
     borderStyle: 'dashed',
     borderColor: Colors.TEXT_COLOR,
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.WHITE,
+    elevation: 5,
   },
   buttonText: {
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
-    alignSelf: 'flex-start',
   },
 });

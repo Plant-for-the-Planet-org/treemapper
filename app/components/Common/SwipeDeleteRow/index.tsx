@@ -101,7 +101,7 @@ export default function SwipeDeleteRow({
       </View>
 
       <PanGestureHandler {...gestureHandler} enabled={!dragging}>
-        <Animated.View style={[{ transform: [{ translateX }] }]}>
+        <Animated.View style={{ transform: [{ translateX }] }}>
           <View style={[styles.contentContainer]}>
             {isDraggable ? (
               <DragHandle

@@ -2,19 +2,30 @@ import { useRoute } from '@react-navigation/core';
 import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { addElement } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
+import { marginTop24, marginTop30 } from '../../styles/design';
 import { elementsType } from '../../utils/additionalDataConstants';
-import { Header, PrimaryButton } from '../Common';
+import { Header, InputModal, PrimaryButton } from '../Common';
+import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
+import KeyValueInput from './KeyValueInput';
 import TypeSelection from './TypeSelection';
-
-interface Props {}
 
 type RootStackParamList = {
   AddField: { elementType: string; formId: string };
 };
+
+type toEditType = 'key' | 'value';
 
 type AddFieldScreenRouteProp = RouteProp<RootStackParamList, 'AddField'>;
 
@@ -41,6 +52,14 @@ export default function AddField() {
   const [isAdvanceModeEnabled, setIsAdvanceModeEnabled] = useState<boolean>(false);
   const [inputType, setInputType] = useState<string>('');
   const [regexValidation, setRegexValidation] = useState<string>('');
+
+  const [showInputModal, setShowInputModal] = useState<boolean>(false);
+  const [toEdit, setToEdit] = useState<toEditType>('key');
+  const [placeholder, setPlaceholder] = useState<string>('');
+  const [dropdownOptionKey, setDropdownOptionKey] = useState<string>('');
+  const [dropdownOptionValue, setDropdownOptionValue] = useState<string>('');
+  const [showTempField, setShowTempField] = useState<boolean>(false);
+  const [selectedDropdownOptionIndex, setSelectedDropdownOptionIndex] = useState<number>();
 
   const navigation = useNavigation();
 
@@ -183,73 +202,184 @@ export default function AddField() {
     }
   };
 
+  const validateAndModifyField = () => {
+    if (dropdownOptionKey && dropdownOptionValue) {
+      const fieldData = {
+        key: dropdownOptionKey,
+        value: dropdownOptionValue,
+      };
+      let updatedDropdownOptions: any;
+      if (selectedDropdownOptionIndex != null) {
+        updatedDropdownOptions = [...dropdownOptions];
+        updatedDropdownOptions[selectedDropdownOptionIndex] = fieldData;
+      } else {
+        updatedDropdownOptions = [...dropdownOptions, fieldData];
+      }
+      setDropdownOptions(updatedDropdownOptions);
+    }
+  };
+
+  const handleAddDropdownOption = () => {
+    setShowTempField(true);
+    editText('key');
+  };
+
+  const onSwipe = (index: number | null = null) => {
+    if (index == null && showTempField) {
+      setShowTempField(false);
+      setDropdownOptionKey('');
+      setDropdownOptionValue('');
+    } else {
+      dropdownOptions.splice(index, 1);
+      setDropdownOptions(dropdownOptions);
+    }
+  };
+
+  const editText = (editType: toEditType, option: any = null) => {
+    setToEdit(editType);
+
+    setPlaceholder(
+      editType === 'key' ? i18next.t('label.field_key') : i18next.t('label.field_value'),
+    );
+    if (option != null) {
+      setDropdownOptionKey(option.key);
+      setDropdownOptionValue(option.value);
+      setSelectedDropdownOptionIndex(option.index);
+    }
+    setShowInputModal(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Header
         headingText={headingText}
         TopRightComponent={() => (
-          <AdvanceModeSwitcher
-            isAdvanceModeEnabled={isAdvanceModeEnabled}
-            setIsAdvanceModeEnabled={setIsAdvanceModeEnabled}
+          <Switcher
+            switchText={i18next.t('label.advance_mode')}
+            isEnabled={isAdvanceModeEnabled}
+            setIsEnabled={setIsAdvanceModeEnabled}
           />
         )}
       />
-      <AddElementSwitcher
-        elementType={elementType}
-        isAdvanceModeEnabled={isAdvanceModeEnabled}
-        name={name}
-        setName={setName}
-        nameError={nameError}
-        fieldKey={fieldKey}
-        setFieldKey={setFieldKey}
-        keyError={keyError}
-        defaultValue={defaultValue}
-        setDefaultValue={setDefaultValue}
-        defaultValueError={defaultValueError}
-        dropdownOptions={dropdownOptions}
-        setDropdownOptions={setDropdownOptions}
-      />
-      <TypeSelection
-        selectedTreeType={selectedTreeType}
-        setSelectedTreeType={setSelectedTreeType}
-        treeTypeError={treeTypeError}
-        selectedRegistrationType={selectedRegistrationType}
-        setSelectedRegistrationType={setSelectedRegistrationType}
-        registrationTypeError={registrationTypeError}
-      />
+      <ScrollView style={styles.scrollContainer}>
+        <AddElementSwitcher
+          elementType={elementType}
+          isAdvanceModeEnabled={isAdvanceModeEnabled}
+          name={name}
+          setName={setName}
+          nameError={nameError}
+          fieldKey={fieldKey}
+          setFieldKey={setFieldKey}
+          keyError={keyError}
+          defaultValue={defaultValue}
+          setDefaultValue={setDefaultValue}
+          defaultValueError={defaultValueError}
+          dropdownOptions={dropdownOptions}
+          setDropdownOptions={setDropdownOptions}
+        />
+        <TypeSelection
+          selectedTreeType={selectedTreeType}
+          setSelectedTreeType={setSelectedTreeType}
+          treeTypeError={treeTypeError}
+          selectedRegistrationType={selectedRegistrationType}
+          setSelectedRegistrationType={setSelectedRegistrationType}
+          registrationTypeError={registrationTypeError}
+        />
+        <View style={marginTop30}>
+          <Switcher
+            switchText={i18next.t('label.required_field')}
+            isEnabled={isRequired}
+            setIsEnabled={setIsRequired}
+          />
+        </View>
+        {elementType === elementsType.DROPDOWN ? (
+          <View style={styles.dropdownOptionsContainer}>
+            <Text style={styles.dropdownOptionsHeading}>{i18next.t('label.dropdown_options')}</Text>
+            {dropdownOptions && dropdownOptions.length > 0
+              ? dropdownOptions.map((option: any, index) => (
+                  <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
+                    <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
+                      <KeyValueInput
+                        fieldKey={option.key}
+                        fieldValue={option.value}
+                        editText={(editType: toEditType) => editText(editType, item)}
+                      />
+                    </SwipeDeleteRow>
+                  </View>
+                ))
+              : []}
+            {showTempField ? (
+              <View style={marginTop24}>
+                <SwipeDeleteRow onSwipe={() => onSwipe()}>
+                  <KeyValueInput
+                    fieldKey={dropdownOptionKey}
+                    fieldValue={dropdownOptionValue}
+                    editText={(editType: toEditType) => editText(editType)}
+                  />
+                </SwipeDeleteRow>
+              </View>
+            ) : (
+              []
+            )}
+            <TouchableOpacity onPress={handleAddDropdownOption}>
+              <Text style={styles.addDropdownOptionButton}>
+                {i18next.t('label.add_dropdown_option')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          []
+        )}
+      </ScrollView>
       <PrimaryButton
         btnText={i18next.t('label.add_element')}
         onPress={handleAddElement}
         style={styles.button}
       />
+      {showInputModal ? (
+        <InputModal
+          inputType="text"
+          onSubmitInputField={validateAndModifyField}
+          isOpenModal={showInputModal}
+          setIsOpenModal={setShowInputModal}
+          placeholder={placeholder}
+          value={toEdit === 'key' ? dropdownOptionKey : dropdownOptionValue}
+          setValue={toEdit === 'key' ? setDropdownOptionKey : setDropdownOptionValue}
+          isRequired
+          returnKeyType={'send'}
+        />
+      ) : (
+        []
+      )}
     </SafeAreaView>
   );
 }
 
-interface IAdvanceModeSwitcherProps {
-  isAdvanceModeEnabled: boolean;
-  setIsAdvanceModeEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+interface ISwitcherProps {
+  switchText: string;
+  isEnabled: boolean;
+  setIsEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AdvanceModeSwitcher = ({
-  isAdvanceModeEnabled,
-  setIsAdvanceModeEnabled,
-}: IAdvanceModeSwitcherProps) => {
+const Switcher = ({ switchText = '', isEnabled, setIsEnabled }: ISwitcherProps) => {
   return (
     <View style={styles.switchContainer}>
-      <Text style={styles.switchText}>{i18next.t('label.advance_mode')}</Text>
+      <Text style={styles.switchText}>{switchText}</Text>
       <Switch
         trackColor={{ false: '#767577', true: '#d4e7b1' }}
-        thumbColor={isAdvanceModeEnabled ? Colors.PRIMARY : '#f4f3f4'}
+        thumbColor={isEnabled ? Colors.PRIMARY : '#f4f3f4'}
         ios_backgroundColor="#3e3e3e"
-        onValueChange={() => setIsAdvanceModeEnabled(!isAdvanceModeEnabled)}
-        value={isAdvanceModeEnabled}
+        onValueChange={() => setIsEnabled(!isEnabled)}
+        value={isEnabled}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
@@ -266,5 +396,26 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     marginRight: 10,
+  },
+  fieldWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    flex: 1,
+    ...marginTop24,
+  },
+  dropdownOptionsContainer: {
+    marginTop: 30,
+  },
+  dropdownOptionsHeading: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_18,
+  },
+  addDropdownOptionButton: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.PRIMARY,
+    fontSize: Typography.FONT_SIZE_14,
+    paddingVertical: 8,
   },
 });

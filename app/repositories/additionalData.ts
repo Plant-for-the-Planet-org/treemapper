@@ -92,11 +92,8 @@ export const addElement = ({ elementProperties, typeProperties = null, formId }:
 
           const schemaName = getSchemaNameFromType(elementProperties.type);
 
-          console.log('schemaName', schemaName);
-
           if (schemaName) {
             const props = { ...typeProperties, id: uuidv4(), parentId: elementId };
-            console.log('props', props);
             realm.create(`${schemaName}`, props);
           }
 
@@ -125,19 +122,17 @@ export const deleteForm = (formId: any) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
+        let form: any = realm.objectForPrimaryKey('Form', formId);
+        getElementData([form], realm, 'delete');
         realm.write(() => {
-          let form: any = realm.objectForPrimaryKey('Form', formId);
-          getElementData([form], realm, 'delete');
-
           realm.delete(form);
-
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.ADDITIONAL_DATA,
-            message: `Successfully deleted form with id ${formId}`,
-          });
-          resolve(true);
         });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Successfully deleted form with id ${formId}`,
+        });
+        resolve(true);
       })
       .catch((err) => {
         // logging the error in to the db
@@ -188,19 +183,22 @@ const getElementData = (formData: any, realm: any, action: string) => {
   for (const i in formData) {
     for (const j in formData[i].elements) {
       const schemaName: string = getSchemaNameFromType(formData[i].elements[j].type);
+
       if (schemaName) {
         let data: any = realm
           .objects(`${schemaName}`)
           .filtered(`parentId='${formData[i].elements[j].id}'`);
-        data = JSON.parse(JSON.stringify(data));
+
         if (action === 'delete') {
           realm.write(() => {
             realm.delete(data);
           });
-        } else if (Array.isArray(data) && data.length === 1) {
+        } else if (data && data.length === 1) {
+          data = JSON.parse(JSON.stringify(data));
           let elementData = data[0];
           delete elementData.id;
           delete elementData.parentId;
+
           if (formData[i].elements[j].type === elementsType.INPUT) {
             elementData.inputType = elementData.type;
             delete elementData.type;
@@ -357,10 +355,6 @@ export const updateMetadata = (metadata: any[]): Promise<boolean> => {
         realm.write(() => {
           if (Array.isArray(metadata)) {
             for (let i = 0; i < metadata.length; i++) {
-              console.log({
-                ...metadata[i],
-                order: i,
-              });
               realm.create(
                 'Metadata',
                 {

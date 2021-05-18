@@ -65,6 +65,9 @@ export default function TypeSelection({
     setSelectedTreeType(treeTypes);
   };
 
+  console.log('\n\nSelected tree type', selectedTreeType);
+  console.log('Selected registration type', selectedRegistrationType);
+
   const toggleRegistrationTypeCheckBox = (registrationType: string, value: boolean) => {
     const updatedCheckBoxes = registrationTypeCheckBoxes.map((registration: any) => {
       if (registration.type === registrationType) {
@@ -86,7 +89,10 @@ export default function TypeSelection({
     }
     setSelectedRegistrationType(registrationTypes);
 
+    console.log('registrationTypes', registrationTypes, registrationTypes.length);
+
     if (registrationTypes.length === 0) {
+      console.log('no registration selected');
       setTreeTypeCheckBoxes(treeTypesInitialState);
       setSelectedTreeType([]);
     } else {
