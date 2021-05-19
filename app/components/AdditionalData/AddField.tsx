@@ -14,7 +14,7 @@ import {
 import { addElement } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24, marginTop30 } from '../../styles/design';
-import { elementsType } from '../../utils/additionalDataConstants';
+import { accessTypes, elementsType } from '../../utils/additionalDataConstants';
 import { Header, InputModal, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
@@ -47,6 +47,7 @@ export default function AddField() {
   const [defaultValue, setDefaultValue] = useState<string>('');
   const [defaultValueError, setDefaultValueError] = useState<string>('');
   const [isRequired, setIsRequired] = useState<boolean>(false);
+  const [isPublic, setIsPublic] = useState<boolean>(false);
 
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.add_element'));
   const [isAdvanceModeEnabled, setIsAdvanceModeEnabled] = useState<boolean>(false);
@@ -117,6 +118,7 @@ export default function AddField() {
           type: elementType,
           treeType: selectedTreeType,
           registrationType: selectedRegistrationType,
+          accessType: isPublic ? accessTypes.PUBLIC : accessTypes.PRIVATE,
         },
         typeProperties,
         formId: route.params.formId,
@@ -216,6 +218,9 @@ export default function AddField() {
         updatedDropdownOptions = [...dropdownOptions, fieldData];
       }
       setDropdownOptions(updatedDropdownOptions);
+      setShowTempField(false);
+      setDropdownOptionKey('');
+      setDropdownOptionValue('');
     }
   };
 
@@ -239,7 +244,9 @@ export default function AddField() {
     setToEdit(editType);
 
     setPlaceholder(
-      editType === 'key' ? i18next.t('label.field_key') : i18next.t('label.field_value'),
+      editType === 'key'
+        ? i18next.t('label.additional_data_field_key_placeholder')
+        : i18next.t('label.additional_data_field_value_placeholder'),
     );
     if (option != null) {
       setDropdownOptionKey(option.key);
@@ -253,13 +260,18 @@ export default function AddField() {
     <SafeAreaView style={styles.container}>
       <Header
         headingText={headingText}
-        TopRightComponent={() => (
-          <Switcher
-            switchText={i18next.t('label.advance_mode')}
-            isEnabled={isAdvanceModeEnabled}
-            setIsEnabled={setIsAdvanceModeEnabled}
-          />
-        )}
+        TopRightComponent={() => {
+          if (elementType !== elementsType.GAP && elementType !== elementsType.HEADING) {
+            return (
+              <Switcher
+                switchText={i18next.t('label.advance_mode')}
+                isEnabled={isAdvanceModeEnabled}
+                setIsEnabled={setIsAdvanceModeEnabled}
+              />
+            );
+          }
+          return <></>;
+        }}
       />
       <ScrollView style={styles.scrollContainer}>
         <AddElementSwitcher
@@ -292,23 +304,30 @@ export default function AddField() {
             setIsEnabled={setIsRequired}
           />
         </View>
-        {elementType === elementsType.DROPDOWN ? (
+        <View style={marginTop30}>
+          <Switcher
+            switchText={i18next.t('label.make_this_public')}
+            isEnabled={isPublic}
+            setIsEnabled={setIsPublic}
+          />
+        </View>
+        {elementType === elementsType.DROPDOWN && (
           <View style={styles.dropdownOptionsContainer}>
             <Text style={styles.dropdownOptionsHeading}>{i18next.t('label.dropdown_options')}</Text>
-            {dropdownOptions && dropdownOptions.length > 0
-              ? dropdownOptions.map((option: any, index) => (
-                  <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
-                    <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
-                      <KeyValueInput
-                        fieldKey={option.key}
-                        fieldValue={option.value}
-                        editText={(editType: toEditType) => editText(editType, item)}
-                      />
-                    </SwipeDeleteRow>
-                  </View>
-                ))
-              : []}
-            {showTempField ? (
+            {dropdownOptions &&
+              dropdownOptions.length > 0 &&
+              dropdownOptions.map((option: any, index) => (
+                <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
+                  <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
+                    <KeyValueInput
+                      fieldKey={option.key}
+                      fieldValue={option.value}
+                      editText={(editType: toEditType) => editText(editType, option)}
+                    />
+                  </SwipeDeleteRow>
+                </View>
+              ))}
+            {showTempField && (
               <View style={marginTop24}>
                 <SwipeDeleteRow onSwipe={() => onSwipe()}>
                   <KeyValueInput
@@ -318,8 +337,6 @@ export default function AddField() {
                   />
                 </SwipeDeleteRow>
               </View>
-            ) : (
-              []
             )}
             <TouchableOpacity onPress={handleAddDropdownOption}>
               <Text style={styles.addDropdownOptionButton}>
@@ -327,8 +344,6 @@ export default function AddField() {
               </Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          []
         )}
       </ScrollView>
       <PrimaryButton

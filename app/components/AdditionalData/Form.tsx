@@ -68,8 +68,6 @@ export default function Form(): JSX.Element {
     });
   };
 
-  console.log('loading', loading);
-
   return (
     <ScrollView
       style={styles.container}

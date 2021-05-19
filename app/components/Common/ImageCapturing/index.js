@@ -136,7 +136,7 @@ const ImageCapturing = ({
               if (inventory.locateTree === ON_SITE) {
                 navigation.navigate('SampleTreesCount');
               } else {
-                navigation.navigate('InventoryOverview');
+                navigation.navigate('AdditionalDataForm');
               }
             } else {
               updateActiveMarkerIndex(activeMarkerIndex + 1);

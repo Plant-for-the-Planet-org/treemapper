@@ -298,8 +298,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
@@ -311,8 +311,8 @@ export default function TotalTreesSpecies() {
             accessibilityLabel={'sample_tree_count_continue'}
           />
           <PrimaryButton
-            onPress={() => navigation.navigate('InventoryOverview')}
-            btnText={i18next.t('label.tree_review_continue_to_review')}
+            onPress={() => navigation.navigate('AdditionalDataForm')}
+            btnText={i18next.t('label.tree_review_continue_to_additional_data')}
             theme={'primary'}
             testID={'sample_tree_count_continue'}
             accessibilityLabel={'sample_tree_count_continue'}

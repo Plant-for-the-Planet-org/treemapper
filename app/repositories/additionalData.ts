@@ -92,7 +92,7 @@ export const addElement = ({ elementProperties, typeProperties = null, formId }:
 
           const schemaName = getSchemaNameFromType(elementProperties.type);
 
-          if (schemaName) {
+          if (schemaName && typeProperties) {
             const props = { ...typeProperties, id: uuidv4(), parentId: elementId };
             realm.create(`${schemaName}`, props);
           }

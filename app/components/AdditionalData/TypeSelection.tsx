@@ -13,18 +13,6 @@ interface ITypeSelectionProps {
   registrationTypeError: string;
 }
 
-const treeTypesInitialState = [
-  { type: 'single', isSelected: false, isDisabled: true, name: i18next.t('label.single') },
-  { type: 'sample', isSelected: false, isDisabled: true, name: i18next.t('label.sample') },
-  { type: 'multiple', isSelected: false, isDisabled: true, name: i18next.t('label.multiple') },
-];
-
-const registrationTypesInitialState = [
-  { type: 'onsite', isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
-  { type: 'offsite', isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
-  { type: 'review', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
-];
-
 export default function TypeSelection({
   selectedTreeType,
   setSelectedTreeType,
@@ -33,6 +21,18 @@ export default function TypeSelection({
   setSelectedRegistrationType,
   registrationTypeError,
 }: ITypeSelectionProps) {
+  const treeTypesInitialState = [
+    { type: 'single', isSelected: false, isDisabled: true, name: i18next.t('label.single') },
+    { type: 'sample', isSelected: false, isDisabled: true, name: i18next.t('label.sample') },
+    { type: 'multiple', isSelected: false, isDisabled: true, name: i18next.t('label.multiple') },
+  ];
+
+  const registrationTypesInitialState = [
+    { type: 'onsite', isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
+    { type: 'offsite', isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
+    { type: 'review', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
+  ];
+
   const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>(
     registrationTypesInitialState,
   );
@@ -65,9 +65,6 @@ export default function TypeSelection({
     setSelectedTreeType(treeTypes);
   };
 
-  console.log('\n\nSelected tree type', selectedTreeType);
-  console.log('Selected registration type', selectedRegistrationType);
-
   const toggleRegistrationTypeCheckBox = (registrationType: string, value: boolean) => {
     const updatedCheckBoxes = registrationTypeCheckBoxes.map((registration: any) => {
       if (registration.type === registrationType) {
@@ -89,14 +86,13 @@ export default function TypeSelection({
     }
     setSelectedRegistrationType(registrationTypes);
 
-    console.log('registrationTypes', registrationTypes, registrationTypes.length);
-
     if (registrationTypes.length === 0) {
       console.log('no registration selected');
       setTreeTypeCheckBoxes(treeTypesInitialState);
       setSelectedTreeType([]);
     } else {
       let updatedTreeBoxes = [...treeTypesInitialState];
+      let treeTypes = [];
       for (const i in updatedTreeBoxes) {
         switch (updatedTreeBoxes[i].type) {
           case 'sample':
@@ -131,7 +127,12 @@ export default function TypeSelection({
               registrationTypes.includes('review');
             break;
         }
+        if (updatedTreeBoxes[i].isSelected) {
+          treeTypes.push(updatedTreeBoxes[i].type);
+        }
       }
+      setTreeTypeCheckBoxes(updatedTreeBoxes);
+      setSelectedTreeType(treeTypes);
     }
   };
 

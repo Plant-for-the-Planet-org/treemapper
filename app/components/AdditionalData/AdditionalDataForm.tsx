@@ -40,7 +40,11 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'AdditionalDataForm' };
         updateLastScreen(data);
         setLoading(true);
+        console.log('\n\n\n\n');
+        console.log('inventoryState.inventoryID', inventoryState.inventoryID);
+        console.log('\n\n\n\n');
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          console.log('inventoryData', inventoryData);
           if (inventoryData) {
             setInventory(inventoryData);
             setTreeType(inventoryData.treeType);
@@ -62,16 +66,19 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   const addFormsToState = (treeType: string, locateTree: string) => {
     getForms().then((formsData: any) => {
+      formsData = sortByField('order', formsData);
       const shouldShowForm = formsData && formsData.length > 0 && formsData[0].elements.length > 0;
+
+      console.log('\n\n\x1b[41mformsData', formsData);
+      console.log('\n\n\x1b[0m');
       if (formsData) {
-        setForms(sortByField('order', formsData));
+        setForms(formsData);
         let data: any = [];
         let initialErrors: any = {};
         for (const form of formsData) {
           let elementData: any = {};
           for (const element of form.elements) {
             if (element.type !== elementsType.GAP && element.type !== elementsType.HEADING) {
-              console.log('\n\nelement=>>>>>>>>>>>>>>>>>', element);
               elementData[element.key] =
                 typeof element.defaultValue === 'boolean'
                   ? element.defaultValue
@@ -98,12 +105,15 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   const navigate = () => {
     let nextScreen = '';
+    console.log('treeType', treeType);
+    console.log('inventoryStatus', inventoryStatus);
     if (treeType === SINGLE || (treeType === MULTI && inventoryStatus === INCOMPLETE_SAMPLE_TREE)) {
       nextScreen = 'SingleTreeOverview';
     } else {
       nextScreen = 'InventoryOverview';
     }
-    console.log('\n\nnextScreen', nextScreen);
+    console.log('\n\n\x1b[45mnextScreen', nextScreen);
+    console.log('\x1b[0m');
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -136,7 +146,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
       }
     }
     setErrors(updatedErrors);
-    console.log('errorCount', errorCount);
+
     if (errorCount === 0) {
       const nextIndex = currentFormIndex + 1;
       if (forms[nextIndex] && forms[nextIndex].elements.length > 0) {
@@ -188,8 +198,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
       }
     }
   };
-
-  console.log('formdata=>>>>>>>>>>>>>>>>', formData);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

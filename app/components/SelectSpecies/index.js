@@ -362,7 +362,11 @@ const SelectSpecies = () => {
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
-        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'AdditionalDataForm' }],
+        routes: [
+          { name: 'MainScreen' },
+          { name: 'TreeInventory' },
+          { name: isSampleTree ? 'SingleTreeOverview' : 'AdditionalDataForm' },
+        ],
       }),
     );
   };

@@ -48,6 +48,8 @@ const AdditionalDetail = {
   properties: {
     key: 'string',
     value: 'string',
+    // refer [dataTypes] from [additionalDataConstants]
+    accessType: 'string',
   },
 };
 
@@ -304,6 +306,8 @@ const Element = {
     type: 'string',
     treeType: 'string[]',
     registrationType: 'string[]',
+    // refer [dataTypes] from [additionalDataConstants]
+    accessType: { type: 'string', default: 'private' },
   },
 };
 
@@ -330,6 +334,8 @@ const Metadata = {
     key: 'string',
     value: 'string',
     order: 'int',
+    // refer [dataTypes] from [additionalDataConstants]
+    accessType: { type: 'string', default: 'private' },
   },
 };
 

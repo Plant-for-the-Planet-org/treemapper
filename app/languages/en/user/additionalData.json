@@ -27,5 +27,26 @@
     "get_started_forms_description": "This form helps you to collect additional data for each registration.",
     "gap_element":"Gap Element",
     "form_page":"Page {{pageNo}}",
-    "loading_form":"Loading form"
+    "loading_form":"Loading form",
+    "required_field":"This is required",
+    "make_this_public":"Make this data public",
+    "single":"Single",
+    "sample":"Sample",
+    "multiple":"Multiple",
+    "on_site":"On-site",
+    "off_site":"Off-site",
+    "review":"Review",
+    "registrationType":"Registration type",
+    "treeType":"Tree type",
+    "additional_data_field_name":"Field name",
+    "additional_data_field_key":"Field key",
+    "additional_data_field_key_placeholder":"Enter key",
+    "additional_data_field_value":"Field value",
+    "additional_data_field_value_placeholder":"Enter value",
+    "additional_data_default_value":"Default value",
+    "yes":"Yes",
+    "no":"No",
+    "dropdown_options":"Dropdown options",
+    "add_dropdown_option":"Add dropdown option"
+
 }

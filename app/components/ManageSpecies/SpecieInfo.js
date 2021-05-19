@@ -67,8 +67,8 @@ const SpecieInfo = ({ route }) => {
     editEnable === 'aliases'
       ? setAliases(inputValue)
       : editEnable === 'description'
-        ? setDescription(inputValue)
-        : [];
+      ? setDescription(inputValue)
+      : [];
     const isImageChanged = image ? specieState.specie.image !== image : true;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;

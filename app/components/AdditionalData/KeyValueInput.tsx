@@ -14,12 +14,12 @@ const KeyValueInput = ({ fieldKey, fieldValue, editText }: IKeyValueInputProps) 
     <View style={styles.inputContainer}>
       <TouchableOpacity onPress={() => editText('key')}>
         <Text style={[styles.fieldKey, !fieldKey ? styles.placeholderColor : {}]}>
-          {fieldKey ? fieldKey : i18next.t('label.filed_key_placeholder')}
+          {fieldKey ? fieldKey : i18next.t('label.additional_data_field_key_placeholder')}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => editText('value')}>
         <Text style={[styles.fieldValue, !fieldValue ? styles.placeholderColor : {}]}>
-          {fieldValue || i18next.t('label.filed_value_placeholder')}
+          {fieldValue || i18next.t('label.additional_data_field_value_placeholder')}
         </Text>
       </TouchableOpacity>
     </View>
