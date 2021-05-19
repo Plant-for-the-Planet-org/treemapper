@@ -777,8 +777,8 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
-                sampleTreesCount: inventory?.sampleTreesCount,
+                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
+                sampleTreesCount: inventory?.sampleTreesCount || '',
               })
               : treeType === MULTI
                 ? `${i18next.t('label.locate_tree_location')} ${

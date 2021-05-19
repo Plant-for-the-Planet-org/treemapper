@@ -168,7 +168,7 @@ export default function SampleTreesCount() {
             />
           </View>
         </ScrollView>
-        <View style={{ paddingHorizontal: 25 }}>
+        <View style={{ paddingHorizontal: 25, marginTop: 10 }}>
           <PrimaryButton
             onPress={onPressContinue}
             btnText={i18next.t('label.continue')}
@@ -178,8 +178,8 @@ export default function SampleTreesCount() {
           />
         </View>
         <AlertModal
-          heading={i18next.t('label.input_error')}
-          message={i18next.t('label.enter_valid_input')}
+          heading={i18next.t('label.invalid_tree_count')}
+          message={i18next.t('label.enter_valid_tree_count')}
           visible={inputError}
           showSecondaryButton={false}
           primaryBtnText={i18next.t('label.ok')}
