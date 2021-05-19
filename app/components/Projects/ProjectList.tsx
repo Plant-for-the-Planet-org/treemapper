@@ -17,7 +17,7 @@ import { Colors, Typography } from '../../styles';
 import { bugsnag } from '../../utils';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { LargeButton } from '../Common';
-import { trees } from '../../assets';
+import { plant_project } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -110,8 +110,8 @@ const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId
           style={styles.image}
         />
       ) : (
-        <View style={[styles.image, { backgroundColor: Colors.GRAY_LIGHT, paddingBottom: 10 }]}>
-          <SvgXml xml={trees} />
+        <View style={[styles.image, { paddingBottom: 10 }]}>
+          <SvgXml width="100%" height="100%" xml={plant_project} />
         </View>
       )}
       <Text style={[styles.projectText, isProjectSelected ? { color: Colors.PRIMARY } : {}]}>

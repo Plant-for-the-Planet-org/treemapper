@@ -86,7 +86,6 @@ export default function MapMarking({
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
   const [polygonCoordinates, setPolygonCoordinates] = useState([]);
-
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -778,7 +777,8 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
+                sampleTreesCount: inventory?.sampleTreesCount || '',
               })
               : treeType === MULTI
                 ? `${i18next.t('label.locate_tree_location')} ${

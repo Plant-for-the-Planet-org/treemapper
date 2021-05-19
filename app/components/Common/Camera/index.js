@@ -138,17 +138,16 @@ const styles = StyleSheet.create({
   bottomBtnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 25,
   },
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    // paddingHorizontal: 25,
   },
   cameraContainer: {
     flex: 1,
     justifyContent: 'space-between',
     backgroundColor: Colors.WHITE,
+    paddingHorizontal: 25,
   },
   container: {
     flex: 1,

@@ -12,8 +12,8 @@ import {
   View,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, Typography, CommonStyles } from '_styles';
-import { placeholder_image } from '../../../assets';
+import { Colors, CommonStyles } from '_styles';
+import { species_default } from '../../../assets';
 import { Header } from '../';
 
 export default function TreeCountModal({
@@ -23,12 +23,22 @@ export default function TreeCountModal({
   treeCount,
   onPressTreeCountNextBtn,
 }) {
-  let specieName = showTreeCountModal ? activeSpecie?.scientificName : '';
+  let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
       <View style={styles.modalBackground}>
         <View style={styles.inputModal}>
-          <Image source={placeholder_image} style={{ alignSelf: 'center', marginVertical: 20 }} />
+          <Image
+            source={activeSpecie?.image ? { uri: `${activeSpecie.image}` } : species_default}
+            style={{
+              alignSelf: 'center',
+              marginVertical: 20,
+              width: 150,
+              height: 100,
+              borderRadius: 5,
+              resizeMode: activeSpecie?.image ? null : 'contain',
+            }}
+          />
           <Header
             hideBackIcon
             subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}

@@ -13,7 +13,7 @@ import { getInventory, updateInventory, updateLastScreen } from '../../repositor
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { MULTI } from '../../utils/inventoryConstants';
+import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
@@ -87,6 +87,7 @@ export default function TotalTreesSpecies() {
   const initializeState = () => {
     if (inventoryState.inventoryID) {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
           const geoJSONData = getGeoJsonData(inventoryData);
@@ -311,8 +312,18 @@ export default function TotalTreesSpecies() {
             accessibilityLabel={'sample_tree_count_continue'}
           />
           <PrimaryButton
-            onPress={() => navigation.navigate('InventoryOverview')}
-            btnText={i18next.t('label.tree_review_continue_to_review')}
+            onPress={() => {
+              inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
+              inventory?.locateTree === OFF_SITE
+                ? navigation.navigate('InventoryOverview')
+                : navigation.navigate('SampleTreesCount');
+            }}
+            btnText={
+              inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
+              inventory?.locateTree === OFF_SITE
+                ? i18next.t('label.tree_review_continue_to_review')
+                : i18next.t('label.tree_review_continue_to_sampleTrees')
+            }
             theme={'primary'}
             testID={'sample_tree_count_continue'}
             accessibilityLabel={'sample_tree_count_continue'}

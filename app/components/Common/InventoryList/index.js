@@ -83,6 +83,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
           imageURL,
           cdnImageUrl,
           status: item.status,
+          treeType: item.treeType,
         };
 
         return (

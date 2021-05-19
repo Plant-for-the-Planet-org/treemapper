@@ -11,7 +11,7 @@ import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 const RegisterTree = ({ navigation }) => {
   const { dispatch } = useContext(InventoryContext);
 
-  const [treeType, setTreeType] = useState(SINGLE);
+  const [treeType, setTreeType] = useState(MULTI);
 
   const onPressSingleTree = () => setTreeType(SINGLE);
   const onPressMultipleTree = () => setTreeType(MULTI);
