@@ -35,7 +35,6 @@ export default function TotalTreesSpecies() {
   const [showManageSpecies, setShowManageSpecies] = useState(false);
   const [isPointForMultipleTree, setIsPointForMultipleTree] = useState(false);
   const [inventory, setInventory] = useState();
-  const [totalSampleTrees, setTotalSampleTrees] = useState();
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -89,7 +88,6 @@ export default function TotalTreesSpecies() {
     if (inventoryState.inventoryID) {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
         console.log(inventoryData, 'inventoryData');
-        setTotalSampleTrees(inventoryData.sampleTrees.length);
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
           const geoJSONData = getGeoJsonData(inventoryData);
@@ -301,8 +299,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>

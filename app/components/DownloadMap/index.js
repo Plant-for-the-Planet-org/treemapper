@@ -91,7 +91,6 @@ const DownloadMap = ({ navigation }) => {
 
   const onPressDownloadArea = async () => {
     let offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
-    console.log(offlineMapId, 'offlineMapId');
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       setIsLoaderShow(true);
       let coords = await MapBoxGLRef.current.getCenter();

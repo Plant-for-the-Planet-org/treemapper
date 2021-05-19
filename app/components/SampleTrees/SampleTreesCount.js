@@ -24,7 +24,6 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
         sampleTreesCount.map((treeCount, index) => {
           // used to show the selected tree count selected by user
           const isSelected = treeCount === selectedTreeCount;
-          console.log(`${treeCount},treeCount`);
           return (
             <TouchableOpacity
               onPress={() => {
@@ -80,12 +79,9 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
             textAlign={'center'}
             ref={customInputRef}
             onChangeText={(text) => {
-              console.log(text);
               setSelectedTreeCount(text.replace(/,./g, '').replace(/[^0-9]/g, ''));
             }}
           />
-
-          {/* {treeCount + '\n'}{' '} */}
           <Text
             style={[
               styles.treeCountSelectionText,
@@ -116,8 +112,7 @@ export default function SampleTreesCount() {
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
-    console.log(selectedTreeCount, 'selectedTreeCount', typeof selectedTreeCount);
-    if (selectedTreeCount && dimensionRegex.test(selectedTreeCount)) {
+    if (Number(selectedTreeCount) > 0 && dimensionRegex.test(selectedTreeCount)) {
       updateInventory({
         inventory_id: state.inventoryID,
         inventoryData: {
@@ -183,11 +178,11 @@ export default function SampleTreesCount() {
           />
         </View>
         <AlertModal
-          heading={'Input error'}
-          message={'Custom Input should not be Empty'}
+          heading={i18next.t('label.input_error')}
+          message={i18next.t('label.enter_valid_input')}
           visible={inputError}
           showSecondaryButton={false}
-          primaryBtnText={'Ok'}
+          primaryBtnText={i18next.t('label.ok')}
           onPressPrimaryBtn={() => setInputError(false)}
         />
       </View>

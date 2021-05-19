@@ -206,7 +206,6 @@ const MainScreen = ({ navigation }) => {
           fetchUserDetails();
         })
         .catch((err) => {
-          console.log(err.name, err.message, err.status, 'err', Object.keys(err));
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (

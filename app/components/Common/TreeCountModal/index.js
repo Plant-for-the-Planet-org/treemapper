@@ -39,16 +39,6 @@ export default function TreeCountModal({
               resizeMode: activeSpecie?.image ? null : 'contain',
             }}
           />
-          {/* {activeSpecie.image ? (
-            <Image
-              source={{
-                uri: `${activeSpecie.image}`,
-              }}
-              style={{ alignSelf: 'center', marginVertical: 20 }}
-            />
-          ) : (
-            []
-          )} */}
           <Header
             hideBackIcon
             subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}

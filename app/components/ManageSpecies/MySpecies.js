@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors, Typography } from '_styles';
-import { empty, single_tree_png, specie_default, species_default } from '../../assets';
+import { empty, species_default } from '../../assets';
 import { SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
@@ -64,16 +64,6 @@ const MySpecies = ({
                 // backgroundColor: Colors.TEXT_COLOR,
               }}
             />
-            // <SvgXml
-            //   xml={specie_default}
-            //   // style={{
-            //   // borderRadius: 8,
-            //   // resizeMode: 'contain',
-            //   width={100}
-            //   height={80}
-            //   // backgroundColor: Colors.TEXT_COLOR,
-            //   // }}
-            // />
           )}
         </View>
         <View style={{ flex: 1 }}>
