@@ -4,12 +4,21 @@ import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+} from 'react-native';
 import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
+import { getSpecieFromGuid } from '../../repositories/species';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
@@ -17,6 +26,7 @@ import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
+import { species_default } from '../../assets';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -200,6 +210,12 @@ export default function TotalTreesSpecies() {
   };
 
   const SpecieListItem = ({ item, index }) => {
+    const [specieImage, setSpecieImage] = useState();
+    useEffect(() => {
+      getSpecieFromGuid({ id: item.id }).then((specie) => {
+        setSpecieImage(specie.image);
+      });
+    }, []);
     return (
       <View
         key={index}
@@ -212,7 +228,27 @@ export default function TotalTreesSpecies() {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-        <View>
+        <View style={{ paddingRight: 20 }}>
+          {specieImage ? (
+            <Image
+              source={{
+                uri: `${specieImage}`,
+              }}
+              style={styles.imageView}
+            />
+          ) : (
+            <Image
+              source={species_default}
+              style={{
+                borderRadius: 8,
+                resizeMode: 'contain',
+                width: 100,
+                height: 80,
+              }}
+            />
+          )}
+        </View>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
               fontSize: Typography.FONT_SIZE_16,
@@ -299,8 +335,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
@@ -386,6 +422,13 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  imageView: {
+    borderRadius: 8,
+    resizeMode: 'cover',
+    width: 100,
+    height: 80,
+    backgroundColor: Colors.TEXT_COLOR,
   },
 });
 

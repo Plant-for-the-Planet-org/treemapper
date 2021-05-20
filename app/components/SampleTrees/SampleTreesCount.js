@@ -112,7 +112,7 @@ export default function SampleTreesCount() {
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
-    if (Number(selectedTreeCount) > 0 && dimensionRegex.test(selectedTreeCount)) {
+    if (Number(selectedTreeCount) > 4 && dimensionRegex.test(selectedTreeCount)) {
       updateInventory({
         inventory_id: state.inventoryID,
         inventoryData: {
@@ -149,6 +149,9 @@ export default function SampleTreesCount() {
               </Text>
               <Text style={[styles.description, styles.descriptionMarginTop]}>
                 {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.sample_one_tree_for_each_species')}
               </Text>
               <Text
                 style={[
