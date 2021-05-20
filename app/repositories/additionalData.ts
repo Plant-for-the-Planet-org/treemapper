@@ -291,10 +291,8 @@ export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
           realm.create(
             'Metadata',
             {
+              ...fieldData,
               id: fieldData.id ? fieldData.id : uuidv4(),
-              key: fieldData.key,
-              value: fieldData.value,
-              order: fieldData.order,
             },
             Realm.UpdateMode.Modified,
           );
@@ -308,6 +306,7 @@ export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
         });
       })
       .catch((err) => {
+        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,

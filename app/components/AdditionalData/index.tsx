@@ -33,6 +33,7 @@ export default function AdditionalData() {
           />
         </View>
         <TabView
+          lazy
           navigationState={{ index: routeIndex, routes: tabRoutes }}
           renderScene={renderScene}
           onIndexChange={setRouteIndex}

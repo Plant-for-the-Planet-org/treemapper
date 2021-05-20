@@ -6,23 +6,19 @@ import { Colors, Typography } from '../../styles';
 interface IKeyValueInputProps {
   fieldKey: string;
   fieldValue: string;
-  editText: (toEdit: 'key' | 'value') => void;
+  onPress: any;
 }
 
-const KeyValueInput = ({ fieldKey, fieldValue, editText }: IKeyValueInputProps) => {
+const KeyValueInput = ({ fieldKey, fieldValue, onPress }: IKeyValueInputProps) => {
   return (
-    <View style={styles.inputContainer}>
-      <TouchableOpacity onPress={() => editText('key')}>
-        <Text style={[styles.fieldKey, !fieldKey ? styles.placeholderColor : {}]}>
-          {fieldKey ? fieldKey : i18next.t('label.additional_data_field_key_placeholder')}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => editText('value')}>
-        <Text style={[styles.fieldValue, !fieldValue ? styles.placeholderColor : {}]}>
-          {fieldValue || i18next.t('label.additional_data_field_value_placeholder')}
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity onPress={onPress} style={styles.inputContainer}>
+      <Text style={[styles.fieldKey, !fieldKey ? styles.placeholderColor : {}]}>
+        {fieldKey ? fieldKey : i18next.t('label.additional_data_field_key_placeholder')}
+      </Text>
+      <Text style={[styles.fieldValue, !fieldValue ? styles.placeholderColor : {}]}>
+        {fieldValue || i18next.t('label.additional_data_field_value_placeholder')}
+      </Text>
+    </TouchableOpacity>
   );
 };
 

@@ -25,9 +25,9 @@ type RootStackParamList = {
   AddField: { elementType: string; formId: string };
 };
 
-type toEditType = 'key' | 'value';
-
 type AddFieldScreenRouteProp = RouteProp<RootStackParamList, 'AddField'>;
+
+type toEditType = 'key' | 'value';
 
 export default function AddField() {
   const [selectedTreeType, setSelectedTreeType] = useState<any>([]);
