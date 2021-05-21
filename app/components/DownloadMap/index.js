@@ -90,7 +90,7 @@ const DownloadMap = ({ navigation }) => {
   };
 
   const onPressDownloadArea = async () => {
-    let offllineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
+    let offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       setIsLoaderShow(true);
       let coords = await MapBoxGLRef.current.getCenter();
@@ -101,7 +101,7 @@ const DownloadMap = ({ navigation }) => {
           const progressListener = (offlineRegion, status) => {
             if (status.percentage == 100) {
               createOfflineMap({
-                name: offllineMapId,
+                name: offlineMapId,
                 size: status.completedTileSize,
                 areaName: areaName,
               })
@@ -127,7 +127,7 @@ const DownloadMap = ({ navigation }) => {
           };
           await MapboxGL.offlineManager.createPack(
             {
-              name: offllineMapId,
+              name: offlineMapId,
               styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
               minZoom: 14,
               maxZoom: 20,

@@ -25,5 +25,6 @@
   "tree_review_delete_not_yet_uploaded_registration": "The registration is not yet uploaded to Plant-for-the-Planet. Once deleted it will be lost forever.",
   "tree_review_delete_uploaded_registration": "This registration is safe on cloud. Once this registration is deleted, currently it is not possible to retrieve it on this app.",
   "tree_review_continue_to_species": "Continue to species",
-  "tree_review_continue_to_review": "Continue to review"
+  "tree_review_continue_to_review": "Continue to review",
+  "tree_review_continue_to_sampleTrees": "Continue to Sample Trees"
 }

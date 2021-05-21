@@ -12,7 +12,7 @@ import { APIConfig } from '../../actions/Config';
 
 const { protocol, cdnUrl } = APIConfig;
 
-const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
+const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, countryCode }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
@@ -39,9 +39,13 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
 
   return (
     <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('SingleTreeOverview', { isSampleTree: true, sampleTreeIndex: index })
-      }>
+      onPress={() => {
+        navigation.navigate('SingleTreeOverview', {
+          isSampleTree: true,
+          sampleTreeIndex: index,
+          totalSampleTrees,
+        });
+      }}>
       <View style={styles.specieListItemContainer}>
         <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
         <View style={styles.specieListTextContainer}>
@@ -59,7 +63,7 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
   );
 };
 
-export default function SampleTreesReview({ sampleTrees, navigation }) {
+export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navigation }) {
   const [countryCode, setCountryCode] = useState('');
 
   useEffect(() => {
@@ -76,6 +80,7 @@ export default function SampleTreesReview({ sampleTrees, navigation }) {
           return (
             <SampleTreeListItem
               sampleTree={sampleTree}
+              totalSampleTrees={totalSampleTrees}
               index={index}
               navigation={navigation}
               countryCode={countryCode}

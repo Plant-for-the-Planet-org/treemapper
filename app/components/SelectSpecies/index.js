@@ -52,7 +52,7 @@ const SelectSpecies = () => {
   const [inventory, setInventory] = useState(null);
   const [registrationType, setRegistrationType] = useState(null);
   const [countryCode, setCountryCode] = useState('');
-  const [isTagIdPresent, setIsTagIdPresent] = useState(false);
+  const [isTagIdPresent, setIsTagIdPresent] = useState(true);
   const [tagIdError, setTagIdError] = useState('');
   const [isSampleTree, setIsSampleTree] = useState(false);
 
@@ -88,7 +88,7 @@ const SelectSpecies = () => {
         setInventory(inventory);
 
         if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-          setIsShowTreeMeasurementModal(true);
+          setIsShowTreeMeasurementModal(false);
           setSingleTreeSpecie(inventory.species[0]);
         }
         setRegistrationType(inventory.treeType);
@@ -153,6 +153,7 @@ const SelectSpecies = () => {
                               : 'cm'
                           }
                           error={diameterError}
+                          returnKeyType={'next'}
                           onSubmitEditing={() => heightRef.current.focus()}
                         />
                       </View>
@@ -365,7 +366,10 @@ const SelectSpecies = () => {
         routes: [
           { name: 'MainScreen' },
           { name: 'TreeInventory' },
-          { name: isSampleTree ? 'SingleTreeOverview' : 'AdditionalDataForm' },
+          {
+            name: isSampleTree ? 'SingleTreeOverview' : 'AdditionalDataForm',
+            params: isSampleTree ? { totalSampleTrees: inventory.sampleTreesCount } : {},
+          },
         ],
       }),
     );
@@ -429,6 +433,7 @@ const SelectSpecies = () => {
         registrationType={registrationType}
         addSpecieToInventory={addSpecieToInventory}
         isSampleTree={isSampleTree}
+        screen={'SelectSpecies'}
       />
       {renderMeasurementModal()}
     </>

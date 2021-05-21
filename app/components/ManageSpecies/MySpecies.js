@@ -1,10 +1,10 @@
 import i18next from 'i18next';
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors, Typography } from '_styles';
-import { empty } from '../../assets';
+import { empty, species_default } from '../../assets';
 import { SINGLE } from '../../utils/inventoryConstants';
 
 const MySpecies = ({
@@ -16,13 +16,16 @@ const MySpecies = ({
   onPressBack,
   isSampleTree,
   navigateToSpecieInfo,
+  screen,
 }) => {
   const renderSpecieCard = ({ item, index }) => {
     return (
       <TouchableOpacity
         key={index}
         style={{
-          paddingVertical: 20,
+          flex: 1,
+          paddingTop: 20,
+          paddingBottom: 20,
           paddingRight: 10,
           borderBottomWidth: 1,
           borderColor: '#E1E0E061',
@@ -33,23 +36,54 @@ const MySpecies = ({
         onPress={() => {
           if (registrationType || isSampleTree) {
             addSpecieToInventory(item);
-          }
-          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
-            onPressBack();
-          } else if (registrationType === SINGLE && !editOnlySpecieName) {
-            onPressSpeciesSingle(item);
+            if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+              onPressBack();
+            } else if (registrationType === SINGLE && !editOnlySpecieName) {
+              onPressSpeciesSingle(item);
+            }
+          } else if (screen !== 'SelectSpecies') {
+            navigateToSpecieInfo(item);
           }
         }}>
-        <View>
+        <View style={{ flex: 1 }}>
+          {item.image ? (
+            <Image
+              source={{
+                uri: `${item.image}`,
+              }}
+              style={styles.imageView}
+            />
+          ) : (
+            <Image
+              source={species_default}
+              style={{
+                borderRadius: 8,
+                resizeMode: 'contain',
+                width: 100,
+                height: 80,
+                // backgroundColor: Colors.TEXT_COLOR,
+              }}
+            />
+          )}
+        </View>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
               fontSize: Typography.FONT_SIZE_16,
+              fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+              paddingBottom: 6,
+            }}>
+            {item.aliases}
+          </Text>
+          <Text
+            style={{
+              fontSize: Typography.FONT_SIZE_12,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
             }}>
             {item.scientificName}
           </Text>
         </View>
-        {item.guid !== 'unknown' ? (
+        {item.guid !== 'unknown' && screen === 'SelectSpecies' ? (
           <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
             <Ionicons name="information-circle-outline" size={20} />
           </TouchableOpacity>
@@ -121,6 +155,13 @@ const styles = StyleSheet.create({
     paddingLeft: 25,
     paddingRight: 25,
     textAlign: 'center',
+  },
+  imageView: {
+    borderRadius: 8,
+    resizeMode: 'cover',
+    width: 100,
+    height: 80,
+    backgroundColor: Colors.TEXT_COLOR,
   },
 });
 

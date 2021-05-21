@@ -71,7 +71,7 @@ import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
-  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number };
+  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number, totalSampleTrees:number };
 };
 
 type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTreeOverview'>;
@@ -104,14 +104,15 @@ const SingleTreeOverview = () => {
 
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
-
+  const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
   const netInfo = useNetInfo();
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
 
   useEffect(() => {
-    if (route?.params?.isSampleTree) {
+    if (route?.params?.isSampleTree || route?.params?.totalSampleTrees) {
       setSampleTreeIndex(route.params.sampleTreeIndex);
+      setTotalSampleTrees(route.params.totalSampleTrees);
     }
   }, [route.params]);
 
@@ -172,6 +173,7 @@ const SingleTreeOverview = () => {
               setPlantationDate(currentSampleTree.plantationDate);
               setTagId(currentSampleTree.tagId);
               setEditedTagId(currentSampleTree.tagId);
+              setTotalSampleTrees(inventoryData.sampleTreesCount);
             } else {
               const formattedData = formatAdditionalDetails(inventoryData.additionalDetails);
               const diameter = nonISUCountries.includes(data.country)
@@ -529,12 +531,6 @@ const SingleTreeOverview = () => {
     return (
       // <ScrollView>
       <View style={detailContainerStyle}>
-        <View>
-          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
-          <Text style={styles.detailText}>
-            {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
-          </Text>
-        </View>
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
           <TouchableOpacity
@@ -595,7 +591,7 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginBottom: 15 }}>
+        <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
@@ -612,7 +608,7 @@ const SingleTreeOverview = () => {
           </TouchableOpacity>
         </View>
         {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
-          <View style={{ marginBottom: 15 }}>
+          <View style={{ marginVertical: 5 }}>
             <Text style={detailHeaderStyle}>
               {i18next.t('label.tree_review_project').toUpperCase()}
             </Text>
@@ -647,6 +643,12 @@ const SingleTreeOverview = () => {
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
+        </View>
+        <View style={{ marginVertical: 5 }}>
+          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
+          <Text style={styles.detailText}>
+            {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
+          </Text>
         </View>
       </View>
       // </ScrollView>
@@ -683,7 +685,7 @@ const SingleTreeOverview = () => {
           { name: 'MainScreen' },
           { name: 'TreeInventory' },
           { name: 'InventoryOverview' },
-          { name: 'TotalTreesSpecies' },
+          // { name: 'TotalTreesSpecies' },
         ],
       }),
     );
@@ -783,8 +785,9 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                    })
+                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    sampleTreesCount: totalSampleTrees,
+                  })
                   : status === 'complete'
                   ? i18next.t('label.tree_review_details')
                   : i18next.t('label.tree_review_header')
@@ -824,7 +827,7 @@ const SingleTreeOverview = () => {
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressContinueToSpecies}
-              btnText={i18next.t('label.tree_review_continue_to_species')}
+              btnText={i18next.t('label.tree_review_continue_to_review')}
             />
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&

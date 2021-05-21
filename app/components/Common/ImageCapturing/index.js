@@ -138,6 +138,9 @@ const ImageCapturing = ({
               } else {
                 navigation.navigate('AdditionalDataForm');
               }
+              // else {
+              //   navigation.navigate('InventoryOverview');
+              // }
             } else {
               updateActiveMarkerIndex(activeMarkerIndex + 1);
               toggleState();
@@ -219,31 +222,31 @@ const ImageCapturing = ({
           locateTree: inventory.locateTree,
         }).then(() => {
           setIsAlrightyModalShow(false);
-          if (inventory.locateTree === ON_SITE) {
-            // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'SampleTreesCount' },
-                ],
-              }),
-            );
-          } else {
-            // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'TotalTreesSpecies' },
-                ],
-              }),
-            );
-          }
+          // if (inventory.locateTree === ON_SITE) {
+          // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 2,
+              routes: [
+                { name: 'MainScreen' },
+                { name: 'TreeInventory' },
+                { name: 'TotalTreesSpecies' },
+              ],
+            }),
+          );
+          // } else {
+          // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
+          // navigation.dispatch(
+          //   CommonActions.reset({
+          //     index: 2,
+          //     routes: [
+          //       { name: 'MainScreen' },
+          //       { name: 'TreeInventory' },
+          //       { name: 'TotalTreesSpecies' },
+          //     ],
+          //   }),
+          // );
+          // }
         });
       });
     });
