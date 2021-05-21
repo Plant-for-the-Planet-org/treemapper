@@ -1,4 +1,8 @@
 {
+  "sample_trees": "Echantillon d'arbre",
   "tree": "Arbre",
-  "trees": "Arbres"
+  "trees": "Arbres",
+  "next_step_to_measure_sample_trees_text": "Dans les étapes suivantes, il vous sera demandé de mesurer des échantillons d'arbres pour le site de plantation.",
+  "recommend_at_least_sample_trees": "Nous recommandons de prélever au moins de 5 à 10 échantillons d'arbres au hasard.",
+  "how_many_sample_trees_to_record": "Combien d'arbres souhaitez-vous enregistrer?"
 }

@@ -17,5 +17,10 @@
   "image_capturing_required": "La photo est requise.",
   "coming_soon": "Arrive bientôt!",
   "image_click_picture": "Prendre une photo",
-  "total_trees_header": "Total des arbres"
+  "image_retake": "Reprendre",
+  "sample_tree_marking_heading": "Arbre échantillon #{{ongoingSampleTreeNumber}} de {{sampleTreesCount}}",
+  "sample_tree_review_tree_number": "Arbre de révision #{{ongoingSampleTreeNumber}} de {{sampleTreesCount}}",
+  "alright_modal_skip": "Sauter",
+  "total_trees_header": "Total des arbres",
+  "add_all_trees_planted_on_site": "Ajouter la liste de tous les arbres plantés sur le site."
 }
