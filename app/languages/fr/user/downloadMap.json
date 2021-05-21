@@ -4,5 +4,7 @@
   "download_map": "Télécharger",
   "download_map_view": "Tout voir",
   "download_map_area_failed": "Impossible de télécharger la carte. Veuillez réessayer plus tard.",
-  "download_map_area_exists": "La carte a déjà été téléchargée."
+  "download_map_area_exists": "La carte a déjà été téléchargée.",
+  "network_error": "Erreur de réseau",
+  "network_error_message": "Pas de connexion Internet. Réessayer plus tard."
 }
