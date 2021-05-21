@@ -27,6 +27,8 @@ import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
 import InputModal from '../Common/InputModal';
 
+let screen;
+
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
   const [aliases, setAliases] = useState('');
@@ -38,12 +40,15 @@ const SpecieInfo = ({ route }) => {
   const [specieId, setSpecieId] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [editEnable, setEditEnable] = useState('');
+  const [previousScreen, setPreviousScreen] = useState('');
   const { state: specieState, dispatch } = useContext(SpeciesContext);
 
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
 
   useEffect(() => {
+    setPreviousScreen(route.params.screen);
+    screen = route.params.screen;
     if (specieState.specie) {
       const { specie } = specieState;
       setAliases(specie.aliases);
@@ -67,8 +72,8 @@ const SpecieInfo = ({ route }) => {
     editEnable === 'aliases'
       ? setAliases(inputValue)
       : editEnable === 'description'
-        ? setDescription(inputValue)
-        : [];
+      ? setDescription(inputValue)
+      : [];
     const isImageChanged = image ? specieState.specie.image !== image : true;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;

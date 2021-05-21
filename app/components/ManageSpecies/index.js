@@ -182,7 +182,9 @@ const ManageSpecies = ({
 
   const navigateToSpecieInfo = (specie) => {
     setSpecie(specie)(dispatch);
-    navigation.navigate('SpecieInfo');
+    navigation.navigate('SpecieInfo', {
+      screen,
+    });
   };
 
   return (

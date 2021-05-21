@@ -155,9 +155,10 @@ const MainScreen = ({ navigation }) => {
     if (changes.insertions.length > 0) {
       fetchInventory();
     }
-    if (changes.modifications.length > 0) {
-      fetchInventory();
-    }
+    // if (changes.modifications.length > 0) {
+    //   fetchInventory();
+    //   console.log('------modifications-------');
+    // }
   }
 
   // initializes the realm by adding listener to user object of realm to listen

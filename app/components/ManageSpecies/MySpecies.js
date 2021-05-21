@@ -41,7 +41,7 @@ const MySpecies = ({
             } else if (registrationType === SINGLE && !editOnlySpecieName) {
               onPressSpeciesSingle(item);
             }
-          } else if (screen !== 'SelectSpecies') {
+          } else if (screen === 'ManageSpecies') {
             navigateToSpecieInfo(item);
           }
         }}>
