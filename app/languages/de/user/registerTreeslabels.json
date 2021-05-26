@@ -18,8 +18,8 @@
   "coming_soon": "Demnächst!",
   "image_click_picture": "Bild aufnehmen",
   "image_retake": "Noch einmal",
-  "sample_tree_marking_heading": "Beispielbaum #{{ongoingSampleTreeNumber}}",
-  "sample_tree_review_tree_number": "Überprüfe Baum #{{ongoingSampleTreeNumber}}",
+  "sample_tree_marking_heading": "Beispielbaum #{{ongoingSampleTreeNumber}} von {{sampleTreesCount}}",
+  "sample_tree_review_tree_number": "Überprüfe Baum #{{ongoingSampleTreeNumber}} von {{sampleTreesCount}}",
   "alright_modal_skip": "Überspringen",
   "total_trees_header": "Bäume gesamt",
   "add_all_trees_planted_on_site": "Bitte füge die Liste aller gepflanzten Bäume an diesem Standort hinzu."
