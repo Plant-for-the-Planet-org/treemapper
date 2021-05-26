@@ -10,13 +10,13 @@ import Animated, {
   lessThan,
   multiply,
 } from 'react-native-reanimated';
-import { Colors } from '../../styles';
+import { Colors, Typography } from '../../styles';
 
 const styles = StyleSheet.create({
   remove: {
-    color: 'white',
-    fontFamily: 'UberMoveMedium',
-    fontSize: 14,
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
   },
 });
 
