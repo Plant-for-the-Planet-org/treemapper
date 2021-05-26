@@ -40,6 +40,7 @@
     "treeType":"Tree type",
     "additional_data_field_name":"Field name",
     "additional_data_field_key":"Field key",
+    "additional_data_field_type":"Field type",
     "additional_data_field_key_placeholder":"Enter key",
     "additional_data_field_value":"Field value",
     "additional_data_field_value_placeholder":"Enter value",
@@ -47,6 +48,8 @@
     "yes":"Yes",
     "no":"No",
     "dropdown_options":"Dropdown options",
-    "add_dropdown_option":"Add dropdown option"
+    "add_dropdown_option":"Add dropdown option",
+    "text":"Text",
+    "number":"Number"
 
 }

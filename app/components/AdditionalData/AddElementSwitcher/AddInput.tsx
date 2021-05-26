@@ -1,6 +1,8 @@
 import i18next from 'i18next';
-import React from 'react';
+import React, { useState } from 'react';
 import { marginTop24 } from '../../../styles/design';
+import { inputOptions, inputTypes } from '../../../utils/additionalDataConstants';
+import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
 
 interface Props {
@@ -14,6 +16,8 @@ interface Props {
   defaultValue: string;
   setDefaultValue: React.Dispatch<React.SetStateAction<string>>;
   defaultValueError: string;
+  inputType: string;
+  setInputType: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function AddInput({
@@ -27,7 +31,12 @@ export default function AddInput({
   defaultValue,
   setDefaultValue,
   defaultValueError,
+  inputType,
+  setInputType,
 }: Props) {
+  const onInputTypeChange = (value: any) => {
+    setInputType(value.key);
+  };
   return (
     <>
       <OutlinedInput
@@ -36,6 +45,14 @@ export default function AddInput({
         label={i18next.t('label.additional_data_field_name')}
         error={nameError}
         style={marginTop24}
+      />
+      <Dropdown
+        label={i18next.t('label.additional_data_field_type')}
+        options={inputOptions}
+        defaultValue={inputOptions[0]}
+        onChange={onInputTypeChange}
+        style={marginTop24}
+        editable={true}
       />
       {isAdvanceModeEnabled ? (
         <>
@@ -52,6 +69,7 @@ export default function AddInput({
             label={i18next.t('label.additional_data_default_value')}
             error={defaultValueError}
             style={marginTop24}
+            keyboardType={inputType === inputTypes.NUMBER ? 'numeric' : 'default'}
           />
         </>
       ) : (

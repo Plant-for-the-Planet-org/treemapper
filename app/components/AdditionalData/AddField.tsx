@@ -14,15 +14,23 @@ import {
 import { addElement } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24, marginTop30 } from '../../styles/design';
-import { accessTypes, elementsType } from '../../utils/additionalDataConstants';
+import {
+  accessTypes,
+  elementsType,
+  ElementType,
+  inputTypes,
+  nonInputElementsTypes,
+  numberRegex,
+} from '../../utils/additionalDataConstants';
 import { Header, InputModal, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
+import AddDropdownOption from './AddElementSwitcher/AddDropdownOption';
 import KeyValueInput from './KeyValueInput';
 import TypeSelection from './TypeSelection';
 
 type RootStackParamList = {
-  AddField: { elementType: string; formId: string };
+  AddField: { elementType: ElementType; formId: string };
 };
 
 type AddFieldScreenRouteProp = RouteProp<RootStackParamList, 'AddField'>;
@@ -36,7 +44,7 @@ export default function AddField() {
   const [selectedRegistrationType, setSelectedRegistrationType] = useState<any>([]);
   const [registrationTypeError, setRegistrationTypeError] = useState<string>('');
 
-  const [elementType, setElementType] = useState<string>('');
+  const [elementType, setElementType] = useState<ElementType | ''>('');
 
   const [dropdownOptions, setDropdownOptions] = useState([]);
   const [dropdownOptionsError, setDropdownOptionsError] = useState<string>('');
@@ -54,13 +62,12 @@ export default function AddField() {
   const [inputType, setInputType] = useState<string>('');
   const [regexValidation, setRegexValidation] = useState<string>('');
 
-  const [showInputModal, setShowInputModal] = useState<boolean>(false);
-  const [toEdit, setToEdit] = useState<toEditType>('key');
-  const [placeholder, setPlaceholder] = useState<string>('');
   const [dropdownOptionKey, setDropdownOptionKey] = useState<string>('');
   const [dropdownOptionValue, setDropdownOptionValue] = useState<string>('');
-  const [showTempField, setShowTempField] = useState<boolean>(false);
-  const [selectedDropdownOptionIndex, setSelectedDropdownOptionIndex] = useState<number>();
+  const [selectedDropdownOptionIndex, setSelectedDropdownOptionIndex] = useState<number | null>(
+    null,
+  );
+  const [showDropdownOptionForm, setShowDropdownOptionForm] = useState<boolean>(false);
 
   const navigation = useNavigation();
 
@@ -140,6 +147,7 @@ export default function AddField() {
     let isNameValid: boolean = checkIsNameValid();
     let isKeyValid = false;
     let isDropdownOptionsValid = true;
+    let isDefaultValueValid = true;
 
     if (selectedTreeType.length === 0) {
       setTreeTypeError(i18next.t('label.atleast_1_tree_type_required'));
@@ -177,6 +185,18 @@ export default function AddField() {
       setDropdownOptionsError('');
     }
 
+    if (
+      route.params?.elementType === elementsType.INPUT &&
+      inputType === inputTypes.NUMBER &&
+      !numberRegex.test(defaultValue) &&
+      defaultValue
+    ) {
+      setDefaultValueError(i18next.t('label.default_value_only_number'));
+      isDefaultValueValid = false;
+    } else {
+      setDefaultValueError('');
+    }
+
     console.log(
       isSelectedTreeTypeValid,
       isSelectedRegistrationType,
@@ -204,64 +224,43 @@ export default function AddField() {
     }
   };
 
-  const validateAndModifyField = () => {
-    if (dropdownOptionKey && dropdownOptionValue) {
-      const fieldData = {
-        key: dropdownOptionKey,
-        value: dropdownOptionValue,
-      };
-      let updatedDropdownOptions: any;
-      if (selectedDropdownOptionIndex != null) {
-        updatedDropdownOptions = [...dropdownOptions];
-        updatedDropdownOptions[selectedDropdownOptionIndex] = fieldData;
-      } else {
-        updatedDropdownOptions = [...dropdownOptions, fieldData];
-      }
-      setDropdownOptions(updatedDropdownOptions);
-      setShowTempField(false);
-      setDropdownOptionKey('');
-      setDropdownOptionValue('');
-    }
+  const handleAddDropdownOption = () => {
+    setDropdownOptionKey('');
+    setDropdownOptionValue('');
+    setSelectedDropdownOptionIndex(null);
+    setShowDropdownOptionForm(true);
   };
 
-  const handleAddDropdownOption = () => {
-    setShowTempField(true);
-    editText('key');
+  const updateDropdownOption = (key: string, value: string, index: number | null) => {
+    setDropdownOptionKey(key);
+    setDropdownOptionValue(value);
+    setSelectedDropdownOptionIndex(index);
+    setShowDropdownOptionForm(true);
   };
 
   const onSwipe = (index: number | null = null) => {
-    if (index == null && showTempField) {
-      setShowTempField(false);
-      setDropdownOptionKey('');
-      setDropdownOptionValue('');
-    } else {
-      dropdownOptions.splice(index, 1);
-      setDropdownOptions(dropdownOptions);
-    }
+    dropdownOptions.splice(index, 1);
+    setDropdownOptions(dropdownOptions);
   };
 
-  const editText = (editType: toEditType, option: any = null) => {
-    setToEdit(editType);
-
-    setPlaceholder(
-      editType === 'key'
-        ? i18next.t('label.additional_data_field_key_placeholder')
-        : i18next.t('label.additional_data_field_value_placeholder'),
+  if (showDropdownOptionForm) {
+    return (
+      <AddDropdownOption
+        fieldKey={dropdownOptionKey}
+        fieldValue={dropdownOptionValue}
+        dropdownIndex={selectedDropdownOptionIndex}
+        setDropdownOptions={setDropdownOptions}
+        closeForm={() => setShowDropdownOptionForm(false)}
+      />
     );
-    if (option != null) {
-      setDropdownOptionKey(option.key);
-      setDropdownOptionValue(option.value);
-      setSelectedDropdownOptionIndex(option.index);
-    }
-    setShowInputModal(true);
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Header
         headingText={headingText}
         TopRightComponent={() => {
-          if (elementType !== elementsType.GAP && elementType !== elementsType.HEADING) {
+          if (!nonInputElementsTypes.includes(elementType)) {
             return (
               <Switcher
                 switchText={i18next.t('label.advance_mode')}
@@ -273,7 +272,7 @@ export default function AddField() {
           return <></>;
         }}
       />
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <AddElementSwitcher
           elementType={elementType}
           isAdvanceModeEnabled={isAdvanceModeEnabled}
@@ -288,6 +287,8 @@ export default function AddField() {
           defaultValueError={defaultValueError}
           dropdownOptions={dropdownOptions}
           setDropdownOptions={setDropdownOptions}
+          inputType={inputType}
+          setInputType={setInputType}
         />
         <TypeSelection
           selectedTreeType={selectedTreeType}
@@ -297,20 +298,24 @@ export default function AddField() {
           setSelectedRegistrationType={setSelectedRegistrationType}
           registrationTypeError={registrationTypeError}
         />
-        <View style={marginTop30}>
-          <Switcher
-            switchText={i18next.t('label.required_field')}
-            isEnabled={isRequired}
-            setIsEnabled={setIsRequired}
-          />
-        </View>
-        <View style={marginTop30}>
-          <Switcher
-            switchText={i18next.t('label.make_this_public')}
-            isEnabled={isPublic}
-            setIsEnabled={setIsPublic}
-          />
-        </View>
+        {!nonInputElementsTypes.includes(elementType) && (
+          <>
+            <View style={marginTop30}>
+              <Switcher
+                switchText={i18next.t('label.required_field')}
+                isEnabled={isRequired}
+                setIsEnabled={setIsRequired}
+              />
+            </View>
+            <View style={marginTop30}>
+              <Switcher
+                switchText={i18next.t('label.make_this_public')}
+                isEnabled={isPublic}
+                setIsEnabled={setIsPublic}
+              />
+            </View>
+          </>
+        )}
         {elementType === elementsType.DROPDOWN && (
           <View style={styles.dropdownOptionsContainer}>
             <Text style={styles.dropdownOptionsHeading}>{i18next.t('label.dropdown_options')}</Text>
@@ -322,22 +327,11 @@ export default function AddField() {
                     <KeyValueInput
                       fieldKey={option.key}
                       fieldValue={option.value}
-                      editText={(editType: toEditType) => editText(editType, option)}
+                      onPress={() => updateDropdownOption(option.key, option.value, index)}
                     />
                   </SwipeDeleteRow>
                 </View>
               ))}
-            {showTempField && (
-              <View style={marginTop24}>
-                <SwipeDeleteRow onSwipe={() => onSwipe()}>
-                  <KeyValueInput
-                    fieldKey={dropdownOptionKey}
-                    fieldValue={dropdownOptionValue}
-                    editText={(editType: toEditType) => editText(editType)}
-                  />
-                </SwipeDeleteRow>
-              </View>
-            )}
             <TouchableOpacity onPress={handleAddDropdownOption}>
               <Text style={styles.addDropdownOptionButton}>
                 {i18next.t('label.add_dropdown_option')}
@@ -351,21 +345,6 @@ export default function AddField() {
         onPress={handleAddElement}
         style={styles.button}
       />
-      {showInputModal ? (
-        <InputModal
-          inputType="text"
-          onSubmitInputField={validateAndModifyField}
-          isOpenModal={showInputModal}
-          setIsOpenModal={setShowInputModal}
-          placeholder={placeholder}
-          value={toEdit === 'key' ? dropdownOptionKey : dropdownOptionValue}
-          setValue={toEdit === 'key' ? setDropdownOptionKey : setDropdownOptionValue}
-          isRequired
-          returnKeyType={'send'}
-        />
-      ) : (
-        []
-      )}
     </SafeAreaView>
   );
 }
@@ -432,5 +411,6 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
     fontSize: Typography.FONT_SIZE_14,
     paddingVertical: 8,
+    marginVertical: 16,
   },
 });

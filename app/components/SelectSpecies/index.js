@@ -367,7 +367,8 @@ const SelectSpecies = () => {
           { name: 'MainScreen' },
           { name: 'TreeInventory' },
           {
-            name: isSampleTree ? 'SingleTreeOverview' : 'AdditionalDataForm',
+            // name: isSampleTree ? 'SingleTreeOverview' : 'AdditionalDataForm',
+            name: 'AdditionalDataForm',
             params: isSampleTree ? { totalSampleTrees: inventory.sampleTreesCount } : {},
           },
         ],

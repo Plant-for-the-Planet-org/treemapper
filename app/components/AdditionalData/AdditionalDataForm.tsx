@@ -8,7 +8,7 @@ import { getInventory, updateInventory, updateLastScreen } from '../../repositor
 import dbLog from '../../repositories/logs';
 import { Colors } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import { elementsType } from '../../utils/additionalDataConstants';
+import { elementsType, inputTypes, numberRegex } from '../../utils/additionalDataConstants';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryConstants';
 import { sortByField } from '../../utils/sortBy';
@@ -26,7 +26,8 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
   const [inventoryStatus, setInventoryStatus] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.additional_data'));
-  const [formData, setFormData] = useState<any>([]);
+  const [formData, setFormData] = useState<any>({});
+  const [formAccessType, setFormAccessType] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [inventory, setInventory] = useState<any>();
 
@@ -40,11 +41,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'AdditionalDataForm' };
         updateLastScreen(data);
         setLoading(true);
-        console.log('\n\n\n\n');
-        console.log('inventoryState.inventoryID', inventoryState.inventoryID);
-        console.log('\n\n\n\n');
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-          console.log('inventoryData', inventoryData);
           if (inventoryData) {
             setInventory(inventoryData);
             setTreeType(inventoryData.treeType);
@@ -69,31 +66,29 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
       formsData = sortByField('order', formsData);
       const shouldShowForm = formsData && formsData.length > 0 && formsData[0].elements.length > 0;
 
-      console.log('\n\n\x1b[41mformsData', formsData);
-      console.log('\n\n\x1b[0m');
       if (formsData) {
         setForms(formsData);
-        let data: any = [];
+        let data: any = {};
+        let accessTypes: any = {};
         let initialErrors: any = {};
         for (const form of formsData) {
-          let elementData: any = {};
           for (const element of form.elements) {
             if (element.type !== elementsType.GAP && element.type !== elementsType.HEADING) {
-              elementData[element.key] =
+              data[element.key] =
                 typeof element.defaultValue === 'boolean'
                   ? element.defaultValue
                     ? 'yes'
                     : 'no'
                   : element.defaultValue;
+              accessTypes[element.key] = element.accessType;
             }
             initialErrors[element.key] = '';
           }
-          data.push(elementData);
         }
 
         setFormData(data);
+        setFormAccessType(accessTypes);
         setErrors(initialErrors);
-        console.log('forms', forms);
         updateHeading(formsData);
       }
       if (!shouldShowForm) {
@@ -105,15 +100,20 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   const navigate = () => {
     let nextScreen = '';
-    console.log('treeType', treeType);
-    console.log('inventoryStatus', inventoryStatus);
-    if (treeType === SINGLE || (treeType === MULTI && inventoryStatus === INCOMPLETE_SAMPLE_TREE)) {
+
+    if (
+      treeType === SINGLE ||
+      (treeType === MULTI &&
+        inventoryStatus === INCOMPLETE_SAMPLE_TREE &&
+        inventory.completedSampleTreesCount !== inventory.sampleTreesCount)
+    ) {
       nextScreen = 'SingleTreeOverview';
     } else {
       nextScreen = 'InventoryOverview';
     }
-    console.log('\n\n\x1b[45mnextScreen', nextScreen);
-    console.log('\x1b[0m');
+
+    console.log('nextScreen', nextScreen);
+
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -122,31 +122,41 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
     );
   };
 
-  const setFormValuesCallback = (updatedField: any) => {
-    let data = [...formData];
-    data[currentFormIndex] = {
-      ...data[currentFormIndex],
+  const setFormValuesCallback = (updatedField: any, accessType: any) => {
+    const data = {
+      ...formData,
       ...updatedField,
     };
-    console.log(data);
     setFormData(data);
+
+    setFormAccessType({
+      ...formAccessType,
+      ...accessType,
+    });
   };
 
   const handleContinueClick = () => {
-    console.log('handleContinueClick');
     let updatedErrors: any = {};
     let errorCount = 0;
     for (const elementData of forms[currentFormIndex].elements) {
-      console.log('elementData', elementData);
+      const isInvalidNumber =
+        formData[elementData.key] &&
+        elementData.type === elementsType.INPUT &&
+        elementData.inputType === inputTypes.NUMBER &&
+        !numberRegex.test(formData[elementData.key]);
+
       if (elementData.isRequired && !formData[elementData.key]) {
         updatedErrors[elementData.key] = i18next.t('label.required_field');
+        errorCount += 1;
+      } else if (isInvalidNumber) {
+        updatedErrors[elementData.key] = i18next.t('label.invalid_input');
         errorCount += 1;
       } else {
         updatedErrors[elementData.key] = '';
       }
     }
     setErrors(updatedErrors);
-
+    console.log('errorCount', errorCount);
     if (errorCount === 0) {
       const nextIndex = currentFormIndex + 1;
       if (forms[nextIndex] && forms[nextIndex].elements.length > 0) {
@@ -154,16 +164,21 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         updateHeading(forms, nextIndex);
       } else {
         let transformedData = [];
-        for (const data of formData) {
-          for (const dataKey of Object.keys(data)) {
-            transformedData.push({
-              key: dataKey,
-              value: data[dataKey],
-            });
-          }
+
+        for (const dataKey of Object.keys(formData)) {
+          transformedData.push({
+            key: dataKey,
+            value: formData[dataKey],
+            accessType: formAccessType[dataKey],
+          });
         }
+
         let inventoryData;
-        if (inventoryStatus === INCOMPLETE_SAMPLE_TREE) {
+        if (
+          inventoryStatus === INCOMPLETE_SAMPLE_TREE &&
+          inventory.completedSampleTreesCount !== inventory.sampleTreesCount
+        ) {
+          console.log('inventory.sampleTrees', inventory.sampleTrees);
           let updatedSampleTrees = [...inventory.sampleTrees];
           updatedSampleTrees[
             inventory.completedSampleTreesCount
@@ -188,7 +203,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
             navigate();
           })
           .catch((err) => {
-            console.log('error');
+            console.log('error', err);
             dbLog.error({
               logType: LogTypes.ADDITIONAL_DATA,
               message: `Failed to add additional details to inventory with id ${inventoryState.inventoryID}`,
@@ -205,11 +220,18 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         <Loader isLoaderShow={loading} loadingText={i18next.t('label.loading_form')} />
       ) : (
         <View style={styles.container}>
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <Header headingText={headingText} />
             {forms.length > 0 &&
-              forms[currentFormIndex].elements.map((element: any) => (
-                <View style={marginTop24} key={element.key}>
+              forms[currentFormIndex].elements.map((element: any, index: number) => (
+                <View
+                  style={[
+                    marginTop24,
+                    index === forms[currentFormIndex].elements.length - 1
+                      ? { marginBottom: 40 }
+                      : {},
+                  ]}
+                  key={element.key}>
                   <ElementSwitcher
                     {...{
                       ...element,

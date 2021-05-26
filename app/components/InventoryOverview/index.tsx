@@ -40,6 +40,8 @@ import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Com
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { formatAdditionalDetails } from '../../utils/additionalData/functions';
+import JSONTree from 'react-native-json-tree';
+import { theme } from '../../utils/additionalDataConstants';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -55,6 +57,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [showProject, setShowProject] = useState<boolean>(false);
+  const [formattedData, setFormattedData] = useState<any>({});
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
@@ -104,7 +107,12 @@ const InventoryOverview = ({ navigation }: any) => {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
         console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
-        const formattedData = formatAdditionalDetails(inventoryData.additionalDetails);
+        const data = formatAdditionalDetails(
+          inventoryData.additionalDetails,
+          inventoryData.sampleTrees,
+        );
+
+        setFormattedData(data);
 
         if (inventoryData.projectId) {
           const project: any = await getProjectById(inventoryData.projectId);
@@ -390,6 +398,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }
 
   let status = inventory ? inventory.status : 'pending';
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -483,6 +492,23 @@ const InventoryOverview = ({ navigation }: any) => {
                 active={false}
                 medium
               />
+              <Label leftText={i18next.t('label.additional_data')} rightText={''} />
+
+              <ScrollView horizontal={true} style={{ marginBottom: 30 }}>
+                <JSONTree
+                  data={{ metadata: formattedData }}
+                  labelRenderer={(raw) => (
+                    <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw[0]}:</Text>
+                  )}
+                  valueRenderer={(raw) => (
+                    <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw}</Text>
+                  )}
+                  theme={{ extend: theme }}
+                  hideRoot={true}
+                  invertTheme={true}
+                  shouldExpandNode={() => true}
+                />
+              </ScrollView>
             </ScrollView>
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>
@@ -556,5 +582,10 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
+  },
+  detailText: {
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });

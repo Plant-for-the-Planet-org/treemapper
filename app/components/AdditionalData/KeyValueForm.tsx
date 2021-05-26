@@ -13,6 +13,7 @@ interface IKeyValueFormProps {
   fieldKey?: string;
   fieldValue?: string;
   isPublic?: boolean;
+  onBackPress?: any;
 }
 
 const KeyValueForm = ({
@@ -22,11 +23,12 @@ const KeyValueForm = ({
   fieldKey: fieldKeyProp = '',
   fieldValue: fieldValueProp = '',
   isPublic: isPublicProp = false,
+  onBackPress,
 }: IKeyValueFormProps) => {
-  const [fieldKey, setFieldKey] = useState<string>(' ');
+  const [fieldKey, setFieldKey] = useState<string>('');
   const [fieldKeyError, setFieldKeyError] = useState<string>('');
 
-  const [fieldValue, setFieldValue] = useState<string>(' ');
+  const [fieldValue, setFieldValue] = useState<string>('');
   const [fieldValueError, setFieldValueError] = useState<string>('');
 
   const [isPublic, setIsPublic] = useState<boolean>(false);
@@ -76,7 +78,7 @@ const KeyValueForm = ({
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         <ScrollView>
-          <Header headingText={headingText} />
+          <Header headingText={headingText} onBackPress={onBackPress} />
           <OutlinedInput
             label={i18next.t('label.additional_data_field_key')}
             value={fieldKey}

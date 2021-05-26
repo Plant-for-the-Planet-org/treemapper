@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { elementsType } from '../../../utils/additionalDataConstants';
+import { elementsType, inputTypes } from '../../../utils/additionalDataConstants';
 import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
 import YesNoButton from '../../Common/YesNoButton';
@@ -14,6 +14,10 @@ interface IElementSwitcherProps {
   editable: boolean;
   fieldKey?: string;
   setFormValuesCallback?: any;
+  error?: string;
+  dropdownOptions?: any;
+  inputType?: string;
+  accessType?: string;
 }
 
 export default function ElementSwitcher({
@@ -24,6 +28,10 @@ export default function ElementSwitcher({
   editable = false,
   fieldKey,
   setFormValuesCallback,
+  error,
+  dropdownOptions,
+  inputType,
+  accessType,
 }: IElementSwitcherProps): JSX.Element {
   const [value, setValue] = useState<any>(defaultValue);
 
@@ -34,25 +42,42 @@ export default function ElementSwitcher({
   useEffect(() => {
     if (setFormValuesCallback && type !== elementsType.GAP && type !== elementsType.HEADING) {
       const updatedValue = typeof value === 'boolean' ? (value ? 'yes' : 'no') : value;
-      setFormValuesCallback({
-        [`${fieldKey}`]: updatedValue,
-      });
+      setFormValuesCallback(
+        {
+          [`${fieldKey}`]: updatedValue,
+        },
+        {
+          [`${fieldKey}`]: accessType,
+        },
+      );
     }
   }, [value]);
 
   switch (type) {
     case elementsType.INPUT:
+      const inputValue = !editable ? value || '' : value;
       return (
         <OutlinedInput
           editable={editable}
           label={name}
-          value={!editable ? value || ' ' : value}
+          value={inputValue}
           onChangeText={(text: any) => setValue(text)}
           key={id}
+          error={error}
+          keyboardType={inputType === inputTypes.NUMBER ? 'numeric' : 'default'}
         />
       );
     case elementsType.DROPDOWN:
-      return <Dropdown />;
+      return (
+        <Dropdown
+          defaultValue={defaultValue}
+          editable={editable}
+          options={dropdownOptions}
+          label={name}
+          onChange={(option: any) => setValue(option.value)}
+          error={error}
+        />
+      );
     case elementsType.HEADING:
       return <Heading text={name} />;
     case elementsType.YES_NO:

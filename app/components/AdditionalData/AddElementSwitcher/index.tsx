@@ -19,6 +19,8 @@ interface IAddElementSwitcherProps {
   defaultValueError: string;
   dropdownOptions: any;
   setDropdownOptions: any;
+  inputType: string;
+  setInputType: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function AddElementSwitcher({
@@ -35,6 +37,8 @@ export default function AddElementSwitcher({
   defaultValueError,
   dropdownOptions,
   setDropdownOptions,
+  inputType,
+  setInputType,
 }: IAddElementSwitcherProps): JSX.Element {
   switch (elementType) {
     case elementsType.INPUT:
@@ -50,6 +54,8 @@ export default function AddElementSwitcher({
           defaultValue={defaultValue}
           setDefaultValue={setDefaultValue}
           defaultValueError={defaultValueError}
+          inputType={inputType}
+          setInputType={setInputType}
         />
       );
     case elementsType.DROPDOWN:

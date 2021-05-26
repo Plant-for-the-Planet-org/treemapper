@@ -67,11 +67,13 @@ import AlertModal from '../Common/AlertModal';
 import ManageSpecies from '../ManageSpecies';
 import { APIConfig } from '../../actions/Config';
 import { formatAdditionalDetails } from '../../utils/additionalData/functions';
+import JSONTree from 'react-native-json-tree';
+import { theme } from '../../utils/additionalDataConstants';
 
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
-  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number, totalSampleTrees:number };
+  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number; totalSampleTrees: number };
 };
 
 type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTreeOverview'>;
@@ -105,9 +107,13 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
+  const [formattedData, setFormattedData] = useState<any>();
+
   const netInfo = useNetInfo();
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
+
+  console.log('formattedData', formattedData);
 
   useEffect(() => {
     if (route?.params?.isSampleTree || route?.params?.totalSampleTrees) {
@@ -175,7 +181,8 @@ const SingleTreeOverview = () => {
               setEditedTagId(currentSampleTree.tagId);
               setTotalSampleTrees(inventoryData.sampleTreesCount);
             } else {
-              const formattedData = formatAdditionalDetails(inventoryData.additionalDetails);
+              console.log('inventoryData.additionalDetails', inventoryData.additionalDetails);
+              setFormattedData(formatAdditionalDetails(inventoryData.additionalDetails));
               const diameter = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
                 : inventoryData.specieDiameter;
@@ -676,17 +683,12 @@ const SingleTreeOverview = () => {
     return true;
   };
 
-  const onPressContinueToSpecies = () => {
+  const onPressContinueToAdditionalData = () => {
     updateSampleTree('changeStatusToPending');
     navigation.dispatch(
       CommonActions.reset({
         index: 3,
-        routes: [
-          { name: 'MainScreen' },
-          { name: 'TreeInventory' },
-          { name: 'InventoryOverview' },
-          // { name: 'TotalTreesSpecies' },
-        ],
+        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'AdditionalDataForm' }],
       }),
     );
   };
@@ -785,9 +787,9 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                    sampleTreesCount: totalSampleTrees,
-                  })
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                      sampleTreesCount: totalSampleTrees,
+                    })
                   : status === 'complete'
                   ? i18next.t('label.tree_review_details')
                   : i18next.t('label.tree_review_header')
@@ -808,6 +810,24 @@ const SingleTreeOverview = () => {
               {renderDetails(inventory)}
             </View>
           )}
+          <Text style={[styles.detailHeader, styles.defaultFontColor, { marginVertical: 16 }]}>
+            {i18next.t('label.additional_data').toUpperCase()}
+          </Text>
+          <ScrollView horizontal={true} style={{ marginBottom: 30 }}>
+            <JSONTree
+              data={{ metadata: formattedData }}
+              labelRenderer={(raw) => (
+                <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw[0]}:</Text>
+              )}
+              valueRenderer={(raw) => (
+                <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw}</Text>
+              )}
+              theme={{ extend: theme }}
+              hideRoot={true}
+              invertTheme={true}
+              shouldExpandNode={() => true}
+            />
+          </ScrollView>
         </ScrollView>
         {inventory?.treeType === SINGLE && status === INCOMPLETE ? (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -826,8 +846,8 @@ const SingleTreeOverview = () => {
         ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressContinueToSpecies}
-              btnText={i18next.t('label.tree_review_continue_to_review')}
+              onPress={onPressContinueToAdditionalData}
+              btnText={i18next.t('label.tree_review_continue_to_additional_data')}
             />
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
