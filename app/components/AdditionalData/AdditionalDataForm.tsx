@@ -11,7 +11,7 @@ import { marginTop24 } from '../../styles/design';
 import { elementsType, inputTypes, numberRegex } from '../../utils/additionalDataConstants';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { sortByField } from '../../utils/sortBy';
+import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
 import { Header, Loader } from '../Common';
 import PrimaryButton from '../Common/PrimaryButton';
 import ElementSwitcher from './ElementSwitcher';
@@ -61,37 +61,41 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
     );
   };
 
-  const addFormsToState = (treeType: string, locateTree: string) => {
+  const addFormsToState = (treeType: string, registrationType: string) => {
     getForms().then((formsData: any) => {
-      formsData = sortByField('order', formsData);
-      const shouldShowForm = formsData && formsData.length > 0 && formsData[0].elements.length > 0;
-
       if (formsData) {
+        formsData = sortByField('order', formsData);
+
+        formsData = filterFormByTreeAndRegistrationType(formsData, treeType, registrationType);
+
+        const shouldShowForm =
+          formsData && formsData.length > 0 && formsData[0].elements.length > 0;
+
         setForms(formsData);
+
         let data: any = {};
         let accessTypes: any = {};
         let initialErrors: any = {};
         for (const form of formsData) {
           for (const element of form.elements) {
             if (element.type !== elementsType.GAP && element.type !== elementsType.HEADING) {
+              const yseNoValue = element.defaultValue ? 'yes' : 'no';
               data[element.key] =
-                typeof element.defaultValue === 'boolean'
-                  ? element.defaultValue
-                    ? 'yes'
-                    : 'no'
-                  : element.defaultValue;
+                typeof element.defaultValue === 'boolean' ? yseNoValue : element.defaultValue;
               accessTypes[element.key] = element.accessType;
             }
             initialErrors[element.key] = '';
           }
+          setFormData(data);
+          setFormAccessType(accessTypes);
+          setErrors(initialErrors);
+          updateHeading(formsData);
         }
 
-        setFormData(data);
-        setFormAccessType(accessTypes);
-        setErrors(initialErrors);
-        updateHeading(formsData);
-      }
-      if (!shouldShowForm) {
+        if (!shouldShowForm) {
+          navigate();
+        }
+      } else {
         navigate();
       }
       setLoading(false);

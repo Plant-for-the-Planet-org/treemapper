@@ -35,6 +35,8 @@ interface PropTypes {
   style?: any;
   isDropdown?: boolean;
   showOptions?: boolean;
+  backgroundLabelColor?: string;
+  containerBackgroundColor?: string;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -50,6 +52,7 @@ interface LabelStylePropTypes {
   passiveLabelColor: string;
   isError: boolean;
   errorColor: string;
+  backgroundLabelColor: string;
 }
 
 interface InputStyleProps {
@@ -61,6 +64,7 @@ interface InputStyleProps {
   passiveValueColor: string;
   isError: boolean;
   errorColor: string;
+  // backgroundValueColor: string
 }
 
 const OutlinedInput = React.forwardRef(
@@ -79,8 +83,10 @@ const OutlinedInput = React.forwardRef(
       passiveValueColor = Colors.TEXT_COLOR,
       activeLabelColor = Colors.PRIMARY,
       passiveLabelColor = Colors.GRAY_LIGHTEST,
+      backgroundLabelColor = Colors.WHITE,
       activeBorderColor = Colors.PRIMARY,
       passiveBorderColor = Colors.GRAY_LIGHT,
+      containerBackgroundColor = Colors.WHITE,
       fontFamily = Typography.FONT_FAMILY_REGULAR,
       keyboardType = 'default',
       rightText,
@@ -206,6 +212,7 @@ const OutlinedInput = React.forwardRef(
           passiveLabelColor,
           isError: !!error,
           errorColor,
+          backgroundLabelColor,
         }),
         { fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily },
       ],
@@ -246,7 +253,7 @@ const OutlinedInput = React.forwardRef(
 
     return (
       <View style={style}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
           <Animated.View {...animatedViewProps}>
             <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
           </Animated.View>
@@ -308,13 +315,14 @@ const LabelStyle = ({
   initialTopValue,
   activeLabelColor,
   passiveLabelColor,
+  backgroundLabelColor,
   isError,
   errorColor,
 }: LabelStylePropTypes) => ({
   fontStyle: 'normal',
   fontWeight: 'normal',
   color: isError ? errorColor : isFocused ? activeLabelColor : passiveLabelColor,
-  backgroundColor: Colors.WHITE,
+  backgroundColor: backgroundLabelColor || Colors.WHITE,
   paddingRight: 5,
   paddingLeft: 5,
   top: initialTopValue,

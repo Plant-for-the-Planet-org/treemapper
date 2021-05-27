@@ -113,8 +113,6 @@ const SingleTreeOverview = () => {
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
 
-  console.log('formattedData', formattedData);
-
   useEffect(() => {
     if (route?.params?.isSampleTree || route?.params?.totalSampleTrees) {
       setSampleTreeIndex(route.params.sampleTreeIndex);

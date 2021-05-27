@@ -3,6 +3,7 @@ import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Typography } from '../../styles';
+import { MULTI, OFF_SITE, ON_SITE, REVIEW, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
 
 interface ITypeSelectionProps {
   selectedTreeType: any;
@@ -22,15 +23,15 @@ export default function TypeSelection({
   registrationTypeError,
 }: ITypeSelectionProps) {
   const treeTypesInitialState = [
-    { type: 'single', isSelected: false, isDisabled: true, name: i18next.t('label.single') },
-    { type: 'sample', isSelected: false, isDisabled: true, name: i18next.t('label.sample') },
-    { type: 'multiple', isSelected: false, isDisabled: true, name: i18next.t('label.multiple') },
+    { type: SINGLE, isSelected: false, isDisabled: true, name: i18next.t('label.single') },
+    { type: SAMPLE, isSelected: false, isDisabled: true, name: i18next.t('label.sample') },
+    { type: MULTI, isSelected: false, isDisabled: true, name: i18next.t('label.multiple') },
   ];
 
   const registrationTypesInitialState = [
-    { type: 'onsite', isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
-    { type: 'offsite', isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
-    { type: 'review', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
+    { type: ON_SITE, isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
+    { type: OFF_SITE, isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
+    // { type: 'REVIEW', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
   ];
 
   const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>(
@@ -95,36 +96,36 @@ export default function TypeSelection({
       let treeTypes = [];
       for (const i in updatedTreeBoxes) {
         switch (updatedTreeBoxes[i].type) {
-          case 'sample':
-            updatedTreeBoxes[i].isSelected = registrationTypes.includes('onsite')
+          case SAMPLE:
+            updatedTreeBoxes[i].isSelected = registrationTypes.includes(ON_SITE)
               ? updatedTreeBoxes[i].isSelected
               : false;
 
-            updatedTreeBoxes[i].isDisabled = !registrationTypes.includes('onsite');
+            updatedTreeBoxes[i].isDisabled = !registrationTypes.includes(ON_SITE);
             break;
-          case 'multiple':
+          case MULTI:
             updatedTreeBoxes[i].isSelected =
-              registrationTypes.includes('onsite') || registrationTypes.includes('offsite')
+              registrationTypes.includes(ON_SITE) || registrationTypes.includes(OFF_SITE)
                 ? updatedTreeBoxes[i].isSelected
                 : false;
 
             updatedTreeBoxes[i].isDisabled =
-              !registrationTypes.includes('onsite') &&
-              !registrationTypes.includes('offsite') &&
-              registrationTypes.includes('review');
+              !registrationTypes.includes(ON_SITE) &&
+              !registrationTypes.includes(OFF_SITE) &&
+              registrationTypes.includes(REVIEW);
             break;
-          case 'single':
+          case SINGLE:
             updatedTreeBoxes[i].isSelected =
-              !registrationTypes.includes('onsite') &&
-              !registrationTypes.includes('offsite') &&
-              registrationTypes.includes('review')
+              !registrationTypes.includes(ON_SITE) &&
+              !registrationTypes.includes(OFF_SITE) &&
+              registrationTypes.includes(REVIEW)
                 ? true
                 : updatedTreeBoxes[i].isSelected;
 
             updatedTreeBoxes[i].isDisabled =
-              !registrationTypes.includes('onsite') &&
-              !registrationTypes.includes('offsite') &&
-              registrationTypes.includes('review');
+              !registrationTypes.includes(ON_SITE) &&
+              !registrationTypes.includes(OFF_SITE) &&
+              registrationTypes.includes(REVIEW);
             break;
         }
         if (updatedTreeBoxes[i].isSelected) {

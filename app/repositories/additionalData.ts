@@ -6,17 +6,12 @@ import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import dbLog from './logs';
 
-export const getForms = (treeType: string = '', locateTree: string = '') => {
+export const getForms = () => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
-        let form = realm.objects('Form');
-        if (treeType) {
-          form = form.filtered(`elements.treeType CONTAINS '${treeType}'`);
-        }
-        if (locateTree) {
-          form = form.filtered(`elements.registrationType CONTAINS '${locateTree}'`);
-        }
+        let form: any = realm.objects('Form');
+
         let formData = JSON.parse(JSON.stringify(form));
 
         formData = getElementData(formData, realm, 'fetch');
@@ -29,6 +24,7 @@ export const getForms = (treeType: string = '', locateTree: string = '') => {
         resolve(formData);
       })
       .catch((err) => {
+        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import OutlinedInput from '../OutlinedInput';
@@ -13,12 +13,27 @@ interface IDropdownProps {
   editable?: boolean;
   error?: string | boolean;
   style?: any;
+  containerStyle?: any;
+  backgroundLabelColor?: string;
+  containerBackgroundColor?: string;
+  selectedOption?: any;
 }
 
 const Dropdown = (props: IDropdownProps) => {
-  const { defaultValue, editable, options, onChange } = props;
+  const {
+    defaultValue,
+    editable,
+    options,
+    onChange,
+    containerStyle = {},
+    selectedOption: selectedOptionProps,
+  } = props;
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<any>();
+
+  useEffect(() => {
+    setSelectedOption(selectedOptionProps || null);
+  }, [selectedOptionProps]);
 
   const menuRef = useRef<any>();
 
@@ -37,7 +52,7 @@ const Dropdown = (props: IDropdownProps) => {
   };
 
   return (
-    <View style={styles.dropdownContainer}>
+    <View style={[styles.dropdownContainer, containerStyle]}>
       {!editable ? (
         <OutlinedInput
           {...{
@@ -69,6 +84,7 @@ const Dropdown = (props: IDropdownProps) => {
           {options.map((option: any) => (
             <MenuItem
               key={option.key}
+              disabled={option.disabled}
               onPress={() => {
                 setSelectedOption(option);
                 onChange(option);

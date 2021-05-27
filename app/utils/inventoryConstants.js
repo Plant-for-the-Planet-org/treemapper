@@ -32,6 +32,9 @@ export const ON_SITE = 'on-site';
 // used when the trees are planted off site
 export const OFF_SITE = 'off-site';
 
+// used when the trees are being reviewed
+export const REVIEW = 'review';
+
 /* === Inventory trees location while registering - ENDS === */
 
 /* ====================================== *\

@@ -10,15 +10,40 @@ import {
   updateFormElements,
 } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
-import { sortByField } from '../../utils/sortBy';
+import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
+import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
 import { Loader, PrimaryButton } from '../Common';
+import Dropdown from '../Common/Dropdown';
 import Page from './Page';
 
 interface FormProps {}
 
 export default function Form(): JSX.Element {
+  const initialTreeTypeOptions = [
+    { key: 'all', disabled: false, value: i18next.t('label.all') },
+    { key: SINGLE, disabled: false, value: i18next.t('label.single') },
+    { key: MULTI, disabled: false, value: i18next.t('label.multiple') },
+    { key: SAMPLE, disabled: false, value: i18next.t('label.sample') },
+  ];
+
+  const initialRegistrationTypeOptions = [
+    { key: 'all', disabled: false, value: i18next.t('label.all') },
+    { key: ON_SITE, disabled: false, value: i18next.t('label.on_site') },
+    { key: OFF_SITE, disabled: false, value: i18next.t('label.off_site') },
+    // { type: 'REVIEW', disabled:false,value: i18next.t('label.review') },
+  ];
+
   const [forms, setForms] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [filteredForm, setFilteredForm] = useState<any>([]);
+  const [registrationType, setRegistrationType] = useState<string>('all');
+  const [treeType, setTreeType] = useState<string>('all');
+  const [selectedTreeOption, setSelectedTreeOption] = useState<any>();
+
+  const [treeTypeOptions, setTreeTypeOptions] = useState(initialTreeTypeOptions);
+  const [registrationTypeOptions, setRegistrationTypeOptions] = useState(
+    initialRegistrationTypeOptions,
+  );
 
   const navigation = useNavigation();
 
@@ -30,6 +55,22 @@ export default function Form(): JSX.Element {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    if (registrationType === OFF_SITE) {
+      let treeOptions = initialTreeTypeOptions;
+      const lastIndex = treeOptions.length - 1;
+      treeOptions[lastIndex] = { ...treeOptions[lastIndex], disabled: true };
+      setTreeTypeOptions(treeOptions);
+      if (treeType === SAMPLE) {
+        setSelectedTreeOption(treeOptions[0]);
+        setTreeType('all');
+      }
+    } else {
+      setTreeTypeOptions(initialTreeTypeOptions);
+    }
+    updateStateFormData(JSON.parse(JSON.stringify(forms)));
+  }, [treeType, registrationType]);
+
   const addNewForm = async () => {
     await addForm({ order: Array.isArray(forms) ? forms.length + 1 : 1 });
     addFormsToState();
@@ -38,10 +79,18 @@ export default function Form(): JSX.Element {
   const addFormsToState = () => {
     getForms().then((formsData: any) => {
       if (formsData) {
-        setForms(sortByField('order', formsData));
+        formsData = sortByField('order', formsData);
+        setForms(formsData);
+        updateStateFormData(formsData);
       }
       setLoading(false);
     });
+  };
+
+  const updateStateFormData = (formsData: any) => {
+    formsData = filterFormByTreeAndRegistrationType(formsData, treeType, registrationType);
+    console.log('formsData========================', formsData);
+    setFilteredForm(formsData);
   };
 
   const deleteFormById = (formId: string) => {
@@ -83,18 +132,43 @@ export default function Form(): JSX.Element {
           isModal={false}
         />
       ) : Array.isArray(forms) && forms.length > 0 ? (
-        forms.map((form: any, index) => (
-          <Page
-            pageNo={index + 1}
-            elements={form.elements}
-            key={`form-page-${index}`}
-            formId={form.id}
-            handleDeletePress={() => deleteFormById(form.id)}
-            formOrder={form.order}
-            updateForm={(elements: any) => updateForm(elements, form.id)}
-            deleteElement={(elementIndex: number) => deleteElementFromForm(form.id, elementIndex)}
-          />
-        ))
+        <>
+          <View style={styles.formFilterContainer}>
+            <Dropdown
+              label={i18next.t('label.registrationType')}
+              options={registrationTypeOptions}
+              onChange={(type: any) => setRegistrationType(type.key)}
+              defaultValue={treeTypeOptions[0]}
+              editable={true}
+              containerStyle={{ marginRight: 16, flex: 1 }}
+              backgroundLabelColor={'#f2f2f2'}
+              containerBackgroundColor={'#f2f2f2'}
+              selectedOption={selectedTreeOption}
+            />
+            <Dropdown
+              label={i18next.t('label.treeType')}
+              options={treeTypeOptions}
+              onChange={(type: any) => setTreeType(type.key)}
+              defaultValue={registrationTypeOptions[0]}
+              editable={true}
+              containerStyle={{ flex: 1 }}
+              backgroundLabelColor={'#f2f2f2'}
+              containerBackgroundColor={'#f2f2f2'}
+            />
+          </View>
+          {filteredForm.map((form: any, index: number) => (
+            <Page
+              pageNo={index + 1}
+              elements={form.elements}
+              key={`form-page-${index}`}
+              formId={form.id}
+              handleDeletePress={() => deleteFormById(form.id)}
+              formOrder={form.order}
+              updateForm={(elements: any) => updateForm(elements, form.id)}
+              deleteElement={(elementIndex: number) => deleteElementFromForm(form.id, elementIndex)}
+            />
+          ))}
+        </>
       ) : (
         <>
           <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
@@ -131,5 +205,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 40,
+  },
+  formFilterContainer: {
+    backgroundColor: '#f2f2f2',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexShrink: 1,
+    height: 80,
   },
 });
