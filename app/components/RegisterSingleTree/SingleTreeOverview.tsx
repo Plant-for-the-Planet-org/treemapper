@@ -179,7 +179,6 @@ const SingleTreeOverview = () => {
               setEditedTagId(currentSampleTree.tagId);
               setTotalSampleTrees(inventoryData.sampleTreesCount);
             } else {
-              console.log('inventoryData.additionalDetails', inventoryData.additionalDetails);
               setFormattedData(formatAdditionalDetails(inventoryData.additionalDetails));
               const diameter = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100

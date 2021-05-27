@@ -1088,7 +1088,6 @@ export const addSampleTree = (sampleTreeFromServer) => {
               1,
             );
             resolve();
-            // console.log('Sample Tree Added...')
           }
         });
       })
@@ -1139,9 +1138,7 @@ export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sam
         if (!sampleTreeId && inventory.polygons[0].coordinates[coordinateIndex].imageUrl) {
           inventory.polygons[0].coordinates[coordinateIndex].imageUrl = '';
         } else if (sampleTreeId) {
-          console.log('deleting images');
           inventory.sampleTrees[sampleTreeIndex].imageUrl = '';
-          console.log(inventory.sampleTrees[sampleTreeIndex].imageUrl, 'inventory');
         }
         resolve();
       });

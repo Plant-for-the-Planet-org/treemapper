@@ -466,7 +466,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
           }),
           referenceId: inventoryId,
         });
-        console.log(result.data, 'Result of Image Upload');
+
         await addCdnUrl({
           inventoryID: inventoryId,
           coordinateIndex: result.data.coordinateIndex,

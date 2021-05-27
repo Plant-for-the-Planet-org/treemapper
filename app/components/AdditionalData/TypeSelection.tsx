@@ -88,7 +88,6 @@ export default function TypeSelection({
     setSelectedRegistrationType(registrationTypes);
 
     if (registrationTypes.length === 0) {
-      console.log('no registration selected');
       setTreeTypeCheckBoxes(treeTypesInitialState);
       setSelectedTreeType([]);
     } else {

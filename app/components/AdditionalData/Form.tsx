@@ -89,7 +89,6 @@ export default function Form(): JSX.Element {
 
   const updateStateFormData = (formsData: any) => {
     formsData = filterFormByTreeAndRegistrationType(formsData, treeType, registrationType);
-    console.log('formsData========================', formsData);
     setFilteredForm(formsData);
   };
 

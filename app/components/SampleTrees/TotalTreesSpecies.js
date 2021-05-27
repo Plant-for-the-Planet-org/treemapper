@@ -87,7 +87,6 @@ export default function TotalTreesSpecies() {
   const initializeState = () => {
     if (inventoryState.inventoryID) {
       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
           const geoJSONData = getGeoJsonData(inventoryData);
@@ -299,8 +298,8 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
-            ))
+                <SpecieListItem item={specie} index={index} key={index} />
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>

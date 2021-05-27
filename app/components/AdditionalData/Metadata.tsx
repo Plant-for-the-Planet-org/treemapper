@@ -57,7 +57,7 @@ export default function Metadata({ route }: any): JSX.Element {
       }
     });
   };
-  console.log('metadata', metadata);
+
   return (
     <ScrollView style={styles.container}>
       <DraggableFlatList

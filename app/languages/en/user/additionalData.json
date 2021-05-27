@@ -24,7 +24,7 @@
     "atleast_2_dropdown_option_required":"Atleast two dropdown options are required",
     "field_name_required":"Field name is required",
     "get_started_forms": "Get started with forms",
-    "get_started_forms_description": "This form helps you to collect additional data for each registration.",
+    "get_started_forms_description": "This form helps you to collect additional data for each registration.\nYou can customize the form elements based on the tree type i.e. single, multiple or sample.\nYou can also customize it based on location of registration, whether it's off-site or on-site.",
     "gap_element":"Gap Element",
     "form_page":"Page {{pageNo}}",
     "loading_form":"Loading form",
@@ -41,6 +41,7 @@
     "additional_data_field_name":"Field name",
     "additional_data_field_key":"Field key",
     "additional_data_field_type":"Field type",
+    "additional_data_heading":"Heading",
     "additional_data_field_key_placeholder":"Enter key",
     "additional_data_field_value":"Field value",
     "additional_data_field_value_placeholder":"Enter value",
@@ -50,6 +51,10 @@
     "dropdown_options":"Dropdown options",
     "add_dropdown_option":"Add dropdown option",
     "text":"Text",
-    "number":"Number"
-
+    "number":"Number",
+    "all":"All",
+    "default_value_only_number":"Default value can only be number",
+    "create_metadata":"Create metadata",
+    "get_started_metadata":"Get started with metadata",
+    "get_started_metadata_description":"Here you can add the data which will be included in all the tree registrations.\nYou can specify the access level for each data whether it can be public or private."
 }

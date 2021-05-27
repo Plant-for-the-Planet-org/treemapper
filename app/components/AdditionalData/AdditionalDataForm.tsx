@@ -116,8 +116,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
       nextScreen = 'InventoryOverview';
     }
 
-    console.log('nextScreen', nextScreen);
-
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -160,7 +158,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
       }
     }
     setErrors(updatedErrors);
-    console.log('errorCount', errorCount);
+
     if (errorCount === 0) {
       const nextIndex = currentFormIndex + 1;
       if (forms[nextIndex] && forms[nextIndex].elements.length > 0) {
@@ -182,7 +180,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           inventoryStatus === INCOMPLETE_SAMPLE_TREE &&
           inventory.completedSampleTreesCount !== inventory.sampleTreesCount
         ) {
-          console.log('inventory.sampleTrees', inventory.sampleTrees);
           let updatedSampleTrees = [...inventory.sampleTrees];
           updatedSampleTrees[
             inventory.completedSampleTreesCount
@@ -196,10 +193,8 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           };
         }
 
-        console.log('inventoryData', inventoryData);
         updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData })
           .then(() => {
-            console.log('updated');
             dbLog.info({
               logType: LogTypes.ADDITIONAL_DATA,
               message: `Successfully added additional details to inventory with id ${inventoryState.inventoryID}`,
@@ -207,7 +202,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
             navigate();
           })
           .catch((err) => {
-            console.log('error', err);
             dbLog.error({
               logType: LogTypes.ADDITIONAL_DATA,
               message: `Failed to add additional details to inventory with id ${inventoryState.inventoryID}`,

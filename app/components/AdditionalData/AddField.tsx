@@ -197,20 +197,13 @@ export default function AddField() {
       setDefaultValueError('');
     }
 
-    console.log(
-      isSelectedTreeTypeValid,
-      isSelectedRegistrationType,
-      isNameValid,
-      isKeyValid,
-      isDropdownOptionsValid,
-    );
-
     return (
       isSelectedTreeTypeValid &&
       isSelectedRegistrationType &&
       isNameValid &&
       isKeyValid &&
-      isDropdownOptionsValid
+      isDropdownOptionsValid &&
+      isDefaultValueValid
     );
   };
 
@@ -256,95 +249,100 @@ export default function AddField() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header
-        headingText={headingText}
-        TopRightComponent={() => {
-          if (!nonInputElementsTypes.includes(elementType)) {
-            return (
-              <Switcher
-                switchText={i18next.t('label.advance_mode')}
-                isEnabled={isAdvanceModeEnabled}
-                setIsEnabled={setIsAdvanceModeEnabled}
-              />
-            );
-          }
-          return <></>;
-        }}
-      />
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <AddElementSwitcher
-          elementType={elementType}
-          isAdvanceModeEnabled={isAdvanceModeEnabled}
-          name={name}
-          setName={setName}
-          nameError={nameError}
-          fieldKey={fieldKey}
-          setFieldKey={setFieldKey}
-          keyError={keyError}
-          defaultValue={defaultValue}
-          setDefaultValue={setDefaultValue}
-          defaultValueError={defaultValueError}
-          dropdownOptions={dropdownOptions}
-          setDropdownOptions={setDropdownOptions}
-          inputType={inputType}
-          setInputType={setInputType}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Header
+          headingText={headingText}
+          TopRightComponent={() => {
+            if (!nonInputElementsTypes.includes(elementType)) {
+              return (
+                <Switcher
+                  switchText={i18next.t('label.advance_mode')}
+                  isEnabled={isAdvanceModeEnabled}
+                  setIsEnabled={setIsAdvanceModeEnabled}
+                />
+              );
+            }
+            return <></>;
+          }}
         />
-        <TypeSelection
-          selectedTreeType={selectedTreeType}
-          setSelectedTreeType={setSelectedTreeType}
-          treeTypeError={treeTypeError}
-          selectedRegistrationType={selectedRegistrationType}
-          setSelectedRegistrationType={setSelectedRegistrationType}
-          registrationTypeError={registrationTypeError}
-        />
-        {!nonInputElementsTypes.includes(elementType) && (
-          <>
-            <View style={marginTop30}>
-              <Switcher
-                switchText={i18next.t('label.required_field')}
-                isEnabled={isRequired}
-                setIsEnabled={setIsRequired}
-              />
-            </View>
-            <View style={marginTop30}>
-              <Switcher
-                switchText={i18next.t('label.make_this_public')}
-                isEnabled={isPublic}
-                setIsEnabled={setIsPublic}
-              />
-            </View>
-          </>
-        )}
-        {elementType === elementsType.DROPDOWN && (
-          <View style={styles.dropdownOptionsContainer}>
-            <Text style={styles.dropdownOptionsHeading}>{i18next.t('label.dropdown_options')}</Text>
-            {dropdownOptions &&
-              dropdownOptions.length > 0 &&
-              dropdownOptions.map((option: any, index) => (
-                <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
-                  <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
-                    <KeyValueInput
-                      fieldKey={option.key}
-                      fieldValue={option.value}
-                      onPress={() => updateDropdownOption(option.key, option.value, index)}
-                    />
-                  </SwipeDeleteRow>
-                </View>
-              ))}
-            <TouchableOpacity onPress={handleAddDropdownOption}>
-              <Text style={styles.addDropdownOptionButton}>
-                {i18next.t('label.add_dropdown_option')}
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <AddElementSwitcher
+            elementType={elementType}
+            isAdvanceModeEnabled={isAdvanceModeEnabled}
+            name={name}
+            setName={setName}
+            nameError={nameError}
+            fieldKey={fieldKey}
+            setFieldKey={setFieldKey}
+            keyError={keyError}
+            defaultValue={defaultValue}
+            setDefaultValue={setDefaultValue}
+            defaultValueError={defaultValueError}
+            dropdownOptions={dropdownOptions}
+            setDropdownOptions={setDropdownOptions}
+            inputType={inputType}
+            setInputType={setInputType}
+          />
+          <TypeSelection
+            selectedTreeType={selectedTreeType}
+            setSelectedTreeType={setSelectedTreeType}
+            treeTypeError={treeTypeError}
+            selectedRegistrationType={selectedRegistrationType}
+            setSelectedRegistrationType={setSelectedRegistrationType}
+            registrationTypeError={registrationTypeError}
+          />
+          {!nonInputElementsTypes.includes(elementType) && (
+            <>
+              <View style={marginTop30}>
+                <Switcher
+                  switchText={i18next.t('label.required_field')}
+                  isEnabled={isRequired}
+                  setIsEnabled={setIsRequired}
+                />
+              </View>
+              <View style={marginTop30}>
+                <Switcher
+                  switchText={i18next.t('label.make_this_public')}
+                  isEnabled={isPublic}
+                  setIsEnabled={setIsPublic}
+                />
+              </View>
+            </>
+          )}
+          {elementType === elementsType.DROPDOWN && (
+            <View style={styles.dropdownOptionsContainer}>
+              <Text style={styles.dropdownOptionsHeading}>
+                {i18next.t('label.dropdown_options')}
               </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
-      <PrimaryButton
-        btnText={i18next.t('label.add_element')}
-        onPress={handleAddElement}
-        style={styles.button}
-      />
+              {dropdownOptions &&
+                dropdownOptions.length > 0 &&
+                dropdownOptions.map((option: any, index) => (
+                  <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
+                    <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
+                      <KeyValueInput
+                        fieldKey={option.key}
+                        fieldValue={option.value}
+                        onPress={() => updateDropdownOption(option.key, option.value, index)}
+                      />
+                    </SwipeDeleteRow>
+                  </View>
+                ))}
+              <TouchableOpacity onPress={handleAddDropdownOption}>
+                <Text style={styles.addDropdownOptionButton}>
+                  {i18next.t('label.add_dropdown_option')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+
+        <PrimaryButton
+          btnText={i18next.t('label.add_element')}
+          onPress={handleAddElement}
+          style={styles.button}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -371,9 +369,6 @@ const Switcher = ({ switchText = '', isEnabled, setIsEnabled }: ISwitcherProps) 
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     paddingHorizontal: 25,

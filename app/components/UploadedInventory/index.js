@@ -42,10 +42,6 @@ const UploadedInventory = ({ navigation }) => {
       for (let inventory of allInventory) {
         for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
           if (inventory.polygons[0].coordinates[index].imageUrl) {
-            console.log(
-              inventory.polygons[0].coordinates[index].imageUrl,
-              '===========deleteFromFS===========',
-            );
             deleteFromFS(inventory.polygons[0].coordinates[index].imageUrl, inventory, index).then(
               (data) => {
                 removeImageUrl({
@@ -149,8 +145,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

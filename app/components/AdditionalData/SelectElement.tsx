@@ -78,7 +78,6 @@ const SelectElement = () => {
   }, [route.params]);
 
   const handleElementPress = (elementType: string) => {
-    console.log('elementType', elementType);
     if (elementType === elementsType.PAGE) {
       addForm({ order: formOrder + 1 });
       navigation.goBack();

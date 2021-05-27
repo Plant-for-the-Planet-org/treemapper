@@ -105,7 +105,6 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
-        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         const data = formatAdditionalDetails(
           inventoryData.additionalDetails,

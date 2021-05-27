@@ -51,6 +51,8 @@ const Dropdown = (props: IDropdownProps) => {
     }
   };
 
+  const value = defaultValue ? i18next.t(defaultValue.value) : '';
+
   return (
     <View style={[styles.dropdownContainer, containerStyle]}>
       {!editable ? (
@@ -72,11 +74,7 @@ const Dropdown = (props: IDropdownProps) => {
                   ...props,
                   isDropdown: true,
                   showOptions,
-                  value: selectedOption
-                    ? i18next.t(selectedOption.value)
-                    : defaultValue
-                    ? i18next.t(defaultValue.value)
-                    : '',
+                  value: selectedOption ? i18next.t(selectedOption.value) : value,
                 }}
               />
             </TouchableOpacity>
@@ -90,7 +88,7 @@ const Dropdown = (props: IDropdownProps) => {
                 onChange(option);
                 hideMenu();
               }}>
-              {i18next.t(option.value)}
+              <Text style={styles.optionText}>{i18next.t(option.value)}</Text>
             </MenuItem>
           ))}
         </Menu>
@@ -99,11 +97,6 @@ const Dropdown = (props: IDropdownProps) => {
   );
 };
 
-// onPress={() => {
-//   setSelectedOption(item);
-//   onChange(item);
-//   setShowOptions(false);
-// }
 export default Dropdown;
 
 const styles = StyleSheet.create({
@@ -126,7 +119,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
 });

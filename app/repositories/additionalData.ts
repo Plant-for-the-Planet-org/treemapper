@@ -24,7 +24,6 @@ export const getForms = () => {
         resolve(formData);
       })
       .catch((err) => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -302,7 +301,6 @@ export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
         });
       })
       .catch((err) => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,

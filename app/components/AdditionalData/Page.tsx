@@ -54,8 +54,6 @@ export default function Page({
     [dragging, setDragging],
   );
 
-  console.log('elements', elements);
-
   return (
     <View style={[styles.pageContainer, pageNo > 1 ? styles.newPage : {}]}>
       <View style={[styles.formHeading, styles.paddingLeft8]}>
