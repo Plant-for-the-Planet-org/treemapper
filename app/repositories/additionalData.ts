@@ -76,20 +76,35 @@ export const addForm = ({ order, title, description = '' }: any) => {
   });
 };
 
-export const addElement = ({ elementProperties, typeProperties = null, formId }: any) => {
+export const addUpdateElement = ({
+  elementProperties,
+  typeProperties = null,
+  formId,
+  elementIndex,
+  isModification,
+}: any) => {
+  console.log({
+    elementProperties,
+    typeProperties,
+    formId,
+    elementIndex,
+    isModification,
+  });
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let form: any = realm.objectForPrimaryKey('Form', formId);
-          const elementId = uuidv4();
-          form.elements = [...form.elements, { ...elementProperties, id: elementId }];
+          if (isModification) {
+            realm.create('Element', elementProperties, Realm.UpdateMode.Modified);
+          } else {
+            let form: any = realm.objectForPrimaryKey('Form', formId);
+            form.elements = [...form.elements, { ...elementProperties }];
+          }
 
           const schemaName = getSchemaNameFromType(elementProperties.type);
 
           if (schemaName && typeProperties) {
-            const props = { ...typeProperties, id: uuidv4(), parentId: elementId };
-            realm.create(`${schemaName}`, props);
+            realm.create(`${schemaName}`, typeProperties, Realm.UpdateMode.Modified);
           }
 
           // logging the success in to the db
@@ -101,6 +116,7 @@ export const addElement = ({ elementProperties, typeProperties = null, formId }:
         });
       })
       .catch((err) => {
+        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -191,6 +207,7 @@ const getElementData = (formData: any, realm: any, action: string) => {
         } else if (data && data.length === 1) {
           data = JSON.parse(JSON.stringify(data));
           let elementData = data[0];
+          elementData.subElementId = elementData.id;
           delete elementData.id;
           delete elementData.parentId;
 
@@ -222,28 +239,36 @@ const getSchemaNameFromType = (elementType: string) => {
   }
 };
 
-export const updateFormElements = ({ elements, formId }: any) => {
+export const updateForm = (formData: any) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let form: any = realm.objectForPrimaryKey('Form', formId);
+          let form: any = realm.objectForPrimaryKey('Form', formData.id);
 
-          form.elements = elements;
+          if (formData.elements) {
+            form.elements = formData.elements;
+          }
+          if (formData.title) {
+            form.title = formData.title;
+          }
+
+          console.log('form', form);
 
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
-            message: `Successfully updated elements of form with id ${formId}`,
+            message: `Successfully updated form with id ${formData.id}`,
           });
           resolve(true);
         });
       })
       .catch((err) => {
+        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while updating elements of form with id ${formId}`,
+          message: `Error while updating form with id ${formData.id}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);

@@ -151,7 +151,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         updatedErrors[elementData.key] = i18next.t('label.required_field');
         errorCount += 1;
       } else if (isInvalidNumber) {
-        updatedErrors[elementData.key] = i18next.t('label.invalid_input');
+        updatedErrors[elementData.key] = i18next.t('label.invalid_number_input');
         errorCount += 1;
       } else {
         updatedErrors[elementData.key] = '';

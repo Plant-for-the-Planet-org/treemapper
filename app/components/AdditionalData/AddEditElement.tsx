@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { addElement } from '../../repositories/additionalData';
+import { addUpdateElement } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24, marginTop30 } from '../../styles/design';
 import {
@@ -28,21 +28,25 @@ import AddElementSwitcher from './AddElementSwitcher';
 import AddDropdownOption from './AddElementSwitcher/AddDropdownOption';
 import KeyValueInput from './KeyValueInput';
 import TypeSelection from './TypeSelection';
+import { v4 as uuidv4 } from 'uuid';
 
 type RootStackParamList = {
-  AddField: { elementType: ElementType; formId: string };
+  AddEditElement: {
+    elementType: ElementType;
+    formId: string;
+    isModification: boolean;
+    elementData: any;
+  };
 };
 
-type AddFieldScreenRouteProp = RouteProp<RootStackParamList, 'AddField'>;
+type AddEditElementScreenRouteProp = RouteProp<RootStackParamList, 'AddEditElement'>;
 
-type toEditType = 'key' | 'value';
-
-export default function AddField() {
+export default function AddEditElement() {
   const [selectedTreeType, setSelectedTreeType] = useState<any>([]);
   const [treeTypeError, setTreeTypeError] = useState<string>('');
-
   const [selectedRegistrationType, setSelectedRegistrationType] = useState<any>([]);
   const [registrationTypeError, setRegistrationTypeError] = useState<string>('');
+  const [shouldUpdateTypeSelection, setShouldUpdateTypeSelection] = useState<boolean>(false);
 
   const [elementType, setElementType] = useState<ElementType | ''>('');
 
@@ -69,109 +73,118 @@ export default function AddField() {
   );
   const [showDropdownOptionForm, setShowDropdownOptionForm] = useState<boolean>(false);
 
+  const [isModification, setIsModification] = useState<boolean>(false);
+  const [modifyingElementData, setModifyingElementData] = useState<any>();
+
+  const [elementId, setElementId] = useState<string>('');
+  const [subElementId, setSubElementId] = useState<string>('');
+
   const navigation = useNavigation();
 
-  const route: AddFieldScreenRouteProp = useRoute();
+  const route: AddEditElementScreenRouteProp = useRoute();
 
   useEffect(() => {
     if (route.params?.elementType) {
       setElementType(route.params?.elementType || '');
       setFieldKey(`${route.params?.elementType}-${new Date().getTime()}`);
+      setIsModification(route.params?.isModification ?? false);
+      setModifyingElementData(route.params?.elementData || null);
 
       switch (route.params.elementType) {
         case elementsType.INPUT:
-          setHeadingText(i18next.t('label.add_input'));
+          setHeadingText(
+            i18next.t(route.params?.isModification ? 'label.edit_input' : 'label.add_input'),
+          );
+          setInputType(inputTypes.TEXT);
           break;
         case elementsType.DROPDOWN:
-          setHeadingText(i18next.t('label.add_dropdown'));
+          setHeadingText(
+            i18next.t(route.params?.isModification ? 'label.edit_dropdown' : 'label.add_dropdown'),
+          );
           break;
         case elementsType.HEADING:
-          setHeadingText(i18next.t('label.add_heading'));
+          setHeadingText(
+            i18next.t(route.params?.isModification ? 'label.edit_heading' : 'label.add_heading'),
+          );
           break;
         case elementsType.YES_NO:
-          setHeadingText(i18next.t('label.add_yes_no'));
+          setHeadingText(
+            i18next.t(route.params?.isModification ? 'label.edit_yes_no' : 'label.add_yes_no'),
+          );
           break;
         case elementsType.GAP:
-          setHeadingText(i18next.t('label.add_gap_element'));
+          setHeadingText(
+            i18next.t(
+              route.params?.isModification ? 'label.edit_gap_element' : 'label.add_gap_element',
+            ),
+          );
           setName(i18next.t('label.gap_element'));
           break;
         default:
-          setHeadingText(i18next.t('label.add_element'));
+          setHeadingText(
+            i18next.t(route.params?.isModification ? 'label.update_element' : 'label.add_element'),
+          );
           break;
       }
     }
   }, [route.params]);
 
-  const handleAddElement = () => {
-    if (areElementPropsValid()) {
-      let typeProperties: any = {
-        defaultValue,
-        isRequired,
-      };
+  useEffect(() => {
+    if (modifyingElementData && isModification) {
+      setElementId(modifyingElementData.id);
+      setFieldKey(modifyingElementData.key);
+      setName(modifyingElementData.name);
+      setElementType(modifyingElementData.type);
+      setSelectedRegistrationType(modifyingElementData.registrationType);
+      setSelectedTreeType(modifyingElementData.treeType);
+      setIsPublic(modifyingElementData.accessType === accessTypes.PUBLIC);
 
-      if (elementType === elementsType.DROPDOWN) {
-        typeProperties.dropdownOptions = dropdownOptions;
-      } else if (elementType === elementsType.INPUT) {
-        typeProperties.type = inputType;
-        typeProperties.regexValidation = regexValidation;
-      } else if (elementType === elementsType.YES_NO) {
-        typeProperties.defaultValue = !!defaultValue;
-      }
-
-      addElement({
-        elementProperties: {
-          key: fieldKey,
-          name,
-          type: elementType,
-          treeType: selectedTreeType,
-          registrationType: selectedRegistrationType,
-          accessType: isPublic ? accessTypes.PUBLIC : accessTypes.PRIVATE,
-        },
-        typeProperties,
-        formId: route.params.formId,
-      }).then(() => {
-        // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 1,
-            routes: [{ name: 'MainScreen' }, { name: 'AdditionalData' }],
-          }),
-        );
-      });
+      setSubElementId(modifyingElementData.subElementId || '');
+      setDefaultValue(modifyingElementData.defaultValue || '');
+      setIsRequired(modifyingElementData.isRequired ?? false);
+      setDropdownOptions(modifyingElementData.dropdownOptions || []);
+      setInputType(modifyingElementData.inputType || '');
+      setRegexValidation(modifyingElementData.regexValidation || '');
+      setShouldUpdateTypeSelection(true);
     }
-  };
+  }, [modifyingElementData, isModification]);
 
   const areElementPropsValid = (): boolean => {
-    let isSelectedTreeTypeValid: boolean = false;
-    let isSelectedRegistrationType: boolean = false;
-    let isNameValid: boolean = checkIsNameValid();
-    let isKeyValid = false;
-    let isDropdownOptionsValid = true;
-    let isDefaultValueValid = true;
+    let errorCount = 0;
 
     if (selectedTreeType.length === 0) {
       setTreeTypeError(i18next.t('label.atleast_1_tree_type_required'));
+      errorCount += 1;
     } else {
       setTreeTypeError('');
-      isSelectedTreeTypeValid = true;
     }
 
     if (selectedRegistrationType.length === 0) {
       setRegistrationTypeError(i18next.t('label.atleast_1_registration_type_required'));
+      errorCount += 1;
     } else {
       setRegistrationTypeError('');
-      isSelectedRegistrationType = true;
     }
 
     const allowedKeyCharacters = new RegExp(/^[a-zA-Z0-9 _-]+$/);
 
     if (!fieldKey) {
       setKeyError(i18next.t('label.field_key_required'));
+      setIsAdvanceModeEnabled(true);
+      errorCount += 1;
     } else if (!allowedKeyCharacters.test(fieldKey)) {
       setKeyError(i18next.t('label.invalid_key_error'));
+      setIsAdvanceModeEnabled(true);
+      errorCount += 1;
     } else {
       setKeyError('');
-      isKeyValid = true;
+    }
+
+    if (!name) {
+      setNameError(i18next.t('label.field_name_required'));
+      errorCount += 1;
+    } else {
+      setNameError('');
     }
 
     if (
@@ -180,7 +193,7 @@ export default function AddField() {
         (Array.isArray(dropdownOptions) && dropdownOptions.length < 2))
     ) {
       setDropdownOptionsError(i18next.t('label.atleast_2_dropdown_option_required'));
-      isDropdownOptionsValid = false;
+      errorCount += 1;
     } else {
       setDropdownOptionsError('');
     }
@@ -192,28 +205,67 @@ export default function AddField() {
       defaultValue
     ) {
       setDefaultValueError(i18next.t('label.default_value_only_number'));
-      isDefaultValueValid = false;
+      setIsAdvanceModeEnabled(true);
+      errorCount += 1;
     } else {
       setDefaultValueError('');
     }
 
-    return (
-      isSelectedTreeTypeValid &&
-      isSelectedRegistrationType &&
-      isNameValid &&
-      isKeyValid &&
-      isDropdownOptionsValid &&
-      isDefaultValueValid
-    );
+    return errorCount === 0;
   };
 
-  const checkIsNameValid = (): boolean => {
-    if (!name) {
-      setNameError(i18next.t('label.field_name_required'));
-      return false;
-    } else {
-      setNameError('');
-      return true;
+  const getElementData = () => {
+    if (areElementPropsValid()) {
+      const id = elementId || uuidv4();
+      let typeProperties: any = {
+        defaultValue,
+        isRequired,
+        id: isModification ? subElementId : uuidv4(),
+        parentId: id,
+      };
+
+      if (elementType === elementsType.DROPDOWN) {
+        typeProperties.dropdownOptions = dropdownOptions;
+      } else if (elementType === elementsType.INPUT) {
+        typeProperties.type = inputType;
+        typeProperties.regexValidation = regexValidation;
+      } else if (elementType === elementsType.YES_NO) {
+        typeProperties.defaultValue = !!defaultValue;
+      }
+
+      const elementData = {
+        elementProperties: {
+          id: id,
+          key: fieldKey,
+          name,
+          type: elementType,
+          treeType: selectedTreeType,
+          registrationType: selectedRegistrationType,
+          accessType: isPublic ? accessTypes.PUBLIC : accessTypes.PRIVATE,
+        },
+        typeProperties,
+        formId: route.params.formId,
+        elementIndex: isModification ? modifyingElementData.index : null,
+        isModification,
+      };
+
+      return elementData;
+    }
+    return null;
+  };
+
+  const handleAddEditElement = () => {
+    const elementData = getElementData();
+    if (elementData) {
+      addUpdateElement(elementData).then(() => {
+        // resets the navigation stack with MainScreen => AdditionalData
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [{ name: 'MainScreen' }, { name: 'AdditionalData' }],
+          }),
+        );
+      });
     }
   };
 
@@ -231,7 +283,7 @@ export default function AddField() {
     setShowDropdownOptionForm(true);
   };
 
-  const onSwipe = (index: number | null = null) => {
+  const onSwipe = (index: number) => {
     dropdownOptions.splice(index, 1);
     setDropdownOptions(dropdownOptions);
   };
@@ -291,6 +343,8 @@ export default function AddField() {
             selectedRegistrationType={selectedRegistrationType}
             setSelectedRegistrationType={setSelectedRegistrationType}
             registrationTypeError={registrationTypeError}
+            shouldUpdateTypeSelection={shouldUpdateTypeSelection}
+            setShouldUpdateTypeSelection={setShouldUpdateTypeSelection}
           />
           {!nonInputElementsTypes.includes(elementType) && (
             <>
@@ -317,7 +371,7 @@ export default function AddField() {
               </Text>
               {dropdownOptions &&
                 dropdownOptions.length > 0 &&
-                dropdownOptions.map((option: any, index) => (
+                dropdownOptions.map((option: any, index: number) => (
                   <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
                     <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
                       <KeyValueInput
@@ -333,13 +387,18 @@ export default function AddField() {
                   {i18next.t('label.add_dropdown_option')}
                 </Text>
               </TouchableOpacity>
+              {dropdownOptionsError ? (
+                <Text style={styles.errorText}>{dropdownOptionsError}</Text>
+              ) : (
+                []
+              )}
             </View>
           )}
         </ScrollView>
 
         <PrimaryButton
-          btnText={i18next.t('label.add_element')}
-          onPress={handleAddElement}
+          btnText={i18next.t(isModification ? 'label.update_element' : 'label.add_element')}
+          onPress={handleAddEditElement}
           style={styles.button}
         />
       </View>
@@ -407,5 +466,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     paddingVertical: 8,
     marginVertical: 16,
+  },
+  errorText: {
+    color: Colors.ALERT,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
+    marginTop: 6,
   },
 });

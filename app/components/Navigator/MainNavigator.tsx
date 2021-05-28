@@ -34,7 +34,7 @@ import {
 } from '../';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AdditionalData from '../AdditionalData';
-import AddField from '../AdditionalData/AddField';
+import AddEditElement from '../AdditionalData/AddEditElement';
 import SelectElement from '../AdditionalData/SelectElement';
 import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
 import AddMetadata from '../AdditionalData/AddMetadata';
@@ -106,7 +106,7 @@ export default function MainNavigator() {
       <Stack.Screen name="TotalTreesSpecies" component={TotalTreesSpecies} options={MyTransition} />
       <Stack.Screen name="LogoutWarning" component={LogoutWarning} options={MyTransition} />
       <Stack.Screen name="AdditionalData" component={AdditionalData} options={MyTransition} />
-      <Stack.Screen name="AddField" component={AddField} options={MyTransition} />
+      <Stack.Screen name="AddEditElement" component={AddEditElement} options={MyTransition} />
       <Stack.Screen name="ManageProjects" component={ManageProjects} options={MyTransition} />
       <Stack.Screen name="SelectElement" component={SelectElement} options={MyTransition} />
       <Stack.Screen

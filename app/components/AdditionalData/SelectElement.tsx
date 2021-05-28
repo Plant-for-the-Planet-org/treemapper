@@ -82,7 +82,7 @@ const SelectElement = () => {
       addForm({ order: formOrder + 1 });
       navigation.goBack();
     } else {
-      navigation.navigate('AddField', { elementType, formId });
+      navigation.navigate('AddEditElement', { elementType, formId });
     }
   };
 

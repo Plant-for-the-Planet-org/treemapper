@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   ReturnKeyTypeOptions,
+  TouchableOpacity,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, CommonStyles, Typography } from '../../../styles';
@@ -77,12 +78,13 @@ const InputModal = ({
               onSubmitEditing={onSubmit}
               returnKeyType={returnKeyType}
             />
-            <MCIcon
-              onPress={onSubmit}
-              name={'arrow-right'}
-              size={30}
-              color={isRequired && value ? Colors.PRIMARY : Colors.GRAY_DARK}
-            />
+            <TouchableOpacity style={{ padding: 10 }} onPress={onSubmit}>
+              <MCIcon
+                name={'arrow-right'}
+                size={30}
+                color={(isRequired && value) || !isRequired ? Colors.PRIMARY : Colors.GRAY_DARK}
+              />
+            </TouchableOpacity>
           </View>
           {isRequired ? (
             <Text style={styles.requiredFieldLabel}>{i18next.t('label.required_field')}</Text>

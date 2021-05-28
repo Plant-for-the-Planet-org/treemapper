@@ -7,7 +7,7 @@ import {
   deleteForm,
   deleteFormElement,
   getForms,
-  updateFormElements,
+  updateForm,
 } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
@@ -49,7 +49,6 @@ export default function Form(): JSX.Element {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      setLoading(true);
       addFormsToState();
     });
     return unsubscribe;
@@ -77,6 +76,7 @@ export default function Form(): JSX.Element {
   };
 
   const addFormsToState = () => {
+    setLoading(true);
     getForms().then((formsData: any) => {
       if (formsData) {
         formsData = sortByField('order', formsData);
@@ -100,8 +100,8 @@ export default function Form(): JSX.Element {
     });
   };
 
-  const updateForm = async (elements: any, formId: any) => {
-    await updateFormElements({ elements, formId }).then((success) => {
+  const updateFormElements = async (elements: any, formId: any) => {
+    await updateForm({ elements, id: formId }).then((success) => {
       if (success) {
         addFormsToState();
       }
@@ -127,7 +127,7 @@ export default function Form(): JSX.Element {
       {loading ? (
         <Loader
           isLoaderShow={loading}
-          loadingText={i18next.t('label.loading_content')}
+          loadingText={i18next.t('label.loading_form_editor')}
           isModal={false}
         />
       ) : Array.isArray(forms) && forms.length > 0 ? (
@@ -158,13 +158,15 @@ export default function Form(): JSX.Element {
           {filteredForm.map((form: any, index: number) => (
             <Page
               pageNo={index + 1}
+              title={form.title}
               elements={form.elements}
               key={`form-page-${index}`}
               formId={form.id}
               handleDeletePress={() => deleteFormById(form.id)}
               formOrder={form.order}
-              updateForm={(elements: any) => updateForm(elements, form.id)}
+              updateFormElements={(elements: any) => updateFormElements(elements, form.id)}
               deleteElement={(elementIndex: number) => deleteElementFromForm(form.id, elementIndex)}
+              reloadForm={addFormsToState}
             />
           ))}
         </>

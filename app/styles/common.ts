@@ -14,7 +14,8 @@ export const bottomInputContainer: ViewStyle = {
   backgroundColor: Colors.WHITE,
   borderTopWidth: 0.5,
   borderColor: Colors.TEXT_COLOR,
-  paddingHorizontal: 20,
+  paddingLeft: 20,
+  paddingRight: 10,
 };
 
 export const bottomInputLabel: TextStyle = {

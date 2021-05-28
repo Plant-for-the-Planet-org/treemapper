@@ -12,6 +12,8 @@ interface ITypeSelectionProps {
   selectedRegistrationType: any;
   setSelectedRegistrationType: React.Dispatch<React.SetStateAction<any>>;
   registrationTypeError: string;
+  shouldUpdateTypeSelection: boolean;
+  setShouldUpdateTypeSelection: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function TypeSelection({
@@ -21,6 +23,8 @@ export default function TypeSelection({
   selectedRegistrationType,
   setSelectedRegistrationType,
   registrationTypeError,
+  shouldUpdateTypeSelection,
+  setShouldUpdateTypeSelection,
 }: ITypeSelectionProps) {
   const treeTypesInitialState = [
     { type: SINGLE, isSelected: false, isDisabled: true, name: i18next.t('label.single') },
@@ -41,9 +45,32 @@ export default function TypeSelection({
   const [treeTypeCheckBoxes, setTreeTypeCheckBoxes] = useState<any>(treeTypesInitialState);
 
   useEffect(() => {
-    setRegistrationTypeCheckBoxes(registrationTypesInitialState);
-    setTreeTypeCheckBoxes(treeTypesInitialState);
+    checkSelectedAndUpdate();
   }, []);
+
+  useEffect(() => {
+    if (shouldUpdateTypeSelection) {
+      checkSelectedAndUpdate();
+      setShouldUpdateTypeSelection(false);
+    }
+  }, [shouldUpdateTypeSelection]);
+
+  const checkSelectedAndUpdate = () => {
+    let registrationBoxes = [...registrationTypesInitialState];
+    let treeBoxes = [...treeTypesInitialState];
+    for (const i in registrationBoxes) {
+      if (selectedRegistrationType.includes(registrationBoxes[i].type)) {
+        registrationBoxes[i].isSelected = true;
+      }
+    }
+    for (const i in treeBoxes) {
+      if (selectedTreeType.includes(treeBoxes[i].type)) {
+        treeBoxes[i].isSelected = true;
+      }
+    }
+    setRegistrationTypeCheckBoxes(registrationBoxes);
+    updateTreeTypeBoxes(selectedRegistrationType, treeBoxes);
+  };
 
   const toggleTreeTypeCheckBox = (treeType: string, value: boolean) => {
     const updatedCheckBoxes = treeTypeCheckBoxes.map((tree: any) => {
@@ -87,6 +114,13 @@ export default function TypeSelection({
     }
     setSelectedRegistrationType(registrationTypes);
 
+    updateTreeTypeBoxes(registrationTypes);
+  };
+
+  const updateTreeTypeBoxes = (registrationTypes: any, treeCheckBoxes: any = null) => {
+    if (!treeCheckBoxes) {
+      treeCheckBoxes = treeTypeCheckBoxes;
+    }
     if (registrationTypes.length === 0) {
       setTreeTypeCheckBoxes(treeTypesInitialState);
       setSelectedTreeType([]);
@@ -97,7 +131,7 @@ export default function TypeSelection({
         switch (updatedTreeBoxes[i].type) {
           case SAMPLE:
             updatedTreeBoxes[i].isSelected = registrationTypes.includes(ON_SITE)
-              ? updatedTreeBoxes[i].isSelected
+              ? treeCheckBoxes[i].isSelected
               : false;
 
             updatedTreeBoxes[i].isDisabled = !registrationTypes.includes(ON_SITE);
@@ -105,7 +139,7 @@ export default function TypeSelection({
           case MULTI:
             updatedTreeBoxes[i].isSelected =
               registrationTypes.includes(ON_SITE) || registrationTypes.includes(OFF_SITE)
-                ? updatedTreeBoxes[i].isSelected
+                ? treeCheckBoxes[i].isSelected
                 : false;
 
             updatedTreeBoxes[i].isDisabled =
@@ -119,7 +153,7 @@ export default function TypeSelection({
               !registrationTypes.includes(OFF_SITE) &&
               registrationTypes.includes(REVIEW)
                 ? true
-                : updatedTreeBoxes[i].isSelected;
+                : treeCheckBoxes[i].isSelected;
 
             updatedTreeBoxes[i].isDisabled =
               !registrationTypes.includes(ON_SITE) &&
@@ -127,6 +161,7 @@ export default function TypeSelection({
               registrationTypes.includes(REVIEW);
             break;
         }
+
         if (updatedTreeBoxes[i].isSelected) {
           treeTypes.push(updatedTreeBoxes[i].type);
         }
