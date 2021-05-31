@@ -56,38 +56,53 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
             if (isSucceed) {
               const result = await checkAndUploadImage(oneInventory, response);
               if (result.allUploadCompleted) {
-                await changeInventoryStatus(
-                  {
-                    inventory_id: oneInventory.inventory_id,
-                    status: PENDING_SAMPLE_TREES_UPLOAD,
-                  },
-                  dispatch,
-                ).then(async () => {
-                  let inventory = {};
-                  inventory = oneInventory;
-                  const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
-                  console.log(sampleTreeUploadResult, 'sampleTreeUploadResult');
-                  if (sampleTreeUploadResult) {
-                    changeInventoryStatus(
-                      {
-                        inventory_id: oneInventory.inventory_id,
-                        status: SYNCED,
-                      },
-                      dispatch,
-                    )
-                      .then(() => resolve())
-                      .catch((err) => {
-                        console.error(
-                          `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(
-                            err,
-                          )}`,
-                        );
-                        reject(err);
-                      });
-                  } else {
-                    reject(new Error('Some sample tree upload are pending'));
-                  }
-                });
+                if (oneInventory.treeType === SINGLE) {
+                  changeInventoryStatus(
+                    {
+                      inventory_id: oneInventory.inventory_id,
+                      status: SYNCED,
+                    },
+                    dispatch,
+                  )
+                    .then(() => resolve())
+                    .catch((err) => {
+                      console.error(`Error at: /action/upload/changeInventoryStatus, -> ${err}`);
+                      reject(err);
+                    });
+                } else {
+                  await changeInventoryStatus(
+                    {
+                      inventory_id: oneInventory.inventory_id,
+                      status: PENDING_SAMPLE_TREES_UPLOAD,
+                    },
+                    dispatch,
+                  ).then(async () => {
+                    let inventory = {};
+                    inventory = oneInventory;
+                    const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
+                    console.log(sampleTreeUploadResult, 'sampleTreeUploadResult');
+                    if (sampleTreeUploadResult) {
+                      changeInventoryStatus(
+                        {
+                          inventory_id: oneInventory.inventory_id,
+                          status: SYNCED,
+                        },
+                        dispatch,
+                      )
+                        .then(() => resolve())
+                        .catch((err) => {
+                          console.error(
+                            `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(
+                              err,
+                            )}`,
+                          );
+                          reject(err);
+                        });
+                    } else {
+                      reject(new Error('Some sample tree upload are pending'));
+                    }
+                  });
+                }
               } else {
                 reject(new Error('Some image upload are pending'));
               }

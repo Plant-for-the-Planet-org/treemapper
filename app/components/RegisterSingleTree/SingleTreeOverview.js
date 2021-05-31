@@ -648,9 +648,7 @@ const SingleTreeOverview = () => {
   const onPressSave = () => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
-    } else if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      navigation.navigate('TreeInventory');
-    } else {
+    } else if (inventory.status === INCOMPLETE) {
       if (specieText) {
         let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch)
@@ -669,6 +667,10 @@ const SingleTreeOverview = () => {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
+    }
+    // if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE)
+    else {
+      navigation.navigate('TreeInventory');
     }
   };
 

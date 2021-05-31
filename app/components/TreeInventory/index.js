@@ -87,7 +87,7 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const filteredInventories = () => {
-    getInventoryByStatus(INCOMPLETE).then((inventoryList) => {
+    getInventoryByStatus(INCOMPLETE, INCOMPLETE_SAMPLE_TREE).then((inventoryList) => {
       setInCompleteInventory(inventoryList);
     });
     getInventoryByStatus(PENDING_DATA_UPLOAD).then((inventoryList) => {
