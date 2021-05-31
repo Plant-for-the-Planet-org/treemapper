@@ -93,7 +93,7 @@ const OutlinedInput = React.forwardRef(
       returnKeyType = 'done',
       blurOnSubmit,
       onSubmitEditing,
-      editable,
+      editable = true,
       error = '',
       style = {},
       isDropdown = false,
