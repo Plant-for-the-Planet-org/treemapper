@@ -66,5 +66,6 @@
     "get_started_metadata":"Get started with metadata",
     "get_started_metadata_description":"Here you can add the data which will be included in all the tree registrations.\nYou can specify the access level for each data whether it can be public or private.",
     "invalid_number_input": "Only numbers are allowed",
-    "add_metadata": "Add metadata"
+    "add_metadata": "Add metadata",
+    "create_form": "Create form"
 }
