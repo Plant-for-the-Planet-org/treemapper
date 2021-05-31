@@ -143,8 +143,8 @@ const SingleTreeOverview = () => {
               const index = route?.params?.isSampleTree
                 ? route?.params?.sampleTreeIndex
                 : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
-                ? inventoryData.completedSampleTreesCount - 1
-                : inventoryData.completedSampleTreesCount;
+                  ? inventoryData.completedSampleTreesCount - 1
+                  : inventoryData.completedSampleTreesCount;
 
               const currentSampleTree = inventoryData.sampleTrees[index];
               const diameter = nonISUCountries.includes(data.country)
@@ -550,10 +550,10 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                  nonISUCountries.includes(countryCode)
+                nonISUCountries.includes(countryCode)
                   ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
-                      'label.select_species_inches',
-                    )}`
+                    'label.select_species_inches',
+                  )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -753,16 +753,16 @@ const SingleTreeOverview = () => {
           editEnable === 'diameter'
             ? specieEditDiameter.toString()
             : editEnable === 'height'
-            ? specieEditHeight.toString()
-            : editedTagId
+              ? specieEditHeight.toString()
+              : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
         setValue={
           editEnable === 'diameter'
             ? setSpecieEditDiameter
             : editEnable === 'height'
-            ? setSpecieEditHeight
-            : setEditedTagId
+              ? setSpecieEditHeight
+              : setEditedTagId
         }
         onSubmitInputField={() => onSubmitInputField(editEnable)}
       />
@@ -783,12 +783,12 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                      sampleTreesCount: totalSampleTrees,
-                    })
+                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    sampleTreesCount: totalSampleTrees,
+                  })
                   : status === SYNCED
-                  ? i18next.t('label.tree_review_details')
-                  : i18next.t('label.tree_review_header')
+                    ? i18next.t('label.tree_review_details')
+                    : i18next.t('label.tree_review_header')
               }
               rightText={
                 status === INCOMPLETE || status === PENDING_DATA_UPLOAD
@@ -834,15 +834,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-          <View style={styles.bottomBtnsContainer}>
-            <PrimaryButton
-              onPress={onPressNextTree}
-              btnText={i18next.t('label.tree_review_next_btn')}
-            />
-          </View>
-        ) : (
-          []
-        )}
+            <View style={styles.bottomBtnsContainer}>
+              <PrimaryButton
+                onPress={onPressNextTree}
+                btnText={i18next.t('label.tree_review_next_btn')}
+              />
+            </View>
+          ) : (
+            []
+          )}
       </View>
       <AlertModal
         visible={showDeleteAlert}

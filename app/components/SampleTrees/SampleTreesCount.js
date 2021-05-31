@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     alignSelf: 'center',
     width: 70,
-    fontSize: 16,
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_16,

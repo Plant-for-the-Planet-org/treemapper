@@ -98,8 +98,8 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
                   : item.status === SYNCED
-                  ? 'cloud-check'
-                  : 'cloud-outline'
+                    ? 'cloud-check'
+                    : 'cloud-outline'
               }
               data={data}
             />
