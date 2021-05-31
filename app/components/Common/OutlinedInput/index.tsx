@@ -251,8 +251,9 @@ const OutlinedInput = React.forwardRef(
                 color: Colors.TEXT_COLOR,
                 fontFamily,
                 fontSize: Typography.FONT_SIZE_18,
-                padding: 10,
+                // padding: 10,
                 paddingRight: 20,
+                alignSelf: 'center',
               }}>
               {rightText}
             </Text>

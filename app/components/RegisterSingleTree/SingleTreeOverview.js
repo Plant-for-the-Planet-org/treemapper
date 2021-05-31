@@ -61,6 +61,7 @@ import {
   ON_SITE,
   PENDING_DATA_UPLOAD,
   SINGLE,
+  SYNCED,
 } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, InputModal } from '../Common';
 import AlertModal from '../Common/AlertModal';
@@ -142,8 +143,8 @@ const SingleTreeOverview = () => {
               const index = route?.params?.isSampleTree
                 ? route?.params?.sampleTreeIndex
                 : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
-                  ? inventoryData.completedSampleTreesCount - 1
-                  : inventoryData.completedSampleTreesCount;
+                ? inventoryData.completedSampleTreesCount - 1
+                : inventoryData.completedSampleTreesCount;
 
               const currentSampleTree = inventoryData.sampleTrees[index];
               const diameter = nonISUCountries.includes(data.country)
@@ -461,8 +462,8 @@ const SingleTreeOverview = () => {
     } else if (
       inventory.treeType === MULTI &&
       (inventory.status === INCOMPLETE_SAMPLE_TREE ||
-        inventory.status === 'complete' ||
-        inventory.status === 'pending') &&
+        inventory.status === SYNCED ||
+        inventory.status === PENDING_DATA_UPLOAD) &&
       (sampleTreeIndex === 0 || sampleTreeIndex)
     ) {
       if (inventory.sampleTrees[sampleTreeIndex]?.imageUrl) {
@@ -549,10 +550,10 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                nonISUCountries.includes(countryCode)
+                  nonISUCountries.includes(countryCode)
                   ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
-                    'label.select_species_inches',
-                  )}`
+                      'label.select_species_inches',
+                    )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -647,11 +648,11 @@ const SingleTreeOverview = () => {
   const onPressSave = () => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
-    } else if (inventory.status === 'complete' || inventory.status === INCOMPLETE_SAMPLE_TREE) {
+    } else if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       navigation.navigate('TreeInventory');
     } else {
       if (specieText) {
-        let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
+        let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch)
           // For Auto-upload check the case duplication of inventory while uploading
           .then(() => {
@@ -689,7 +690,7 @@ const SingleTreeOverview = () => {
   const onPressNextTree = () => {
     if (inventory.status === INCOMPLETE) {
       changeInventoryStatus(
-        { inventory_id: inventoryState.inventoryID, status: 'pending' },
+        { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD },
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
@@ -750,16 +751,16 @@ const SingleTreeOverview = () => {
           editEnable === 'diameter'
             ? specieEditDiameter.toString()
             : editEnable === 'height'
-              ? specieEditHeight.toString()
-              : editedTagId
+            ? specieEditHeight.toString()
+            : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
         setValue={
           editEnable === 'diameter'
             ? setSpecieEditDiameter
             : editEnable === 'height'
-              ? setSpecieEditHeight
-              : setEditedTagId
+            ? setSpecieEditHeight
+            : setEditedTagId
         }
         onSubmitInputField={() => onSubmitInputField(editEnable)}
       />
@@ -780,14 +781,18 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                    sampleTreesCount: totalSampleTrees,
-                  })
-                  : status === 'complete'
-                    ? i18next.t('label.tree_review_details')
-                    : i18next.t('label.tree_review_header')
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                      sampleTreesCount: totalSampleTrees,
+                    })
+                  : status === SYNCED
+                  ? i18next.t('label.tree_review_details')
+                  : i18next.t('label.tree_review_header')
               }
-              rightText={status === INCOMPLETE ? i18next.t('label.tree_review_delete') : []}
+              rightText={
+                status === INCOMPLETE || status === PENDING_DATA_UPLOAD
+                  ? i18next.t('label.tree_review_delete')
+                  : []
+              }
               onPressFunction={() => setShowDeleteAlert(true)}
             />
           </View>
@@ -827,21 +832,21 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                onPress={onPressNextTree}
-                btnText={i18next.t('label.tree_review_next_btn')}
-              />
-            </View>
-          ) : (
-            []
-          )}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showDeleteAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
         message={
-          status === 'complete'
+          status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }

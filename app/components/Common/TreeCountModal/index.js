@@ -15,6 +15,8 @@ import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, CommonStyles } from '_styles';
 import { species_default } from '../../../assets';
 import { Header } from '../';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function TreeCountModal({
   showTreeCountModal,
@@ -22,12 +24,25 @@ export default function TreeCountModal({
   setTreeCount,
   treeCount,
   onPressTreeCountNextBtn,
+  setShowTreeCountModal,
 }) {
   let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
-      <View style={styles.modalBackground}>
+      <View
+        style={styles.modalBackground}
+        onPress={() => {
+          setShowTreeCountModal(false);
+        }}>
         <View style={styles.inputModal}>
+          <Ionicons
+            name={'md-close'}
+            size={30}
+            color={Colors.TEXT_COLOR}
+            onPress={() => {
+              setShowTreeCountModal(false);
+            }}
+          />
           <Image
             source={activeSpecie?.image ? { uri: `${activeSpecie.image}` } : species_default}
             style={{

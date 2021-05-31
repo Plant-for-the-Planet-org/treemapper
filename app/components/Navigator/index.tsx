@@ -9,6 +9,8 @@ import MainNavigator from './MainNavigator';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import { UserContext } from '../../reducers/user';
 import { InventoryContext } from '../../reducers/inventory';
+import { StatusBar } from 'react-native';
+import { Colors } from '../../styles';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +53,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
+      <StatusBar backgroundColor={Colors.PRIMARY} barStyle="light-content" />
       <Stack.Navigator headerMode="none">
         {state.showInitialStack ? (
           <Stack.Screen name="InitialLoading" component={InitialLoadingNavigator} />

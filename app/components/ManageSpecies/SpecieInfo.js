@@ -153,10 +153,9 @@ const SpecieInfo = ({ route }) => {
                 <TouchableOpacity
                   style={styles.emptyImageContainer}
                   onPress={() => setIsCamera(true)}>
-                  <View>
+                  <View style={{ alignItems: 'center' }}>
                     <Ionicons
                       name={'md-cloud-upload-outline'}
-                      style={styles.uploadIcon}
                       size={80}
                       color={Colors.GRAY_LIGHTEST}
                     />

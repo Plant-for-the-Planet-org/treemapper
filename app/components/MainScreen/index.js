@@ -38,6 +38,7 @@ import {
 } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import ProfileModal from '../ProfileModal';
+import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventoryConstants';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -80,14 +81,14 @@ const MainScreen = ({ navigation }) => {
       let count = 0;
       let pendingInventoryCount = 0;
       for (const inventory of data) {
-        if (inventory.status === 'pending' || inventory.status === 'uploading') {
+        if (inventory.status === PENDING_DATA_UPLOAD || inventory.status === PENDING_IMAGE_UPLOAD) {
           count++;
         }
-        if (inventory.status === 'pending') {
+        if (inventory.status === PENDING_DATA_UPLOAD) {
           pendingInventoryCount++;
         }
       }
-      updateCount({ type: 'pending', count })(dispatch);
+      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
       setPendingInventory(pendingInventoryCount);
       setNumberOfInventory(data ? data.length : 0);
     });
@@ -155,10 +156,6 @@ const MainScreen = ({ navigation }) => {
     if (changes.insertions.length > 0) {
       fetchInventory();
     }
-    // if (changes.modifications.length > 0) {
-    //   fetchInventory();
-    //   console.log('------modifications-------');
-    // }
   }
 
   // initializes the realm by adding listener to user object of realm to listen

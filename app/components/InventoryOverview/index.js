@@ -35,7 +35,13 @@ import { getProjectById } from '../../repositories/projects';
 import { ALPHABETS, bugsnag } from '../../utils';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  OFF_SITE,
+  PENDING_DATA_UPLOAD,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
@@ -101,7 +107,6 @@ const InventoryOverview = ({ navigation }) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
-        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
         if (inventoryData.projectId) {
           const project = await getProjectById(inventoryData.projectId);
@@ -174,7 +179,7 @@ const InventoryOverview = ({ navigation }) => {
   const onPressSave = () => {
     if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       if (inventory.species.length > 0) {
-        let data = { inventory_id: state.inventoryID, status: 'pending' };
+        let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
@@ -386,7 +391,7 @@ const InventoryOverview = ({ navigation }) => {
         : i18next.t('label.tree_inventory_on_site');
   }
 
-  let status = inventory ? inventory.status : 'pending';
+  let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -416,7 +421,10 @@ const InventoryOverview = ({ navigation }) => {
                 //   )
                 // }
                 rightText={
-                  status == INCOMPLETE_SAMPLE_TREE || status == INCOMPLETE
+                  status == INCOMPLETE_SAMPLE_TREE ||
+                  status == INCOMPLETE ||
+                  status == PENDING_DATA_UPLOAD ||
+                  status == PENDING_DATA_UPLOAD
                     ? i18next.t('label.tree_review_delete')
                     : []
                 }
@@ -513,7 +521,7 @@ const InventoryOverview = ({ navigation }) => {
         visible={showDeleteAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
         message={
-          status === 'complete'
+          status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }

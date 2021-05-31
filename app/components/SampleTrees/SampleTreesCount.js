@@ -61,15 +61,16 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
           ]}>
           <TextInput
             value={selectedTreeCount}
-            style={{
-              borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
-              borderBottomWidth: 1,
-              paddingVertical: 0,
-              color: 'white',
-              alignSelf: 'center',
-              width: 70,
-              // marginBottom: 4,
-            }}
+            style={
+              [
+                styles.customTreeCount,
+                { borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR },
+                // isCustomSelected
+                //   ? { borderBottomColor: 'white' }
+                //   : { borderBottomColor: Colors.TEXT_COLOR },
+              ]
+              // borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
+            }
             selectionColor={'white'}
             keyboardType={'numeric'}
             onFocus={() => {
@@ -250,5 +251,15 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  customTreeCount: {
+    borderBottomWidth: 1,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 70,
+    fontSize: 16,
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_16,
   },
 });
