@@ -1,5 +1,5 @@
 import React from 'react';
-import { elementsType } from '../../../utils/additionalDataConstants';
+import { elementsType } from '../../../utils/additionalData/constants';
 import AddDropdown from './AddDropdown';
 import AddHeading from './AddHeading';
 import AddInput from './AddInput';
@@ -21,6 +21,7 @@ interface IAddElementSwitcherProps {
   setDropdownOptions: any;
   inputType: string;
   setInputType: React.Dispatch<React.SetStateAction<string>>;
+  selectedOption: any;
 }
 
 export default function AddElementSwitcher({
@@ -39,6 +40,7 @@ export default function AddElementSwitcher({
   setDropdownOptions,
   inputType,
   setInputType,
+  selectedOption,
 }: IAddElementSwitcherProps): JSX.Element {
   switch (elementType) {
     case elementsType.INPUT:
@@ -56,6 +58,7 @@ export default function AddElementSwitcher({
           defaultValueError={defaultValueError}
           inputType={inputType}
           setInputType={setInputType}
+          selectedOption={selectedOption}
         />
       );
     case elementsType.DROPDOWN:

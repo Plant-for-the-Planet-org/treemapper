@@ -266,12 +266,12 @@ const OutlinedInput = React.forwardRef(
               borderColor,
               alignItems: 'center',
             }}>
-            {isDropdown ? (
+            {isDropdown || !editable ? (
               <Text
                 style={[
                   inputProps.style,
                   {
-                    paddingVertical: 15,
+                    paddingVertical: 14,
                     paddingLeft: 16,
                     height: 'auto',
                     color: Colors.TEXT_COLOR,

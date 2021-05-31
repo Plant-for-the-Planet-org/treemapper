@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { elementsType, inputTypes } from '../../../utils/additionalDataConstants';
+import { elementsType, inputTypes } from '../../../utils/additionalData/constants';
 import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
 import YesNoButton from '../../Common/YesNoButton';

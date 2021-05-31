@@ -1,7 +1,7 @@
 import Realm from 'realm';
 import { v4 as uuidv4 } from 'uuid';
 import { bugsnag } from '../utils';
-import { elementsType } from '../utils/additionalDataConstants';
+import { elementsType } from '../utils/additionalData/constants';
 import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import dbLog from './logs';

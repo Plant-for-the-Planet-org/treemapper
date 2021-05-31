@@ -8,7 +8,7 @@ import { getInventory, updateInventory, updateLastScreen } from '../../repositor
 import dbLog from '../../repositories/logs';
 import { Colors } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import { elementsType, inputTypes, numberRegex } from '../../utils/additionalDataConstants';
+import { elementsType, inputTypes, numberRegex } from '../../utils/additionalData/constants';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryConstants';
 import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';

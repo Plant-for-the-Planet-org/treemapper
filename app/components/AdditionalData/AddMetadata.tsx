@@ -2,7 +2,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { addOrUpdateMetadataField } from '../../repositories/additionalData';
-import { accessTypes } from '../../utils/additionalDataConstants';
+import { accessTypes } from '../../utils/additionalData/constants';
 import KeyValueForm from './KeyValueForm';
 
 interface IAddMetadataFormProps {

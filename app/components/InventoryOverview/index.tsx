@@ -41,7 +41,7 @@ import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 import JSONTree from 'react-native-json-tree';
-import { theme } from '../../utils/additionalDataConstants';
+import { theme } from '../../utils/additionalData/constants';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -106,7 +106,7 @@ const InventoryOverview = ({ navigation }: any) => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
-        const data = formatAdditionalDetails(
+        const data = await formatAdditionalDetails(
           inventoryData.additionalDetails,
           inventoryData.sampleTrees,
         );

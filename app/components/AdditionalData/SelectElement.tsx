@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { addForm } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
-import { elementsType } from '../../utils/additionalDataConstants';
+import { elementsType } from '../../utils/additionalData/constants';
 import { Header } from '../Common';
 
 type RootStackParamList = {

@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React, { useState } from 'react';
 import { marginTop24 } from '../../../styles/design';
-import { inputOptions, inputTypes } from '../../../utils/additionalDataConstants';
+import { inputOptions, inputTypes } from '../../../utils/additionalData/constants';
 import Dropdown from '../../Common/Dropdown';
 import OutlinedInput from '../../Common/OutlinedInput';
 
@@ -18,6 +18,7 @@ interface Props {
   defaultValueError: string;
   inputType: string;
   setInputType: React.Dispatch<React.SetStateAction<string>>;
+  selectedOption: any;
 }
 
 export default function AddInput({
@@ -33,6 +34,7 @@ export default function AddInput({
   defaultValueError,
   inputType,
   setInputType,
+  selectedOption,
 }: Props) {
   const onInputTypeChange = (value: any) => {
     setInputType(value.key);
@@ -53,6 +55,7 @@ export default function AddInput({
         onChange={onInputTypeChange}
         style={marginTop24}
         editable={true}
+        selectedOption={selectedOption}
       />
       {isAdvanceModeEnabled ? (
         <>

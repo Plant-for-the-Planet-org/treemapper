@@ -16,9 +16,11 @@ import { Loader, PrimaryButton } from '../Common';
 import Dropdown from '../Common/Dropdown';
 import Page from './Page';
 
-interface FormProps {}
+interface FormProps {
+  routeIndex: number;
+}
 
-export default function Form(): JSX.Element {
+export default function Form({ routeIndex }: FormProps): JSX.Element {
   const initialTreeTypeOptions = [
     { key: 'all', disabled: false, value: i18next.t('label.all') },
     { key: SINGLE, disabled: false, value: i18next.t('label.single') },
@@ -49,10 +51,18 @@ export default function Form(): JSX.Element {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      addFormsToState();
+      if (routeIndex === 0) {
+        addFormsToState();
+      }
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (routeIndex === 0) {
+      addFormsToState();
+    }
+  }, [routeIndex]);
 
   useEffect(() => {
     if (registrationType === OFF_SITE) {
@@ -79,6 +89,7 @@ export default function Form(): JSX.Element {
     setLoading(true);
     getForms().then((formsData: any) => {
       if (formsData) {
+        console.log('formsdata', formsData);
         formsData = sortByField('order', formsData);
         setForms(formsData);
         updateStateFormData(formsData);
@@ -120,7 +131,6 @@ export default function Form(): JSX.Element {
     <ScrollView
       style={styles.container}
       contentContainerStyle={[
-        // styles.container,
         { flexGrow: 1 },
         loading || (Array.isArray(forms) && forms.length > 0) ? {} : styles.alignCenter,
       ]}>
@@ -142,7 +152,6 @@ export default function Form(): JSX.Element {
               containerStyle={{ marginRight: 16, flex: 1 }}
               backgroundLabelColor={'#f2f2f2'}
               containerBackgroundColor={'#f2f2f2'}
-              selectedOption={selectedTreeOption}
             />
             <Dropdown
               label={i18next.t('label.treeType')}
@@ -153,6 +162,7 @@ export default function Form(): JSX.Element {
               containerStyle={{ flex: 1 }}
               backgroundLabelColor={'#f2f2f2'}
               containerBackgroundColor={'#f2f2f2'}
+              selectedOption={selectedTreeOption}
             />
           </View>
           {filteredForm.map((form: any, index: number) => (

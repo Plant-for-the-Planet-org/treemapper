@@ -1,6 +1,15 @@
-export const formatAdditionalDetails = (additionalDetails: any, sampleTrees: any = null) => {
+import { getMetadata } from '../../repositories/additionalData';
+
+export const formatAdditionalDetails = async (additionalDetails: any, sampleTrees: any = null) => {
   let formattedDetails: any = { public: {}, private: {}, app: {} };
 
+  const metadata = await getMetadata();
+
+  if (Array.isArray(metadata) && metadata.length > 0) {
+    for (let detail of metadata) {
+      formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;
+    }
+  }
   if (Array.isArray(additionalDetails) && additionalDetails.length > 0) {
     for (let detail of additionalDetails) {
       formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;

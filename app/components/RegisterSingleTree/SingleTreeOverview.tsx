@@ -68,7 +68,7 @@ import ManageSpecies from '../ManageSpecies';
 import { APIConfig } from '../../actions/Config';
 import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 import JSONTree from 'react-native-json-tree';
-import { theme } from '../../utils/additionalDataConstants';
+import { theme } from '../../utils/additionalData/constants';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -179,7 +179,7 @@ const SingleTreeOverview = () => {
               setEditedTagId(currentSampleTree.tagId);
               setTotalSampleTrees(inventoryData.sampleTreesCount);
             } else {
-              setFormattedData(formatAdditionalDetails(inventoryData.additionalDetails));
+              setFormattedData(await formatAdditionalDetails(inventoryData.additionalDetails));
               const diameter = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
                 : inventoryData.specieDiameter;

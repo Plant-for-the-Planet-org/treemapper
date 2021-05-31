@@ -18,10 +18,11 @@ import {
   accessTypes,
   elementsType,
   ElementType,
+  inputOptions,
   inputTypes,
   nonInputElementsTypes,
   numberRegex,
-} from '../../utils/additionalDataConstants';
+} from '../../utils/additionalData/constants';
 import { Header, InputModal, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
@@ -71,6 +72,7 @@ export default function AddEditElement() {
   const [selectedDropdownOptionIndex, setSelectedDropdownOptionIndex] = useState<number | null>(
     null,
   );
+  const [selectedInputDropdownOption, setSelectedInputDropdownOption] = useState<any>();
   const [showDropdownOptionForm, setShowDropdownOptionForm] = useState<boolean>(false);
 
   const [isModification, setIsModification] = useState<boolean>(false);
@@ -131,6 +133,11 @@ export default function AddEditElement() {
 
   useEffect(() => {
     if (modifyingElementData && isModification) {
+      if (modifyingElementData.type === elementsType.INPUT) {
+        const option =
+          modifyingElementData.inputType === inputTypes.TEXT ? inputOptions[0] : inputOptions[1];
+        setSelectedInputDropdownOption(option);
+      }
       setElementId(modifyingElementData.id);
       setFieldKey(modifyingElementData.key);
       setName(modifyingElementData.name);
@@ -335,6 +342,7 @@ export default function AddEditElement() {
             setDropdownOptions={setDropdownOptions}
             inputType={inputType}
             setInputType={setInputType}
+            selectedOption={selectedInputDropdownOption}
           />
           <TypeSelection
             selectedTreeType={selectedTreeType}

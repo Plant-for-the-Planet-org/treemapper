@@ -19,8 +19,8 @@ export default function AdditionalData() {
   const navigation = useNavigation();
 
   const renderScene = SceneMap({
-    form: Form,
-    metadata: Metadata,
+    form: () => <Form routeIndex={routeIndex} />,
+    metadata: () => <Metadata routeIndex={routeIndex} />,
   });
   return (
     <SafeAreaView style={styles.mainContainer}>
