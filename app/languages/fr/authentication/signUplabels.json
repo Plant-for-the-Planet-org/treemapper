@@ -17,5 +17,13 @@
   "zipcode": "CODE POSTAL",
   "account_type": "Type de compte",
   "select_country": "Sélectionner un pays",
-  "country": "Pays"
+  "select_role_type": "Sélectionner le type de compte",
+  "enter_first_name": "Entrer votre prénom",
+  "enter_last_name": "Entrer votre nom",
+  "enter_city_name": "Entrer nom de la ville",
+  "enter_zipcode": "Entrer le code postal",
+  "enter_address": "Entrer l'adresse",
+  "enter_organisation_name": "Entrer le nom de l'organisation",
+  "country": "Pays",
+  "change": "Changer"
 }
