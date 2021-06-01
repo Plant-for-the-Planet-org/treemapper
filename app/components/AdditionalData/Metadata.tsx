@@ -183,8 +183,9 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
-    textAlign: 'center',
-    marginTop: 10,
+    textAlign: 'left',
+    marginHorizontal: 20,
+    marginTop: 20,
     marginBottom: 40,
   },
 });

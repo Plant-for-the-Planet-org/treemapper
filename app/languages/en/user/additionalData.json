@@ -31,7 +31,7 @@
     "field_value_required":"Field value is required",
     "field_name_required":"Field name is required",
     "get_started_forms": "Get started with forms",
-    "get_started_forms_description": "This form helps you to collect additional data for each registration.\nYou can customize the form elements based on the tree type i.e. single, multiple or sample.\nYou can also customize it based on location of registration, whether it's off-site or on-site.",
+    "get_started_forms_description": "• This form helps you to collect additional data for each registration.\n• You can customize the form elements based on the tree type i.e. single, multiple or sample.\n• You can also customize it based on location of registration, whether it's off-site or on-site.",
     "gap_element":"Gap Element",
     "form_page":"Page {{pageNo}}",
     "loading_form":"Loading form",
@@ -64,12 +64,13 @@
     "default_value_only_number":"Default value can only be number",
     "create_metadata":"Create metadata",
     "get_started_metadata":"Get started with metadata",
-    "get_started_metadata_description":"Here you can add the data which will be included in all the tree registrations.\nYou can specify the access level for each data whether it can be public or private.",
+    "get_started_metadata_description":"• Here you can add the data which will be included in all the tree registrations.\n• You can specify the access level for each data whether it can be public or private.",
     "invalid_number_input": "Only numbers are allowed",
     "add_metadata": "Add metadata",
     "import_data":"Import",
     "export_data":"Export",
     "export_additional_data_title":"Export TreeMapper Additional Data",
     "export_additional_data_message":"JSON file to easily import your TreeMapper additional data into the app in simple clicks.",
-    "not_able_to_share_additional_data":"Not able to share additional data at the moment."
+    "not_able_to_share_additional_data":"Not able to share additional data at the moment.",
+    "create_form": "Create form"
 }

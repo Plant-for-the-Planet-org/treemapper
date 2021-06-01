@@ -219,6 +219,9 @@ const CheckBoxGroup = ({ title, checkBoxes, toggleCheckBox }: ICheckBoxGroupProp
         {checkBoxes.map((checkBox: any, index: number) => (
           <View style={styles.checkBoxContainer} key={`${checkBox.type}-${index}`}>
             <CheckBox
+              tintColors={{
+                true: Colors.PRIMARY,
+              }}
               disabled={checkBox.isDisabled}
               value={checkBox.isSelected}
               onValueChange={(newValue) => toggleCheckBox(checkBox.type, newValue)}
