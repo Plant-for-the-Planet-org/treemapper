@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {
   deleteMetadataField,
@@ -143,7 +143,6 @@ export default function Metadata({ routeIndex }: IMetadataProps): JSX.Element {
               return <></>;
             }
           }}
-          // scrollEnabled={false}
         />
       )}
     </>

@@ -19,11 +19,20 @@ import Form from './Form';
 import Metadata from './Metadata';
 import Share from 'react-native-share';
 import { toBase64 } from '../../utils/base64';
-import { AlertModal } from '../Common';
+import { AlertModal, Loader } from '../Common';
+import DocumentPicker from 'react-native-document-picker';
+import dbLog from '../../repositories/logs';
+import { LogTypes } from '../../utils/constants';
+import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 
 export default function AdditionalData() {
   const [routeIndex, setRouteIndex] = React.useState(0);
   const [showAlert, setShowAlert] = React.useState<boolean>(false);
+  const [isImportingData, setIsImportingData] = React.useState<boolean>(false);
+  const [alertHeading, setAlertHeading] = React.useState<string>('');
+  const [alertMessage, setAlertMessage] = React.useState<string>('');
+  const [showSecondaryButton, setShowSecondaryButton] = React.useState<boolean>(false);
+
   const [tabRoutes] = React.useState([
     { key: 'form', title: i18next.t('label.additional_data_form') },
     { key: 'metadata', title: i18next.t('label.additional_data_metadata') },
@@ -69,9 +78,62 @@ export default function AdditionalData() {
         saveToFiles: true,
         // failOnCancel: false,
       };
-      Share.open(options).catch(() => setShowAlert(true));
+      Share.open(options).catch((err) => {
+        setAlertHeading(i18next.t('label.something_went_wrong'));
+        setAlertMessage(i18next.t('label.share_additional_data_error'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
+
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Error while sharing additional data`,
+          logStack: JSON.stringify(err),
+        });
+      });
     } else if (option.key === 'import') {
+      const forms: any = await getForms();
+      if (forms && forms.length > 0) {
+        setAlertHeading(i18next.t('label.confirm_wipe_additional_data_import'));
+        setAlertMessage(i18next.t('label.current_additional_data_lost'));
+        setShowSecondaryButton(true);
+        setShowAlert(true);
+      } else {
+        importJsonFile();
+      }
+    }
+  };
+
+  const closeAlertModal = () => setShowAlert(false);
+
+  const importJsonFile = async () => {
+    try {
       // pick json file from file system
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+      });
+      setShowAlert(false);
+      setIsImportingData(true);
+      await readJsonFileAndAddAdditionalData(res);
+      setIsImportingData(false);
+    } catch (err) {
+      setIsImportingData(false);
+      if (err?.message === 'Incorrect JSON file format') {
+        setAlertHeading(i18next.t('label.incorrect_file_format'));
+        setAlertMessage(i18next.t('label.incorrect_format_additional_data_import'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
+      } else if (err?.message !== 'User canceled document picker') {
+        setAlertHeading(i18next.t('label.something_went_wrong'));
+        setAlertMessage(i18next.t('label.import_file_error'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
+
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Failed to import file to add additional data`,
+          logStack: JSON.stringify(err),
+        });
+      }
     }
   };
 
@@ -88,23 +150,29 @@ export default function AdditionalData() {
             )}
           />
         </View>
-        <TabView
-          lazy
-          navigationState={{ index: routeIndex, routes: tabRoutes }}
-          renderScene={renderScene}
-          onIndexChange={setRouteIndex}
-          initialLayout={{ width: layout.width }}
-          renderTabBar={(props) => (
-            <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
-          )}
-        />
+        {isImportingData ? (
+          <Loader isLoaderShow={isImportingData} />
+        ) : (
+          <TabView
+            lazy
+            navigationState={{ index: routeIndex, routes: tabRoutes }}
+            renderScene={renderScene}
+            onIndexChange={setRouteIndex}
+            initialLayout={{ width: layout.width }}
+            renderTabBar={(props) => (
+              <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
+            )}
+          />
+        )}
         <AlertModal
-          heading={i18next.t('label.something_went_wrong')}
-          message={i18next.t('label.not_able_to_share_additional_data')}
-          showSecondaryButton={false}
           visible={showAlert}
-          onPressPrimaryBtn={() => setShowAlert(false)}
-          primaryBtnText={i18next.t('label.ok')}
+          heading={alertHeading}
+          message={alertMessage}
+          primaryBtnText={showSecondaryButton ? i18next.t('label.yes') : i18next.t('label.ok')}
+          onPressPrimaryBtn={showSecondaryButton ? importJsonFile : closeAlertModal}
+          showSecondaryButton={showSecondaryButton}
+          secondaryBtnText={i18next.t('label.cancel')}
+          onPressSecondaryBtn={closeAlertModal}
         />
       </View>
     </SafeAreaView>

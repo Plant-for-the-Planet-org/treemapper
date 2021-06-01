@@ -80,16 +80,8 @@ export const addUpdateElement = ({
   elementProperties,
   typeProperties = null,
   formId,
-  elementIndex,
   isModification,
 }: any) => {
-  console.log({
-    elementProperties,
-    typeProperties,
-    formId,
-    elementIndex,
-    isModification,
-  });
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -116,7 +108,6 @@ export const addUpdateElement = ({
         });
       })
       .catch((err) => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -226,7 +217,7 @@ const getElementData = (formData: any, realm: any, action: string) => {
   return formData;
 };
 
-const getSchemaNameFromType = (elementType: string) => {
+export const getSchemaNameFromType = (elementType: string): string => {
   switch (elementType) {
     case elementsType.DROPDOWN:
       return 'Dropdown';
@@ -253,8 +244,6 @@ export const updateForm = (formData: any) => {
             form.title = formData.title;
           }
 
-          console.log('form', form);
-
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
@@ -264,7 +253,6 @@ export const updateForm = (formData: any) => {
         });
       })
       .catch((err) => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -396,6 +384,97 @@ export const updateMetadata = (metadata: any[]): Promise<boolean> => {
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
           message: 'Error while updating metadata fields',
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const deleteAllAdditionalData = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          const metadata = realm.objects('Metadata');
+          const form = realm.objects('Form');
+          realm.delete(metadata);
+          realm.delete(form);
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.ADDITIONAL_DATA,
+            message: `Deleted all form data and metadata from the app`,
+          });
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Error while deleting all form data and metadata from the app`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const importForm = (formData: any, elementTypeData: any): Promise<boolean> => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          for (const form of formData) {
+            realm.create('Form', form, Realm.UpdateMode.Modified);
+          }
+          for (const elementType of elementTypeData) {
+            realm.create(elementType.schemaName, elementType.typeProps, Realm.UpdateMode.Modified);
+          }
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.ADDITIONAL_DATA,
+            message: `Successfully imported forms data`,
+          });
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Error while importing forms data`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const importMetadata = (metadata: any): Promise<boolean> => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          for (const data of metadata) {
+            realm.create('Metadata', data, Realm.UpdateMode.Modified);
+          }
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.ADDITIONAL_DATA,
+            message: `Successfully imported metadata`,
+          });
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Error while importing metadata`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);

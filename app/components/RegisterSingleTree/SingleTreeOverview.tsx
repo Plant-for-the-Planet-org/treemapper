@@ -174,7 +174,6 @@ const SingleTreeOverview = () => {
                 currentSampleTree.additionalDetails,
                 index,
               );
-              console.log('formattedSampleTreeData', formattedSampleTreeData);
               setFormattedData(formattedSampleTreeData);
 
               setSampleTreeIndex(index);

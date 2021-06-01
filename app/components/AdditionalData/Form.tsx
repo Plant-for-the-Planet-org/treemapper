@@ -89,7 +89,6 @@ export default function Form({ routeIndex }: FormProps): JSX.Element {
     setLoading(true);
     getForms().then((formsData: any) => {
       if (formsData) {
-        console.log('formsdata', JSON.stringify(formsData));
         formsData = sortByField('order', formsData);
         setForms(formsData);
         updateStateFormData(formsData);
