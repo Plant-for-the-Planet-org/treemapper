@@ -23,6 +23,7 @@ import {
   SYNCED,
   MULTI,
 } from '../utils/inventoryConstants';
+import { formatAdditionalDetails } from '../utils/additionalData/functions';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
@@ -116,7 +117,7 @@ export const uploadInventory = (dispatch) => {
         for (let i = 0; i < inventoryData.length; i++) {
           const oneInventory = inventoryData[i];
 
-          let body = getBodyData(oneInventory);
+          let body = await getBodyData(oneInventory);
 
           if (oneInventory.locationId !== null && oneInventory.status === 'uploading') {
             try {
@@ -196,7 +197,7 @@ export const uploadInventory = (dispatch) => {
   });
 };
 
-const getBodyData = (inventory) => {
+const getBodyData = async (inventory) => {
   let coords = inventory.polygons[0].coordinates;
 
   // stores the coordinates of the registered tree(s)
@@ -208,6 +209,11 @@ const getBodyData = (inventory) => {
   // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
   let deviceCoordinatesType = POINT;
   let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
+
+  const metadata = await formatAdditionalDetails(
+    inventory.additionalDetails,
+    inventory.sampleTrees,
+  );
 
   // prepares the body which is to be passed to api
   let body = {
@@ -223,6 +229,7 @@ const getBodyData = (inventory) => {
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
     registrationDate: inventory.registrationDate.toISOString().split('T')[0],
+    metadata,
   };
 
   // if inventory type is scientific species then adds measurements and scientific species to body

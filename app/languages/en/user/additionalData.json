@@ -66,5 +66,10 @@
     "get_started_metadata":"Get started with metadata",
     "get_started_metadata_description":"Here you can add the data which will be included in all the tree registrations.\nYou can specify the access level for each data whether it can be public or private.",
     "invalid_number_input": "Only numbers are allowed",
-    "add_metadata": "Add metadata"
+    "add_metadata": "Add metadata",
+    "import_data":"Import",
+    "export_data":"Export",
+    "export_additional_data_title":"Export TreeMapper Additional Data",
+    "export_additional_data_message":"JSON file to easily import your TreeMapper additional data into the app in simple clicks.",
+    "not_able_to_share_additional_data":"Not able to share additional data at the moment."
 }

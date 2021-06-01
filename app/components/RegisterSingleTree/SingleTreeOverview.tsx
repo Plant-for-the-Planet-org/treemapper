@@ -66,7 +66,10 @@ import { Header, PrimaryButton, InputModal } from '../Common';
 import AlertModal from '../Common/AlertModal';
 import ManageSpecies from '../ManageSpecies';
 import { APIConfig } from '../../actions/Config';
-import { formatAdditionalDetails } from '../../utils/additionalData/functions';
+import {
+  formatAdditionalDetails,
+  formatSampleTreeAdditionalDetails,
+} from '../../utils/additionalData/functions';
 import JSONTree from 'react-native-json-tree';
 import { theme } from '../../utils/additionalData/constants';
 
@@ -166,6 +169,13 @@ const SingleTreeOverview = () => {
               const height = nonISUCountries.includes(data.country)
                 ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
                 : currentSampleTree.specieHeight;
+
+              const formattedSampleTreeData = formatSampleTreeAdditionalDetails(
+                currentSampleTree.additionalDetails,
+                index,
+              );
+              console.log('formattedSampleTreeData', formattedSampleTreeData);
+              setFormattedData(formattedSampleTreeData);
 
               setSampleTreeIndex(index);
               setIsSampleTree(true);

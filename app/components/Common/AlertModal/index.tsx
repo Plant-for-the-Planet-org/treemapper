@@ -3,16 +3,27 @@ import { View, Text, Modal, StyleSheet } from 'react-native';
 import { Colors, Typography } from '_styles';
 import FlatButton from '../FlatButton';
 
+interface IAlertModalProps {
+  visible: boolean;
+  heading: string;
+  message?: string;
+  primaryBtnText: string;
+  onPressPrimaryBtn: any;
+  showSecondaryButton?: boolean;
+  secondaryBtnText?: string;
+  onPressSecondaryBtn?: any;
+}
+
 const AlertModal = ({
   visible,
   heading,
   message,
   primaryBtnText,
-  secondaryBtnText,
   onPressPrimaryBtn,
+  showSecondaryButton = true,
+  secondaryBtnText,
   onPressSecondaryBtn,
-  showSecondaryButton,
-}) => {
+}: IAlertModalProps) => {
   return (
     <Modal visible={visible} transparent>
       <View style={styles.container}>

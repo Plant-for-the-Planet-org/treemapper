@@ -16,6 +16,10 @@ import { Colors, Typography } from '../../styles';
 import { elementsType } from '../../utils/additionalData/constants';
 import { Header } from '../Common';
 
+import MCIIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import IconSwitcher from '../Common/IconSwitcher';
+
 type RootStackParamList = {
   SelectElement: { formId: string; formOrder: number };
 };
@@ -25,38 +29,38 @@ type SelectElementScreenRouteProp = RouteProp<RootStackParamList, 'SelectElement
 const containerWidth = (Dimensions.get('window').width - 75) / 2;
 const elements = [
   {
-    icon: 'input',
-    iconType: 'icon',
+    icon: 'form-textbox',
+    iconType: 'MCIIcon',
     name: 'input',
     type: elementsType.INPUT,
   },
   {
-    icon: 'yesNo',
-    iconType: 'icon',
+    icon: 'toggle-on',
+    iconType: 'FA5Icon',
     name: 'yes_no',
     type: elementsType.YES_NO,
   },
   {
-    icon: 'gap',
-    iconType: 'icon',
+    icon: 'format-line-spacing',
+    iconType: 'MCIIcon',
     name: 'gap',
     type: elementsType.GAP,
   },
   {
-    icon: 'dropdown',
-    iconType: 'icon',
+    icon: 'form-dropdown',
+    iconType: 'MCIIcon',
     name: 'dropdown',
     type: elementsType.DROPDOWN,
   },
   {
     icon: 'heading',
-    iconType: 'icon',
+    iconType: 'FA5Icon',
     name: 'heading',
     type: elementsType.HEADING,
   },
   {
-    icon: 'page',
-    iconType: 'icon',
+    icon: 'file-alt',
+    iconType: 'FA5Icon',
     name: 'page',
     type: elementsType.PAGE,
   },
@@ -100,6 +104,13 @@ const SelectElement = () => {
               onPress={() => handleElementPress(element.type)}
               key={`Element-${index}`}
               style={styles.elementShadowContainer}>
+              <IconSwitcher
+                name={element.icon}
+                size={44}
+                color={Colors.TEXT_COLOR}
+                style={{ marginBottom: 20 }}
+                iconType={element.iconType}
+              />
               <Text style={styles.name}>{i18next.t(`label.${element.name}`)}</Text>
             </TouchableOpacity>
           ))}
@@ -116,37 +127,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  // elementContainer: {
-  //   padding: 20,
-  //   borderWidth: 2,
-  //   borderRadius: 8,
-  //   borderStyle: 'dashed',
-  //   borderColor: Colors.TEXT_COLOR,
-  //   backgroundColor: Colors.WHITE,
-  //   alignItems: 'center',
-  //   flex: 1,
-  // },
-  elementShadowContainer: {
-    borderRadius: 8,
-    elevation: 5,
-    marginTop: 25,
-    height: 120,
-    width: containerWidth,
-    backgroundColor: Colors.WHITE,
-    padding: 20,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: Colors.TEXT_COLOR,
-    alignItems: 'center',
-  },
   elementParent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     padding: 25,
   },
+  elementShadowContainer: {
+    borderRadius: 8,
+    elevation: 5,
+    marginTop: 25,
+    height: 140,
+    width: containerWidth,
+    backgroundColor: Colors.WHITE,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Colors.TEXT_COLOR,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
   name: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
   },
 });
