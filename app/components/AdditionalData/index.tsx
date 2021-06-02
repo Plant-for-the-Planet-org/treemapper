@@ -1,39 +1,59 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import DocumentPicker from 'react-native-document-picker';
+import Share from 'react-native-share';
 import { SceneMap, TabView } from 'react-native-tab-view';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { getForms, getMetadata } from '../../repositories/additionalData';
+import { addForm, getForms, getMetadata, updateMetadata } from '../../repositories/additionalData';
+import dbLog from '../../repositories/logs';
 import { Colors, Typography } from '../../styles';
+import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
+import { toBase64 } from '../../utils/base64';
+import { LogTypes } from '../../utils/constants';
+import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
+import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
+import { AlertModal, Loader } from '../Common';
 import CustomTabBar from '../Common/CustomTabBar';
 import Header from '../Common/Header';
 import MenuOptions, { OptionsType } from '../Common/MenuOptions';
 import Form from './Form';
 import Metadata from './Metadata';
-import Share from 'react-native-share';
-import { toBase64 } from '../../utils/base64';
-import { AlertModal, Loader } from '../Common';
-import DocumentPicker from 'react-native-document-picker';
-import dbLog from '../../repositories/logs';
-import { LogTypes } from '../../utils/constants';
-import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 
 export default function AdditionalData() {
-  const [routeIndex, setRouteIndex] = React.useState(0);
-  const [showAlert, setShowAlert] = React.useState<boolean>(false);
-  const [isImportingData, setIsImportingData] = React.useState<boolean>(false);
-  const [alertHeading, setAlertHeading] = React.useState<string>('');
-  const [alertMessage, setAlertMessage] = React.useState<string>('');
-  const [showSecondaryButton, setShowSecondaryButton] = React.useState<boolean>(false);
+  const initialTreeTypeOptions = [
+    { key: 'all', disabled: false, value: i18next.t('label.all') },
+    { key: SINGLE, disabled: false, value: i18next.t('label.single') },
+    { key: MULTI, disabled: false, value: i18next.t('label.multiple') },
+    { key: SAMPLE, disabled: false, value: i18next.t('label.sample') },
+  ];
 
-  const [tabRoutes] = React.useState([
+  const initialRegistrationTypeOptions = [
+    { key: 'all', disabled: false, value: i18next.t('label.all') },
+    { key: ON_SITE, disabled: false, value: i18next.t('label.on_site') },
+    { key: OFF_SITE, disabled: false, value: i18next.t('label.off_site') },
+    // { type: 'REVIEW', disabled:false,value: i18next.t('label.review') },
+  ];
+
+  const [routeIndex, setRouteIndex] = useState(0);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [isImportingData, setIsImportingData] = useState<boolean>(false);
+  const [alertHeading, setAlertHeading] = useState<string>('');
+  const [alertMessage, setAlertMessage] = useState<string>('');
+  const [showSecondaryButton, setShowSecondaryButton] = useState<boolean>(false);
+  const [forms, setForms] = useState<any>([]);
+  const [filteredForm, setFilteredForm] = useState<any>([]);
+  const [treeTypeOptions, setTreeTypeOptions] = useState<any>(initialTreeTypeOptions);
+  const [registrationTypeOptions] = useState<any>(initialRegistrationTypeOptions);
+  const [registrationType, setRegistrationType] = useState<string>('all');
+  const [treeType, setTreeType] = useState<string>('all');
+  const [selectedTreeOption, setSelectedTreeOption] = useState<any>();
+  const [formLoading, setFormLoading] = useState<boolean>(true);
+  const [metadataLoading, setMetadataLoading] = useState<boolean>(true);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [metadata, setMetadata] = useState<any>([]);
+
+  const [tabRoutes] = useState([
     { key: 'form', title: i18next.t('label.additional_data_form') },
     { key: 'metadata', title: i18next.t('label.additional_data_metadata') },
   ]);
@@ -55,18 +75,106 @@ export default function AdditionalData() {
     },
   ];
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (isInitialLoading) {
+        addFormsToState();
+        addMetadataInState();
+        setIsInitialLoading(false);
+      } else {
+        if (routeIndex === 0) {
+          addFormsToState();
+        } else if (routeIndex === 1) {
+          addMetadataInState();
+        }
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (registrationType === OFF_SITE) {
+      let treeOptions = initialTreeTypeOptions;
+      const lastIndex = treeOptions.length - 1;
+      treeOptions[lastIndex] = { ...treeOptions[lastIndex], disabled: true };
+      setTreeTypeOptions(treeOptions);
+      if (treeType === SAMPLE) {
+        setSelectedTreeOption(treeOptions[0]);
+        setTreeType('all');
+      }
+    } else {
+      setTreeTypeOptions(initialTreeTypeOptions);
+    }
+    updateStateFormData(JSON.parse(JSON.stringify(forms)));
+  }, [treeType, registrationType]);
+
+  const updateStateFormData = (formsData: any) => {
+    formsData = filterFormByTreeAndRegistrationType(formsData, treeType, registrationType);
+    setFilteredForm(formsData);
+  };
+
+  const addFormsToState = () => {
+    setFormLoading(true);
+    getForms().then((formsData: any) => {
+      if (formsData) {
+        formsData = sortByField('order', formsData);
+        setForms(formsData);
+        updateStateFormData(formsData);
+      }
+      setFormLoading(false);
+    });
+  };
+
+  const addMetadataInState = () => {
+    setMetadataLoading(true);
+    getMetadata().then((data: any) => {
+      if (data) {
+        setMetadata(sortByField('order', data));
+      }
+      setMetadataLoading(false);
+    });
+  };
+
+  const updateMetadataOrder = async (updatedMetadata: any) => {
+    await updateMetadata(updatedMetadata).then((success: boolean) => {
+      if (success) {
+        addMetadataInState();
+      }
+    });
+  };
+
+  const addNewForm = async () => {
+    await addForm({ order: Array.isArray(filteredForm) ? filteredForm.length + 1 : 1 });
+    addFormsToState();
+  };
+
   const renderScene = SceneMap({
-    form: () => <Form routeIndex={routeIndex} />,
-    metadata: () => <Metadata routeIndex={routeIndex} />,
+    form: () => (
+      <Form
+        {...{
+          filteredForm,
+          addFormsToState,
+          loading: formLoading,
+          registrationTypeOptions,
+          setRegistrationType,
+          treeTypeOptions,
+          setTreeType,
+          selectedTreeOption,
+          addNewForm,
+        }}
+      />
+    ),
+    metadata: () => (
+      <Metadata
+        {...{ metadata, updateMetadataOrder, addMetadataInState, loading: metadataLoading }}
+      />
+    ),
   });
 
   const handleImportExport = async (option: OptionsType) => {
     if (option.key === 'export') {
-      const formData = await getForms();
-      const metadata = await getMetadata();
-
       const exportData = {
-        formData,
+        formData: forms,
         metadata,
       };
 
@@ -76,7 +184,7 @@ export default function AdditionalData() {
         title: i18next.t('label.export_additional_data_title'),
         filename: `TreeMapper-Additional-Data`,
         saveToFiles: true,
-        // failOnCancel: false,
+        failOnCancel: false,
       };
       Share.open(options).catch((err) => {
         setAlertHeading(i18next.t('label.something_went_wrong'));
@@ -91,7 +199,6 @@ export default function AdditionalData() {
         });
       });
     } else if (option.key === 'import') {
-      const forms: any = await getForms();
       if (forms && forms.length > 0) {
         setAlertHeading(i18next.t('label.confirm_wipe_additional_data_import'));
         setAlertMessage(i18next.t('label.current_additional_data_lost'));
@@ -116,6 +223,7 @@ export default function AdditionalData() {
       await readJsonFileAndAddAdditionalData(res);
       setIsImportingData(false);
     } catch (err) {
+      setShowAlert(false);
       setIsImportingData(false);
       if (err?.message === 'Incorrect JSON file format') {
         setAlertHeading(i18next.t('label.incorrect_file_format'));
@@ -154,7 +262,6 @@ export default function AdditionalData() {
           <Loader isLoaderShow={isImportingData} />
         ) : (
           <TabView
-            lazy
             navigationState={{ index: routeIndex, routes: tabRoutes }}
             renderScene={renderScene}
             onIndexChange={setRouteIndex}

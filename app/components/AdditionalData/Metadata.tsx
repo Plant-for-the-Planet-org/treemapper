@@ -18,48 +18,23 @@ import AdditionalDataButton from './AdditionalDataButton';
 import KeyValueInput from './KeyValueInput';
 
 interface IMetadataProps {
-  routeIndex: number;
+  metadata: any;
+  updateMetadataOrder: any;
+  addMetadataInState: any;
+  loading: boolean;
 }
 
 const { width } = Dimensions.get('window');
 
-export default function Metadata({ routeIndex }: IMetadataProps): JSX.Element {
-  const [metadata, setMetadata] = useState<any>([]);
+export default function Metadata({
+  metadata,
+  updateMetadataOrder,
+  addMetadataInState,
+  loading,
+}: IMetadataProps): JSX.Element {
   const [dragging, setDragging] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (routeIndex === 1) {
-        addMetadataInState();
-      }
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    addMetadataInState();
-  }, []);
-
-  const addMetadataInState = () => {
-    setLoading(true);
-    getMetadata().then((data: any) => {
-      if (data) {
-        setMetadata(sortByField('order', data));
-      }
-      setLoading(false);
-    });
-  };
-
-  const updateMetadataOrder = async (updatedMetadata: any) => {
-    await updateMetadata(updatedMetadata).then((success: boolean) => {
-      if (success) {
-        addMetadataInState();
-      }
-    });
-  };
 
   const onSwipe = (fieldId: string = '') => {
     deleteMetadataField(fieldId).then((success) => {
