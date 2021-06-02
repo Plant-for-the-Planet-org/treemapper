@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import FeatherIcon from 'react-native-vector-icons/Feather';
@@ -24,6 +24,8 @@ interface IPageProps {
   deleteElement: (elementIndex: any) => void;
   reloadForm: () => void;
 }
+
+const { width } = Dimensions.get('window');
 
 export default function Page({
   pageNo,
@@ -120,6 +122,7 @@ export default function Page({
         ListFooterComponent={() => (
           <AdditionalDataButton handleButtonPress={handleButtonPress} style={styles.marginLeft8} />
         )}
+        dragHitSlop={{ right: -width + 50 + 36 }}
       />
       <InputModal
         isOpenModal={showInputModal}

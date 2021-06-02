@@ -100,7 +100,11 @@ export default function SwipeDeleteRow({
         </TouchableWithoutFeedback>
       </View>
 
-      <PanGestureHandler {...gestureHandler} enabled={!dragging}>
+      <PanGestureHandler
+        {...gestureHandler}
+        enabled={!dragging}
+        activeOffsetX={[-10, 10]}
+        failOffsetY={[-10, 10]}>
         <Animated.View style={{ transform: [{ translateX }] }}>
           <View style={[styles.contentContainer]}>
             {isDraggable ? (

@@ -162,6 +162,7 @@ export default function AdditionalData() {
             renderTabBar={(props) => (
               <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
             )}
+            swipeEnabled={false}
           />
         )}
         <AlertModal

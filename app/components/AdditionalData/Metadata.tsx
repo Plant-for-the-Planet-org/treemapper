@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {
   deleteMetadataField,
@@ -20,6 +20,8 @@ import KeyValueInput from './KeyValueInput';
 interface IMetadataProps {
   routeIndex: number;
 }
+
+const { width } = Dimensions.get('window');
 
 export default function Metadata({ routeIndex }: IMetadataProps): JSX.Element {
   const [metadata, setMetadata] = useState<any>([]);
@@ -124,6 +126,7 @@ export default function Metadata({ routeIndex }: IMetadataProps): JSX.Element {
               </SwipeDeleteRow>
             </View>
           )}
+          dragHitSlop={{ right: -width + 50 + 36 }}
           keyExtractor={(item: any) => `metadata-field-${item.id}`}
           onDragEnd={({ data }) => updateMetadataOrder(data)}
           ListFooterComponent={() => {
