@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { PermissionsAndroid, Platform, SafeAreaView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Alert, PermissionsAndroid, Platform, SafeAreaView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import Share from 'react-native-share';
 import { SceneMap, TabView } from 'react-native-tab-view';
