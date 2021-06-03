@@ -71,6 +71,7 @@
     "export_data":"Export",
     "export_additional_data_title":"Export TreeMapper Additional Data",
     "export_additional_data_message":"JSON file to easily import your TreeMapper additional data into the app in simple clicks.",
+    "share_additional_data_success":"Additional data file was successfully shared.",
     "share_additional_data_error":"Not able to share additional data at the moment.",
     "create_form": "Create form",
     "import_file_error":"Unable to import file at the moment.",

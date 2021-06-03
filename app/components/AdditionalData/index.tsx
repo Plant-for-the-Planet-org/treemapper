@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { PermissionsAndroid, Platform, SafeAreaView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import Share from 'react-native-share';
 import { SceneMap, TabView } from 'react-native-tab-view';
@@ -9,14 +9,15 @@ import { addForm, getForms, getMetadata, updateMetadata } from '../../repositori
 import dbLog from '../../repositories/logs';
 import { Colors, Typography } from '../../styles';
 import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
+import { bugsnag } from '../../utils';
 import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
 import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
-import { AlertModal, Loader } from '../Common';
+import { AlertModal, LargeButton, Loader } from '../Common';
 import CustomTabBar from '../Common/CustomTabBar';
 import Header from '../Common/Header';
-import MenuOptions, { OptionsType } from '../Common/MenuOptions';
+import MenuOptions from '../Common/MenuOptions';
 import Form from './Form';
 import Metadata from './Metadata';
 
@@ -171,8 +172,35 @@ export default function AdditionalData() {
     ),
   });
 
-  const handleImportExport = async (option: OptionsType) => {
-    if (option.key === 'export') {
+  const askAndroidStoragePermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: i18next.t('label.storage_permission_android_title'),
+          message: i18next.t('label.storage_permission_android_message'),
+          buttonPositive: i18next.t('label.permission_camera_ok'),
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        return true;
+      } else {
+        Alert.alert(
+          i18next.t('label.storage_permission_denied_header'),
+          i18next.t('label.storage_permission_denied_sub_header'),
+        );
+        return false;
+      }
+    } catch (err) {
+      bugsnag.notify(err);
+      return false;
+    }
+  };
+
+  const handleImportExport = async (optionKey: String) => {
+    console.log(optionKey);
+
+    const exportAdditionalData = () => {
       const exportData = {
         formData: forms,
         metadata,
@@ -186,19 +214,34 @@ export default function AdditionalData() {
         saveToFiles: true,
         failOnCancel: false,
       };
-      Share.open(options).catch((err) => {
-        setAlertHeading(i18next.t('label.something_went_wrong'));
-        setAlertMessage(i18next.t('label.share_additional_data_error'));
-        setShowSecondaryButton(false);
-        setShowAlert(true);
+      Share.open(options)
+        .then(() => {
+          alert(i18next.t('label.share_additional_data_success'));
+        })
+        .catch((err) => {
+          setAlertHeading(i18next.t('label.something_went_wrong'));
+          setAlertMessage(i18next.t('label.share_additional_data_error'));
+          setShowSecondaryButton(false);
+          setShowAlert(true);
 
-        dbLog.error({
-          logType: LogTypes.ADDITIONAL_DATA,
-          message: `Error while sharing additional data`,
-          logStack: JSON.stringify(err),
-        });
+          dbLog.error({
+            logType: LogTypes.ADDITIONAL_DATA,
+            message: `Error while sharing additional data`,
+            logStack: JSON.stringify(err),
+          });
       });
-    } else if (option.key === 'import') {
+    };
+
+    if (optionKey === 'export') {
+      if (Platform.OS == 'android') {
+        const permissionResult = await askAndroidStoragePermission();
+        if (permissionResult) {
+          exportAdditionalData();
+        }
+      } else {
+        exportAdditionalData();
+      }
+    } else if (optionKey === 'import') {
       if (forms && forms.length > 0) {
         setAlertHeading(i18next.t('label.confirm_wipe_additional_data_import'));
         setAlertMessage(i18next.t('label.current_additional_data_lost'));
@@ -209,8 +252,6 @@ export default function AdditionalData() {
       }
     }
   };
-
-  const closeAlertModal = () => setShowAlert(false);
 
   const importJsonFile = async () => {
     try {
@@ -245,6 +286,8 @@ export default function AdditionalData() {
     }
   };
 
+  const closeAlertModal = () => setShowAlert(false);
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={{ flex: 1 }}>
@@ -256,6 +299,18 @@ export default function AdditionalData() {
             TitleRightComponent={() => (
               <MenuOptions options={options} onOptionPress={handleImportExport} />
             )}
+          />
+          <LargeButton
+            onPress={() => handleImportExport('export')}
+            heading={i18next.t('label.export_data')}
+            active={false}
+            medium
+          />
+          <LargeButton
+            onPress={() => handleImportExport('import')}
+            heading={i18next.t('label.import_data')}
+            active={false}
+            medium
           />
         </View>
         {isImportingData ? (

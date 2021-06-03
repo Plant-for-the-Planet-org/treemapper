@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Menu, { MenuItem } from 'react-native-material-menu';
 import { Colors, Typography } from '../../../styles';
@@ -21,6 +21,7 @@ interface IMenuOptionsProps {
 }
 
 const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsProps) => {
+  const [optionKey, setOptionKey] = useState<string>('');
   const menuRef = useRef<any>();
 
   const showMenu = () => {
@@ -29,9 +30,10 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
     }
   };
 
-  const hideMenu = () => {
+  const hideMenu = (key) => {
     if (menuRef?.current?.hide) {
       menuRef.current.hide();
+      setOptionKey(key);
     }
   };
 
@@ -39,6 +41,9 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
     <View style={[containerStyle]}>
       <Menu
         ref={menuRef}
+        onHidden={() => {
+          onOptionPress(optionKey);
+        }}
         button={
           <TouchableOpacity onPress={showMenu} style={{ padding: 10 }}>
             <IconSwitcher
@@ -55,8 +60,7 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
             disabled={option.disabled}
             style={styles.option}
             onPress={() => {
-              onOptionPress(option);
-              hideMenu();
+              hideMenu(option.key);
             }}>
             <IconSwitcher
               iconType={option.iconType}
