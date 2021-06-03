@@ -14,7 +14,7 @@ import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
 import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
-import { AlertModal, LargeButton, Loader } from '../Common';
+import { AlertModal, Loader } from '../Common';
 import CustomTabBar from '../Common/CustomTabBar';
 import Header from '../Common/Header';
 import MenuOptions from '../Common/MenuOptions';
@@ -299,18 +299,6 @@ export default function AdditionalData() {
             TitleRightComponent={() => (
               <MenuOptions options={options} onOptionPress={handleImportExport} />
             )}
-          />
-          <LargeButton
-            onPress={() => handleImportExport('export')}
-            heading={i18next.t('label.export_data')}
-            active={false}
-            medium
-          />
-          <LargeButton
-            onPress={() => handleImportExport('import')}
-            heading={i18next.t('label.import_data')}
-            active={false}
-            medium
           />
         </View>
         {isImportingData ? (
