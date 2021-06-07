@@ -81,7 +81,7 @@ const inventoryReducer = (state = initialState, action) => {
     }
 
     case UPDATE_PROGRESS_COUNT: {
-      let count = state.progressCount;
+      let count;
       if (action.payload === 'increment') {
         count = state.progressCount + 1;
       } else if (action.payload === 'decrement') {

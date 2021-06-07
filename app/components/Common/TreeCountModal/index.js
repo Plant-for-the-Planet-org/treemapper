@@ -16,7 +16,6 @@ import { Colors, CommonStyles } from '_styles';
 import { species_default } from '../../../assets';
 import { Header } from '../';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function TreeCountModal({
   showTreeCountModal,

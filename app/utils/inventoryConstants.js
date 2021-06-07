@@ -23,12 +23,6 @@ export const PENDING_SAMPLE_TREES_UPLOAD = 'PENDING_SAMPLE_TREES_UPLOAD';
 // used as status to mark that the inventory is synced
 export const SYNCED = 'SYNCED';
 
-// export const PENDING_DATA_UPLOAD = 'pending';
-
-// export const SYNCED = 'complete';
-
-// export const PENDING_IMAGE_UPLOAD = 'uploading';
-
 /* === Inventory registration statuses - ENDS === */
 
 /* ========================================================= *\

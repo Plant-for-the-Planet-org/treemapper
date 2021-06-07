@@ -40,14 +40,12 @@ const SpecieInfo = ({ route }) => {
   const [specieId, setSpecieId] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [editEnable, setEditEnable] = useState('');
-  const [previousScreen, setPreviousScreen] = useState('');
   const { state: specieState, dispatch } = useContext(SpeciesContext);
 
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    setPreviousScreen(route.params.screen);
     screen = route.params.screen;
     if (specieState.specie) {
       const { specie } = specieState;

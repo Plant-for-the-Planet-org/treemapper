@@ -57,7 +57,6 @@ const TreeInventory = ({ navigation }) => {
   useEffect(() => {
     if (state.isUploading) {
       filteredInventories();
-      // renderInventory();
     }
   }, [state.uploadCount, state.isUploading, state.pendingCount, state.progressCount]);
 

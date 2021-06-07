@@ -11,8 +11,6 @@ import {
   SINGLE,
   SYNCED,
   PENDING_DATA_UPLOAD,
-  PENDING_SAMPLE_TREES_UPLOAD,
-  PENDING_IMAGE_UPLOAD,
   DATA_UPLOAD_START,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
