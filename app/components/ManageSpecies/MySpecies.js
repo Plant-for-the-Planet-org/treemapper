@@ -41,11 +41,11 @@ const MySpecies = ({
             } else if (registrationType === SINGLE && !editOnlySpecieName) {
               onPressSpeciesSingle(item);
             }
-          } else if (screen !== 'SelectSpecies') {
+          } else if (screen === 'ManageSpecies') {
             navigateToSpecieInfo(item);
           }
         }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ paddingRight: 18 }}>
           {item.image ? (
             <Image
               source={{
@@ -61,7 +61,6 @@ const MySpecies = ({
                 resizeMode: 'contain',
                 width: 100,
                 height: 80,
-                // backgroundColor: Colors.TEXT_COLOR,
               }}
             />
           )}

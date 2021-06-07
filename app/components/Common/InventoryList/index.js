@@ -10,6 +10,7 @@ import {
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
   SINGLE,
+  SYNCED,
 } from '../../../utils/inventoryConstants';
 
 export default function InventoryList({ inventoryList, accessibilityLabel }) {
@@ -96,9 +97,9 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
               icon={
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
-                  : item.status === 'pending'
-                    ? 'cloud-outline'
-                    : 'cloud-check'
+                  : item.status === SYNCED
+                    ? 'cloud-check'
+                    : 'cloud-outline'
               }
               data={data}
             />

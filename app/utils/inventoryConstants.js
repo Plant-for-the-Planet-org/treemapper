@@ -11,6 +11,9 @@ export const INCOMPLETE_SAMPLE_TREE = 'INCOMPLETE_SAMPLE_TREE';
 // used as status when data upload is pending.
 export const PENDING_DATA_UPLOAD = 'PENDING_DATA_UPLOAD';
 
+// used as status when data upload is started.
+export const DATA_UPLOAD_START = 'DATA_UPLOAD_START';
+
 // used as status when image upload of inventory is pending.
 export const PENDING_IMAGE_UPLOAD = 'PENDING_IMAGE_UPLOAD';
 
@@ -60,3 +63,7 @@ export const POLYGON = 'Polygon';
 export const POINT = 'Point';
 
 /* === Marked coordinates type - ENDS === */
+
+export const INCREMENT = 'increment';
+
+export const DECREMENT = 'decrement';

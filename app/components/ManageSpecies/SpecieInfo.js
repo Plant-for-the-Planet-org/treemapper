@@ -27,6 +27,8 @@ import { Camera, Header } from '../Common';
 import { updateSpecieData } from './../../repositories/species';
 import InputModal from '../Common/InputModal';
 
+let screen;
+
 const SpecieInfo = ({ route }) => {
   const [isCamera, setIsCamera] = useState(false);
   const [aliases, setAliases] = useState('');
@@ -44,6 +46,7 @@ const SpecieInfo = ({ route }) => {
   const isFocused = useIsFocused();
 
   useEffect(() => {
+    screen = route.params.screen;
     if (specieState.specie) {
       const { specie } = specieState;
       setAliases(specie.aliases);
@@ -148,10 +151,9 @@ const SpecieInfo = ({ route }) => {
                 <TouchableOpacity
                   style={styles.emptyImageContainer}
                   onPress={() => setIsCamera(true)}>
-                  <View>
+                  <View style={{ alignItems: 'center' }}>
                     <Ionicons
                       name={'md-cloud-upload-outline'}
-                      style={styles.uploadIcon}
                       size={80}
                       color={Colors.GRAY_LIGHTEST}
                     />

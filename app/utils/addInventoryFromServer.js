@@ -13,7 +13,7 @@ export const addInventoryFromServer = () => {
     );
     exceptSampleTrees = allInventoryFromServer[0];
     allSampleTrees = allInventoryFromServer[1];
-    getInventoryByStatus('complete')
+    getInventoryByStatus('all')
       .then((allInventory) => {
         console.log(allInventory.length, 'allInventory');
 
