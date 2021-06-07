@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Hochladen ...........",
   "tree_inventory_left_text": "Ausstehender Upload",
+  "tree_inventory_left_text_uploading": "Upload läuft",
   "tree_inventory_right_text": "Jetzt hochladen",
   "tree_inventory_view_upload": "Zeige hochgeladene Elemente",
   "tree_inventory_incomplete_registrations": "Unvollständige Registrierungen",
