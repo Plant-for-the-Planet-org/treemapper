@@ -42,6 +42,7 @@ export default function Map({
   markerText,
   activePolygonIndex,
   alphabets,
+  setLocation
 }) {
   let shouldRenderShape = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
 
@@ -78,7 +79,7 @@ export default function Map({
           </MapboxGL.ShapeSource>
         )}
         {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={updateCurrentPosition} />
+          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data)=>setLocation(data)} />
         )}
       </MapboxGL.MapView>
 
