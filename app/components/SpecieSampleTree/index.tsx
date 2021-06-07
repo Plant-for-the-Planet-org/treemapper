@@ -8,9 +8,8 @@ import { useRoute, CommonActions } from '@react-navigation/native';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
+import { getInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { updateSampleTree } from '../../utils/updateSampleTree';
 
 interface SpecieSampleTreeProps {
   notSampledSpecies?: string[];
@@ -85,19 +84,18 @@ const SpecieSampleTree = () => {
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <TopRightBackground />
           <View style={{ paddingHorizontal: 25 }}>
-            <Header headingText={i18next.t('label.total_trees_header')} />
+            <Header headingText={i18next.t('label.add_sample_tree')} />
           </View>
 
           {/* container for description of what sample trees are and how to proceed */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
-              {i18next.t('label.add_all_trees_planted_on_site')}
+              {i18next.t('label.select_species_and_add_sample')}
             </Text>
           </View>
           {speciesToSample.map((specie, index) => (
             <TouchableOpacity
               onPress={() => {
-                console.log(specie, '=================specie==================');
                 onPressSpecie(specie);
               }}>
               <SpecieListItem item={specie} index={index} key={index} />
