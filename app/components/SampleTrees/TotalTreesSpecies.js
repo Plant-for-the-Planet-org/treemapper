@@ -199,49 +199,49 @@ export default function TotalTreesSpecies() {
     }
   };
 
-  const SpecieListItem = ({ item, index }) => {
-    return (
-      <View
-        key={index}
-        style={{
-          paddingVertical: 20,
-          marginHorizontal: 25,
-          borderBottomWidth: 1,
-          borderColor: '#E1E0E061',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-        <View>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_16,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
-              color: Colors.TEXT_COLOR,
-            }}>
-            {item.aliases}
-          </Text>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_18,
-              fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-              marginTop: 10,
-              color: Colors.TEXT_COLOR,
-            }}>
-            {item.treeCount}{' '}
-            {item.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
-          </Text>
-        </View>
-        {item.guid !== 'unknown' ? (
-          <TouchableOpacity onPress={() => deleteSpecie(index)}>
-            <FAIcon name="minus-circle" size={20} color="#e74c3c" />
-          </TouchableOpacity>
-        ) : (
-          []
-        )}
-      </View>
-    );
-  };
+  // const SpecieListItem = ({ item, index }) => {
+  //   return (
+  //     <View
+  //       key={index}
+  //       style={{
+  //         paddingVertical: 20,
+  //         marginHorizontal: 25,
+  //         borderBottomWidth: 1,
+  //         borderColor: '#E1E0E061',
+  //         flexDirection: 'row',
+  //         alignItems: 'center',
+  //         justifyContent: 'space-between',
+  //       }}>
+  //       <View>
+  //         <Text
+  //           style={{
+  //             fontSize: Typography.FONT_SIZE_16,
+  //             fontFamily: Typography.FONT_FAMILY_REGULAR,
+  //             color: Colors.TEXT_COLOR,
+  //           }}>
+  //           {item.aliases}
+  //         </Text>
+  //         <Text
+  //           style={{
+  //             fontSize: Typography.FONT_SIZE_18,
+  //             fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+  //             marginTop: 10,
+  //             color: Colors.TEXT_COLOR,
+  //           }}>
+  //           {item.treeCount}{' '}
+  //           {item.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
+  //         </Text>
+  //       </View>
+  //       {item.guid !== 'unknown' ? (
+  //         <TouchableOpacity onPress={() => deleteSpecie(index)}>
+  //           <FAIcon name="minus-circle" size={20} color="#e74c3c" />
+  //         </TouchableOpacity>
+  //       ) : (
+  //         []
+  //       )}
+  //     </View>
+  //   );
+  // };
 
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
@@ -299,7 +299,12 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem item={specie} index={index} key={index} />
+              <SpecieListItem
+                item={specie}
+                index={index}
+                key={index}
+                deleteSpecie={deleteSpecie}
+              />
             ))
             : renderMapView()}
         </ScrollView>
@@ -333,6 +338,50 @@ export default function TotalTreesSpecies() {
     </SafeAreaView>
   );
 }
+
+export const SpecieListItem = ({ item, index, deleteSpecie }) => {
+  return (
+    <View
+      key={index}
+      style={{
+        paddingVertical: 20,
+        marginHorizontal: 25,
+        borderBottomWidth: 1,
+        borderColor: '#E1E0E061',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+      <View>
+        <Text
+          style={{
+            fontSize: Typography.FONT_SIZE_16,
+            fontFamily: Typography.FONT_FAMILY_REGULAR,
+            color: Colors.TEXT_COLOR,
+          }}>
+          {item?.aliases ? item.aliases : []}
+        </Text>
+        <Text
+          style={{
+            fontSize: Typography.FONT_SIZE_18,
+            fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+            marginTop: 10,
+            color: Colors.TEXT_COLOR,
+          }}>
+          {item?.treeCount}{' '}
+          {item?.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
+        </Text>
+      </View>
+      {item?.guid !== 'unknown' && deleteSpecie ? (
+        <TouchableOpacity onPress={() => deleteSpecie(index)}>
+          <FAIcon name="minus-circle" size={20} color="#e74c3c" />
+        </TouchableOpacity>
+      ) : (
+        []
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

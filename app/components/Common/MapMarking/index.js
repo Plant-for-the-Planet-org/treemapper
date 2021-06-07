@@ -53,6 +53,8 @@ export default function MapMarking({
   setIsCompletePolygon,
   multipleLocateTree,
   isPointForMultipleTree,
+  specieId,
+  specieName,
 }) {
   const [showAlrightyModal, setShowAlrightyModal] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
@@ -433,15 +435,30 @@ export default function MapMarking({
     const inventoryID = inventoryState.inventoryID;
 
     if (treeType === SAMPLE) {
+      let sampleTrees = [...inventory.sampleTrees];
+
+      if (
+        specieId &&
+        specieName &&
+        inventory.sampleTreesCount == inventory.completedSampleTreesCount
+      ) {
+        await updateInventory({
+          inventory_id: inventoryState.inventoryID,
+          inventoryData: {
+            sampleTreesCount: inventory.sampleTreesCount + 1,
+          },
+        });
+      }
       let data = {
         latitude: centerCoordinates[1],
         longitude: centerCoordinates[0],
         deviceLatitude: currentCoords[0],
         deviceLongitude: currentCoords[1],
         plantationDate: new Date(),
+        specieId,
+        specieName,
       };
 
-      let sampleTrees = [...inventory.sampleTrees];
       if (sampleTrees[inventory.completedSampleTreesCount]) {
         sampleTrees[inventory.completedSampleTreesCount] = data;
       } else {
@@ -467,6 +484,11 @@ export default function MapMarking({
           },
         })
           .then(() => {
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'RecordSampleTrees',
+            };
+            updateLastScreen(data);
             getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
               setInventory(inventoryData);
             });
@@ -778,7 +800,12 @@ export default function MapMarking({
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
                 ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
-                sampleTreesCount: inventory?.sampleTreesCount || '',
+                sampleTreesCount:
+                    specieId &&
+                    specieName &&
+                    inventory?.sampleTreesCount == inventory?.completedSampleTreesCount
+                      ? inventory?.sampleTreesCount + 1
+                      : inventory?.sampleTreesCount || '',
               })
               : treeType === MULTI
                 ? `${i18next.t('label.locate_tree_location')} ${

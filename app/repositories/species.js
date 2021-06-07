@@ -522,3 +522,23 @@ export const resetAllSpecies = () => {
       });
   });
 };
+
+export const getScientificSpeciesById = (id) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
+        resolve(specie);
+      })
+      .catch((err) => {
+        console.error('Error at /repositories/species/getScientificSpeciesById,', err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Error while retrieving specie with guid ${id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+      });
+  });
+};

@@ -66,6 +66,7 @@ import { Header, PrimaryButton, InputModal } from '../Common';
 import AlertModal from '../Common/AlertModal';
 import ManageSpecies from '../ManageSpecies';
 import { APIConfig } from '../../actions/Config';
+import { updateSampleTree } from '../../utils/updateSampleTree';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -94,7 +95,7 @@ const SingleTreeOverview = () => {
   const [selectedProjectName, setSelectedProjectName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [showProject, setShowProject] = useState(false);
-
+  const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
   const [totalSampleTrees, setTotalSampleTrees] = useState();
@@ -236,7 +237,13 @@ const SingleTreeOverview = () => {
           speciesDiameter: refactoredSpecieDiameter,
         });
       } else {
-        updateSampleTree(action, refactoredSpecieDiameter);
+        updateSampleTree({
+          toUpdate: action,
+          value: refactoredSpecieDiameter,
+          inventory,
+          sampleTreeIndex,
+          setInventory,
+        });
       }
       setIsOpenModal(false);
     } else if (
@@ -257,7 +264,13 @@ const SingleTreeOverview = () => {
           speciesHeight: refactoredSpecieHeight,
         });
       } else {
-        updateSampleTree(action, refactoredSpecieHeight);
+        updateSampleTree({
+          toUpdate: action,
+          value: refactoredSpecieHeight,
+          inventory,
+          sampleTreeIndex,
+          setInventory,
+        });
       }
       setIsOpenModal(false);
     } else if (action === 'tagId') {
@@ -268,7 +281,13 @@ const SingleTreeOverview = () => {
           tagId: editedTagId,
         });
       } else {
-        updateSampleTree(action);
+        updateSampleTree({
+          toUpdate: action,
+          value: editedTagId,
+          inventory,
+          sampleTreeIndex,
+          setInventory,
+        });
       }
       setIsOpenModal(false);
     } else {
@@ -279,98 +298,98 @@ const SingleTreeOverview = () => {
     setEditEnable('');
   };
 
-  const updateSampleTree = (toUpdate, value = null) => {
-    let updatedSampleTrees = inventory.sampleTrees;
-    let sampleTree = updatedSampleTrees[sampleTreeIndex];
-    let inventoryData = {};
-    switch (toUpdate) {
-      case 'diameter': {
-        sampleTree = {
-          ...sampleTree,
-          specieDiameter: value,
-        };
-        break;
-      }
-      case 'height': {
-        sampleTree = {
-          ...sampleTree,
-          specieHeight: value,
-        };
-        break;
-      }
-      case 'tagId': {
-        sampleTree = {
-          ...sampleTree,
-          tagId: editedTagId,
-        };
-        break;
-      }
-      case 'plantationDate': {
-        sampleTree = {
-          ...sampleTree,
-          plantationDate: value,
-        };
-        break;
-      }
-      case 'specie': {
-        sampleTree = {
-          ...sampleTree,
-          specieId: value?.guid,
-          specieName: value?.scientificName,
-        };
-        break;
-      }
-      case 'changeStatusToPending': {
-        sampleTree = {
-          ...sampleTree,
-          status: PENDING_DATA_UPLOAD,
-        };
-        inventoryData = {
-          ...inventoryData,
-          completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
-        };
-        break;
-      }
-      default:
-        break;
-    }
-    updatedSampleTrees[sampleTreeIndex] = sampleTree;
+  // const updateSampleTree = (toUpdate, value = null) => {
+  //   let updatedSampleTrees = inventory.sampleTrees;
+  //   let sampleTree = updatedSampleTrees[sampleTreeIndex];
+  //   let inventoryData = {};
+  //   switch (toUpdate) {
+  //     case 'diameter': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         specieDiameter: value,
+  //       };
+  //       break;
+  //     }
+  //     case 'height': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         specieHeight: value,
+  //       };
+  //       break;
+  //     }
+  //     case 'tagId': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         tagId: value,
+  //       };
+  //       break;
+  //     }
+  //     case 'plantationDate': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         plantationDate: value,
+  //       };
+  //       break;
+  //     }
+  //     case 'specie': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         specieId: value?.guid,
+  //         specieName: value?.scientificName,
+  //       };
+  //       break;
+  //     }
+  //     case 'changeStatusToPending': {
+  //       sampleTree = {
+  //         ...sampleTree,
+  //         status: PENDING_DATA_UPLOAD,
+  //       };
+  //       inventoryData = {
+  //         ...inventoryData,
+  //         completedSampleTreesCount: inventory.completedSampleTreesCount + 1,
+  //       };
+  //       break;
+  //     }
+  //     default:
+  //       break;
+  //   }
+  //   updatedSampleTrees[sampleTreeIndex] = sampleTree;
 
-    inventoryData = {
-      ...inventoryData,
-      sampleTrees: [...updatedSampleTrees],
-    };
+  //   inventoryData = {
+  //     ...inventoryData,
+  //     sampleTrees: [...updatedSampleTrees],
+  //   };
 
-    updateInventory({
-      inventory_id: inventory.inventory_id,
-      inventoryData,
-    })
-      .then(() => {
-        dbLog.info({
-          logType: LogTypes.INVENTORY,
-          message: `Successfully modified ${toUpdate} for sample tree #${
-            sampleTreeIndex + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        });
-        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-          setInventory(inventoryData);
-        });
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.INVENTORY,
-          message: `Failed to modify ${toUpdate} for sample tree #${
-            sampleTreeIndex + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        });
-        console.error(
-          `Failed to modify ${toUpdate} for sample tree #${
-            sampleTreeIndex + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-          err,
-        );
-      });
-  };
+  //   updateInventory({
+  //     inventory_id: inventory.inventory_id,
+  //     inventoryData,
+  //   })
+  //     .then(() => {
+  //       dbLog.info({
+  //         logType: LogTypes.INVENTORY,
+  //         message: `Successfully modified ${toUpdate} for sample tree #${
+  //           sampleTreeIndex + 1
+  //         } having inventory_id: ${inventory.inventory_id}`,
+  //       });
+  //       getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+  //         setInventory(inventoryData);
+  //       });
+  //     })
+  //     .catch((err) => {
+  //       dbLog.error({
+  //         logType: LogTypes.INVENTORY,
+  //         message: `Failed to modify ${toUpdate} for sample tree #${
+  //           sampleTreeIndex + 1
+  //         } having inventory_id: ${inventory.inventory_id}`,
+  //       });
+  //       console.error(
+  //         `Failed to modify ${toUpdate} for sample tree #${
+  //           sampleTreeIndex + 1
+  //         } having inventory_id: ${inventory.inventory_id}`,
+  //         err,
+  //       );
+  //     });
+  // };
 
   const onPressEditSpecies = (action) => {
     if (action === 'species') {
@@ -403,7 +422,13 @@ const SingleTreeOverview = () => {
         ],
       });
     } else {
-      updateSampleTree('specie', specie);
+      updateSampleTree({
+        toUpdate: 'specie',
+        value: specie,
+        inventory,
+        sampleTreeIndex,
+        setInventory,
+      });
     }
     setSpecieText(specie.scientificName);
   };
@@ -415,7 +440,13 @@ const SingleTreeOverview = () => {
         plantation_date: selectedDate,
       });
     } else {
-      updateSampleTree('plantationDate', selectedDate);
+      updateSampleTree({
+        toUpdate: 'plantationDate',
+        value: selectedDate,
+        inventory,
+        sampleTreeIndex,
+        setInventory,
+      });
     }
 
     setIsShowDate(false);
@@ -671,8 +702,33 @@ const SingleTreeOverview = () => {
     }
   };
 
-  const onPressContinueToSpecies = () => {
-    updateSampleTree('changeStatusToPending');
+  const getNotSampledSpecies = () => {
+    let sampledSpecies = [];
+    let plantedSpecies = [];
+    let notSampledSpecies = [];
+    inventory.sampleTrees.forEach((sampleTree) => {
+      sampledSpecies.push(sampleTree.specieId);
+    });
+    inventory.species.forEach((specie) => {
+      plantedSpecies.push(specie.id);
+    });
+    sampledSpecies = [...new Set(sampledSpecies)];
+    plantedSpecies.forEach((specie) =>
+      sampledSpecies.includes(specie) ? notSampledSpecies : notSampledSpecies.push(specie),
+    );
+    return notSampledSpecies;
+  };
+
+  const onPressContinueToReview = ({ forceContinue }) => {
+    // let notSampledSpecies = getNotSampledSpecies();
+    // console.log(notSampledSpecies, 'not sampled species');
+    // if (notSampledSpecies.length === 0 || forceContinue) {
+    updateSampleTree({
+      toUpdate: 'changeStatusToPending',
+      inventory,
+      sampleTreeIndex,
+      setInventory,
+    });
     navigation.dispatch(
       CommonActions.reset({
         index: 3,
@@ -684,6 +740,17 @@ const SingleTreeOverview = () => {
         ],
       }),
     );
+    // } else if (forceContinue !== undefined && !forceContinue) {
+    //   updateSampleTree({
+    //     toUpdate: 'changeStatusToPending',
+    //     inventory,
+    //     sampleTreeIndex,
+    //     setInventory,
+    //   });
+    //   navigation.navigate('SpecieSampleTree', { notSampledSpecies });
+    // } else {
+    //   setShowAddSampleTrees(true);
+    // }
   };
 
   const onPressNextTree = () => {
@@ -693,17 +760,23 @@ const SingleTreeOverview = () => {
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
-        checkLoginAndSync({
-          sync: true,
-          dispatch,
-          userDispatch,
-          connected: netInfo.isConnected,
-          internet: netInfo.isInternetReachable,
-        });
+        // For auto upload feature
+        // checkLoginAndSync({
+        //   sync: true,
+        //   dispatch,
+        //   userDispatch,
+        //   connected: netInfo.isConnected,
+        //   internet: netInfo.isInternetReachable,
+        // });
         navigation.navigate('RegisterSingleTree');
       });
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      updateSampleTree('changeStatusToPending');
+      updateSampleTree({
+        toUpdate: 'changeStatusToPending',
+        inventory,
+        sampleTreeIndex,
+        setInventory,
+      });
 
       let data = {
         inventory_id: inventory.inventory_id,
@@ -821,7 +894,7 @@ const SingleTreeOverview = () => {
         ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressContinueToSpecies}
+              onPress={onPressContinueToReview}
               btnText={i18next.t('label.tree_review_continue_to_review')}
             />
           </View>
@@ -857,6 +930,22 @@ const SingleTreeOverview = () => {
         message={i18next.t('label.tree_inventory_input_error_message')}
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => setShowInputError(false)}
+      />
+      <AlertModal
+        visible={showAddSampleTrees}
+        heading={i18next.t('label.add_more_sample_trees')}
+        message={i18next.t('label.recommend_at_least_one_sample')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.skip')}
+        onPressPrimaryBtn={() => {
+          setShowAddSampleTrees(false);
+          onPressContinueToReview({ forceContinue: false });
+        }}
+        onPressSecondaryBtn={() => {
+          setShowAddSampleTrees(false);
+          onPressContinueToReview({ forceContinue: true });
+        }}
+        showSecondaryButton={true}
       />
     </SafeAreaView>
   );
