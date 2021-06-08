@@ -16,9 +16,11 @@ import {
 import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
+import { species_default } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
+import { getScientificSpeciesById } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
@@ -206,50 +208,6 @@ export default function TotalTreesSpecies() {
     }
   };
 
-  // const SpecieListItem = ({ item, index }) => {
-  //   return (
-  //     <View
-  //       key={index}
-  //       style={{
-  //         paddingVertical: 20,
-  //         marginHorizontal: 25,
-  //         borderBottomWidth: 1,
-  //         borderColor: '#E1E0E061',
-  //         flexDirection: 'row',
-  //         alignItems: 'center',
-  //         justifyContent: 'space-between',
-  //       }}>
-  //       <View>
-  //         <Text
-  //           style={{
-  //             fontSize: Typography.FONT_SIZE_16,
-  //             fontFamily: Typography.FONT_FAMILY_REGULAR,
-  //             color: Colors.TEXT_COLOR,
-  //           }}>
-  //           {item.aliases}
-  //         </Text>
-  //         <Text
-  //           style={{
-  //             fontSize: Typography.FONT_SIZE_18,
-  //             fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-  //             marginTop: 10,
-  //             color: Colors.TEXT_COLOR,
-  //           }}>
-  //           {item.treeCount}{' '}
-  //           {item.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
-  //         </Text>
-  //       </View>
-  //       {item.guid !== 'unknown' ? (
-  //         <TouchableOpacity onPress={() => deleteSpecie(index)}>
-  //           <FAIcon name="minus-circle" size={20} color="#e74c3c" />
-  //         </TouchableOpacity>
-  //       ) : (
-  //         []
-  //       )}
-  //     </View>
-  //   );
-  // };
-
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
     return (
@@ -306,13 +264,13 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-                <SpecieListItem
-                  item={specie}
-                  index={index}
-                  key={index}
-                  deleteSpecie={deleteSpecie}
-                />
-              ))
+              <SpecieListItem
+                item={specie}
+                index={index}
+                key={index}
+                deleteSpecie={deleteSpecie}
+              />
+            ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
@@ -347,6 +305,14 @@ export default function TotalTreesSpecies() {
 }
 
 export const SpecieListItem = ({ item, index, deleteSpecie }) => {
+  const [specieImage, setSpecieImage] = useState();
+  const [species, setSpecies] = useState();
+  useEffect(() => {
+    getScientificSpeciesById(item?.id ? item?.id : item?.guid).then((specie) => {
+      setSpecies(specie);
+      setSpecieImage(specie.image);
+    });
+  }, []);
   return (
     <View
       key={index}
@@ -359,7 +325,27 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-      <View>
+      <View style={{ paddingRight: 20 }}>
+        {specieImage ? (
+          <Image
+            source={{
+              uri: `${specieImage}`,
+            }}
+            style={styles.imageView}
+          />
+        ) : (
+          <Image
+            source={species_default}
+            style={{
+              borderRadius: 8,
+              resizeMode: 'contain',
+              width: 100,
+              height: 80,
+            }}
+          />
+        )}
+      </View>
+      <View style={{ flex: 1 }}>
         <Text
           style={{
             fontSize: Typography.FONT_SIZE_16,
@@ -367,7 +353,7 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
             color: Colors.TEXT_COLOR,
             fontStyle: 'italic',
           }}>
-          {item?.aliases ? item.aliases : []}
+          {species?.guid === 'unknown' || species?.id === 'unknown' ? 'Unknown' : item?.aliases}
         </Text>
         <Text
           style={{
@@ -380,7 +366,7 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
           {item?.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
         </Text>
       </View>
-      {item?.guid !== 'unknown' && deleteSpecie ? (
+      {species?.guid !== 'unknown' && deleteSpecie ? (
         <TouchableOpacity onPress={() => deleteSpecie(index)}>
           <FAIcon name="minus-circle" size={20} color="#e74c3c" />
         </TouchableOpacity>

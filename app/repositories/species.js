@@ -527,8 +527,21 @@ export const getScientificSpeciesById = (id) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
-        let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
-        resolve(specie);
+        if (id !== 'unknown') {
+          let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
+          resolve(specie);
+        } else {
+          resolve({
+            aliases: 'Unknown',
+            description: '',
+            guid: 'unknown',
+            image: '',
+            isUpdated: true,
+            isUploaded: true,
+            isUserSpecies: true,
+            scientificName: 'Unknown',
+          });
+        }
       })
       .catch((err) => {
         console.error('Error at /repositories/species/getScientificSpeciesById,', err);

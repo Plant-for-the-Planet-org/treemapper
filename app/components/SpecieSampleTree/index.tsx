@@ -86,15 +86,6 @@ const SpecieSampleTree = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <View style={{ paddingHorizontal: 25 }}>
-          <PrimaryButton
-            onPress={() => console.log('Primary Clicked')}
-            btnText={i18next.t('label.select_species_add_species')}
-            theme={'primary'}
-            testID={'sample_tree_count_continue'}
-            accessibilityLabel={'sample_tree_count_continue'}
-          />
-        </View>
       </View>
     </SafeAreaView>
   );
