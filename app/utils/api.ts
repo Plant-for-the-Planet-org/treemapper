@@ -48,7 +48,7 @@ axiosInstance.interceptors.response.use(undefined, async (err) => {
   let originalRequest = err.config;
 
   // retries if err is 401 or 403 and if request is already not tried once
-  if ((err.response.status === 403 || err.response.status === 401) && !originalRequest._retry) {
+  if ((err?.response?.status === 403 || err?.response?.status === 401) && !originalRequest._retry) {
     originalRequest._retry = true;
 
     const userDetails = await getUserDetails();

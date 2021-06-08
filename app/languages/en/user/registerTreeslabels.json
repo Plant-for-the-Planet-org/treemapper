@@ -19,7 +19,7 @@
   "image_click_picture": "Take picture",
   "image_retake": "Retake",
   "sample_tree_marking_heading": "Sample Tree {{ongoingSampleTreeNumber}} of {{sampleTreesCount}}",
-  "sample_tree_review_tree_number": "Review Tree {{ongoingSampleTreeNumber}} of {{sampleTreesCount}}",
+  "sample_tree_review_tree_number": "Review of Tree {{ongoingSampleTreeNumber}} of {{sampleTreesCount}}",
   "alright_modal_skip": "Skip",
   "total_trees_header": "Total Trees",
   "add_all_trees_planted_on_site": "Please add the list of all trees planted in the site.",

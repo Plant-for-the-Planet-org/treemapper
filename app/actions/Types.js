@@ -13,6 +13,9 @@ export const ADD_INVENTORY = 'ADD_INVENTORY';
 // used to update the value of pending count whenever a new registration is done or data of a tree is synced
 export const UPDATE_PENDING_COUNT = 'UPDATE_PENDING_COUNT';
 
+// used to update the value of progress count whenever a new registration is done or data of a tree is synced
+export const UPDATE_PROGRESS_COUNT = 'UPDATE_PROGRESS_COUNT';
+
 // used to update the value of upload count whenever the data of tree registration is synced
 export const UPDATE_UPLOAD_COUNT = 'UPDATE_UPLOAD_COUNT';
 

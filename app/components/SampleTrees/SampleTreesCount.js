@@ -61,15 +61,16 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
           ]}>
           <TextInput
             value={selectedTreeCount}
-            style={{
-              borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
-              borderBottomWidth: 1,
-              paddingVertical: 0,
-              color: 'white',
-              alignSelf: 'center',
-              width: 70,
-              // marginBottom: 4,
-            }}
+            style={
+              [
+                styles.customTreeCount,
+                { borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR },
+                // isCustomSelected
+                //   ? { borderBottomColor: 'white' }
+                //   : { borderBottomColor: Colors.TEXT_COLOR },
+              ]
+              // borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
+            }
             selectionColor={'white'}
             keyboardType={'numeric'}
             onFocus={() => {
@@ -149,6 +150,9 @@ export default function SampleTreesCount() {
               </Text>
               <Text style={[styles.description, styles.descriptionMarginTop]}>
                 {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.sample_one_tree_for_each_species')}
               </Text>
               <Text
                 style={[
@@ -247,5 +251,14 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  customTreeCount: {
+    borderBottomWidth: 1,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 70,
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_16,
   },
 });

@@ -88,13 +88,14 @@ const styles = StyleSheet.create({
   syncContainer: {
     borderRadius: 6,
     borderWidth: 1,
+    height: 40,
     borderColor: '#c3c3c3',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    flex: 1.5,
+    // flex: 1.5,
     marginRight: 10,
   },
   syncText: {

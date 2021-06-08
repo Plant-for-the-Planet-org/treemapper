@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   paddingVertical: {
     paddingVertical: 15,

@@ -1,5 +1,5 @@
 import Realm from 'realm';
-import { setInventoryId, updateCount } from '../actions/inventory';
+import { setInventoryId, updateCount, updateProgressCount } from '../actions/inventory';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
 import {
@@ -9,6 +9,9 @@ import {
   ON_SITE,
   SAMPLE,
   SINGLE,
+  SYNCED,
+  PENDING_DATA_UPLOAD,
+  DATA_UPLOAD_START,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';
@@ -97,18 +100,20 @@ export const updateTreeTag = ({ inventoryId, tagId }) => {
   });
 };
 
-export const getInventoryByStatus = (status) => {
+export const getInventoryByStatus = (status1, status2, status3) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         let inventory = realm.objects('Inventory');
-        if (status !== 'all') {
-          inventory = inventory.filtered(`status == "${status}"`);
+        if (status1 !== 'all') {
+          inventory = inventory.filtered(
+            `status == "${status1}" || status == "${status2}" || status == "${status3}"`,
+          );
         }
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Fetched inventories from DB having status ${status}`,
+          message: `Fetched inventories from DB having status ${status1} and ${status2}`,
         });
         resolve(inventory);
       })
@@ -116,7 +121,7 @@ export const getInventoryByStatus = (status) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while fetching inventories from DB having status ${status}`,
+          message: `Error while fetching inventories from DB having status ${status1} and ${status2}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -217,12 +222,14 @@ export const changeInventoryStatusAndLocationId = (
             message: `Successfully updated status and locationId for inventory_id: ${inventory_id} to ${status}`,
           });
 
-          if (status === 'complete') {
-            updateCount({ type: 'pending', count: 'decrement' })(dispatch);
+          if (status === SYNCED) {
+            updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
             updateCount({ type: 'upload', count: 'decrement' })(dispatch);
-          } else if (status === 'pending') {
-            updateCount({ type: 'pending', count: 'increment' })(dispatch);
+            updateProgressCount({ count: 'decrement' })(dispatch);
+          } else if (status === PENDING_DATA_UPLOAD) {
+            updateCount({ type: PENDING_DATA_UPLOAD, count: 'increment' })(dispatch);
           }
+          console.log(`===========status changed to status${status}=============`);
           resolve(true);
         });
       })
@@ -239,7 +246,7 @@ export const changeInventoryStatusAndLocationId = (
   });
 };
 
-export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
+export const changeInventoryStatus = ({ inventory_id, status, count }, dispatch) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -248,7 +255,7 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
           status,
         };
         // adds registration date if the status is pending
-        if (status === 'pending') {
+        if (status === PENDING_DATA_UPLOAD) {
           inventoryObject.registrationDate = new Date();
         }
         realm.write(() => {
@@ -260,13 +267,20 @@ export const changeInventoryStatus = ({ inventory_id, status }, dispatch) => {
             message: `Successfully updated status for inventory_id: ${inventory_id} to ${status}`,
           });
 
-          if (status === 'complete') {
-            updateCount({ type: 'pending', count: 'decrement' })(dispatch);
+          if (status === SYNCED) {
+            updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
             updateCount({ type: 'upload', count: 'decrement' })(dispatch);
-          } else if (status === 'pending') {
-            updateCount({ type: 'pending', count: 'increment' })(dispatch);
+            updateProgressCount({ count: 'decrement' })(dispatch);
+          } else if (status === PENDING_DATA_UPLOAD) {
+            if (count) {
+              updateProgressCount({ count: count })(dispatch);
+            } else {
+              updateCount({ type: PENDING_DATA_UPLOAD, count: 'increment' })(dispatch);
+            }
+          } else if (status === DATA_UPLOAD_START) {
+            updateProgressCount({ count: count })(dispatch);
           }
-          resolve();
+          resolve(console.log(`===========status changed to status${status}=============`));
         });
       })
       .catch((err) => {
@@ -316,7 +330,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
     Realm.open(getSchema())
       .then((realm) => {
         let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-        const isPending = inventory.status === 'pending';
+        const isPending = inventory.status === PENDING_DATA_UPLOAD;
         realm.write(() => {
           realm.delete(inventory);
           setInventoryId('')(dispatch);
@@ -329,7 +343,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
         });
 
         if (dispatch && isPending) {
-          updateCount({ type: 'pending', count: 'decrement' })(dispatch);
+          updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
         }
         resolve(true);
       })
@@ -452,7 +466,7 @@ export const clearAllUploadedInventory = () => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let allInventory = realm.objects('Inventory').filtered('status == "complete"');
+          let allInventory = realm.objects('Inventory').filtered('status == "SYNCED"');
           realm.delete(allInventory);
 
           // logging the success in to the db
@@ -982,7 +996,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
             inventory_id: inventoryID,
             plantation_date: inventoryFromServer.plantDate,
             treeType: inventoryFromServer.type,
-            status: 'complete',
+            status: SYNCED,
             projectId: inventoryFromServer.plantProject,
             // donationType: 'string?',
             locateTree: inventoryFromServer.captureMode,
@@ -1089,7 +1103,6 @@ export const addSampleTree = (sampleTreeFromServer) => {
               1,
             );
             resolve();
-            // console.log('Sample Tree Added...')
           }
         });
       })
