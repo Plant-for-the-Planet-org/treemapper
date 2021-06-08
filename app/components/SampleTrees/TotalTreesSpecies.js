@@ -358,6 +358,7 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
             fontSize: Typography.FONT_SIZE_16,
             fontFamily: Typography.FONT_FAMILY_REGULAR,
             color: Colors.TEXT_COLOR,
+            fontStyle: 'italic',
           }}>
           {item?.aliases ? item.aliases : []}
         </Text>

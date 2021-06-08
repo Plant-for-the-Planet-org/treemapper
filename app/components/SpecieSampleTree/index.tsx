@@ -46,13 +46,7 @@ const SpecieSampleTree = () => {
     setSpeciesToSample(specieArray);
   };
 
-  const createNewSampleTree = (specie: any) => {
-    console.log(inventory.lastScreen, 'lastScreen');
-    // let data = {
-    //   inventory_id: inventory.inventory_id,
-    //   lastScreen: 'RecordSampleTrees',
-    // };
-    // updateLastScreen(data);
+  const onPressSpecie = (specie: any) => {
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -68,16 +62,6 @@ const SpecieSampleTree = () => {
     );
   };
 
-  const onPressSpecie = (specie: any) => {
-    // updateInventory({
-    //   inventory_id: state.inventoryID,
-    //   inventoryData: {
-    //     sampleTreesCount: inventory.sampleTreesCount + 1,
-    //   },
-    // }).then(() =>
-    createNewSampleTree(specie);
-    // );
-  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
