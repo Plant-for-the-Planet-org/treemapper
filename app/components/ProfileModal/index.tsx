@@ -151,7 +151,7 @@ const ProfileModal = ({
 
   return (
     <Modal visible={isProfileModalVisible} transparent>
-      <View style={styles.container}>
+      <TouchableOpacity style={styles.container} onPressIn={() => onPressCloseProfileModal()}>
         <View style={styles.subContainer}>
           <View style={styles.headerContainer}>
             <TouchableOpacity
@@ -220,7 +220,7 @@ const ProfileModal = ({
         </View>
 
         <View />
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 };

@@ -66,6 +66,7 @@ import {
   ON_SITE,
   PENDING_DATA_UPLOAD,
   SINGLE,
+  SYNCED,
 } from '../../utils/inventoryConstants';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
@@ -484,8 +485,8 @@ const SingleTreeOverview = () => {
     } else if (
       inventory.treeType === MULTI &&
       (inventory.status === INCOMPLETE_SAMPLE_TREE ||
-        inventory.status === 'complete' ||
-        inventory.status === 'pending') &&
+        inventory.status === SYNCED ||
+        inventory.status === PENDING_DATA_UPLOAD) &&
       (sampleTreeIndex === 0 || sampleTreeIndex)
     ) {
       if (inventory.sampleTrees[sampleTreeIndex]?.imageUrl) {
@@ -670,11 +671,9 @@ const SingleTreeOverview = () => {
   const onPressSave = () => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
-    } else if (inventory.status === 'complete' || inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      navigation.navigate('TreeInventory');
-    } else {
+    } else if (inventory.status === INCOMPLETE) {
       if (specieText) {
-        let data = { inventory_id: inventoryState.inventoryID, status: 'pending' };
+        let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch)
           // For Auto-upload check the case duplication of inventory while uploading
           .then(() => {
@@ -685,7 +684,10 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     }
-    return true;
+    // if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE)
+    else {
+      navigation.navigate('TreeInventory');
+    }
   };
 
   const onPressContinueToAdditionalData = () => {
@@ -701,7 +703,7 @@ const SingleTreeOverview = () => {
   const onPressNextTree = () => {
     if (inventory.status === INCOMPLETE) {
       changeInventoryStatus(
-        { inventory_id: inventoryState.inventoryID, status: 'pending' },
+        { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD },
         dispatch,
       ).then(() => {
         deleteInventoryId()(dispatch);
@@ -795,11 +797,15 @@ const SingleTreeOverview = () => {
                       ongoingSampleTreeNumber: sampleTreeIndex + 1,
                       sampleTreesCount: totalSampleTrees,
                     })
-                  : status === 'complete'
+                  : status === SYNCED
                   ? i18next.t('label.tree_review_details')
                   : i18next.t('label.tree_review_header')
               }
-              rightText={status === INCOMPLETE ? i18next.t('label.tree_review_delete') : []}
+              rightText={
+                status === INCOMPLETE || status === PENDING_DATA_UPLOAD
+                  ? i18next.t('label.tree_review_delete')
+                  : []
+              }
               onPressFunction={() => setShowDeleteAlert(true)}
             />
           </View>
@@ -856,7 +862,7 @@ const SingleTreeOverview = () => {
         visible={showDeleteAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
         message={
-          status === 'complete'
+          status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }

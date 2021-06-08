@@ -36,7 +36,13 @@ import { ALPHABETS, bugsnag } from '../../utils';
 import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  OFF_SITE,
+  PENDING_DATA_UPLOAD,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
@@ -183,7 +189,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const onPressSave = () => {
     if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       if (inventory.species.length > 0) {
-        let data = { inventory_id: state.inventoryID, status: 'pending' };
+        let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch).then(() => {
           navigation.navigate('TreeInventory');
         });
@@ -395,8 +401,7 @@ const InventoryOverview = ({ navigation }: any) => {
         : i18next.t('label.tree_inventory_on_site');
   }
 
-  let status = inventory ? inventory.status : 'pending';
-
+  let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -410,7 +415,10 @@ const InventoryOverview = ({ navigation }: any) => {
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
                 rightText={
-                  status == INCOMPLETE_SAMPLE_TREE || status == INCOMPLETE
+                  status == INCOMPLETE_SAMPLE_TREE ||
+                  status == INCOMPLETE ||
+                  status == PENDING_DATA_UPLOAD ||
+                  status == PENDING_DATA_UPLOAD
                     ? i18next.t('label.tree_review_delete')
                     : []
                 }
@@ -510,7 +518,7 @@ const InventoryOverview = ({ navigation }: any) => {
         visible={showDeleteAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}
         message={
-          status === 'complete'
+          status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }

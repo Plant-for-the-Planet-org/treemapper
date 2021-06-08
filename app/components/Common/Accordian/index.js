@@ -12,6 +12,7 @@ import {
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/MaterialIcons';
 import { Colors, CommonStyles, Typography } from '_styles';
+import { PENDING_DATA_UPLOAD } from '../../../utils/inventoryConstants';
 
 const Accordian = ({
   data,
@@ -117,7 +118,7 @@ const Accordian = ({
             </View>
           )}
         </View>
-        {status !== 'pending' && (
+        {status !== PENDING_DATA_UPLOAD && (
           <View style={styles.treeCountCont}>
             {!isOpen ? (
               <View style={{ flexDirection: 'row' }}>

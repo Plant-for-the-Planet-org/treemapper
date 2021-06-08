@@ -1,5 +1,7 @@
+import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD, SYNCED } from '../../utils/inventoryConstants';
+
 // schema version
-const schemaVersion = 10;
+const schemaVersion = 9;
 
 // SCHEMAS
 const Coordinates = {
@@ -43,16 +45,6 @@ const OfflineMaps = {
   },
 };
 
-const AdditionalDetail = {
-  name: 'AdditionalDetail',
-  properties: {
-    key: 'string',
-    value: 'string',
-    // refer [dataTypes] from [additionalDataConstants]
-    accessType: 'string',
-  },
-};
-
 // used to record the sample trees
 const SampleTrees = {
   name: 'SampleTrees',
@@ -89,8 +81,6 @@ const SampleTrees = {
     locationId: 'string?',
     // stores the tree type which is always sample tree
     treeType: { type: 'string', default: 'sample' },
-    // stores the additional details for the registration
-    additionalDetails: 'AdditionalDetail[]',
   },
 };
 
@@ -129,8 +119,6 @@ const Inventory = {
     // stores the location id of the plant location which is available
     // when the inventory data is uploaded
     locationId: 'string?',
-    // stores the additional details for the registration
-    additionalDetails: 'AdditionalDetail[]',
   },
 };
 
@@ -225,121 +213,21 @@ const Projects = {
   },
 };
 
-// dropdown options for dropdown field
-const DropdownOption = {
-  name: 'DropdownOption',
-  embedded: true,
-  properties: {
-    key: 'string',
-    value: 'string',
-  },
+const migration = (oldRealm: any, newRealm: any) => {
+  if (oldRealm.schemaVersion < schemaVersion) {
+    const oldInventory = oldRealm.objects('Inventory');
+    let newInventory = newRealm.objects('Inventory');
+    for (const index in oldInventory) {
+      if (oldInventory[index].status === 'pending') {
+        newInventory[index].status = PENDING_DATA_UPLOAD;
+      } else if (oldInventory[index].status === 'uploading') {
+        newInventory[index].status = PENDING_IMAGE_UPLOAD;
+      } else if (oldInventory[index].status === 'complete') {
+        newInventory[index].status = SYNCED;
+      }
+    }
+  }
 };
-
-// Element Type - Dropdown
-const Dropdown = {
-  name: 'Dropdown',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    parentId: {
-      type: 'string',
-      indexed: true,
-    },
-    defaultValue: 'string?',
-    isRequired: {
-      type: 'bool',
-      default: false,
-    },
-    dropdownOptions: 'DropdownOption[]',
-  },
-};
-
-// Element Type - Input
-const Input = {
-  name: 'Input',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    parentId: {
-      type: 'string',
-      indexed: true,
-    },
-    defaultValue: 'string?',
-    isRequired: {
-      type: 'bool',
-      default: false,
-    },
-    type: 'string',
-    regexValidation: 'string?',
-  },
-};
-
-// Element Type - YesNo
-const YesNo = {
-  name: 'YesNo',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    parentId: {
-      type: 'string',
-      indexed: true,
-    },
-    defaultValue: {
-      type: 'bool',
-      default: false,
-    },
-    isRequired: {
-      type: 'bool',
-      default: false,
-    },
-  },
-};
-
-// Stores details of a single field which then is stores in form fields list
-const Element = {
-  name: 'Element',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    key: 'string',
-    name: 'string',
-    type: 'string',
-    treeType: 'string[]',
-    registrationType: 'string[]',
-    // refer [dataTypes] from [additionalDataConstants]
-    accessType: { type: 'string', default: 'private' },
-  },
-};
-
-// Stores all the forms(multi steps) created by the user
-const Form = {
-  name: 'Form',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    order: 'int',
-    // stores list of all the elements for a form
-    elements: 'Element[]',
-    title: 'string?',
-    description: 'string?',
-  },
-};
-
-// Stores all the metadata added by the user from Metadata UI
-const Metadata = {
-  name: 'Metadata',
-  primaryKey: 'id',
-  properties: {
-    id: 'string',
-    key: 'string',
-    value: 'string',
-    order: 'int',
-    // refer [dataTypes] from [additionalDataConstants]
-    accessType: { type: 'string', default: 'private' },
-  },
-};
-
-const migration = () => {};
 
 export default {
   schema: [
@@ -353,14 +241,6 @@ export default {
     ActivityLogs,
     SampleTrees,
     Projects,
-    DropdownOption,
-    Dropdown,
-    Input,
-    YesNo,
-    Element,
-    Form,
-    Metadata,
-    AdditionalDetail,
   ],
   schemaVersion,
   migration,

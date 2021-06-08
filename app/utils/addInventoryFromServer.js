@@ -7,7 +7,7 @@ export const addInventoryFromServer = () => {
   getAllInventoryFromServer().then((allInventoryFromServer) => {
     exceptSampleTrees = allInventoryFromServer[0];
     allSampleTrees = allInventoryFromServer[1];
-    getInventoryByStatus('complete')
+    getInventoryByStatus('all')
       .then((allInventory) => {
         for (const inventoryFromServer of exceptSampleTrees) {
           if (allInventory.length === 0) {

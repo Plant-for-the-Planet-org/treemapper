@@ -107,6 +107,7 @@ const ImageCapturing = ({
       return;
     }
     const data = await camera.current.takePictureAsync().catch((err) => {
+      console.log(err, 'err');
       alert(i18next.t('label.permission_camera_message'));
       setImagePath('');
       return;
