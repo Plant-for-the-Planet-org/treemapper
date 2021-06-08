@@ -4,6 +4,7 @@ import { LoadingContextProvider } from './loader';
 import { SpeciesContextProvider } from './species';
 import { UserContextProvider } from './user';
 import { NavigationContextProvider } from './navigation';
+import { AdditionalDataContextProvider } from './additionalData';
 
 export default function Provider({ children }) {
   return (
@@ -11,7 +12,9 @@ export default function Provider({ children }) {
       <UserContextProvider>
         <InventoryContextProvider>
           <LoadingContextProvider>
-            <SpeciesContextProvider>{children}</SpeciesContextProvider>
+            <SpeciesContextProvider>
+              <AdditionalDataContextProvider>{children}</AdditionalDataContextProvider>
+            </SpeciesContextProvider>
           </LoadingContextProvider>
         </InventoryContextProvider>
       </UserContextProvider>

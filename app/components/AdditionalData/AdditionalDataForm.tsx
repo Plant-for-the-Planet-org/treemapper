@@ -1,7 +1,7 @@
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { InventoryContext } from '../../reducers/inventory';
 import { getForms } from '../../repositories/additionalData';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
@@ -9,9 +9,12 @@ import dbLog from '../../repositories/logs';
 import { Colors } from '../../styles';
 import { marginTop24 } from '../../styles/design';
 import { elementsType, inputTypes, numberRegex } from '../../utils/additionalData/constants';
+import {
+  filterFormByTreeAndRegistrationType,
+  sortByField,
+} from '../../utils/additionalData/functions';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
 import { Header, Loader } from '../Common';
 import PrimaryButton from '../Common/PrimaryButton';
 import ElementSwitcher from './ElementSwitcher';
@@ -47,7 +50,11 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
             setTreeType(inventoryData.treeType);
             setLocateTree(inventoryData.locateTree);
             setInventoryStatus(inventoryData.status);
-            addFormsToState(inventoryData.treeType, inventoryData.locateTree);
+            const isSampleTree =
+              inventoryData.treeType === MULTI &&
+              inventoryData.status === INCOMPLETE_SAMPLE_TREE &&
+              inventoryData.completedSampleTreesCount !== inventoryData.sampleTreesCount;
+            addFormsToState(inventoryData.treeType, inventoryData.locateTree, isSampleTree);
           }
         });
       }
@@ -61,12 +68,17 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
     );
   };
 
-  const addFormsToState = (treeType: string, registrationType: string) => {
+  const addFormsToState = (treeType: string, registrationType: string, isSampleTree: boolean) => {
     getForms().then((formsData: any) => {
       if (formsData) {
         formsData = sortByField('order', formsData);
 
-        formsData = filterFormByTreeAndRegistrationType(formsData, treeType, registrationType);
+        formsData = filterFormByTreeAndRegistrationType(
+          formsData,
+          treeType,
+          registrationType,
+          isSampleTree,
+        );
 
         const shouldShowForm =
           formsData && formsData.length > 0 && formsData[0].elements.length > 0;
@@ -214,41 +226,43 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      {loading ? (
-        <Loader isLoaderShow={loading} loadingText={i18next.t('label.loading_form')} />
-      ) : (
-        <View style={styles.container}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Header headingText={headingText} />
-            {forms.length > 0 &&
-              forms[currentFormIndex].elements.map((element: any, index: number) => (
-                <View
-                  style={[
-                    marginTop24,
-                    index === forms[currentFormIndex].elements.length - 1
-                      ? { marginBottom: 40 }
-                      : {},
-                  ]}
-                  key={element.key}>
-                  <ElementSwitcher
-                    {...{
-                      ...element,
-                      editable: true,
-                      fieldKey: element.key,
-                      setFormValuesCallback,
-                      error: errors[element.key],
-                    }}
-                  />
-                </View>
-              ))}
-          </ScrollView>
-          <PrimaryButton
-            btnText={i18next.t('label.continue')}
-            onPress={handleContinueClick}
-            style={{ marginTop: 10 }}
-          />
-        </View>
-      )}
+      <View style={styles.container}>
+        {loading ? (
+          <Loader isLoaderShow={loading} loadingText={i18next.t('label.loading_form')} />
+        ) : (
+          <>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Header headingText={headingText} />
+              {forms.length > 0 &&
+                forms[currentFormIndex].elements.map((element: any, index: number) => (
+                  <View
+                    style={[
+                      marginTop24,
+                      index === forms[currentFormIndex].elements.length - 1
+                        ? { marginBottom: 40 }
+                        : {},
+                    ]}
+                    key={element.key}>
+                    <ElementSwitcher
+                      {...{
+                        ...element,
+                        editable: true,
+                        fieldKey: element.key,
+                        setFormValuesCallback,
+                        error: errors[element.key],
+                      }}
+                    />
+                  </View>
+                ))}
+            </ScrollView>
+            <PrimaryButton
+              btnText={i18next.t('label.continue')}
+              onPress={handleContinueClick}
+              style={{ marginTop: 10 }}
+            />
+          </>
+        )}
+      </View>
     </SafeAreaView>
   );
 };

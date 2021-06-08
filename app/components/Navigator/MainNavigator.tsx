@@ -38,6 +38,7 @@ import AddEditElement from '../AdditionalData/AddEditElement';
 import SelectElement from '../AdditionalData/SelectElement';
 import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
 import AddMetadata from '../AdditionalData/AddMetadata';
+import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 
 const Stack = createStackNavigator();
 
@@ -115,6 +116,11 @@ export default function MainNavigator() {
         options={MyTransition}
       />
       <Stack.Screen name="AddMetadata" component={AddMetadata} options={MyTransition} />
+      <Stack.Screen
+        name="AdditionalDataSettings"
+        component={AdditionalDataSettings}
+        options={MyTransition}
+      />
     </Stack.Navigator>
   );
 }

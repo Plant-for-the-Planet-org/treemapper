@@ -1,7 +1,7 @@
 import { useRoute } from '@react-navigation/core';
 import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,7 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { addUpdateElement } from '../../repositories/additionalData';
+import { v4 as uuidv4 } from 'uuid';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24, marginTop30 } from '../../styles/design';
 import {
@@ -23,13 +24,12 @@ import {
   nonInputElementsTypes,
   numberRegex,
 } from '../../utils/additionalData/constants';
-import { Header, InputModal, PrimaryButton } from '../Common';
+import { Header, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
 import AddDropdownOption from './AddElementSwitcher/AddDropdownOption';
 import KeyValueInput from './KeyValueInput';
 import TypeSelection from './TypeSelection';
-import { v4 as uuidv4 } from 'uuid';
 
 type RootStackParamList = {
   AddEditElement: {
@@ -80,6 +80,8 @@ export default function AddEditElement() {
 
   const [elementId, setElementId] = useState<string>('');
   const [subElementId, setSubElementId] = useState<string>('');
+
+  const { modifyElement } = useContext(AdditionalDataContext);
 
   const navigation = useNavigation();
 
@@ -264,15 +266,13 @@ export default function AddEditElement() {
   const handleAddEditElement = () => {
     const elementData = getElementData();
     if (elementData) {
-      addUpdateElement(elementData).then(() => {
-        // resets the navigation stack with MainScreen => AdditionalData
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 1,
-            routes: [{ name: 'MainScreen' }, { name: 'AdditionalData' }],
-          }),
-        );
-      });
+      modifyElement(elementData);
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{ name: 'MainScreen' }, { name: 'AdditionalData' }],
+        }),
+      );
     }
   };
 

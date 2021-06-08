@@ -18,7 +18,7 @@ import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, Typography } from '../../styles';
+import { APIConfig } from '../../actions/Config';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { UserContext } from '../../reducers/user';
@@ -36,7 +36,12 @@ import {
 } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getProjectById } from '../../repositories/projects';
-import { getUserInformation, getUserDetails } from '../../repositories/user';
+import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
+import {
+  formatAdditionalDetails,
+  formatSampleTreeAdditionalDetails,
+} from '../../utils/additionalData/functions';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
@@ -62,16 +67,10 @@ import {
   PENDING_DATA_UPLOAD,
   SINGLE,
 } from '../../utils/inventoryConstants';
-import { Header, PrimaryButton, InputModal } from '../Common';
+import { Header, InputModal, Label, PrimaryButton } from '../Common';
+import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import ManageSpecies from '../ManageSpecies';
-import { APIConfig } from '../../actions/Config';
-import {
-  formatAdditionalDetails,
-  formatSampleTreeAdditionalDetails,
-} from '../../utils/additionalData/functions';
-import JSONTree from 'react-native-json-tree';
-import { theme } from '../../utils/additionalData/constants';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -816,24 +815,9 @@ const SingleTreeOverview = () => {
               {renderDetails(inventory)}
             </View>
           )}
-          <Text style={[styles.detailHeader, styles.defaultFontColor, { marginVertical: 16 }]}>
-            {i18next.t('label.additional_data').toUpperCase()}
-          </Text>
-          <ScrollView horizontal={true} style={{ marginBottom: 30 }}>
-            <JSONTree
-              data={{ metadata: formattedData }}
-              labelRenderer={(raw) => (
-                <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw[0]}:</Text>
-              )}
-              valueRenderer={(raw) => (
-                <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw}</Text>
-              )}
-              theme={{ extend: theme }}
-              hideRoot={true}
-              invertTheme={true}
-              shouldExpandNode={() => true}
-            />
-          </ScrollView>
+          <Label leftText={i18next.t('label.additional_data')} rightText={''} />
+
+          <AdditionalDataOverview metadata={formattedData} />
         </ScrollView>
         {inventory?.treeType === SINGLE && status === INCOMPLETE ? (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

@@ -36,7 +36,7 @@ export const getForms = () => {
   });
 };
 
-export const addForm = ({ order, title, description = '' }: any) => {
+export const addForm = ({ order, title = '', description = '', id }: any) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -47,8 +47,8 @@ export const addForm = ({ order, title, description = '' }: any) => {
             form[i].order = form[i].order + 1;
           }
 
-          let formData: any = {
-            id: uuidv4(),
+          const formData: any = {
+            id,
             order,
             title,
             description,

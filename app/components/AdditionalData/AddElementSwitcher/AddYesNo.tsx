@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { marginTop16, marginTop20, marginTop24, marginTop30 } from '../../../styles/design';
+import { marginTop24, marginTop30 } from '../../../styles/design';
 import OutlinedInput from '../../Common/OutlinedInput';
 import YesNoButton from '../../Common/YesNoButton';
 

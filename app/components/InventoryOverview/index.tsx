@@ -20,7 +20,6 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '../../styles';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -30,18 +29,18 @@ import {
   updateLastScreen,
   updatePlantingDate,
 } from '../../repositories/inventory';
-import { getUserDetails } from '../../repositories/user';
 import { getProjectById } from '../../repositories/projects';
+import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import { ALPHABETS, bugsnag } from '../../utils';
+import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
+import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
-import { formatAdditionalDetails } from '../../utils/additionalData/functions';
-import JSONTree from 'react-native-json-tree';
-import { theme } from '../../utils/additionalData/constants';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -493,21 +492,7 @@ const InventoryOverview = ({ navigation }: any) => {
               />
               <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
-              <ScrollView horizontal={true} style={{ marginBottom: 30 }}>
-                <JSONTree
-                  data={{ metadata: formattedData }}
-                  labelRenderer={(raw) => (
-                    <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw[0]}:</Text>
-                  )}
-                  valueRenderer={(raw) => (
-                    <Text style={{ fontFamily: Typography.FONT_FAMILY_REGULAR }}>{raw}</Text>
-                  )}
-                  theme={{ extend: theme }}
-                  hideRoot={true}
-                  invertTheme={true}
-                  shouldExpandNode={() => true}
-                />
-              </ScrollView>
+              <AdditionalDataOverview metadata={formattedData} />
             </ScrollView>
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>

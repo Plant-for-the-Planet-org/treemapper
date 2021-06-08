@@ -3,15 +3,14 @@ import i18next from 'i18next';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import FeatherIcon from 'react-native-vector-icons/Feather';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
+import { InputModal } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
-import { InputModal } from '../Common';
-import { updateForm } from '../../repositories/additionalData';
 
 interface IPageProps {
   pageNo: number;
@@ -22,7 +21,7 @@ interface IPageProps {
   formOrder: number;
   updateFormElements: any;
   deleteElement: (elementIndex: any) => void;
-  reloadForm: () => void;
+  updateFormData: any;
 }
 
 const { width } = Dimensions.get('window');
@@ -36,7 +35,7 @@ export default function Page({
   formOrder,
   updateFormElements,
   deleteElement,
-  reloadForm,
+  updateFormData,
 }: IPageProps) {
   const defaultPageTitle = i18next.t('label.form_page', { pageNo });
   const [dragging, setDragging] = useState<boolean>(false);
@@ -91,11 +90,7 @@ export default function Page({
   };
 
   const updatePageTitle = () => {
-    updateForm({ title: editedPageTitle, id: formId }).then((success) => {
-      if (success) {
-        reloadForm();
-      }
-    });
+    updateFormData({ pageTitle: editedPageTitle, formId });
   };
 
   return (

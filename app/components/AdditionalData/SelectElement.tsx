@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { RouteProp } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Dimensions,
   SafeAreaView,
@@ -11,13 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { addForm } from '../../repositories/additionalData';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 import { Colors, Typography } from '../../styles';
 import { elementsType } from '../../utils/additionalData/constants';
 import { Header } from '../Common';
-
-import MCIIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import IconSwitcher from '../Common/IconSwitcher';
 
 type RootStackParamList = {
@@ -72,6 +69,8 @@ const SelectElement = () => {
   const navigation = useNavigation();
   const route: SelectElementScreenRouteProp = useRoute();
 
+  const { addNewForm } = useContext(AdditionalDataContext);
+
   useEffect(() => {
     if (route.params?.formId) {
       setFormId(route.params.formId);
@@ -83,7 +82,7 @@ const SelectElement = () => {
 
   const handleElementPress = (elementType: string) => {
     if (elementType === elementsType.PAGE) {
-      addForm({ order: formOrder + 1 });
+      addNewForm({ order: formOrder + 1 });
       navigation.goBack();
     } else {
       navigation.navigate('AddEditElement', { elementType, formId });

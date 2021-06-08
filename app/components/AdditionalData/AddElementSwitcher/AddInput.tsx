@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { useState } from 'react';
+import React from 'react';
 import { marginTop24 } from '../../../styles/design';
 import { inputOptions, inputTypes } from '../../../utils/additionalData/constants';
 import Dropdown from '../../Common/Dropdown';

@@ -1,38 +1,29 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import {
-  deleteMetadataField,
-  getMetadata,
-  updateMetadata,
-} from '../../repositories/additionalData';
+import { AdditionalDataContext } from '../../reducers/additionalData';
+import { deleteMetadataField } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
 import { accessTypes } from '../../utils/additionalData/constants';
-import { sortByField } from '../../utils/sortBy';
 import { Loader, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import KeyValueInput from './KeyValueInput';
 
-interface IMetadataProps {
-  metadata: any;
-  updateMetadataOrder: any;
-  addMetadataInState: any;
-  loading: boolean;
-}
-
 const { width } = Dimensions.get('window');
 
-export default function Metadata({
-  metadata,
-  updateMetadataOrder,
-  addMetadataInState,
-  loading,
-}: IMetadataProps): JSX.Element {
+function Metadata(): JSX.Element {
   const [dragging, setDragging] = useState<boolean>(false);
+
+  const {
+    metadata,
+    updateMetadataOrder,
+    metadataLoading: loading,
+    addMetadataInState,
+  } = useContext(AdditionalDataContext);
 
   const navigation = useNavigation();
 
@@ -126,6 +117,8 @@ export default function Metadata({
     </>
   );
 }
+
+export default React.memo(Metadata);
 
 const styles = StyleSheet.create({
   container: {

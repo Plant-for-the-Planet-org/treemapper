@@ -1,6 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Colors, Typography } from '../../../styles';
+
+interface ILargeButtonProps {
+  heading: string;
+  subHeading?: string;
+  active?: boolean;
+  medium?: boolean;
+  rightIcon?: string;
+  onPress: any;
+  disabled?: boolean;
+  style?: any;
+  notification?: string;
+  subHeadingStyle?: any;
+  accessibilityLabel?: string;
+  testID?: string;
+  leftComponent?: JSX.Element;
+}
 
 const LargeButton = ({
   heading,
@@ -15,7 +31,8 @@ const LargeButton = ({
   subHeadingStyle,
   accessibilityLabel,
   testID,
-}) => {
+  leftComponent,
+}: ILargeButtonProps) => {
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -29,6 +46,7 @@ const LargeButton = ({
         medium && styles.mediumCont,
         style,
       ]}>
+      {leftComponent && <View style={styles.leftComponentContainer}>{leftComponent}</View>}
       <View style={{ flex: 1 }}>
         <View style={styles.subContainer}>
           <Text style={[styles.heading, active && styles.activeText]}>{heading}</Text>
@@ -111,6 +129,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
     lineHeight: Typography.LINE_HEIGHT_24,
+  },
+  leftComponentContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 16,
   },
   rightIconCont: {
     justifyContent: 'center',

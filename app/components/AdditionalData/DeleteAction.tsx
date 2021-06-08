@@ -1,14 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import Animated, {
+  add,
+  cond,
   divide,
   interpolate,
-  Extrapolate,
-  sub,
-  cond,
-  add,
   lessThan,
   multiply,
+  sub,
 } from 'react-native-reanimated';
 import { Colors, Typography } from '../../styles';
 

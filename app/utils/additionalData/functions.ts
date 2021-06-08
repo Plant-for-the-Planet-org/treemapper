@@ -1,3 +1,4 @@
+import RNFS from 'react-native-fs';
 import {
   deleteAllAdditionalData,
   getMetadata,
@@ -7,12 +8,53 @@ import {
 } from '../../repositories/additionalData';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../constants';
-import RNFS from 'react-native-fs';
-import { FormElementType, IAdditionalDataImport, IFormData } from './interfaces';
+import { MULTI, ON_SITE, SAMPLE } from '../inventoryConstants';
 import { elementsType } from './constants';
-import React from 'react';
+import { IAdditionalDataImport, IFormData } from './interfaces';
+
+export const sortByField = (fieldName: string, arrayData: any) => {
+  return arrayData.sort((a: any, b: any) => {
+    return a[`${fieldName}`] - b[`${fieldName}`];
+  });
+};
+
+export const filterFormByTreeAndRegistrationType = (
+  formData: any,
+  treeType: string,
+  registrationType: string,
+  isSampleTree: boolean = false,
+) => {
+  console.log('treeType', treeType);
+  console.log('registrationType', registrationType);
+  console.log('isSampleTree', isSampleTree);
+  if (treeType && treeType.toLowerCase() !== 'all') {
+    if (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI) {
+      treeType = SAMPLE;
+    }
+    for (let i in formData) {
+      let elements: any = formData[i].elements;
+      elements = elements.filter((element: any) => element.treeType.includes(treeType));
+      formData[i].elements = elements;
+    }
+  }
+  if (
+    registrationType &&
+    registrationType.toLowerCase() !== 'all' &&
+    (!isSampleTree || (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI))
+  ) {
+    for (let i in formData) {
+      let elements: any = formData[i].elements;
+      elements = elements.filter((element: any) =>
+        element.registrationType.includes(registrationType),
+      );
+      formData[i].elements = elements;
+    }
+  }
+  return formData;
+};
 
 export const formatAdditionalDetails = async (additionalDetails: any, sampleTrees: any = null) => {
+  console.log('additionalDetails', additionalDetails);
   let formattedDetails: any = { public: {}, private: {}, app: {} };
 
   const metadata = await getMetadata();
@@ -22,12 +64,12 @@ export const formatAdditionalDetails = async (additionalDetails: any, sampleTree
       formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;
     }
   }
-  if (Array.isArray(additionalDetails) && additionalDetails.length > 0) {
+  if ((additionalDetails || Array.isArray(additionalDetails)) && additionalDetails.length > 0) {
     for (let detail of additionalDetails) {
       formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;
     }
   }
-  if (Array.isArray(sampleTrees) && sampleTrees.length > 0) {
+  if ((sampleTrees || Array.isArray(sampleTrees)) && sampleTrees.length > 0) {
     for (const i in sampleTrees) {
       for (let detail of sampleTrees[i].additionalDetails) {
         formattedDetails[`${detail.accessType}`][`ST${Number(i) + 1}-${detail.key}`] = detail.value;
@@ -127,6 +169,10 @@ export const readJsonFileAndAddAdditionalData = (res: any) => {
               const isFormDataAdded = await importForm(updatedFormData, elementTypeData);
               const isMetadataAdded = await importMetadata(jsonContent.metadata);
               if (isFormDataAdded || isMetadataAdded) {
+                dbLog.info({
+                  logType: LogTypes.ADDITIONAL_DATA,
+                  message: 'Successfully imported additional data',
+                });
                 resolve(isFormDataAdded || isMetadataAdded);
               } else {
                 reject(new Error('Import of data was unsuccessful'));

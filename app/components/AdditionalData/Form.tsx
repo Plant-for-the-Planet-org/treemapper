@@ -1,66 +1,53 @@
-import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import {
-  addForm,
-  deleteForm,
-  deleteFormElement,
-  getForms,
-  updateForm,
-} from '../../repositories/additionalData';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 import { Colors, Typography } from '../../styles';
-import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
-import { filterFormByTreeAndRegistrationType, sortByField } from '../../utils/sortBy';
-import { Loader, PrimaryButton } from '../Common';
+import { AlertModal, Loader, PrimaryButton } from '../Common';
 import Dropdown from '../Common/Dropdown';
 import Page from './Page';
 
 interface IFormProps {
-  filteredForm: any;
-  addFormsToState: any;
-  loading: boolean;
   registrationTypeOptions: any;
-  setRegistrationType: React.Dispatch<React.SetStateAction<string>>;
-  treeTypeOptions: React.Dispatch<React.SetStateAction<any>>;
-  setTreeType: React.Dispatch<React.SetStateAction<string>>;
-  selectedTreeOption: React.Dispatch<React.SetStateAction<any>>;
-  addNewForm: any;
+  treeTypeOptions: any;
+  selectedTreeOption: any;
 }
 
-export default function Form({
-  filteredForm,
-  addFormsToState,
-  loading,
+function Form({
   registrationTypeOptions,
-  setRegistrationType,
   treeTypeOptions,
-  setTreeType,
   selectedTreeOption,
-  addNewForm,
 }: IFormProps): JSX.Element {
-  const deleteFormById = (formId: string) => {
-    deleteForm(formId).then((success) => {
-      if (success) {
-        addFormsToState();
-      }
-    });
+  const [selectedFormId, setSelectedFormId] = useState<string>('');
+  const [selectedPageTitle, setSelectedPageTitle] = useState<string>('');
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const {
+    deleteElementFromForm,
+    filteredForm,
+    formLoading: loading,
+    setRegistrationType,
+    setTreeType,
+    addNewForm,
+    deleteFormById,
+    updateFormData,
+    isInitialLoading,
+  } = useContext(AdditionalDataContext);
+
+  const resetAlert = () => {
+    setShowAlert(false);
+    setSelectedFormId('');
+    setSelectedPageTitle('');
   };
 
-  const updateFormElements = async (elements: any, formId: any) => {
-    await updateForm({ elements, id: formId }).then((success) => {
-      if (success) {
-        addFormsToState();
-      }
-    });
+  const deletePage = () => {
+    deleteFormById(selectedFormId);
+    resetAlert();
   };
 
-  const deleteElementFromForm = (formId: string, elementIndexToDelete: number) => {
-    deleteFormElement(formId, elementIndexToDelete).then((success) => {
-      if (success) {
-        addFormsToState();
-      }
-    });
+  const handleDeletePress = (formId: string, pageTitle: string) => {
+    setSelectedFormId(formId);
+    setSelectedPageTitle(pageTitle);
+    setShowAlert(true);
   };
 
   return (
@@ -68,13 +55,13 @@ export default function Form({
       style={styles.container}
       contentContainerStyle={[
         { flexGrow: 1 },
-        loading || (Array.isArray(filteredForm) && filteredForm.length > 0)
+        loading || isInitialLoading || (Array.isArray(filteredForm) && filteredForm.length > 0)
           ? {}
           : styles.alignCenter,
       ]}>
-      {loading ? (
+      {loading || isInitialLoading ? (
         <Loader
-          isLoaderShow={loading}
+          isLoaderShow={loading || isInitialLoading}
           loadingText={i18next.t('label.loading_form_editor')}
           isModal={false}
         />
@@ -112,28 +99,47 @@ export default function Form({
                 elements={form.elements}
                 key={`form-page-${index}`}
                 formId={form.id}
-                handleDeletePress={() => deleteFormById(form.id)}
+                handleDeletePress={() =>
+                  handleDeletePress(
+                    form.id,
+                    form.title || i18next.t('label.form_page', { pageNo: index + 1 }),
+                  )
+                }
                 formOrder={form.order}
-                updateFormElements={(elements: any) => updateFormElements(elements, form.id)}
+                updateFormElements={(elements: any) =>
+                  updateFormData({ elements, formId: form.id })
+                }
                 deleteElement={(elementIndex: number) =>
                   deleteElementFromForm(form.id, elementIndex)
                 }
-                reloadForm={addFormsToState}
+                updateFormData={updateFormData}
               />
             ))}
           </>
         )
       )}
-      {!loading && Array.isArray(filteredForm) && filteredForm.length === 0 && (
+      {!loading && !isInitialLoading && Array.isArray(filteredForm) && filteredForm.length === 0 && (
         <>
           <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
           <Text style={styles.desc}>{i18next.t('label.get_started_forms_description')}</Text>
           <PrimaryButton btnText={i18next.t('label.create_form')} onPress={addNewForm} />
         </>
       )}
+      <AlertModal
+        visible={showAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={i18next.t('label.do_you_want_to_delete_page', { pageTitle: selectedPageTitle })}
+        onPressPrimaryBtn={deletePage}
+        onPressSecondaryBtn={resetAlert}
+        showSecondaryButton
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.cancel')}
+      />
     </ScrollView>
   );
 }
+
+export default React.memo(Form);
 
 const styles = StyleSheet.create({
   container: {

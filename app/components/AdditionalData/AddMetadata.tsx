@@ -1,6 +1,7 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 import { addOrUpdateMetadataField } from '../../repositories/additionalData';
 import { accessTypes } from '../../utils/additionalData/constants';
 import KeyValueForm from './KeyValueForm';
@@ -29,6 +30,8 @@ const AddMetadata = () => {
   const navigation = useNavigation();
   const route: AddMetadataFormScreenRouteProp = useRoute();
 
+  const { addMetadataInState } = useContext(AdditionalDataContext);
+
   useEffect(() => {
     setFieldKey(route.params?.fieldKey || '');
     setFieldValue(route.params?.fieldValue || '');
@@ -47,6 +50,7 @@ const AddMetadata = () => {
     };
     addOrUpdateMetadataField(fieldData).then((success: boolean) => {
       if (success) {
+        addMetadataInState();
         navigation.goBack();
       }
     });

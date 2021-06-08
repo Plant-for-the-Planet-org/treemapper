@@ -206,7 +206,6 @@ const getBodyData = async (inventory) => {
   coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
 
   // stores the device coordinated of the registered tree(s)
-  // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
   let deviceCoordinatesType = POINT;
   let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
 

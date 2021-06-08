@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 
 interface IGapElementProps {
