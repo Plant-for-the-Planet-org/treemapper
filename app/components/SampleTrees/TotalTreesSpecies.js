@@ -18,7 +18,6 @@ import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
-import { getSpecieFromGuid } from '../../repositories/species';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
@@ -26,7 +25,6 @@ import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { Header, PrimaryButton, TopRightBackground } from '../Common';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
-import { species_default } from '../../assets';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
