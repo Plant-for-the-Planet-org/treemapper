@@ -12,6 +12,7 @@ import { getUserInformation } from '../../repositories/user';
 import { APIConfig } from '../../actions/Config';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -75,9 +76,9 @@ export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navig
     getUserInformation().then((data) => {
       setCountryCode(data.country);
     });
-    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) =>
-      setInventory(inventoryData),
-    );
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+    });
   }, []);
 
   const addSampleTree = () => {
@@ -108,7 +109,11 @@ export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navig
     <View style={{ marginBottom: 24 }}>
       <Label
         leftText={i18next.t('label.sample_trees')}
-        rightText={'Add Another'}
+        rightText={
+          inventory?.status === INCOMPLETE || inventory?.status === INCOMPLETE_SAMPLE_TREE
+            ? i18next.t('label.add_another')
+            : []
+        }
         onPressRightText={addSampleTree}
       />
       <FlatList
