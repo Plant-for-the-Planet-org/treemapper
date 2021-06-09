@@ -234,12 +234,11 @@ export default function MapMarking({
     }
   };
 
-  useEffect(()=>{
-    if(isInitial && location){
+  useEffect(() => {
+    if (isInitial && location) {
       onPressMyLocationIcon(location);
     }
-  },[isCameraRefVisible,location])
-
+  }, [isCameraRefVisible, location]);
 
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position) => {
