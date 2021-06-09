@@ -36,7 +36,6 @@ export default function Map({
   map,
   camera,
   setIsCameraRefVisible,
-  updateCurrentPosition,
   location,
   loader,
   markerText,

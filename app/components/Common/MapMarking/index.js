@@ -753,7 +753,6 @@ export default function MapMarking({
         map={map}
         camera={camera}
         setIsCameraRefVisible={setIsCameraRefVisible}
-        updateCurrentPosition={updateCurrentPosition}
         setLocation={setLocation}
         location={location}
         loader={loader}
