@@ -1,15 +1,14 @@
 import RNFS from 'react-native-fs';
 import {
   deleteAllAdditionalData,
-  getMetadata,
   getSchemaNameFromType,
   importForm,
   importMetadata,
 } from '../../repositories/additionalData';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../constants';
-import { MULTI, ON_SITE, SAMPLE } from '../inventoryConstants';
-import { elementsType } from './constants';
+import { MULTI, ON_SITE, SAMPLE, SINGLE } from '../inventoryConstants';
+import { accessTypes, elementsType } from './constants';
 import { IAdditionalDataImport, IFormData } from './interfaces';
 
 export const sortByField = (fieldName: string, arrayData: any) => {
@@ -24,9 +23,6 @@ export const filterFormByTreeAndRegistrationType = (
   registrationType: string,
   isSampleTree: boolean = false,
 ) => {
-  console.log('treeType', treeType);
-  console.log('registrationType', registrationType);
-  console.log('isSampleTree', isSampleTree);
   if (treeType && treeType.toLowerCase() !== 'all') {
     if (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI) {
       treeType = SAMPLE;
@@ -53,39 +49,40 @@ export const filterFormByTreeAndRegistrationType = (
   return formData;
 };
 
-export const formatAdditionalDetails = async (additionalDetails: any, sampleTrees: any = null) => {
-  console.log('additionalDetails', additionalDetails);
+export const getFormattedMetadata = (additionalDetails: any) => {
   let formattedDetails: any = { public: {}, private: {}, app: {} };
 
-  const metadata = await getMetadata();
-
-  if (Array.isArray(metadata) && metadata.length > 0) {
-    for (let detail of metadata) {
-      formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;
-    }
-  }
   if ((additionalDetails || Array.isArray(additionalDetails)) && additionalDetails.length > 0) {
     for (let detail of additionalDetails) {
       formattedDetails[`${detail.accessType}`][`${detail.key}`] = detail.value;
     }
   }
-  if ((sampleTrees || Array.isArray(sampleTrees)) && sampleTrees.length > 0) {
-    for (const i in sampleTrees) {
-      for (let detail of sampleTrees[i].additionalDetails) {
-        formattedDetails[`${detail.accessType}`][`ST${Number(i) + 1}-${detail.key}`] = detail.value;
-      }
-    }
-  }
   return formattedDetails;
 };
 
-export const formatSampleTreeAdditionalDetails = (additionalDetails: any, index: number) => {
-  let formattedDetails: any = { public: {}, private: {}, app: {} };
+export const getFormattedAdditionalDetails = (metadata: any) => {
+  let additionalDetails: any = [];
 
-  for (let detail of additionalDetails) {
-    formattedDetails[`${detail.accessType}`][`ST${Number(index) + 1}-${detail.key}`] = detail.value;
+  if (metadata && Object.keys(metadata).length > 0) {
+    for (const dataKey of Object.keys(metadata)) {
+      const accessType =
+        dataKey === 'public'
+          ? accessTypes.PUBLIC
+          : dataKey === 'private'
+          ? accessTypes.PRIVATE
+          : accessTypes.APP;
+
+      for (const [key, value] of Object.entries(metadata[dataKey])) {
+        additionalDetails.push({
+          key,
+          value,
+          accessType,
+        });
+      }
+    }
   }
-  return formattedDetails;
+
+  return additionalDetails;
 };
 
 const isAdditionalData = (object: any): object is IAdditionalDataImport => {
@@ -203,4 +200,103 @@ export const readJsonFileAndAddAdditionalData = (res: any) => {
         reject(err);
       });
   });
+};
+
+interface IGetAppMetadata {
+  data: any;
+  isSampleTree?: boolean;
+}
+
+export const getFormattedAppAdditionalDetailsFromInventory = ({
+  data,
+  isSampleTree = false,
+}: IGetAppMetadata): any[] => {
+  const appAdditionalDetails: any[] = [];
+  if (!data) {
+    return appAdditionalDetails;
+  }
+
+  if (data.treeType === SINGLE || isSampleTree) {
+    appAdditionalDetails.push({
+      key: 'specieHeight',
+      value: data.specieHeight.toString(),
+      accessType: accessTypes.APP,
+    });
+    appAdditionalDetails.push({
+      key: 'specieDiameter',
+      value: data.specieDiameter.toString(),
+      accessType: accessTypes.APP,
+    });
+    if (data.tagId) {
+      appAdditionalDetails.push({
+        key: 'tagId',
+        value: data.tagId,
+        accessType: accessTypes.APP,
+      });
+    }
+  }
+
+  // adding dates to additional details
+  if (data.registrationDate) {
+    appAdditionalDetails.push({
+      key: 'registrationDate',
+      value: data.registrationDate,
+      accessType: accessTypes.APP,
+    });
+  }
+  if (data.plantationDate) {
+    appAdditionalDetails.push({
+      key: 'plantationDate',
+      value: data.plantationDate,
+      accessType: accessTypes.APP,
+    });
+  }
+
+  // adding species to additional details
+  if (!isSampleTree) {
+    for (const index in data.species) {
+      const species = data.species[index];
+      appAdditionalDetails.push({
+        key: `speciesId${Number(index) + 1}`,
+        value: species.id,
+        accessType: accessTypes.APP,
+      });
+      appAdditionalDetails.push({
+        key: `speciesAliases${Number(index) + 1}`,
+        value: species.id === 'unknown' ? 'Unknown' : species.aliases,
+        accessType: accessTypes.APP,
+      });
+      appAdditionalDetails.push({
+        key: `speciesTreeCount${Number(index) + 1}`,
+        value: species.treeCount.toString(),
+        accessType: accessTypes.APP,
+      });
+    }
+
+    if (data.projectId) {
+      appAdditionalDetails.push({
+        key: 'projectId',
+        value: data.projectId,
+        accessType: accessTypes.APP,
+      });
+    }
+  } else {
+    appAdditionalDetails.push({
+      key: `speciesId1`,
+      value: data.specieId,
+      accessType: accessTypes.APP,
+    });
+    appAdditionalDetails.push({
+      key: `speciesAliases1`,
+      value: data.specieId === 'unknown' ? 'Unknown' : data.specieName,
+      accessType: accessTypes.APP,
+    });
+    appAdditionalDetails.push({
+      key: `speciesTreeCount1`,
+      value: 1,
+      accessType: accessTypes.APP,
+    });
+  }
+
+  return appAdditionalDetails;
 };

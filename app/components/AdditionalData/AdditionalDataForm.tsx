@@ -3,7 +3,7 @@ import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { InventoryContext } from '../../reducers/inventory';
-import { getForms } from '../../repositories/additionalData';
+import { getForms, getMetadata } from '../../repositories/additionalData';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { Colors } from '../../styles';
@@ -25,7 +25,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
   const [forms, setForms] = useState<any>([]);
   const [currentFormIndex, setCurrentFormIndex] = useState<number>(0);
   const [treeType, setTreeType] = useState<string>('');
-  const [locateTree, setLocateTree] = useState<string>('');
   const [inventoryStatus, setInventoryStatus] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.additional_data'));
@@ -33,6 +32,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
   const [formAccessType, setFormAccessType] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [inventory, setInventory] = useState<any>();
+  const [isSampleTree, setIsSampleTree] = useState<boolean>(false);
 
   const { state: inventoryState } = useContext(InventoryContext);
 
@@ -48,13 +48,13 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           if (inventoryData) {
             setInventory(inventoryData);
             setTreeType(inventoryData.treeType);
-            setLocateTree(inventoryData.locateTree);
             setInventoryStatus(inventoryData.status);
-            const isSampleTree =
+            const isSample =
               inventoryData.treeType === MULTI &&
               inventoryData.status === INCOMPLETE_SAMPLE_TREE &&
               inventoryData.completedSampleTreesCount !== inventoryData.sampleTreesCount;
-            addFormsToState(inventoryData.treeType, inventoryData.locateTree, isSampleTree);
+            setIsSampleTree(isSample);
+            addFormsToState(inventoryData.treeType, inventoryData.locateTree, isSample);
           }
         });
       }
@@ -68,7 +68,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
     );
   };
 
-  const addFormsToState = (treeType: string, registrationType: string, isSampleTree: boolean) => {
+  const addFormsToState = (treeType: string, registrationType: string, isSample: boolean) => {
     getForms().then((formsData: any) => {
       if (formsData) {
         formsData = sortByField('order', formsData);
@@ -77,7 +77,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           formsData,
           treeType,
           registrationType,
-          isSampleTree,
+          isSample,
         );
 
         const shouldShowForm =
@@ -105,24 +105,21 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         }
 
         if (!shouldShowForm) {
-          navigate();
+          navigate(treeType, isSample);
         }
       } else {
-        navigate();
+        navigate(treeType, isSample);
       }
       setLoading(false);
     });
   };
 
-  const navigate = () => {
+  const navigate = (type: string = '', isSample: boolean | null = null) => {
     let nextScreen = '';
+    isSample = isSample ?? isSampleTree;
+    type = type || treeType;
 
-    if (
-      treeType === SINGLE ||
-      (treeType === MULTI &&
-        inventoryStatus === INCOMPLETE_SAMPLE_TREE &&
-        inventory.completedSampleTreesCount !== inventory.sampleTreesCount)
-    ) {
+    if (type === SINGLE || isSample) {
       nextScreen = 'SingleTreeOverview';
     } else {
       nextScreen = 'InventoryOverview';
@@ -149,7 +146,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
     });
   };
 
-  const handleContinueClick = () => {
+  const handleContinueClick = async () => {
     let updatedErrors: any = {};
     let errorCount = 0;
     for (const elementData of forms[currentFormIndex].elements) {
@@ -178,6 +175,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         updateHeading(forms, nextIndex);
       } else {
         let transformedData = [];
+        const metadata: any = await getMetadata();
 
         for (const dataKey of Object.keys(formData)) {
           transformedData.push({
@@ -186,6 +184,13 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
             accessType: formAccessType[dataKey],
           });
         }
+
+        for (const index in metadata) {
+          delete metadata[index].id;
+          delete metadata[index].order;
+        }
+
+        transformedData = [...transformedData, ...metadata];
 
         let inventoryData;
         if (

@@ -86,5 +86,6 @@
     "importing_additional_data":"Importing additional data for form builder.\nThis might take some time",
     "public":"Public",
     "private":"Private",
-    "app":"App"
+    "app":"App",
+    "no_additional_data_available":"No additional data available"
 }

@@ -27,7 +27,7 @@ import {
   INCREMENT,
   DECREMENT,
 } from '../utils/inventoryConstants';
-import { formatAdditionalDetails } from '../utils/additionalData/functions';
+import { getFormattedMetadata } from '../utils/additionalData/functions';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
@@ -81,7 +81,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                     let inventory = {};
                     inventory = oneInventory;
                     const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
-                    console.log(sampleTreeUploadResult, 'sampleTreeUploadResult');
+
                     if (sampleTreeUploadResult) {
                       changeInventoryStatus(
                         {
@@ -150,7 +150,7 @@ export const uploadInventory = (dispatch) => {
         for (let i = 0; i < inventoryData.length; i++) {
           const oneInventory = inventoryData[i];
 
-          let body = await getBodyData(oneInventory);
+          let body = getBodyData(oneInventory);
 
           if (oneInventory.locationId !== null && oneInventory.status === PENDING_IMAGE_UPLOAD) {
             try {
@@ -248,7 +248,7 @@ export const uploadInventory = (dispatch) => {
   });
 };
 
-const getBodyData = async (inventory) => {
+const getBodyData = (inventory) => {
   let coords = inventory.polygons[0].coordinates;
 
   // stores the coordinates of the registered tree(s)
@@ -260,10 +260,7 @@ const getBodyData = async (inventory) => {
   let deviceCoordinatesType = POINT;
   let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
 
-  const metadata = await formatAdditionalDetails(
-    inventory.additionalDetails,
-    inventory.sampleTrees,
-  );
+  const metadata = getFormattedMetadata(inventory.additionalDetails);
 
   // prepares the body which is to be passed to api
   let body = {
@@ -296,9 +293,6 @@ const getBodyData = async (inventory) => {
     if (inventory.tagId) {
       bodyData.tag = inventory.tagId;
     }
-    if (inventory.projectId) {
-      bodyData.plantProject = inventory.projectId;
-    }
 
     body = {
       ...body,
@@ -318,10 +312,14 @@ const getBodyData = async (inventory) => {
     });
     body.plantedSpecies = plantedSpecies;
   }
+  if (inventory.projectId) {
+    body.plantProject = inventory.projectId;
+  }
   return body;
 };
 
 const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
+  const metadata = getFormattedMetadata(sampleTree.additionalDetails);
   // prepares the body which is to be passed to api
   let body = {
     type: sampleTree.treeType,
@@ -342,6 +340,7 @@ const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
       height: sampleTree.specieHeight,
       width: sampleTree.specieDiameter,
     },
+    metadata,
   };
 
   if (sampleTree.tagId) {

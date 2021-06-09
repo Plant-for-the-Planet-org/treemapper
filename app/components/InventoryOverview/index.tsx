@@ -23,6 +23,7 @@ import { SvgXml } from 'react-native-svg';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
+  addAppMetadata,
   changeInventoryStatus,
   deleteInventory,
   getInventory,
@@ -33,7 +34,6 @@ import { getProjectById } from '../../repositories/projects';
 import { getUserDetails } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { ALPHABETS, bugsnag } from '../../utils';
-import { formatAdditionalDetails } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import {
@@ -58,11 +58,11 @@ const InventoryOverview = ({ navigation }: any) => {
   const [selectedLOC, setSelectedLOC] = useState<any>(null);
   const [isLOCModalOpen, setIsLOCModalOpen] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [showProject, setShowProject] = useState<boolean>(false);
-  const [formattedData, setFormattedData] = useState<any>({});
+  const [isError, setIsError] = useState<boolean>(false);
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
@@ -111,12 +111,6 @@ const InventoryOverview = ({ navigation }: any) => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
-        const data = await formatAdditionalDetails(
-          inventoryData.additionalDetails,
-          inventoryData.sampleTrees,
-        );
-
-        setFormattedData(data);
 
         if (inventoryData.projectId) {
           const project: any = await getProjectById(inventoryData.projectId);
@@ -189,10 +183,17 @@ const InventoryOverview = ({ navigation }: any) => {
   const onPressSave = () => {
     if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
       if (inventory.species.length > 0) {
-        let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
-        changeInventoryStatus(data, dispatch).then(() => {
-          navigation.navigate('TreeInventory');
-        });
+        addAppMetadata({ inventory_id: state.inventoryID })
+          .then(() => {
+            let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+            changeInventoryStatus(data, dispatch).then(() => {
+              navigation.navigate('TreeInventory');
+            });
+          })
+          .catch(() => {
+            setIsError(true);
+            setShowAlert(true);
+          });
       } else {
         alert(i18next.t('label.inventory_overview_select_species'));
       }
@@ -380,7 +381,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const handleDeleteInventory = () => {
     deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
-        setShowDeleteAlert(!showDeleteAlert);
+        setShowAlert(!showAlert);
         navigation.navigate('TreeInventory');
       })
       .catch((err) => {
@@ -422,7 +423,7 @@ const InventoryOverview = ({ navigation }: any) => {
                     ? i18next.t('label.tree_review_delete')
                     : []
                 }
-                onPressFunction={() => setShowDeleteAlert(true)}
+                onPressFunction={() => setShowAlert(true)}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
@@ -500,7 +501,7 @@ const InventoryOverview = ({ navigation }: any) => {
               />
               <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
-              <AdditionalDataOverview metadata={formattedData} />
+              <AdditionalDataOverview data={inventory} />
             </ScrollView>
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>
@@ -515,18 +516,24 @@ const InventoryOverview = ({ navigation }: any) => {
         ) : null}
       </View>
       <AlertModal
-        visible={showDeleteAlert}
-        heading={i18next.t('label.tree_inventory_alert_header')}
+        visible={showAlert}
+        heading={
+          isError
+            ? i18next.t('label.something_went_wrong')
+            : i18next.t('label.tree_inventory_alert_header')
+        }
         message={
-          status === SYNCED
+          isError
+            ? i18next.t('label.error_saving_inventory')
+            : status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }
-        primaryBtnText={i18next.t('label.tree_review_delete')}
+        primaryBtnText={isError ? i18next.t('label.ok') : i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
-        onPressPrimaryBtn={handleDeleteInventory}
-        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
-        showSecondaryButton={true}
+        onPressPrimaryBtn={isError ? () => setShowAlert(!showAlert) : handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowAlert(!showAlert)}
+        showSecondaryButton={!isError}
       />
       {renderDatePicker()}
     </SafeAreaView>

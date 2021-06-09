@@ -200,7 +200,7 @@ const TreeInventory = ({ navigation }) => {
         pendingCount={state.pendingCount}
         isUploading={state.isUploading}
         isUserLogin={true}
-        // setEmailAlert={setEmailAlert}
+        borderLess={true}
       />
     );
   };

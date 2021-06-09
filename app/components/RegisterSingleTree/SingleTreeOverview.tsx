@@ -23,6 +23,7 @@ import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { UserContext } from '../../reducers/user';
 import {
+  addAppMetadata,
   changeInventoryStatus,
   deleteInventory,
   getInventory,
@@ -38,10 +39,7 @@ import dbLog from '../../repositories/logs';
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import {
-  formatAdditionalDetails,
-  formatSampleTreeAdditionalDetails,
-} from '../../utils/additionalData/functions';
+import { getFormattedAppAdditionalDetailsFromInventory } from '../../utils/additionalData/functions';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
@@ -110,7 +108,8 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
-  const [formattedData, setFormattedData] = useState<any>();
+
+  const [isError, setIsError] = useState<boolean>(false);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -170,12 +169,6 @@ const SingleTreeOverview = () => {
                 ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
                 : currentSampleTree.specieHeight;
 
-              const formattedSampleTreeData = formatSampleTreeAdditionalDetails(
-                currentSampleTree.additionalDetails,
-                index,
-              );
-              setFormattedData(formattedSampleTreeData);
-
               setSampleTreeIndex(index);
               setIsSampleTree(true);
               setSpecieText(currentSampleTree.specieName);
@@ -188,7 +181,6 @@ const SingleTreeOverview = () => {
               setEditedTagId(currentSampleTree.tagId);
               setTotalSampleTrees(inventoryData.sampleTreesCount);
             } else {
-              setFormattedData(await formatAdditionalDetails(inventoryData.additionalDetails));
               const diameter = nonISUCountries.includes(data.country)
                 ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
                 : inventoryData.specieDiameter;
@@ -345,9 +337,14 @@ const SingleTreeOverview = () => {
         break;
       }
       case 'changeStatusToPending': {
+        const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+          data: sampleTree,
+          isSampleTree: true,
+        });
         sampleTree = {
           ...sampleTree,
           status: PENDING_DATA_UPLOAD,
+          additionalDetails: [...sampleTree.additionalDetails, ...appAdditionalDetails],
         };
         inventoryData = {
           ...inventoryData,
@@ -663,6 +660,16 @@ const SingleTreeOverview = () => {
             {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
+        <Label leftText={i18next.t('label.additional_data')} rightText={''} />
+
+        <AdditionalDataOverview
+          data={
+            isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
+              ? inventory?.sampleTrees[sampleTreeIndex]
+              : inventory
+          }
+          isSampleTree={isSampleTree}
+        />
       </View>
       // </ScrollView>
     );
@@ -673,12 +680,14 @@ const SingleTreeOverview = () => {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
       if (specieText) {
-        let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
-        changeInventoryStatus(data, dispatch)
-          // For Auto-upload check the case duplication of inventory while uploading
+        addAppMetadata({ inventory_id: inventoryState.inventoryID })
           .then(() => {
-            navigation.navigate('TreeInventory');
-          });
+            let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+            changeInventoryStatus(data, dispatch).then(() => {
+              navigation.navigate('TreeInventory');
+            });
+          })
+          .catch(() => setIsError(true));
       } else {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
@@ -702,20 +711,22 @@ const SingleTreeOverview = () => {
 
   const onPressNextTree = () => {
     if (inventory.status === INCOMPLETE) {
-      changeInventoryStatus(
-        { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD },
-        dispatch,
-      ).then(() => {
-        deleteInventoryId()(dispatch);
-        checkLoginAndSync({
-          sync: true,
-          dispatch,
-          userDispatch,
-          connected: netInfo.isConnected,
-          internet: netInfo.isInternetReachable,
-        });
-        navigation.navigate('RegisterSingleTree');
-      });
+      addAppMetadata({ inventory_id: inventoryState.inventoryID })
+        .then(() => {
+          let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+          changeInventoryStatus(data, dispatch).then(() => {
+            deleteInventoryId()(dispatch);
+            checkLoginAndSync({
+              sync: true,
+              dispatch,
+              userDispatch,
+              connected: netInfo.isConnected,
+              internet: netInfo.isInternetReachable,
+            });
+            navigation.navigate('RegisterSingleTree');
+          });
+        })
+        .catch(() => setIsError(true));
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
       updateSampleTree('changeStatusToPending');
 
@@ -821,9 +832,6 @@ const SingleTreeOverview = () => {
               {renderDetails(inventory)}
             </View>
           )}
-          <Label leftText={i18next.t('label.additional_data')} rightText={''} />
-
-          <AdditionalDataOverview metadata={formattedData} />
         </ScrollView>
         {inventory?.treeType === SINGLE && status === INCOMPLETE ? (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -873,11 +881,22 @@ const SingleTreeOverview = () => {
         showSecondaryButton={true}
       />
       <AlertModal
-        visible={showInputError}
-        heading={i18next.t('label.tree_inventory_input_error')}
-        message={i18next.t('label.tree_inventory_input_error_message')}
+        visible={showInputError || isError}
+        heading={
+          isError
+            ? i18next.t('label.something_went_wrong')
+            : i18next.t('label.tree_inventory_input_error')
+        }
+        message={
+          isError
+            ? i18next.t('label.error_saving_inventory')
+            : i18next.t('label.tree_inventory_input_error_message')
+        }
         primaryBtnText={i18next.t('label.ok')}
-        onPressPrimaryBtn={() => setShowInputError(false)}
+        onPressPrimaryBtn={() => {
+          setIsError(false);
+          setShowInputError(false);
+        }}
       />
     </SafeAreaView>
   );

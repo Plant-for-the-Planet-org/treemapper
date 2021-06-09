@@ -305,6 +305,34 @@ export default function TotalTreesSpecies() {
     );
   };
 
+  const handleContinuePress = () => {
+    if (
+      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
+      inventory?.locateTree === OFF_SITE
+    ) {
+      navigation.navigate(
+        inventory?.additionalDetails.length > 0 ? 'InventoryOverview' : 'AdditionalDataForm',
+      );
+    } else {
+      navigation.navigate('SampleTreesCount');
+    }
+  };
+
+  const getContinueButtonText = () => {
+    if (
+      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
+      inventory?.locateTree === OFF_SITE
+    ) {
+      if (inventory?.additionalDetails.length > 0) {
+        return i18next.t('label.tree_review_continue_to_review');
+      } else {
+        return i18next.t('label.tree_review_continue_to_additional_data');
+      }
+    } else {
+      return i18next.t('label.tree_review_continue_to_sampleTrees');
+    }
+  };
+
   if (showManageSpecies) {
     return (
       <ManageSpecies
@@ -347,18 +375,8 @@ export default function TotalTreesSpecies() {
             accessibilityLabel={'sample_tree_count_continue'}
           />
           <PrimaryButton
-            onPress={() => {
-              inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-              inventory?.locateTree === OFF_SITE
-                ? navigation.navigate('AdditionalDataForm')
-                : navigation.navigate('SampleTreesCount');
-            }}
-            btnText={
-              inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-              inventory?.locateTree === OFF_SITE
-                ? i18next.t('label.tree_review_continue_to_additional_data')
-                : i18next.t('label.tree_review_continue_to_sampleTrees')
-            }
+            onPress={handleContinuePress}
+            btnText={getContinueButtonText()}
             theme={'primary'}
             testID={'sample_tree_count_continue'}
             accessibilityLabel={'sample_tree_count_continue'}
