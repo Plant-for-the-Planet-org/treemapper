@@ -235,6 +235,12 @@ export default function MapMarking({
     }
   };
 
+  useEffect(() => {
+    if (isInitial && location) {
+      onPressMyLocationIcon(location);
+    }
+  }, [isCameraRefVisible, location]);
+
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position) => {
     if (isInitial && treeType === SAMPLE) {
@@ -417,14 +423,10 @@ export default function MapMarking({
         {
           enableHighAccuracy: true,
           timeout: 20000,
-          // maximumAge:13000,
           accuracy: {
             android: 'high',
             ios: 'bestForNavigation',
           },
-          useSignificantChanges: true,
-          interval: 1000,
-          fastestInterval: 1000,
         },
       );
     });
@@ -771,7 +773,7 @@ export default function MapMarking({
         map={map}
         camera={camera}
         setIsCameraRefVisible={setIsCameraRefVisible}
-        updateCurrentPosition={updateCurrentPosition}
+        setLocation={setLocation}
         location={location}
         loader={loader}
         alphabets={alphabets}
