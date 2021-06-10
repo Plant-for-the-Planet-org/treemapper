@@ -1,5 +1,6 @@
 import jwtDecode from 'jwt-decode';
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { APIConfig } from '../actions/Config';
 import dbLog from '../repositories/logs';
 import { getUserDetails } from '../repositories/user';
@@ -9,6 +10,7 @@ import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-community/async-storage';
 import { checkErrorCode, getNewAccessToken } from '../actions/user';
+import { name as packageName, version } from '../../package';
 
 const { protocol, url: baseURL } = APIConfig;
 
@@ -35,6 +37,7 @@ axiosInstance.interceptors.request.use(
     }
     // sets the content type to json
     config.headers['Content-Type'] = 'application/json';
+    config.headers['User-Agent'] = packageName + '/' + Platform.OS + '/' + version;
     return config;
   },
   (error) => {
