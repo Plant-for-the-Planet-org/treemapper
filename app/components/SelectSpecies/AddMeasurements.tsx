@@ -64,13 +64,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
     setIsSampleTree(inventory?.status === INCOMPLETE_SAMPLE_TREE);
   }, [inventory]);
 
-  // useEffect(() => {
-  //   if (isShowTreeMeasurementModal) {
-  //     setDiameterError('');
-  //     setHeightError('');
-  //   }
-  // }, [isShowTreeMeasurementModal]);
-
   useEffect(() => {
     setDiameter('');
     setHeight('');
@@ -83,7 +76,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
         setInventory(inventory);
 
         if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-          // setIsShowTreeMeasurement(false);
           setSingleTreeSpecie(inventory.species[0]);
         }
       });

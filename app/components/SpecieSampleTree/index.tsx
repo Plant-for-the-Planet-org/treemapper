@@ -1,15 +1,12 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, SafeAreaView, ScrollView, Text, StyleSheet } from 'react-native';
-import { TopRightBackground, Header, PrimaryButton } from '../Common';
+import { TopRightBackground, Header } from '../Common';
 import { Colors, Typography } from '../../styles';
 import { SpecieListItem } from '../SampleTrees/TotalTreesSpecies';
 import i18next from 'i18next';
-import { useRoute, CommonActions } from '@react-navigation/native';
+import { useRoute, CommonActions, useNavigation } from '@react-navigation/native';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import { getInventory } from '../../repositories/inventory';
-import { InventoryContext } from '../../reducers/inventory';
 
 interface SpecieSampleTreeProps {
   notSampledSpecies?: string[];
@@ -24,17 +21,11 @@ type SpecieSampleRouteProp = RouteProp<RootStackParamList, 'SpecieSampleTree'>;
 
 const SpecieSampleTree = () => {
   const [speciesToSample, setSpeciesToSample] = useState([]);
-  const [inventory, setInventory] = useState<any>();
   const route: SpecieSampleRouteProp = useRoute();
   const navigation = useNavigation();
-  const { state } = useContext(InventoryContext);
 
   useEffect(() => {
     createSpeciesArray(route?.params?.notSampledSpecies);
-    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-      setInventory(inventoryData);
-    });
-    return () => {};
   }, []);
 
   const createSpeciesArray = async (notSampledSpecies: any) => {

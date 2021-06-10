@@ -1,4 +1,4 @@
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { InventoryContext } from '../../reducers/inventory';
@@ -14,7 +14,6 @@ import ManageSpecies from '../ManageSpecies';
 import { AddMeasurements } from './AddMeasurements';
 
 const SelectSpecies = () => {
-  const [singleTreeSpecie, setSingleTreeSpecie] = useState(null);
   const [isShowTreeMeasurement, setIsShowTreeMeasurement] = useState(false);
   const [inventory, setInventory] = useState(null);
   const [registrationType, setRegistrationType] = useState(null);
@@ -37,7 +36,6 @@ const SelectSpecies = () => {
         setInventory(inventory);
 
         if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-          setSingleTreeSpecie(inventory.species[0]);
           if (
             inventory?.status === INCOMPLETE_SAMPLE_TREE &&
             inventory.sampleTrees[inventory.completedSampleTreesCount].specieId
@@ -52,12 +50,7 @@ const SelectSpecies = () => {
     }
   };
 
-  const onPressSaveBtn = (item) => {
-    setSingleTreeSpecie({
-      id: item.guid,
-      aliases: item.aliases ? item.aliases : item.scientificName,
-      treeCount: 1,
-    });
+  const onPressSaveBtn = () => {
     setIsShowTreeMeasurement(true);
   };
 

@@ -5,17 +5,15 @@ import { Colors } from '_styles';
 import ImageCapturing from '../Common/ImageCapturing';
 import { MULTI, SAMPLE } from '../../utils/inventoryConstants';
 import { Loader } from '../Common';
-import { getInventory, updateInventory } from '../../repositories/inventory';
+import { getInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 
 export default function RecordSampleTrees({ route }) {
   const [screenState, setScreenState] = useState('');
-  const [inventory, setInventory] = useState();
   const { state: inventoryState } = useContext(InventoryContext);
 
   useEffect(() => {
     getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-      setInventory(inventoryData);
       chooseScreenState(inventoryData);
     });
   }, []);

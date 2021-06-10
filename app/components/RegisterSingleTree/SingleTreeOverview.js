@@ -1,4 +1,3 @@
-import { useNetInfo } from '@react-native-community/netinfo';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
@@ -21,12 +20,10 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, Typography } from '_styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { UserContext } from '../../reducers/user';
 import {
   changeInventoryStatus,
   deleteInventory,
   getInventory,
-  updateInventory,
   updateLastScreen,
   updatePlantingDate,
   updateSingleTreeSpecie,
@@ -34,10 +31,8 @@ import {
   updateSpecieHeight,
   updateTreeTag,
 } from '../../repositories/inventory';
-import dbLog from '../../repositories/logs';
 import { getProjectById } from '../../repositories/projects';
 import { getUserInformation, getUserDetails } from '../../repositories/user';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import {
   cmToInch,
   diameterMaxCm,
@@ -50,7 +45,6 @@ import {
   heightMinFoot,
   heightMinM,
   inchToCm,
-  LogTypes,
   meterToFoot,
   nonISUCountries,
 } from '../../utils/constants';
@@ -73,7 +67,6 @@ const { protocol, cdnUrl } = APIConfig;
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
   const [inventory, setInventory] = useState();
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isShowDate, setIsShowDate] = useState(false);
@@ -100,7 +93,6 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState();
   const [totalSampleTrees, setTotalSampleTrees] = useState();
-  const netInfo = useNetInfo();
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -144,8 +136,8 @@ const SingleTreeOverview = () => {
               const index = route?.params?.isSampleTree
                 ? route?.params?.sampleTreeIndex
                 : inventoryData.completedSampleTreesCount === inventoryData.sampleTreesCount
-                  ? inventoryData.completedSampleTreesCount - 1
-                  : inventoryData.completedSampleTreesCount;
+                ? inventoryData.completedSampleTreesCount - 1
+                : inventoryData.completedSampleTreesCount;
 
               const currentSampleTree = inventoryData.sampleTrees[index];
               const diameter = nonISUCountries.includes(data.country)
@@ -488,10 +480,10 @@ const SingleTreeOverview = () => {
             <Text style={styles.detailText}>
               {specieDiameter
                 ? // i18next.t('label.tree_review_specie_diameter', { specieDiameter })
-                nonISUCountries.includes(countryCode)
+                  nonISUCountries.includes(countryCode)
                   ? ` ${Math.round(specieDiameter * 100) / 100} ${i18next.t(
-                    'label.select_species_inches',
-                  )}`
+                      'label.select_species_inches',
+                    )}`
                   : ` ${Math.round(specieDiameter * 100) / 100} cm`
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
@@ -612,27 +604,7 @@ const SingleTreeOverview = () => {
     }
   };
 
-  const getNotSampledSpecies = () => {
-    let sampledSpecies = [];
-    let plantedSpecies = [];
-    let notSampledSpecies = [];
-    inventory.sampleTrees.forEach((sampleTree) => {
-      sampledSpecies.push(sampleTree.specieId);
-    });
-    inventory.species.forEach((specie) => {
-      plantedSpecies.push(specie.id);
-    });
-    sampledSpecies = [...new Set(sampledSpecies)];
-    plantedSpecies.forEach((specie) =>
-      sampledSpecies.includes(specie) ? notSampledSpecies : notSampledSpecies.push(specie),
-    );
-    return notSampledSpecies;
-  };
-
   const onPressContinueToReview = ({ forceContinue }) => {
-    // let notSampledSpecies = getNotSampledSpecies();
-    // console.log(notSampledSpecies, 'not sampled species');
-    // if (notSampledSpecies.length === 0 || forceContinue) {
     updateSampleTree({
       toUpdate: 'changeStatusToPending',
       inventory,
@@ -642,25 +614,9 @@ const SingleTreeOverview = () => {
     navigation.dispatch(
       CommonActions.reset({
         index: 3,
-        routes: [
-          { name: 'MainScreen' },
-          { name: 'TreeInventory' },
-          { name: 'InventoryOverview' },
-          // { name: 'TotalTreesSpecies' },
-        ],
+        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'InventoryOverview' }],
       }),
     );
-    // } else if (forceContinue !== undefined && !forceContinue) {
-    //   updateSampleTree({
-    //     toUpdate: 'changeStatusToPending',
-    //     inventory,
-    //     sampleTreeIndex,
-    //     setInventory,
-    //   });
-    //   navigation.navigate('SpecieSampleTree', { notSampledSpecies });
-    // } else {
-    //   setShowAddSampleTrees(true);
-    // }
   };
 
   const onPressNextTree = () => {
@@ -733,16 +689,16 @@ const SingleTreeOverview = () => {
           editEnable === 'diameter'
             ? specieEditDiameter.toString()
             : editEnable === 'height'
-              ? specieEditHeight.toString()
-              : editedTagId
+            ? specieEditHeight.toString()
+            : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
         setValue={
           editEnable === 'diameter'
             ? setSpecieEditDiameter
             : editEnable === 'height'
-              ? setSpecieEditHeight
-              : setEditedTagId
+            ? setSpecieEditHeight
+            : setEditedTagId
         }
         onSubmitInputField={() => onSubmitInputField(editEnable)}
       />
@@ -763,12 +719,12 @@ const SingleTreeOverview = () => {
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
-                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                    sampleTreesCount: totalSampleTrees,
-                  })
+                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                      sampleTreesCount: totalSampleTrees,
+                    })
                   : status === SYNCED
-                    ? i18next.t('label.tree_review_details')
-                    : i18next.t('label.tree_review_header')
+                  ? i18next.t('label.tree_review_details')
+                  : i18next.t('label.tree_review_header')
               }
               rightText={
                 status === INCOMPLETE || status === PENDING_DATA_UPLOAD
@@ -814,15 +770,15 @@ const SingleTreeOverview = () => {
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
           !route?.params?.isSampleTree ? (
-            <View style={styles.bottomBtnsContainer}>
-              <PrimaryButton
-                onPress={onPressNextTree}
-                btnText={i18next.t('label.tree_review_next_btn')}
-              />
-            </View>
-          ) : (
-            []
-          )}
+          <View style={styles.bottomBtnsContainer}>
+            <PrimaryButton
+              onPress={onPressNextTree}
+              btnText={i18next.t('label.tree_review_next_btn')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showDeleteAlert}
