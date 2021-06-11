@@ -7,13 +7,13 @@
   "tree_registration_type_2_sub_header": "Viele Bäume mit unterschiedlicher Anzahl hinzufügen",
   "tree_map_marking_header": "Standort des Baumes",
   "tree_map_marking_btn": "Standort wählen & weiter",
-  "alright_modal_sub_header": "Bitte mache Bilder, auf denen der ganze Baum sichtbar ist.",
+  "alright_modal_sub_header": "Bitte mache ein Bild, auf dem der ganze Baum sichtbar ist.",
   "alright_modal_header": "Zeit für ein Bild!",
   "alright_modal_white_btn": "Zurück",
   "alright_modal_off_site_sub_header": "Wir sehen, dass du weit weg vom Baum bist. Bitte klicke auf \"Weiter\", um Details über den Baum hinzuzufügen.",
   "alright_modal_off_site_header": "Off Site aktiviert!",
   "image_capturing_header": "Bild",
-  "image_capturing_sub_header": "Bitte nehme ein Bild des gepflanzten Baumes auf.",
+  "image_capturing_sub_header": "Nimm ein Bild des ganzen Baumes auf",
   "image_capturing_required": "Bild ist erforderlich",
   "coming_soon": "Demnächst!",
   "image_click_picture": "Bild aufnehmen",
@@ -22,5 +22,7 @@
   "sample_tree_review_tree_number": "Überprüfe Baum {{ongoingSampleTreeNumber}} von {{sampleTreesCount}}",
   "alright_modal_skip": "Überspringen",
   "total_trees_header": "Bäume gesamt",
-  "add_all_trees_planted_on_site": "Bitte füge die Liste aller gepflanzten Bäume an diesem Standort hinzu."
+  "add_all_trees_planted_on_site": "Bitte füge die Liste aller gepflanzten Bäume an diesem Standort hinzu.",
+  "select_species_and_add_sample": "Wähle eine der unteren Arten aus und füge einen Beispielbaum für diese Art hinzu.",
+  "add_sample_tree": "Beispielbaum hinzufügen"
 }
