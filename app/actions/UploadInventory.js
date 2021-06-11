@@ -27,6 +27,7 @@ import {
   INCREMENT,
   DECREMENT,
 } from '../utils/inventoryConstants';
+import { getFormattedMetadata } from '../utils/additionalData/functions';
 
 const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   return new Promise((resolve, reject) => {
@@ -80,7 +81,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                     let inventory = {};
                     inventory = oneInventory;
                     const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
-                    console.log(sampleTreeUploadResult, 'sampleTreeUploadResult');
+
                     if (sampleTreeUploadResult) {
                       changeInventoryStatus(
                         {
@@ -148,6 +149,7 @@ export const uploadInventory = (dispatch) => {
         // loops through the inventory data to upload the data and then the images of the same synchronously
         for (let i = 0; i < inventoryData.length; i++) {
           const oneInventory = inventoryData[i];
+
           let body = getBodyData(oneInventory);
 
           if (oneInventory.locationId !== null && oneInventory.status === PENDING_IMAGE_UPLOAD) {
@@ -255,9 +257,10 @@ const getBodyData = (inventory) => {
   coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
 
   // stores the device coordinated of the registered tree(s)
-  // let deviceCoordinates = coords.map((x) => [x.currentloclong, x.currentloclat]);
   let deviceCoordinatesType = POINT;
   let deviceCoordinates = [coords[0].longitude, coords[0].latitude];
+
+  const metadata = getFormattedMetadata(inventory.additionalDetails);
 
   // prepares the body which is to be passed to api
   let body = {
@@ -273,6 +276,7 @@ const getBodyData = (inventory) => {
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
     registrationDate: inventory.registrationDate.toISOString().split('T')[0],
+    metadata,
   };
 
   // if inventory type is scientific species then adds measurements and scientific species to body
@@ -288,9 +292,6 @@ const getBodyData = (inventory) => {
     }
     if (inventory.tagId) {
       bodyData.tag = inventory.tagId;
-    }
-    if (inventory.projectId) {
-      bodyData.plantProject = inventory.projectId;
     }
 
     body = {
@@ -311,10 +312,14 @@ const getBodyData = (inventory) => {
     });
     body.plantedSpecies = plantedSpecies;
   }
+  if (inventory.projectId) {
+    body.plantProject = inventory.projectId;
+  }
   return body;
 };
 
 const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
+  const metadata = getFormattedMetadata(sampleTree.additionalDetails);
   // prepares the body which is to be passed to api
   let body = {
     type: sampleTree.treeType,
@@ -335,6 +340,7 @@ const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
       height: sampleTree.specieHeight,
       width: sampleTree.specieDiameter,
     },
+    metadata,
   };
 
   if (sampleTree.tagId) {
@@ -516,7 +522,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
           }),
           referenceId: inventoryId,
         });
-        console.log(result.data, 'Result of Image Upload');
+
         await addCdnUrl({
           inventoryID: inventoryId,
           coordinateIndex: result.data.coordinateIndex,

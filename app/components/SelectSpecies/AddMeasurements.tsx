@@ -45,7 +45,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   const [height, setHeight] = useState('');
   const [heightError, setHeightError] = useState('');
   const [tagId, setTagId] = useState('');
-  const [inventory, setInventory] = useState('');
+  const [inventory, setInventory] = useState<any>();
   const [countryCode, setCountryCode] = useState('');
   const [isTagIdPresent, setIsTagIdPresent] = useState(true);
   const [tagIdError, setTagIdError] = useState('');
@@ -72,11 +72,11 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
 
   const Inventory = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-        setInventory(inventory);
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
 
-        if (inventory.species.length > 0 && inventory.specieDiameter == null) {
-          setSingleTreeSpecie(inventory.species[0]);
+        if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
+          setSingleTreeSpecie(inventoryData.species[0]);
         }
       });
     }
@@ -223,7 +223,10 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
         routes: [
           { name: 'MainScreen' },
           { name: 'TreeInventory' },
-          { name: 'SingleTreeOverview', params: { totalSampleTrees: inventory.sampleTreesCount } },
+          {
+            name: 'AdditionalDataForm',
+            params: isSampleTree ? { totalSampleTrees: inventory.sampleTreesCount } : {},
+          },
         ],
       }),
     );
@@ -242,7 +245,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
             />
           </View>
           <KeyboardAvoidingView
-            behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+            behavior={Platform.OS == 'ios' ? 'padding' : undefined}
             style={{ flex: 1 }}>
             <View
               style={{
@@ -332,7 +335,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                 <PrimaryButton
                   onPress={onPressMeasurementBtn}
                   btnText={i18next.t('label.select_species_continue')}
-                  style={{ marginBottom: 50 }}
                 />
               </View>
             </View>

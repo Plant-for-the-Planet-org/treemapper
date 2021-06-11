@@ -225,8 +225,6 @@ const migration = (oldRealm: any, newRealm: any) => {
       } else if (oldInventory[index].status === 'complete') {
         newInventory[index].status = SYNCED;
       }
-      //   newInventory[index].isUpdated = true/;
-      //   newInventory[index].description = '';
     }
   }
 };

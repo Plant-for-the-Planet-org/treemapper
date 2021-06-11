@@ -32,20 +32,20 @@ const SelectSpecies = () => {
 
   const Inventory = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
-        setInventory(inventory);
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
 
-        if (inventory.species.length > 0 && inventory.specieDiameter == null) {
+        if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
           if (
-            inventory?.status === INCOMPLETE_SAMPLE_TREE &&
-            inventory.sampleTrees[inventory.completedSampleTreesCount].specieId
+            inventoryData?.status === INCOMPLETE_SAMPLE_TREE &&
+            inventoryData.sampleTrees[inventoryData.completedSampleTreesCount].specieId
           ) {
             setIsShowTreeMeasurement(true);
           } else {
             setIsShowTreeMeasurement(false);
           }
         }
-        setRegistrationType(inventory.treeType);
+        setRegistrationType(inventoryData.treeType);
       });
     }
   };

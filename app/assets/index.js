@@ -36,6 +36,7 @@ import cloud_sync from './images/cloud_sync';
 import sample_trees_vector from './images/sample_trees_vector';
 import sync_to_cloud from './images/sync_to_cloud';
 import plant_project from './images/plant_project';
+import importIcon from './images/importIcon';
 
 export {
   arrow_up,
@@ -72,4 +73,5 @@ export {
   species_default,
   multiple_tree_png,
   plant_project,
+  importIcon,
 };

@@ -107,7 +107,6 @@ const ImageCapturing = ({
       return;
     }
     const data = await camera.current.takePictureAsync().catch((err) => {
-      console.log(err, 'err');
       alert(i18next.t('label.permission_camera_message'));
       setImagePath('');
       return;
@@ -137,7 +136,7 @@ const ImageCapturing = ({
               if (inventory.locateTree === ON_SITE) {
                 navigation.navigate('SampleTreesCount');
               } else {
-                navigation.navigate('InventoryOverview');
+                navigation.navigate('AdditionalDataForm');
               }
               // else {
               //   navigation.navigate('InventoryOverview');

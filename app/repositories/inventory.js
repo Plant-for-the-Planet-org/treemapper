@@ -1,17 +1,21 @@
 import Realm from 'realm';
 import { setInventoryId, updateCount, updateProgressCount } from '../actions/inventory';
 import { bugsnag } from '../utils';
+import {
+  getFormattedAdditionalDetails,
+  getFormattedAppAdditionalDetailsFromInventory,
+} from '../utils/additionalData/functions';
 import { LogTypes } from '../utils/constants';
 import {
+  DATA_UPLOAD_START,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   MULTI,
   ON_SITE,
+  PENDING_DATA_UPLOAD,
   SAMPLE,
   SINGLE,
   SYNCED,
-  PENDING_DATA_UPLOAD,
-  DATA_UPLOAD_START,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';
@@ -229,7 +233,6 @@ export const changeInventoryStatusAndLocationId = (
           } else if (status === PENDING_DATA_UPLOAD) {
             updateCount({ type: PENDING_DATA_UPLOAD, count: 'increment' })(dispatch);
           }
-          console.log(`===========status changed to status${status}=============`);
           resolve(true);
         });
       })
@@ -280,7 +283,7 @@ export const changeInventoryStatus = ({ inventory_id, status, count }, dispatch)
           } else if (status === DATA_UPLOAD_START) {
             updateProgressCount({ count: count })(dispatch);
           }
-          resolve(console.log(`===========status changed to status${status}=============`));
+          resolve();
         });
       })
       .catch((err) => {
@@ -991,6 +994,8 @@ export const addInventoryToDB = (inventoryFromServer) => {
             });
           }
 
+          const additionalDetails = getFormattedAdditionalDetails(inventoryFromServer.metadata);
+
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
@@ -998,7 +1003,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
             treeType: inventoryFromServer.type,
             status: SYNCED,
             projectId: inventoryFromServer.plantProject,
-            // donationType: 'string?',
             locateTree: inventoryFromServer.captureMode,
             lastScreen:
               inventoryFromServer.type === SINGLE ? 'SingleTreeOverview' : 'InventoryOverview',
@@ -1015,28 +1019,27 @@ export const addInventoryToDB = (inventoryFromServer) => {
             tagId: inventoryFromServer.tag,
             registrationDate: inventoryFromServer.registrationDate,
             locationId: inventoryFromServer.id,
+            additionalDetails,
           };
           if (inventoryFromServer.type !== SAMPLE) {
             realm.create('Inventory', inventoryData);
           }
-          // inventoryFromServer.type !== SAMPLE ? realm.create('Inventory', inventoryData) : null;
-          // setInventoryId(inventoryID)(dispatch);
+
           // logging the success in to the db
-          // dbLog.info({
-          //   logType: LogTypes.INVENTORY,
-          //   message: `Inventory initiated for tree type ${treeType} with inventory_id: ${inventoryID}`,
-          // });
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Inventory added with inventory_id: ${inventoryID}`,
+          });
           resolve(inventoryData);
         });
       })
       .catch((err) => {
-        console.error(`Error at /repositories/addInventoryToDB -> ${JSON.stringify(err)}, ${err}`);
         // logging the error in to the db
-        // dbLog.error({
-        //   logType: LogTypes.INVENTORY,
-        //   message: `Error while initiating inventory for tree type ${treeType}`,
-        //   logStack: JSON.stringify(err),
-        // });
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Error while adding inventory',
+          logStack: JSON.stringify(err),
+        });
         bugsnag.notify(err);
         resolve(false);
       });
@@ -1071,11 +1074,13 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let specieDiameter = sampleTreeFromServer.measurements.width;
           let specieHeight = sampleTreeFromServer.measurements.height;
           let tagId = sampleTreeFromServer.tag;
-          let status = 'SYNCED';
+          let status = SYNCED;
           let plantationDate = sampleTreeFromServer.plantDate;
           let locationId = sampleTreeFromServer.id;
-          let treeType = 'sample';
+          let treeType = SAMPLE;
           let sampleTrees = inventory[0].sampleTrees;
+          const additionalDetails = getFormattedAdditionalDetails(sampleTreeFromServer.metadata);
+
           const sampleTreeData = {
             latitude,
             longitude,
@@ -1091,6 +1096,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
             plantationDate,
             locationId,
             treeType,
+            additionalDetails,
           };
           let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
           if (!locationIds.includes(sampleTreeFromServer.id)) {
@@ -1107,7 +1113,6 @@ export const addSampleTree = (sampleTreeFromServer) => {
         });
       })
       .catch((err) => {
-        console.error(`Error at /repositories/addSampleTree -> ${JSON.stringify(err)}, ${err}`);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
@@ -1153,13 +1158,42 @@ export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sam
         if (!sampleTreeId && inventory.polygons[0].coordinates[coordinateIndex].imageUrl) {
           inventory.polygons[0].coordinates[coordinateIndex].imageUrl = '';
         } else if (sampleTreeId) {
-          console.log('deleting images');
           inventory.sampleTrees[sampleTreeIndex].imageUrl = '';
-          console.log(inventory.sampleTrees[sampleTreeIndex].imageUrl, 'inventory');
         }
         resolve();
       });
     });
+  });
+};
+
+export const addAppMetadata = ({ inventory_id }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+            data: inventory,
+          });
+          inventory.additionalDetails = [...inventory.additionalDetails, ...appAdditionalDetails];
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully added app metadata in additional details for inventory_id: ${inventory_id}`,
+        });
+        resolve();
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding app metadata in additional details for inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+      });
   });
 };
 

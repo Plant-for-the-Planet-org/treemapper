@@ -35,6 +35,11 @@ const ProfileModal = ({
     navigation.navigate('ManageSpecies');
   };
 
+  const onPressAdditionalData = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('AdditionalData');
+  };
+
   const onPressManageProjects = () => {
     onPressCloseProfileModal();
     navigation.navigate('ManageProjects');
@@ -68,6 +73,13 @@ const ProfileModal = ({
       mediaType: 'octicon',
       text: 'manage_projects',
       onPressFunction: onPressManageProjects,
+      isVisible: true,
+    },
+    {
+      media: 'file-alt',
+      mediaType: 'icon',
+      onPressFunction: onPressAdditionalData,
+      text: 'additional_data',
       isVisible: true,
     },
     {

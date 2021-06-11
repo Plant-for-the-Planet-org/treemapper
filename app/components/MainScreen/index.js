@@ -115,7 +115,6 @@ const MainScreen = ({ navigation }) => {
   // ! Need to changed when auto upload is implemented
   // useEffect(() => {
   //   if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
-  //     console.log('use effect checkLoginAndSync');
   //     checkLoginAndSync({
   //       sync: true,
   //       dispatch,

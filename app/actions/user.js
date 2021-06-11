@@ -87,7 +87,6 @@ export const auth0Login = (dispatch) => {
 
             getAllProjects();
             checkAndAddUserSpecies().then(() => {
-              console.log('adding inventory from server');
               addInventoryFromServer();
             });
             resolve(true);

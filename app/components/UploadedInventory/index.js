@@ -44,10 +44,6 @@ const UploadedInventory = ({ navigation }) => {
       for (let inventory of allInventory) {
         for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
           if (inventory.polygons[0].coordinates[index].imageUrl) {
-            console.log(
-              inventory.polygons[0].coordinates[index].imageUrl,
-              '===========deleteFromFS===========',
-            );
             deleteFromFS(inventory.polygons[0].coordinates[index].imageUrl, inventory, index).then(
               (data) => {
                 removeImageUrl({

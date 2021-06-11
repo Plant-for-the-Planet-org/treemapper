@@ -2,6 +2,18 @@ import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
 
+interface IPrimaryButtonProps {
+  btnText: string;
+  theme?: any;
+  halfWidth?: any;
+  style?: any;
+  onPress: any;
+  disabled?: any;
+  textStyle?: any;
+  testID?: string;
+  accessibilityLabel?: string;
+}
+
 const PrimaryButton = ({
   btnText,
   theme,
@@ -12,7 +24,7 @@ const PrimaryButton = ({
   textStyle,
   testID,
   accessibilityLabel,
-}) => {
+}: IPrimaryButtonProps) => {
   const isWhiteTheme = theme == 'white';
   return (
     <TouchableOpacity
