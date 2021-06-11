@@ -754,9 +754,9 @@ const SingleTreeOverview = () => {
                   : i18next.t('label.tree_review_header')
               }
               rightText={
-                status === INCOMPLETE || status === PENDING_DATA_UPLOAD
+                (status === INCOMPLETE || status === PENDING_DATA_UPLOAD) && !isSampleTree
                   ? i18next.t('label.tree_review_delete')
-                  : []
+                  : ''
               }
               onPressFunction={() => setShowDeleteAlert(true)}
             />
