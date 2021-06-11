@@ -1,4 +1,5 @@
 import React from 'react';
+import i18next from 'i18next';
 import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 import { Colors } from '_styles';
 
@@ -8,7 +9,7 @@ export default function Loader({ isLoaderShow }) {
       <View style={styles.downloadModalContainer}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color={Colors.PRIMARY} />
-          <Text style={{ padding: 30, borderRadius: 10 }}>Please Wait.....</Text>
+          <Text style={{ padding: 30, borderRadius: 10 }}>{i18next.t('label.please_wait')}</Text>
         </View>
       </View>
     </Modal>
