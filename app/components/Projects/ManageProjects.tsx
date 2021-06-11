@@ -7,7 +7,7 @@ import ProjectList from './ProjectList';
 
 interface ManageProjectsProps {}
 
-export default function ManageProjects({}: ManageProjectsProps) {
+const ManageProjects = ({}: ManageProjectsProps) => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
@@ -17,7 +17,9 @@ export default function ManageProjects({}: ManageProjectsProps) {
       </View>
     </SafeAreaView>
   );
-}
+};
+
+export default ManageProjects;
 
 const styles = StyleSheet.create({
   mainContainer: {

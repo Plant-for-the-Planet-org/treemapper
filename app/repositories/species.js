@@ -523,28 +523,32 @@ export const resetAllSpecies = () => {
   });
 };
 
-export const getSpecieFromGuid = ({ id }) => {
+export const getScientificSpeciesById = (id) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
-        realm.write(() => {
-          // fetches all the scientific species
-          let specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
-
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: `Retrieved User specie with guid ${id} `,
-          });
+        if (id !== 'unknown') {
+          let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
           resolve(specie);
-        });
+        } else {
+          resolve({
+            aliases: 'Unknown',
+            description: '',
+            guid: 'unknown',
+            image: '',
+            isUpdated: true,
+            isUploaded: true,
+            isUserSpecies: true,
+            scientificName: 'Unknown',
+          });
+        }
       })
       .catch((err) => {
-        console.error('Error at /repositories/species/getSpecieFromGuid,', err);
+        console.error('Error at /repositories/species/getScientificSpeciesById,', err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
-          message: 'Error while getting user specie with guid',
+          message: `Error while retrieving specie with guid ${id}`,
           logStack: JSON.stringify(err),
         });
         reject(err);
