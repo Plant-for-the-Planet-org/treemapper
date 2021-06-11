@@ -6,5 +6,6 @@
   "downloading_archive": "Downloading species archive.",
   "unzipping_archive": "Unzipping the species archive.",
   "fetch_and_add_species_to_database": "Fetching and adding species into database.",
-  "species_data_loaded": "Species data loaded."
+  "species_data_loaded": "Species data loaded.",
+  "please_wait": "Please wait ..."
 }
