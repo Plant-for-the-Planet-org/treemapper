@@ -282,18 +282,18 @@ export const getFormattedAppAdditionalDetailsFromInventory = ({
     }
   } else {
     appAdditionalDetails.push({
-      key: `speciesId1`,
+      key: 'speciesId1',
       value: data.specieId,
       accessType: accessTypes.APP,
     });
     appAdditionalDetails.push({
-      key: `speciesAliases1`,
+      key: 'speciesAliases1',
       value: data.specieId === 'unknown' ? 'Unknown' : data.specieName,
       accessType: accessTypes.APP,
     });
     appAdditionalDetails.push({
-      key: `speciesTreeCount1`,
-      value: 1,
+      key: 'speciesTreeCount1',
+      value: '1',
       accessType: accessTypes.APP,
     });
   }

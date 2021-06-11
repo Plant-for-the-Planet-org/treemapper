@@ -163,6 +163,10 @@ const ImageCapturing = ({
                   inventory.completedSampleTreesCount + 1
                 } inventory_id: ${inventory.inventory_id}`,
               });
+              updateLastScreen({
+                inventory_id: inventory.inventory_id,
+                lastScreen: 'SelectSpecies',
+              });
               navigation.navigate('SelectSpecies');
             })
             .catch((err) => {
