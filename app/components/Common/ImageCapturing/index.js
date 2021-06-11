@@ -136,7 +136,7 @@ const ImageCapturing = ({
               if (inventory.locateTree === ON_SITE) {
                 navigation.navigate('SampleTreesCount');
               } else {
-                navigation.navigate('InventoryOverview');
+                navigation.navigate('AdditionalDataForm');
               }
               // else {
               //   navigation.navigate('InventoryOverview');
@@ -162,6 +162,10 @@ const ImageCapturing = ({
                 message: `Successfully added image for sample tree #${
                   inventory.completedSampleTreesCount + 1
                 } inventory_id: ${inventory.inventory_id}`,
+              });
+              updateLastScreen({
+                inventory_id: inventory.inventory_id,
+                lastScreen: 'SelectSpecies',
               });
               navigation.navigate('SelectSpecies');
             })

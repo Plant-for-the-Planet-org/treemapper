@@ -1,5 +1,23 @@
+import {
+  getFormattedAppAdditionalDetailsFromInventory,
+  getFormattedMetadata,
+} from './additionalData/functions';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from './inventoryConstants';
+
 export default function getGeoJsonData(inventoryData: any) {
   let featureList;
+  let appAdditionalDetails: any = [];
+  if (
+    inventoryData &&
+    (inventoryData.status === INCOMPLETE || inventoryData.status === INCOMPLETE_SAMPLE_TREE)
+  ) {
+    appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({ data: inventoryData });
+  }
+  const metadata = getFormattedMetadata([
+    ...inventoryData.additionalDetails,
+    ...appAdditionalDetails,
+  ]);
+
   if (
     inventoryData.polygons[0].coordinates.length === 1 &&
     inventoryData.polygons[0].isPolygonComplete
@@ -9,6 +27,7 @@ export default function getGeoJsonData(inventoryData: any) {
         type: 'Feature',
         properties: {
           isPolygonComplete: inventoryData.polygons[0].isPolygonComplete,
+          ...metadata,
         },
         geometry: {
           type: 'Point',
@@ -25,6 +44,7 @@ export default function getGeoJsonData(inventoryData: any) {
         type: 'Feature',
         properties: {
           isPolygonComplete: onePolygon.isPolygonComplete,
+          ...metadata,
         },
         geometry: {
           type: 'LineString',
@@ -37,9 +57,24 @@ export default function getGeoJsonData(inventoryData: any) {
     });
     if (inventoryData.sampleTrees.length > 0) {
       for (const sampleTree of inventoryData.sampleTrees) {
+        let appAdditionalDetails: any = [];
+        if (
+          inventoryData.status === INCOMPLETE ||
+          inventoryData.status === INCOMPLETE_SAMPLE_TREE
+        ) {
+          appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+            data: sampleTree,
+            isSampleTree: true,
+          });
+        }
+        const metadata = getFormattedMetadata([
+          ...sampleTree.additionalDetails,
+          ...appAdditionalDetails,
+        ]);
+
         featureList.push({
           type: 'Feature',
-          properties: {},
+          properties: { ...metadata },
           geometry: {
             type: 'Point',
             coordinates: [sampleTree.longitude, sampleTree.latitude],

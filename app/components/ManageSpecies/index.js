@@ -182,7 +182,9 @@ const ManageSpecies = ({
 
   const navigateToSpecieInfo = (specie) => {
     setSpecie(specie)(dispatch);
-    navigation.navigate('SpecieInfo');
+    navigation.navigate('SpecieInfo', {
+      screen,
+    });
   };
 
   return (
@@ -268,6 +270,7 @@ const ManageSpecies = ({
         setTreeCount={setTreeCount}
         treeCount={treeCount}
         onPressTreeCountNextBtn={handleTreeCountNextButton}
+        setShowTreeCountModal={setShowTreeCountModal}
       />
     </SafeAreaView>
   );

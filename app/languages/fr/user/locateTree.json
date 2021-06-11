@@ -16,6 +16,10 @@
   "locate_tree_map_marking_sub_header": "Veuillez visiter le premier coin de la plantation et sélectionnez votre emplacement.",
   "locate_tree_add_marker_valid": "Vous êtes au même endroit. Veuillez marcher jusqu'à l'emplacement suivant.",
   "locate_tree_add_marker_invalid": "Vous êtes très loin de votre position actuelle.",
+  "locate_tree_cannot_mark_location": "Impossible de marquer cet emplacement.",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "locate_tree_location": "Emplacement"
+  "locate_tree_location": "Emplacement",
+  "locate_tree_cannot_record_tree": "Impossible d'enregistrer l'arbre échantillon.",
+  "locate_tree_cannot_record_tree_outside_polygon": "L'arbre échantillon ne peut être enregistré qu'à l'intérieur du site marqué.",
+  "locate_tree_unable_to_retrieve_location": "Impossible de récupérer l'emplacement."
 }

@@ -25,6 +25,7 @@ import TotalTreesSpecies from './SampleTrees/TotalTreesSpecies';
 import LogoutWarning from './LogoutWarning';
 import ManageProjects from './Projects/ManageProjects';
 import SelectProject from './Projects/SelectProject';
+import SpecieSampleTree from './SpecieSampleTree';
 
 export {
   RegisterTree,
@@ -54,4 +55,5 @@ export {
   LogoutWarning,
   ManageProjects,
   SelectProject,
+  SpecieSampleTree,
 };

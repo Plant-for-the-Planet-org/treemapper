@@ -6,6 +6,7 @@ import Accordian from '../Accordian';
 import { addSpeciesAction } from '../../../repositories/inventory';
 import { InventoryContext } from '../../../reducers/inventory';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { PENDING_DATA_UPLOAD } from '../../../utils/inventoryConstants';
 
 const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, status }) => {
   const { state } = useContext(InventoryContext);
@@ -92,7 +93,7 @@ const LabelAccordian = ({ data, onPressRightText, isEditShow, plantingDate, stat
           renderItem={renderSpecieCont}
         />
       )}
-      {status !== 'pending' && (
+      {status !== PENDING_DATA_UPLOAD && (
         <TouchableOpacity
           onPress={addSpecies}
           accessible={true}

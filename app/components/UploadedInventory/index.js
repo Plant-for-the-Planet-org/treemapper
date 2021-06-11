@@ -15,6 +15,8 @@ import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { deleteFromFS } from '../../utils/FSInteration';
+import { SYNCED } from '../../utils/inventoryConstants';
+
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
@@ -28,7 +30,7 @@ const UploadedInventory = ({ navigation }) => {
   }, [navigation]);
 
   const initialState = () => {
-    getInventoryByStatus('complete').then((allInventory) => {
+    getInventoryByStatus(SYNCED).then((allInventory) => {
       setAllInventory(allInventory);
     });
   };
@@ -38,14 +40,10 @@ const UploadedInventory = ({ navigation }) => {
     //   initialState();
     toogleIsShowFreeUpSpaceAlert();
     // });
-    getInventoryByStatus('complete').then((allInventory) => {
+    getInventoryByStatus(SYNCED).then((allInventory) => {
       for (let inventory of allInventory) {
         for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
           if (inventory.polygons[0].coordinates[index].imageUrl) {
-            console.log(
-              inventory.polygons[0].coordinates[index].imageUrl,
-              '===========deleteFromFS===========',
-            );
             deleteFromFS(inventory.polygons[0].coordinates[index].imageUrl, inventory, index).then(
               (data) => {
                 removeImageUrl({

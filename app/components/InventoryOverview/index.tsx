@@ -20,40 +20,50 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '_styles';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
+  addAppMetadata,
   changeInventoryStatus,
   deleteInventory,
   getInventory,
   updateLastScreen,
   updatePlantingDate,
 } from '../../repositories/inventory';
-import { getUserDetails } from '../../repositories/user';
 import { getProjectById } from '../../repositories/projects';
+import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import { ALPHABETS, bugsnag } from '../../utils';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, OFF_SITE } from '../../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  OFF_SITE,
+  PENDING_DATA_UPLOAD,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
+import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
-const InventoryOverview = ({ navigation }) => {
-  const cameraRef = useRef();
+const InventoryOverview = ({ navigation }: any) => {
+  const cameraRef = useRef(null);
 
   const { state, dispatch } = useContext(InventoryContext);
 
-  const [inventory, setInventory] = useState(null);
-  const [locationTitle, setLocationTitle] = useState('');
-  const [selectedLOC, setSelectedLOC] = useState(null);
-  const [isLOCModalOpen, setIsLOCModalOpen] = useState(false);
-  const [showDate, setShowDate] = useState(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [selectedProjectName, setSelectedProjectName] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [showProject, setShowProject] = useState(false);
+  const [inventory, setInventory] = useState<any>(null);
+  const [locationTitle, setLocationTitle] = useState<string>('');
+  const [selectedLOC, setSelectedLOC] = useState<any>(null);
+  const [isLOCModalOpen, setIsLOCModalOpen] = useState<boolean>(false);
+  const [showDate, setShowDate] = useState<boolean>(false);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [selectedProjectName, setSelectedProjectName] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [showProject, setShowProject] = useState<boolean>(false);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
@@ -101,10 +111,10 @@ const InventoryOverview = ({ navigation }) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
-        console.log(inventoryData, 'inventoryData');
         setInventory(inventoryData);
+
         if (inventoryData.projectId) {
-          const project = await getProjectById(inventoryData.projectId);
+          const project: any = await getProjectById(inventoryData.projectId);
           if (project) {
             setSelectedProjectName(project.name);
             setSelectedProjectId(project.id);
@@ -117,7 +127,7 @@ const InventoryOverview = ({ navigation }) => {
     }
   };
 
-  const renderPolygon = (polygons, locationType) => {
+  const renderPolygon = (polygons: any, locationType: any) => {
     return (
       <FlatList
         keyboardShouldPersistTaps={'always'}
@@ -163,23 +173,37 @@ const InventoryOverview = ({ navigation }) => {
     );
   };
 
-  const onPressViewLOC = (index) => {
+  const onPressViewLOC = (index: number) => {
     let selectedCoords = inventory.polygons[0].coordinates[index];
-    let normalCoords = [selectedCoords.longitude, selectedCoords.latitude];
+    let normalCoords: any = [selectedCoords.longitude, selectedCoords.latitude];
     setSelectedLOC(normalCoords);
     setLocationTitle(ALPHABETS[index]);
     setIsLOCModalOpen(!isLOCModalOpen);
   };
 
-  const onPressSave = () => {
+  const onPressSave = ({ forceContinue }) => {
+    let notSampledSpecies = getNotSampledSpecies();
     if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      if (inventory.species.length > 0) {
-        let data = { inventory_id: state.inventoryID, status: 'pending' };
-        changeInventoryStatus(data, dispatch).then(() => {
-          navigation.navigate('TreeInventory');
-        });
+      if (notSampledSpecies.length === 0 || forceContinue) {
+        if (inventory.species.length > 0) {
+          addAppMetadata({ inventory_id: state.inventoryID })
+          .then(() => {
+            let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+            changeInventoryStatus(data, dispatch).then(() => {
+              navigation.navigate('TreeInventory');
+            });
+          })
+          .catch(() => {
+            setIsError(true);
+            setShowAlert(true);
+          });
+        } else {
+          alert(i18next.t('label.inventory_overview_select_species'));
+        }
+      } else if (forceContinue !== undefined && !forceContinue) {
+        navigation.navigate('SpecieSampleTree', { notSampledSpecies });
       } else {
-        alert(i18next.t('label.inventory_overview_select_species'));
+        setShowAddSampleTrees(true);
       }
     } else {
       navigation.navigate('TreeInventory');
@@ -187,7 +211,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const focusMarker = () => {
-    cameraRef.current.setCamera({
+    cameraRef?.current?.setCamera({
       centerCoordinate: selectedLOC,
       zoomLevel: 18,
       animationDuration: 1000,
@@ -288,7 +312,7 @@ const InventoryOverview = ({ navigation }) => {
     }
   };
 
-  const onChangeDate = (selectedDate) => {
+  const onChangeDate = (selectedDate: any) => {
     setShowDate(false);
     setInventory({ ...inventory, plantation_date: selectedDate });
     updatePlantingDate({
@@ -298,7 +322,7 @@ const InventoryOverview = ({ navigation }) => {
   };
 
   const renderDatePicker = () => {
-    const handleConfirm = (data) => onChangeDate(data);
+    const handleConfirm = (data: any) => onChangeDate(data);
     const hideDatePicker = () => setShowDate(false);
 
     return (
@@ -323,7 +347,7 @@ const InventoryOverview = ({ navigation }) => {
     );
   };
 
-  const renderAddSpeciesButton = (status) => {
+  const renderAddSpeciesButton = (status: string) => {
     return (
       (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) && (
         <TouchableOpacity
@@ -341,10 +365,10 @@ const InventoryOverview = ({ navigation }) => {
           <Text style={styles.plantSpeciesText}>
             {i18next.t('label.inventory_overview_add_species')}
           </Text>
-          <View style={styles.bannerImgContainer}>
+          <View>
             <SvgXml xml={plus_icon} />
           </View>
-          <View style={styles.bannerImgContainer}>
+          <View>
             <SvgXml xml={two_trees} />
           </View>
         </TouchableOpacity>
@@ -352,7 +376,7 @@ const InventoryOverview = ({ navigation }) => {
     );
   };
 
-  const onPressDate = (status) => {
+  const onPressDate = (status: string) => {
     if (status === INCOMPLETE && inventory.locateTree === OFF_SITE) {
       setShowDate(true);
     }
@@ -365,12 +389,29 @@ const InventoryOverview = ({ navigation }) => {
   const handleDeleteInventory = () => {
     deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
-        setShowDeleteAlert(!showDeleteAlert);
+        setShowAlert(!showAlert);
         navigation.navigate('TreeInventory');
       })
       .catch((err) => {
         console.error(err);
       });
+  };
+
+  const getNotSampledSpecies = () => {
+    let sampledSpecies = [];
+    let plantedSpecies = [];
+    let notSampledSpecies = [];
+    inventory.sampleTrees.forEach((sampleTree) => {
+      sampledSpecies.push(sampleTree.specieId);
+    });
+    inventory.species.forEach((specie) => {
+      plantedSpecies.push(specie.id);
+    });
+    sampledSpecies = [...new Set(sampledSpecies)];
+    plantedSpecies.forEach((specie) =>
+      sampledSpecies.includes(specie) ? notSampledSpecies : notSampledSpecies.push(specie),
+    );
+    return notSampledSpecies;
   };
 
   let locationType;
@@ -386,7 +427,7 @@ const InventoryOverview = ({ navigation }) => {
         : i18next.t('label.tree_inventory_on_site');
   }
 
-  let status = inventory ? inventory.status : 'pending';
+  let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -399,28 +440,15 @@ const InventoryOverview = ({ navigation }) => {
                 headingText={i18next.t('label.inventory_overview_header_text')}
                 subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                 onBackPress={() => navigation.navigate('TreeInventory')}
-                // TopRightComponent={
-                //   status == INCOMPLETE_SAMPLE_TREE ? (
-                //     <TouchableOpacity style={{ paddingTop: 15 }} onPress={() => {}}>
-                //       <Text
-                //         style={{
-                //           fontFamily: Typography.FONT_FAMILY_REGULAR,
-                //           fontSize: Typography.FONT_SIZE_18,
-                //           lineHeight: Typography.LINE_HEIGHT_24,
-                //         }}>
-                //         {i18next.t('label.tree_review_delete')}
-                //       </Text>
-                //     </TouchableOpacity>
-                //   ) : (
-                //     []
-                //   )
-                // }
                 rightText={
-                  status == INCOMPLETE_SAMPLE_TREE || status == INCOMPLETE
+                  status == INCOMPLETE_SAMPLE_TREE ||
+                  status == INCOMPLETE ||
+                  status == PENDING_DATA_UPLOAD ||
+                  status == PENDING_DATA_UPLOAD
                     ? i18next.t('label.tree_review_delete')
                     : []
                 }
-                onPressFunction={() => setShowDeleteAlert(true)}
+                onPressFunction={() => setShowAlert(true)}
               />
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text')}
@@ -496,6 +524,9 @@ const InventoryOverview = ({ navigation }) => {
                 active={false}
                 medium
               />
+              <Label leftText={i18next.t('label.additional_data')} rightText={''} />
+
+              <AdditionalDataOverview data={inventory} />
             </ScrollView>
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>
@@ -510,17 +541,39 @@ const InventoryOverview = ({ navigation }) => {
         ) : null}
       </View>
       <AlertModal
-        visible={showDeleteAlert}
-        heading={i18next.t('label.tree_inventory_alert_header')}
+        visible={showAlert}
+        heading={
+          isError
+            ? i18next.t('label.something_went_wrong')
+            : i18next.t('label.tree_inventory_alert_header')
+        }
         message={
-          status === 'complete'
+          isError
+            ? i18next.t('label.error_saving_inventory')
+            : status === SYNCED
             ? i18next.t('label.tree_review_delete_uploaded_registration')
             : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
         }
-        primaryBtnText={i18next.t('label.tree_review_delete')}
+        primaryBtnText={isError ? i18next.t('label.ok') : i18next.t('label.tree_review_delete')}
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
-        onPressPrimaryBtn={handleDeleteInventory}
-        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        onPressPrimaryBtn={isError ? () => setShowAlert(!showAlert) : handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowAlert(!showAlert)}
+        showSecondaryButton={!isError}
+      />
+      <AlertModal
+        visible={showAddSampleTrees}
+        heading={i18next.t('label.add_more_sample_trees')}
+        message={i18next.t('label.recommend_at_least_one_sample')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.skip')}
+        onPressPrimaryBtn={() => {
+          setShowAddSampleTrees(false);
+          onPressSave({ forceContinue: false });
+        }}
+        onPressSecondaryBtn={() => {
+          setShowAddSampleTrees(false);
+          onPressSave({ forceContinue: true });
+        }}
         showSecondaryButton={true}
       />
       {renderDatePicker()}
@@ -569,5 +622,10 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
+  },
+  detailText: {
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });

@@ -14,8 +14,10 @@
   "activity_logs": "Activity Logs",
   "all_backed_up": "All changes backed up",
   "upload_pending": "{{count}} pending",
-  "sync_remaining": "Syncing - {{count}} remaining",
+  "sync_remaining": "Syncing \u00B7 {{count}} remaining",
   "support": "Support",
   "complete_signup": "Complete Signup",
-  "manage_projects": "Manage Projects"
+  "manage_projects":"Manage Projects",
+  "select_project":"Select Project",
+  "additional_data": "Additional Data"
 }

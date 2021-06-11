@@ -1,8 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../../styles';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+interface IHeaderProps {
+  hideBackIcon?: any;
+  closeIcon?: any;
+  headingText?: string;
+  headingTextEditable?: any;
+  onPressHeading?: any;
+  subHeadingText?: any;
+  onBackPress?: any;
+  textAlignStyle?: any;
+  style?: any;
+  subHeadingStyle?: any;
+  testID?: any;
+  accessibilityLabel?: any;
+  rightText?: any;
+  onPressFunction?: any;
+  TopRightComponent?: any;
+  TitleRightComponent?: any;
+  whiteBackIcon?: any;
+}
 
 const Header = ({
   hideBackIcon,
@@ -12,9 +32,9 @@ const Header = ({
   onPressHeading,
   subHeadingText,
   onBackPress,
-  textAlignStyle,
-  style,
-  subHeadingStyle,
+  textAlignStyle = {},
+  style = {},
+  subHeadingStyle = {},
   testID,
   accessibilityLabel,
   rightText,
@@ -22,7 +42,7 @@ const Header = ({
   TopRightComponent,
   TitleRightComponent,
   whiteBackIcon,
-}) => {
+}: IHeaderProps) => {
   const navigation = useNavigation();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
   return (
@@ -61,10 +81,10 @@ const Header = ({
         style={
           TitleRightComponent
             ? {
-              flexDirection: 'row-reverse',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }
+                flexDirection: 'row-reverse',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }
             : {}
         }>
         {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
@@ -78,22 +98,6 @@ const Header = ({
             {headingText}
           </Text>
         ) : headingTextEditable !== undefined ? (
-          // <TextInput
-          //   style={{
-          //     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-          //     fontSize: Typography.FONT_SIZE_27,
-          //     color: Colors.TEXT_COLOR,
-          //     flex: 1,
-          //   }}
-          //   multiline={true}
-          //   blurOnSubmit={true}
-          //   onChangeText={(text) => setHeadingText(text)}
-          //   value={headingTextInput}
-          //   placeholder="Type Aliases Here"
-          //   returnKeyType={'done'}
-          //   onFocus={() => onFocusFunction()}
-          //   onSubmitEditing={() => onSubmitInputField()}
-          // />
           <TouchableOpacity style={{ flex: 1 }} onPress={() => onPressHeading()}>
             <Text
               style={{
@@ -138,6 +142,7 @@ const styles = StyleSheet.create({
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   paddingVertical: {
     paddingVertical: 15,

@@ -17,8 +17,16 @@ import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
-import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal } from '../Common';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
+import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal, Sync } from '../Common';
+import {
+  DATA_UPLOAD_START,
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  PENDING_DATA_UPLOAD,
+  PENDING_IMAGE_UPLOAD,
+  PENDING_SAMPLE_TREES_UPLOAD,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
 
@@ -31,6 +39,11 @@ const TreeInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
   const [emailAlert, setEmailAlert] = useState(false);
+  const [pendingInventory, setPendingInventory] = useState([]);
+  const [uploadingInventory, setUploadingInventory] = useState([]);
+  const [inCompleteInventory, setInCompleteInventory] = useState([]);
+  const [uploadedInventory, setUploadedInventory] = useState([]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       initialState();
@@ -40,6 +53,12 @@ const TreeInventory = ({ navigation }) => {
       unsubscribe();
     };
   }, [navigation]);
+
+  useEffect(() => {
+    if (state.isUploading) {
+      filteredInventories();
+    }
+  }, [state.uploadCount, state.isUploading, state.pendingCount, state.progressCount]);
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
@@ -54,6 +73,7 @@ const TreeInventory = ({ navigation }) => {
   const initialState = () => {
     getInventoryByStatus('all').then((allInventory) => {
       setAllInventory(allInventory);
+      filteredInventories();
     });
   };
 
@@ -65,16 +85,22 @@ const TreeInventory = ({ navigation }) => {
     });
   };
 
-  let pendingInventory = [];
-  let inCompleteInventory = [];
-  let uploadedInventory = [];
-  if (allInventory) {
-    pendingInventory = allInventory.filter((x) => x.status == 'pending' || x.status == 'uploading');
-    inCompleteInventory = allInventory.filter(
-      (x) => x.status === INCOMPLETE || x.status === INCOMPLETE_SAMPLE_TREE,
+  const filteredInventories = () => {
+    getInventoryByStatus(INCOMPLETE, INCOMPLETE_SAMPLE_TREE).then((inventoryList) => {
+      setInCompleteInventory(inventoryList);
+    });
+    getInventoryByStatus(PENDING_DATA_UPLOAD).then((inventoryList) => {
+      setPendingInventory(inventoryList);
+    });
+    getInventoryByStatus(PENDING_IMAGE_UPLOAD, PENDING_SAMPLE_TREES_UPLOAD, DATA_UPLOAD_START).then(
+      (inventoryList) => {
+        setUploadingInventory(inventoryList);
+      },
     );
-    uploadedInventory = allInventory.filter((x) => x.status == 'complete');
-  }
+    getInventoryByStatus(SYNCED).then((inventoryList) => {
+      setUploadedInventory(inventoryList);
+    });
+  };
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch)
@@ -93,61 +119,6 @@ const TreeInventory = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const renderInventory = () => {
-    return (
-      <View style={styles.cont}>
-        {pendingInventory.length > 0 && (
-          <>
-            {!state.isUploading ? (
-              <SmallHeader
-                onPressRight={onPressUploadNow}
-                leftText={i18next.t('label.tree_inventory_left_text')}
-                rightText={i18next.t('label.tree_inventory_right_text')}
-                icon={'cloud-upload'}
-                style={{ marginVertical: 15 }}
-              />
-            ) : (
-              <SmallHeader
-                // onPressRight={onPressUploadNow}
-                leftText={i18next.t('label.tree_inventory_left_text')}
-                rightText={'Uploading'}
-                sync={true}
-                style={{ marginVertical: 15 }}
-              />
-            )}
-            <InventoryList
-              accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
-              inventoryList={pendingInventory}
-            />
-          </>
-        )}
-        {uploadedInventory.length > 0 && (
-          <PrimaryButton
-            onPress={() => navigation.navigate('UploadedInventory')}
-            btnText={i18next.t('label.tree_inventory_view_upload')}
-            theme={'white'}
-            style={{ marginVertical: 20 }}
-          />
-        )}
-        {inCompleteInventory.length > 0 && (
-          <>
-            <SmallHeader
-              onPressRight={onPressClearAll}
-              leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
-              rightText={i18next.t('label.tree_inventory_clear_all')}
-              rightTheme={'red'}
-              style={{ marginVertical: 15 }}
-            />
-            <InventoryList
-              accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
-              inventoryList={inCompleteInventory}
-            />
-          </>
-        )}
-      </View>
-    );
-  };
-
   const renderLoadingInventoryList = () => {
     return (
       <View style={styles.cont}>
@@ -156,6 +127,7 @@ const TreeInventory = ({ navigation }) => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
+          TopRightComponent={uploadButton}
         />
         <ActivityIndicator size="large" color={Colors.PRIMARY} />
       </View>
@@ -199,8 +171,18 @@ const TreeInventory = ({ navigation }) => {
             headingText={i18next.t('label.tree_inventory_list_header')}
             subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
             onBackPress={handleBackPress}
+            TopRightComponent={uploadButton}
           />
-          {renderInventory()}
+          <RenderInventory
+            uploadingInventory={uploadingInventory}
+            uploadedInventory={uploadedInventory}
+            pendingInventory={pendingInventory}
+            inCompleteInventory={inCompleteInventory}
+            onPressClearAll={onPressClearAll}
+            state={state}
+            navigation={navigation}
+            onPressUploadNow={onPressUploadNow}
+          />
         </ScrollView>
         <PrimaryButton
           onPress={() => navigation.navigate('RegisterTree')}
@@ -209,6 +191,17 @@ const TreeInventory = ({ navigation }) => {
         />
         <SafeAreaView />
       </View>
+    );
+  };
+  const uploadButton = () => {
+    return (
+      <Sync
+        uploadCount={state.uploadCount}
+        pendingCount={state.pendingCount}
+        isUploading={state.isUploading}
+        isUserLogin={true}
+        borderLess={true}
+      />
     );
   };
 
@@ -230,6 +223,87 @@ const TreeInventory = ({ navigation }) => {
   );
 };
 export default TreeInventory;
+
+const RenderInventory = ({
+  uploadingInventory,
+  uploadedInventory,
+  pendingInventory,
+  inCompleteInventory,
+  onPressClearAll,
+  state,
+  navigation,
+  onPressUploadNow,
+}) => {
+  return (
+    <View style={styles.cont}>
+      {uploadingInventory.length > 0 && (
+        <>
+          {/* {state.isUploading && ( */}
+          <SmallHeader
+            // onPressRight={onPressUploadNow}
+            leftText={i18next.t('label.tree_inventory_left_text_uploading')}
+            rightText={state.isUploading ? 'Uploading' : ''}
+            sync={state.isUploading}
+            style={{ marginVertical: 15 }}
+          />
+          {/* )} */}
+          <InventoryList
+            accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
+            inventoryList={uploadingInventory}
+          />
+        </>
+      )}
+      {pendingInventory.length > 0 && (
+        <>
+          {/* {!state.isUploading ? ( */}
+          <SmallHeader
+            onPressRight={onPressUploadNow}
+            leftText={i18next.t('label.tree_inventory_left_text')}
+            // rightText={i18next.t('label.tree_inventory_right_text')}
+            // icon={'cloud-upload'}
+            style={{ marginVertical: 15 }}
+          />
+          {/* ) : (
+              <SmallHeader
+                // onPressRight={onPressUploadNow}
+                leftText={i18next.t('label.tree_inventory_left_text')}
+                rightText={'Uploading'}
+                sync={true}
+                style={{ marginVertical: 15 }}
+              />
+            )} */}
+          <InventoryList
+            accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
+            inventoryList={pendingInventory}
+          />
+        </>
+      )}
+      {uploadedInventory.length > 0 && (
+        <PrimaryButton
+          onPress={() => navigation.navigate('UploadedInventory')}
+          btnText={i18next.t('label.tree_inventory_view_upload')}
+          theme={'white'}
+          style={{ marginVertical: 20 }}
+        />
+      )}
+      {inCompleteInventory.length > 0 && (
+        <>
+          <SmallHeader
+            onPressRight={onPressClearAll}
+            leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
+            rightText={i18next.t('label.tree_inventory_clear_all')}
+            rightTheme={'red'}
+            style={{ marginVertical: 15 }}
+          />
+          <InventoryList
+            accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
+            inventoryList={inCompleteInventory}
+          />
+        </>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

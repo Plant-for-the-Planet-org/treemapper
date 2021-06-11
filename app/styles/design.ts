@@ -11,3 +11,14 @@ export const FONT_NAVBAR_TITLE = {
   lineHeight: Typography.LINE_HEIGHT_40,
   color: Colors.TEXT_COLOR,
 };
+
+const marginTop = (margin: number) => {
+  return {
+    marginTop: margin,
+  };
+};
+
+export const marginTop30 = marginTop(30);
+export const marginTop24 = marginTop(24);
+export const marginTop20 = marginTop(20);
+export const marginTop16 = marginTop(16);

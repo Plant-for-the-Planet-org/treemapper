@@ -1,6 +1,8 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, EasingFunction, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../../styles';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import i18next from 'i18next';
 
 type secureTextEntryType = true | false;
 type autoCapitalizeType = 'characters' | 'words' | 'sentences' | 'none';
@@ -30,6 +32,11 @@ interface PropTypes {
   ref?: any;
   editable?: boolean;
   error?: string | boolean;
+  style?: any;
+  isDropdown?: boolean;
+  showOptions?: boolean;
+  backgroundLabelColor?: string;
+  containerBackgroundColor?: string;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -45,6 +52,7 @@ interface LabelStylePropTypes {
   passiveLabelColor: string;
   isError: boolean;
   errorColor: string;
+  backgroundLabelColor: string;
 }
 
 interface InputStyleProps {
@@ -56,6 +64,7 @@ interface InputStyleProps {
   passiveValueColor: string;
   isError: boolean;
   errorColor: string;
+  // backgroundValueColor: string
 }
 
 const OutlinedInput = React.forwardRef(
@@ -74,16 +83,21 @@ const OutlinedInput = React.forwardRef(
       passiveValueColor = Colors.TEXT_COLOR,
       activeLabelColor = Colors.PRIMARY,
       passiveLabelColor = Colors.GRAY_LIGHTEST,
+      backgroundLabelColor = Colors.WHITE,
       activeBorderColor = Colors.PRIMARY,
       passiveBorderColor = Colors.GRAY_LIGHT,
+      containerBackgroundColor = Colors.WHITE,
       fontFamily = Typography.FONT_FAMILY_REGULAR,
       keyboardType = 'default',
       rightText,
-      returnKeyType,
+      returnKeyType = 'done',
       blurOnSubmit,
       onSubmitEditing,
-      editable,
+      editable = true,
       error = '',
+      style = {},
+      isDropdown = false,
+      showOptions,
     }: PropTypes,
     ref,
   ) => {
@@ -123,6 +137,15 @@ const OutlinedInput = React.forwardRef(
         setBorderColor(passiveBorderColor);
       }
     }, [error, isFocused, value]);
+
+    useEffect(() => {
+      if (!!value) {
+        onFocus();
+        setIsFocused(false);
+      } else {
+        onBlur();
+      }
+    }, [value]);
 
     const onBlur: () => void = useCallback(() => {
       setIsFocused(false);
@@ -189,6 +212,7 @@ const OutlinedInput = React.forwardRef(
           passiveLabelColor,
           isError: !!error,
           errorColor,
+          backgroundLabelColor,
         }),
         { fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily },
       ],
@@ -207,8 +231,6 @@ const OutlinedInput = React.forwardRef(
       paddingLeft: 15,
       fontSize: inputValueFontSize,
       returnKeyType,
-      // activeBorderColor,
-      // passiveBorderColor,
       keyboardType,
       blurOnSubmit,
       onSubmitEditing,
@@ -221,8 +243,6 @@ const OutlinedInput = React.forwardRef(
           height,
           fontSize,
           isFocused,
-          // activeBorderColor,
-          // passiveBorderColor,
           activeValueColor,
           passiveValueColor,
           isError: !!error,
@@ -232,8 +252,8 @@ const OutlinedInput = React.forwardRef(
     };
 
     return (
-      <>
-        <View style={styles.container}>
+      <View style={style}>
+        <View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
           <Animated.View {...animatedViewProps}>
             <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
           </Animated.View>
@@ -244,22 +264,48 @@ const OutlinedInput = React.forwardRef(
               borderWidth: 1,
               borderRadius: 5,
               borderColor,
+              alignItems: 'center',
             }}>
-            <TextInput {...inputProps} />
-            <Text
-              style={{
-                color: Colors.TEXT_COLOR,
-                fontFamily,
-                fontSize: Typography.FONT_SIZE_18,
-                padding: 10,
-                paddingRight: 20,
-              }}>
-              {rightText}
-            </Text>
+            {isDropdown || !editable ? (
+              <Text
+                style={[
+                  inputProps.style,
+                  {
+                    paddingVertical: 14,
+                    paddingLeft: 16,
+                    height: 'auto',
+                    color: Colors.TEXT_COLOR,
+                  },
+                ]}>
+                {value ?? i18next.t('label.select_dropdown_option')}
+              </Text>
+            ) : (
+              <TextInput {...inputProps} />
+            )}
+            {isDropdown ? (
+              <View style={{ paddingHorizontal: 16 }}>
+                <Icon
+                  name={showOptions ? 'caret-up' : 'caret-down'}
+                  color={Colors.TEXT_COLOR}
+                  size={20}
+                />
+              </View>
+            ) : (
+              <Text
+                style={{
+                  color: Colors.TEXT_COLOR,
+                  fontFamily,
+                  fontSize: Typography.FONT_SIZE_18,
+                  // padding: 10,
+                  paddingRight: 20,
+                }}>
+                {rightText}
+              </Text>
+            )}
           </View>
         </View>
         {error ? <Text style={styles.errorText}>{error}</Text> : []}
-      </>
+      </View>
     );
   },
 );
@@ -269,13 +315,14 @@ const LabelStyle = ({
   initialTopValue,
   activeLabelColor,
   passiveLabelColor,
+  backgroundLabelColor,
   isError,
   errorColor,
 }: LabelStylePropTypes) => ({
   fontStyle: 'normal',
   fontWeight: 'normal',
   color: isError ? errorColor : isFocused ? activeLabelColor : passiveLabelColor,
-  backgroundColor: Colors.WHITE,
+  backgroundColor: backgroundLabelColor || Colors.WHITE,
   paddingRight: 5,
   paddingLeft: 5,
   top: initialTopValue,
@@ -304,16 +351,10 @@ const InputStyle = ({
   passiveValueColor,
   isError,
   errorColor,
-}: // activeBorderColor,
-// passiveBorderColor,
-InputStyleProps) => ({
+}: InputStyleProps) => ({
   padding,
   height,
   fontSize,
-  // keyboardType,
-  // borderWidth: 1,
-  // borderColor: isFocused ? activeBorderColor : passiveBorderColor,
-  // borderRadius: 6,
   color: isError ? errorColor : isFocused ? activeValueColor : passiveValueColor,
 });
 
