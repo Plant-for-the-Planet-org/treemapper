@@ -8,7 +8,7 @@
   "legal_docs": "Rechtliches",
   "open_source_license": "Open Source Lizenzen",
   "edit": "Bearbeiten",
-  "manage_offline": "Offline Maps verwalten",
+  "manage_offline": "Offlinekarten verwalten",
   "manage_species": "Arten verwalten",
   "activity_logging": "Aktivität aufzeichnen",
   "activity_logs": "Aktivitätsaufzeichungen",
@@ -17,5 +17,6 @@
   "sync_remaining": "Synchronisiere - {{count}} verbleibend",
   "support": "Unterstützen",
   "complete_signup": "Registrierung vervollständigen",
-  "manage_projects": "Projekte verwalten"
+  "manage_projects": "Projekte verwalten",
+  "additional_data": "Zusätzliche Daten"
 }
