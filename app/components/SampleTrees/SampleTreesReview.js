@@ -21,10 +21,10 @@ const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, c
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
     : sampleTree.cdnImageUrl
-    ? {
+      ? {
         uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
       }
-    : single_tree_png;
+      : single_tree_png;
 
   const specieHeight = nonISUCountries.includes(countryCode)
     ? sampleTree.specieHeight * meterToFoot
