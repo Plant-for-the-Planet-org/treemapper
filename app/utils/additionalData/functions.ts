@@ -240,14 +240,14 @@ export const getFormattedAppAdditionalDetailsFromInventory = ({
   if (data.registrationDate) {
     appAdditionalDetails.push({
       key: 'registrationDate',
-      value: data.registrationDate,
+      value: data.registrationDate.toString(),
       accessType: accessTypes.APP,
     });
   }
   if (data.plantationDate) {
     appAdditionalDetails.push({
       key: 'plantationDate',
-      value: data.plantationDate,
+      value: data.plantationDate.toString(),
       accessType: accessTypes.APP,
     });
   }
