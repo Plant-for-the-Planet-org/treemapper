@@ -14,6 +14,8 @@
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
   "tree_review_plantation_date": "PFLANZDATUM",
+  "tree_review_project": "Projekt",
+  "tree_review_unassigned": "Nicht zugewiesen",
   "tree_review_plantation_date_text": "{{date, ll}}",
   "tree_review_alrighty": "Vervollständige",
   "tree_review_register_planting_date": "Registriere Pflanzdatum",
@@ -23,5 +25,10 @@
   "tree_review_delete_not_yet_uploaded_registration": "Die Registrierung wurde noch nicht zu Plant-for-the-Planet hochgeladen. Sobald sie gelöscht wird, ist sie für immer verloren.",
   "tree_review_delete_uploaded_registration": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen.",
   "tree_review_continue_to_species": "Weiter zu den Arten",
-  "tree_review_continue_to_review": "Weiter zur Überprüfung"
+  "tree_review_continue_to_review": "Weiter zur Überprüfung",
+  "tree_review_continue_to_sampleTrees": "Weiter zu Beispielbäumen",
+  "tree_review_continue_to_additional_data": "Weiter mit zusätzlichen Daten",
+  "skip": "Überspringen & Speichern",
+  "add_more_sample_trees": "Weitere Beispielbäume hinzufügen",
+  "recommend_at_least_one_sample": "Für einige der gepflanzten Arten gibt es kein Beispiel. Wir empfehlen Dir, für jede gepflanzte Art mindestens einen Beispielbaum anzugeben."
 }

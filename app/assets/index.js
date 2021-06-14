@@ -11,10 +11,11 @@ import map_texture from './images/map_texture.png';
 import placeholder_image from './images/placeholder_img.png';
 import marker_png from './images/marker.png';
 import map_img from './images/map_img.png';
-import logout from './images/logout_icon.png';
 import add_image from './images/add_image1.jpg';
 import single_tree_png from './images/single_tree.png';
 import top_right_tree from './images/top_right_tree.png';
+import species_default from './images/species_default.png';
+import multiple_tree_png from './images/multiple_trees.png';
 
 // * SVGs *
 // import { marker_png } from './images/marker';
@@ -34,6 +35,8 @@ import mobile_download from './images/mobile_download';
 import cloud_sync from './images/cloud_sync';
 import sample_trees_vector from './images/sample_trees_vector';
 import sync_to_cloud from './images/sync_to_cloud';
+import plant_project from './images/plant_project';
+import importIcon from './images/importIcon';
 
 export {
   arrow_up,
@@ -59,7 +62,6 @@ export {
   cloud_upload_gray,
   off_site_enable_banner,
   map_img,
-  logout,
   add_image,
   empty,
   single_tree_png,
@@ -68,4 +70,8 @@ export {
   sample_trees_vector,
   top_right_tree,
   sync_to_cloud,
+  species_default,
+  multiple_tree_png,
+  plant_project,
+  importIcon,
 };

@@ -10,7 +10,9 @@
   "tree_inventory_list_container_sub_header": "L'inventaire sera effacé une fois le téléchargement terminé",
   "tree_inventory_upload_list_header": "Éléments téléchargés",
   "tree_inventory_upload_empty_btn_text": "Retour à l'inventaire",
+  "tree_inventory_alert_header": "Êtes-vous sûr?",
   "tree_inventory_alert_sub_header": "Les inscriptions sont sécurisées sur le cloud. Une fois les inscriptions supprimées, il n'est actuellement pas possible de les récupérer sur cette application.",
+  "tree_inventory_alert_sub_header2": "Les images seront supprimées du système de fichiers. Vous pourrez toujours voir les images avec une bonne connexion Internet.",
   "tree_inventory_alert_primary_btn_text": "Suppression sécurisée",
   "tree_inventory_clear_all": "Tout effacer",
   "tree_inventory_free_up_space": "Libérer de l'espace",
@@ -22,5 +24,7 @@
   "tree_inventory_polygon": "Polygone",
   "tree_inventory_upload_inventory_list": "Télécharger la liste d'inventaire",
   "tree_inventory_inventory_list": "Liste d'inventaire",
-  "tree_inventory_overview_date": "{{item.title}}"
+  "tree_inventory_overview_date": "{{item.title}}",
+  "tree_inventory_input_error": "Erreur d'entrée",
+  "tree_inventory_input_error_message": "Saisir une entrée valide"
 }

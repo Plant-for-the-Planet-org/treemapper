@@ -1,6 +1,8 @@
 {
   "register_trees": "Enregistrer les arbres",
+  "register_trees_description": "Conseil: Vous pouvez trouver des inscriptions incomplètes sur l'Inventaire Forestier",
   "tree_registration_type_1": "Arbre seul",
+  "tree_registration_type_2": "Arbres multiples",
   "tree_registration_type_1_sub_header": "Permet des mesures de haute précision",
   "tree_registration_type_2_sub_header": "Ajouter de nombreux arbres avec des nombres différents.",
   "tree_map_marking_header": "Emplacement de l'arbre",
@@ -10,9 +12,11 @@
   "alright_modal_off_site_sub_header": "Nous voyons que vous êtes loin de l’arbre. Cliquer sur continuer pour ajouter des détails sur l'arborescence.",
   "alright_modal_off_site_header": "Hors site activé!",
   "image_capturing_header": "Photo",
-  "image_capturing_sub_header": "Prendre une photo face à un arbre planté.",
   "image_capturing_required": "La photo est requise.",
   "coming_soon": "Arrive bientôt!",
   "image_click_picture": "Prendre une photo",
-  "total_trees_header": "Total des arbres"
+  "image_retake": "Reprendre",
+  "alright_modal_skip": "Sauter",
+  "total_trees_header": "Total des arbres",
+  "add_all_trees_planted_on_site": "Ajouter la liste de tous les arbres plantés sur le site."
 }

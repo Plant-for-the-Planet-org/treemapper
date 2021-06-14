@@ -1,0 +1,8 @@
+{
+  "add_new_project": "Ajouter un nouveau projet",
+  "add_new_project_desc": "Ajouter des projets pour mettre en valeur vos progrès passés ou pour recevoir des dons pour en planter davantage.",
+  "select_project": "Sélectionner un Projet",
+  "select_project_desc": "Les arbres que vous pouvez enregistrer peuvent être associés à un projet spécifique.",
+  "continue_without_project": "Continuer sans projet",
+  "continue_without_project_desc": "Les arbres ne seront pas associés à un projet."
+}

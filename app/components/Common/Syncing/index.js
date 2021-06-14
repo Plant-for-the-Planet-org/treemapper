@@ -15,6 +15,7 @@ export default function Syncing({
   isUploading,
   isUserLogin,
   setEmailAlert,
+  borderLess = false,
 }) {
   const [syncText, setSyncText] = useState('');
 
@@ -60,7 +61,7 @@ export default function Syncing({
 
   const renderSyncContainer = () => {
     return (
-      <View style={styles.syncContainer}>
+      <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
         {isUploading ? (
           <RotatingView isClockwise={false}>
             <Icon size={24} name="sync" color={Colors.PRIMARY} />
@@ -87,15 +88,14 @@ export default function Syncing({
 const styles = StyleSheet.create({
   syncContainer: {
     borderRadius: 6,
-    borderWidth: 1,
+
+    height: 40,
     borderColor: '#c3c3c3',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    flex: 1.5,
-    marginRight: 10,
   },
   syncText: {
     paddingLeft: 6,

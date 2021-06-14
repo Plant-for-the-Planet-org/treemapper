@@ -42,6 +42,7 @@ const ManageSpecies = ({
   editOnlySpecieName,
   isSampleTree,
   isSampleTreeCompleted,
+  screen,
 }) => {
   const navigation = useNavigation();
   const [specieList, setSpecieList] = useState([]);
@@ -66,6 +67,7 @@ const ManageSpecies = ({
               guid: 'unknown',
               isUserSpecies: true,
               scientificName: i18next.t('label.select_species_unknown'),
+              aliases: i18next.t('label.select_species_unknown'),
             },
           ];
         } else {
@@ -74,6 +76,7 @@ const ManageSpecies = ({
               guid: 'unknown',
               isUserSpecies: true,
               scientificName: i18next.t('label.select_species_unknown'),
+              aliases: i18next.t('label.select_species_unknown'),
             },
           ];
         }
@@ -179,7 +182,9 @@ const ManageSpecies = ({
 
   const navigateToSpecieInfo = (specie) => {
     setSpecie(specie)(dispatch);
-    navigation.navigate('SpecieInfo');
+    navigation.navigate('SpecieInfo', {
+      screen,
+    });
   };
 
   return (
@@ -253,6 +258,7 @@ const ManageSpecies = ({
                 isSampleTree={isSampleTree}
                 toggleUserSpecies={toggleUserSpecies}
                 navigateToSpecieInfo={navigateToSpecieInfo}
+                screen={screen ? screen : 'ManageSpecies'}
               />
             )}
           </View>
@@ -264,6 +270,7 @@ const ManageSpecies = ({
         setTreeCount={setTreeCount}
         treeCount={treeCount}
         onPressTreeCountNextBtn={handleTreeCountNextButton}
+        setShowTreeCountModal={setShowTreeCountModal}
       />
     </SafeAreaView>
   );

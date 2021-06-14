@@ -7,6 +7,7 @@ import {
   UPDATE_UPLOAD_COUNT,
   INITIATE_INVENTORY_STATE,
   DELETE_INVENTORY_ID,
+  UPDATE_PROGRESS_COUNT,
 } from '../actions/Types';
 
 // stores the initial properties of the inventory state
@@ -17,6 +18,7 @@ const initialState = {
   allInventory: [],
   uploadCount: 0,
   isUploading: false,
+  progressCount: 0,
 };
 
 // Inventory reducer function which takes the state and action param
@@ -75,6 +77,21 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         uploadCount: count,
+      };
+    }
+
+    case UPDATE_PROGRESS_COUNT: {
+      let count;
+      if (action.payload === 'increment') {
+        count = state.progressCount + 1;
+      } else if (action.payload === 'decrement') {
+        count = state.progressCount === 0 ? state.progressCount : state.progressCount - 1;
+      } else {
+        count = action.payload;
+      }
+      return {
+        ...state,
+        progressCount: count,
       };
     }
 

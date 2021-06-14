@@ -1,19 +1,30 @@
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RNFS from 'react-native-fs';
+import { CommonActions } from '@react-navigation/native';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
 import { single_tree_png } from '../../assets';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import Label from '../Common/Label';
 import { getUserInformation } from '../../repositories/user';
+import { APIConfig } from '../../actions/Config';
+import { InventoryContext } from '../../reducers/inventory';
+import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 
-const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
+const { protocol, cdnUrl } = APIConfig;
+
+const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, countryCode }) => {
   const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
   let imageSource = sampleTree.imageUrl
     ? { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${sampleTree.imageUrl}` }
-    : single_tree_png;
+    : sampleTree.cdnImageUrl
+      ? {
+        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${sampleTree.cdnImageUrl}`,
+      }
+      : single_tree_png;
 
   const specieHeight = nonISUCountries.includes(countryCode)
     ? sampleTree.specieHeight * meterToFoot
@@ -22,14 +33,22 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
     ? sampleTree.specieDiameter * cmToInch
     : sampleTree.specieDiameter;
 
-  const heightUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_feet') : 'm';
-  const diameterUnit = nonISUCountries.includes(countryCode) ? i18next.t('label.select_species_inches') : 'cm';
+  const heightUnit = nonISUCountries.includes(countryCode)
+    ? i18next.t('label.select_species_feet')
+    : 'm';
+  const diameterUnit = nonISUCountries.includes(countryCode)
+    ? i18next.t('label.select_species_inches')
+    : 'cm';
 
   return (
     <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('SingleTreeOverview', { isSampleTree: true, sampleTreeIndex: index })
-      }>
+      onPress={() => {
+        navigation.navigate('SingleTreeOverview', {
+          isSampleTree: true,
+          sampleTreeIndex: index,
+          totalSampleTrees,
+        });
+      }}>
       <View style={styles.specieListItemContainer}>
         <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />
         <View style={styles.specieListTextContainer}>
@@ -47,23 +66,62 @@ const SampleTreeListItem = ({ sampleTree, index, navigation, countryCode }) => {
   );
 };
 
-export default function SampleTreesReview({ sampleTrees, navigation }) {
+export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navigation }) {
   const [countryCode, setCountryCode] = useState('');
+  const [inventory, setInventory] = useState();
+  const { state } = useContext(InventoryContext);
 
   useEffect(() => {
     getUserInformation().then((data) => {
       setCountryCode(data.country);
     });
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+    });
   }, []);
+
+  const addSampleTree = () => {
+    updateInventory({
+      inventory_id: state.inventoryID,
+      inventoryData: {
+        sampleTreesCount: inventory.sampleTreesCount + 1,
+      },
+    }).then(() => {
+      let data = {
+        inventory_id: inventory.inventory_id,
+        lastScreen: 'RecordSampleTrees',
+      };
+      updateLastScreen(data);
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            { name: 'RecordSampleTrees' },
+          ],
+        }),
+      );
+    });
+  };
   return (
     <View style={{ marginBottom: 24 }}>
-      <Label leftText={i18next.t('label.sample_trees')} rightText={''} />
+      <Label
+        leftText={i18next.t('label.sample_trees')}
+        rightText={
+          inventory?.status === INCOMPLETE || inventory?.status === INCOMPLETE_SAMPLE_TREE
+            ? i18next.t('label.add_another')
+            : []
+        }
+        onPressRightText={addSampleTree}
+      />
       <FlatList
         data={sampleTrees}
         renderItem={({ item: sampleTree, index }) => {
           return (
             <SampleTreeListItem
               sampleTree={sampleTree}
+              totalSampleTrees={totalSampleTrees}
               index={index}
               navigation={navigation}
               countryCode={countryCode}
@@ -103,6 +161,6 @@ const styles = StyleSheet.create({
   image: {
     height: 60,
     width: 60,
-    borderRadius: 8,
+    borderRadius: 6,
   },
 });

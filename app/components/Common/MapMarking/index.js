@@ -53,6 +53,8 @@ export default function MapMarking({
   setIsCompletePolygon,
   multipleLocateTree,
   isPointForMultipleTree,
+  specieId,
+  specieName,
 }) {
   const [showAlrightyModal, setShowAlrightyModal] = useState(false);
   const [isAccuracyModalShow, setIsAccuracyModalShow] = useState(false);
@@ -86,7 +88,6 @@ export default function MapMarking({
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
   const [polygonCoordinates, setPolygonCoordinates] = useState([]);
-
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -234,6 +235,12 @@ export default function MapMarking({
     }
   };
 
+  useEffect(() => {
+    if (isInitial && location) {
+      onPressMyLocationIcon(location);
+    }
+  }, [isCameraRefVisible, location]);
+
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position) => {
     if (isInitial && treeType === SAMPLE) {
@@ -317,7 +324,7 @@ export default function MapMarking({
 
   const showUnknownLocationAlert = () => {
     setShowSecondaryButton(false);
-    setAlertHeading(i18next.t('label.snackBarText'));
+    setAlertHeading(i18next.t('label.something_went_wrong'));
     setAlertSubHeading(i18next.t('label.locate_tree_unable_to_retrieve_location'));
     setShowAlert(true);
   };
@@ -416,14 +423,10 @@ export default function MapMarking({
         {
           enableHighAccuracy: true,
           timeout: 20000,
-          // maximumAge:13000,
           accuracy: {
             android: 'high',
             ios: 'bestForNavigation',
           },
-          useSignificantChanges: true,
-          interval: 1000,
-          fastestInterval: 1000,
         },
       );
     });
@@ -434,15 +437,30 @@ export default function MapMarking({
     const inventoryID = inventoryState.inventoryID;
 
     if (treeType === SAMPLE) {
+      let sampleTrees = [...inventory.sampleTrees];
+
+      if (
+        specieId &&
+        specieName &&
+        inventory.sampleTreesCount == inventory.completedSampleTreesCount
+      ) {
+        await updateInventory({
+          inventory_id: inventoryState.inventoryID,
+          inventoryData: {
+            sampleTreesCount: inventory.sampleTreesCount + 1,
+          },
+        });
+      }
       let data = {
         latitude: centerCoordinates[1],
         longitude: centerCoordinates[0],
         deviceLatitude: currentCoords[0],
         deviceLongitude: currentCoords[1],
         plantationDate: new Date(),
+        specieId,
+        specieName,
       };
 
-      let sampleTrees = [...inventory.sampleTrees];
       if (sampleTrees[inventory.completedSampleTreesCount]) {
         sampleTrees[inventory.completedSampleTreesCount] = data;
       } else {
@@ -468,6 +486,11 @@ export default function MapMarking({
           },
         })
           .then(() => {
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'RecordSampleTrees',
+            };
+            updateLastScreen(data);
             getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
               setInventory(inventoryData);
             });
@@ -750,7 +773,7 @@ export default function MapMarking({
         map={map}
         camera={camera}
         setIsCameraRefVisible={setIsCameraRefVisible}
-        updateCurrentPosition={updateCurrentPosition}
+        setLocation={setLocation}
         location={location}
         loader={loader}
         alphabets={alphabets}
@@ -778,7 +801,13 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1,
+                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
+                sampleTreesCount:
+                    specieId &&
+                    specieName &&
+                    inventory?.sampleTreesCount == inventory?.completedSampleTreesCount
+                      ? inventory?.sampleTreesCount + 1
+                      : inventory?.sampleTreesCount || '',
               })
               : treeType === MULTI
                 ? `${i18next.t('label.locate_tree_location')} ${
@@ -797,7 +826,7 @@ export default function MapMarking({
         updateScreenState={updateScreenState}
         showAlrightyModal={showAlrightyModal}
         setShowAlrightyModal={setShowAlrightyModal}
-        skipPicture={skipPicture}
+        // skipPicture={skipPicture}
         locateTree={locateTree}
         setIsCompletePolygon={setIsCompletePolygon}
         activePolygonIndex={activePolygonIndex}

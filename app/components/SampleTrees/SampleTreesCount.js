@@ -1,11 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory, updateLastScreen } from '../../repositories/inventory';
-import { Header, PrimaryButton, TopRightBackground } from '../Common';
+import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
 
 /**
  * Maps/Shows the button to select the sample tree count which user is going to add
@@ -13,6 +14,8 @@ import { Header, PrimaryButton, TopRightBackground } from '../Common';
  * @prop @param selectedTreeCount - count of tree for selected option
  */
 const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedTreeCount }) => {
+  const [isCustomSelected, setIsCustomSelected] = useState(false);
+  const customInputRef = useRef(null);
   return (
     <View style={styles.treeCountSelectionContainer}>
       {/* if sample tree count is present and has length greater than zero then maps the array */}
@@ -23,7 +26,10 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
           const isSelected = treeCount === selectedTreeCount;
           return (
             <TouchableOpacity
-              onPress={() => setSelectedTreeCount(treeCount)}
+              onPress={() => {
+                setIsCustomSelected(false);
+                setSelectedTreeCount(treeCount);
+              }}
               key={`tree-number-selection-${index}`}>
               <View
                 style={[
@@ -42,6 +48,50 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
             </TouchableOpacity>
           );
         })}
+      <TouchableOpacity
+        onPress={() => {
+          setIsCustomSelected(true);
+          setSelectedTreeCount(null);
+          customInputRef.current.focus();
+        }}>
+        <View
+          style={[
+            styles.treeCountInputSelection,
+            isCustomSelected ? styles.treeCountSelectionActive : {},
+          ]}>
+          <TextInput
+            value={selectedTreeCount}
+            style={
+              [
+                styles.customTreeCount,
+                { borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR },
+                // isCustomSelected
+                //   ? { borderBottomColor: 'white' }
+                //   : { borderBottomColor: Colors.TEXT_COLOR },
+              ]
+              // borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR,
+            }
+            selectionColor={'white'}
+            keyboardType={'numeric'}
+            onFocus={() => {
+              setIsCustomSelected(true);
+              setSelectedTreeCount(null);
+            }}
+            textAlign={'center'}
+            ref={customInputRef}
+            onChangeText={(text) => {
+              setSelectedTreeCount(text.replace(/,./g, '').replace(/[^0-9]/g, ''));
+            }}
+          />
+          <Text
+            style={[
+              styles.treeCountSelectionText,
+              isCustomSelected ? styles.treeCountSelectionActiveText : {},
+            ]}>
+            {i18next.t('label.trees')}
+          </Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -49,26 +99,31 @@ const TreeNumberSelection = ({ sampleTreesCount, selectedTreeCount, setSelectedT
 // shows the sample tree initial screen where user selects the number of sample trees to record.
 export default function SampleTreesCount() {
   // used to show the tree count selection option with values of array as number of trees to select
-  const sampleTreesCount = [2, 5, 10];
+  const sampleTreesCount = ['5', '10', '20'];
 
   // used to set the selected tree count
-  const [selectedTreeCount, setSelectedTreeCount] = useState(5);
-
+  const [selectedTreeCount, setSelectedTreeCount] = useState(null);
+  const [inputError, setInputError] = useState(false);
   // gets the inventory state to get the inventory id selected currently
   const { state } = useContext(InventoryContext);
 
   // used for navigation
   const navigation = useNavigation();
+  const dimensionRegex = /^\d{0,2}(\.\d{0})?$/;
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
-    updateInventory({
-      inventory_id: state.inventoryID,
-      inventoryData: {
-        sampleTreesCount: selectedTreeCount,
-      },
-    });
-    navigation.navigate('RecordSampleTrees');
+    if (Number(selectedTreeCount) > 4 && dimensionRegex.test(selectedTreeCount)) {
+      updateInventory({
+        inventory_id: state.inventoryID,
+        inventoryData: {
+          sampleTreesCount: Number(selectedTreeCount),
+        },
+      });
+      navigation.navigate('RecordSampleTrees');
+    } else {
+      setInputError(true);
+    }
   };
 
   // changes the inventory last screen to sample trees count
@@ -77,6 +132,7 @@ export default function SampleTreesCount() {
       inventory_id: state.inventoryID,
       lastScreen: 'SampleTreesCount',
     };
+    setSelectedTreeCount('5');
     updateLastScreen(data);
   }, []);
 
@@ -94,6 +150,9 @@ export default function SampleTreesCount() {
               </Text>
               <Text style={[styles.description, styles.descriptionMarginTop]}>
                 {i18next.t('label.recommend_at_least_sample_trees')}
+              </Text>
+              <Text style={[styles.description, styles.descriptionMarginTop]}>
+                {i18next.t('label.sample_one_tree_for_each_species')}
               </Text>
               <Text
                 style={[
@@ -113,7 +172,7 @@ export default function SampleTreesCount() {
             />
           </View>
         </ScrollView>
-        <View style={{ paddingHorizontal: 25 }}>
+        <View style={{ paddingHorizontal: 25, marginTop: 10 }}>
           <PrimaryButton
             onPress={onPressContinue}
             btnText={i18next.t('label.continue')}
@@ -122,6 +181,14 @@ export default function SampleTreesCount() {
             accessibilityLabel={'sample_tree_count_continue'}
           />
         </View>
+        <AlertModal
+          heading={i18next.t('label.invalid_tree_count')}
+          message={i18next.t('label.enter_valid_tree_count')}
+          visible={inputError}
+          showSecondaryButton={false}
+          primaryBtnText={i18next.t('label.ok')}
+          onPressPrimaryBtn={() => setInputError(false)}
+        />
       </View>
     </SafeAreaView>
   );
@@ -148,8 +215,9 @@ const styles = StyleSheet.create({
   },
   treeCountSelectionContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    alignItems: 'stretch',
+    // alignItems: 'stretch',
     marginVertical: 30,
   },
   treeCountSelection: {
@@ -157,7 +225,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.LIGHT_BORDER_COLOR,
     padding: 10,
-    minWidth: '28%',
+    marginBottom: 15,
+    minWidth: '45%',
+  },
+  treeCountInputSelection: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.LIGHT_BORDER_COLOR,
+    padding: 10,
+    paddingTop: 3,
+    marginBottom: 15,
+    minWidth: '45%',
   },
   treeCountSelectionActive: {
     borderWidth: 0,
@@ -173,5 +251,14 @@ const styles = StyleSheet.create({
   treeCountSelectionActiveText: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  customTreeCount: {
+    borderBottomWidth: 1,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 70,
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_16,
   },
 });

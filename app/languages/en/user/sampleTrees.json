@@ -3,6 +3,9 @@
   "tree": "Tree",
   "trees": "Trees",
   "next_step_to_measure_sample_trees_text": "In the next steps you will be asked to measure sample trees for the planting site.",
-  "recommend_at_least_sample_trees": "We recommend you take at least 5-10 sample trees at random.",
-  "how_many_sample_trees_to_record": "How many trees would you like to record?"
+  "recommend_at_least_sample_trees": "We recommend you take at least 10-12 sample trees at random.",
+  "how_many_sample_trees_to_record": "How many trees would you like to record?",
+  "invalid_tree_count": "Invalid tree count",
+  "enter_valid_tree_count": "You should sample at least 5 trees.",
+  "add_another": "Add Another"
 }

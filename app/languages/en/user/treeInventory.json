@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Uploading .......",
   "tree_inventory_left_text": "Pending Upload",
+  "tree_inventory_left_text_uploading": "Upload in progress",
   "tree_inventory_right_text": "Upload now",
   "tree_inventory_view_upload": "View all uploaded Items",
   "tree_inventory_incomplete_registrations": "Incomplete Registrations",
@@ -12,6 +13,7 @@
   "tree_inventory_upload_empty_btn_text": "Back to Inventory",
   "tree_inventory_alert_header": "Are you sure?",
   "tree_inventory_alert_sub_header": "The registrations are safe on cloud. Once the registrations are deleted, currently it is not possible to retrieve them on this app.",
+  "tree_inventory_alert_sub_header2": "The images will be deleted from the file system. You will still be able see the images with good internet connection.",
   "tree_inventory_alert_primary_btn_text": "Sure Delete",
   "tree_inventory_clear_all": "Clear All",
   "tree_inventory_free_up_space": "Free Up Space",

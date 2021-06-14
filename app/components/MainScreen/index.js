@@ -6,31 +6,26 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  View,
   Text,
+  View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import Realm from 'realm';
-import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
+import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
-import {
-  auth0Login,
-  auth0Logout,
-  clearUserDetails,
-  getCdnUrls,
-  setUserDetails,
-} from '../../actions/user';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 import { main_screen_banner, map_texture } from '../../assets';
 import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
-import { getInventoryByStatus } from '../../repositories/inventory';
+import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
 import {
   Header,
@@ -38,14 +33,14 @@ import {
   Loader,
   MainScreenHeader,
   PrimaryButton,
-  Sync,
   SpeciesSyncError,
+  Sync,
 } from '../Common';
-import ProfileModal from '../ProfileModal';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { useIsFocused } from '@react-navigation/native';
-import { shouldSpeciesUpdate } from '../../repositories/species';
+import ProfileModal from '../ProfileModal';
+import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventoryConstants';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const MainScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
@@ -56,11 +51,10 @@ const MainScreen = ({ navigation }) => {
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState({});
-  const [cdnUrls, setCdnUrls] = useState({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [pendingInventory, setPendingInventory] = useState(0);
-  const netInfo = useNetInfo();
-  const isFocused = useIsFocused();
+  // const netInfo = useNetInfo();
+  // const isFocused = useIsFocused();
   useEffect(() => {
     let realm;
     // stores the listener to later unsubscribe when screen is unmounted
@@ -87,14 +81,14 @@ const MainScreen = ({ navigation }) => {
       let count = 0;
       let pendingInventoryCount = 0;
       for (const inventory of data) {
-        if (inventory.status === 'pending' || inventory.status === 'uploading') {
+        if (inventory.status === PENDING_DATA_UPLOAD || inventory.status === PENDING_IMAGE_UPLOAD) {
           count++;
         }
-        if (inventory.status === 'pending') {
+        if (inventory.status === PENDING_DATA_UPLOAD) {
           pendingInventoryCount++;
         }
       }
-      updateCount({ type: 'pending', count })(dispatch);
+      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
       setPendingInventory(pendingInventoryCount);
       setNumberOfInventory(data ? data.length : 0);
     });
@@ -107,12 +101,9 @@ const MainScreen = ({ navigation }) => {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
             setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+            setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
         }
-      });
-      getCdnUrls(i18next.language).then((cdnMedia) => {
-        setCdnUrls(cdnMedia);
       });
     }
   };
@@ -121,17 +112,18 @@ const MainScreen = ({ navigation }) => {
     fetchUserDetails();
   }, [loadingState.isLoading]);
 
-  useEffect(() => {
-    if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
-      checkLoginAndSync({
-        sync: true,
-        dispatch,
-        userDispatch,
-        connected: netInfo.isConnected,
-        internet: netInfo.isInternetReachable,
-      });
-    }
-  }, [pendingInventory, netInfo, isFocused]);
+  // ! Need to changed when auto upload is implemented
+  // useEffect(() => {
+  //   if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
+  //     checkLoginAndSync({
+  //       sync: true,
+  //       dispatch,
+  //       userDispatch,
+  //       connected: netInfo.isConnected,
+  //       internet: netInfo.isInternetReachable,
+  //     });
+  //   }
+  // }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData, changes) {
@@ -140,12 +132,14 @@ const MainScreen = ({ navigation }) => {
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
     }
+
     // Update UI in response to inserted objects
     changes.insertions.forEach((index) => {
       if (userData[index].id === 'id0001') {
         checkIsSignedInAndUpdate(userData[index]);
       }
     });
+
     // Update UI in response to modified objects
     changes.modifications.forEach((index) => {
       if (userData[index].id === 'id0001') {
@@ -154,15 +148,25 @@ const MainScreen = ({ navigation }) => {
     });
   }
 
+  function inventoryListener(data, changes) {
+    if (changes.deletions.length > 0) {
+      fetchInventory();
+    }
+    if (changes.insertions.length > 0) {
+      fetchInventory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm) => {
     try {
       // gets the user object from realm
       const userObject = realm.objects('User');
-
+      const plantLocationObject = realm.objects('Inventory');
       // Observe collection notifications.
       userObject.addListener(listener);
+      plantLocationObject.addListener(inventoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -197,18 +201,14 @@ const MainScreen = ({ navigation }) => {
         .then(() => {
           stopLoading()(loadingDispatch);
           fetchUserDetails();
-          checkLoginAndSync({
-            sync: true,
-            dispatch,
-            userDispatch,
-            connected: netInfo.isConnected,
-            internet: netInfo.isInternetReachable,
-          });
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
-          } else if (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) {
+          } else if (
+            (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) ||
+            (err?.message == 401 && err?.name === 'unauthorized')
+          ) {
             setEmailAlert(true);
           }
           stopLoading()(loadingDispatch);
@@ -218,6 +218,7 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLogout = () => {
     onPressCloseProfileModal();
+    clearAllUploadedInventory();
     shouldSpeciesUpdate()
       .then((isSyncRequired) => {
         if (isSyncRequired) {
@@ -295,8 +296,8 @@ const MainScreen = ({ navigation }) => {
                 testID={'btn_login'}
                 accessibilityLabel={'Login/Sign Up'}
                 photo={
-                  cdnUrls && cdnUrls.cache && userInfo.image
-                    ? `${cdnUrls.cache}/profile/avatar/${userInfo.image}`
+                  cdnUrl && userInfo.image
+                    ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
                     : ''
                 }
                 name={userInfo ? userInfo.firstName : ''}
@@ -382,7 +383,6 @@ const MainScreen = ({ navigation }) => {
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
-        cdnUrls={cdnUrls}
       />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>

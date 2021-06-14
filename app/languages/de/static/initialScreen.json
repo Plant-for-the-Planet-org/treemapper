@@ -6,5 +6,6 @@
   "downloading_archive": "Herunterladen des Artenarchivs.",
   "unzipping_archive": "Entpacken des Artenarchivs.",
   "fetch_and_add_species_to_database": "Hinzufügen von Arten in die Datenbank.",
-  "species_data_loaded": "Artendatenbank geladen."
+  "species_data_loaded": "Artendatenbank geladen.",
+  "please_wait": "Bitte warten ..."
 }

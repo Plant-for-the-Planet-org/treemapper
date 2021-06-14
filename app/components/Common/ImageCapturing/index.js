@@ -27,7 +27,7 @@ import {
 } from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
-import { copyImageAndGetData } from '../../../utils/copyToFS';
+import { copyImageAndGetData } from '../../../utils/FSInteration';
 import { MULTI, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import Alrighty from '../Alrighty';
@@ -136,8 +136,11 @@ const ImageCapturing = ({
               if (inventory.locateTree === ON_SITE) {
                 navigation.navigate('SampleTreesCount');
               } else {
-                navigation.navigate('InventoryOverview');
+                navigation.navigate('AdditionalDataForm');
               }
+              // else {
+              //   navigation.navigate('InventoryOverview');
+              // }
             } else {
               updateActiveMarkerIndex(activeMarkerIndex + 1);
               toggleState();
@@ -159,6 +162,10 @@ const ImageCapturing = ({
                 message: `Successfully added image for sample tree #${
                   inventory.completedSampleTreesCount + 1
                 } inventory_id: ${inventory.inventory_id}`,
+              });
+              updateLastScreen({
+                inventory_id: inventory.inventory_id,
+                lastScreen: 'SelectSpecies',
               });
               navigation.navigate('SelectSpecies');
             })
@@ -219,31 +226,31 @@ const ImageCapturing = ({
           locateTree: inventory.locateTree,
         }).then(() => {
           setIsAlrightyModalShow(false);
-          if (inventory.locateTree === ON_SITE) {
-            // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'SampleTreesCount' },
-                ],
-              }),
-            );
-          } else {
-            // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'TotalTreesSpecies' },
-                ],
-              }),
-            );
-          }
+          // if (inventory.locateTree === ON_SITE) {
+          // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 2,
+              routes: [
+                { name: 'MainScreen' },
+                { name: 'TreeInventory' },
+                { name: 'TotalTreesSpecies' },
+              ],
+            }),
+          );
+          // } else {
+          // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
+          // navigation.dispatch(
+          //   CommonActions.reset({
+          //     index: 2,
+          //     routes: [
+          //       { name: 'MainScreen' },
+          //       { name: 'TreeInventory' },
+          //       { name: 'TotalTreesSpecies' },
+          //     ],
+          //   }),
+          // );
+          // }
         });
       });
     });

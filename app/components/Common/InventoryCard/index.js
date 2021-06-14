@@ -1,31 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '_styles';
-import { single_tree_png, placeholder_image, map_img } from '../../../assets';
+import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
+import { APIConfig } from './../../../actions/Config';
+
+const { protocol, cdnUrl } = APIConfig;
 
 const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
+  const [imageSource, setImageSource] = useState();
+  useEffect(() => {
+    if (data.imageURL) {
+      const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
+      setImageSource({
+        uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`,
+      });
+    } else if (data.cdnImageUrl) {
+      setImageSource({
+        // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
+        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
+      });
+    } else if (
+      activeBtn === true ||
+      data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
+    ) {
+      setImageSource(map_img);
+    } else if (activeBtn === false) {
+      setImageSource(placeholder_image);
+    } else {
+      if (data.treeType === SINGLE) {
+        setImageSource(single_tree_png);
+      } else {
+        setImageSource(multiple_tree_png);
+      }
+    }
+  }, []);
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-
-  let imageSource;
-  if (data.imageURL) {
-    const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
-    imageSource = { uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}` };
-  } else if (
-    activeBtn === true ||
-    data.subHeading.includes(i18next.t('label.tree_inventory_off_site'))
-  ) {
-    imageSource = map_img;
-  } else if (activeBtn === false) {
-    imageSource = placeholder_image;
-  } else {
-    imageSource = single_tree_png;
-  }
 
   return (
     <View style={styles.container}>
@@ -65,7 +80,7 @@ const styles = StyleSheet.create({
   image: {
     height: 100,
     width: 100,
-    borderRadius: 5,
+    borderRadius: 8,
   },
   contentContainer: {
     flex: 1.2,

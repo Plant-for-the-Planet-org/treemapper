@@ -12,11 +12,15 @@ export const updateAndSyncLocalSpecies = (speciesData) => {
       .then((realm) => {
         realm.write(() => {
           speciesData.forEach((specie, index) => {
-            realm.create('ScientificSpecies', {
-              guid: specie.guid,
-              scientificName: specie.scientific_name,
-              aliases: specie.scientific_name,
-            });
+            realm.create(
+              'ScientificSpecies',
+              {
+                guid: specie.guid,
+                scientificName: specie.scientific_name,
+                aliases: specie.scientific_name,
+              },
+              Realm.UpdateMode.Modified,
+            );
             if (index === speciesData.length - 1) {
               // logging the success in to the db
               dbLog.info({
@@ -516,6 +520,39 @@ export const resetAllSpecies = () => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Error while resetting all user species',
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+      });
+  });
+};
+
+export const getScientificSpeciesById = (id) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        if (id !== 'unknown') {
+          let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
+          resolve(specie);
+        } else {
+          resolve({
+            aliases: 'Unknown',
+            description: '',
+            guid: 'unknown',
+            image: '',
+            isUpdated: true,
+            isUploaded: true,
+            isUserSpecies: true,
+            scientificName: 'Unknown',
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Error at /repositories/species/getScientificSpeciesById,', err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Error while retrieving specie with guid ${id}`,
           logStack: JSON.stringify(err),
         });
         reject(err);

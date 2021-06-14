@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Hochladen ...........",
   "tree_inventory_left_text": "Ausstehender Upload",
+  "tree_inventory_left_text_uploading": "Upload läuft",
   "tree_inventory_right_text": "Jetzt hochladen",
   "tree_inventory_view_upload": "Zeige hochgeladene Elemente",
   "tree_inventory_incomplete_registrations": "Unvollständige Registrierungen",
@@ -12,6 +13,7 @@
   "tree_inventory_upload_empty_btn_text": "Zurück zum Inventar",
   "tree_inventory_alert_header": "Bist du sicher?",
   "tree_inventory_alert_sub_header": "Die Registrierungen sind sicher in der Cloud. Sobald die Registrierungen gelöscht sind, ist es derzeit nicht möglich, sie über diese App abzurufen.",
+  "tree_inventory_alert_sub_header2": "Die Bilder werden aus dem Dateisystem gelöscht. Bei einer guten Internetverbindung kannst du die Bilder weiterhin sehen.",
   "tree_inventory_alert_primary_btn_text": "Ich bin sicher!",
   "tree_inventory_clear_all": "Alles löschen",
   "tree_inventory_free_up_space": "Speicherplatz freigeben",
