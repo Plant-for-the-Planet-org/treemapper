@@ -10,8 +10,6 @@ import {
   View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Video from 'react-native-video';
 import Realm from 'realm';
 import { Colors, Typography } from '_styles';
 import { APIConfig } from '../../actions/Config';
@@ -43,7 +41,6 @@ import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventory
 const { protocol, cdnUrl } = APIConfig;
 
 const MainScreen = ({ navigation }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false); // * FOR VIDEO MODAL
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
@@ -188,8 +185,6 @@ const MainScreen = ({ navigation }) => {
 
   const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
 
-  const onPressLearn = () => setIsModalVisible(!isModalVisible);
-
   const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible);
 
   const onPressLogin = async () => {
@@ -232,31 +227,6 @@ const MainScreen = ({ navigation }) => {
         }
       })
       .catch((err) => console.error(err));
-  };
-
-  const renderVideoModal = () => {
-    return (
-      <Modal visible={isModalVisible} animationType={'slide'}>
-        <View style={styles.modalContainer}>
-          <Ionicons
-            name={'md-close'}
-            size={30}
-            color={Colors.WHITE}
-            onPress={onPressLearn}
-            style={styles.closeIcon}
-          />
-          {isModalVisible && (
-            <Video
-              repeat={true}
-              resizeMode={'contain'}
-              posterResizeMode={'stretch'}
-              source={require('./learn.mp4')}
-              style={styles.videoPLayer}
-            />
-          )}
-        </View>
-      </Modal>
-    );
   };
 
   const onPressLegals = () => {
@@ -336,18 +306,6 @@ const MainScreen = ({ navigation }) => {
                   accessibilityLabel="Download Map"
                 />
               </ImageBackground>
-              {/* <ImageBackground id={'learnbtn'} source={map_texture} style={styles.bgImage}>
-              <LargeButton
-                onPress={onPressLearn}
-                rightIcon={rightIcon}
-                style={styles.customStyleLargeBtn}
-                heading={i18next.t('label.learn')}
-                active={false}
-                subHeading={i18next.t('label.learn_sub_header')}
-                accessibilityLabel="Learn"
-                testID="page_learn"
-              />
-            </ImageBackground> */}
             </View>
           </ScrollView>
           <PrimaryButton
@@ -376,7 +334,6 @@ const MainScreen = ({ navigation }) => {
           )}
         </View>
       )}
-      {renderVideoModal()}
       <ProfileModal
         isUserLogin={isUserLogin}
         isProfileModalVisible={isProfileModalVisible}
@@ -400,11 +357,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 20,
     backgroundColor: Colors.WHITE,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: Colors.BLACK,
-    padding: 30,
   },
   addSpecies: {
     color: Colors.ALERT,
@@ -434,17 +386,6 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     alignSelf: 'center',
-  },
-  videoPLayer: {
-    flex: 1,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  },
-  closeIcon: {
-    zIndex: 100,
   },
   textAlignCenter: {
     color: Colors.TEXT_COLOR,
