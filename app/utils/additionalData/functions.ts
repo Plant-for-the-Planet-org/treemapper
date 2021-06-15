@@ -1,4 +1,5 @@
 import RNFS from 'react-native-fs';
+import { version } from '../../../package.json';
 import {
   deleteAllAdditionalData,
   getSchemaNameFromType,
@@ -66,6 +67,11 @@ export const getFormattedAdditionalDetails = (metadata: any) => {
   if (metadata && Object.keys(metadata).length > 0) {
     for (const dataKey of Object.keys(metadata)) {
       if (dataKey === accessTypes.APP) {
+        additionalDetails.push({
+          key: 'appVersion',
+          value: metadata[dataKey].appVersion,
+          accessType: accessTypes.APP,
+        });
         continue;
       }
       const accessType = dataKey === 'public' ? accessTypes.PUBLIC : accessTypes.PRIVATE;
@@ -245,6 +251,8 @@ export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppM
     appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
   }
 
+  appAdditionalDetails['appVersion'] = version;
+
   return appAdditionalDetails;
 };
 
@@ -266,6 +274,5 @@ export const additionalDataForUI = ({ data, isSampleTree = false }: IGetAppMetad
       accessType: accessTypes.APP,
     });
   }
-
   return appAdditionalDetails;
 };

@@ -8,7 +8,12 @@ import { getInventory, updateInventory, updateLastScreen } from '../../repositor
 import dbLog from '../../repositories/logs';
 import { Colors } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import { elementsType, inputTypes, numberRegex } from '../../utils/additionalData/constants';
+import {
+  accessTypes,
+  elementsType,
+  inputTypes,
+  numberRegex,
+} from '../../utils/additionalData/constants';
 import {
   filterFormByTreeAndRegistrationType,
   sortByField,
@@ -18,6 +23,7 @@ import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryCons
 import { Header, Loader } from '../Common';
 import PrimaryButton from '../Common/PrimaryButton';
 import ElementSwitcher from './ElementSwitcher';
+import { version } from '../../../package.json';
 
 interface IAdditionalDataFormProps {}
 
@@ -189,6 +195,12 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           delete metadata[index].id;
           delete metadata[index].order;
         }
+
+        transformedData.push({
+          key: 'appVersion',
+          value: version,
+          accessType: accessTypes.APP,
+        });
 
         transformedData = [...transformedData, ...metadata];
 
