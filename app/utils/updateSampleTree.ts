@@ -1,6 +1,6 @@
 import { getInventory, updateInventory } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
-import { getFormattedAppAdditionalDetailsFromInventory } from './additionalData/functions';
+import { appAdditionalDataForAPI } from './additionalData/functions';
 import { LogTypes } from './constants';
 import { PENDING_DATA_UPLOAD } from './inventoryConstants';
 
@@ -59,14 +59,14 @@ export const updateSampleTree = ({
         break;
       }
       case 'changeStatusToPending': {
-        const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+        const appAdditionalDetails = appAdditionalDataForAPI({
           data: sampleTree,
           isSampleTree: true,
         });
         sampleTree = {
           ...sampleTree,
           status: PENDING_DATA_UPLOAD,
-          additionalDetails: [...sampleTree.additionalDetails, ...appAdditionalDetails],
+          appMetadata: JSON.stringify(appAdditionalDetails),
         };
         inventoryData = {
           ...inventoryData,

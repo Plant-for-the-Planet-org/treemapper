@@ -2,8 +2,8 @@ import Realm from 'realm';
 import { setInventoryId, updateCount, updateProgressCount } from '../actions/inventory';
 import { bugsnag } from '../utils';
 import {
+  appAdditionalDataForAPI,
   getFormattedAdditionalDetails,
-  getFormattedAppAdditionalDetailsFromInventory,
 } from '../utils/additionalData/functions';
 import { LogTypes } from '../utils/constants';
 import {
@@ -995,6 +995,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
           }
 
           const additionalDetails = getFormattedAdditionalDetails(inventoryFromServer.metadata);
+          const appMetadata = JSON.stringify(inventoryFromServer.metadata.app);
 
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
@@ -1020,6 +1021,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
             registrationDate: inventoryFromServer.registrationDate,
             locationId: inventoryFromServer.id,
             additionalDetails,
+            appMetadata,
           };
           if (inventoryFromServer.type !== SAMPLE) {
             realm.create('Inventory', inventoryData);
@@ -1080,6 +1082,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let treeType = SAMPLE;
           let sampleTrees = inventory[0].sampleTrees;
           const additionalDetails = getFormattedAdditionalDetails(sampleTreeFromServer.metadata);
+          const appMetadata = JSON.stringify(sampleTreeFromServer.metadata.app);
 
           const sampleTreeData = {
             latitude,
@@ -1097,6 +1100,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
             locationId,
             treeType,
             additionalDetails,
+            appMetadata,
           };
           let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
           if (!locationIds.includes(sampleTreeFromServer.id)) {
@@ -1172,10 +1176,10 @@ export const addAppMetadata = ({ inventory_id }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+          const appAdditionalDetails = appAdditionalDataForAPI({
             data: inventory,
           });
-          inventory.additionalDetails = [...inventory.additionalDetails, ...appAdditionalDetails];
+          inventory.appMetadata = JSON.stringify(appAdditionalDetails);
         });
         // logging the success in to the db
         dbLog.info({
