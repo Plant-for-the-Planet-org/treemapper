@@ -16,8 +16,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
 import { Colors, Typography } from '_styles';
 import { setSpecie } from '../../actions/species';
+import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
 import { getSchema } from '../../repositories/default';
+import { getInventory } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
@@ -43,8 +45,10 @@ const ManageSpecies = ({
   isSampleTree,
   isSampleTreeCompleted,
   screen,
+  retainNavigationStack,
 }) => {
   const navigation = useNavigation();
+  const [inventory, setInventory] = useState();
   const [specieList, setSpecieList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState([]);
@@ -54,6 +58,7 @@ const ManageSpecies = ({
   const [activeSpecie, setActiveSpecie] = useState(undefined);
 
   const { dispatch } = useContext(SpeciesContext);
+  const { state } = useContext(InventoryContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
@@ -100,6 +105,11 @@ const ManageSpecies = ({
     navigation.navigate('MainScreen');
   };
 
+  useEffect(() => {
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+    });
+  }, []);
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid, addSpecie = false) => {
@@ -160,24 +170,32 @@ const ManageSpecies = ({
       setActiveSpecie(specie);
       setShowTreeCountModal(true);
     } else {
-      addSpecieToInventory(specie);
+      addSpecieToInventory(specie, inventory);
     }
   };
 
   const handleTreeCountNextButton = () => {
     let specie = activeSpecie;
     specie.treeCount = Number(treeCount);
-    addSpecieToInventory(specie);
+    addSpecieToInventory(specie, inventory);
 
     setActiveSpecie();
     setTreeCount('');
     setShowTreeCountModal(false);
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
-      }),
-    );
+    if (retainNavigationStack) {
+      onPressBack();
+    } else {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            { name: 'TotalTreesSpecies' },
+          ],
+        }),
+      );
+    }
   };
 
   const navigateToSpecieInfo = (specie) => {

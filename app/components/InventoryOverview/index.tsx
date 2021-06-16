@@ -64,6 +64,8 @@ const InventoryOverview = ({ navigation }: any) => {
   const [showProject, setShowProject] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
   const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
+  const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
+  const [showLessSampleTreesAlert, setShowLessSampleTreesAlert] = useState(false);
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
@@ -187,16 +189,16 @@ const InventoryOverview = ({ navigation }: any) => {
       if (notSampledSpecies.length === 0 || forceContinue) {
         if (inventory.species.length > 0) {
           addAppMetadata({ inventory_id: state.inventoryID })
-          .then(() => {
-            let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
-            changeInventoryStatus(data, dispatch).then(() => {
-              navigation.navigate('TreeInventory');
+            .then(() => {
+              let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+              changeInventoryStatus(data, dispatch).then(() => {
+                navigation.navigate('TreeInventory');
+              });
+            })
+            .catch(() => {
+              setIsError(true);
+              setShowAlert(true);
             });
-          })
-          .catch(() => {
-            setIsError(true);
-            setShowAlert(true);
-          });
         } else {
           alert(i18next.t('label.inventory_overview_select_species'));
         }
@@ -376,6 +378,59 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
+  const renderAddSampleTreeButton = (status: string) => {
+    return (
+      (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) && (
+        <TouchableOpacity
+          onPress={addSampleTree}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            backgroundColor: '#F0F0F0',
+            borderRadius: 10,
+            marginVertical: 10,
+          }}
+          accessibilityLabel="Species Button"
+          testID="species_btn">
+          <Text style={styles.plantSpeciesText}>
+            {i18next.t('label.inventory_overview_add_sample_tree')}
+          </Text>
+          <View>
+            <SvgXml xml={plus_icon} />
+          </View>
+          <View>
+            <SvgXml xml={two_trees} />
+          </View>
+        </TouchableOpacity>
+      )
+    );
+  };
+
+  const addSampleTree = () => {
+    if (inventory.species.length === 0) {
+      setShowNoSpeciesAlert(true);
+    } else if (inventory.sampleTrees.length < 5) {
+      setShowLessSampleTreesAlert(true);
+    } else {
+      let data = {
+        inventory_id: inventory.inventory_id,
+        lastScreen: 'RecordSampleTrees',
+      };
+      updateLastScreen(data);
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            { name: 'RecordSampleTrees' },
+          ],
+        }),
+      );
+    }
+  };
+
   const onPressDate = (status: string) => {
     if (status === INCOMPLETE && inventory.locateTree === OFF_SITE) {
       setShowDate(true);
@@ -383,7 +438,7 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const handleSelectSpecies = () => {
-    navigation.navigate('TotalTreesSpecies');
+    navigation.navigate('TotalTreesSpecies', { retainNavigationStack: true });
   };
 
   const handleDeleteInventory = () => {
@@ -518,6 +573,7 @@ const InventoryOverview = ({ navigation }: any) => {
                   totalSampleTrees={inventory.sampleTreesCount}
                 />
               )}
+              {inventory?.completedSampleTreesCount == 0 ? renderAddSampleTreeButton(status) : null}
               <LargeButton
                 onPress={onPressExportJSON}
                 heading={i18next.t('label.inventory_overview_loc_export_json')}
@@ -575,6 +631,20 @@ const InventoryOverview = ({ navigation }: any) => {
           onPressSave({ forceContinue: true });
         }}
         showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showNoSpeciesAlert}
+        heading={i18next.t('label.no_species_found')}
+        message={i18next.t('label.at_least_one_species')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setShowNoSpeciesAlert(false)}
+      />
+      <AlertModal
+        visible={showLessSampleTreesAlert}
+        heading={i18next.t('label.need_more_sample_trees')}
+        message={i18next.t('label.at_least_five_sample_trees')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setShowLessSampleTreesAlert(false)}
       />
       {renderDatePicker()}
     </SafeAreaView>

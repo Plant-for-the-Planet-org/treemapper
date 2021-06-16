@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,16 +16,25 @@ import { Colors, CommonStyles } from '_styles';
 import { species_default } from '../../../assets';
 import { Header } from '../';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getScientificSpeciesById } from '../../../repositories/species';
 
 export default function TreeCountModal({
   showTreeCountModal,
+  setShowTreeCountModal,
   activeSpecie,
   setTreeCount,
   treeCount,
   onPressTreeCountNextBtn,
-  setShowTreeCountModal,
 }) {
   let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
+  const [specie, setSpecie] = useState();
+  useEffect(() => {
+    if (activeSpecie?.id && showTreeCountModal) {
+      getScientificSpeciesById(activeSpecie?.id).then((specie) => {
+        setSpecie(specie);
+      });
+    }
+  }, [activeSpecie]);
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
       <View
@@ -43,14 +52,20 @@ export default function TreeCountModal({
             }}
           />
           <Image
-            source={activeSpecie?.image ? { uri: `${activeSpecie.image}` } : species_default}
+            source={
+              activeSpecie?.image
+                ? { uri: `${activeSpecie.image}` }
+                : specie?.image
+                  ? { uri: `${specie?.image}` }
+                  : species_default
+            }
             style={{
               alignSelf: 'center',
               marginVertical: 20,
               width: 150,
               height: 100,
               borderRadius: 5,
-              resizeMode: activeSpecie?.image ? null : 'contain',
+              resizeMode: activeSpecie?.image || specie?.image ? null : 'contain',
             }}
           />
           <Header
@@ -80,7 +95,7 @@ export default function TreeCountModal({
             {i18next.t('label.select_species_modal_label')}
           </Text>
           <TextInput
-            value={treeCount.toString()}
+            value={treeCount?.toString()}
             style={CommonStyles.bottomInputText}
             autoFocus
             placeholderTextColor={Colors.TEXT_COLOR}

@@ -2,7 +2,7 @@ import i18next from 'i18next';
 import React, { useEffect, useState, useContext } from 'react';
 import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RNFS from 'react-native-fs';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useIsFocused } from '@react-navigation/native';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '_styles';
 import { single_tree_png } from '../../assets';
@@ -70,7 +70,7 @@ export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navig
   const [countryCode, setCountryCode] = useState('');
   const [inventory, setInventory] = useState();
   const { state } = useContext(InventoryContext);
-
+  const isFocused = useIsFocused();
   useEffect(() => {
     getUserInformation().then((data) => {
       setCountryCode(data.country);
@@ -78,13 +78,16 @@ export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navig
     getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
       setInventory(inventoryData);
     });
-  }, []);
+  }, [isFocused]);
 
   const addSampleTree = () => {
     updateInventory({
       inventory_id: state.inventoryID,
       inventoryData: {
-        sampleTreesCount: inventory.sampleTreesCount + 1,
+        sampleTreesCount:
+          inventory.sampleTreesCount === inventory.completedSampleTreesCount
+            ? inventory.sampleTreesCount + 1
+            : inventory.sampleTreesCount,
       },
     }).then(() => {
       let data = {

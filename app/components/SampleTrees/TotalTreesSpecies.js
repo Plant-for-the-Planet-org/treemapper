@@ -1,5 +1,5 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import i18next from 'i18next';
@@ -24,7 +24,7 @@ import { getScientificSpeciesById } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
-import { Header, PrimaryButton, TopRightBackground } from '../Common';
+import { AlertModal, Header, PrimaryButton, TopRightBackground, TreeCountModal } from '../Common';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
 
@@ -34,11 +34,17 @@ export default function TotalTreesSpecies() {
   const [bounds, setBounds] = useState([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
-
+  const [showTreeCountModal, setShowTreeCountModal] = useState(false);
+  const [treeCount, setTreeCount] = useState();
+  const [specie, setSpecie] = useState();
+  const [specieIndex, setSpecieIndex] = useState();
+  const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
   const navigation = useNavigation();
 
   // reference for camera to focus on map
   const camera = useRef(null);
+
+  const route = useRoute();
 
   // reference for map
   const map = useRef(null);
@@ -121,6 +127,42 @@ export default function TotalTreesSpecies() {
     }
   };
 
+  const onPressDelete = (specieIndex) => {
+    setSpecieIndex(specieIndex);
+    let species = [...inventory.species];
+    let sampleTrees = [...inventory.sampleTrees];
+    const specie = species[specieIndex];
+    sampleTrees.every((sampleTree, index) => {
+      if (sampleTree.specieId === specie.id) {
+        setDeleteSpecieAlert(true);
+        return false;
+      } else if (index === sampleTrees.length - 1) {
+        deleteSpecie(specieIndex);
+      } else {
+        return true;
+      }
+    });
+  };
+
+  const deleteSpeciesAndSampleTrees = async (specieIndex) => {
+    let species = [...inventory.species];
+    let sampleTrees = [...inventory.sampleTrees];
+    const specie = species[specieIndex];
+    for await (let sampleTree of [...inventory.sampleTrees]) {
+      if (sampleTree.specieId === specie.id) {
+        sampleTrees.splice(sampleTrees.indexOf(sampleTree), 1);
+      }
+    }
+    updateInventory({
+      inventory_id: inventory.inventory_id,
+      inventoryData: {
+        sampleTrees,
+        sampleTreesCount: sampleTrees.length < 5 ? Number(5) : sampleTrees.length,
+        completedSampleTreesCount: sampleTrees.length,
+      },
+    }).then(() => deleteSpecie(specieIndex));
+  };
+
   const deleteSpecie = (index) => {
     let species = [...inventory.species];
     const specie = species.splice(index, 1);
@@ -135,6 +177,7 @@ export default function TotalTreesSpecies() {
         getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
           setInventory(inventoryData);
         });
+        setDeleteSpecieAlert(false);
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Successfully deleted specie with id: ${specie[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
@@ -147,6 +190,18 @@ export default function TotalTreesSpecies() {
           logStack: JSON.stringify(err),
         });
       });
+  };
+
+  const changeTreeCount = async (index) => {
+    let species = [...inventory.species];
+    species[index].treeCount = Number(treeCount);
+    await updateInventory({
+      inventory_id: inventoryState.inventoryID,
+      inventoryData: {
+        species,
+      },
+    });
+    setTreeCount(null);
   };
 
   const addSpecieToInventory = (specie) => {
@@ -236,12 +291,10 @@ export default function TotalTreesSpecies() {
   };
 
   const handleContinuePress = () => {
-    if (
-      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-      inventory?.locateTree === OFF_SITE
-    ) {
+    if (inventory?.completedSampleTreesCount > 0 || inventory?.locateTree === OFF_SITE) {
       navigation.navigate(
         inventory?.additionalDetails.length > 0 ? 'InventoryOverview' : 'AdditionalDataForm',
+        { redirectToOverview: true },
       );
     } else {
       navigation.navigate('SampleTreesCount');
@@ -249,10 +302,7 @@ export default function TotalTreesSpecies() {
   };
 
   const getContinueButtonText = () => {
-    if (
-      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-      inventory?.locateTree === OFF_SITE
-    ) {
+    if (inventory?.completedSampleTreesCount > 0 || inventory?.locateTree === OFF_SITE) {
       if (inventory?.additionalDetails.length > 0) {
         return i18next.t('label.tree_review_continue_to_review');
       } else {
@@ -271,6 +321,7 @@ export default function TotalTreesSpecies() {
         addSpecieToInventory={addSpecieToInventory}
         isSampleTree={true}
         isSampleTreeCompleted={true}
+        retainNavigationStack={route?.params?.retainNavigationStack}
       />
     );
   }
@@ -292,12 +343,25 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <SpecieListItem
-                item={specie}
-                index={index}
-                key={index}
-                deleteSpecie={deleteSpecie}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  setSpecie(specie);
+                  setSpecieIndex(index);
+                  setShowTreeCountModal(true);
+                }}
+                key={index}>
+                <SpecieListItem
+                  item={specie}
+                  index={index}
+                  key={index}
+                  deleteSpecie={() =>
+                    inventory.completedSampleTreesCount > 0
+                      ? onPressDelete(index)
+                      : deleteSpecie(index)
+                  }
+                  setSpecieIndex={setSpecieIndex}
+                />
+              </TouchableOpacity>
             ))
             : renderMapView()}
         </ScrollView>
@@ -309,20 +373,49 @@ export default function TotalTreesSpecies() {
             testID={'sample_tree_count_continue'}
             accessibilityLabel={'sample_tree_count_continue'}
           />
-          <PrimaryButton
-            onPress={handleContinuePress}
-            btnText={getContinueButtonText()}
-            theme={'primary'}
-            testID={'sample_tree_count_continue'}
-            accessibilityLabel={'sample_tree_count_continue'}
-          />
+          {inventory?.species?.length > 0 ? (
+            <PrimaryButton
+              onPress={handleContinuePress}
+              btnText={getContinueButtonText()}
+              theme={'primary'}
+              testID={'sample_tree_count_continue'}
+              accessibilityLabel={'sample_tree_count_continue'}
+            />
+          ) : (
+            []
+          )}
         </View>
+        <TreeCountModal
+          showTreeCountModal={showTreeCountModal}
+          setShowTreeCountModal={setShowTreeCountModal}
+          treeCount={treeCount}
+          setTreeCount={setTreeCount}
+          activeSpecie={specie}
+          onPressTreeCountNextBtn={() => {
+            changeTreeCount(specieIndex);
+            setShowTreeCountModal(false);
+          }}
+        />
+        <AlertModal
+          visible={deleteSpecieAlert}
+          heading={'Delete Species?'}
+          message={
+            'If you delete this species, the the sample tree related to this species will also get deleted. Are you sure, that you want to delete?'
+          }
+          showSecondaryButton={true}
+          primaryBtnText={'Delete'}
+          secondaryBtnText={'Cancel'}
+          onPressPrimaryBtn={() => {
+            deleteSpeciesAndSampleTrees(specieIndex);
+          }}
+          onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
-export const SpecieListItem = ({ item, index, deleteSpecie }) => {
+export const SpecieListItem = ({ item, index, deleteSpecie, setSpecieIndex }) => {
   const [specieImage, setSpecieImage] = useState();
   const [species, setSpecies] = useState();
   useEffect(() => {
@@ -384,8 +477,11 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
           {item?.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
         </Text>
       </View>
-      {species?.guid !== 'unknown' && deleteSpecie ? (
-        <TouchableOpacity onPress={() => deleteSpecie(index)}>
+      {deleteSpecie ? (
+        <TouchableOpacity
+          onPress={() => {
+            deleteSpecie(index);
+          }}>
           <FAIcon name="minus-circle" size={20} color="#e74c3c" />
         </TouchableOpacity>
       ) : (

@@ -213,7 +213,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   };
 
   const postMeasurementUpdate = () => {
-    setIsShowTreeMeasurement(false);
     setDiameter('');
     setHeight('');
     setTagId('');

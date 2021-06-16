@@ -1,4 +1,4 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
@@ -38,9 +38,13 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   const navigation = useNavigation();
 
+  const route = useRoute();
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (inventoryState.inventoryID) {
+      if (route?.params?.redirectToOverview) {
+        navigation.navigate('InventoryOverview');
+      } else if (inventoryState.inventoryID) {
         let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'AdditionalDataForm' };
         updateLastScreen(data);
         setLoading(true);

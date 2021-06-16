@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, SafeAreaView, ScrollView, Text, StyleSheet } from 'react-native';
 import { TopRightBackground, Header } from '../Common';
 import { Colors, Typography } from '../../styles';
@@ -7,10 +7,13 @@ import i18next from 'i18next';
 import { useRoute, CommonActions, useNavigation } from '@react-navigation/native';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { InventoryContext } from '../../reducers/inventory';
+import { getInventory } from '../../repositories/inventory';
+import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 
 interface SpecieSampleTreeProps {
   notSampledSpecies?: string[];
-  onPressNextTree?: any;
+  plantedSpecies?: string[];
 }
 
 type RootStackParamList = {
@@ -21,16 +24,32 @@ type SpecieSampleRouteProp = RouteProp<RootStackParamList, 'SpecieSampleTree'>;
 
 const SpecieSampleTree = () => {
   const [speciesToSample, setSpeciesToSample] = useState([]);
+  const [inventory, setInventory] = useState();
+  const [speciesType, setSpeciesType] = useState('');
   const route: SpecieSampleRouteProp = useRoute();
   const navigation = useNavigation();
+  const { state } = useContext(InventoryContext);
 
+  let currentSampleTree;
   useEffect(() => {
-    createSpeciesArray(route?.params?.notSampledSpecies);
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+      currentSampleTree = inventoryData.sampleTrees[inventoryData.completedSampleTreesCount];
+      if (currentSampleTree?.latitude && currentSampleTree?.imageUrl) {
+        const plantedSpecies = inventoryData.species.map((specie) => specie.id);
+        createSpeciesArray(plantedSpecies);
+        setSpeciesType('plantedSpecies');
+      } else {
+        const notSampledSpecies = getNotSampledSpecies(inventoryData);
+        createSpeciesArray(notSampledSpecies);
+        setSpeciesType('notSampledSpecies');
+      }
+    });
   }, []);
 
-  const createSpeciesArray = async (notSampledSpecies: any) => {
+  const createSpeciesArray = async (species: any) => {
     let specieArray: {}[] = [];
-    for (let id of notSampledSpecies) {
+    for (let id of species) {
       let specieItem = await getScientificSpeciesById(id);
       specieArray.push(specieItem);
     }
@@ -38,19 +57,23 @@ const SpecieSampleTree = () => {
   };
 
   const onPressSpecie = (specie: any) => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [
-          { name: 'MainScreen' },
-          { name: 'TreeInventory' },
-          {
-            name: 'RecordSampleTrees',
-            params: { specieId: specie.guid, specieName: specie.scientificName },
-          },
-        ],
-      }),
-    );
+    if (speciesType === 'notSampledSpecies') {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            {
+              name: 'RecordSampleTrees',
+              params: { specieId: specie.guid, specieName: specie.scientificName },
+            },
+          ],
+        }),
+      );
+    } else {
+      navigation.navigate('SelectSpecies', { specie });
+    }
   };
 
   return (
