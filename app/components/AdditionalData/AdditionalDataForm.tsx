@@ -96,7 +96,7 @@ const AdditionalDataForm = () => {
         setForms(formsData);
 
         let data: any = {};
-        let accessTypes: any = {};
+        let formAccessTypes: any = {};
         let initialErrors: any = {};
         for (const form of formsData) {
           for (const element of form.elements) {
@@ -104,23 +104,21 @@ const AdditionalDataForm = () => {
               const yseNoValue = element.defaultValue ? 'yes' : 'no';
               data[element.key] =
                 typeof element.defaultValue === 'boolean' ? yseNoValue : element.defaultValue;
-              accessTypes[element.key] = element.accessType;
+              formAccessTypes[element.key] = element.accessType;
             }
             initialErrors[element.key] = '';
           }
           setFormData(data);
-          setFormAccessType(accessTypes);
+          setFormAccessType(formAccessTypes);
           setErrors(initialErrors);
           updateHeading(formsData);
         }
 
         if (!shouldShowForm) {
-          console.log('if nav called', treeType, isSample);
           addAdditionalDataToDB(transformedData, isSample, true);
           navigate(treeType, isSample);
         }
       } else {
-        console.log('else nav called', treeType, isSample);
         addAdditionalDataToDB(transformedData, isSample, true);
         navigate(treeType, isSample);
       }
@@ -229,11 +227,13 @@ const AdditionalDataForm = () => {
         const metadata: any = await getMetadata();
 
         for (const dataKey of Object.keys(formData)) {
-          transformedData.push({
-            key: dataKey,
-            value: formData[dataKey],
-            accessType: formAccessType[dataKey],
-          });
+          if (formData[dataKey]) {
+            transformedData.push({
+              key: dataKey,
+              value: formData[dataKey],
+              accessType: formAccessType[dataKey],
+            });
+          }
         }
 
         for (const index in metadata) {
@@ -248,7 +248,6 @@ const AdditionalDataForm = () => {
         });
 
         transformedData = [...transformedData, ...metadata];
-
         addAdditionalDataToDB(transformedData, isSampleTree);
       }
     }
