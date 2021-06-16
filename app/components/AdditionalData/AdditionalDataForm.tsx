@@ -25,13 +25,10 @@ import PrimaryButton from '../Common/PrimaryButton';
 import ElementSwitcher from './ElementSwitcher';
 import { version } from '../../../package.json';
 
-interface IAdditionalDataFormProps {}
-
-const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
+const AdditionalDataForm = () => {
   const [forms, setForms] = useState<any>([]);
   const [currentFormIndex, setCurrentFormIndex] = useState<number>(0);
   const [treeType, setTreeType] = useState<string>('');
-  const [inventoryStatus, setInventoryStatus] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.additional_data'));
   const [formData, setFormData] = useState<any>({});
@@ -54,7 +51,6 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
           if (inventoryData) {
             setInventory(inventoryData);
             setTreeType(inventoryData.treeType);
-            setInventoryStatus(inventoryData.status);
             const isSample =
               inventoryData.treeType === MULTI &&
               inventoryData.status === INCOMPLETE_SAMPLE_TREE &&
@@ -76,6 +72,14 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
   const addFormsToState = (treeType: string, registrationType: string, isSample: boolean) => {
     getForms().then((formsData: any) => {
+      const transformedData = [
+        {
+          key: 'appVersion',
+          value: version,
+          accessType: accessTypes.APP,
+        },
+      ];
+
       if (formsData) {
         formsData = sortByField('order', formsData);
 
@@ -111,13 +115,54 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
         }
 
         if (!shouldShowForm) {
+          console.log('if nav called', treeType, isSample);
+          addAdditionalDataToDB(transformedData, isSample, true);
           navigate(treeType, isSample);
         }
       } else {
+        console.log('else nav called', treeType, isSample);
+        addAdditionalDataToDB(transformedData, isSample, true);
         navigate(treeType, isSample);
       }
       setLoading(false);
     });
+  };
+
+  const addAdditionalDataToDB = (
+    transformedData: any,
+    isSample: boolean = false,
+    disableNavigation: boolean = false,
+  ) => {
+    let inventoryData;
+    if (isSample) {
+      let updatedSampleTrees = [...inventory.sampleTrees];
+      updatedSampleTrees[inventory.completedSampleTreesCount].additionalDetails = transformedData;
+      inventoryData = {
+        sampleTrees: updatedSampleTrees,
+      };
+    } else {
+      inventoryData = {
+        additionalDetails: transformedData,
+      };
+    }
+
+    updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData })
+      .then(() => {
+        dbLog.info({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Successfully added additional details to inventory with id ${inventoryState.inventoryID}`,
+        });
+        if (!disableNavigation) {
+          navigate();
+        }
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Failed to add additional details to inventory with id ${inventoryState.inventoryID}`,
+          logStack: JSON.stringify(err),
+        });
+      });
   };
 
   const navigate = (type: string = '', isSample: boolean | null = null) => {
@@ -204,39 +249,7 @@ const AdditionalDataForm = (props: IAdditionalDataFormProps) => {
 
         transformedData = [...transformedData, ...metadata];
 
-        let inventoryData;
-        if (
-          inventoryStatus === INCOMPLETE_SAMPLE_TREE &&
-          inventory.completedSampleTreesCount !== inventory.sampleTreesCount
-        ) {
-          let updatedSampleTrees = [...inventory.sampleTrees];
-          updatedSampleTrees[
-            inventory.completedSampleTreesCount
-          ].additionalDetails = transformedData;
-          inventoryData = {
-            sampleTrees: updatedSampleTrees,
-          };
-        } else {
-          inventoryData = {
-            additionalDetails: transformedData,
-          };
-        }
-
-        updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData })
-          .then(() => {
-            dbLog.info({
-              logType: LogTypes.ADDITIONAL_DATA,
-              message: `Successfully added additional details to inventory with id ${inventoryState.inventoryID}`,
-            });
-            navigate();
-          })
-          .catch((err) => {
-            dbLog.error({
-              logType: LogTypes.ADDITIONAL_DATA,
-              message: `Failed to add additional details to inventory with id ${inventoryState.inventoryID}`,
-              logStack: JSON.stringify(err),
-            });
-          });
+        addAdditionalDataToDB(transformedData, isSampleTree);
       }
     }
   };

@@ -467,15 +467,15 @@ const SingleTreeOverview = () => {
     const isNonISUCountry: boolean = nonISUCountries.includes(countryCode);
 
     // used to get the text to show on UI for diameter and height
-    const getConvertedMeasurementText = (measurement: any): string => {
+    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
       let text = i18next.t('label.tree_review_unable');
 
       if (measurement && isNonISUCountry) {
         text = ` ${Math.round(Number(measurement) * 100) / 100} ${i18next.t(
-          'label.select_species_inches',
+          unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
         )} `;
       } else if (measurement) {
-        text = ` ${Math.round(Number(measurement) * 100) / 100} cm `;
+        text = ` ${Math.round(Number(measurement) * 100) / 100} ${unit} `;
       }
       return text;
     };
@@ -526,7 +526,7 @@ const SingleTreeOverview = () => {
             accessible={true}>
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
-              {getConvertedMeasurementText(specieHeight)}
+              {getConvertedMeasurementText(specieHeight, 'm')}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
