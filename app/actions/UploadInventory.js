@@ -262,6 +262,8 @@ const getBodyData = (inventory) => {
 
   const metadata = getFormattedMetadata(inventory.additionalDetails);
 
+  metadata.app = JSON.parse(inventory.appMetadata);
+
   // prepares the body which is to be passed to api
   let body = {
     type: inventory.treeType,
@@ -320,6 +322,8 @@ const getBodyData = (inventory) => {
 
 const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
   const metadata = getFormattedMetadata(sampleTree.additionalDetails);
+  metadata.app = JSON.parse(sampleTree.appMetadata);
+
   // prepares the body which is to be passed to api
   let body = {
     type: sampleTree.treeType,

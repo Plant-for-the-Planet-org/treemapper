@@ -37,6 +37,7 @@ interface PropTypes {
   showOptions?: boolean;
   backgroundLabelColor?: string;
   containerBackgroundColor?: string;
+  autoFocus?: boolean;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -98,6 +99,7 @@ const OutlinedInput = React.forwardRef(
       style = {},
       isDropdown = false,
       showOptions,
+      autoFocus = false,
     }: PropTypes,
     ref,
   ) => {
@@ -236,6 +238,7 @@ const OutlinedInput = React.forwardRef(
       onSubmitEditing,
       ref,
       editable,
+      autoFocus,
       style: [
         { fontFamily, flex: 1 },
         InputStyle({
