@@ -1,8 +1,8 @@
+import { useNavigation } from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ImageBackground,
   Linking,
-  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Realm from 'realm';
-import { Colors, Typography } from '_styles';
 import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
@@ -25,6 +24,8 @@ import { getSchema } from '../../repositories/default';
 import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
+import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventoryConstants';
 import {
   Header,
   LargeButton,
@@ -36,24 +37,24 @@ import {
 } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import ProfileModal from '../ProfileModal';
-import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventoryConstants';
 
 const { protocol, cdnUrl } = APIConfig;
 
-const MainScreen = ({ navigation }) => {
+const MainScreen = () => {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>({});
+  const [emailAlert, setEmailAlert] = useState(false);
+
   const { state, dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
-  const [userInfo, setUserInfo] = useState({});
-  const [emailAlert, setEmailAlert] = useState(false);
-  const [pendingInventory, setPendingInventory] = useState(0);
-  // const netInfo = useNetInfo();
-  // const isFocused = useIsFocused();
+
+  const navigation = useNavigation();
+
   useEffect(() => {
-    let realm;
+    let realm: Realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
       fetchInventory();
@@ -76,17 +77,12 @@ const MainScreen = ({ navigation }) => {
   const fetchInventory = () => {
     getInventoryByStatus('all').then((data) => {
       let count = 0;
-      let pendingInventoryCount = 0;
       for (const inventory of data) {
         if (inventory.status === PENDING_DATA_UPLOAD || inventory.status === PENDING_IMAGE_UPLOAD) {
           count++;
         }
-        if (inventory.status === PENDING_DATA_UPLOAD) {
-          pendingInventoryCount++;
-        }
       }
       updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
-      setPendingInventory(pendingInventoryCount);
       setNumberOfInventory(data ? data.length : 0);
     });
   };
@@ -123,7 +119,7 @@ const MainScreen = ({ navigation }) => {
   // }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
-  function listener(userData, changes) {
+  function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
       setUserInfo({});
       setIsUserLogin(false);
@@ -145,7 +141,7 @@ const MainScreen = ({ navigation }) => {
     });
   }
 
-  function inventoryListener(data, changes) {
+  function inventoryListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
       fetchInventory();
     }
@@ -156,7 +152,7 @@ const MainScreen = ({ navigation }) => {
 
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
-  const initializeRealm = async (realm) => {
+  const initializeRealm = async (realm: Realm) => {
     try {
       // gets the user object from realm
       const userObject = realm.objects('User');
@@ -169,7 +165,7 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
-  const checkIsSignedInAndUpdate = (userDetail) => {
+  const checkIsSignedInAndUpdate = (userDetail: any) => {
     const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
     if (stringifiedUserDetails.isSignUpRequired) {
       navigation.navigate('SignUp');
@@ -177,13 +173,11 @@ const MainScreen = ({ navigation }) => {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
       setUserInfo(stringifiedUserDetails);
-      setIsUserLogin(stringifiedUserDetails.accessToken ? true : false);
+      setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
   };
 
-  // let rightIcon = <Icon size={40} name={'play-circle'} color={Colors.GRAY_LIGHTEST} />;
-
-  const onPressLargeButtons = (screenName) => navigation.navigate(screenName);
+  const onPressLargeButtons = (screenName: string) => navigation.navigate(screenName);
 
   const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible);
 
@@ -270,7 +264,7 @@ const MainScreen = ({ navigation }) => {
                     ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
                     : ''
                 }
-                name={userInfo ? userInfo.firstName : ''}
+                name={userInfo?.firstName || ''}
               />
             </View>
             <SpeciesSyncError />
@@ -283,19 +277,19 @@ const MainScreen = ({ navigation }) => {
               textAlignStyle={{ textAlign: 'center' }}
             />
             <View>
-              <ImageBackground id={'inventorybtn'} source={map_texture} style={styles.bgImage}>
+              <ImageBackground source={map_texture} style={styles.bgImage}>
                 <LargeButton
                   onPress={() => onPressLargeButtons('TreeInventory')}
                   style={styles.customStyleLargeBtn}
                   heading={i18next.t('label.tree_inventory')}
                   active={false}
                   subHeading={i18next.t('label.tree_inventory_sub_header')}
-                  notification={numberOfInventory > 0 && numberOfInventory}
+                  notification={numberOfInventory > 0 ? `${numberOfInventory}` : ''}
                   testID="page_tree_inventory"
                   accessibilityLabel="Tree Inventory"
                 />
               </ImageBackground>
-              <ImageBackground id={'downloadmapbtn'} source={map_texture} style={styles.bgImage}>
+              <ImageBackground source={map_texture} style={styles.bgImage}>
                 <LargeButton
                   onPress={() => onPressLargeButtons('DownloadMap')}
                   style={styles.customStyleLargeBtn}
@@ -335,7 +329,6 @@ const MainScreen = ({ navigation }) => {
         </View>
       )}
       <ProfileModal
-        isUserLogin={isUserLogin}
         isProfileModalVisible={isProfileModalVisible}
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
