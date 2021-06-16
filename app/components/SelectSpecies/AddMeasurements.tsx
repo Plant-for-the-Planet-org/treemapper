@@ -54,6 +54,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   const { state } = useContext(InventoryContext);
   const navigation = useNavigation();
   const heightRef = React.createRef();
+  const tagIdRef = React.createRef();
 
   useEffect(() => {
     Inventory();
@@ -272,6 +273,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                       error={diameterError}
                       returnKeyType={'next'}
                       onSubmitEditing={() => heightRef.current.focus()}
+                      autoFocus
                     />
                   </View>
                 </View>
@@ -293,6 +295,8 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                       }
                       error={heightError}
                       ref={heightRef}
+                      returnKeyType={isTagIdPresent ? 'next' : 'default'}
+                      onSubmitEditing={isTagIdPresent ? () => tagIdRef.current.focus() : () => {}}
                     />
                   </View>
                 </View>
@@ -322,6 +326,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                             setTagId(text);
                           }}
                           error={tagIdError}
+                          ref={tagIdRef}
                         />
                       </View>
                     </View>
