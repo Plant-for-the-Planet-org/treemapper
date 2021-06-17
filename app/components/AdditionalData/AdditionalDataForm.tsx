@@ -60,7 +60,12 @@ const AdditionalDataForm = () => {
               inventoryData.status === INCOMPLETE_SAMPLE_TREE &&
               inventoryData.completedSampleTreesCount !== inventoryData.sampleTreesCount;
             setIsSampleTree(isSample);
-            addFormsToState(inventoryData.treeType, inventoryData.locateTree, isSample);
+            addFormsToState({
+              treeType: inventoryData.treeType,
+              registrationType: inventoryData.locateTree,
+              isSample,
+              inventoryData,
+            });
           }
         });
       }
@@ -74,7 +79,17 @@ const AdditionalDataForm = () => {
     );
   };
 
-  const addFormsToState = (treeType: string, registrationType: string, isSample: boolean) => {
+  const addFormsToState = ({
+    treeType,
+    registrationType,
+    isSample,
+    inventoryData,
+  }: {
+    treeType: string;
+    registrationType: string;
+    isSample: boolean;
+    inventoryData?: any;
+  }) => {
     getForms().then((formsData: any) => {
       const transformedData = [
         {
@@ -119,36 +134,56 @@ const AdditionalDataForm = () => {
         }
 
         if (!shouldShowForm) {
-          addAdditionalDataToDB(transformedData, isSample, true);
+          addAdditionalDataToDB({
+            transformedData,
+            isSample,
+            disableNavigation: true,
+            inventoryData,
+          });
           navigate(treeType, isSample);
+        } else {
+          setLoading(false);
         }
       } else {
-        addAdditionalDataToDB(transformedData, isSample, true);
+        addAdditionalDataToDB({
+          transformedData,
+          isSample,
+          disableNavigation: true,
+          inventoryData,
+        });
         navigate(treeType, isSample);
       }
-      setLoading(false);
     });
   };
 
-  const addAdditionalDataToDB = (
-    transformedData: any,
-    isSample: boolean = false,
-    disableNavigation: boolean = false,
-  ) => {
-    let inventoryData;
+  const addAdditionalDataToDB = ({
+    transformedData,
+    isSample = false,
+    disableNavigation = false,
+    inventoryData = null,
+  }: {
+    transformedData: any[];
+    isSample: boolean;
+    disableNavigation?: boolean;
+    inventoryData?: any;
+  }) => {
+    inventoryData = inventoryData || inventory;
+    let data;
     if (isSample) {
-      let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[inventory.completedSampleTreesCount].additionalDetails = transformedData;
-      inventoryData = {
+      let updatedSampleTrees = [...inventoryData.sampleTrees];
+      updatedSampleTrees[
+        inventoryData.completedSampleTreesCount
+      ].additionalDetails = transformedData;
+      data = {
         sampleTrees: updatedSampleTrees,
       };
     } else {
-      inventoryData = {
+      data = {
         additionalDetails: transformedData,
       };
     }
 
-    updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData })
+    updateInventory({ inventory_id: inventoryState.inventoryID, data })
       .then(() => {
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -177,7 +212,7 @@ const AdditionalDataForm = () => {
     } else {
       nextScreen = 'InventoryOverview';
     }
-
+    setLoading(false);
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -252,7 +287,7 @@ const AdditionalDataForm = () => {
         });
 
         transformedData = [...transformedData, ...metadata];
-        addAdditionalDataToDB(transformedData, isSampleTree);
+        addAdditionalDataToDB({ transformedData, isSample: isSampleTree });
       }
     }
   };
