@@ -59,7 +59,6 @@
     "react-native-svg": "^12.1.1",
     "react-native-tab-view": "^2.15.2",
     "react-native-vector-icons": "^6.7.0",
-    "react-native-video": "^4.4.5",
     "react-native-zip-archive": "^5.0.6",
     "realm": "^10.2.0",
     "uuid": "^8.3.2"
