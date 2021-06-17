@@ -2,10 +2,7 @@ import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Typography } from '../../../styles';
-import {
-  getFormattedAppAdditionalDetailsFromInventory,
-  getFormattedMetadata,
-} from '../../../utils/additionalData/functions';
+import { additionalDataForUI, getFormattedMetadata } from '../../../utils/additionalData/functions';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
 
 interface Props {
@@ -18,12 +15,10 @@ const AdditionalDataOverview = ({ data, isSampleTree = false }: Props) => {
 
   useEffect(() => {
     let appAdditionalDetails = [];
-    if (data && (data.status === INCOMPLETE || data.status === INCOMPLETE_SAMPLE_TREE)) {
-      appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
-        data,
-        isSampleTree,
-      });
-    }
+    appAdditionalDetails = additionalDataForUI({
+      data,
+      isSampleTree,
+    });
     const additionalDetails = [...appAdditionalDetails, ...data.additionalDetails];
     if (additionalDetails && additionalDetails.length > 0) {
       setMetadata(getFormattedMetadata(additionalDetails));

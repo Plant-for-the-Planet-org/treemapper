@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { logo } from '../../assets';
-import { Colors, Typography } from '_styles';
-import { SvgXml } from 'react-native-svg';
-import i18next from 'i18next';
-import ProfileListItem from './ProfileListItem';
 import { useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React, { useEffect, useState } from 'react';
+import { Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AvatarIcon from '../Common/AvatarIcon';
 import { APIConfig } from '../../actions/Config';
+import { logo } from '../../assets';
+import { Colors, Typography } from '../../styles';
+import AvatarIcon from '../Common/AvatarIcon';
+import ProfileListItem from './ProfileListItem';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -17,7 +17,6 @@ interface ProfileModalProps {
   isProfileModalVisible: any;
   onPressLogout: any;
   userInfo: any;
-  cdnUrls: any;
 }
 
 const ProfileModal = ({

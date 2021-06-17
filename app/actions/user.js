@@ -122,7 +122,7 @@ export const auth0Login = (dispatch) => {
  * Logs out the user by clearing the session from auth0 then calls the deleteUser function to delete the user from DB
  * also calls the function [clearUserDetails] which dispatches type to clear the app's user state
  * @param {ActionDispatch} userDispatch - dispatch function of user context to pass it to func [clearUserDetails]
- * @returns {boolean} - returns true after all the operations are successful else returns false
+ * @returns {Promise<boolean>} - returns true after all the operations are successful else returns false
  */
 export const auth0Logout = (userDispatch = null) => {
   return new Promise((resolve) => {
