@@ -63,7 +63,7 @@ import { updateSampleTree } from '../../utils/updateSampleTree';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
-import ManageSpecies from '../ManageSpecies';
+import SpecieSampleTree from '../SpecieSampleTree';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -690,16 +690,30 @@ const SingleTreeOverview = () => {
     }
   };
   const handleDeleteInventory = () => {
-    deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
-      .then(() => {
-        setShowDeleteAlert(!showDeleteAlert);
-        navigation.navigate('TreeInventory');
+    if (isSampleTree) {
+      updateSampleTree({
+        toUpdate: 'deleteSampleTree',
+        sampleTreeIndex,
+        inventory,
+        setInventory,
       })
-      .catch((err) => console.error(err));
+        .then(() => {
+          setShowDeleteAlert(!showDeleteAlert);
+          navigation.navigate('InventoryOverview');
+        })
+        .catch((err) => console.error(err));
+    } else {
+      deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
+        .then(() => {
+          setShowDeleteAlert(!showDeleteAlert);
+          navigation.navigate('TreeInventory');
+        })
+        .catch((err) => console.error(err));
+    }
   };
 
   return isShowManageSpecies ? (
-    <ManageSpecies
+    <SpecieSampleTree
       onPressBack={() => setIsShowManageSpecies(false)}
       registrationType={registrationType}
       addSpecieToInventory={addSpecieNameToInventory}
@@ -753,7 +767,9 @@ const SingleTreeOverview = () => {
                   : i18next.t('label.tree_review_header')
               }
               rightText={
-                (status === INCOMPLETE || status === PENDING_DATA_UPLOAD) && !isSampleTree
+                status === INCOMPLETE ||
+                status === PENDING_DATA_UPLOAD ||
+                status === INCOMPLETE_SAMPLE_TREE
                   ? i18next.t('label.tree_review_delete')
                   : ''
               }

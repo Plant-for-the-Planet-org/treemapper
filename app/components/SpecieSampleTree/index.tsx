@@ -10,19 +10,19 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory } from '../../repositories/inventory';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
+import { SpecieCard } from '../ManageSpecies/MySpecies';
 
 interface SpecieSampleTreeProps {
-  notSampledSpecies?: string[];
-  plantedSpecies?: string[];
+  onPressBack?: any;
+  addSpecieToInventory?: any;
+  editOnlySpecieName?: any;
 }
 
-type RootStackParamList = {
-  SpecieSampleTree: SpecieSampleTreeProps;
-};
-
-type SpecieSampleRouteProp = RouteProp<RootStackParamList, 'SpecieSampleTree'>;
-
-const SpecieSampleTree = () => {
+const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
+  onPressBack,
+  addSpecieToInventory,
+  editOnlySpecieName,
+}) => {
   const [speciesToSample, setSpeciesToSample] = useState([]);
   const [inventory, setInventory] = useState();
   const [speciesType, setSpeciesType] = useState('');
@@ -71,6 +71,9 @@ const SpecieSampleTree = () => {
           ],
         }),
       );
+    } else if (editOnlySpecieName) {
+      addSpecieToInventory(specie);
+      onPressBack();
     } else {
       navigation.navigate('SelectSpecies', { specie });
     }
@@ -82,7 +85,13 @@ const SpecieSampleTree = () => {
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <TopRightBackground />
           <View style={{ paddingHorizontal: 25 }}>
-            <Header headingText={i18next.t('label.add_sample_tree')} />
+            <Header
+              headingText={
+                inventory?.sampleTrees[inventory?.completedSampleTreesCount]
+                  ? i18next.t('label.select_species')
+                  : i18next.t('label.add_sample_tree')
+              }
+            />
           </View>
 
           {/* container for description of what sample trees are and how to proceed */}
@@ -92,12 +101,15 @@ const SpecieSampleTree = () => {
             </Text>
           </View>
           {speciesToSample.map((specie, index) => (
-            <TouchableOpacity
-              onPress={() => {
-                onPressSpecie(specie);
-              }}>
-              <SpecieListItem item={specie} index={index} key={index} />
-            </TouchableOpacity>
+            <View style={{ paddingLeft: 25 }}>
+              <SpecieCard
+                index={index}
+                item={specie}
+                isSampleTree={true}
+                isSampleTreeSpecies={true}
+                onPressSpecies={onPressSpecie}
+              />
+            </View>
           ))}
         </ScrollView>
       </View>

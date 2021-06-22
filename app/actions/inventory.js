@@ -85,14 +85,19 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
 
 export const getAllInventoryFromServer = () => {
   return new Promise((resolve, reject) => {
-    getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
-      let exceptSampleTrees = data.data.filter((inventory) => {
-        return inventory.type !== 'sample';
+    getAuthenticatedRequest('/treemapper/plantLocations')
+      .then((data) => {
+        let exceptSampleTrees = data?.data?.items?.filter((inventory) => {
+          return inventory.type !== 'sample';
+        });
+        let sampleTrees = data?.data?.items?.filter((inventory) => {
+          return inventory.type === 'sample';
+        });
+        resolve([exceptSampleTrees, sampleTrees]);
+      })
+      .catch((err) => {
+        console.log('Error:', err);
+        reject(err);
       });
-      let sampleTrees = data.data.filter((inventory) => {
-        return inventory.type === 'sample';
-      });
-      resolve([exceptSampleTrees, sampleTrees]);
-    });
   });
 };

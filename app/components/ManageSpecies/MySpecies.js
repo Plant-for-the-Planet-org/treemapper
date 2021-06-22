@@ -20,76 +20,18 @@ const MySpecies = ({
 }) => {
   const renderSpecieCard = ({ item, index }) => {
     return (
-      <TouchableOpacity
-        key={index}
-        style={{
-          flex: 1,
-          paddingTop: 20,
-          paddingBottom: 20,
-          paddingRight: 10,
-          borderBottomWidth: 1,
-          borderColor: '#E1E0E061',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-        onPress={() => {
-          if (registrationType || isSampleTree) {
-            addSpecieToInventory(item);
-            if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
-              onPressBack();
-            } else if (registrationType === SINGLE && !editOnlySpecieName) {
-              onPressSpeciesSingle(item);
-            }
-          } else if (screen === 'ManageSpecies') {
-            navigateToSpecieInfo(item);
-          }
-        }}>
-        <View style={{ paddingRight: 18 }}>
-          {item.image ? (
-            <Image
-              source={{
-                uri: `${item.image}`,
-              }}
-              style={styles.imageView}
-            />
-          ) : (
-            <Image
-              source={species_default}
-              style={{
-                borderRadius: 8,
-                resizeMode: 'contain',
-                width: 100,
-                height: 80,
-              }}
-            />
-          )}
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_16,
-              fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-              paddingBottom: 6,
-            }}>
-            {item.aliases}
-          </Text>
-          <Text
-            style={{
-              fontSize: Typography.FONT_SIZE_12,
-              fontFamily: Typography.FONT_FAMILY_REGULAR,
-            }}>
-            {item.scientificName}
-          </Text>
-        </View>
-        {item.guid !== 'unknown' && screen === 'SelectSpecies' ? (
-          <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
-            <Ionicons name="information-circle-outline" size={20} />
-          </TouchableOpacity>
-        ) : (
-          []
-        )}
-      </TouchableOpacity>
+      <SpecieCard
+        item={item}
+        index={index}
+        registrationType={registrationType}
+        onPressSpecies={onPressSpeciesSingle}
+        addSpecieToInventory={addSpecieToInventory}
+        editOnlySpecieName={editOnlySpecieName}
+        onPressBack={onPressBack}
+        isSampleTree={isSampleTree}
+        navigateToSpecieInfo={navigateToSpecieInfo}
+        screen={screen}
+      />
     );
   };
 
@@ -137,6 +79,94 @@ const MySpecies = ({
   );
 };
 
+export const SpecieCard = ({
+  item,
+  index,
+  registrationType,
+  onPressSpecies,
+  addSpecieToInventory,
+  editOnlySpecieName,
+  onPressBack,
+  isSampleTree,
+  navigateToSpecieInfo,
+  screen,
+  isSampleTreeSpecies,
+}) => {
+  return (
+    <TouchableOpacity
+      key={index}
+      style={{
+        flex: 1,
+        paddingTop: 20,
+        paddingBottom: 20,
+        paddingRight: 10,
+        borderBottomWidth: 1,
+        borderColor: '#E1E0E061',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+      onPress={() => {
+        if (isSampleTree && isSampleTreeSpecies) {
+          onPressSpecies(item);
+        } else if (registrationType || isSampleTree) {
+          addSpecieToInventory(item);
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+            onPressBack();
+          } else if (registrationType === SINGLE && !editOnlySpecieName) {
+            onPressSpecies(item);
+          }
+        } else if (screen === 'ManageSpecies') {
+          navigateToSpecieInfo(item);
+        }
+      }}>
+      <View style={{ paddingRight: 18 }}>
+        {item.image ? (
+          <Image
+            source={{
+              uri: `${item.image}`,
+            }}
+            style={styles.imageView}
+          />
+        ) : (
+          <Image
+            source={species_default}
+            style={{
+              borderRadius: 8,
+              resizeMode: 'contain',
+              width: 100,
+              height: 80,
+            }}
+          />
+        )}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            fontSize: Typography.FONT_SIZE_16,
+            fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+            paddingBottom: 6,
+          }}>
+          {item.aliases}
+        </Text>
+        <Text
+          style={{
+            fontSize: Typography.FONT_SIZE_12,
+            fontFamily: Typography.FONT_FAMILY_REGULAR,
+          }}>
+          {item.scientificName}
+        </Text>
+      </View>
+      {item.guid !== 'unknown' && screen === 'SelectSpecies' ? (
+        <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
+          <Ionicons name="information-circle-outline" size={20} />
+        </TouchableOpacity>
+      ) : (
+        []
+      )}
+    </TouchableOpacity>
+  );
+};
 const styles = StyleSheet.create({
   headerText: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,

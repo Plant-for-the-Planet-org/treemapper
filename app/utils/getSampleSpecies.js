@@ -1,16 +1,12 @@
 export const getNotSampledSpecies = (inventory) => {
-  let sampledSpecies = [];
-  let plantedSpecies = [];
-  let notSampledSpecies = [];
+  let sampledSpecies = new Set();
+  let plantedSpecies = new Set();
   inventory.sampleTrees.forEach((sampleTree) => {
-    sampledSpecies.push(sampleTree.specieId);
+    sampledSpecies.add(sampleTree.specieId);
   });
   inventory.species.forEach((specie) => {
-    plantedSpecies.push(specie.id);
+    plantedSpecies.add(specie.id);
   });
-  sampledSpecies = [...new Set(sampledSpecies)];
-  plantedSpecies.forEach((specie) =>
-    sampledSpecies.includes(specie) ? notSampledSpecies : notSampledSpecies.push(specie),
-  );
+  let notSampledSpecies = new Set([...plantedSpecies].filter((i) => !sampledSpecies.has(i)));
   return notSampledSpecies;
 };

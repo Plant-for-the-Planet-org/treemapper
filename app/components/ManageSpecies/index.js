@@ -24,7 +24,8 @@ import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
-import { Header, SpeciesSyncError, TreeCountModal } from '../Common';
+import { Header, SpeciesSyncError } from '../Common';
+import TreeCountModal from '../Common/TreeCountModal';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
 
@@ -55,7 +56,7 @@ const ManageSpecies = ({
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const [showTreeCountModal, setShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
-  const [activeSpecie, setActiveSpecie] = useState(undefined);
+  const [activeSpecie, setActiveSpecie] = useState();
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
@@ -204,7 +205,6 @@ const ManageSpecies = ({
       screen,
     });
   };
-
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
@@ -309,12 +309,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    // borderWidth: 1,
     height: 48,
     borderRadius: 5,
     marginTop: 24,
     backgroundColor: Colors.WHITE,
-    // borderColor: '#00000024',
     shadowColor: '#00000024',
     shadowOffset: {
       width: 0,

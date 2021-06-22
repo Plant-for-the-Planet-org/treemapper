@@ -12,36 +12,43 @@ import {
   View,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, CommonStyles } from '_styles';
+import { Colors, CommonStyles } from '../../../styles';
 import { species_default } from '../../../assets';
 import { Header } from '../';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getScientificSpeciesById } from '../../../repositories/species';
 
-export default function TreeCountModal({
+interface TreeCountModalProps {
+  showTreeCountModal: boolean;
+  setShowTreeCountModal: any;
+  activeSpecie: any;
+  setTreeCount: any;
+  treeCount: string;
+  onPressTreeCountNextBtn: any;
+}
+
+const TreeCountModal: React.FC<TreeCountModalProps> = ({
   showTreeCountModal,
   setShowTreeCountModal,
   activeSpecie,
   setTreeCount,
   treeCount,
   onPressTreeCountNextBtn,
-}) {
+}) => {
   let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
   const [specie, setSpecie] = useState();
+
   useEffect(() => {
     if (activeSpecie?.id && showTreeCountModal) {
       getScientificSpeciesById(activeSpecie?.id).then((specie) => {
         setSpecie(specie);
       });
+      setTreeCount(activeSpecie.treeCount);
     }
-  }, [activeSpecie]);
+  }, [activeSpecie, showTreeCountModal]);
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
-      <View
-        style={styles.modalBackground}
-        onPress={() => {
-          setShowTreeCountModal(false);
-        }}>
+      <View style={styles.modalBackground}>
         <View style={styles.inputModal}>
           <Ionicons
             name={'md-close'}
@@ -54,10 +61,10 @@ export default function TreeCountModal({
           <Image
             source={
               activeSpecie?.image
-                ? { uri: `${activeSpecie.image}` }
+                ? { uri: `${activeSpecie?.image}` }
                 : specie?.image
-                  ? { uri: `${specie?.image}` }
-                  : species_default
+                ? { uri: `${specie?.image}` }
+                : species_default
             }
             style={{
               alignSelf: 'center',
@@ -113,7 +120,9 @@ export default function TreeCountModal({
       </KeyboardAvoidingView>
     </Modal>
   );
-}
+};
+
+export default TreeCountModal;
 
 const styles = StyleSheet.create({
   modalBackground: {
@@ -129,5 +138,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '80%',
+  },
+  bgWhite: {
+    backgroundColor: Colors.WHITE,
   },
 });

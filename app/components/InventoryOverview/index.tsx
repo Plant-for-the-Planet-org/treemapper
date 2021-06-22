@@ -40,6 +40,7 @@ import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
+  ON_SITE,
   PENDING_DATA_UPLOAD,
   SYNCED,
 } from '../../utils/inventoryConstants';
@@ -47,6 +48,7 @@ import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Com
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
+import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -184,29 +186,38 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const onPressSave = ({ forceContinue }) => {
-    let notSampledSpecies = getNotSampledSpecies();
-    if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
-      if (notSampledSpecies.length === 0 || forceContinue) {
-        if (inventory.species.length > 0) {
-          addAppMetadata({ inventory_id: state.inventoryID })
-            .then(() => {
-              let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
-              changeInventoryStatus(data, dispatch).then(() => {
-                navigation.navigate('TreeInventory');
-              });
-            })
-            .catch(() => {
-              setIsError(true);
-              setShowAlert(true);
-            });
-        } else {
-          alert(i18next.t('label.inventory_overview_select_species'));
-        }
-      } else if (forceContinue !== undefined && !forceContinue) {
-        navigation.navigate('SpecieSampleTree', { notSampledSpecies });
+    if (inventory.species.length > 0) {
+      let notSampledSpecies;
+      if (inventory?.sampleTrees) {
+        notSampledSpecies = getNotSampledSpecies(inventory);
       } else {
-        setShowAddSampleTrees(true);
+        setShowLessSampleTreesAlert(true);
       }
+      if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
+        if (notSampledSpecies?.length === 0 || forceContinue || inventory.locateTree == OFF_SITE) {
+          if (inventory.completedSampleTreesCount < 5 && inventory.locateTree === ON_SITE) {
+            setShowLessSampleTreesAlert(true);
+          } else {
+            addAppMetadata({ inventory_id: state.inventoryID })
+              .then(() => {
+                let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+                changeInventoryStatus(data, dispatch).then(() => {
+                  navigation.navigate('TreeInventory');
+                });
+              })
+              .catch(() => {
+                setIsError(true);
+                setShowAlert(true);
+              });
+          }
+        } else if (forceContinue !== undefined && !forceContinue) {
+          navigation.navigate('SpecieSampleTree', { notSampledSpecies });
+        } else {
+          setShowAddSampleTrees(true);
+        }
+      }
+    } else if (inventory.species.length == 0) {
+      alert(i18next.t('label.inventory_overview_select_species'));
     } else {
       navigation.navigate('TreeInventory');
     }
@@ -410,8 +421,6 @@ const InventoryOverview = ({ navigation }: any) => {
   const addSampleTree = () => {
     if (inventory.species.length === 0) {
       setShowNoSpeciesAlert(true);
-    } else if (inventory.sampleTrees.length < 5) {
-      setShowLessSampleTreesAlert(true);
     } else {
       let data = {
         inventory_id: inventory.inventory_id,
@@ -438,7 +447,10 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const handleSelectSpecies = () => {
-    navigation.navigate('TotalTreesSpecies', { retainNavigationStack: true });
+    navigation.navigate('TotalTreesSpecies', {
+      retainNavigationStack: true,
+      redirectToOverview: true,
+    });
   };
 
   const handleDeleteInventory = () => {
@@ -450,23 +462,6 @@ const InventoryOverview = ({ navigation }: any) => {
       .catch((err) => {
         console.error(err);
       });
-  };
-
-  const getNotSampledSpecies = () => {
-    let sampledSpecies = [];
-    let plantedSpecies = [];
-    let notSampledSpecies = [];
-    inventory.sampleTrees.forEach((sampleTree) => {
-      sampledSpecies.push(sampleTree.specieId);
-    });
-    inventory.species.forEach((specie) => {
-      plantedSpecies.push(specie.id);
-    });
-    sampledSpecies = [...new Set(sampledSpecies)];
-    plantedSpecies.forEach((specie) =>
-      sampledSpecies.includes(specie) ? notSampledSpecies : notSampledSpecies.push(specie),
-    );
-    return notSampledSpecies;
   };
 
   let locationType;
@@ -498,7 +493,6 @@ const InventoryOverview = ({ navigation }: any) => {
                 rightText={
                   status == INCOMPLETE_SAMPLE_TREE ||
                   status == INCOMPLETE ||
-                  status == PENDING_DATA_UPLOAD ||
                   status == PENDING_DATA_UPLOAD
                     ? i18next.t('label.tree_review_delete')
                     : []
@@ -568,7 +562,7 @@ const InventoryOverview = ({ navigation }: any) => {
               {renderPolygon(inventory.polygons, locationType)}
               {inventory?.sampleTrees.length > 0 && (
                 <SampleTreesReview
-                  sampleTrees={inventory.sampleTrees}
+                  sampleTrees={inventory?.sampleTrees}
                   navigation={navigation}
                   totalSampleTrees={inventory.sampleTreesCount}
                 />
