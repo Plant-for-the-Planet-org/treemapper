@@ -481,7 +481,6 @@ const SingleTreeOverview = () => {
     };
 
     return (
-      // <ScrollView>
       <View style={detailContainerStyle}>
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
@@ -599,7 +598,6 @@ const SingleTreeOverview = () => {
           isSampleTree={isSampleTree}
         />
       </View>
-      // </ScrollView>
     );
   };
 
@@ -620,9 +618,7 @@ const SingleTreeOverview = () => {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
-    }
-    // if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE)
-    else {
+    } else {
       navigation.navigate('TreeInventory');
     }
     return true;

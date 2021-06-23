@@ -177,9 +177,7 @@ export default function TotalTreesSpecies() {
       },
     })
       .then(() => {
-        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-          setInventory(inventoryData);
-        });
+        initializeState();
         setDeleteSpecieAlert(false);
         dbLog.info({
           logType: LogTypes.INVENTORY,
@@ -295,8 +293,9 @@ export default function TotalTreesSpecies() {
   const handleContinuePress = () => {
     if (inventory?.completedSampleTreesCount > 0 || inventory?.locateTree === OFF_SITE) {
       navigation.navigate(
-        inventory?.additionalDetails.length > 0 ? 'InventoryOverview' : 'AdditionalDataForm',
-        { redirectToOverview: route?.params?.redirectToOverview },
+        inventory?.additionalDetails.length > 0 || route?.params?.redirectToOverview
+          ? 'InventoryOverview'
+          : 'AdditionalDataForm',
       );
     } else {
       navigation.navigate('SampleTreesCount');
@@ -345,26 +344,26 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setSpecie(specie);
-                  setSpecieIndex(index);
-                  setShowTreeCountModal(true);
-                }}
-                key={index}>
-                <SpecieListItem
-                  item={specie}
-                  index={index}
-                  key={index}
-                  deleteSpecie={() =>
-                    inventory.completedSampleTreesCount > 0
-                      ? onPressDelete(index)
-                      : deleteSpecie(index)
-                  }
-                  setSpecieIndex={setSpecieIndex}
-                />
-              </TouchableOpacity>
-            ))
+                <TouchableOpacity
+                  onPress={() => {
+                    setSpecie(specie);
+                    setSpecieIndex(index);
+                    setShowTreeCountModal(true);
+                  }}
+                  key={index}>
+                  <SpecieListItem
+                    item={specie}
+                    index={index}
+                    key={index}
+                    deleteSpecie={() =>
+                      inventory.completedSampleTreesCount > 0
+                        ? onPressDelete(index)
+                        : deleteSpecie(index)
+                    }
+                    setSpecieIndex={setSpecieIndex}
+                  />
+                </TouchableOpacity>
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>

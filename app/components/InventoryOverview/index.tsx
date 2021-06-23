@@ -187,39 +187,36 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const onPressSave = ({ forceContinue }) => {
     if (inventory.species.length > 0) {
-      let notSampledSpecies;
-      if (inventory?.sampleTrees) {
-        notSampledSpecies = getNotSampledSpecies(inventory);
-      } else {
-        setShowLessSampleTreesAlert(true);
-      }
-      if (inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) {
-        if (notSampledSpecies?.length === 0 || forceContinue || inventory.locateTree == OFF_SITE) {
-          if (inventory.completedSampleTreesCount < 5 && inventory.locateTree === ON_SITE) {
-            setShowLessSampleTreesAlert(true);
-          } else {
-            addAppMetadata({ inventory_id: state.inventoryID })
-              .then(() => {
-                let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
-                changeInventoryStatus(data, dispatch).then(() => {
-                  navigation.navigate('TreeInventory');
-                });
-              })
-              .catch(() => {
-                setIsError(true);
-                setShowAlert(true);
+      if (
+        (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) ||
+        inventory.locateTree === OFF_SITE
+      ) {
+        let notSampledSpecies;
+        if (inventory?.sampleTrees) {
+          notSampledSpecies = getNotSampledSpecies(inventory);
+        }
+        if (notSampledSpecies?.length === 0 || forceContinue || inventory.locateTree === OFF_SITE) {
+          addAppMetadata({ inventory_id: state.inventoryID })
+            .then(() => {
+              let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+              changeInventoryStatus(data, dispatch).then(() => {
+                navigation.navigate('TreeInventory');
               });
-          }
+            })
+            .catch(() => {
+              setIsError(true);
+              setShowAlert(true);
+            });
         } else if (forceContinue !== undefined && !forceContinue) {
           navigation.navigate('SpecieSampleTree', { notSampledSpecies });
         } else {
           setShowAddSampleTrees(true);
         }
+      } else {
+        setShowLessSampleTreesAlert(true);
       }
-    } else if (inventory.species.length == 0) {
-      alert(i18next.t('label.inventory_overview_select_species'));
     } else {
-      navigation.navigate('TreeInventory');
+      alert(i18next.t('label.inventory_overview_select_species'));
     }
   };
 
