@@ -691,6 +691,7 @@ const SingleTreeOverview = () => {
   };
   const handleDeleteInventory = () => {
     if (isSampleTree) {
+      let status = inventory?.sampleTrees[sampleTreeIndex].status;
       updateSampleTree({
         toUpdate: 'deleteSampleTree',
         sampleTreeIndex,
@@ -699,7 +700,11 @@ const SingleTreeOverview = () => {
       })
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          navigation.navigate('InventoryOverview');
+          if (status == INCOMPLETE) {
+            navigation.navigate('RecordSampleTrees');
+          } else {
+            navigation.navigate('InventoryOverview');
+          }
         })
         .catch((err) => console.error(err));
     } else {
