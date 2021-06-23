@@ -344,26 +344,26 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((specie, index) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSpecie(specie);
-                    setSpecieIndex(index);
-                    setShowTreeCountModal(true);
-                  }}
-                  key={index}>
-                  <SpecieListItem
-                    item={specie}
-                    index={index}
-                    key={index}
-                    deleteSpecie={() =>
-                      inventory.completedSampleTreesCount > 0
-                        ? onPressDelete(index)
-                        : deleteSpecie(index)
-                    }
-                    setSpecieIndex={setSpecieIndex}
-                  />
-                </TouchableOpacity>
-              ))
+              <TouchableOpacity
+                onPress={() => {
+                  setSpecie(specie);
+                  setSpecieIndex(index);
+                  setShowTreeCountModal(true);
+                }}
+                key={index}>
+                <SpecieListItem
+                  item={specie}
+                  index={index}
+                  key={index}
+                  deleteSpecie={() =>
+                    inventory.completedSampleTreesCount > 0
+                      ? onPressDelete(index)
+                      : deleteSpecie(index)
+                  }
+                  setSpecieIndex={setSpecieIndex}
+                />
+              </TouchableOpacity>
+            ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
