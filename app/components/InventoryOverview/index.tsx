@@ -567,7 +567,9 @@ const InventoryOverview = ({ navigation }: any) => {
                   totalSampleTrees={inventory.sampleTreesCount}
                 />
               )}
-              {inventory?.completedSampleTreesCount == 0 ? renderAddSampleTreeButton(status) : null}
+              {inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
+                ? renderAddSampleTreeButton(status)
+                : null}
               <LargeButton
                 onPress={onPressExportJSON}
                 heading={i18next.t('label.inventory_overview_loc_export_json')}
