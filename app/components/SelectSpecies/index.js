@@ -1,13 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
-
 import { InventoryContext } from '../../reducers/inventory';
 import {
   getInventory,
   updateInventory,
   updateSingleTreeSpecie,
 } from '../../repositories/inventory';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
@@ -36,9 +34,14 @@ const SelectSpecies = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
-        if (route?.params?.specie) {
+        if (route?.params?.specieGuid) {
+          console.log(route?.params?.specieGuid, 'route?.params?.specie');
           setIsShowTreeMeasurement(true);
-          addSpecieToInventory(route?.params?.specie, inventoryData);
+          addSpecieToInventory(
+            route?.params?.specieGuid,
+            route?.params?.specieScientificName,
+            inventoryData,
+          );
         } else {
           if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
             if (
@@ -51,7 +54,6 @@ const SelectSpecies = () => {
             }
           }
         }
-        // nextScreen(inventoryData);
         setRegistrationType(inventoryData.treeType);
       });
     }
@@ -61,22 +63,22 @@ const SelectSpecies = () => {
     setIsShowTreeMeasurement(true);
   };
 
-  const addSpecieToInventory = (specie, inventory) => {
+  const addSpecieToInventory = (specieId, specieName, inventory) => {
     if (inventory?.status !== INCOMPLETE_SAMPLE_TREE) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
         species: [
           {
-            id: specie.guid,
-            aliases: specie.scientificName,
+            id: specieId,
+            aliases: specieName,
             treeCount: 1,
           },
         ],
       });
     } else {
       let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specieId;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specieName;
       updateInventory({
         inventory_id: inventory.inventory_id,
         inventoryData: {
@@ -86,7 +88,7 @@ const SelectSpecies = () => {
         .then(() => {
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully added specie with id: ${specie.guid} for sample tree #${
+            message: `Successfully added specie with id: ${specieId} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
@@ -95,13 +97,13 @@ const SelectSpecies = () => {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.INVENTORY,
-            message: `Error while adding specie with id: ${specie.guid} for sample tree #${
+            message: `Error while adding specie with id: ${specieId} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
             logStack: JSON.stringify(err),
           });
           console.error(
-            `Error while adding specie with id: ${specie.guid} for sample tree #${
+            `Error while adding specie with id: ${specieId} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
             err,

@@ -130,29 +130,29 @@ export default function TotalTreesSpecies() {
     }
   };
 
-  const onPressDelete = (specieIndex) => {
-    setSpecieIndex(specieIndex);
+  const onPressDelete = (deleteSpecieIndex) => {
+    setSpecieIndex(deleteSpecieIndex);
     let species = [...inventory.species];
     let sampleTrees = [...inventory.sampleTrees];
-    const specie = species[specieIndex];
+    const deleteSpecies = species[deleteSpecieIndex];
     sampleTrees.every((sampleTree, index) => {
-      if (sampleTree.specieId === specie.id) {
+      if (sampleTree.specieId === deleteSpecies.id) {
         setDeleteSpecieAlert(true);
         return false;
       } else if (index === sampleTrees.length - 1) {
-        deleteSpecie(specieIndex);
+        deleteSpecie(deleteSpecieIndex);
       } else {
         return true;
       }
     });
   };
 
-  const deleteSpeciesAndSampleTrees = async (specieIndex) => {
+  const deleteSpeciesAndSampleTrees = async (deleteSpeciesIndex) => {
     let species = [...inventory.species];
     let sampleTrees = [...inventory.sampleTrees];
-    const specie = species[specieIndex];
+    const deleteSpecies = species[deleteSpeciesIndex];
     for await (let sampleTree of [...inventory.sampleTrees]) {
-      if (sampleTree.specieId === specie.id) {
+      if (sampleTree.specieId === deleteSpecies.id) {
         sampleTrees.splice(sampleTrees.indexOf(sampleTree), 1);
       }
     }
@@ -163,12 +163,12 @@ export default function TotalTreesSpecies() {
         sampleTreesCount: sampleTrees.length < 5 ? Number(5) : sampleTrees.length,
         completedSampleTreesCount: sampleTrees.length,
       },
-    }).then(() => deleteSpecie(specieIndex));
+    }).then(() => deleteSpecie(deleteSpeciesIndex));
   };
 
   const deleteSpecie = (index) => {
     let species = [...inventory.species];
-    const specie = species.splice(index, 1);
+    const updatedSpecies = species.splice(index, 1);
 
     updateInventory({
       inventory_id: inventory.inventory_id,
@@ -181,13 +181,13 @@ export default function TotalTreesSpecies() {
         setDeleteSpecieAlert(false);
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Successfully deleted specie with id: ${specie[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Successfully deleted specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Failed to delete specie with id: ${specie[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Failed to delete specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
           logStack: JSON.stringify(err),
         });
       });
@@ -343,16 +343,16 @@ export default function TotalTreesSpecies() {
             </Text>
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
-            ? inventory.species.map((specie, index) => (
+            ? inventory.species.map((plantedSpecie, index) => (
               <TouchableOpacity
                 onPress={() => {
-                  setSpecie(specie);
+                  setSpecie(plantedSpecie);
                   setSpecieIndex(index);
                   setShowTreeCountModal(true);
                 }}
                 key={index}>
                 <SpecieListItem
-                  item={specie}
+                  item={plantedSpecie}
                   index={index}
                   key={index}
                   deleteSpecie={() =>

@@ -85,6 +85,7 @@ export const updateSampleTree = ({
                 : inventory.sampleTreesCount - 1,
           };
         }
+        break;
       }
       default:
         break;

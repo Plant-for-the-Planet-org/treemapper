@@ -40,8 +40,8 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
 
   useEffect(() => {
     if (activeSpecie?.id && showTreeCountModal) {
-      getScientificSpeciesById(activeSpecie?.id).then((specie) => {
-        setSpecie(specie);
+      getScientificSpeciesById(activeSpecie?.id).then((scientificSpecie) => {
+        setSpecie(scientificSpecie);
       });
       setTreeCount(activeSpecie.treeCount);
     }

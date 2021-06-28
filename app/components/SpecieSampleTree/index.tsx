@@ -2,11 +2,9 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, SafeAreaView, ScrollView, Text, StyleSheet } from 'react-native';
 import { TopRightBackground, Header } from '../Common';
 import { Colors, Typography } from '../../styles';
-import { SpecieListItem } from '../SampleTrees/TotalTreesSpecies';
 import i18next from 'i18next';
-import { useRoute, CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { getScientificSpeciesById } from '../../repositories/species';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory } from '../../repositories/inventory';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
@@ -23,10 +21,9 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
   addSpecieToInventory,
   editOnlySpecieName,
 }) => {
-  const [speciesToSample, setSpeciesToSample] = useState([]);
+  const [speciesToSample, setSpeciesToSample] = useState<any>([]);
   const [inventory, setInventory] = useState();
   const [speciesType, setSpeciesType] = useState('');
-  const route: SpecieSampleRouteProp = useRoute();
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
 
@@ -35,8 +32,8 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
     getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
       setInventory(inventoryData);
       currentSampleTree = inventoryData.sampleTrees[inventoryData.completedSampleTreesCount];
-      if (currentSampleTree?.latitude && currentSampleTree?.imageUrl) {
-        const plantedSpecies = inventoryData.species.map((specie) => specie.id);
+      if ((currentSampleTree?.latitude && currentSampleTree?.imageUrl) || editOnlySpecieName) {
+        const plantedSpecies = inventoryData.species.map((specie: any) => specie.id);
         createSpeciesArray(plantedSpecies);
         setSpeciesType('plantedSpecies');
       } else {
@@ -75,7 +72,10 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
       addSpecieToInventory(specie);
       onPressBack();
     } else {
-      navigation.navigate('SelectSpecies', { specie });
+      navigation.navigate('SelectSpecies', {
+        specieGuid: specie.guid,
+        specieScientificName: specie.scientificName,
+      });
     }
   };
 
@@ -87,7 +87,7 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
           <View style={{ paddingHorizontal: 25 }}>
             <Header
               headingText={
-                inventory?.sampleTrees[inventory?.completedSampleTreesCount]
+                inventory?.sampleTrees[inventory?.completedSampleTreesCount] || editOnlySpecieName
                   ? i18next.t('label.select_species')
                   : i18next.t('label.add_sample_tree')
               }
@@ -100,8 +100,8 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
               {i18next.t('label.select_species_and_add_sample')}
             </Text>
           </View>
-          {speciesToSample.map((specie, index) => (
-            <View style={{ paddingLeft: 25 }}>
+          {speciesToSample.map((specie: any, index: number) => (
+            <View style={{ paddingLeft: 25 }} key={index}>
               <SpecieCard
                 index={index}
                 item={specie}

@@ -7,6 +7,5 @@ export const getNotSampledSpecies = (inventory) => {
   inventory.species.forEach((specie) => {
     plantedSpecies.add(specie.id);
   });
-  let notSampledSpecies = new Set([...plantedSpecies].filter((i) => !sampledSpecies.has(i)));
-  return notSampledSpecies;
+  return new Set([...plantedSpecies].filter((i) => !sampledSpecies.has(i)));
 };

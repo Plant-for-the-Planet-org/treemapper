@@ -3,11 +3,24 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { empty, species_default } from '../../assets';
 import { SINGLE } from '../../utils/inventoryConstants';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
-const MySpecies = ({
+interface MySpeciesProps {
+  registrationType: any;
+  onPressSpeciesSingle: () => void;
+  specieList: ScientificSpeciesType[];
+  addSpecieToInventory: (specie: ScientificSpeciesType) => void;
+  editOnlySpecieName: any;
+  onPressBack: () => void;
+  isSampleTree: boolean;
+  navigateToSpecieInfo: (specie: ScientificSpeciesType) => void;
+  screen: string;
+}
+
+const MySpecies: React.FC<MySpeciesProps> = ({
   registrationType,
   onPressSpeciesSingle,
   specieList,
@@ -18,7 +31,7 @@ const MySpecies = ({
   navigateToSpecieInfo,
   screen,
 }) => {
-  const renderSpecieCard = ({ item, index }) => {
+  const renderSpecieCard = ({ item, index }: { item: ScientificSpeciesType; index: number }) => {
     return (
       <SpecieCard
         item={item}
@@ -79,7 +92,21 @@ const MySpecies = ({
   );
 };
 
-export const SpecieCard = ({
+interface SpecieCardProps {
+  item: any;
+  index: number;
+  registrationType?: any;
+  onPressSpecies: any;
+  addSpecieToInventory?: (specie: ScientificSpeciesType) => void;
+  editOnlySpecieName?: any;
+  onPressBack?: any;
+  isSampleTree: any;
+  navigateToSpecieInfo?: (specie: ScientificSpeciesType) => void;
+  screen?: string;
+  isSampleTreeSpecies?: boolean;
+}
+
+export const SpecieCard: React.FC<SpecieCardProps> = ({
   item,
   index,
   registrationType,
@@ -109,14 +136,14 @@ export const SpecieCard = ({
       onPress={() => {
         if (isSampleTree && isSampleTreeSpecies) {
           onPressSpecies(item);
-        } else if (registrationType || isSampleTree) {
+        } else if ((registrationType || isSampleTree) && addSpecieToInventory) {
           addSpecieToInventory(item);
           if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
             onPressBack();
           } else if (registrationType === SINGLE && !editOnlySpecieName) {
             onPressSpecies(item);
           }
-        } else if (screen === 'ManageSpecies') {
+        } else if (screen === 'ManageSpecies' && navigateToSpecieInfo) {
           navigateToSpecieInfo(item);
         }
       }}>
@@ -157,7 +184,7 @@ export const SpecieCard = ({
           {item.scientificName}
         </Text>
       </View>
-      {item.guid !== 'unknown' && screen === 'SelectSpecies' ? (
+      {item.guid !== 'unknown' && screen === 'SelectSpecies' && navigateToSpecieInfo ? (
         <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
           <Ionicons name="information-circle-outline" size={20} />
         </TouchableOpacity>

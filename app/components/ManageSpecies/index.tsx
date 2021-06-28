@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { setSpecie } from '../../actions/species';
 import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
@@ -28,8 +28,9 @@ import { Header, SpeciesSyncError } from '../Common';
 import TreeCountModal from '../Common/TreeCountModal';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
-const DismissKeyBoard = ({ children }) => {
+const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       {children}
@@ -37,7 +38,19 @@ const DismissKeyBoard = ({ children }) => {
   );
 };
 
-const ManageSpecies = ({
+interface ManageSpeciesProps {
+  onPressSpeciesSingle: () => void;
+  onPressBack?: () => void;
+  registrationType: any;
+  addSpecieToInventory: any;
+  editOnlySpecieName: any;
+  isSampleTree: any;
+  isSampleTreeCompleted: any;
+  screen: any;
+  retainNavigationStack: any;
+}
+
+const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   onPressSpeciesSingle,
   onPressBack,
   registrationType,
@@ -50,13 +63,13 @@ const ManageSpecies = ({
 }) => {
   const navigation = useNavigation();
   const [inventory, setInventory] = useState();
-  const [specieList, setSpecieList] = useState([]);
+  const [specieList, setSpecieList] = useState<ScientificSpeciesType[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [searchList, setSearchList] = useState([]);
+  const [searchList, setSearchList] = useState<ScientificSpeciesType[]>([]);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const [showTreeCountModal, setShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
-  const [activeSpecie, setActiveSpecie] = useState();
+  const [activeSpecie, setActiveSpecie] = useState<any>();
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
@@ -65,7 +78,7 @@ const ManageSpecies = ({
     // fetches all the species already added by user when component mount
     getUserSpecies().then((userSpecies) => {
       if (registrationType) {
-        let specieListWithUnknown = [];
+        let specieListWithUnknown: ScientificSpeciesType[] = [];
         if (userSpecies && userSpecies.length > 0) {
           specieListWithUnknown = [
             ...userSpecies,
@@ -113,12 +126,12 @@ const ManageSpecies = ({
   }, []);
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
-  const toggleUserSpecies = (guid, addSpecie = false) => {
+  const toggleUserSpecies = (guid: string, addSpecie = false) => {
     return new Promise((resolve) => {
       Realm.open(getSchema())
         .then((realm) => {
           realm.write(() => {
-            let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+            let specieToToggle: any = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (addSpecie) {
               specieToToggle.isUserSpecies = true;
             } else {
@@ -138,7 +151,7 @@ const ManageSpecies = ({
               }`,
             });
           });
-          resolve();
+          resolve(true);
         })
         .catch((err) => {
           console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
@@ -153,7 +166,7 @@ const ManageSpecies = ({
   };
 
   //This function handles search whenever any search text is entered
-  const handleSpeciesSearch = (text) => {
+  const handleSpeciesSearch = (text: string) => {
     setSearchText(text);
     if (text && text.length > 2) {
       setShowSearchSpecies(true);
@@ -166,24 +179,24 @@ const ManageSpecies = ({
     }
   };
 
-  const handleSpeciePress = (specie) => {
+  const handleSpeciePress = (specie: any) => {
     if (registrationType === MULTI && isSampleTreeCompleted) {
       setActiveSpecie(specie);
       setShowTreeCountModal(true);
     } else {
-      addSpecieToInventory(specie, inventory);
+      addSpecieToInventory(specie.guid, specie.scientificName, inventory);
     }
   };
 
   const handleTreeCountNextButton = () => {
-    let specie = activeSpecie;
+    let specie: any = activeSpecie;
     specie.treeCount = Number(treeCount);
-    addSpecieToInventory(specie, inventory);
+    addSpecieToInventory(specie.guid, specie.scientificName, inventory);
 
-    setActiveSpecie();
+    setActiveSpecie(null);
     setTreeCount('');
     setShowTreeCountModal(false);
-    if (retainNavigationStack) {
+    if (retainNavigationStack && onPressBack) {
       onPressBack();
     } else {
       navigation.dispatch(
@@ -199,7 +212,7 @@ const ManageSpecies = ({
     }
   };
 
-  const navigateToSpecieInfo = (specie) => {
+  const navigateToSpecieInfo = (specie: ScientificSpeciesType) => {
     setSpecie(specie)(dispatch);
     navigation.navigate('SpecieInfo', {
       screen,
@@ -272,9 +285,9 @@ const ManageSpecies = ({
                 specieList={specieList}
                 addSpecieToInventory={handleSpeciePress}
                 editOnlySpecieName={editOnlySpecieName}
-                onPressBack={onPressBack}
+                onPressBack={onPressBack ? onPressBack : () => {}}
                 isSampleTree={isSampleTree}
-                toggleUserSpecies={toggleUserSpecies}
+                // toggleUserSpecies={toggleUserSpecies}
                 navigateToSpecieInfo={navigateToSpecieInfo}
                 screen={screen ? screen : 'ManageSpecies'}
               />

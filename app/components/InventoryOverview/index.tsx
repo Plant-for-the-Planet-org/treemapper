@@ -185,28 +185,28 @@ const InventoryOverview = ({ navigation }: any) => {
     setIsLOCModalOpen(!isLOCModalOpen);
   };
 
+  const addAppDataAndSave = () => {
+    addAppMetadata({ inventory_id: state.inventoryID })
+      .then(() => {
+        let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
+        changeInventoryStatus(data, dispatch).then(() => {
+          navigation.navigate('TreeInventory');
+        });
+      })
+      .catch(() => {
+        setIsError(true);
+        setShowAlert(true);
+      });
+  };
+
   const onPressSave = ({ forceContinue }) => {
     if (inventory.species.length > 0) {
-      if (
-        (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) ||
-        inventory.locateTree === OFF_SITE
-      ) {
-        let notSampledSpecies;
-        if (inventory?.sampleTrees) {
-          notSampledSpecies = getNotSampledSpecies(inventory);
-        }
-        if (notSampledSpecies?.length === 0 || forceContinue || inventory.locateTree === OFF_SITE) {
-          addAppMetadata({ inventory_id: state.inventoryID })
-            .then(() => {
-              let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
-              changeInventoryStatus(data, dispatch).then(() => {
-                navigation.navigate('TreeInventory');
-              });
-            })
-            .catch(() => {
-              setIsError(true);
-              setShowAlert(true);
-            });
+      if (inventory.locateTree === OFF_SITE) {
+        addAppDataAndSave();
+      } else if (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) {
+        let notSampledSpecies = getNotSampledSpecies(inventory);
+        if (notSampledSpecies?.size == 0 || forceContinue) {
+          addAppDataAndSave();
         } else if (forceContinue !== undefined && !forceContinue) {
           navigation.navigate('SpecieSampleTree', { notSampledSpecies });
         } else {
@@ -386,9 +386,9 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const renderAddSampleTreeButton = (status: string) => {
+  const renderAddSampleTreeButton = (inventoryStatus: string) => {
     return (
-      (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) && (
+      (inventoryStatus === INCOMPLETE || inventoryStatus === INCOMPLETE_SAMPLE_TREE) && (
         <TouchableOpacity
           onPress={addSampleTree}
           style={{

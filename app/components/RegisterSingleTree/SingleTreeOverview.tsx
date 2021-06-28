@@ -64,7 +64,7 @@ import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SpecieSampleTree from '../SpecieSampleTree';
-
+import ManageSpecies from '../ManageSpecies';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -687,7 +687,7 @@ const SingleTreeOverview = () => {
   };
   const handleDeleteInventory = () => {
     if (isSampleTree) {
-      let status = inventory?.sampleTrees[sampleTreeIndex].status;
+      let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
       updateSampleTree({
         toUpdate: 'deleteSampleTree',
         sampleTreeIndex,
@@ -696,7 +696,7 @@ const SingleTreeOverview = () => {
       })
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          if (status == INCOMPLETE) {
+          if (inventoryStatus == INCOMPLETE) {
             navigation.navigate('RecordSampleTrees');
           } else {
             navigation.navigate('InventoryOverview');
@@ -714,13 +714,23 @@ const SingleTreeOverview = () => {
   };
 
   return isShowManageSpecies ? (
-    <SpecieSampleTree
-      onPressBack={() => setIsShowManageSpecies(false)}
-      registrationType={registrationType}
-      addSpecieToInventory={addSpecieNameToInventory}
-      editOnlySpecieName={true}
-      isSampleTree={isSampleTree}
-    />
+    isSampleTree ? (
+      <SpecieSampleTree
+        onPressBack={() => setIsShowManageSpecies(false)}
+        registrationType={registrationType}
+        addSpecieToInventory={addSpecieNameToInventory}
+        editOnlySpecieName={true}
+        isSampleTree={isSampleTree}
+      />
+    ) : (
+      <ManageSpecies
+        onPressBack={() => setIsShowManageSpecies(false)}
+        registrationType={registrationType}
+        addSpecieToInventory={addSpecieNameToInventory}
+        editOnlySpecieName={true}
+        isSampleTree={isSampleTree}
+      />
+    )
   ) : (
     <SafeAreaView style={styles.mainContainer}>
       <InputModal
