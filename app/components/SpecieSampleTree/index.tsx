@@ -69,12 +69,11 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
         }),
       );
     } else if (editOnlySpecieName) {
-      addSpecieToInventory(specie);
+      addSpecieToInventory(JSON.stringify(specie));
       onPressBack();
     } else {
       navigation.navigate('SelectSpecies', {
-        specieGuid: specie.guid,
-        specieScientificName: specie.scientificName,
+        specie: JSON.stringify(specie),
       });
     }
   };

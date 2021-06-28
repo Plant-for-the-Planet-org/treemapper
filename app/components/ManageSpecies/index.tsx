@@ -184,14 +184,14 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       setActiveSpecie(specie);
       setShowTreeCountModal(true);
     } else {
-      addSpecieToInventory(specie.guid, specie.scientificName, inventory);
+      addSpecieToInventory(JSON.stringify(specie), inventory);
     }
   };
 
   const handleTreeCountNextButton = () => {
     let specie: any = activeSpecie;
     specie.treeCount = Number(treeCount);
-    addSpecieToInventory(specie.guid, specie.scientificName, inventory);
+    addSpecieToInventory(JSON.stringify(specie), inventory);
 
     setActiveSpecie(null);
     setTreeCount('');

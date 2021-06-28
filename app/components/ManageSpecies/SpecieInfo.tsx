@@ -67,12 +67,11 @@ const SpecieInfo = ({ route }: { route: any }) => {
   }, [isFocused]);
 
   const onSubmitInputField = () => {
-    editEnable === 'aliases'
-      ? setAliases(inputValue)
-      : editEnable === 'description'
-      ? setDescription(inputValue)
-      : [];
-
+    if (editEnable === 'aliases') {
+      setAliases(inputValue);
+    } else if (editEnable === 'description') {
+      setDescription(inputValue);
+    }
     const isImageChanged = image ? specieState?.specie?.image !== image : true;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;

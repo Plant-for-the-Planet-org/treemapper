@@ -34,14 +34,10 @@ const SelectSpecies = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
-        if (route?.params?.specieGuid) {
-          console.log(route?.params?.specieGuid, 'route?.params?.specie');
+        if (route?.params?.specie) {
+          console.log(route?.params?.specie, 'route?.params?.specie');
           setIsShowTreeMeasurement(true);
-          addSpecieToInventory(
-            route?.params?.specieGuid,
-            route?.params?.specieScientificName,
-            inventoryData,
-          );
+          addSpecieToInventory(route?.params?.specie, inventoryData);
         } else {
           if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
             if (
@@ -63,22 +59,23 @@ const SelectSpecies = () => {
     setIsShowTreeMeasurement(true);
   };
 
-  const addSpecieToInventory = (specieId, specieName, inventory) => {
+  const addSpecieToInventory = (stringifiedSpecie, inventory) => {
+    let specie = JSON.parse(stringifiedSpecie);
     if (inventory?.status !== INCOMPLETE_SAMPLE_TREE) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
         species: [
           {
-            id: specieId,
-            aliases: specieName,
+            id: specie.guid,
+            aliases: specie.scientificName,
             treeCount: 1,
           },
         ],
       });
     } else {
       let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specieId;
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specieName;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
       updateInventory({
         inventory_id: inventory.inventory_id,
         inventoryData: {
@@ -88,7 +85,7 @@ const SelectSpecies = () => {
         .then(() => {
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Successfully added specie with id: ${specieId} for sample tree #${
+            message: `Successfully added specie with id: ${specie.guid} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
           });
@@ -97,13 +94,13 @@ const SelectSpecies = () => {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.INVENTORY,
-            message: `Error while adding specie with id: ${specieId} for sample tree #${
+            message: `Error while adding specie with id: ${specie.guid} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
             logStack: JSON.stringify(err),
           });
           console.error(
-            `Error while adding specie with id: ${specieId} for sample tree #${
+            `Error while adding specie with id: ${specie.guid} for sample tree #${
               inventory.completedSampleTreesCount + 1
             } having inventory_id: ${inventory.inventory_id}`,
             err,

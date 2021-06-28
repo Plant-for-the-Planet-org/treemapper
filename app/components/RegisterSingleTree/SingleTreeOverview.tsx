@@ -325,7 +325,8 @@ const SingleTreeOverview = () => {
     }
   };
 
-  const addSpecieNameToInventory = (specie: any) => {
+  const addSpecieNameToInventory = (stringifiedSpecie: any) => {
+    let specie = JSON.parse(stringifiedSpecie);
     if (!isSampleTree && !route?.params?.isSampleTree) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
