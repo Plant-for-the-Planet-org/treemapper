@@ -49,6 +49,7 @@ import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
+import { setSkipToInventoryOverview } from '../../actions/inventory';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -199,7 +200,7 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  const onPressSave = ({ forceContinue }) => {
+  const onPressSave = ({ forceContinue }: { forceContinue?: boolean }) => {
     if (inventory.species.length > 0) {
       if (inventory.locateTree === OFF_SITE) {
         addAppDataAndSave();
@@ -208,6 +209,7 @@ const InventoryOverview = ({ navigation }: any) => {
         if (notSampledSpecies?.size == 0 || forceContinue) {
           addAppDataAndSave();
         } else if (forceContinue !== undefined && !forceContinue) {
+          setSkipToInventoryOverview(true)(dispatch);
           navigation.navigate('SpecieSampleTree', { notSampledSpecies });
         } else {
           setShowAddSampleTrees(true);
@@ -562,6 +564,7 @@ const InventoryOverview = ({ navigation }: any) => {
                   sampleTrees={inventory?.sampleTrees}
                   navigation={navigation}
                   totalSampleTrees={inventory.sampleTreesCount}
+                  inventoryDispatch={dispatch}
                 />
               )}
               {inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
@@ -580,7 +583,7 @@ const InventoryOverview = ({ navigation }: any) => {
             {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
               <View style={styles.bottomButtonContainer}>
                 <PrimaryButton
-                  onPress={onPressSave}
+                  onPress={() => onPressSave({})}
                   btnText={i18next.t('label.inventory_overview_loc_save')}
                   style={{ marginTop: 10 }}
                 />

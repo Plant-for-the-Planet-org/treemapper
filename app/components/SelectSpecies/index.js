@@ -35,7 +35,6 @@ const SelectSpecies = () => {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
         if (route?.params?.specie) {
-          console.log(route?.params?.specie, 'route?.params?.specie');
           setIsShowTreeMeasurement(true);
           addSpecieToInventory(route?.params?.specie, inventoryData);
         } else {

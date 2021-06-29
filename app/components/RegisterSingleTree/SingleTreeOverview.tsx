@@ -18,7 +18,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { deleteInventoryId } from '../../actions/inventory';
+import { deleteInventoryId, setSkipToInventoryOverview } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -75,6 +75,7 @@ type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTr
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
+
   const [inventory, setInventory] = useState<any>();
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [isShowDate, setIsShowDate] = useState<boolean>(false);
@@ -625,7 +626,7 @@ const SingleTreeOverview = () => {
     return true;
   };
 
-  const onPressContinueToAdditionalData = () => {
+  const onPressContinue = () => {
     updateSampleTree({
       toUpdate: 'changeStatusToPending',
       inventory,
@@ -633,13 +634,18 @@ const SingleTreeOverview = () => {
       setInventory,
     })
       .then(() => {
+        setSkipToInventoryOverview(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
             index: 3,
             routes: [
               { name: 'MainScreen' },
               { name: 'TreeInventory' },
-              { name: 'AdditionalDataForm' },
+              {
+                name: inventoryState.skipToInventoryOverview
+                  ? 'InventoryOverview'
+                  : 'AdditionalDataForm',
+              },
             ],
           }),
         );
@@ -686,6 +692,7 @@ const SingleTreeOverview = () => {
         .catch(() => setIsError(true));
     }
   };
+
   const handleDeleteInventory = () => {
     if (isSampleTree) {
       let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
@@ -697,9 +704,10 @@ const SingleTreeOverview = () => {
       })
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          if (inventoryStatus == INCOMPLETE) {
+          if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
             navigation.navigate('RecordSampleTrees');
           } else {
+            setSkipToInventoryOverview(false)(dispatch);
             navigation.navigate('InventoryOverview');
           }
         })
@@ -818,8 +826,12 @@ const SingleTreeOverview = () => {
         ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressContinueToAdditionalData}
-              btnText={i18next.t('label.tree_review_continue_to_additional_data')}
+              onPress={onPressContinue}
+              btnText={
+                inventoryState.skipToInventoryOverview
+                  ? i18next.t('label.tree_review_continue_to_review')
+                  : i18next.t('label.tree_review_continue_to_additional_data')
+              }
             />
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&

@@ -287,9 +287,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                 editOnlySpecieName={editOnlySpecieName}
                 onPressBack={onPressBack ? onPressBack : () => {}}
                 isSampleTree={isSampleTree}
-                // toggleUserSpecies={toggleUserSpecies}
                 navigateToSpecieInfo={navigateToSpecieInfo}
-                screen={screen ? screen : 'ManageSpecies'}
+                screen={screen || 'ManageSpecies'}
               />
             )}
           </View>

@@ -195,13 +195,33 @@ export default function TotalTreesSpecies() {
 
   const changeTreeCount = async (index) => {
     let species = [...inventory.species];
-    species[index].treeCount = Number(treeCount);
+    if (!treeCount || Number(treeCount) === 0) {
+      species.splice(index, 1);
+    } else {
+      species[index].treeCount = Number(treeCount);
+    }
     await updateInventory({
       inventory_id: inventoryState.inventoryID,
       inventoryData: {
         species,
       },
-    });
+    })
+      .then(() => {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          setInventory(inventoryData);
+        });
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully changed tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+        });
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to change tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+      });
   };
 
   const addSpecieToInventory = (stringifiedSpecie) => {

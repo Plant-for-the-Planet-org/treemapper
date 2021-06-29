@@ -10,6 +10,7 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import Label from '../Common/Label';
 import { getUserInformation } from '../../repositories/user';
 import { APIConfig } from '../../actions/Config';
+import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
@@ -66,7 +67,12 @@ const SampleTreeListItem = ({ sampleTree, totalSampleTrees, index, navigation, c
   );
 };
 
-export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navigation }) {
+export default function SampleTreesReview({
+  sampleTrees,
+  totalSampleTrees,
+  navigation,
+  inventoryDispatch,
+}) {
   const [countryCode, setCountryCode] = useState('');
   const [inventory, setInventory] = useState();
   const { state } = useContext(InventoryContext);
@@ -95,6 +101,7 @@ export default function SampleTreesReview({ sampleTrees, totalSampleTrees, navig
         lastScreen: 'RecordSampleTrees',
       };
       updateLastScreen(data);
+      setSkipToInventoryOverview(true)(inventoryDispatch);
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
