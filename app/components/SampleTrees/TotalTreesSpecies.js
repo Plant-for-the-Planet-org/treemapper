@@ -40,6 +40,10 @@ export default function TotalTreesSpecies() {
   const [specie, setSpecie] = useState();
   const [specieIndex, setSpecieIndex] = useState();
   const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
+  const [deleteSpeciesAlertDescription, setDeleteSpeciesAlertDescription] = useState(
+    i18next.t('label.delete_species_delete_sample_tree_warning'),
+  );
+
   const navigation = useNavigation();
 
   // reference for camera to focus on map
@@ -179,6 +183,10 @@ export default function TotalTreesSpecies() {
       .then(() => {
         initializeState();
         setDeleteSpecieAlert(false);
+        setShowTreeCountModal(false);
+        setDeleteSpeciesAlertDescription(
+          i18next.t('label.delete_species_delete_sample_tree_warning'),
+        );
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Successfully deleted specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
@@ -195,13 +203,91 @@ export default function TotalTreesSpecies() {
 
   const changeTreeCount = async (index) => {
     let species = [...inventory.species];
-    if (!treeCount || Number(treeCount) === 0) {
-      species.splice(index, 1);
+    if ((!treeCount || Number(treeCount) === 0) && inventory.sampleTrees.length > 0) {
+      setSpecieIndex(index);
+      let species = [...inventory.species];
+      let sampleTrees = [...inventory.sampleTrees];
+      const deleteSpecies = species[index];
+
+      sampleTrees.every((sampleTree, index) => {
+        if (sampleTree.specieId === deleteSpecies.id) {
+          setDeleteSpecieAlert(true);
+          setDeleteSpeciesAlertDescription(
+            i18next.t('label.zero_tree_count_species_delete_sample_tree_warning'),
+          );
+          return false;
+        } else if (index === sampleTrees.length - 1) {
+          deleteSpecie(specieIndex);
+        } else {
+          return true;
+        }
+      });
     } else {
-      species[index].treeCount = Number(treeCount);
+      if (!treeCount || Number(treeCount) === 0) {
+        species.splice(index, 1);
+      } else {
+        species[index].treeCount = Number(treeCount);
+      }
+
+      await updateInventory({
+        inventory_id: inventoryState.inventoryID,
+        inventoryData: {
+          species,
+        },
+      })
+        .then(() => {
+          setShowTreeCountModal(false);
+          getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+            setInventory(inventoryData);
+          });
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully changed tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          });
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to change tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
+          });
+        });
     }
-    await updateInventory({
-      inventory_id: inventoryState.inventoryID,
+  };
+
+  const addSpecieToInventory = (stringifiedSpecie) => {
+    let specie = JSON.parse(stringifiedSpecie);
+
+    let species = [...inventory.species];
+
+    let deleteSpecieIndex;
+    let updateSpecieIndex;
+    for (const index in species) {
+      if (species[index].id === specie.guid && specie.treeCount === 0) {
+        deleteSpecieIndex = index;
+        break;
+      } else if (species[index].id === specie.guid && specie.treeCount > 0) {
+        updateSpecieIndex = index;
+      }
+    }
+
+    if (deleteSpecieIndex) {
+      species.splice(deleteSpecieIndex, 1);
+    } else if (updateSpecieIndex) {
+      species[updateSpecieIndex].treeCount = specie.treeCount;
+    } else if (specie.treeCount > 0) {
+      species = [
+        ...species,
+        {
+          aliases: specie.aliases ? specie.aliases : specie.scientificName,
+          id: specie.guid,
+          treeCount: specie.treeCount,
+        },
+      ];
+    }
+
+    updateInventory({
+      inventory_id: inventory.inventory_id,
       inventoryData: {
         species,
       },
@@ -212,76 +298,20 @@ export default function TotalTreesSpecies() {
         });
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Successfully changed tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Failed to change tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
           logStack: JSON.stringify(err),
         });
+        console.error(
+          `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
       });
-  };
-
-  const addSpecieToInventory = (stringifiedSpecie) => {
-    let specie = JSON.parse(stringifiedSpecie);
-    if (specie.treeCount > 0) {
-      let species = [...inventory.species];
-
-      let deleteSpecieIndex;
-      let updateSpecieIndex;
-      for (const index in species) {
-        if (species[index].id === specie.guid && specie.treeCount === 0) {
-          deleteSpecieIndex = index;
-          break;
-        } else if (species[index].id === specie.guid && specie.treeCount > 0) {
-          updateSpecieIndex = index;
-        }
-      }
-
-      if (deleteSpecieIndex) {
-        species.splice(deleteSpecieIndex, 1);
-      } else if (updateSpecieIndex) {
-        species[updateSpecieIndex].treeCount = specie.treeCount;
-      } else {
-        species = [
-          ...species,
-          {
-            aliases: specie.aliases ? specie.aliases : specie.scientificName,
-            id: specie.guid,
-            treeCount: specie.treeCount,
-          },
-        ];
-      }
-
-      updateInventory({
-        inventory_id: inventory.inventory_id,
-        inventoryData: {
-          species,
-        },
-      })
-        .then(() => {
-          getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-            setInventory(inventoryData);
-          });
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-          });
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-            logStack: JSON.stringify(err),
-          });
-          console.error(
-            `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-            err,
-          );
-        });
-    }
   };
 
   const renderMapView = () => {
@@ -337,14 +367,30 @@ export default function TotalTreesSpecies() {
 
   if (showManageSpecies) {
     return (
-      <ManageSpecies
-        onPressBack={() => setShowManageSpecies(false)}
-        registrationType={MULTI}
-        addSpecieToInventory={addSpecieToInventory}
-        isSampleTree={true}
-        isSampleTreeCompleted={true}
-        retainNavigationStack={route?.params?.retainNavigationStack}
-      />
+      <>
+        <ManageSpecies
+          onPressBack={() => setShowManageSpecies(false)}
+          registrationType={MULTI}
+          addSpecieToInventory={addSpecieToInventory}
+          isSampleTree={true}
+          isSampleTreeCompleted={true}
+          retainNavigationStack={route?.params?.retainNavigationStack}
+          deleteSpeciesAndSampleTrees={deleteSpeciesAndSampleTrees}
+          deleteSpecie={deleteSpecie}
+        />
+        <AlertModal
+          visible={deleteSpecieAlert}
+          heading={i18next.t('label.delete_species')}
+          message={deleteSpeciesAlertDescription}
+          showSecondaryButton={true}
+          primaryBtnText={i18next.t('label.tree_review_delete')}
+          secondaryBtnText={i18next.t('label.cancel')}
+          onPressPrimaryBtn={() => {
+            deleteSpeciesAndSampleTrees(specieIndex);
+          }}
+          onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
+        />
+      </>
     );
   }
 
@@ -413,24 +459,24 @@ export default function TotalTreesSpecies() {
           treeCount={treeCount}
           setTreeCount={setTreeCount}
           activeSpecie={specie}
-          onPressTreeCountNextBtn={() => {
-            changeTreeCount(specieIndex);
-            setShowTreeCountModal(false);
-          }}
+          onPressTreeCountNextBtn={() => changeTreeCount(specieIndex)}
         />
         <AlertModal
           visible={deleteSpecieAlert}
-          heading={'Delete Species?'}
-          message={
-            'If you delete this species, the sample tree related to this species will also get deleted. Are you sure, that you want to delete?'
-          }
+          heading={i18next.t('label.delete_species')}
+          message={deleteSpeciesAlertDescription}
           showSecondaryButton={true}
-          primaryBtnText={'Delete'}
-          secondaryBtnText={'Cancel'}
+          primaryBtnText={i18next.t('label.tree_review_delete')}
+          secondaryBtnText={i18next.t('label.cancel')}
           onPressPrimaryBtn={() => {
             deleteSpeciesAndSampleTrees(specieIndex);
           }}
-          onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
+          onPressSecondaryBtn={() => {
+            setDeleteSpecieAlert(false);
+            setDeleteSpeciesAlertDescription(
+              i18next.t('label.delete_species_delete_sample_tree_warning'),
+            );
+          }}
         />
       </View>
     </SafeAreaView>

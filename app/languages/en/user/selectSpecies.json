@@ -51,5 +51,8 @@
   "sync": "Sync",
   "species_sync_might_take_time": "Syncing species, this might take some time.",
   "all_species_synced": "All species are synced.",
-  "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first."
+  "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first.",
+  "delete_species":"Delete Species?",
+  "delete_species_delete_sample_tree_warning":"If you delete this species, the sample tree(s) related to this species will also get deleted. Are you sure, that you want to delete?",
+  "zero_tree_count_species_delete_sample_tree_warning":"This species will be deleted if tree count is set to 0 and the sample tree(s) related to this species will also get deleted. Are you sure, that you want to set tree count to zero?"
 }

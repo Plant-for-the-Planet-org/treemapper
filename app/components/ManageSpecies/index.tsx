@@ -24,7 +24,7 @@ import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
-import { Header, SpeciesSyncError } from '../Common';
+import { AlertModal, Header, SpeciesSyncError } from '../Common';
 import TreeCountModal from '../Common/TreeCountModal';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
@@ -48,6 +48,8 @@ interface ManageSpeciesProps {
   isSampleTreeCompleted: any;
   screen: any;
   retainNavigationStack: any;
+  deleteSpeciesAndSampleTrees?: any;
+  deleteSpecie?: any;
 }
 
 const ManageSpecies: React.FC<ManageSpeciesProps> = ({
@@ -60,9 +62,11 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   isSampleTreeCompleted,
   screen,
   retainNavigationStack,
+  deleteSpeciesAndSampleTrees,
+  deleteSpecie,
 }) => {
   const navigation = useNavigation();
-  const [inventory, setInventory] = useState();
+  const [inventory, setInventory] = useState<any>();
   const [specieList, setSpecieList] = useState<ScientificSpeciesType[]>([]);
   const [searchText, setSearchText] = useState('');
   const [searchList, setSearchList] = useState<ScientificSpeciesType[]>([]);
@@ -70,6 +74,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [showTreeCountModal, setShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
   const [activeSpecie, setActiveSpecie] = useState<any>();
+  const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
+  const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
@@ -191,8 +197,37 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const handleTreeCountNextButton = () => {
     let specie: any = activeSpecie;
     specie.treeCount = Number(treeCount);
-    addSpecieToInventory(JSON.stringify(specie), inventory);
 
+    if ((!treeCount || Number(treeCount) === 0) && inventory.sampleTrees.length > 0) {
+      let sampleTrees = [...inventory.sampleTrees];
+      sampleTrees.every((sampleTree, index: number) => {
+        if (sampleTree.specieId === specie.guid) {
+          setSpeciesToDelete(specie, setSpeciesIndexToDelete);
+          setDeleteSpecieAlert(true);
+          return false;
+        } else if (index === sampleTrees.length - 1) {
+          setSpeciesToDelete(specie, deleteSpecie);
+          navigateAfterTreeCount();
+        } else {
+          return true;
+        }
+      });
+    } else {
+      addSpecieToInventory(JSON.stringify(specie));
+      navigateAfterTreeCount();
+    }
+  };
+
+  const setSpeciesToDelete = (specie: any, callback: any) => {
+    for (const index in inventory?.species) {
+      if (inventory?.species[index].id === specie.guid) {
+        callback(Number(index));
+        break;
+      }
+    }
+  };
+
+  const navigateAfterTreeCount = () => {
     setActiveSpecie(null);
     setTreeCount('');
     setShowTreeCountModal(false);
@@ -218,6 +253,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       screen,
     });
   };
+
+  const handleZeroSpeciesDelete = () => {
+    deleteSpeciesAndSampleTrees(speciesIndexToDelete);
+    navigateAfterTreeCount();
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
@@ -301,6 +342,16 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
         treeCount={treeCount}
         onPressTreeCountNextBtn={handleTreeCountNextButton}
         setShowTreeCountModal={setShowTreeCountModal}
+      />
+      <AlertModal
+        visible={deleteSpecieAlert}
+        heading={i18next.t('label.delete_species')}
+        message={i18next.t('label.zero_tree_count_species_delete_sample_tree_warning')}
+        showSecondaryButton={true}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => handleZeroSpeciesDelete()}
+        onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
       />
     </SafeAreaView>
   );
