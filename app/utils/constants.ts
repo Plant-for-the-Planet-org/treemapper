@@ -45,6 +45,9 @@ export const LogLevels: ILogLevels = {
   ERROR: 'ERROR',
 };
 
+// Diameter to Breast Height in meter(m) - used to decide at what height diameter should be measured
+export const DBHInMeter = 1.3;
+
 // multiplication factor to convert foot to meter
 export const footToMeter: number = 0.3048;
 

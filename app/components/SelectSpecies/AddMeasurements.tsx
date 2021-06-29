@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import {
+  DBHInMeter,
   diameterMaxCm,
   diameterMaxInch,
   diameterMinCm,
@@ -21,6 +22,7 @@ import {
   heightMinM,
   inchToCm,
   LogTypes,
+  meterToFoot,
   nonISUCountries,
 } from '../../utils/constants';
 import i18next from 'i18next';
@@ -38,7 +40,11 @@ import {
 import { getUserInformation } from '../../repositories/user';
 import dbLog from '../../repositories/logs';
 
-export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
+interface IAddMeasurementsProps {
+  setIsShowTreeMeasurement: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsProps) => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState('');
   const [diameter, setDiameter] = useState('');
   const [diameterError, setDiameterError] = useState('');
@@ -50,15 +56,18 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   const [isTagIdPresent, setIsTagIdPresent] = useState(true);
   const [tagIdError, setTagIdError] = useState('');
   const [isSampleTree, setIsSampleTree] = useState(false);
+  const [diameterLabel, setDiameterLabel] = useState<string>(
+    i18next.t('label.measurement_basal_diameter'),
+  );
 
   const { state } = useContext(InventoryContext);
   const navigation = useNavigation();
-  const heightRef = React.createRef();
+  const diameterRef = React.createRef();
   const tagIdRef = React.createRef();
 
   useEffect(() => {
-    Inventory();
-    Country();
+    fetchInventory();
+    setCountry();
   }, []);
 
   useEffect(() => {
@@ -71,7 +80,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
     setTagId('');
   }, []);
 
-  const Inventory = () => {
+  const fetchInventory = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
@@ -83,7 +92,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
     }
   };
 
-  const Country = () => {
+  const setCountry = () => {
     getUserInformation().then((data) => {
       setCountryCode(data.country);
     });
@@ -233,6 +242,22 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
     );
   };
 
+  const handleHeightChange = (text: string) => {
+    const convertedHeight = nonISUCountries.includes(countryCode)
+      ? Number(height) * footToMeter
+      : Number(height);
+
+    if (convertedHeight < DBHInMeter) {
+      setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+    } else {
+      setDiameterLabel(i18next.t('label.measurement_DBH'));
+    }
+    setHeightError('');
+    setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+  };
+
+  const isNonISUCountry = nonISUCountries.includes(countryCode);
+
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaView style={styles.mainContainer}>
@@ -258,34 +283,8 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                 <View style={styles.inputBox}>
                   <View>
                     <OutlinedInput
-                      value={diameter}
-                      onChangeText={(text: any) => {
-                        setDiameterError('');
-                        setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-                      }}
-                      label={i18next.t('label.select_species_diameter')}
-                      keyboardType={'decimal-pad'}
-                      rightText={
-                        nonISUCountries.includes(countryCode)
-                          ? i18next.t('label.select_species_inches')
-                          : 'cm'
-                      }
-                      error={diameterError}
-                      returnKeyType={'next'}
-                      onSubmitEditing={() => heightRef.current.focus()}
-                      autoFocus
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputBox}>
-                  <View>
-                    <OutlinedInput
                       value={height}
-                      onChangeText={(text: any) => {
-                        setHeightError('');
-                        setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-                      }}
+                      onChangeText={(text: string) => handleHeightChange(text)}
                       label={i18next.t('label.select_species_height')}
                       keyboardType={'decimal-pad'}
                       rightText={
@@ -294,9 +293,37 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                           : 'm'
                       }
                       error={heightError}
-                      ref={heightRef}
+                      autoFocus
+                      returnKeyType={'next'}
+                      onSubmitEditing={() => diameterRef.current.focus()}
+                    />
+                  </View>
+                </View>
+
+                <View style={[styles.inputBox, { zIndex: 1 }]}>
+                  <View>
+                    <OutlinedInput
+                      value={diameter}
+                      onChangeText={(text: string) => {
+                        setDiameterError('');
+                        setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+                      }}
+                      label={diameterLabel}
+                      keyboardType={'decimal-pad'}
+                      rightText={
+                        nonISUCountries.includes(countryCode)
+                          ? i18next.t('label.select_species_inches')
+                          : 'cm'
+                      }
+                      error={diameterError}
+                      ref={diameterRef}
                       returnKeyType={isTagIdPresent ? 'next' : 'default'}
                       onSubmitEditing={isTagIdPresent ? () => tagIdRef.current.focus() : () => {}}
+                      showInfo={true}
+                      infoText={i18next.t('label.measurement_diameter_info', {
+                        height: isNonISUCountry ? DBHInMeter * meterToFoot : DBHInMeter,
+                        unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
+                      })}
                     />
                   </View>
                 </View>
@@ -321,7 +348,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
                         <OutlinedInput
                           value={tagId}
                           label={i18next.t('label.select_species_tree_tag')}
-                          onChangeText={(text) => {
+                          onChangeText={(text: string) => {
                             setTagIdError('');
                             setTagId(text);
                           }}
