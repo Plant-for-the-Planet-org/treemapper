@@ -83,16 +83,25 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   });
 };
 
-export const getAllInventoryFromServer = () => {
-  return new Promise((resolve, reject) => {
-    getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
-      let exceptSampleTrees = data.data.filter((inventory) => {
+export const getAllInventoryFromServer = async (
+  requestRoute = '/treemapper/plantLocations?limit=4',
+  allInventory = [],
+) => {
+  try {
+    let data = await getAuthenticatedRequest(requestRoute);
+    let updatedAllInventory = data.data.items.concat(allInventory);
+    if (data.data._links.next) {
+      return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
+    } else {
+      let exceptSampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type !== 'sample';
       });
-      let sampleTrees = data.data.filter((inventory) => {
+      let sampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type === 'sample';
       });
-      resolve([exceptSampleTrees, sampleTrees]);
-    });
-  });
+      return [exceptSampleTrees, sampleTrees];
+    }
+  } catch (err) {
+    console.error(err);
+  }
 };
