@@ -339,7 +339,7 @@ const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
     plantDate: new Date(sampleTree.plantationDate).toISOString().split('T')[0],
     registrationDate: new Date(registrationDate).toISOString().split('T')[0],
     parent: parentId,
-    scientificSpecies: sampleTree.specieId,
+    scientificSpecies: sampleTree.specieId == 'unknown' ? null : sampleTree.specieId,
     measurements: {
       height: sampleTree.specieHeight,
       width: sampleTree.specieDiameter,
