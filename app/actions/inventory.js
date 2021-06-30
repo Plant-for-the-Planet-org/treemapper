@@ -84,7 +84,7 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
 };
 
 export const getAllInventoryFromServer = async (
-  requestRoute = '/treemapper/plantLocations?limit=4',
+  requestRoute = '/treemapper/plantLocations',
   allInventory = [],
 ) => {
   try {
