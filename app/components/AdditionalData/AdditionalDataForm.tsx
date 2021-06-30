@@ -29,7 +29,8 @@ const AdditionalDataForm = () => {
   const [forms, setForms] = useState<any>([]);
   const [currentFormIndex, setCurrentFormIndex] = useState<number>(0);
   const [treeType, setTreeType] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingText, setLoadingText] = useState<string>(i18next.t('label.loading_form'));
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.additional_data'));
   const [formData, setFormData] = useState<any>({});
   const [formAccessType, setFormAccessType] = useState<any>({});
@@ -108,6 +109,19 @@ const AdditionalDataForm = () => {
         const shouldShowForm =
           formsData && formsData.length > 0 && formsData[0].elements.length > 0;
 
+        if (!shouldShowForm) {
+          setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
+
+          addAdditionalDataToDB({
+            transformedData,
+            isSample,
+            disableNavigation: true,
+            inventoryData,
+          });
+          setTimeout(() => navigate(treeType, isSample), 2000);
+          return;
+        }
+
         setForms(formsData);
 
         let data: any = {};
@@ -116,9 +130,9 @@ const AdditionalDataForm = () => {
         for (const form of formsData) {
           for (const element of form.elements) {
             if (element.type !== elementsType.GAP && element.type !== elementsType.HEADING) {
-              const yseNoValue = element.defaultValue ? 'yes' : 'no';
+              const yesNoValue = element.defaultValue ? 'yes' : 'no';
               data[element.key] =
-                typeof element.defaultValue === 'boolean' ? yseNoValue : element.defaultValue;
+                typeof element.defaultValue === 'boolean' ? yesNoValue : element.defaultValue;
               formAccessTypes[element.key] = element.accessType;
             }
             initialErrors[element.key] = '';
@@ -129,25 +143,16 @@ const AdditionalDataForm = () => {
           updateHeading(formsData);
         }
 
-        if (!shouldShowForm) {
-          addAdditionalDataToDB({
-            transformedData,
-            isSample,
-            disableNavigation: true,
-            inventoryData,
-          });
-          navigate(treeType, isSample);
-        } else {
-          setLoading(false);
-        }
+        setLoading(false);
       } else {
+        setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
         addAdditionalDataToDB({
           transformedData,
           isSample,
           disableNavigation: true,
           inventoryData,
         });
-        navigate(treeType, isSample);
+        setTimeout(() => navigate(treeType, isSample), 2000);
       }
     });
   };
@@ -179,7 +184,7 @@ const AdditionalDataForm = () => {
       };
     }
 
-    updateInventory({ inventory_id: inventoryState.inventoryID, data })
+    updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData: data })
       .then(() => {
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -292,7 +297,7 @@ const AdditionalDataForm = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         {loading ? (
-          <Loader isLoaderShow={loading} loadingText={i18next.t('label.loading_form')} />
+          <Loader isLoaderShow={loading} loadingText={loadingText} />
         ) : (
           <>
             <ScrollView showsVerticalScrollIndicator={false}>

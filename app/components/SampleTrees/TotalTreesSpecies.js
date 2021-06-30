@@ -230,14 +230,14 @@ export default function TotalTreesSpecies() {
       let sampleTrees = [...inventory.sampleTrees];
       const deleteSpecies = species[specieIndex];
 
-      sampleTrees.every((sampleTree, specieIndex) => {
+      sampleTrees.every((sampleTree, index) => {
         if (sampleTree.specieId === deleteSpecies.id) {
           setDeleteSpecieAlert(true);
           setDeleteSpeciesAlertDescription(
             i18next.t('label.zero_tree_count_species_delete_sample_tree_warning'),
           );
           return false;
-        } else if (specieIndex === sampleTrees.length - 1) {
+        } else if (index === sampleTrees.length - 1) {
           deleteSpecie(specieIndex);
         } else {
           return true;

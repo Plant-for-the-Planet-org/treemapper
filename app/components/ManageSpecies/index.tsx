@@ -39,15 +39,15 @@ const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
 };
 
 interface ManageSpeciesProps {
-  onPressSpeciesSingle: () => void;
+  onPressSpeciesSingle?: () => void;
   onPressBack?: () => void;
   registrationType: any;
   addSpecieToInventory: any;
   editOnlySpecieName: any;
   isSampleTree: any;
-  isSampleTreeCompleted: any;
-  screen: any;
-  retainNavigationStack: any;
+  isSampleTreeCompleted?: any;
+  screen?: any;
+  retainNavigationStack?: any;
   deleteSpeciesAndSampleTrees?: any;
   deleteSpecie?: any;
 }

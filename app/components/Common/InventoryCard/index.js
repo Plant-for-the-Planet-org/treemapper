@@ -20,7 +20,6 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
       });
     } else if (data.cdnImageUrl) {
       setImageSource({
-        // uri: `https://bucketeer-894cef84-0684-47b5-a5e7-917b8655836a.s3.eu-west-1.amazonaws.com/development/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
         uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
       });
     } else if (
@@ -76,11 +75,12 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     justifyContent: 'center',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   image: {
     height: 100,
     width: 100,
-    borderRadius: 2,
   },
   contentContainer: {
     flex: 1.2,

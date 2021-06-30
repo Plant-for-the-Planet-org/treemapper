@@ -101,6 +101,7 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
+  const [isIncompleteSampleTree, setIsIncompleteSampleTree] = useState<boolean>(false);
 
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -111,6 +112,9 @@ const SingleTreeOverview = () => {
     if (route?.params?.isSampleTree || route?.params?.totalSampleTrees) {
       setSampleTreeIndex(route.params.sampleTreeIndex);
       setTotalSampleTrees(route.params.totalSampleTrees);
+      setIsIncompleteSampleTree(
+        inventory?.sampleTrees[route.params.sampleTreeIndex].status === INCOMPLETE,
+      );
     }
   }, [route.params]);
 
@@ -175,6 +179,7 @@ const SingleTreeOverview = () => {
             : currentSampleTree.specieHeight;
 
           setSampleTreeIndex(index);
+          setIsIncompleteSampleTree(currentSampleTree.status === INCOMPLETE);
           setIsSampleTree(true);
           setSpecieText(currentSampleTree.specieName);
           setSpecieDiameter(diameter);
@@ -788,8 +793,8 @@ const SingleTreeOverview = () => {
               }
               rightText={
                 status === INCOMPLETE ||
-                status === PENDING_DATA_UPLOAD ||
-                status === INCOMPLETE_SAMPLE_TREE
+                status === INCOMPLETE_SAMPLE_TREE ||
+                (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
                   ? i18next.t('label.tree_review_delete')
                   : ''
               }
@@ -823,7 +828,8 @@ const SingleTreeOverview = () => {
               halfWidth={true}
             />
           </View>
-        ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
+        ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 &&
+          isIncompleteSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={onPressContinue}
