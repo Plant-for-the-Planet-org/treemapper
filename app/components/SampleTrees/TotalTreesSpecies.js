@@ -132,6 +132,9 @@ export default function TotalTreesSpecies() {
         }
       });
     }
+    setDeleteSpecieAlert(false);
+    setShowTreeCountModal(false);
+    setDeleteSpeciesAlertDescription(i18next.t('label.delete_species_delete_sample_tree_warning'));
   };
 
   const onPressDelete = (deleteSpecieIndex) => {
@@ -155,19 +158,41 @@ export default function TotalTreesSpecies() {
     let species = [...inventory.species];
     let sampleTrees = [...inventory.sampleTrees];
     const deleteSpecies = species[deleteSpeciesIndex];
+
+    // loops through sample trees and deletes all the sample trees which includes the species to be deleted
     for await (let sampleTree of [...inventory.sampleTrees]) {
       if (sampleTree.specieId === deleteSpecies.id) {
         sampleTrees.splice(sampleTrees.indexOf(sampleTree), 1);
       }
     }
+
+    // deletes the species selected by the user
+    const updatedSpecies = species.splice(deleteSpeciesIndex, 1);
+
     updateInventory({
       inventory_id: inventory.inventory_id,
       inventoryData: {
+        species,
         sampleTrees,
         sampleTreesCount: sampleTrees.length < 5 ? Number(5) : sampleTrees.length,
         completedSampleTreesCount: sampleTrees.length,
       },
-    }).then(() => deleteSpecie(deleteSpeciesIndex));
+    })
+      .then(() => {
+        initializeState();
+
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully deleted species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
+        });
+      })
+      .catch((err) =>
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to delete species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
+        }),
+      );
   };
 
   const deleteSpecie = (index) => {
@@ -182,41 +207,37 @@ export default function TotalTreesSpecies() {
     })
       .then(() => {
         initializeState();
-        setDeleteSpecieAlert(false);
-        setShowTreeCountModal(false);
-        setDeleteSpeciesAlertDescription(
-          i18next.t('label.delete_species_delete_sample_tree_warning'),
-        );
+
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Successfully deleted specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
-      .catch((err) => {
+      .catch((err) =>
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Failed to delete specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
           logStack: JSON.stringify(err),
-        });
-      });
+        }),
+      );
   };
 
-  const changeTreeCount = async (index) => {
+  const changeTreeCount = async () => {
     let species = [...inventory.species];
     if ((!treeCount || Number(treeCount) === 0) && inventory.sampleTrees.length > 0) {
-      setSpecieIndex(index);
+      setSpecieIndex(specieIndex);
       let species = [...inventory.species];
       let sampleTrees = [...inventory.sampleTrees];
-      const deleteSpecies = species[index];
+      const deleteSpecies = species[specieIndex];
 
-      sampleTrees.every((sampleTree, index) => {
+      sampleTrees.every((sampleTree, specieIndex) => {
         if (sampleTree.specieId === deleteSpecies.id) {
           setDeleteSpecieAlert(true);
           setDeleteSpeciesAlertDescription(
             i18next.t('label.zero_tree_count_species_delete_sample_tree_warning'),
           );
           return false;
-        } else if (index === sampleTrees.length - 1) {
+        } else if (specieIndex === sampleTrees.length - 1) {
           deleteSpecie(specieIndex);
         } else {
           return true;
@@ -224,9 +245,9 @@ export default function TotalTreesSpecies() {
       });
     } else {
       if (!treeCount || Number(treeCount) === 0) {
-        species.splice(index, 1);
+        species.splice(specieIndex, 1);
       } else {
-        species[index].treeCount = Number(treeCount);
+        species[specieIndex].treeCount = Number(treeCount);
       }
 
       await updateInventory({
@@ -385,9 +406,7 @@ export default function TotalTreesSpecies() {
           showSecondaryButton={true}
           primaryBtnText={i18next.t('label.tree_review_delete')}
           secondaryBtnText={i18next.t('label.cancel')}
-          onPressPrimaryBtn={() => {
-            deleteSpeciesAndSampleTrees(specieIndex);
-          }}
+          onPressPrimaryBtn={() => deleteSpeciesAndSampleTrees(specieIndex)}
           onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
         />
       </>
@@ -421,7 +440,7 @@ export default function TotalTreesSpecies() {
                 <SpecieListItem
                   item={plantedSpecie}
                   index={index}
-                  key={index}
+                  key={`${plantedSpecie.id}`}
                   deleteSpecie={() =>
                     inventory.completedSampleTreesCount > 0
                       ? onPressDelete(index)
@@ -459,7 +478,7 @@ export default function TotalTreesSpecies() {
           treeCount={treeCount}
           setTreeCount={setTreeCount}
           activeSpecie={specie}
-          onPressTreeCountNextBtn={() => changeTreeCount(specieIndex)}
+          onPressTreeCountNextBtn={changeTreeCount}
         />
         <AlertModal
           visible={deleteSpecieAlert}
@@ -483,15 +502,15 @@ export default function TotalTreesSpecies() {
   );
 }
 
-export const SpecieListItem = ({ item, index, deleteSpecie, setSpecieIndex }) => {
+export const SpecieListItem = ({ item, index, deleteSpecie }) => {
   const [specieImage, setSpecieImage] = useState();
   const [species, setSpecies] = useState();
   useEffect(() => {
-    getScientificSpeciesById(item?.id ? item?.id : item?.guid).then((specie) => {
+    getScientificSpeciesById(item?.id || item?.guid).then((specie) => {
       setSpecies(specie);
       setSpecieImage(specie.image);
     });
-  }, []);
+  }, [item]);
   return (
     <View
       key={index}
@@ -532,7 +551,9 @@ export const SpecieListItem = ({ item, index, deleteSpecie, setSpecieIndex }) =>
             color: Colors.TEXT_COLOR,
             fontStyle: 'italic',
           }}>
-          {species?.guid === 'unknown' || species?.id === 'unknown' ? 'Unknown' : item?.aliases}
+          {species?.guid === 'unknown' || species?.id === 'unknown'
+            ? i18next.t('label.select_species_unknown')
+            : item?.aliases}
         </Text>
         <Text
           style={{
