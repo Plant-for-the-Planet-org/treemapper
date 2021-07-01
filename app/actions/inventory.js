@@ -88,7 +88,7 @@ export const getAllInventoryFromServer = async (
   allInventory = [],
 ) => {
   try {
-    let data = await getAuthenticatedRequest(requestRoute);
+    let data = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
     let updatedAllInventory = data.data.items.concat(allInventory);
     if (data.data._links.next) {
       return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
