@@ -87,14 +87,22 @@ const AdditionalDataForm = () => {
     isSample: boolean;
     inventoryData?: any;
   }) => {
-    getForms().then((formsData: any) => {
-      const transformedData = [
+    getForms().then(async (formsData: any) => {
+      let transformedData = [
         {
           key: 'appVersion',
           value: version,
           accessType: accessTypes.APP,
         },
       ];
+
+      const metadata: any = await getMetadata();
+
+      for (const index in metadata) {
+        delete metadata[index].id;
+        delete metadata[index].order;
+      }
+      transformedData = [...transformedData, ...metadata];
 
       if (formsData) {
         formsData = sortByField('order', formsData);

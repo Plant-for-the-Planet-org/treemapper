@@ -100,10 +100,10 @@ export const getAllInventoryFromServer = () => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/treemapper/plantLocations')
       .then((data) => {
-        let exceptSampleTrees = data?.data?.items?.filter((inventory) => {
+        let exceptSampleTrees = data?.data?.filter((inventory) => {
           return inventory.type !== 'sample';
         });
-        let sampleTrees = data?.data?.items?.filter((inventory) => {
+        let sampleTrees = data?.data?.filter((inventory) => {
           return inventory.type === 'sample';
         });
         resolve([exceptSampleTrees, sampleTrees]);
