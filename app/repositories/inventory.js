@@ -927,18 +927,22 @@ export const addInventoryToDB = (inventoryFromServer) => {
           let species = [];
           let coordinates = [];
           //for single tree
-          if (inventoryFromServer.scientificSpecies) {
-            let specie = realm.objectForPrimaryKey(
-              'ScientificSpecies',
-              `${inventoryFromServer.scientificSpecies}`,
-            );
-            let aliases = specie.aliases ? specie.aliases : specie.scientificName;
-            let treeCount = parseInt(1);
-            let id = inventoryFromServer.scientificSpecies;
-            species.push({ aliases, treeCount, id });
+          if (inventoryFromServer.type === 'single') {
+            if (inventoryFromServer.scientificSpecies) {
+              let specie = realm.objectForPrimaryKey(
+                'ScientificSpecies',
+                `${inventoryFromServer.scientificSpecies}`,
+              );
+              let aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              let treeCount = parseInt(1);
+              let id = inventoryFromServer.scientificSpecies;
+              species.push({ aliases, treeCount, id });
+            } else {
+              species.push({ aliases: 'Unknown', treeCount: parseInt(1), id: 'unknown' });
+            }
           }
           //for multiple trees
-          else if (inventoryFromServer.plantedSpecies) {
+          else if (inventoryFromServer.type == 'multi') {
             for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
               let id;
               let specie;
@@ -995,12 +999,15 @@ export const addInventoryToDB = (inventoryFromServer) => {
           }
 
           const additionalDetails = getFormattedAdditionalDetails(inventoryFromServer.metadata);
-          const appMetadata = JSON.stringify(inventoryFromServer.metadata.app);
+          let appMetadata;
+          if (inventoryFromServer?.metadata?.app) {
+            appMetadata = JSON.stringify(inventoryFromServer.metadata.app);
+          }
 
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
-            plantation_date: inventoryFromServer.plantDate,
+            plantation_date: new Date(inventoryFromServer.plantDate.split(' ')[0]),
             treeType: inventoryFromServer.type,
             status: SYNCED,
             projectId: inventoryFromServer.plantProject,
@@ -1018,14 +1025,12 @@ export const addInventoryToDB = (inventoryFromServer) => {
                 ? inventoryFromServer.measurements.width
                 : null,
             tagId: inventoryFromServer.tag,
-            registrationDate: inventoryFromServer.registrationDate,
+            registrationDate: new Date(inventoryFromServer.registrationDate.split(' ')[0]),
             locationId: inventoryFromServer.id,
             additionalDetails,
             appMetadata,
           };
-          if (inventoryFromServer.type !== SAMPLE) {
-            realm.create('Inventory', inventoryData);
-          }
+          realm.create('Inventory', inventoryData);
 
           // logging the success in to the db
           dbLog.info({
@@ -1042,6 +1047,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
           message: 'Error while adding inventory',
           logStack: JSON.stringify(err),
         });
+        console.log(err, 'Error');
         bugsnag.notify(err);
         resolve(false);
       });
@@ -1077,7 +1083,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let specieHeight = sampleTreeFromServer.measurements.height;
           let tagId = sampleTreeFromServer.tag;
           let status = SYNCED;
-          let plantationDate = sampleTreeFromServer.plantDate;
+          let plantationDate = new Date(sampleTreeFromServer.plantDate.split(' ')[0]);
           let locationId = sampleTreeFromServer.id;
           let treeType = SAMPLE;
           let sampleTrees = inventory[0].sampleTrees;
@@ -1123,6 +1129,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
           message: `Error while Adding Sample Tree having location Id ${sampleTreeFromServer.id}`,
           logStack: JSON.stringify(err),
         });
+        console.log(err, 'Error');
         bugsnag.notify(err);
         resolve(false);
       });

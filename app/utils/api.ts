@@ -68,12 +68,21 @@ axiosInstance.interceptors.response.use(undefined, async (err) => {
   }
 });
 
-const request = async (
-  url: string,
-  method: string = 'GET',
-  isAuthenticated: boolean = false,
-  data: any = undefined,
-) => {
+interface RequestParams {
+  url: string;
+  method?: string;
+  isAuthenticated?: boolean;
+  data?: any;
+  header?: object;
+}
+
+const request = async ({
+  url,
+  method = 'GET',
+  isAuthenticated = false,
+  data = undefined,
+  header = {},
+}: RequestParams) => {
   return new Promise((resolve, reject) => {
     //  sets the options which is passed to axios to make the request
     let options: any = {
@@ -108,6 +117,7 @@ const request = async (
         // adds Authorization to headers in options
         options.headers = {
           Authorization: `Bearer ${accessToken}`,
+          ...header,
         };
 
         // returns a promise with axios instance
@@ -147,27 +157,32 @@ export const getExpirationTimeStamp = (token: string) => {
 };
 
 // calls the [request] function with [url]
-export const getRequest = (url: string) => request(url);
+export const getRequest = (url: string, header: object = {}) => request({ url, header });
 
 // calls the [request] function with [url] and [isAuthenticated = true]
-export const getAuthenticatedRequest = (url: string) => request(url, 'GET', true);
+export const getAuthenticatedRequest = (url: string, header: object = {}) =>
+  request({ url, isAuthenticated: true, header });
 
 // calls the [request] function with [url], [data], [method = 'POST'] and [isAuthenticated = false]
-export const postRequest = (url: string, data: any) => request(url, 'POST', false, data);
+export const postRequest = (url: string, data: any, header: object = {}) =>
+  request({ url, method: 'POST', isAuthenticated: false, data, header });
 
 // calls the [request] function with [url], [data], [method = 'POST'] and [isAuthenticated = true]
-export const postAuthenticatedRequest = (url: string, data: any) =>
-  request(url, 'POST', true, data);
+export const postAuthenticatedRequest = (url: string, data: any, header: object = {}) =>
+  request({ url, method: 'POST', isAuthenticated: true, data, header });
 
 // calls the [request] function with [url], [data], [method = 'PUT'] and [isAuthenticated = false]
-export const putRequest = (url: string, data: any) => request(url, 'PUT', false, data);
+export const putRequest = (url: string, data: any, header: object = {}) =>
+  request({ url, method: 'PUT', isAuthenticated: false, data, header });
 
 // calls the [request] function with [url], [data], [method = 'PUT'] and [isAuthenticated = true]
-export const putAuthenticatedRequest = (url: string, data: any) => request(url, 'PUT', true, data);
+export const putAuthenticatedRequest = (url: string, data: any, header: object = {}) =>
+  request({ url, method: 'PUT', isAuthenticated: true, data, header });
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = false]
-export const deleteRequest = (url: string, data = null) => request(url, 'DELETE', false, data);
+export const deleteRequest = (url: string, data = null, header: object = {}) =>
+  request({ url, method: 'DELETE', isAuthenticated: false, data, header });
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = true]
-export const deleteAuthenticatedRequest = (url: string, data = null) =>
-  request(url, 'DELETE', true, data);
+export const deleteAuthenticatedRequest = (url: string, data = null, header: object = {}) =>
+  request({ url, method: 'DELETE', isAuthenticated: true, data, header });
