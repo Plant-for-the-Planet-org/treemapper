@@ -7,6 +7,7 @@ import {
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
   UPDATE_PROGRESS_COUNT,
+  SET_SKIP_TO_INVENTORY_OVERVIEW,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 
@@ -80,6 +81,18 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   dispatch({
     type: IS_UPLOADING,
     payload: isUploading,
+  });
+};
+
+/**
+ * This function dispatches type SET_SKIP_TO_INVENTORY_OVERVIEW with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {boolean} skipToInventoryOverview - used to update the skipToInventoryOverview in inventory state
+ */
+export const setSkipToInventoryOverview = (skipToInventoryOverview) => (dispatch) => {
+  dispatch({
+    type: SET_SKIP_TO_INVENTORY_OVERVIEW,
+    payload: skipToInventoryOverview,
   });
 };
 

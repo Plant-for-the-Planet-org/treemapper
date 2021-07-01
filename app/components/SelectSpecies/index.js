@@ -1,12 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
-
 import { InventoryContext } from '../../reducers/inventory';
 import {
   getInventory,
   updateInventory,
   updateSingleTreeSpecie,
 } from '../../repositories/inventory';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
@@ -21,6 +20,7 @@ const SelectSpecies = () => {
 
   const { state } = useContext(InventoryContext);
   const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
     Inventory();
@@ -34,15 +34,19 @@ const SelectSpecies = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
         setInventory(inventoryData);
-
-        if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
-          if (
-            inventoryData?.status === INCOMPLETE_SAMPLE_TREE &&
-            inventoryData.sampleTrees[inventoryData.completedSampleTreesCount].specieId
-          ) {
-            setIsShowTreeMeasurement(true);
-          } else {
-            setIsShowTreeMeasurement(false);
+        if (route?.params?.specie) {
+          setIsShowTreeMeasurement(true);
+          addSpecieToInventory(route?.params?.specie, inventoryData);
+        } else {
+          if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
+            if (
+              inventoryData?.status === INCOMPLETE_SAMPLE_TREE &&
+              inventoryData.sampleTrees[inventoryData.completedSampleTreesCount].specieId
+            ) {
+              setIsShowTreeMeasurement(true);
+            } else {
+              setIsShowTreeMeasurement(false);
+            }
           }
         }
         setRegistrationType(inventoryData.treeType);
@@ -54,8 +58,9 @@ const SelectSpecies = () => {
     setIsShowTreeMeasurement(true);
   };
 
-  const addSpecieToInventory = (specie) => {
-    if (!isSampleTree) {
+  const addSpecieToInventory = (stringifiedSpecie, inventory) => {
+    let specie = JSON.parse(stringifiedSpecie);
+    if (inventory?.status !== INCOMPLETE_SAMPLE_TREE) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
         species: [
@@ -70,7 +75,6 @@ const SelectSpecies = () => {
       let updatedSampleTrees = [...inventory.sampleTrees];
       updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
       updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
-
       updateInventory({
         inventory_id: inventory.inventory_id,
         inventoryData: {

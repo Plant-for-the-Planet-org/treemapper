@@ -19,7 +19,10 @@ const AdditionalDataOverview = ({ data, isSampleTree = false }: Props) => {
       data,
       isSampleTree,
     });
-    const additionalDetails = [...appAdditionalDetails, ...data.additionalDetails];
+    let additionalDetails;
+    if (data) {
+      additionalDetails = [...appAdditionalDetails, ...data.additionalDetails];
+    }
     if (additionalDetails && additionalDetails.length > 0) {
       setMetadata(getFormattedMetadata(additionalDetails));
     } else {

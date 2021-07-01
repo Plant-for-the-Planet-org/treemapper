@@ -57,15 +57,18 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   const tagIdRef = React.createRef();
 
   useEffect(() => {
-    Inventory();
-    Country();
-  }, []);
+    if (!isTagIdPresent) {
+      setTagId('');
+    }
+  }, [isTagIdPresent]);
 
   useEffect(() => {
     setIsSampleTree(inventory?.status === INCOMPLETE_SAMPLE_TREE);
   }, [inventory]);
 
   useEffect(() => {
+    Inventory();
+    Country();
     setDiameter('');
     setHeight('');
     setTagId('');
@@ -214,7 +217,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }) => {
   };
 
   const postMeasurementUpdate = () => {
-    setIsShowTreeMeasurement(false);
     setDiameter('');
     setHeight('');
     setTagId('');

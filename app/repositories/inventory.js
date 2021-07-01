@@ -913,7 +913,6 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
           logStack: JSON.stringify(err),
         });
         reject(err);
-        console.log(err, 'err');
         bugsnag.notify(err);
       });
   });

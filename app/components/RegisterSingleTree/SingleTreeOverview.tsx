@@ -18,7 +18,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { deleteInventoryId } from '../../actions/inventory';
+import { deleteInventoryId, setSkipToInventoryOverview } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -63,8 +63,8 @@ import { updateSampleTree } from '../../utils/updateSampleTree';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
+import SpecieSampleTree from '../SpecieSampleTree';
 import ManageSpecies from '../ManageSpecies';
-
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -75,6 +75,7 @@ type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTr
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
+
   const [inventory, setInventory] = useState<any>();
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [isShowDate, setIsShowDate] = useState<boolean>(false);
@@ -100,6 +101,7 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
+  const [isIncompleteSampleTree, setIsIncompleteSampleTree] = useState<boolean>(false);
 
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -110,6 +112,9 @@ const SingleTreeOverview = () => {
     if (route?.params?.isSampleTree || route?.params?.totalSampleTrees) {
       setSampleTreeIndex(route.params.sampleTreeIndex);
       setTotalSampleTrees(route.params.totalSampleTrees);
+      setIsIncompleteSampleTree(
+        inventory?.sampleTrees[route.params.sampleTreeIndex].status === INCOMPLETE,
+      );
     }
   }, [route.params]);
 
@@ -174,6 +179,7 @@ const SingleTreeOverview = () => {
             : currentSampleTree.specieHeight;
 
           setSampleTreeIndex(index);
+          setIsIncompleteSampleTree(currentSampleTree.status === INCOMPLETE);
           setIsSampleTree(true);
           setSpecieText(currentSampleTree.specieName);
           setSpecieDiameter(diameter);
@@ -325,7 +331,8 @@ const SingleTreeOverview = () => {
     }
   };
 
-  const addSpecieNameToInventory = (specie: any) => {
+  const addSpecieNameToInventory = (stringifiedSpecie: any) => {
+    let specie = JSON.parse(stringifiedSpecie);
     if (!isSampleTree && !route?.params?.isSampleTree) {
       updateSingleTreeSpecie({
         inventory_id: inventory.inventory_id,
@@ -481,7 +488,6 @@ const SingleTreeOverview = () => {
     };
 
     return (
-      // <ScrollView>
       <View style={detailContainerStyle}>
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
@@ -599,7 +605,6 @@ const SingleTreeOverview = () => {
           isSampleTree={isSampleTree}
         />
       </View>
-      // </ScrollView>
     );
   };
 
@@ -620,15 +625,13 @@ const SingleTreeOverview = () => {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');
       }
-    }
-    // if (inventory.status === SYNCED || inventory.status === INCOMPLETE_SAMPLE_TREE)
-    else {
+    } else {
       navigation.navigate('TreeInventory');
     }
     return true;
   };
 
-  const onPressContinueToAdditionalData = () => {
+  const onPressContinue = () => {
     updateSampleTree({
       toUpdate: 'changeStatusToPending',
       inventory,
@@ -636,13 +639,18 @@ const SingleTreeOverview = () => {
       setInventory,
     })
       .then(() => {
+        setSkipToInventoryOverview(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
             index: 3,
             routes: [
               { name: 'MainScreen' },
               { name: 'TreeInventory' },
-              { name: 'AdditionalDataForm' },
+              {
+                name: inventoryState.skipToInventoryOverview
+                  ? 'InventoryOverview'
+                  : 'AdditionalDataForm',
+              },
             ],
           }),
         );
@@ -689,23 +697,54 @@ const SingleTreeOverview = () => {
         .catch(() => setIsError(true));
     }
   };
+
   const handleDeleteInventory = () => {
-    deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
-      .then(() => {
-        setShowDeleteAlert(!showDeleteAlert);
-        navigation.navigate('TreeInventory');
+    if (isSampleTree) {
+      let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
+      updateSampleTree({
+        toUpdate: 'deleteSampleTree',
+        sampleTreeIndex,
+        inventory,
+        setInventory,
       })
-      .catch((err) => console.error(err));
+        .then(() => {
+          setShowDeleteAlert(!showDeleteAlert);
+          if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
+            navigation.navigate('RecordSampleTrees');
+          } else {
+            setSkipToInventoryOverview(false)(dispatch);
+            navigation.navigate('InventoryOverview');
+          }
+        })
+        .catch((err) => console.error(err));
+    } else {
+      deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
+        .then(() => {
+          setShowDeleteAlert(!showDeleteAlert);
+          navigation.navigate('TreeInventory');
+        })
+        .catch((err) => console.error(err));
+    }
   };
 
   return isShowManageSpecies ? (
-    <ManageSpecies
-      onPressBack={() => setIsShowManageSpecies(false)}
-      registrationType={registrationType}
-      addSpecieToInventory={addSpecieNameToInventory}
-      editOnlySpecieName={true}
-      isSampleTree={isSampleTree}
-    />
+    isSampleTree ? (
+      <SpecieSampleTree
+        onPressBack={() => setIsShowManageSpecies(false)}
+        registrationType={registrationType}
+        addSpecieToInventory={addSpecieNameToInventory}
+        editOnlySpecieName={true}
+        isSampleTree={isSampleTree}
+      />
+    ) : (
+      <ManageSpecies
+        onPressBack={() => setIsShowManageSpecies(false)}
+        registrationType={registrationType}
+        addSpecieToInventory={addSpecieNameToInventory}
+        editOnlySpecieName={true}
+        isSampleTree={isSampleTree}
+      />
+    )
   ) : (
     <SafeAreaView style={styles.mainContainer}>
       <InputModal
@@ -753,7 +792,9 @@ const SingleTreeOverview = () => {
                   : i18next.t('label.tree_review_header')
               }
               rightText={
-                (status === INCOMPLETE || status === PENDING_DATA_UPLOAD) && !isSampleTree
+                status === INCOMPLETE ||
+                status === INCOMPLETE_SAMPLE_TREE ||
+                (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
                   ? i18next.t('label.tree_review_delete')
                   : ''
               }
@@ -787,11 +828,16 @@ const SingleTreeOverview = () => {
               halfWidth={true}
             />
           </View>
-        ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
+        ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 &&
+          isIncompleteSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressContinueToAdditionalData}
-              btnText={i18next.t('label.tree_review_continue_to_additional_data')}
+              onPress={onPressContinue}
+              btnText={
+                inventoryState.skipToInventoryOverview
+                  ? i18next.t('label.tree_review_continue_to_review')
+                  : i18next.t('label.tree_review_continue_to_additional_data')
+              }
             />
           </View>
         ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
