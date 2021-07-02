@@ -69,6 +69,7 @@ import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SpecieSampleTree from '../SpecieSampleTree';
 import ManageSpecies from '../ManageSpecies';
+import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -110,6 +111,10 @@ const SingleTreeOverview = () => {
     i18next.t('label.measurement_basal_diameter'),
   );
   const [isIncompleteSampleTree, setIsIncompleteSampleTree] = useState<boolean>(false);
+
+  const [inputErrorMessage, setInputErrorMessage] = useState<string>(
+    i18next.t('label.tree_inventory_input_error_message'),
+  );
 
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -180,10 +185,10 @@ const SingleTreeOverview = () => {
 
           const currentSampleTree = inventoryData.sampleTrees[index];
           const diameter = nonISUCountries.includes(data.country)
-            ? Math.round(currentSampleTree.specieDiameter * cmToInch * 100) / 100
+            ? Math.round(currentSampleTree.specieDiameter * cmToInch * 1000) / 1000
             : currentSampleTree.specieDiameter;
           const height = nonISUCountries.includes(data.country)
-            ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
+            ? Math.round(currentSampleTree.specieHeight * meterToFoot * 1000) / 1000
             : currentSampleTree.specieHeight;
 
           updateDiameterLabel(currentSampleTree.specieHeight);
@@ -202,11 +207,12 @@ const SingleTreeOverview = () => {
           setTotalSampleTrees(inventoryData.sampleTreesCount);
         } else {
           const diameter = nonISUCountries.includes(data.country)
-            ? Math.round(inventoryData.specieDiameter * cmToInch * 100) / 100
+            ? Math.round(inventoryData.specieDiameter * cmToInch * 1000) / 1000
             : inventoryData.specieDiameter;
           const height = nonISUCountries.includes(data.country)
-            ? Math.round(inventoryData.specieHeight * meterToFoot * 100) / 100
+            ? Math.round(inventoryData.specieHeight * meterToFoot * 1000) / 1000
             : inventoryData.specieHeight;
+          console.log('inventoryData.specieHeight', inventoryData.specieHeight);
 
           if (inventoryData.projectId) {
             const project: any = await getProjectById(inventoryData.projectId);
@@ -273,93 +279,124 @@ const SingleTreeOverview = () => {
     const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
     const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
 
-    if (
-      action === 'diameter' &&
-      specieEditDiameter !== '' &&
-      Number(specieEditDiameter) >= diameterMinValue &&
-      Number(specieEditDiameter) <= diameterMaxValue &&
-      dimensionRegex.test(specieEditDiameter)
-    ) {
-      setSpecieDiameter(specieEditDiameter);
-      const refactoredSpecieDiameter: number = getConvertedDiameter();
+    switch (action) {
+      case 'diameter':
+        if (
+          !specieEditDiameter ||
+          Number(specieEditDiameter) < diameterMinValue ||
+          Number(specieEditDiameter) > diameterMaxValue
+        ) {
+          setInputErrorMessage(
+            i18next.t('label.select_species_diameter_more_than_error', {
+              minValue: diameterMinValue,
+              maxValue: diameterMaxValue,
+            }),
+          );
+          setShowInputError(true);
+        } else if (!dimensionRegex.test(specieEditDiameter)) {
+          setInputErrorMessage(i18next.t('label.select_species_diameter_invalid'));
+          setShowInputError(true);
+        } else {
+          const refactoredSpecieDiameter: number = getConvertedDiameter();
 
-      const isRatioCorrect = getIsMeasurementRatioCorrect();
+          const isRatioCorrect = getIsMeasurementRatioCorrect({
+            height: getConvertedHeight(),
+            diameter: refactoredSpecieDiameter,
+          });
 
-      if (isRatioCorrect && !forceContinue) {
-        setShowIncorrectRatioAlert(true);
-        return;
-      }
+          if (!isRatioCorrect && !forceContinue) {
+            setShowIncorrectRatioAlert(true);
+            return;
+          }
+          setSpecieDiameter(specieEditDiameter);
 
-      if (!isSampleTree && !route?.params?.isSampleTree) {
-        updateSpecieDiameter({
-          inventory_id: inventory.inventory_id,
-          speciesDiameter: refactoredSpecieDiameter,
-        });
-      } else {
-        updateSampleTree({
-          toUpdate: action,
-          value: refactoredSpecieDiameter,
-          inventory,
-          sampleTreeIndex,
-          setInventory,
-        });
-      }
-      setIsOpenModal(false);
-    } else if (
-      action === 'height' &&
-      specieEditHeight !== '' &&
-      Number(specieEditHeight) >= heightMinValue &&
-      Number(specieEditHeight) <= heightMaxValue &&
-      dimensionRegex.test(specieEditHeight)
-    ) {
-      setSpecieHeight(specieEditHeight);
-      const refactoredSpecieHeight = getConvertedHeight();
+          if (!isSampleTree && !route?.params?.isSampleTree) {
+            updateSpecieDiameter({
+              inventory_id: inventory.inventory_id,
+              speciesDiameter: refactoredSpecieDiameter,
+            });
+          } else {
+            updateSampleTree({
+              toUpdate: action,
+              value: refactoredSpecieDiameter,
+              inventory,
+              sampleTreeIndex,
+              setInventory,
+            });
+          }
+        }
+        break;
+      case 'height':
+        if (
+          !specieEditHeight ||
+          Number(specieEditHeight) < heightMinValue ||
+          Number(specieEditHeight) > heightMaxValue
+        ) {
+          setInputErrorMessage(
+            i18next.t('label.select_species_height_more_than_error', {
+              minValue: heightMinValue,
+              maxValue: heightMaxValue,
+            }),
+          );
+          setShowInputError(true);
+        } else if (!dimensionRegex.test(specieEditHeight)) {
+          setInputErrorMessage(i18next.t('label.select_species_height_invalid'));
+          setShowInputError(true);
+        } else {
+          const refactoredSpecieHeight = getConvertedHeight();
 
-      const isRatioCorrect = getIsMeasurementRatioCorrect();
+          const isRatioCorrect = getIsMeasurementRatioCorrect({
+            height: refactoredSpecieHeight,
+            diameter: getConvertedDiameter(),
+          });
 
-      if (isRatioCorrect && !forceContinue) {
-        setShowIncorrectRatioAlert(true);
-        return;
-      }
+          if (!isRatioCorrect && !forceContinue) {
+            setShowIncorrectRatioAlert(true);
+            return;
+          }
+          setSpecieHeight(specieEditHeight);
 
-      updateDiameterLabel(refactoredSpecieHeight);
+          updateDiameterLabel(refactoredSpecieHeight);
 
-      if (!isSampleTree && !route?.params?.isSampleTree) {
-        updateSpecieHeight({
-          inventory_id: inventory.inventory_id,
-          speciesHeight: refactoredSpecieHeight,
-        });
-      } else {
-        updateSampleTree({
-          toUpdate: action,
-          value: refactoredSpecieHeight,
-          inventory,
-          sampleTreeIndex,
-          setInventory,
-        });
-      }
-      setIsOpenModal(false);
-    } else if (action === 'tagId') {
-      setTagId(editedTagId);
-      if (!isSampleTree && !route?.params?.isSampleTree) {
-        updateTreeTag({
-          inventoryId: inventory.inventory_id,
-          tagId: editedTagId,
-        });
-      } else {
-        updateSampleTree({
-          toUpdate: action,
-          value: editedTagId,
-          inventory,
-          sampleTreeIndex,
-          setInventory,
-        });
-      }
-      setIsOpenModal(false);
-    } else {
-      setShowInputError(true);
-      setIsOpenModal(false);
+          if (!isSampleTree && !route?.params?.isSampleTree) {
+            updateSpecieHeight({
+              inventory_id: inventory.inventory_id,
+              speciesHeight: refactoredSpecieHeight,
+            });
+          } else {
+            updateSampleTree({
+              toUpdate: action,
+              value: refactoredSpecieHeight,
+              inventory,
+              sampleTreeIndex,
+              setInventory,
+            });
+          }
+        }
+        break;
+      case 'tagId':
+        setTagId(editedTagId);
+        if (!isSampleTree && !route?.params?.isSampleTree) {
+          updateTreeTag({
+            inventoryId: inventory.inventory_id,
+            tagId: editedTagId,
+          });
+        } else {
+          updateSampleTree({
+            toUpdate: action,
+            value: editedTagId,
+            inventory,
+            sampleTreeIndex,
+            setInventory,
+          });
+        }
+        break;
+      default:
+        setInputErrorMessage(i18next.t('label.tree_inventory_input_error_message'));
+        setShowInputError(true);
     }
+
+    setIsOpenModal(false);
     setEditEnable('');
   };
 
@@ -528,11 +565,11 @@ const SingleTreeOverview = () => {
       let text = i18next.t('label.tree_review_unable');
 
       if (measurement && isNonISUCountry) {
-        text = ` ${Math.round(Number(measurement) * 100) / 100} ${i18next.t(
+        text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
           unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
         )} `;
       } else if (measurement) {
-        text = ` ${Math.round(Number(measurement) * 100) / 100} ${unit} `;
+        text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
       }
       return text;
     };
@@ -776,17 +813,6 @@ const SingleTreeOverview = () => {
     }
   };
 
-  // checks and return [boolean] whether height to diameter ratio is in between the min and max ratio range
-  const getIsMeasurementRatioCorrect = () => {
-    const currentHeightDiameterRatio =
-      (getConvertedHeight() * meterToCentimeter) / getConvertedDiameter();
-
-    return (
-      currentHeightDiameterRatio >= minHeightDiameterRatio &&
-      currentHeightDiameterRatio <= maxHeightDiameterRatio
-    );
-  };
-
   return isShowManageSpecies ? (
     isSampleTree ? (
       <SpecieSampleTree
@@ -933,11 +959,7 @@ const SingleTreeOverview = () => {
             ? i18next.t('label.something_went_wrong')
             : i18next.t('label.tree_inventory_input_error')
         }
-        message={
-          isError
-            ? i18next.t('label.error_saving_inventory')
-            : i18next.t('label.tree_inventory_input_error_message')
-        }
+        message={isError ? i18next.t('label.error_saving_inventory') : inputErrorMessage}
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => {
           setIsError(false);
@@ -949,7 +971,14 @@ const SingleTreeOverview = () => {
         heading={i18next.t('label.not_optimal_ratio')}
         message={i18next.t('label.not_optimal_ratio_message')}
         primaryBtnText={i18next.t('label.check_again')}
-        onPressPrimaryBtn={() => setShowIncorrectRatioAlert(false)}
+        onPressPrimaryBtn={() => {
+          setShowIncorrectRatioAlert(false);
+          if (editEnable === 'diameter') {
+            setSpecieEditDiameter(specieDiameter);
+          } else {
+            setSpecieEditHeight(specieHeight);
+          }
+        }}
         showSecondaryButton
         secondaryBtnText={i18next.t('label.continue')}
         onPressSecondaryBtn={() => {

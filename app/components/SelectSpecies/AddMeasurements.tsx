@@ -42,6 +42,7 @@ import {
 } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import dbLog from '../../repositories/logs';
+import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 
 export const AddMeasurements = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState('');
@@ -155,7 +156,10 @@ export const AddMeasurements = () => {
 
     // if all fields are valid then updates the specie data in DB
     if (isDiameterValid && isHeightValid && isTagIdValid) {
-      const isRatioCorrect = getIsMeasurementRatioCorrect();
+      const isRatioCorrect = getIsMeasurementRatioCorrect({
+        height: getConvertedHeight(),
+        diameter: getConvertedDiameter(),
+      });
 
       if (isRatioCorrect) {
         addMeasurements();
@@ -163,17 +167,6 @@ export const AddMeasurements = () => {
         setShowIncorrectRatioAlert(true);
       }
     }
-  };
-
-  // checks and return [boolean] whether height to diameter ratio is in between the min and max ratio range
-  const getIsMeasurementRatioCorrect = () => {
-    const currentHeightDiameterRatio =
-      (getConvertedHeight() * meterToCentimeter) / getConvertedDiameter();
-
-    return (
-      currentHeightDiameterRatio >= minHeightDiameterRatio &&
-      currentHeightDiameterRatio <= maxHeightDiameterRatio
-    );
   };
 
   // returns the converted diameter by checking the user's country metric
