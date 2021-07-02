@@ -1,10 +1,9 @@
-import { bugsnag } from '../utils';
-import { LogLevels, TLogLevels, TLogTypes } from '../utils/constants';
-import { v4 as uuidv4 } from 'uuid';
-import { LogTypes } from '../utils/constants';
-import { getSchema } from './default';
 import Realm from 'realm';
+import { v4 as uuidv4 } from 'uuid';
 import { version } from '../../package.json';
+import { bugsnag } from '../utils';
+import { LogLevels, LogTypes, TLogLevels, TLogTypes } from '../utils/constants';
+import { getSchema } from './default';
 
 interface ILogDataParams {
   id?: string;

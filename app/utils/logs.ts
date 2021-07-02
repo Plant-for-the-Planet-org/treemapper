@@ -17,9 +17,7 @@ export const dailyLogUpdateCheck = async () => {
 //to retrieve the updatedLogDate from AsyncStorage
 const getLogUpdateDate = async () => {
   try {
-    const updatedLogDate = await AsyncStorage.getItem('updatedLogDate');
-
-    return updatedLogDate;
+    return await AsyncStorage.getItem('updatedLogDate');
   } catch (err) {
     dbLog.error({
       logType: LogTypes.OTHER,
