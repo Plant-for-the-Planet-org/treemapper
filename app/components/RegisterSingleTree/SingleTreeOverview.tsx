@@ -48,10 +48,7 @@ import {
   heightMinFoot,
   heightMinM,
   inchToCm,
-  maxHeightDiameterRatio,
-  meterToCentimeter,
   meterToFoot,
-  minHeightDiameterRatio,
   nonISUCountries,
 } from '../../utils/constants';
 import {

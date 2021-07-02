@@ -22,10 +22,7 @@ import {
   heightMinM,
   inchToCm,
   LogTypes,
-  maxHeightDiameterRatio,
-  meterToCentimeter,
   meterToFoot,
-  minHeightDiameterRatio,
   nonISUCountries,
 } from '../../utils/constants';
 import i18next from 'i18next';
