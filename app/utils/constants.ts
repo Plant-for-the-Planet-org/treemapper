@@ -51,6 +51,9 @@ export const DBHInMeter = 1.3;
 // multiplication factor to convert foot to meter
 export const footToMeter: number = 0.3048;
 
+// multiplication factor to convert meter to centimeter
+export const meterToCentimeter: number = 100;
+
 // multiplication factor to convert inch to centimeter
 export const inchToCm: number = 2.54;
 
@@ -83,6 +86,12 @@ export const heightMinFoot: number = 0.0328;
 
 // max height value in foot
 export const heightMaxFoot: number = 656.1679;
+
+// minimum ratio of height:diameter
+export const minHeightDiameterRatio: number = 2 / 1;
+
+// maximum ratio of height:diameter
+export const maxHeightDiameterRatio: number = 160 / 1;
 
 // countries which does not follow International System of Units for measurements
 export const nonISUCountries = ['US', 'LR', 'MM'];

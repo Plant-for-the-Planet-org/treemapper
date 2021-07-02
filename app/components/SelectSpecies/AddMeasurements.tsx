@@ -22,12 +22,15 @@ import {
   heightMinM,
   inchToCm,
   LogTypes,
+  maxHeightDiameterRatio,
+  meterToCentimeter,
   meterToFoot,
+  minHeightDiameterRatio,
   nonISUCountries,
 } from '../../utils/constants';
 import i18next from 'i18next';
 import { Colors, Typography } from '../../styles';
-import { Header, PrimaryButton } from '../Common';
+import { AlertModal, Header, PrimaryButton } from '../Common';
 import OutlinedInput from '../Common/OutlinedInput';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../reducers/inventory';
@@ -59,6 +62,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
   const [diameterLabel, setDiameterLabel] = useState<string>(
     i18next.t('label.measurement_basal_diameter'),
   );
+  const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
 
   const { state } = useContext(InventoryContext);
   const navigation = useNavigation();
@@ -115,7 +119,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
     const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
     const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
 
-    // sets diameter error if diameter less than 0.1 or is invalid input
+    // sets diameter error if diameter is not in between the minimum and maximum values or is invalid input
     if (!diameter || Number(diameter) < diameterMinValue || Number(diameter) > diameterMaxValue) {
       setDiameterError(
         i18next.t('label.select_species_diameter_more_than_error', {
@@ -130,7 +134,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
       isDiameterValid = true;
     }
 
-    // sets height error if height less than 0.1 or is invalid input
+    // sets height error if height is not in between the minimum and maximum values or is invalid input
     if (!height || Number(height) < heightMinValue || Number(height) > heightMaxValue) {
       setHeightError(
         i18next.t('label.select_species_height_more_than_error', {
@@ -145,6 +149,7 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
       isHeightValid = true;
     }
 
+    // checks if tag id is present and sets error accordingly
     if (isTagIdPresent && !tagId) {
       setTagIdError(i18next.t('label.select_species_tag_id_required'));
     } else {
@@ -154,76 +159,104 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
 
     // if all fields are valid then updates the specie data in DB
     if (isDiameterValid && isHeightValid && isTagIdValid) {
-      setDiameterError('');
-      setHeightError('');
-      setTagIdError('');
+      const isRatioCorrect = getIsMeasurementRatioCorrect();
 
-      const convertedDiameter = nonISUCountries.includes(countryCode)
-        ? Number(diameter) * inchToCm
-        : Number(diameter);
-
-      const convertedHeight = nonISUCountries.includes(countryCode)
-        ? Number(height) * footToMeter
-        : Number(height);
-
-      if (!isSampleTree) {
-        updateSpecieAndMeasurements({
-          inventoryId: inventory.inventory_id,
-          species: [singleTreeSpecie],
-          diameter: convertedDiameter,
-          height: convertedHeight,
-          tagId,
-        })
-          .then(() => {
-            postMeasurementUpdate();
-          })
-          .catch((err) => {
-            console.error(err);
-          });
+      if (isRatioCorrect) {
+        addMeasurements();
       } else {
-        let updatedSampleTrees = [...inventory.sampleTrees];
-        updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter = convertedDiameter;
-        updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = convertedHeight;
-        if (tagId) {
-          updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
-        }
-
-        updateInventory({
-          inventory_id: inventory.inventory_id,
-          inventoryData: {
-            sampleTrees: [...updatedSampleTrees],
-          },
-        })
-          .then(() => {
-            dbLog.info({
-              logType: LogTypes.INVENTORY,
-              message: `Successfully added measurements for sample tree #${
-                inventory.completedSampleTreesCount + 1
-              } having inventory_id: ${inventory.inventory_id}`,
-            });
-            postMeasurementUpdate();
-          })
-          .catch((err) => {
-            dbLog.error({
-              logType: LogTypes.INVENTORY,
-              message: `Error while adding measurements for sample tree #${
-                inventory.completedSampleTreesCount + 1
-              } having inventory_id: ${inventory.inventory_id}`,
-              logStack: JSON.stringify(err),
-            });
-            console.error(
-              `Error while adding measurements for sample tree #${
-                inventory.completedSampleTreesCount + 1
-              } having inventory_id: ${inventory.inventory_id}`,
-              err,
-            );
-          });
+        setShowIncorrectRatioAlert(true);
       }
     }
   };
 
+  // checks and return [boolean] whether height to diameter ratio is in between the min and max ratio range
+  const getIsMeasurementRatioCorrect = () => {
+    const currentHeightDiameterRatio =
+      (getConvertedHeight() * meterToCentimeter) / getConvertedDiameter();
+
+    return (
+      currentHeightDiameterRatio >= minHeightDiameterRatio &&
+      currentHeightDiameterRatio <= maxHeightDiameterRatio
+    );
+  };
+
+  // returns the converted diameter by checking the user's country metric
+  const getConvertedDiameter = (treeDiameter: string = diameter) => {
+    return nonISUCountries.includes(countryCode)
+      ? Number(treeDiameter) * inchToCm
+      : Number(treeDiameter);
+  };
+
+  // returns the converted height by checking the user's country metric
+  const getConvertedHeight = (treeHeight: string = height) => {
+    return nonISUCountries.includes(countryCode)
+      ? Number(treeHeight) * footToMeter
+      : Number(treeHeight);
+  };
+
+  // adds height, diameter and tag in DB by checking the tree type
+  const addMeasurements = () => {
+    if (!isSampleTree) {
+      updateSpecieAndMeasurements({
+        inventoryId: inventory.inventory_id,
+        species: [singleTreeSpecie],
+        diameter: getConvertedDiameter(),
+        height: getConvertedHeight(),
+        tagId,
+      })
+        .then(() => {
+          postMeasurementUpdate();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } else {
+      let updatedSampleTrees = [...inventory.sampleTrees];
+      updatedSampleTrees[
+        inventory.completedSampleTreesCount
+      ].specieDiameter = getConvertedDiameter();
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = getConvertedHeight();
+      if (tagId) {
+        updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
+      }
+
+      updateInventory({
+        inventory_id: inventory.inventory_id,
+        inventoryData: {
+          sampleTrees: [...updatedSampleTrees],
+        },
+      })
+        .then(() => {
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully added measurements for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+          });
+          postMeasurementUpdate();
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Error while adding measurements for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
+          });
+          console.error(
+            `Error while adding measurements for sample tree #${
+              inventory.completedSampleTreesCount + 1
+            } having inventory_id: ${inventory.inventory_id}`,
+            err,
+          );
+        });
+    }
+  };
+
+  // resets the state and navigate user to next screen
   const postMeasurementUpdate = () => {
     setIsShowTreeMeasurement(false);
+    setShowIncorrectRatioAlert(false);
     setDiameter('');
     setHeight('');
     setTagId('');
@@ -243,17 +276,16 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
   };
 
   const handleHeightChange = (text: string) => {
-    const convertedHeight = nonISUCountries.includes(countryCode)
-      ? Number(height) * footToMeter
-      : Number(height);
+    const convertedHeight = text ? getConvertedHeight(text) : 0;
+
+    setHeightError('');
+    setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
 
     if (convertedHeight < DBHInMeter) {
       setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
     } else {
       setDiameterLabel(i18next.t('label.measurement_DBH'));
     }
-    setHeightError('');
-    setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
   };
 
   const isNonISUCountry = nonISUCountries.includes(countryCode);
@@ -372,6 +404,19 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
             </View>
           </KeyboardAvoidingView>
         </View>
+        <AlertModal
+          visible={showIncorrectRatioAlert}
+          heading={i18next.t('label.not_optimal_ratio')}
+          message={i18next.t('label.not_optimal_ratio_message')}
+          primaryBtnText={i18next.t('label.check_again')}
+          onPressPrimaryBtn={() => setShowIncorrectRatioAlert(false)}
+          showSecondaryButton
+          secondaryBtnText={i18next.t('label.continue')}
+          onPressSecondaryBtn={() => {
+            setShowIncorrectRatioAlert(false);
+            addMeasurements();
+          }}
+        />
       </SafeAreaView>
     </View>
   );

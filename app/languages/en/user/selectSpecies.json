@@ -54,5 +54,8 @@
   "species_sync_might_take_time": "Syncing species, this might take some time.",
   "all_species_synced": "All species are synced.",
   "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first.",
-  "measurement_diameter_info":"If a tree is over {{height}} {{unit}} tall, please measure the stem diameter at {{height}} {{unit}} (DBH). Otherwise, please measure stem diameter at the base of the tree (Basal Diameter)"
+  "measurement_diameter_info":"If a tree is over {{height}} {{unit}} tall, please measure the stem diameter at {{height}} {{unit}} (DBH). Otherwise, please measure stem diameter at the base of the tree (Basal Diameter)",
+  "check_again":"Check again",
+  "not_optimal_ratio": "Not optimal ratio",
+  "not_optimal_ratio_message": "The height to diameter ratio does not fall between the optimal ratio range which is between 2:1 (minimum height:diameter) and 160:1 (maximum height:diameter). Are you sure do you want to continue?"
 }

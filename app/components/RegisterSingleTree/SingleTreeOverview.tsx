@@ -37,6 +37,7 @@ import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import {
   cmToInch,
+  DBHInMeter,
   diameterMaxCm,
   diameterMaxInch,
   diameterMinCm,
@@ -47,7 +48,10 @@ import {
   heightMinFoot,
   heightMinM,
   inchToCm,
+  maxHeightDiameterRatio,
+  meterToCentimeter,
   meterToFoot,
+  minHeightDiameterRatio,
   nonISUCountries,
 } from '../../utils/constants';
 import {
@@ -100,6 +104,13 @@ const SingleTreeOverview = () => {
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
+  const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
+  const [diameterLabel, setDiameterLabel] = useState<string>(
+    i18next.t('label.measurement_basal_diameter'),
+  );
+  const [buttonAction, setButtonAction] = useState<'save' | 'next-tree' | 'additional-data'>(
+    'save',
+  );
 
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -173,6 +184,8 @@ const SingleTreeOverview = () => {
             ? Math.round(currentSampleTree.specieHeight * meterToFoot * 100) / 100
             : currentSampleTree.specieHeight;
 
+          updateDiameterLabel(currentSampleTree.specieHeight);
+
           setSampleTreeIndex(index);
           setIsSampleTree(true);
           setSpecieText(currentSampleTree.specieName);
@@ -203,6 +216,8 @@ const SingleTreeOverview = () => {
             setSelectedProjectId('');
           }
 
+          updateDiameterLabel(inventoryData.specieHeight);
+
           setSpecieText(inventoryData.species[0].aliases);
           setSpecieDiameter(diameter);
           setSpecieEditDiameter(diameter);
@@ -216,7 +231,33 @@ const SingleTreeOverview = () => {
     });
   };
 
-  const onSubmitInputField = (action: string) => {
+  const updateDiameterLabel = (convertedHeight: number) => {
+    if (convertedHeight < DBHInMeter) {
+      setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+    } else {
+      setDiameterLabel(i18next.t('label.measurement_DBH'));
+    }
+  };
+
+  const getConvertedDiameter = (treeDiameter = specieEditDiameter) => {
+    return nonISUCountries.includes(countryCode)
+      ? Number(treeDiameter) * inchToCm
+      : Number(treeDiameter);
+  };
+
+  const getConvertedHeight = (treeHeight = specieEditHeight) => {
+    return nonISUCountries.includes(countryCode)
+      ? Number(treeHeight) * footToMeter
+      : Number(treeHeight);
+  };
+
+  const onSubmitInputField = ({
+    action,
+    forceContinue = false,
+  }: {
+    action: string;
+    forceContinue?: boolean;
+  }) => {
     const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
 
     const diameterMinValue = nonISUCountries.includes(countryCode)
@@ -237,9 +278,14 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditDiameter)
     ) {
       setSpecieDiameter(specieEditDiameter);
-      const refactoredSpecieDiameter: number = nonISUCountries.includes(countryCode)
-        ? Number(specieEditDiameter) * inchToCm
-        : Number(specieEditDiameter);
+      const refactoredSpecieDiameter: number = getConvertedDiameter();
+
+      const isRatioCorrect = getIsMeasurementRatioCorrect();
+
+      if (isRatioCorrect && !forceContinue) {
+        setShowIncorrectRatioAlert(true);
+        return;
+      }
 
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieDiameter({
@@ -264,9 +310,16 @@ const SingleTreeOverview = () => {
       dimensionRegex.test(specieEditHeight)
     ) {
       setSpecieHeight(specieEditHeight);
-      const refactoredSpecieHeight = nonISUCountries.includes(countryCode)
-        ? Number(specieEditHeight) * footToMeter
-        : Number(specieEditHeight);
+      const refactoredSpecieHeight = getConvertedHeight();
+
+      const isRatioCorrect = getIsMeasurementRatioCorrect();
+
+      if (isRatioCorrect && !forceContinue) {
+        setShowIncorrectRatioAlert(true);
+        return;
+      }
+
+      updateDiameterLabel(refactoredSpecieHeight);
 
       if (!isSampleTree && !route?.params?.isSampleTree) {
         updateSpecieHeight({
@@ -499,24 +552,9 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
         <View style={{ marginVertical: 5 }}>
-          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_diameter_header')}</Text>
-          <TouchableOpacity
-            disabled={!shouldEdit}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => onPressEditSpecies('diameter')}
-            accessibilityLabel={i18next.t('label.tree_review_diameter')}
-            testID="diameter_btn"
-            accessible={true}>
-            <FIcon name={'arrow-h'} style={styles.detailText} />
-            <Text style={styles.detailText}>
-              {getConvertedMeasurementText(specieDiameter)}
-              {shouldEdit && <MIcon name={'edit'} size={20} />}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ marginVertical: 5 }}>
-          <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_height_header')}</Text>
+          <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
             style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -527,6 +565,22 @@ const SingleTreeOverview = () => {
             <FIcon name={'arrow-v'} style={styles.detailText} />
             <Text style={styles.detailText}>
               {getConvertedMeasurementText(specieHeight, 'm')}
+              {shouldEdit && <MIcon name={'edit'} size={20} />}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ marginVertical: 5 }}>
+          <Text style={detailHeaderStyle}>{diameterLabel}</Text>
+          <TouchableOpacity
+            disabled={!shouldEdit}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => onPressEditSpecies('diameter')}
+            accessibilityLabel={i18next.t('label.tree_review_diameter')}
+            testID="diameter_btn"
+            accessible={true}>
+            <FIcon name={'arrow-h'} style={styles.detailText} />
+            <Text style={styles.detailText}>
+              {getConvertedMeasurementText(specieDiameter)}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
@@ -549,9 +603,7 @@ const SingleTreeOverview = () => {
         </View>
         {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
           <View style={{ marginVertical: 5 }}>
-            <Text style={detailHeaderStyle}>
-              {i18next.t('label.tree_review_project').toUpperCase()}
-            </Text>
+            <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_project')}</Text>
             <TouchableOpacity
               disabled={!shouldEdit}
               onPress={() => onPressEditSpecies('project')}
@@ -698,6 +750,17 @@ const SingleTreeOverview = () => {
       .catch((err) => console.error(err));
   };
 
+  // checks and return [boolean] whether height to diameter ratio is in between the min and max ratio range
+  const getIsMeasurementRatioCorrect = () => {
+    const currentHeightDiameterRatio =
+      (getConvertedHeight() * meterToCentimeter) / getConvertedDiameter();
+
+    return (
+      currentHeightDiameterRatio >= minHeightDiameterRatio &&
+      currentHeightDiameterRatio <= maxHeightDiameterRatio
+    );
+  };
+
   return isShowManageSpecies ? (
     <ManageSpecies
       onPressBack={() => setIsShowManageSpecies(false)}
@@ -726,7 +789,7 @@ const SingleTreeOverview = () => {
             ? setSpecieEditHeight
             : setEditedTagId
         }
-        onSubmitInputField={() => onSubmitInputField(editEnable)}
+        onSubmitInputField={() => onSubmitInputField({ action: editEnable })}
       />
       {renderDateModal()}
       <View style={styles.container}>
@@ -782,7 +845,7 @@ const SingleTreeOverview = () => {
               halfWidth={true}
             />
             <PrimaryButton
-              onPress={onPressNextTree}
+              onPress={() => onPressNextTree()}
               btnText={i18next.t('label.tree_review_next_btn')}
               halfWidth={true}
             />
@@ -790,7 +853,7 @@ const SingleTreeOverview = () => {
         ) : inventory?.sampleTreesCount === inventory?.completedSampleTreesCount + 1 ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressContinueToAdditionalData}
+              onPress={() => onPressContinueToAdditionalData()}
               btnText={i18next.t('label.tree_review_continue_to_additional_data')}
             />
           </View>
@@ -798,7 +861,7 @@ const SingleTreeOverview = () => {
           !route?.params?.isSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={onPressNextTree}
+              onPress={() => onPressNextTree()}
               btnText={i18next.t('label.tree_review_next_btn')}
             />
           </View>
@@ -836,6 +899,19 @@ const SingleTreeOverview = () => {
         onPressPrimaryBtn={() => {
           setIsError(false);
           setShowInputError(false);
+        }}
+      />
+      <AlertModal
+        visible={showIncorrectRatioAlert}
+        heading={i18next.t('label.not_optimal_ratio')}
+        message={i18next.t('label.not_optimal_ratio_message')}
+        primaryBtnText={i18next.t('label.check_again')}
+        onPressPrimaryBtn={() => setShowIncorrectRatioAlert(false)}
+        showSecondaryButton
+        secondaryBtnText={i18next.t('label.continue')}
+        onPressSecondaryBtn={() => {
+          setShowIncorrectRatioAlert(false);
+          onSubmitInputField({ action: editEnable, forceContinue: true });
         }}
       />
     </SafeAreaView>
