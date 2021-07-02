@@ -29,7 +29,8 @@ const AdditionalDataForm = () => {
   const [forms, setForms] = useState<any>([]);
   const [currentFormIndex, setCurrentFormIndex] = useState<number>(0);
   const [treeType, setTreeType] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingText, setLoadingText] = useState<string>(i18next.t('label.loading_form'));
   const [headingText, setHeadingText] = useState<string>(i18next.t('label.additional_data'));
   const [formData, setFormData] = useState<any>({});
   const [formAccessType, setFormAccessType] = useState<any>({});
@@ -56,7 +57,12 @@ const AdditionalDataForm = () => {
               inventoryData.status === INCOMPLETE_SAMPLE_TREE &&
               inventoryData.completedSampleTreesCount !== inventoryData.sampleTreesCount;
             setIsSampleTree(isSample);
-            addFormsToState(inventoryData.treeType, inventoryData.locateTree, isSample);
+            addFormsToState({
+              treeType: inventoryData.treeType,
+              registrationType: inventoryData.locateTree,
+              isSample,
+              inventoryData,
+            });
           }
         });
       }
@@ -70,15 +76,33 @@ const AdditionalDataForm = () => {
     );
   };
 
-  const addFormsToState = (treeType: string, registrationType: string, isSample: boolean) => {
-    getForms().then((formsData: any) => {
-      const transformedData = [
+  const addFormsToState = ({
+    treeType,
+    registrationType,
+    isSample,
+    inventoryData,
+  }: {
+    treeType: string;
+    registrationType: string;
+    isSample: boolean;
+    inventoryData?: any;
+  }) => {
+    getForms().then(async (formsData: any) => {
+      let transformedData = [
         {
           key: 'appVersion',
           value: version,
           accessType: accessTypes.APP,
         },
       ];
+
+      const metadata: any = await getMetadata();
+
+      for (const index in metadata) {
+        delete metadata[index].id;
+        delete metadata[index].order;
+      }
+      transformedData = [...transformedData, ...metadata];
 
       if (formsData) {
         formsData = sortByField('order', formsData);
@@ -93,6 +117,19 @@ const AdditionalDataForm = () => {
         const shouldShowForm =
           formsData && formsData.length > 0 && formsData[0].elements.length > 0;
 
+        if (!shouldShowForm) {
+          setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
+
+          addAdditionalDataToDB({
+            transformedData,
+            isSample,
+            disableNavigation: true,
+            inventoryData,
+          });
+          setTimeout(() => navigate(treeType, isSample), 2000);
+          return;
+        }
+
         setForms(formsData);
 
         let data: any = {};
@@ -101,9 +138,9 @@ const AdditionalDataForm = () => {
         for (const form of formsData) {
           for (const element of form.elements) {
             if (element.type !== elementsType.GAP && element.type !== elementsType.HEADING) {
-              const yseNoValue = element.defaultValue ? 'yes' : 'no';
+              const yesNoValue = element.defaultValue ? 'yes' : 'no';
               data[element.key] =
-                typeof element.defaultValue === 'boolean' ? yseNoValue : element.defaultValue;
+                typeof element.defaultValue === 'boolean' ? yesNoValue : element.defaultValue;
               formAccessTypes[element.key] = element.accessType;
             }
             initialErrors[element.key] = '';
@@ -114,37 +151,48 @@ const AdditionalDataForm = () => {
           updateHeading(formsData);
         }
 
-        if (!shouldShowForm) {
-          addAdditionalDataToDB(transformedData, isSample, true);
-          navigate(treeType, isSample);
-        }
+        setLoading(false);
       } else {
-        addAdditionalDataToDB(transformedData, isSample, true);
-        navigate(treeType, isSample);
+        setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
+        addAdditionalDataToDB({
+          transformedData,
+          isSample,
+          disableNavigation: true,
+          inventoryData,
+        });
+        setTimeout(() => navigate(treeType, isSample), 2000);
       }
-      setLoading(false);
     });
   };
 
-  const addAdditionalDataToDB = (
-    transformedData: any,
-    isSample: boolean = false,
-    disableNavigation: boolean = false,
-  ) => {
-    let inventoryData;
+  const addAdditionalDataToDB = ({
+    transformedData,
+    isSample = false,
+    disableNavigation = false,
+    inventoryData = null,
+  }: {
+    transformedData: any[];
+    isSample: boolean;
+    disableNavigation?: boolean;
+    inventoryData?: any;
+  }) => {
+    inventoryData = inventoryData || inventory;
+    let data;
     if (isSample) {
-      let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[inventory.completedSampleTreesCount].additionalDetails = transformedData;
-      inventoryData = {
+      let updatedSampleTrees = [...inventoryData.sampleTrees];
+      updatedSampleTrees[
+        inventoryData.completedSampleTreesCount
+      ].additionalDetails = transformedData;
+      data = {
         sampleTrees: updatedSampleTrees,
       };
     } else {
-      inventoryData = {
+      data = {
         additionalDetails: transformedData,
       };
     }
 
-    updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData })
+    updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData: data })
       .then(() => {
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -173,7 +221,7 @@ const AdditionalDataForm = () => {
     } else {
       nextScreen = 'InventoryOverview';
     }
-
+    setLoading(false);
     navigation.dispatch(
       CommonActions.reset({
         index: 2,
@@ -248,7 +296,7 @@ const AdditionalDataForm = () => {
         });
 
         transformedData = [...transformedData, ...metadata];
-        addAdditionalDataToDB(transformedData, isSampleTree);
+        addAdditionalDataToDB({ transformedData, isSample: isSampleTree });
       }
     }
   };
@@ -257,7 +305,7 @@ const AdditionalDataForm = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         {loading ? (
-          <Loader isLoaderShow={loading} loadingText={i18next.t('label.loading_form')} />
+          <Loader isLoaderShow={loading} loadingText={loadingText} />
         ) : (
           <>
             <ScrollView showsVerticalScrollIndicator={false}>

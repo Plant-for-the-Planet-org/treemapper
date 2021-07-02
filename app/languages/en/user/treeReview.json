@@ -28,5 +28,9 @@
   "tree_review_continue_to_additional_data": "Continue to additional data",
   "skip": "Skip & Save",
   "add_more_sample_trees": "Add more Sample Trees",
-  "recommend_at_least_one_sample": "Some of the planted species are not sampled. We recommend you to sample at least one tree for each planted species."
+  "recommend_at_least_one_sample": "Some of the planted species are not sampled. We recommend you to sample at least one tree for each planted species.",
+  "no_species_found": "No species found",
+  "at_least_one_species": "You should have at least 1 species before adding Sample Trees",
+  "need_more_sample_trees": "Need more Sample Trees",
+  "at_least_five_sample_trees": "You should add at least 5 Sample Trees"
 }

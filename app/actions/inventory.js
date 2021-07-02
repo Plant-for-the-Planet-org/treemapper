@@ -7,6 +7,7 @@ import {
   UPDATE_PENDING_COUNT,
   UPDATE_UPLOAD_COUNT,
   UPDATE_PROGRESS_COUNT,
+  SET_SKIP_TO_INVENTORY_OVERVIEW,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 
@@ -83,16 +84,37 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
   });
 };
 
-export const getAllInventoryFromServer = () => {
-  return new Promise((resolve, reject) => {
-    getAuthenticatedRequest('/treemapper/plantLocations').then((data) => {
-      let exceptSampleTrees = data.data.filter((inventory) => {
+/**
+ * This function dispatches type SET_SKIP_TO_INVENTORY_OVERVIEW with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {boolean} skipToInventoryOverview - used to update the skipToInventoryOverview in inventory state
+ */
+export const setSkipToInventoryOverview = (skipToInventoryOverview) => (dispatch) => {
+  dispatch({
+    type: SET_SKIP_TO_INVENTORY_OVERVIEW,
+    payload: skipToInventoryOverview,
+  });
+};
+
+export const getAllInventoryFromServer = async (
+  requestRoute = '/treemapper/plantLocations',
+  allInventory = [],
+) => {
+  try {
+    let data = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
+    let updatedAllInventory = data.data.items.concat(allInventory);
+    if (data.data._links.next) {
+      return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
+    } else {
+      let exceptSampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type !== 'sample';
       });
-      let sampleTrees = data.data.filter((inventory) => {
+      let sampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type === 'sample';
       });
-      resolve([exceptSampleTrees, sampleTrees]);
-    });
-  });
+      return [exceptSampleTrees, sampleTrees];
+    }
+  } catch (err) {
+    console.error(err);
+  }
 };

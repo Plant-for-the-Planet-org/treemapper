@@ -280,7 +280,7 @@ export default function MapMarking({
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
   const addPolygonMarker = async (forceContinue = false) => {
     updateCurrentPosition()
-      .then(async () => {
+      .then(async (location) => {
         let currentCoords = [location.coords.latitude, location.coords.longitude];
         let centerCoordinates = await map.current.getCenter();
         let isValidMarkers = await checkIsValidMarker(centerCoordinates);
@@ -370,7 +370,7 @@ export default function MapMarking({
     // Check distance
     if (accuracyInMeters < 30 || forceContinue) {
       updateCurrentPosition()
-        .then(async () => {
+        .then(async (location) => {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
           let centerCoordinates = await map.current.getCenter();
 
@@ -415,7 +415,7 @@ export default function MapMarking({
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
-          resolve(true);
+          resolve(position);
         },
         (err) => {
           setIsLocationAlertShow(true);

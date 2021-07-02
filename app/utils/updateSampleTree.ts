@@ -74,11 +74,27 @@ export const updateSampleTree = ({
         };
         break;
       }
+      case 'deleteSampleTree': {
+        if (sampleTree.status === PENDING_DATA_UPLOAD) {
+          inventoryData = {
+            ...inventoryData,
+            completedSampleTreesCount: inventory.completedSampleTreesCount - 1,
+            sampleTreesCount:
+              inventory.sampleTreesCount < 6
+                ? inventory.sampleTreesCount
+                : inventory.sampleTreesCount - 1,
+          };
+        }
+        break;
+      }
       default:
         break;
     }
-
-    updatedSampleTrees[sampleTreeIndex] = sampleTree;
+    if (toUpdate === 'deleteSampleTree') {
+      updatedSampleTrees.splice(sampleTreeIndex, 1);
+    } else {
+      updatedSampleTrees[sampleTreeIndex] = sampleTree;
+    }
 
     inventoryData = {
       ...inventoryData,

@@ -270,7 +270,7 @@ export const additionalDataForUI = ({ data, isSampleTree = false }: IGetAppMetad
   } else {
     appAdditionalDetails.push({
       key: 'deviceLocation',
-      value: `${data.deviceLatitude}, ${data.deviceLongitude}`,
+      value: `${data?.deviceLatitude}, ${data?.deviceLongitude}`,
       accessType: accessTypes.APP,
     });
   }

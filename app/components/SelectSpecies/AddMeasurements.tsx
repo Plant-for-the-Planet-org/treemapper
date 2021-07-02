@@ -43,11 +43,7 @@ import {
 import { getUserInformation } from '../../repositories/user';
 import dbLog from '../../repositories/logs';
 
-interface IAddMeasurementsProps {
-  setIsShowTreeMeasurement: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsProps) => {
+export const AddMeasurements = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState('');
   const [diameter, setDiameter] = useState('');
   const [diameterError, setDiameterError] = useState('');
@@ -70,18 +66,18 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
   const tagIdRef = React.createRef();
 
   useEffect(() => {
-    fetchInventory();
-    setCountry();
-  }, []);
+    if (!isTagIdPresent) {
+      setTagId('');
+    }
+  }, [isTagIdPresent]);
 
   useEffect(() => {
     setIsSampleTree(inventory?.status === INCOMPLETE_SAMPLE_TREE);
   }, [inventory]);
 
   useEffect(() => {
-    setDiameter('');
-    setHeight('');
-    setTagId('');
+    fetchInventory();
+    setCountry();
   }, []);
 
   const fetchInventory = () => {
@@ -255,7 +251,6 @@ export const AddMeasurements = ({ setIsShowTreeMeasurement }: IAddMeasurementsPr
 
   // resets the state and navigate user to next screen
   const postMeasurementUpdate = () => {
-    setIsShowTreeMeasurement(false);
     setShowIncorrectRatioAlert(false);
     setDiameter('');
     setHeight('');
