@@ -16,6 +16,17 @@ interface ILogTypes {
   // log type used for additional data feature
   ADDITIONAL_DATA: 'ADDITIONAL_DATA';
 }
+
+export type TLogTypes =
+  | 'INVENTORY'
+  | 'MAPS'
+  | 'MANAGE_SPECIES'
+  | 'DATA_SYNC'
+  | 'USER'
+  | 'PROJECTS'
+  | 'OTHER'
+  | 'ADDITIONAL_DATA';
+
 // defines the types of logs supported by the application
 export const LogTypes: ILogTypes = {
   INVENTORY: 'INVENTORY',
@@ -37,6 +48,8 @@ interface ILogLevels {
   // this is used when some error occurred and needs to be attended on priority
   ERROR: 'ERROR';
 }
+
+export type TLogLevels = 'INFO' | 'WARN' | 'ERROR';
 
 // defines the log levels
 export const LogLevels: ILogLevels = {

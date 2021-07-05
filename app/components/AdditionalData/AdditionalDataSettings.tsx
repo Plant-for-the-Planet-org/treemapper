@@ -1,15 +1,6 @@
 import i18next from 'i18next';
 import React, { useContext, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  PermissionsAndroid,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
@@ -18,10 +9,10 @@ import { importIcon } from '../../assets';
 import { AdditionalDataContext } from '../../reducers/additionalData';
 import dbLog from '../../repositories/logs';
 import { Colors, Typography } from '../../styles';
-import { bugsnag } from '../../utils';
 import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
+import { askExternalStoragePermission } from '../../utils/permissions';
 import { AlertModal, Header, LargeButton } from '../Common';
 
 const AdditionalDataSettings = () => {
@@ -69,39 +60,10 @@ const AdditionalDataSettings = () => {
     });
   };
 
-  const askAndroidStoragePermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        {
-          title: i18next.t('label.storage_permission_android_title'),
-          message: i18next.t('label.storage_permission_android_message'),
-          buttonPositive: i18next.t('label.permission_camera_ok'),
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        return true;
-      } else {
-        Alert.alert(
-          i18next.t('label.storage_permission_denied_header'),
-          i18next.t('label.storage_permission_denied_sub_header'),
-        );
-        return false;
-      }
-    } catch (err) {
-      bugsnag.notify(err);
-      return false;
-    }
-  };
-
   const handleImportExport = async (option: 'import' | 'export') => {
     if (option === 'export') {
-      if (Platform.OS == 'android') {
-        const permissionResult = await askAndroidStoragePermission();
-        if (permissionResult) {
-          exportAdditionalData();
-        }
-      } else {
+      const permissionResult = await askExternalStoragePermission();
+      if (permissionResult) {
         exportAdditionalData();
       }
     } else if (option === 'import') {
