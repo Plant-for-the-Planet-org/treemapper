@@ -82,13 +82,6 @@ const ProfileModal = ({
       isVisible: true,
     },
     {
-      media: 'history',
-      mediaType: 'icon',
-      text: 'activity_logs',
-      onPressFunction: onPressActivityLogs,
-      isVisible: true,
-    },
-    {
       media: 'sign-out-alt',
       mediaType: 'icon',
       text: 'logout',
@@ -186,9 +179,9 @@ const ProfileModal = ({
                   />
                 )}
                 <View style={styles.nameAndEmailContainer}>
-                  {userName ? <Text style={styles.userEmail}>{`${userName}`}</Text> : []}
+                  {userName ? <Text style={styles.userName}>{`${userName}`}</Text> : []}
 
-                  <Text style={styles.userName}>{userInfo.email}</Text>
+                  <Text style={styles.userEmail}>{userInfo.email}</Text>
                 </View>
               </View>
               {profileListItems.map((item: any, index: number) =>
@@ -206,15 +199,20 @@ const ProfileModal = ({
             style={{
               flexDirection: 'row',
               justifyContent: 'space-evenly',
+              alignItems: 'center',
               marginHorizontal: 50,
             }}>
-            <Text onPress={onPressLegals} style={styles.textAlignCenter}>
-              {i18next.t('label.legal_docs')}
-            </Text>
+            <TouchableOpacity onPress={onPressLegals}>
+              <Text style={styles.textAlignCenter}>{i18next.t('label.legal_docs')}</Text>
+            </TouchableOpacity>
             <Text>•</Text>
-            <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-              {i18next.t('label.support')}
-            </Text>
+            <TouchableOpacity onPress={onPressSupport}>
+              <Text style={styles.textAlignCenter}>{i18next.t('label.support')}</Text>
+            </TouchableOpacity>
+            <Text>•</Text>
+            <TouchableOpacity onPress={onPressActivityLogs}>
+              <Text style={styles.textAlignCenter}>{i18next.t('label.activity_logs')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -236,6 +234,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     borderRadius: 20,
     padding: 20,
+    paddingBottom: 10,
   },
   headerContainer: {
     justifyContent: 'center',
@@ -282,24 +281,25 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    padding: 10,
   },
   horizontalBar: {
     borderWidth: 0.5,
     borderColor: Colors.LIGHT_BORDER_COLOR,
     marginHorizontal: -20,
-    marginVertical: 20,
+    marginTop: 20,
+    marginBottom: 10,
   },
-  userName: {
+  userEmail: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     lineHeight: Typography.LINE_HEIGHT_30,
     color: Colors.TEXT_COLOR,
   },
-  userEmail: {
+  userName: {
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
-    lineHeight: Typography.LINE_HEIGHT_,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
     textTransform: 'capitalize',
   },
