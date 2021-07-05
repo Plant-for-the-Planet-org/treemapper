@@ -205,11 +205,11 @@ const ProfileModal = ({
             <TouchableOpacity onPress={onPressLegals}>
               <Text style={styles.textAlignCenter}>{i18next.t('label.legal_docs')}</Text>
             </TouchableOpacity>
-            <Text>•</Text>
+            <Text>&nbsp;&nbsp;•&nbsp;&nbsp;</Text>
             <TouchableOpacity onPress={onPressSupport}>
               <Text style={styles.textAlignCenter}>{i18next.t('label.support')}</Text>
             </TouchableOpacity>
-            <Text>•</Text>
+            <Text>&nbsp;&nbsp;•&nbsp;&nbsp;</Text>
             <TouchableOpacity onPress={onPressActivityLogs}>
               <Text style={styles.textAlignCenter}>{i18next.t('label.activity_logs')}</Text>
             </TouchableOpacity>

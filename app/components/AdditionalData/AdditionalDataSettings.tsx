@@ -47,16 +47,18 @@ const AdditionalDataSettings = () => {
     };
 
     Share.open(options).catch((err) => {
-      setAlertHeading(i18next.t('label.something_went_wrong'));
-      setAlertMessage(i18next.t('label.share_additional_data_error'));
-      setShowSecondaryButton(false);
-      setShowAlert(true);
+      if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+        setAlertHeading(i18next.t('label.something_went_wrong'));
+        setAlertMessage(i18next.t('label.share_additional_data_error'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
 
-      dbLog.error({
-        logType: LogTypes.ADDITIONAL_DATA,
-        message: `Error while sharing additional data`,
-        logStack: JSON.stringify(err),
-      });
+        dbLog.error({
+          logType: LogTypes.ADDITIONAL_DATA,
+          message: `Error while sharing additional data`,
+          logStack: JSON.stringify(err),
+        });
+      }
     });
   };
 
@@ -82,11 +84,11 @@ const AdditionalDataSettings = () => {
 
   const importJsonFile = async () => {
     try {
-      setShowAlert(false);
       // pick json file from file system
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.allFiles],
       });
+      setShowAlert(false);
       setIsImportingData(true);
       await readJsonFileAndAddAdditionalData(res);
       setIsImportingData(false);

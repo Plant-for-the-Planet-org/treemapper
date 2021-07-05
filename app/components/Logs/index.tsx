@@ -119,14 +119,15 @@ export default function Logs() {
       Share.open(options)
         .then(() => setCreatingLogsFile(false))
         .catch((err) => {
-          setShowAlert(true);
+          if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+            setShowAlert(true);
+            dbLog.error({
+              logType: LogTypes.OTHER,
+              message: `Error while sharing logs`,
+              logStack: JSON.stringify(err),
+            });
+          }
           setCreatingLogsFile(false);
-
-          dbLog.error({
-            logType: LogTypes.OTHER,
-            message: `Error while sharing logs`,
-            logStack: JSON.stringify(err),
-          });
         });
     }
   };
