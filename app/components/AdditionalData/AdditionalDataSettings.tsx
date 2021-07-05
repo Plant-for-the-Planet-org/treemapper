@@ -84,11 +84,11 @@ const AdditionalDataSettings = () => {
 
   const importJsonFile = async () => {
     try {
-      setShowAlert(false);
       // pick json file from file system
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.allFiles],
       });
+      setShowAlert(false);
       setIsImportingData(true);
       await readJsonFileAndAddAdditionalData(res);
       setIsImportingData(false);
