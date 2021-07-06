@@ -34,9 +34,11 @@ import {
   PrimaryButton,
   SpeciesSyncError,
   Sync,
+  AlertModal,
 } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import ProfileModal from '../ProfileModal';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -46,12 +48,13 @@ const MainScreen = () => {
   const [isUserLogin, setIsUserLogin] = useState(false);
   const [userInfo, setUserInfo] = useState<any>({});
   const [emailAlert, setEmailAlert] = useState(false);
-
+  const [offlineModal, setOfflineModal] = useState(false);
   const { state, dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { dispatch: userDispatch } = useContext(UserContext);
 
   const navigation = useNavigation();
+  const netInfo = useNetInfo();
 
   useEffect(() => {
     let realm: Realm;
@@ -206,21 +209,25 @@ const MainScreen = () => {
   };
 
   const onPressLogout = () => {
-    onPressCloseProfileModal();
-    clearAllUploadedInventory();
-    shouldSpeciesUpdate()
-      .then((isSyncRequired) => {
-        if (isSyncRequired) {
-          navigation.navigate('LogoutWarning');
-        } else {
-          auth0Logout(userDispatch).then((result) => {
-            if (result) {
-              setUserInfo({});
-            }
-          });
-        }
-      })
-      .catch((err) => console.error(err));
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      onPressCloseProfileModal();
+      clearAllUploadedInventory();
+      shouldSpeciesUpdate()
+        .then((isSyncRequired) => {
+          if (isSyncRequired) {
+            navigation.navigate('LogoutWarning');
+          } else {
+            auth0Logout(userDispatch).then((result) => {
+              if (result) {
+                setUserInfo({});
+              }
+            });
+          }
+        })
+        .catch((err) => console.error(err));
+    } else {
+      setOfflineModal(true);
+    }
   };
 
   const onPressLegals = () => {
@@ -333,6 +340,16 @@ const MainScreen = () => {
         onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
+      />
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => {
+          setOfflineModal(false);
+          onPressCloseProfileModal();
+        }}
       />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </SafeAreaView>

@@ -8,6 +8,8 @@ import { InventoryContext } from '../../../reducers/inventory';
 import i18next from 'i18next';
 import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
 
 export default function Syncing({
   uploadCount,
@@ -51,6 +53,11 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      dbLog.error({
+        logType: LogTypes.INVENTORY,
+        message: `Failed to upload Inventories ${err} in onPressUploadNow`,
+        logStack: JSON.stringify(err),
+      });
       if (err?.response?.status === 303) {
         navigation.navigate('SignUp');
       } else if (err.error !== 'a0.session.user_cancelled') {

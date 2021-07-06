@@ -29,6 +29,7 @@ import {
 } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
+import { getUserDetails } from '../../repositories/user';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -43,6 +44,7 @@ const TreeInventory = ({ navigation }) => {
   const [uploadingInventory, setUploadingInventory] = useState([]);
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
+  const [countryCode, setCountryCode] = useState('');
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -74,6 +76,9 @@ const TreeInventory = ({ navigation }) => {
     getInventoryByStatus('all').then((allInventory) => {
       setAllInventory(allInventory);
       filteredInventories();
+    });
+    getUserDetails().then((userDetails) => {
+      setCountryCode(userDetails.country);
     });
   };
 
@@ -182,6 +187,7 @@ const TreeInventory = ({ navigation }) => {
             state={state}
             navigation={navigation}
             onPressUploadNow={onPressUploadNow}
+            countryCode={countryCode}
           />
         </ScrollView>
         <PrimaryButton
@@ -211,8 +217,8 @@ const TreeInventory = ({ navigation }) => {
       {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
@@ -233,6 +239,7 @@ const RenderInventory = ({
   state,
   navigation,
   onPressUploadNow,
+  countryCode,
 }) => {
   return (
     <View style={styles.cont}>
@@ -298,6 +305,7 @@ const RenderInventory = ({
           <InventoryList
             accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
             inventoryList={inCompleteInventory}
+            countryCode={countryCode}
           />
         </>
       )}

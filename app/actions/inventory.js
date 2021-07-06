@@ -107,10 +107,10 @@ export const getAllInventoryFromServer = async (
       return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
     } else {
       let exceptSampleTrees = updatedAllInventory.filter((inventory) => {
-        return inventory.type !== 'sample';
+        return inventory.type !== 'sample' && inventory.captureStatus === 'complete';
       });
       let sampleTrees = updatedAllInventory.filter((inventory) => {
-        return inventory.type === 'sample';
+        return inventory.type === 'sample' && inventory.captureStatus === 'complete';
       });
       return [exceptSampleTrees, sampleTrees];
     }

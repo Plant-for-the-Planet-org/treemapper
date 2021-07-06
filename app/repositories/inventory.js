@@ -113,6 +113,7 @@ export const getInventoryByStatus = (status1, status2, status3) => {
           inventory = inventory.filtered(
             `status == "${status1}" || status == "${status2}" || status == "${status3}"`,
           );
+          inventory = inventory.sorted('registrationDate', true);
         }
         // logging the success in to the db
         dbLog.info({
@@ -1155,6 +1156,11 @@ export const addCdnUrl = ({
         });
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding app CDN image url for inventory_id: ${inventoryID}, locationId: ${locationId} & coordinate index: ${coordinateIndex}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });

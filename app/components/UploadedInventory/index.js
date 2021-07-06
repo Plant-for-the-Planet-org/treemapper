@@ -16,10 +16,12 @@ import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { deleteFromFS } from '../../utils/FSInteration';
 import { SYNCED } from '../../utils/inventoryConstants';
+import { getUserDetails } from '../../repositories/user';
 
 const UploadedInventory = ({ navigation }) => {
   const [allInventory, setAllInventory] = useState(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
+  const [countryCode, setCountryCode] = useState('');
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -32,6 +34,9 @@ const UploadedInventory = ({ navigation }) => {
   const initialState = () => {
     getInventoryByStatus(SYNCED).then((allInventory) => {
       setAllInventory(allInventory);
+    });
+    getUserDetails().then((userDetails) => {
+      setCountryCode(userDetails.country);
     });
   };
 
@@ -92,6 +97,7 @@ const UploadedInventory = ({ navigation }) => {
             <InventoryList
               accessibilityLabel={i18next.t('label.tree_inventory_upload_inventory_list')}
               inventoryList={allInventory}
+              countryCode={countryCode}
             />
           </>
         )}
@@ -147,8 +153,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

@@ -620,7 +620,9 @@ const SingleTreeOverview = () => {
               navigation.navigate('TreeInventory');
             });
           })
-          .catch(() => setIsError(true));
+          .catch((err) => {
+            setIsError(true);
+          });
       } else {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');

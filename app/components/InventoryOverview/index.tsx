@@ -69,9 +69,11 @@ const InventoryOverview = ({ navigation }: any) => {
   const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
   const [showLessSampleTreesAlert, setShowLessSampleTreesAlert] = useState(false);
+  const [countryCode, setCountryCode] = useState<string>('');
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
+      setCountryCode(userDetails.country);
       if (userDetails) {
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
@@ -160,6 +162,7 @@ const InventoryOverview = ({ navigation }: any) => {
                     imageURL: oneCoordinate.imageUrl,
                     cdnImageUrl: oneCoordinate.cdnImageUrl,
                     index: index,
+                    countryCode: countryCode,
                   };
                   return (
                     <InventoryCard

@@ -38,8 +38,13 @@ const SpeciesSyncError = () => {
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
         setAsyncStorageSpecies(species);
       })
-      .catch(() => {
+      .catch((err) => {
         setRefreshAnimation(false);
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: `Failed to sync species that are not downloaded already ${err}`,
+          logStack: JSON.stringify(err),
+        });
         Snackbar.show({
           text: i18next.t('label.something_went_wrong'),
           duration: Snackbar.LENGTH_SHORT,
