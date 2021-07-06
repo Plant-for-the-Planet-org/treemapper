@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
 import { NavigationContext } from '../../../reducers/navigation';
 import { showInitialNavigationStack } from '../../../actions/navigation';
 import { useNetInfo } from '@react-native-community/netinfo';
