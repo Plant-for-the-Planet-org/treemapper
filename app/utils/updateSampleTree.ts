@@ -124,6 +124,7 @@ export const updateSampleTree = ({
           message: `Failed to modify ${toUpdate} for sample tree #${
             sampleTreeIndex + 1
           } having inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
         });
         console.error(
           `Failed to modify ${toUpdate} for sample tree #${
