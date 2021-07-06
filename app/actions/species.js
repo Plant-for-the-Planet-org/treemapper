@@ -66,6 +66,7 @@ export const getSpeciesList = () => {
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
           statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
         });
         bugsnag.notify(err);
         reject(err);
