@@ -30,6 +30,7 @@ import {
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { getUserDetails } from '../../repositories/user';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -45,6 +46,9 @@ const TreeInventory = ({ navigation }) => {
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
+  const [offlineModal, setOfflineModal] = useState(false);
+
+  const netInfo = useNetInfo();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -108,20 +112,24 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch, userDispatch)
-      .then(() => {
-        // handleBackPress();
-      })
-      .catch((err) => {
-        if (err?.response?.status === 303) {
-          navigation.navigate('SignUp');
-        } else if (err?.message === 'blocked') {
-          setIsPermissionBlockedAlertShow(true);
-        } else if (err?.error !== 'a0.session.user_cancelled') {
-          setEmailAlert(true);
-        }
-      });
-    navigation.goBack();
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadInventoryData(dispatch, userDispatch)
+        .then(() => {
+          // handleBackPress();
+        })
+        .catch((err) => {
+          if (err?.response?.status === 303) {
+            navigation.navigate('SignUp');
+          } else if (err?.message === 'blocked') {
+            setIsPermissionBlockedAlertShow(true);
+          } else if (err?.error !== 'a0.session.user_cancelled') {
+            setEmailAlert(true);
+          }
+        });
+      navigation.goBack();
+    } else {
+      setOfflineModal(true);
+    }
   };
 
   const renderLoadingInventoryList = () => {
@@ -217,12 +225,21 @@ const TreeInventory = ({ navigation }) => {
       {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
         handleBackPress={handleBackPress}
+      />
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => {
+          setOfflineModal(false);
+        }}
       />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </View>
