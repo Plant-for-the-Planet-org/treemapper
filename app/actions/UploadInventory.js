@@ -69,9 +69,9 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                     .catch((err) => {
                       dbLog.error({
                         logType: LogTypes.INVENTORY,
-                        message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}. Error at: /action/upload/changeInventoryStatus, -> ${err}`,
+                        message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                        logStack: JSON.stringify(err),
                       });
-                      console.error(`Error at: /action/upload/changeInventoryStatus, -> ${err}`);
                       reject(err);
                     });
                 } else {
@@ -103,7 +103,8 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                           );
                           dbLog.error({
                             logType: LogTypes.INVENTORY,
-                            message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}. Error at: /action/upload/changeInventoryStatus, -> ${err}`,
+                            message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                            logStack: JSON.stringify(err),
                           });
                           reject(err);
                         });
@@ -119,20 +120,10 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           })
           .catch((err) => {
             reject(err);
-            console.error(
-              `Error at: /action/upload/changeInventoryStatusAndLocationId, -> ${JSON.stringify(
-                err,
-              )}`,
-            );
             dbLog.error({
               logType: LogTypes.INVENTORY,
-              message: `Failed to change inventory status: ${PENDING_IMAGE_UPLOAD} & location id: ${
-                response.id
-              } with inventory id: ${
-                oneInventory.inventory_id
-              }.Error at: /action/upload/changeInventoryStatusAndLocationId, -> ${JSON.stringify(
-                err,
-              )}`,
+              message: `Failed to change inventory status: ${PENDING_IMAGE_UPLOAD} & location id: ${response.id} with inventory id: ${oneInventory.inventory_id}.`,
+              logStack: JSON.stringify(err),
             });
           });
       }
@@ -140,9 +131,9 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
       reject(err);
       dbLog.error({
         logType: LogTypes.INVENTORY,
-        message: `Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`,
+        message: `Error at: /action/upload/changeStatusAndUpload`,
+        logStack: JSON.stringify(err),
       });
-      console.error(`Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
     }
   });
 };
@@ -267,6 +258,7 @@ export const uploadInventory = (dispatch) => {
         dbLog.error({
           logType: LogTypes.DATA_SYNC,
           message: 'Error while uploading Inventories',
+          logStack: JSON.stringify(err),
         });
         reject(err);
         return err;
@@ -414,7 +406,8 @@ const checkSampleTreesAndUpload = async (inventory) => {
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
             dbLog.error({
               logType: LogTypes.DATA_SYNC,
-              message: `Error while updating sample tree data, ${err}`,
+              message: `Error while updating sample tree data`,
+              logStack: JSON.stringify(err),
             });
             console.error('Error while updating sample tree data', err);
           });
@@ -487,10 +480,10 @@ const updateSampleTreeByIndex = (
     updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
       .then(resolve)
       .catch((err) => {
-        console.error(err);
         dbLog.error({
           logType: LogTypes.DATA_SYNC,
-          message: `Error while updating sample tree data by Index with Inventory id: ${inventory?.inventory_id}, ${err}`,
+          message: `Error while updating sample tree data by Index with Inventory id: ${inventory?.inventory_id}`,
+          logStack: JSON.stringify(err),
         });
         reject(err);
       });

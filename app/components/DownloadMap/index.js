@@ -83,7 +83,7 @@ const DownloadMap = ({ navigation }) => {
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.OTHER,
-          message: `Error while checking location permission in "initialMapCamera" ${err}`,
+          message: `Error while checking location permission`,
           logStack: JSON.stringify(err),
         });
         if (err.message === 'blocked') {
@@ -121,10 +121,9 @@ const DownloadMap = ({ navigation }) => {
                 .catch((err) => {
                   dbLog.error({
                     logType: LogTypes.OTHER,
-                    message: `Error while creating Offline Map ${err}`,
+                    message: `Error while creating Offline Map`,
                     logStack: JSON.stringify(err),
                   });
-                  console.error(err);
                   setIsLoaderShow(false);
                   setAreaName('');
                   alert(i18next.t('label.download_map_area_exists'));
@@ -153,10 +152,9 @@ const DownloadMap = ({ navigation }) => {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.OTHER,
-            message: `Error while getting area name ${err}`,
+            message: `Error while getting area name`,
             logStack: JSON.stringify(err),
           });
-          console.error(err);
           setIsLoaderShow(false);
           setAreaName('');
           alert(i18next.t('label.download_map_area_failed'));

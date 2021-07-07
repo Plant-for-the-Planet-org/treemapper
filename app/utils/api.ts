@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-community/async-storage';
 import { checkErrorCode, getNewAccessToken } from '../actions/user';
 import { name as packageName, version } from '../../package';
+import NetInfo from '@react-native-community/netinfo';
 
 const { protocol, url: baseURL } = APIConfig;
 
@@ -49,7 +50,19 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(undefined, async (err) => {
   // stores the original request (later used to retry the request)
   let originalRequest = err.config;
-
+  let networkConnection: boolean | null;
+  try {
+    let state = await NetInfo.fetch();
+    networkConnection = state.isConnected && state.isInternetReachable;
+  } catch (err: any) {
+    networkConnection = false;
+    dbLog.error({
+      logType: LogTypes.OTHER,
+      message: `Failed to check the internet connection`,
+      statusCode: err?.response?.status,
+      logStack: JSON.stringify(err?.response),
+    });
+  }
   // retries if err is 401 or 403 and if request is already not tried once
   if ((err?.response?.status === 403 || err?.response?.status === 401) && !originalRequest._retry) {
     originalRequest._retry = true;
@@ -57,7 +70,7 @@ axiosInstance.interceptors.response.use(undefined, async (err) => {
     const userDetails = await getUserDetails();
 
     // gets new access token from refresh token and retries the request.
-    if (userDetails) {
+    if (userDetails && networkConnection) {
       const access_token = await getNewAccessToken(userDetails.refreshToken);
       originalRequest.headers['Authorization'] = 'Bearer ' + access_token;
       return axiosInstance(originalRequest);
@@ -89,7 +102,19 @@ const request = async ({
       method,
       url,
     };
-
+    let networkConnection: boolean | null;
+    NetInfo.fetch()
+      .then((state) => {
+        networkConnection = state.isConnected && state.isInternetReachable;
+      })
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: `Failed to check the internet connection`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+      });
     // if the method is either POST, PUT or DELETE and data is present then adds data property to options
     if ((method === 'POST' || method === 'PUT' || method === 'DELETE') && data) {
       options.data = data;
@@ -104,11 +129,11 @@ const request = async ({
         }
 
         const isTokenExpired = getCurrentUnixTimestamp() > userDetails.expirationTime;
-
         // if token is expired then fetches new using refresh token
-        let accessToken = isTokenExpired
-          ? await getNewAccessToken(userDetails.refreshToken)
-          : userDetails.accessToken;
+        let accessToken =
+          isTokenExpired && networkConnection
+            ? await getNewAccessToken(userDetails.refreshToken)
+            : userDetails.accessToken;
 
         // const accessToken = await getUserDetails();
         if (!accessToken) {

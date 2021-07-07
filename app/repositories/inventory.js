@@ -113,8 +113,8 @@ export const getInventoryByStatus = (status1, status2, status3) => {
           inventory = inventory.filtered(
             `status == "${status1}" || status == "${status2}" || status == "${status3}"`,
           );
-          inventory = inventory.sorted('registrationDate', true);
         }
+        inventory = inventory.sorted('registrationDate', true);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,

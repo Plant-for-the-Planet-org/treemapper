@@ -58,7 +58,7 @@ export const isLogin = () => {
         console.error(`Error at /repositories/user/isLogin, ${JSON.stringify(err)}`);
         dbLog.error({
           logType: LogTypes.USER,
-          message: `Error at /repositories/user/isLogin, ${JSON.stringify(err)}`,
+          message: `Error while checking login`,
           logStack: JSON.stringify(err),
         });
       });

@@ -40,19 +40,14 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
   const onPressActiveButton = () => {
     if (onPressActiveBtn) onPressActiveBtn(data.index);
   };
-  const specieHeight = nonISUCountries.includes(data.countryCode)
-    ? data.height * meterToFoot
-    : data.height;
-  const specieDiameter = nonISUCountries.includes(data.countryCode)
-    ? data.diameter * cmToInch
-    : data.diameter;
 
-  const heightUnit = nonISUCountries.includes(data.countryCode)
-    ? i18next.t('label.select_species_feet')
-    : 'm';
-  const diameterUnit = nonISUCountries.includes(data.countryCode)
-    ? i18next.t('label.select_species_inches')
-    : 'cm';
+  const heightWithUnit = nonISUCountries.includes(data.countryCode)
+    ? `${data.height * meterToFoot} ${i18next.t('label.select_species_feet')}`
+    : `${data.height} m`;
+  const diameterWithUnit = nonISUCountries.includes(data.countryCode)
+    ? `${data.diameter * cmToInch} ${i18next.t('label.select_species_inches')}`
+    : `${data.diameter} cm`;
+
   return (
     <View style={styles.container}>
       {!hideImage && (
@@ -66,13 +61,8 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
         {data.treeType == SINGLE && data.height ? (
           <View style={{ paddingBottom: 2 }}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 2 }}>
-              <Text style={[styles.measurements]}>
-                {specieHeight} {heightUnit}
-              </Text>
-              <Text style={[styles.measurements]}>
-                {' '}
-                • {specieDiameter} {diameterUnit}
-              </Text>
+              <Text style={[styles.measurements]}>{heightWithUnit}</Text>
+              <Text style={[styles.measurements]}> • {diameterWithUnit}</Text>
             </View>
             {data.tagId ? <Text style={[styles.tagId]}>{data.tagId}</Text> : []}
           </View>
