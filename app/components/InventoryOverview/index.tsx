@@ -3,13 +3,10 @@ import { CommonActions } from '@react-navigation/routers';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   BackHandler,
   FlatList,
   ImageBackground,
   Modal,
-  PermissionsAndroid,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -20,6 +17,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
+import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -33,9 +31,10 @@ import {
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import { ALPHABETS, bugsnag } from '../../utils';
+import { ALPHABETS } from '../../utils';
 import { toBase64 } from '../../utils/base64';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -44,12 +43,11 @@ import {
   PENDING_DATA_UPLOAD,
   SYNCED,
 } from '../../utils/inventoryConstants';
+import { askExternalStoragePermission } from '../../utils/permissions';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
-import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
-import { setSkipToInventoryOverview } from '../../actions/inventory';
 
 const InventoryOverview = ({ navigation }: any) => {
   const cameraRef = useRef(null);
@@ -273,31 +271,6 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const askAndroidStoragePermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        {
-          title: i18next.t('label.storage_permission_android_title'),
-          message: i18next.t('label.storage_permission_android_message'),
-          buttonPositive: i18next.t('label.permission_camera_ok'),
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        return true;
-      } else {
-        Alert.alert(
-          i18next.t('label.storage_permission_denied_header'),
-          i18next.t('label.storage_permission_denied_sub_header'),
-        );
-        return false;
-      }
-    } catch (err) {
-      bugsnag.notify(err);
-      return false;
-    }
-  };
-
   const onPressExportJSON = async () => {
     const exportGeoJSONFile = () => {
       if (inventory.polygons.length > 0) {
@@ -314,15 +287,15 @@ const InventoryOverview = ({ navigation }: any) => {
           .then(() => {
             alert(i18next.t('label.inventory_overview_export_json_success'));
           })
-          .catch(() => alert(i18next.t('label.inventory_overview_export_json_error')));
+          .catch((err) => {
+            if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+              alert(i18next.t('label.inventory_overview_export_json_error'))
+            }
+          });
       }
     };
-    if (Platform.OS == 'android') {
-      const permissionResult = await askAndroidStoragePermission();
-      if (permissionResult) {
-        exportGeoJSONFile();
-      }
-    } else {
+    const permissionResult = await askExternalStoragePermission();
+    if (permissionResult) {
       exportGeoJSONFile();
     }
   };

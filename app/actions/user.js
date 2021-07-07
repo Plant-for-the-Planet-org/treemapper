@@ -292,7 +292,7 @@ export const getUserDetailsFromServer = (userDispatch) => {
           logType: LogTypes.USER,
           message: 'Failed to retrieve User Information from Server',
           statusCode: err?.response?.status,
-          logStack: JSON.stringify(err.response),
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
         });
         reject(err);
       });
@@ -335,6 +335,7 @@ export const SignupService = (payload, dispatch) => {
           logType: LogTypes.USER,
           message: 'Failed to Sign up',
           statusCode: err?.response?.status,
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
         });
         // if any error is found then deletes the user and clear the user app state
         deleteUser();

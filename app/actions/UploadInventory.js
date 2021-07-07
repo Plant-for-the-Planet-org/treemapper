@@ -247,7 +247,7 @@ export const uploadInventory = (dispatch) => {
                 logType: LogTypes.DATA_SYNC,
                 message: 'Error while add plant location, POST - /treemapper/plantLocations',
                 statusCode: err?.response?.status,
-                logStack: JSON.stringify(err.response),
+                logStack: JSON.stringify(err?.response),
               });
             }
           }
@@ -569,13 +569,13 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
     } catch (err) {
       console.error(
         `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${coordinateId} -> ${JSON.stringify(
-          err.response,
+          err?.response,
         )}`,
       );
       dbLog.error({
         logType: LogTypes.DATA_SYNC,
         message: `Error while uploading image for inventory id: ${inventoryId} and coordinate id: ${coordinateId}`,
-        logStack: JSON.stringify(err.response),
+        logStack: JSON.stringify(err?.response),
         referenceId: inventoryId,
       });
       bugsnag.notify(err);

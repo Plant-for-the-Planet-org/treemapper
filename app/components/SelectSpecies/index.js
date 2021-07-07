@@ -120,7 +120,7 @@ const SelectSpecies = () => {
           screen={'SelectSpecies'}
         />
       ) : (
-        <AddMeasurements setIsShowTreeMeasurement={setIsShowTreeMeasurement} />
+        <AddMeasurements />
       )}
     </>
   );
