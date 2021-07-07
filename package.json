@@ -48,7 +48,7 @@
     "react-native-get-random-values": "^1.5.1",
     "react-native-inappbrowser-reborn": "^3.5.1",
     "react-native-localize": "^1.4.3",
-    "react-native-material-menu": "^1.2.0",
+    "react-native-material-menu": "git+https://github.com/ankitecd/react-native-material-menu.git",
     "react-native-modal-datetime-picker": "^8.9.3",
     "react-native-reanimated": "^1.13.2",
     "react-native-redash": "^16.0.11",
