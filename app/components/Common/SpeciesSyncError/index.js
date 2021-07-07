@@ -44,7 +44,7 @@ const SpeciesSyncError = () => {
         setRefreshAnimation(false);
         dbLog.error({
           logType: LogTypes.OTHER,
-          message: `Failed to sync species that are not downloaded already`,
+          message: 'Failed to sync species that are not downloaded already',
           logStack: JSON.stringify(err),
         });
         Snackbar.show({

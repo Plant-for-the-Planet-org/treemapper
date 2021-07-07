@@ -247,7 +247,7 @@ export const getBase64ImageFromURL = async (specieImage) => {
             .catch((err) => {
               dbLog.error({
                 logType: LogTypes.MANAGE_SPECIES,
-                message: `Error while reading file image`,
+                message: 'Error while reading file image',
                 logStack: JSON.stringify(err),
               });
               reject(err);

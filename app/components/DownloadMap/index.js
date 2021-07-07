@@ -83,7 +83,7 @@ const DownloadMap = ({ navigation }) => {
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.OTHER,
-          message: `Error while checking location permission`,
+          message: 'Error while checking location permission',
           logStack: JSON.stringify(err),
         });
         if (err.message === 'blocked') {
@@ -121,7 +121,7 @@ const DownloadMap = ({ navigation }) => {
                 .catch((err) => {
                   dbLog.error({
                     logType: LogTypes.OTHER,
-                    message: `Error while creating Offline Map`,
+                    message: 'Error while creating Offline Map',
                     logStack: JSON.stringify(err),
                   });
                   setIsLoaderShow(false);
@@ -152,7 +152,7 @@ const DownloadMap = ({ navigation }) => {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.OTHER,
-            message: `Error while getting area name`,
+            message: 'Error while getting area name',
             logStack: JSON.stringify(err),
           });
           setIsLoaderShow(false);

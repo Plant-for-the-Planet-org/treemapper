@@ -55,7 +55,7 @@ export default function Syncing({
     uploadInventoryData(dispatch, userDispatch).catch((err) => {
       dbLog.error({
         logType: LogTypes.INVENTORY,
-        message: `Failed to upload Inventories`,
+        message: 'Failed to upload Inventories',
         logStack: JSON.stringify(err),
       });
       if (err?.response?.status === 303) {

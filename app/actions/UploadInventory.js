@@ -131,7 +131,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
       reject(err);
       dbLog.error({
         logType: LogTypes.INVENTORY,
-        message: `Error at: /action/upload/changeStatusAndUpload`,
+        message: 'Error at: /action/upload/changeStatusAndUpload',
         logStack: JSON.stringify(err),
       });
     }
@@ -406,7 +406,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
             dbLog.error({
               logType: LogTypes.DATA_SYNC,
-              message: `Error while updating sample tree data`,
+              message: 'Error while updating sample tree data',
               logStack: JSON.stringify(err),
             });
             console.error('Error while updating sample tree data', err);

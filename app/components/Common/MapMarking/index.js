@@ -319,7 +319,7 @@ export default function MapMarking({
         bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Failed to update Current Position`,
+          message: 'Failed to update Current Position',
           logStack: JSON.stringify(err),
         });
         showUnknownLocationAlert();
@@ -407,7 +407,7 @@ export default function MapMarking({
           bugsnag.notify(err);
           dbLog.error({
             logType: LogTypes.INVENTORY,
-            message: `Failed to update Current Position`,
+            message: 'Failed to update Current Position',
             logStack: JSON.stringify(err),
           });
           showUnknownLocationAlert();

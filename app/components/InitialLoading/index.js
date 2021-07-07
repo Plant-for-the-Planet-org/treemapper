@@ -70,7 +70,7 @@ export default function InitialLoading() {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.OTHER,
-            message: `Failed to migrate the Realm Database`,
+            message: 'Failed to migrate the Realm Database',
             logStack: JSON.stringify(err),
           });
           console.error('Error while setting up realm connection - App', err);
@@ -84,7 +84,7 @@ export default function InitialLoading() {
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.OTHER,
-            message: `Failed to update and sync Local species`,
+            message: 'Failed to update and sync Local species',
             logStack: JSON.stringify(err),
           });
           showMainNavigationStack()(dispatch);
