@@ -114,7 +114,7 @@ export const getInventoryByStatus = (status) => {
           for (var i = 0; i < status.length; i++) {
             query += `'${status[i]}'`;
             if (i + 1 < status.length) {
-              query += ` || status == `;
+              query += ' || status == ';
             }
           }
           inventory = inventory.filtered(query);
