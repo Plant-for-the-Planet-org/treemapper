@@ -78,7 +78,7 @@ const MainScreen = () => {
   }, [navigation]);
 
   const fetchInventory = () => {
-    getInventoryByStatus('all').then((data) => {
+    getInventoryByStatus([]).then((data) => {
       let count = 0;
       for (const inventory of data) {
         if (inventory.status === PENDING_DATA_UPLOAD || inventory.status === PENDING_IMAGE_UPLOAD) {

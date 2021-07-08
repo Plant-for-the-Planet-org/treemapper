@@ -150,7 +150,6 @@ const OutlinedInput = React.forwardRef(
     };
 
     useEffect(() => {
-      console.log('isFocused', isFocused, value);
       if (error) {
         setBorderColor(errorColor);
       } else if (isFocused) {

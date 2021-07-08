@@ -77,7 +77,7 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getInventoryByStatus('all').then((allInventory) => {
+    getInventoryByStatus([]).then((allInventory) => {
       setAllInventory(allInventory);
       filteredInventories();
     });
@@ -88,25 +88,27 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
-      getInventoryByStatus('all').then((allInventory) => {
+      getInventoryByStatus([]).then((allInventory) => {
         setAllInventory(allInventory);
       });
     });
   };
 
   const filteredInventories = () => {
-    getInventoryByStatus(INCOMPLETE, INCOMPLETE_SAMPLE_TREE).then((inventoryList) => {
+    getInventoryByStatus([INCOMPLETE, INCOMPLETE_SAMPLE_TREE]).then((inventoryList) => {
       setInCompleteInventory(inventoryList);
     });
-    getInventoryByStatus(PENDING_DATA_UPLOAD).then((inventoryList) => {
+    getInventoryByStatus([PENDING_DATA_UPLOAD]).then((inventoryList) => {
       setPendingInventory(inventoryList);
     });
-    getInventoryByStatus(PENDING_IMAGE_UPLOAD, PENDING_SAMPLE_TREES_UPLOAD, DATA_UPLOAD_START).then(
-      (inventoryList) => {
-        setUploadingInventory(inventoryList);
-      },
-    );
-    getInventoryByStatus(SYNCED).then((inventoryList) => {
+    getInventoryByStatus([
+      PENDING_IMAGE_UPLOAD,
+      PENDING_SAMPLE_TREES_UPLOAD,
+      DATA_UPLOAD_START,
+    ]).then((inventoryList) => {
+      setUploadingInventory(inventoryList);
+    });
+    getInventoryByStatus([SYNCED]).then((inventoryList) => {
       setUploadedInventory(inventoryList);
     });
   };

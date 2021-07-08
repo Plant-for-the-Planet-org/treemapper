@@ -32,7 +32,7 @@ const UploadedInventory = ({ navigation }) => {
   }, [navigation]);
 
   const initialState = () => {
-    getInventoryByStatus(SYNCED).then((allInventory) => {
+    getInventoryByStatus([SYNCED]).then((allInventory) => {
       setAllInventory(allInventory);
     });
     getUserDetails().then((userDetails) => {
@@ -45,7 +45,7 @@ const UploadedInventory = ({ navigation }) => {
     //   initialState();
     toogleIsShowFreeUpSpaceAlert();
     // });
-    getInventoryByStatus(SYNCED).then((allInventory) => {
+    getInventoryByStatus([SYNCED]).then((allInventory) => {
       for (let inventory of allInventory) {
         for (let index = 0; index < inventory.polygons[0].coordinates.length; index++) {
           if (inventory.polygons[0].coordinates[index].imageUrl) {
@@ -153,8 +153,8 @@ const UploadedInventory = ({ navigation }) => {
       {allInventory && allInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <AlertModal
         visible={isShowFreeUpSpaceAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

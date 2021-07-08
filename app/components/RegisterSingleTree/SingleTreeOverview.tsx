@@ -209,7 +209,6 @@ const SingleTreeOverview = () => {
           const height = nonISUCountries.includes(data.country)
             ? Math.round(inventoryData.specieHeight * meterToFoot * 1000) / 1000
             : inventoryData.specieHeight;
-          console.log('inventoryData.specieHeight', inventoryData.specieHeight);
 
           if (inventoryData.projectId) {
             const project: any = await getProjectById(inventoryData.projectId);
