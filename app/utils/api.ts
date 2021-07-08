@@ -1,17 +1,17 @@
-import jwtDecode from 'jwt-decode';
+import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
+import jwtDecode from 'jwt-decode';
 import { Platform } from 'react-native';
-import { APIConfig } from '../actions/Config';
-import dbLog from '../repositories/logs';
-import { getUserDetails } from '../repositories/user';
-import { LogTypes } from './constants';
-import { bugsnag } from './index';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import AsyncStorage from '@react-native-community/async-storage';
-import { checkErrorCode, getNewAccessToken } from '../actions/user';
 import { name as packageName, version } from '../../package';
-import NetInfo from '@react-native-community/netinfo';
+import { APIConfig } from '../actions/Config';
+import { checkErrorCode, getNewAccessToken } from '../actions/user';
+import dbLog from '../repositories/logs';
+import { getUserDetails } from '../repositories/user';
+import { isInternetConnected } from './checkInternet';
+import { LogTypes } from './constants';
+import { bugsnag } from './index';
 
 const { protocol, url: baseURL } = APIConfig;
 
@@ -50,19 +50,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(undefined, async (err) => {
   // stores the original request (later used to retry the request)
   let originalRequest = err.config;
-  let networkConnection: boolean | null;
-  try {
-    let state = await NetInfo.fetch();
-    networkConnection = state.isConnected && state.isInternetReachable;
-  } catch (err: any) {
-    networkConnection = false;
-    dbLog.error({
-      logType: LogTypes.OTHER,
-      message: `Failed to check the internet connection`,
-      statusCode: err?.response?.status,
-      logStack: JSON.stringify(err?.response),
-    });
-  }
+  const networkConnection = await isInternetConnected();
+
   // retries if err is 401 or 403 and if request is already not tried once
   if ((err?.response?.status === 403 || err?.response?.status === 401) && !originalRequest._retry) {
     originalRequest._retry = true;
@@ -96,28 +85,22 @@ const request = async ({
   data = undefined,
   header = {},
 }: RequestParams) => {
+  const networkConnection = await isInternetConnected();
+
   return new Promise((resolve, reject) => {
     //  sets the options which is passed to axios to make the request
     let options: any = {
       method,
       url,
     };
-    let networkConnection: boolean | null;
-    NetInfo.fetch()
-      .then((state) => {
-        networkConnection = state.isConnected && state.isInternetReachable;
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.OTHER,
-          message: `Failed to check the internet connection`,
-          statusCode: err?.response?.status,
-          logStack: JSON.stringify(err?.response),
-        });
-      });
+
     // if the method is either POST, PUT or DELETE and data is present then adds data property to options
     if ((method === 'POST' || method === 'PUT' || method === 'DELETE') && data) {
       options.data = data;
+    }
+
+    if (!networkConnection) {
+      return new Error('No internet connection available.');
     }
 
     // if request needs to be authenticated the Authorization is added in headers.
