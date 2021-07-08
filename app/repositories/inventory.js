@@ -104,28 +104,38 @@ export const updateTreeTag = ({ inventoryId, tagId }) => {
   });
 };
 
-export const getInventoryByStatus = (status1, status2, status3) => {
+export const getInventoryByStatus = (status) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         let inventory = realm.objects('Inventory');
-        if (status1 !== 'all') {
-          inventory = inventory.filtered(
-            `status == "${status1}" || status == "${status2}" || status == "${status3}"`,
-          );
+        if (status.length !== 0) {
+          var query = 'status == ';
+          for (var i = 0; i < status.length; i++) {
+            query += `'${status[i]}'`;
+            if (i + 1 < status.length) {
+              query += ' || status == ';
+            }
+          }
+          inventory = inventory.filtered(query);
         }
+        let sortedInventory = inventory.sorted('registrationDate', true);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Fetched inventories from DB having status ${status1} and ${status2}`,
+          message: `Fetched inventories from DB having status ${
+            status.length == 0 ? 'all' : status.join
+          }`,
         });
-        resolve(inventory);
+        resolve(sortedInventory);
       })
       .catch((err) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while fetching inventories from DB having status ${status1} and ${status2}`,
+          message: `Error while fetching inventories from DB having status ${
+            status.length == 0 ? 'all' : status.join
+          }`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -1046,7 +1056,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
           message: 'Error while adding inventory',
           logStack: JSON.stringify(err),
         });
-        console.log(err, 'Error');
         bugsnag.notify(err);
         resolve(false);
       });
@@ -1128,7 +1137,6 @@ export const addSampleTree = (sampleTreeFromServer) => {
           message: `Error while Adding Sample Tree having location Id ${sampleTreeFromServer.id}`,
           logStack: JSON.stringify(err),
         });
-        console.log(err, 'Error');
         bugsnag.notify(err);
         resolve(false);
       });
@@ -1155,6 +1163,11 @@ export const addCdnUrl = ({
         });
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding app CDN image url for inventory_id: ${inventoryID}, locationId: ${locationId} & coordinate index: ${coordinateIndex}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });

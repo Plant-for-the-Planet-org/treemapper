@@ -317,6 +317,11 @@ export default function MapMarking({
       })
       .catch((err) => {
         bugsnag.notify(err);
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Failed to update Current Position',
+          logStack: JSON.stringify(err),
+        });
         showUnknownLocationAlert();
       });
     // Check distance
@@ -400,6 +405,11 @@ export default function MapMarking({
         })
         .catch((err) => {
           bugsnag.notify(err);
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: 'Failed to update Current Position',
+            logStack: JSON.stringify(err),
+          });
           showUnknownLocationAlert();
         });
     } else {
