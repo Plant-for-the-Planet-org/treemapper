@@ -10,6 +10,8 @@ import {
   SET_SKIP_TO_INVENTORY_OVERVIEW,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
+import { LogTypes } from '../utils/constants';
+import dbLog from '../repositories/logs';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -115,6 +117,12 @@ export const getAllInventoryFromServer = async (
       return [exceptSampleTrees, sampleTrees];
     }
   } catch (err) {
-    console.error(err);
+    dbLog.error({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Failed fetch Inventories From server',
+      statusCode: err?.response?.status,
+      logStack: JSON.stringify(err?.response),
+    });
+    return [];
   }
 };
