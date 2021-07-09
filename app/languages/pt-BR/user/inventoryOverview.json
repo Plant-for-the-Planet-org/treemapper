@@ -23,5 +23,6 @@
   "inventory_overview_date": "{{date, ll}}",
   "inventory_overview_cancel": "Cancelar",
   "inventory_overview_confirm": "Confirmar",
-  "inventory_overview_pick_a_date": "Escolha uma data"
+  "inventory_overview_pick_a_date": "Escolha uma data",
+  "error_saving_inventory": "Erro ao salvar o inventário"
 }
