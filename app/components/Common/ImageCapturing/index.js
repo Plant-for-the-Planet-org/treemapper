@@ -108,6 +108,11 @@ const ImageCapturing = ({
     }
     const data = await camera.current.takePictureAsync().catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
+      dbLog.error({
+        logType: LogTypes.OTHER,
+        message: `Failed to take picture ${err}`,
+        logStack: JSON.stringify(err),
+      });
       setImagePath('');
       return;
     });

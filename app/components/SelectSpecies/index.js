@@ -66,7 +66,7 @@ const SelectSpecies = () => {
         species: [
           {
             id: specie.guid,
-            aliases: specie.scientificName,
+            aliases: specie.aliases,
             treeCount: 1,
           },
         ],
@@ -74,7 +74,7 @@ const SelectSpecies = () => {
     } else {
       let updatedSampleTrees = [...inventory.sampleTrees];
       updatedSampleTrees[inventory.completedSampleTreesCount].specieId = specie.guid;
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.scientificName;
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieName = specie.aliases;
       updateInventory({
         inventory_id: inventory.inventory_id,
         inventoryData: {

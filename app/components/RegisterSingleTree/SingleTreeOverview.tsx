@@ -209,7 +209,6 @@ const SingleTreeOverview = () => {
           const height = nonISUCountries.includes(data.country)
             ? Math.round(inventoryData.specieHeight * meterToFoot * 1000) / 1000
             : inventoryData.specieHeight;
-          console.log('inventoryData.specieHeight', inventoryData.specieHeight);
 
           if (inventoryData.projectId) {
             const project: any = await getProjectById(inventoryData.projectId);
@@ -703,7 +702,9 @@ const SingleTreeOverview = () => {
               navigation.navigate('TreeInventory');
             });
           })
-          .catch(() => setIsError(true));
+          .catch((err) => {
+            setIsError(true);
+          });
       } else {
         // TODO:i18n - if this is used, please add translations
         alert('Species Name  is required');

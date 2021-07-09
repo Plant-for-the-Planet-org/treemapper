@@ -126,9 +126,11 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   };
 
   useEffect(() => {
-    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
-      setInventory(inventoryData);
-    });
+    if (screen === 'SelectSpecies') {
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+      });
+    }
   }, []);
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance

@@ -67,7 +67,11 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                   )
                     .then(() => resolve())
                     .catch((err) => {
-                      console.error(`Error at: /action/upload/changeInventoryStatus, -> ${err}`);
+                      dbLog.error({
+                        logType: LogTypes.INVENTORY,
+                        message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                        logStack: JSON.stringify(err),
+                      });
                       reject(err);
                     });
                 } else {
@@ -97,6 +101,11 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                               err,
                             )}`,
                           );
+                          dbLog.error({
+                            logType: LogTypes.INVENTORY,
+                            message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                            logStack: JSON.stringify(err),
+                          });
                           reject(err);
                         });
                     } else {
@@ -111,16 +120,20 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           })
           .catch((err) => {
             reject(err);
-            console.error(
-              `Error at: /action/upload/changeInventoryStatusAndLocationId, -> ${JSON.stringify(
-                err,
-              )}`,
-            );
+            dbLog.error({
+              logType: LogTypes.INVENTORY,
+              message: `Failed to change inventory status: ${PENDING_IMAGE_UPLOAD} & location id: ${response.id} with inventory id: ${oneInventory.inventory_id}.`,
+              logStack: JSON.stringify(err),
+            });
           });
       }
     } catch (err) {
       reject(err);
-      console.error(`Error at: /action/upload/changeStatusAndUpload, -> ${JSON.stringify(err)}`);
+      dbLog.error({
+        logType: LogTypes.INVENTORY,
+        message: 'Error at: /action/upload/changeStatusAndUpload',
+        logStack: JSON.stringify(err),
+      });
     }
   });
 };
@@ -130,12 +143,12 @@ export const uploadInventory = (dispatch) => {
     permission()
       .then(async () => {
         // get pending inventories from realm DB
-        const pendingInventory = await getInventoryByStatus(PENDING_DATA_UPLOAD);
+        const pendingInventory = await getInventoryByStatus([PENDING_DATA_UPLOAD]);
         // get inventories whose images are pending tob be uploaded from realm DB
-        const uploadingInventory = await getInventoryByStatus(
+        const uploadingInventory = await getInventoryByStatus([
           PENDING_IMAGE_UPLOAD,
           PENDING_SAMPLE_TREES_UPLOAD,
-        );
+        ]);
         // copies pending and uploading inventory
         let inventoryData = [...uploadingInventory, ...pendingInventory];
         // updates the count of inventories that is going to be uploaded
@@ -242,6 +255,11 @@ export const uploadInventory = (dispatch) => {
       })
       .catch((err) => {
         console.error(err);
+        dbLog.error({
+          logType: LogTypes.DATA_SYNC,
+          message: 'Error while uploading Inventories',
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         return err;
       });
@@ -386,6 +404,11 @@ const checkSampleTreesAndUpload = async (inventory) => {
           sampleTree.locationId = response.id;
           // addCoordinateID(inventory.inventory_id, response.coordinates, response.id)
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
+            dbLog.error({
+              logType: LogTypes.DATA_SYNC,
+              message: 'Error while updating sample tree data',
+              logStack: JSON.stringify(err),
+            });
             console.error('Error while updating sample tree data', err);
           });
 
@@ -456,7 +479,14 @@ const updateSampleTreeByIndex = (
 
     updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
       .then(resolve)
-      .catch(reject);
+      .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.DATA_SYNC,
+          message: `Error while updating sample tree data by Index with Inventory id: ${inventory?.inventory_id}`,
+          logStack: JSON.stringify(err),
+        });
+        reject(err);
+      });
   });
 };
 
