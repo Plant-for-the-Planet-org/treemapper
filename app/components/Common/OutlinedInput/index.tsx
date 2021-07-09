@@ -371,7 +371,7 @@ const OutlinedInput = React.forwardRef(
                     iconType={'MCIIcon'}
                   />
                   {showInfoIconText ? (
-                    <View style={styles.infoTextContainer}>
+                    <View style={[styles.infoTextContainer, { maxWidth: inputWidth - 16 }]}>
                       <Text style={styles.infoText}>{infoText}</Text>
                     </View>
                   ) : (
