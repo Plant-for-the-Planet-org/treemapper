@@ -273,6 +273,8 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
     RNFS.downloadFile({
       fromUrl: `${protocol}://${url}/treemapper/scientificSpeciesArchive`,
       toFile: zipFilePath,
+      readTimeout: 300*1000, // allow max 5 minutes for downloading
+      background: false,
       begin: () => {
         setUpdatingSpeciesState('DOWNLOADING');
       },
