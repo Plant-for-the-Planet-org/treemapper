@@ -233,6 +233,9 @@ export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppM
 
   // adding species to additional details
   if (!isSampleTree) {
+    if (data.polygons.length === 0) {
+      return;
+    }
     let coords = data.polygons[0].coordinates;
 
     appAdditionalDetails['species'] = data.species;

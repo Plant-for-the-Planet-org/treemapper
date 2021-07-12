@@ -351,28 +351,30 @@ const migration = (oldRealm: any, newRealm: any) => {
     const oldInventoryObject = oldRealm.objects('Inventory');
     const newInventoryObject = newRealm.objects('Inventory');
     for (const index in oldInventoryObject) {
-      newInventoryObject[index].additionalDetails = oldInventoryObject[
-        index
-      ].additionalDetails.filter(
-        (d: any) => d.accessType === accessTypes.PRIVATE || d.accessType === accessTypes.PUBLIC,
-      );
-
-      newInventoryObject[index].appMetadata = JSON.stringify(
-        appAdditionalDataForAPI({ data: oldInventoryObject[index] }),
-      );
-
-      for (const sampleIndex in oldInventoryObject[index].sampleTrees) {
-        const sampleTree = oldInventoryObject[index].sampleTrees[sampleIndex];
-
-        newInventoryObject[index].sampleTrees[
-          sampleIndex
-        ].additionalDetails = sampleTree.additionalDetails.filter(
+      if (oldInventoryObject.inventory_id) {
+        newInventoryObject[index].additionalDetails = oldInventoryObject[
+          index
+        ].additionalDetails.filter(
           (d: any) => d.accessType === accessTypes.PRIVATE || d.accessType === accessTypes.PUBLIC,
         );
 
-        newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
-          appAdditionalDataForAPI({ data: sampleTree, isSampleTree: true }),
+        newInventoryObject[index].appMetadata = JSON.stringify(
+          appAdditionalDataForAPI({ data: oldInventoryObject[index] }),
         );
+
+        for (const sampleIndex in oldInventoryObject[index].sampleTrees) {
+          const sampleTree = oldInventoryObject[index].sampleTrees[sampleIndex];
+
+          newInventoryObject[index].sampleTrees[
+            sampleIndex
+          ].additionalDetails = sampleTree.additionalDetails.filter(
+            (d: any) => d.accessType === accessTypes.PRIVATE || d.accessType === accessTypes.PUBLIC,
+          );
+
+          newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
+            appAdditionalDataForAPI({ data: sampleTree, isSampleTree: true }),
+          );
+        }
       }
     }
   }
