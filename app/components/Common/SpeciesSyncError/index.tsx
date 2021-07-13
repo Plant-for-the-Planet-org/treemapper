@@ -1,25 +1,20 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import updateAndSyncLocalSpecies from '../../../utils/updateAndSyncLocalSpecies';
-import RotatingView from '../RotatingView';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-community/async-storage';
-import Snackbar from 'react-native-snackbar';
-import { Colors, Typography } from '_styles';
-import i18next from 'i18next';
-import dbLog from '../../../repositories/logs';
-import { LogTypes } from '../../../utils/constants';
-import { NavigationContext } from '../../../reducers/navigation';
-import { showInitialNavigationStack } from '../../../actions/navigation';
 import { useNetInfo } from '@react-native-community/netinfo';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Snackbar from 'react-native-snackbar';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { NavigationContext } from '../../../reducers/navigation';
+import { Colors, Typography } from '../../../styles';
+import RotatingView from '../RotatingView';
 
-//Component which will be rendered on Mainscreen and Managespecies when species are not synced or downloaded
+//Component which will be rendered on MainScreen and ManageSpecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
   const [refreshAnimation, setRefreshAnimation] = useState(false);
-  const [asyncStorageSpecies, setAsyncStorageSpecies] = useState(false);
-  const [updatingSpeciesState, setUpdatingSpeciesState] = useState('');
+  const [asyncStorageSpecies, setAsyncStorageSpecies] = useState<any>(false);
 
-  const { dispatch } = useContext(NavigationContext);
+  const { showInitialNavigationStack, setInitialNavigationScreen } = useContext(NavigationContext);
 
   const netInfo = useNetInfo();
 
@@ -32,33 +27,10 @@ const SpeciesSyncError = () => {
     setIsSpeciesUpdated();
   }, []);
 
-  //Syncs species if not downloaded already due to network error
-  const speciesCheck = () => {
-    updateAndSyncLocalSpecies(setUpdatingSpeciesState)
-      .then(async () => {
-        setRefreshAnimation(false);
-        const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
-        setAsyncStorageSpecies(species);
-      })
-      .catch((err) => {
-        setRefreshAnimation(false);
-        dbLog.error({
-          logType: LogTypes.OTHER,
-          message: 'Failed to sync species that are not downloaded already',
-          logStack: JSON.stringify(err),
-        });
-        Snackbar.show({
-          text: i18next.t('label.something_went_wrong'),
-          duration: Snackbar.LENGTH_SHORT,
-          backgroundColor: '#e74c3c',
-        });
-      });
-  };
-
   const onPressRefreshIcon = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      speciesCheck();
-      showInitialNavigationStack()(dispatch);
+      setInitialNavigationScreen('SpeciesLoading');
+      showInitialNavigationStack();
       setRefreshAnimation(true);
     } else {
       Snackbar.show({
@@ -74,8 +46,10 @@ const SpeciesSyncError = () => {
       {asyncStorageSpecies !== 'true' && asyncStorageSpecies !== false ? (
         <View style={styles.speciesZipWarning}>
           <View style={{ width: '80%', marginRight: 16, flex: 4 }}>
-            <Text style={styles.speciesHeading}>{i18next.t('label.speciesSyncError_heading')}</Text>
-            <Text style={styles.speciesText}>{i18next.t('label.speciesSyncError_text')}</Text>
+            <Text style={styles.speciesHeading}>
+              {i18next.t('label.species_sync_error_heading')}
+            </Text>
+            <Text style={styles.speciesText}>{i18next.t('label.species_sync_error_text')}</Text>
           </View>
           <TouchableOpacity
             onPress={() => {
