@@ -7,11 +7,9 @@ import Snackbar from 'react-native-snackbar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { NavigationContext } from '../../../reducers/navigation';
 import { Colors, Typography } from '../../../styles';
-import RotatingView from '../RotatingView';
 
 //Component which will be rendered on MainScreen and ManageSpecies when species are not synced or downloaded
 const SpeciesSyncError = () => {
-  const [refreshAnimation, setRefreshAnimation] = useState(false);
   const [asyncStorageSpecies, setAsyncStorageSpecies] = useState<any>(false);
 
   const { showInitialNavigationStack, setInitialNavigationScreen } = useContext(NavigationContext);
@@ -31,7 +29,6 @@ const SpeciesSyncError = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       setInitialNavigationScreen('SpeciesLoading');
       showInitialNavigationStack();
-      setRefreshAnimation(true);
     } else {
       Snackbar.show({
         text: i18next.t('label.no_internet_connection'),
@@ -62,13 +59,7 @@ const SpeciesSyncError = () => {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            {refreshAnimation ? (
-              <RotatingView isClockwise={true}>
-                <Icon name="sync-alt" size={22} color="#FFF" />
-              </RotatingView>
-            ) : (
-              <Icon name="sync-alt" size={22} color="#FFF" />
-            )}
+            <Icon name="sync-alt" size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
       ) : (

@@ -405,43 +405,6 @@ export const updateSpecieData = ({
   });
 };
 
-export const addLocalImage = (scientificSpecieGuid: string, image: string) => {
-  return new Promise((resolve, reject) => {
-    Realm.open(getSchema())
-      .then((realm) => {
-        realm.write(() => {
-          // find the scientific specie using scientific specie guid and updates the specieId to empty string,
-          // modifies [isUploaded] and [isUserSpecies] to [false]
-          let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
-            'ScientificSpecies',
-            scientificSpecieGuid,
-          );
-          if (specieResult) {
-            specieResult.image = `data:image/jpeg;base64,${image}`;
-            specieResult.isUpdated = false;
-          }
-          // specieResult.description = description;
-        });
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Added Local Image to a specie having scientific specie guid: ${scientificSpecieGuid}`,
-        });
-        resolve(true);
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while adding Local Image to a specie having scientific specie guid: ${scientificSpecieGuid}`,
-          logStack: JSON.stringify(err),
-        });
-        console.error(`Error at /repositories/species/addLocalImage, ${JSON.stringify(err)}`);
-        bugsnag.notify(err);
-        reject(err);
-      });
-  });
-};
-
 export const changeIsUpdatedStatus = ({
   scientificSpecieGuid,
   isUpdated,

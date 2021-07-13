@@ -1,5 +1,5 @@
 import { useNetInfo } from '@react-native-community/netinfo';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -84,6 +84,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
 
   const netInfo = useNetInfo();
+
+  const route = useRoute();
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
@@ -307,7 +309,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                 : i18next.t('label.select_species_tree_species')
             }
             TitleRightComponent={
-              !screen
+              route.name === 'ManageSpecies'
                 ? () => (
                     <TouchableOpacity
                       style={{ padding: 10 }}
@@ -322,7 +324,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                   )
                 : () => <></>
             }
-            style={{ paddingLeft: 25, paddingRight: !screen ? 15 : 25 }}
+            style={{ paddingLeft: 25, paddingRight: route.name === 'ManageSpecies' ? 15 : 25 }}
           />
           <View style={styles.container}>
             <SpeciesSyncError />
