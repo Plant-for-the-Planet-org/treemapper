@@ -422,8 +422,6 @@ const checkSampleTreesAndUpload = async (inventory) => {
             continue;
           }
 
-          response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
-
           response = response?.data;
         }
 
