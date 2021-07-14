@@ -148,7 +148,10 @@ export const uploadInventory = (dispatch) => {
     permission()
       .then(async () => {
         // get pending inventories from realm DB
-        const pendingInventory = await getInventoryByStatus([PENDING_DATA_UPLOAD]);
+        const pendingInventory = await getInventoryByStatus([
+          PENDING_DATA_UPLOAD,
+          DATA_UPLOAD_START,
+        ]);
         // get inventories whose images are pending tob be uploaded from realm DB
         const uploadingInventory = await getInventoryByStatus([
           PENDING_IMAGE_UPLOAD,
