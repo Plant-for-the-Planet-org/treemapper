@@ -124,7 +124,7 @@ export const getInventoryByStatus = (status) => {
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Fetched inventories from DB having status ${
-            status.length == 0 ? 'all' : status.join
+            status.length == 0 ? 'all' : status.join()
           }`,
         });
         resolve(sortedInventory);

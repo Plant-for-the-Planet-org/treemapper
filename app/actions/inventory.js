@@ -104,6 +104,7 @@ export const getAllInventoryFromServer = async (
 ) => {
   try {
     let data = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
+    console.log('data', data.data.items);
     let updatedAllInventory = data.data.items.concat(allInventory);
     if (data.data._links.next) {
       return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
@@ -114,6 +115,7 @@ export const getAllInventoryFromServer = async (
       let sampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type === 'sample' && inventory.captureStatus === 'complete';
       });
+      console.log('[exceptSampleTrees, sampleTrees]', [exceptSampleTrees, sampleTrees]);
       return [exceptSampleTrees, sampleTrees];
     }
   } catch (err) {

@@ -165,6 +165,8 @@ export const uploadInventory = (dispatch) => {
 
           let body = getBodyData(oneInventory);
 
+          console.log('body data', JSON.stringify(body));
+
           if (oneInventory.locationId !== null && oneInventory.status === PENDING_IMAGE_UPLOAD) {
             try {
               const response = await getPlantLocationDetails(oneInventory.locationId);
@@ -393,6 +395,8 @@ const checkSampleTreesAndUpload = async (inventory) => {
             inventory.registrationDate,
             inventory.locationId,
           );
+
+          console.log('getSampleBodyData', JSON.stringify(body));
 
           response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
 

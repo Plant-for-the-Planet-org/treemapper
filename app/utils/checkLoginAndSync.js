@@ -13,6 +13,7 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
         getAllProjects();
 
         checkAndAddUserSpecies().then(() => {
+          console.log('addInventoryFromServer');
           addInventoryFromServer();
         });
       })
