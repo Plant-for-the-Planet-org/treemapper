@@ -63,7 +63,6 @@ const logToDB = (
               logStack,
             };
           }
-          console.log('logData', logData);
           // create log in ActivityLogs using logData which is passed
           realm.create('ActivityLogs', logData);
         });
