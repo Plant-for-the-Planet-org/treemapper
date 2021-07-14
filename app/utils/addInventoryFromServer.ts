@@ -12,7 +12,6 @@ export const addInventoryFromServer = async () => {
     getInventoryByStatus([SYNCED])
       .then((allInventory) => {
         for (const inventoryFromServer of exceptSampleTrees) {
-          console.log('inventoryFromServer', JSON.stringify(inventoryFromServer));
           if (allInventory.length === 0) {
             addInventoryToDB(inventoryFromServer);
           } else {
@@ -30,7 +29,6 @@ export const addInventoryFromServer = async () => {
       })
       .then(() => {
         for (const sampleTreeFromServer of allSampleTrees) {
-          console.log('sampleTreeFromServer', JSON.stringify(sampleTreeFromServer));
           addSampleTree(sampleTreeFromServer);
         }
       });

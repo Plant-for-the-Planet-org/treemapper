@@ -132,7 +132,6 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
             message: 'Species are not updated but json file is already present',
           });
 
-          console.log('doesJsonPathExist');
           updateSpeciesFromFile(jsonFilePath, setUpdatingSpeciesState)
             .then(() => {
               resolve();
@@ -175,8 +174,6 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
             message: 'Species are not updated but archive file is present',
           });
 
-          console.log('doesZipPathExist', doesZipPathExist);
-
           // calls the function to unzip and add the species data in realm DB
           unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
             .then(resolve)
@@ -218,7 +215,7 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
 const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesState) => {
   return new Promise((resolve, reject) => {
     setUpdatingSpeciesState('UNZIPPING_FILE');
-    console.log('UNZIPPING_FILE');
+
     // unzips the downloaded file in document directory
     unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8')
       .then(async () => {
@@ -275,7 +272,6 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
     // downloads the zip file from the link and then after completion unzip the file
     // and updates th species in local DB
 
-    console.log('downloadAndUpdateSpecies');
     RNFS.downloadFile({
       fromUrl: `${protocol}://${url}/treemapper/scientificSpeciesArchive`,
       toFile: zipFilePath,
@@ -286,7 +282,6 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
       },
     })
       .promise.then(async (response) => {
-        console.log('response.statusCode', response.statusCode);
         // if response is 200 then unzips the file and adds the species in local DB
         if (response.statusCode === 200) {
           dbLog.info({
