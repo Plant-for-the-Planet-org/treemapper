@@ -72,7 +72,7 @@ const InventoryOverview = ({ navigation }: any) => {
   useEffect(() => {
     getUserDetails().then((userDetails) => {
       if (userDetails) {
-      setCountryCode(userDetails.country || '');
+        setCountryCode(userDetails.country || '');
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
           setShowProject(true);
