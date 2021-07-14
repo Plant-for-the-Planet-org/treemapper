@@ -174,14 +174,14 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
             paddingBottom: 6,
           }}>
-          {item.aliases}
+          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.aliases : i18next.t('label.select_species_unknown')}
         </Text>
         <Text
           style={{
             fontSize: Typography.FONT_SIZE_12,
             fontFamily: Typography.FONT_FAMILY_REGULAR,
           }}>
-          {item.scientificName}
+          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.scientificName : i18next.t('label.select_species_unknown')}
         </Text>
       </View>
       {item.guid !== 'unknown' && screen === 'SelectSpecies' && navigateToSpecieInfo ? (
