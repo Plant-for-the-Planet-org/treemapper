@@ -1,5 +1,10 @@
 import { accessTypes } from '../../utils/additionalData/constants';
 import { appAdditionalDataForAPI } from '../../utils/additionalData/functions';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  PENDING_DATA_UPLOAD,
+} from '../../utils/inventoryConstants';
 
 // schema version
 const schemaVersion = 11;
@@ -350,8 +355,14 @@ const migration = (oldRealm: any, newRealm: any) => {
   if (oldRealm.schemaVersion < schemaVersion) {
     const oldInventoryObject = oldRealm.objects('Inventory');
     const newInventoryObject = newRealm.objects('Inventory');
+
     for (const index in oldInventoryObject) {
-      if (oldInventoryObject.inventory_id) {
+      if (
+        oldInventoryObject[index].inventory_id &&
+        (oldInventoryObject[index].status === INCOMPLETE ||
+          oldInventoryObject[index].status === INCOMPLETE_SAMPLE_TREE ||
+          oldInventoryObject[index].status === PENDING_DATA_UPLOAD)
+      ) {
         // adds all the data from old inventory except APP accessType
         newInventoryObject[index].additionalDetails = oldInventoryObject[
           index
@@ -366,17 +377,9 @@ const migration = (oldRealm: any, newRealm: any) => {
           accessType: accessTypes.APP,
         });
 
-        console.log(
-          'newInventoryObject[index].additionalDetails=>',
-          index,
-          newInventoryObject[index].additionalDetails,
-        );
-
         const appMetadata = appAdditionalDataForAPI({ data: oldInventoryObject[index] });
         // overrides the appVersion to 1.0.2
         appMetadata.appVersion = '1.0.2';
-
-        console.log('appMetadata', appMetadata);
 
         // adds appMetadata which is used to send data to API
         newInventoryObject[index].appMetadata = JSON.stringify(appMetadata);
@@ -398,20 +401,12 @@ const migration = (oldRealm: any, newRealm: any) => {
             accessType: accessTypes.APP,
           });
 
-          console.log(
-            'newInventoryObject[index].sampleTrees[sampleIndex].additionalDetails=>',
-            sampleIndex,
-            newInventoryObject[index].sampleTrees[sampleIndex].additionalDetails,
-          );
-
           const sampleAppMetadata = appAdditionalDataForAPI({
             data: sampleTree,
             isSampleTree: true,
           });
           // overrides the appVersion to 1.0.2
           sampleAppMetadata.appVersion = '1.0.2';
-
-          console.log('sampleAppMetadata', sampleAppMetadata);
 
           // adds appMetadata which is used to send data to API
           newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
