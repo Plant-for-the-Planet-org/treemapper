@@ -51,7 +51,7 @@
   "species_description": "Descripción",
   "type_description_here": "Escriba aquí la descripción",
   "sync": "Sincronización",
-  "species_sync_might_take_time": "Sincronización de especies, esto puede llevar algún tiempo.",
+  "species_sync_might_take_time": "Sincronizando especies, esto puede llevar algún tiempo.",
   "all_species_synced": "Todas las especies están sincronizadas.",
   "sync_required_message": "¡Tus especies no se han sincronizado completamente en línea!\n\nAl cerrar la sesión se eliminarán estas especies, así que considera la posibilidad de sincronizarlas primero.",
   "measurement_diameter_info": "Si un árbol tiene una altura superior a {{height}} {{unit}} , mida el diámetro del tronco en {{height}} {{unit}} (DBH). En caso contrario, mida el diámetro del tronco en la base del árbol (diámetro basal)",
@@ -59,6 +59,6 @@
   "not_optimal_ratio": "Relación no óptima",
   "not_optimal_ratio_message": "La relación altura-diámetro no se encuentra entre el rango de relación óptima que está entre 2:1 (altura-diámetro mínimo) y 160:1 (altura-diámetro máximo). ¿Está seguro de que desea continuar?",
   "delete_species": "¿Borrar especies?",
-  "delete_species_delete_sample_tree_warning": "Si elimina esta especie, también se eliminarán los árboles de muestra relacionados con esta especie. ¿Está seguro de que quiere borrarlo?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Esta especie se eliminará si el recuento de árboles se establece en 0 y el árbol o árboles de muestra relacionados con esta especie también se eliminarán. ¿Está seguro de que quiere poner el número de árboles a cero?"
+  "delete_species_delete_sample_tree_warning": "Si elimina esta especie, también se eliminarán los árboles de muestra relacionados con esta especie. ¿Está seguro de que quiere borrarla?",
+  "zero_tree_count_species_delete_sample_tree_warning": "Esta especie se eliminará si el recuento de árboles se establece en 0 y el árbol o árboles de muestra relacionados con esta especie también se eliminarán. ¿Está seguro de que quiere poner el número de árboles en cero?"
 }
