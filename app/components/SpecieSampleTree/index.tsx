@@ -9,7 +9,9 @@ import { InventoryContext } from '../../reducers/inventory';
 import { getInventory } from '../../repositories/inventory';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import { SpecieCard } from '../ManageSpecies/MySpecies';
-
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
+import { SpeciesContext } from '../../reducers/species';
+import { setSpecie } from '../../actions/species';
 interface SpecieSampleTreeProps {
   onPressBack?: any;
   addSpecieToInventory?: any;
@@ -26,6 +28,7 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
   const [speciesType, setSpeciesType] = useState('');
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
+  const { dispatch } = useContext(SpeciesContext);
 
   let currentSampleTree;
   useEffect(() => {
@@ -77,7 +80,10 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
       });
     }
   };
-
+  const navigateToSpecieInfo = (specie: ScientificSpeciesType) => {
+    setSpecie(specie)(dispatch);
+    navigation.navigate('SpecieInfo', { screen: 'SelectSpecies' });
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
@@ -107,6 +113,8 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
                 isSampleTree={true}
                 isSampleTreeSpecies={true}
                 onPressSpecies={onPressSpecie}
+                screen={'SelectSpecies'}
+                navigateToSpecieInfo={navigateToSpecieInfo}
               />
             </View>
           ))}
