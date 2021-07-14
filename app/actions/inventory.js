@@ -117,8 +117,6 @@ export const getAllInventoryFromServer = async (
       dbLog.info({
         logType: LogTypes.DATA_SYNC,
         message: 'Successfully fetched all Inventories From server',
-        statusCode: err?.response?.status,
-        logStack: JSON.stringify(err?.response),
       });
       return [exceptSampleTrees, sampleTrees];
     }
