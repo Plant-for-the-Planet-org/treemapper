@@ -224,7 +224,10 @@ const TreeInventory = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <SafeAreaView />
-      {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
+      {pendingInventory.length > 0 ||
+      inCompleteInventory.length > 0 ||
+      uploadedInventory.length > 0 ||
+      uploadingInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
           ? renderLoadingInventoryList()

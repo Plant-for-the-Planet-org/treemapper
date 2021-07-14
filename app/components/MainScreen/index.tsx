@@ -25,7 +25,12 @@ import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositor
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import { PENDING_DATA_UPLOAD, PENDING_IMAGE_UPLOAD } from '../../utils/inventoryConstants';
+import {
+  PENDING_DATA_UPLOAD,
+  INCOMPLETE_SAMPLE_TREE,
+  INCOMPLETE,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import {
   Header,
   LargeButton,
@@ -81,7 +86,11 @@ const MainScreen = () => {
     getInventoryByStatus([]).then((data) => {
       let count = 0;
       for (const inventory of data) {
-        if (inventory.status === PENDING_DATA_UPLOAD || inventory.status === PENDING_IMAGE_UPLOAD) {
+        if (
+          inventory.status !== SYNCED &&
+          inventory.status !== INCOMPLETE &&
+          inventory.status !== INCOMPLETE_SAMPLE_TREE
+        ) {
           count++;
         }
       }
