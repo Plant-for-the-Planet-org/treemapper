@@ -114,6 +114,10 @@ export const getAllInventoryFromServer = async (
       let sampleTrees = updatedAllInventory.filter((inventory) => {
         return inventory.type === 'sample' && inventory.captureStatus === 'complete';
       });
+      dbLog.info({
+        logType: LogTypes.DATA_SYNC,
+        message: 'Successfully fetched all Inventories From server',
+      });
       return [exceptSampleTrees, sampleTrees];
     }
   } catch (err) {
