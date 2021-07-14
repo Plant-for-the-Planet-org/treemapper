@@ -5,6 +5,7 @@ import {
   INCOMPLETE_SAMPLE_TREE,
   PENDING_DATA_UPLOAD,
 } from '../../utils/inventoryConstants';
+import { version } from '../../../package.json';
 
 // schema version
 const schemaVersion = 11;
@@ -363,6 +364,8 @@ const migration = (oldRealm: any, newRealm: any) => {
           oldInventoryObject[index].status === INCOMPLETE_SAMPLE_TREE ||
           oldInventoryObject[index].status === PENDING_DATA_UPLOAD)
       ) {
+        const appVersion =
+          oldInventoryObject[index].status === PENDING_DATA_UPLOAD ? '1.0.2' : version;
         // adds all the data from old inventory except APP accessType
         newInventoryObject[index].additionalDetails = oldInventoryObject[
           index
@@ -373,13 +376,13 @@ const migration = (oldRealm: any, newRealm: any) => {
         // adds app version to additional details
         newInventoryObject[index].additionalDetails.push({
           key: 'appVersion',
-          value: '1.0.2',
+          value: appVersion,
           accessType: accessTypes.APP,
         });
 
         const appMetadata = appAdditionalDataForAPI({ data: oldInventoryObject[index] });
-        // overrides the appVersion to 1.0.2
-        appMetadata.appVersion = '1.0.2';
+        // overrides the appVersion
+        appMetadata.appVersion = appVersion;
 
         // adds appMetadata which is used to send data to API
         newInventoryObject[index].appMetadata = JSON.stringify(appMetadata);
@@ -397,7 +400,7 @@ const migration = (oldRealm: any, newRealm: any) => {
           // adds app version to additional details
           newInventoryObject[index].sampleTrees[sampleIndex].additionalDetails.push({
             key: 'appVersion',
-            value: '1.0.2',
+            value: appVersion,
             accessType: accessTypes.APP,
           });
 
@@ -405,8 +408,8 @@ const migration = (oldRealm: any, newRealm: any) => {
             data: sampleTree,
             isSampleTree: true,
           });
-          // overrides the appVersion to 1.0.2
-          sampleAppMetadata.appVersion = '1.0.2';
+          // overrides the appVersion
+          sampleAppMetadata.appVersion = appVersion;
 
           // adds appMetadata which is used to send data to API
           newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
