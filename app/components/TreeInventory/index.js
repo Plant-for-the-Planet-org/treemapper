@@ -82,7 +82,7 @@ const TreeInventory = ({ navigation }) => {
       filteredInventories();
     });
     getUserDetails().then((userDetails) => {
-      setCountryCode(userDetails.country);
+      setCountryCode(userDetails?.country || '');
     });
   };
 

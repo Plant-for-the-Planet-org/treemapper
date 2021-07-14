@@ -36,7 +36,7 @@ const UploadedInventory = ({ navigation }) => {
       setAllInventory(allInventory);
     });
     getUserDetails().then((userDetails) => {
-      setCountryCode(userDetails.country);
+      setCountryCode(userDetails?.country || '');
     });
   };
 
