@@ -108,7 +108,7 @@ export const getInventoryByStatus = (status) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
-        let inventory = realm.objects('Inventory');
+        let inventory = realm.objects('Inventory').filtered('status != null');
         if (status.length !== 0) {
           var query = 'status == ';
           for (var i = 0; i < status.length; i++) {
