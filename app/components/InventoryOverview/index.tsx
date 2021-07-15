@@ -71,8 +71,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
-      setCountryCode(userDetails.country);
       if (userDetails) {
+        setCountryCode(userDetails.country || '');
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
           setShowProject(true);
@@ -288,8 +288,9 @@ const InventoryOverview = ({ navigation }: any) => {
             alert(i18next.t('label.inventory_overview_export_json_success'));
           })
           .catch((err) => {
-            if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
-              alert(i18next.t('label.inventory_overview_export_json_error'))
+            if (err?.error?.code != 'ECANCELLED500') {
+              // iOS cancel button pressed
+              alert(i18next.t('label.inventory_overview_export_json_error'));
             }
           });
       }

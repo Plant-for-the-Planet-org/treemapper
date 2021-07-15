@@ -81,37 +81,42 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                       status: PENDING_SAMPLE_TREES_UPLOAD,
                     },
                     dispatch,
-                  ).then(async () => {
-                    let inventory = {};
-                    inventory = oneInventory;
-                    const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
+                  )
+                    .then(async () => {
+                      let inventory = {};
+                      inventory = oneInventory;
+                      const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
 
-                    if (sampleTreeUploadResult) {
-                      changeInventoryStatus(
-                        {
-                          inventory_id: oneInventory.inventory_id,
-                          status: SYNCED,
-                        },
-                        dispatch,
-                      )
-                        .then(() => resolve())
-                        .catch((err) => {
-                          console.error(
-                            `Error at: /action/upload/changeInventoryStatus, -> ${JSON.stringify(
-                              err,
-                            )}`,
-                          );
-                          dbLog.error({
-                            logType: LogTypes.INVENTORY,
-                            message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
-                            logStack: JSON.stringify(err),
+                      if (sampleTreeUploadResult) {
+                        changeInventoryStatus(
+                          {
+                            inventory_id: oneInventory.inventory_id,
+                            status: SYNCED,
+                          },
+                          dispatch,
+                        )
+                          .then(() => resolve())
+                          .catch((err) => {
+                            console.error('Error at: /action/upload/changeInventoryStatus', err);
+                            dbLog.error({
+                              logType: LogTypes.INVENTORY,
+                              message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                              logStack: JSON.stringify(err),
+                            });
+                            reject(err);
                           });
-                          reject(err);
-                        });
-                    } else {
-                      reject(new Error('Some sample tree upload are pending'));
-                    }
-                  });
+                      } else {
+                        reject(new Error('Some sample tree upload are pending'));
+                      }
+                    })
+                    .catch((err) => {
+                      dbLog.error({
+                        logType: LogTypes.INVENTORY,
+                        message: `Failed to change inventory status: ${PENDING_SAMPLE_TREES_UPLOAD} with inventory id: ${oneInventory.inventory_id}.`,
+                        logStack: JSON.stringify(err),
+                      });
+                      reject(err);
+                    });
                 }
               } else {
                 reject(new Error('Some image upload are pending'));
@@ -143,7 +148,10 @@ export const uploadInventory = (dispatch) => {
     permission()
       .then(async () => {
         // get pending inventories from realm DB
-        const pendingInventory = await getInventoryByStatus([PENDING_DATA_UPLOAD]);
+        const pendingInventory = await getInventoryByStatus([
+          PENDING_DATA_UPLOAD,
+          DATA_UPLOAD_START,
+        ]);
         // get inventories whose images are pending tob be uploaded from realm DB
         const uploadingInventory = await getInventoryByStatus([
           PENDING_IMAGE_UPLOAD,
@@ -165,10 +173,42 @@ export const uploadInventory = (dispatch) => {
 
           let body = getBodyData(oneInventory);
 
-          if (oneInventory.locationId !== null && oneInventory.status === PENDING_IMAGE_UPLOAD) {
+          if (
+            oneInventory.locationId !== null &&
+            (oneInventory.status === PENDING_IMAGE_UPLOAD ||
+              oneInventory.status === PENDING_SAMPLE_TREES_UPLOAD)
+          ) {
             try {
               const response = await getPlantLocationDetails(oneInventory.locationId);
-              await changeStatusAndUpload(response, oneInventory, dispatch);
+
+              if (oneInventory.status === PENDING_SAMPLE_TREES_UPLOAD) {
+                let inventory = {};
+                inventory = oneInventory;
+                const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
+
+                if (sampleTreeUploadResult) {
+                  changeInventoryStatus(
+                    {
+                      inventory_id: oneInventory.inventory_id,
+                      status: SYNCED,
+                    },
+                    dispatch,
+                  ).catch((err) => {
+                    dbLog.error({
+                      logType: LogTypes.INVENTORY,
+                      message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                      logStack: JSON.stringify(err),
+                    });
+                  });
+                } else {
+                  dbLog.error({
+                    logType: LogTypes.INVENTORY,
+                    message: `Some sample tree upload are pending with inventory id: ${oneInventory.inventory_id} and location id: ${oneInventory.locationId}.`,
+                  });
+                }
+              } else {
+                await changeStatusAndUpload(response, oneInventory, dispatch);
+              }
 
               if (inventoryData.length - 1 === i) {
                 updateIsUploading(false)(dispatch);
@@ -179,8 +219,6 @@ export const uploadInventory = (dispatch) => {
                 updateIsUploading(false)(dispatch);
                 reject(err);
               }
-              bugsnag.notify(err);
-              console.error(err);
             }
           } else {
             try {
@@ -196,7 +234,7 @@ export const uploadInventory = (dispatch) => {
 
               dbLog.info({
                 logType: LogTypes.DATA_SYNC,
-                message: 'Successfully added plant location, POST - /treemapper/plantLocation',
+                message: `Successfully added plant location for inventory id: ${oneInventory.inventory_id}, POST - /treemapper/plantLocation`,
                 referenceId: oneInventory.inventory_id,
               });
 
@@ -213,41 +251,38 @@ export const uploadInventory = (dispatch) => {
                       updateIsUploading(false)(dispatch);
                       reject(err);
                     }
-                    console.error(
-                      `Error at: /action/upload, changeStatusAndUpload -> ${JSON.stringify(
-                        err,
-                      )} ${err}`,
-                    );
+                    console.error('Error at: /action/upload, changeStatusAndUpload', err);
                   });
               } else {
+                dbLog.error({
+                  logType: LogTypes.DATA_SYNC,
+                  message: `No data returned from server for inventory id: ${oneInventory.inventory_id}, POST - /treemapper/plantLocation`,
+                  referenceId: oneInventory.inventory_id,
+                });
                 if (inventoryData.length - 1 === i) {
                   updateIsUploading(false)(dispatch);
                   reject(new Error('No data returned while creating plant location'));
                 }
               }
             } catch (err) {
+              await changeInventoryStatus(
+                {
+                  inventory_id: oneInventory.inventory_id,
+                  status: PENDING_DATA_UPLOAD,
+                  count: DECREMENT,
+                },
+                dispatch,
+              );
               if (inventoryData.length - 1 === i) {
-                await changeInventoryStatus(
-                  {
-                    inventory_id: oneInventory.inventory_id,
-                    status: PENDING_DATA_UPLOAD,
-                    count: DECREMENT,
-                  },
-                  dispatch,
-                );
                 updateIsUploading(false)(dispatch);
                 reject(err);
               }
-              console.error(
-                `Error at: /action/upload, POST - /treemapper/plantLocations -> ${JSON.stringify(
-                  err.response,
-                )}`,
-              );
+              console.error('Error at: /action/upload, POST - /treemapper/plantLocations', err);
               dbLog.error({
                 logType: LogTypes.DATA_SYNC,
-                message: 'Error while add plant location, POST - /treemapper/plantLocations',
+                message: 'Error while adding plant location, POST - /treemapper/plantLocations',
                 statusCode: err?.response?.status,
-                logStack: JSON.stringify(err?.response),
+                logStack: JSON.stringify(err?.response || err),
               });
             }
           }
@@ -386,27 +421,44 @@ const checkSampleTreesAndUpload = async (inventory) => {
         let response;
 
         if (sampleTree.locationId && sampleTree.status === PENDING_IMAGE_UPLOAD) {
-          response = await getPlantLocationDetails(sampleTree.locationId);
+          try {
+            response = await getPlantLocationDetails(sampleTree.locationId);
+          } catch (err) {
+            dbLog.error({
+              logType: LogTypes.DATA_SYNC,
+              message: `Error while getting plant location details with Sample Tree Location Id:${sampleTree.locationId}`,
+              logStack: JSON.stringify(err?.response || err),
+            });
+            continue;
+          }
         } else if (sampleTree.status === PENDING_DATA_UPLOAD) {
           let body = getSampleBodyData(
             sampleTree,
             inventory.registrationDate,
             inventory.locationId,
           );
+          try {
+            response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
+          } catch (err) {
+            dbLog.error({
+              logType: LogTypes.DATA_SYNC,
+              message: `Error while creating Plant Location details for Sample Trees with Inventory Location Id: ${inventory.locationId}`,
+              logStack: JSON.stringify(err?.response || err),
+            });
+            continue;
+          }
 
-          response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
-
-          response = response.data;
+          response = response?.data;
         }
 
         if (response && response.coordinates[0].status === 'pending' && sampleTree.imageUrl) {
           sampleTree.status = PENDING_IMAGE_UPLOAD;
           sampleTree.locationId = response.id;
-          // addCoordinateID(inventory.inventory_id, response.coordinates, response.id)
+
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
             dbLog.error({
               logType: LogTypes.DATA_SYNC,
-              message: 'Error while updating sample tree data',
+              message: `Error while updating sample tree data for location id: ${response.id}`,
               logStack: JSON.stringify(err),
             });
             console.error('Error while updating sample tree data', err);
@@ -432,10 +484,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
           } else {
             console.error('Error while uploading image');
           }
-        } else if (
-          response &&
-          (response.coordinates[0].status === SYNCED || !sampleTree.imageUrl)
-        ) {
+        } else if (response && response.coordinates[0].status === 'complete') {
           sampleTree.status = SYNCED;
           sampleTree.locationId = response.id;
 
@@ -499,7 +548,7 @@ const checkAndUploadImage = async (oneInventory, response) => {
     for (let i = 0; i < responseCoords.length; i++) {
       const oneResponseCoords = responseCoords[i];
 
-      if (oneResponseCoords.status === SYNCED) {
+      if (oneResponseCoords.status === 'complete') {
         completedUploadCount++;
         continue;
       }
@@ -566,6 +615,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
         });
         return result.data.image;
       }
+      return false;
     } catch (err) {
       console.error(
         `Error at: action/upload/uploadImage, PUT: ${locationId}/coordinates/${coordinateId} -> ${JSON.stringify(
@@ -575,7 +625,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
       dbLog.error({
         logType: LogTypes.DATA_SYNC,
         message: `Error while uploading image for inventory id: ${inventoryId} and coordinate id: ${coordinateId}`,
-        logStack: JSON.stringify(err?.response),
+        logStack: JSON.stringify(err?.response || err),
         referenceId: inventoryId,
       });
       bugsnag.notify(err);
