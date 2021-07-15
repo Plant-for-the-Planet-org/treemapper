@@ -394,6 +394,7 @@ export default function TotalTreesSpecies() {
           registrationType={MULTI}
           addSpecieToInventory={addSpecieToInventory}
           isSampleTree={true}
+          screen={'SelectSpecies'}
           isSampleTreeCompleted={true}
           retainNavigationStack={route?.params?.retainNavigationStack}
           deleteSpeciesAndSampleTrees={deleteSpeciesAndSampleTrees}
