@@ -331,6 +331,7 @@ const getBodyData = (inventory) => {
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
     registrationDate: inventory.registrationDate.toISOString().split('T')[0],
+    sampleTreeCount: inventory.treeType === MULTI ? inventory.sampleTreesCount : null,
     metadata,
   };
 

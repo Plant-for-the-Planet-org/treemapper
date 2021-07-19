@@ -972,13 +972,16 @@ export const addInventoryToDB = (inventoryFromServer) => {
           for (
             let index = 0;
             index <
-            (inventoryFromServer.type === MULTI
+            (inventoryFromServer.type === MULTI && inventoryFromServer.geometry.type === 'Polygon'
               ? inventoryFromServer.geometry.coordinates[0].length
               : 1);
             index++
           ) {
             let coordinate;
-            if (inventoryFromServer.type === MULTI) {
+            if (
+              inventoryFromServer.type === MULTI &&
+              inventoryFromServer.geometry.type === 'Polygon'
+            ) {
               coordinate = inventoryFromServer.geometry.coordinates[0][index];
             } else {
               coordinate = inventoryFromServer.geometry.coordinates;
