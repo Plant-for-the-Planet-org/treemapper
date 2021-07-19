@@ -66,7 +66,10 @@ export const getFormattedAdditionalDetails = (metadata: any) => {
 
   if (metadata && Object.keys(metadata).length > 0) {
     for (const dataKey of Object.keys(metadata)) {
-      if (dataKey === accessTypes.APP) {
+      if (!metadata[dataKey]) {
+        continue;
+      }
+      if (dataKey === accessTypes.APP && metadata[dataKey]?.appVersion) {
         additionalDetails.push({
           key: 'appVersion',
           value: metadata[dataKey].appVersion,
