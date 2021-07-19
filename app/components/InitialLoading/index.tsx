@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContext } from '../../reducers/navigation';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import shouldUpdateSpeciesSync from '../../utils/ScientificSpecies/shouldUpdateSpeciesSync';
 
 const SpeciesContainer = ({ updatingSpeciesState }: { updatingSpeciesState: string }) => {
   switch (updatingSpeciesState) {
@@ -52,6 +53,7 @@ export default function InitialLoading() {
   const descriptionText = !isSpeciesLoadingScreen ? i18next.t('label.migration_description') : '';
 
   React.useEffect(() => {
+    let syncSpecies = updateSpeciesSync;
     if (route.name !== 'SpeciesLoading') {
       // calls the migration function to migrate the realm
       migrateRealm()
@@ -65,7 +67,11 @@ export default function InitialLoading() {
           // calls the function and stores whether species data was already loaded or not
           const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
 
-          if (isSpeciesLoaded === 'true') {
+          if (!syncSpecies) {
+            syncSpecies = await shouldUpdateSpeciesSync();
+          }
+
+          if (isSpeciesLoaded === 'true' && !syncSpecies) {
             setInitialNavigationScreen('');
             showMainNavigationStack();
           } else {
@@ -82,7 +88,7 @@ export default function InitialLoading() {
         });
     } else {
       // calls this function to update the species in the realm DB
-      updateAndSyncLocalSpecies(setUpdatingSpeciesState, updateSpeciesSync)
+      updateAndSyncLocalSpecies(setUpdatingSpeciesState, syncSpecies)
         .then(() => {
           setUpdateSpeciesSync(false);
           setInitialNavigationScreen('');
