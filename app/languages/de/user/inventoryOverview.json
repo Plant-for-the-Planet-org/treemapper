@@ -12,7 +12,7 @@
   "inventory_overview_add_species": "Gepflanzte Arten",
   "inventory_overview_add_sample_tree": "Beispielbäume",
   "inventory_overview_header_text": "Überprüfung",
-  "inventory_overview_sub_header": "Bäume werden zu deinem Inventar hinzugefügt, um sie zu synchronisieren, wenn du Internet hast.",
+  "inventory_overview_sub_header": "Bäume werden zu deinem Bestand hinzugefügt, um sie zu synchronisieren, wenn du Internet hast.",
   "inventory_overview_left_text": "Pflanzdatum",
   "inventory_overview_left_text_planted_species": "Gepflanzte Arten",
   "inventory_overview_loc_left_text": "{{item.aliases}}",
@@ -24,5 +24,5 @@
   "inventory_overview_cancel": "Abbrechen",
   "inventory_overview_confirm": "Bestätigen",
   "inventory_overview_pick_a_date": "Wähle ein Datum",
-  "error_saving_inventory": "Fehler beim Speichern des Inventars"
+  "error_saving_inventory": "Fehler beim Speichern des Bestands"
 }
