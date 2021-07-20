@@ -1,33 +1,28 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import React from 'react';
-import { StyleSheet, View, ImageBackground, Text, ActivityIndicator } from 'react-native';
+import Logger from '@react-native-mapbox-gl/maps/javascript/utils/Logger';
+import React, { useState, createRef, useRef, useEffect } from 'react';
+import { StyleSheet, View, Text, ActivityIndicator, Platform } from 'react-native';
 import Config from 'react-native-config';
-import { SvgXml } from 'react-native-svg';
+import { SvgXml, Svg } from 'react-native-svg';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import { active_marker, marker_png } from '../../../assets';
 import { Colors, Typography } from '_styles';
 import SampleTreeMarkers from '../SampleTreeMarkers';
-
+import Markers from '../Markers';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+const IS_ANDROID = Platform.OS === 'android';
 
-const Markers = ({ geoJSON, alphabets }) => {
-  const markers = [];
-  for (let i = 0; i < geoJSON.features.length; i++) {
-    let onePolygon = geoJSON.features[i];
-
-    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
-      let oneMarker = onePolygon.geometry.coordinates[j];
-      markers.push(
-        <MapboxGL.PointAnnotation key={`${i}${j}`} id={`${i}${j}`} coordinate={oneMarker}>
-          <ImageBackground source={marker_png} style={styles.markerContainer} resizeMode={'cover'}>
-            <Text style={styles.markerText}>{alphabets[j]}</Text>
-          </ImageBackground>
-        </MapboxGL.PointAnnotation>,
-      );
-    }
+Logger.setLogCallback((log) => {
+  const { message } = log;
+  // expected warnings - see https://github.com/mapbox/mapbox-gl-native/issues/15341#issuecomment-522889062
+  if (
+    message.match('Request failed due to a permanent error: Canceled') ||
+    message.match('Request failed due to a permanent error: Socket Closed')
+  ) {
+    return true;
   }
-  return markers;
-};
+  return false;
+});
 
 export default function Map({
   geoJSON,
@@ -40,14 +35,15 @@ export default function Map({
   loader,
   markerText,
   activePolygonIndex,
-  alphabets,
-  setLocation
+  setLocation,
 }) {
   let shouldRenderShape = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
-
+  console.log(JSON.stringify(geoJSON), 'geoJSON');
   const onChangeRegionStart = () => setLoader(true);
 
-  const onChangeRegionComplete = () => setLoader(false);
+  const onChangeRegionComplete = () => {
+    setLoader(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -63,7 +59,7 @@ export default function Map({
         logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        {treeType === MULTI && <Markers geoJSON={geoJSON} alphabets={alphabets} />}
+        {(treeType === MULTI || treeType === SAMPLE) && <Markers geoJSON={geoJSON} />}
         {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera
@@ -75,10 +71,26 @@ export default function Map({
         {(treeType === MULTI || treeType === SAMPLE) && shouldRenderShape && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
+            <MapboxGL.SymbolLayer
+              id="asd"
+              sourceID="polygon"
+              style={{
+                iconSize: 1,
+                iconAllowOverlap: true,
+              }}>
+              <View
+                style={{ height: 40, width: 40 }}
+                pointerEvents="none" // this is important for the onPress prop of ShapeSource to work
+              >
+                <SvgXml xml={active_marker} style={styles.markerImage} />
+
+                <Text>something</Text>
+              </View>
+            </MapboxGL.SymbolLayer>
           </MapboxGL.ShapeSource>
         )}
         {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data)=>setLocation(data)} />
+          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
         )}
       </MapboxGL.MapView>
 
@@ -118,7 +130,6 @@ const styles = StyleSheet.create({
   markerContainer: {
     width: 30,
     height: 43,
-    paddingBottom: 85,
   },
   markerText: {
     width: 30,
