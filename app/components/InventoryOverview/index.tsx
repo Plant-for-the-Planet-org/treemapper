@@ -47,6 +47,7 @@ import { askExternalStoragePermission } from '../../utils/permissions';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
+import MarkerSVG from '../Common/MarkerSVG';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
 const InventoryOverview = ({ navigation }: any) => {
@@ -255,14 +256,7 @@ const InventoryOverview = ({ navigation }: any) => {
             <MapboxGL.Camera ref={cameraRef} />
             {selectedLOC && (
               <MapboxGL.PointAnnotation id={'markerContainer1'} coordinate={selectedLOC}>
-                <ImageBackground
-                  source={marker_png}
-                  style={styles.markerContainer}
-                  resizeMode={'cover'}>
-                  <Text style={styles.markerText}>
-                    {i18next.t('label.inventory_overview_loc', { locationTitle })}
-                  </Text>
-                </ImageBackground>
+                <MarkerSVG point={locationTitle} color={Colors.PRIMARY} />
               </MapboxGL.PointAnnotation>
             )}
           </MapboxGL.MapView>

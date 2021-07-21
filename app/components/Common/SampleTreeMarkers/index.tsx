@@ -22,7 +22,7 @@ const SampleTreeMarkers = ({ geoJSON, isPointForMultipleTree }: Props) => {
         key={`sampleTree-${i}`}
         id={`sampleTree-${i}`}
         coordinate={oneMarker}>
-        <MarkerSVG point={markerText} color={'#007A49'} />
+        <MarkerSVG point={markerText} color={isPointForMultipleTree ? Colors.PRIMARY : '#007A49'} />
       </MapboxGL.PointAnnotation>,
     );
   }
