@@ -280,7 +280,7 @@ const InventoryOverview = ({ navigation }: any) => {
           url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
           message: i18next.t('label.inventory_overview_export_json_message'),
           title: i18next.t('label.inventory_overview_export_json_title'),
-          filename: `Tree Mapper GeoJSON ${inventory.inventory_id}`,
+          filename: `TreeMapper GeoJSON ${inventory.inventory_id}`,
           saveToFiles: true,
         };
         Share.open(options)
