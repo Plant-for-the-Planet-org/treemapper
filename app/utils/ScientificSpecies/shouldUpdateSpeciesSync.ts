@@ -8,9 +8,7 @@ const shouldUpdateSpeciesSync = async (): Promise<boolean> => {
   const previousUpdatedSyncDate = await getSpeciesSyncUpdateDate();
   console.log('previousUpdatedSyncDate', previousUpdatedSyncDate);
 
-  if (!previousUpdatedSyncDate) {
-    setSpeciesSyncUpdateDate(currentDate);
-  } else {
+  if (previousUpdatedSyncDate) {
     let differenceNoOfDays: any =
       new Date(currentDate).getTime() - new Date(previousUpdatedSyncDate).getTime();
 
