@@ -71,7 +71,7 @@ export default function Map({
         {(treeType === MULTI || treeType === SAMPLE) && shouldRenderShape && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            <MapboxGL.SymbolLayer
+            {/* <MapboxGL.SymbolLayer
               id="asd"
               sourceID="polygon"
               style={{
@@ -86,7 +86,7 @@ export default function Map({
 
                 <Text>something</Text>
               </View>
-            </MapboxGL.SymbolLayer>
+            </MapboxGL.SymbolLayer> */}
           </MapboxGL.ShapeSource>
         )}
         {location && (
