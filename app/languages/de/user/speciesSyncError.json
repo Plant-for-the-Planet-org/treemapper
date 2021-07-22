@@ -4,5 +4,7 @@
   "something_went_wrong": "Etwas ist schief gelaufen.",
   "no_internet_connection": "Keine Internetverbindung!",
   "verify_email": "Überprüfe deine E-Mail",
-  "verify_email_message": "Bitte verifiziere deine E-Mail, bevor du dich anmeldest."
+  "verify_email_message": "Bitte verifiziere deine E-Mail, bevor du dich anmeldest.",
+  "species_sync_update_alert_title": "Arten aktualisieren",
+  "species_sync_update_alert_message": "Das Aktualisieren von Arten erfordert Internet und braucht eine Weile, bis es abgeschlossen ist. Bist du sicher, dass du fortfahren möchtest?"
 }

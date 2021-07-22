@@ -1,8 +1,3 @@
-/* InfoPlist.strings
-  TreecounterApp
-
-  Created by Norbert Schuler on 29.08.19.
-  Copyright © 2019 Facebook. All rights reserved. */
 "NSCameraUsageDescription" = "Um Bilder der gepflanzen Bäume aufzunehmen, erlaube bitte Zugriff auf die Kamera.";
 "NSLocationWhenInUseUsageDescription" = "Wir brauchen Zugriff auf den genauen Standort, um Bäume zu registrieren.";
 "NSPhotoLibraryAddUsageDescription" = "TreeMapper möchte gerne Bilder in deinem Album speichern.";

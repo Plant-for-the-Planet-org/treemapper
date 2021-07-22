@@ -1,9 +1,4 @@
-/* InfoPlist.strings
-  TreecounterApp
-
-  Created by Norbert Schuler on 29.08.19.
-  Copyright © 2019 Facebook. All rights reserved. */
-"NSCameraUsageDescription" = "To take pictures of the trees you have planted, please allow access to your camera.";
-"NSLocationWhenInUseUsageDescription" = "We need access to precise location to be able to register trees.";
-"NSPhotoLibraryAddUsageDescription" = "TreeMapper would like to save photos from the app to your gallery.";
-"NSPhotoLibraryUsageDescription" = "TreeMapper would like to access to your photo gallery.";
+"NSCameraUsageDescription" = "Para tomar fotos de los árboles que has plantado, por favor permite el acceso a tu cámara.";
+"NSLocationWhenInUseUsageDescription" = "Necesitamos acceso a la ubicación precisa para poder registrar los árboles.";
+"NSPhotoLibraryAddUsageDescription" = "Al Mapa de Árboles quiere guardar las fotos de la aplicación en tu galería.";
+"NSPhotoLibraryUsageDescription" = "TreeMapper quiere acceder a su galería de fotos.";
