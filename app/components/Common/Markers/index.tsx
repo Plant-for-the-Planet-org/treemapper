@@ -69,20 +69,35 @@ const PointAnnotationMarker = ({
     );
   }, [onePolygon.geometry.coordinates]);
 
-  for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
-    let oneMarker = onePolygon.geometry.coordinates[j];
+  if (onePolygon.geometry.type === 'Point') {
     markers.push(
       <MapboxGL.PointAnnotation
-        key={`${i}${j}`}
-        id={`${i}${j}`}
-        coordinate={oneMarker}
+        key={`${i}-point`}
+        id={`${i}-point`}
+        coordinate={onePolygon.geometry.coordinates}
         ref={(el) => {
-          annotationRefList.current[j] = el;
+          annotationRefList.current[i] = el;
         }}>
-        <MarkerSVG point={alphabets[j]} color={Colors.PRIMARY} />
+        <MarkerSVG point={alphabets[i]} color={Colors.PRIMARY} />
       </MapboxGL.PointAnnotation>,
     );
+  } else {
+    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
+      let oneMarker = onePolygon.geometry.coordinates[j];
+      markers.push(
+        <MapboxGL.PointAnnotation
+          key={`${i}${j}`}
+          id={`${i}${j}`}
+          coordinate={oneMarker}
+          ref={(el) => {
+            annotationRefList.current[j] = el;
+          }}>
+          <MarkerSVG point={alphabets[j]} color={Colors.PRIMARY} />
+        </MapboxGL.PointAnnotation>,
+      );
+    }
   }
+
   return markers;
 };
 
