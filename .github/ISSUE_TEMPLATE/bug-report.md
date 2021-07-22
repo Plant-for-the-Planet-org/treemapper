@@ -32,7 +32,7 @@ Steps to reproduce the behavior:
 **Smartphone (please complete the following information):**
 - Device: [e.g. iPhone]
 - OS: [e.g. latest iOS]
-- Tree Mapper App Version: [e.g. 1.0.0]
+- TreeMapper App Version: [e.g. 1.0.0]
 
 **Additional context**
 *Add any other context about the problem here.*

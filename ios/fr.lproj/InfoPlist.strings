@@ -5,5 +5,5 @@
   Copyright © 2019 Facebook. All rights reserved. */
 "NSCameraUsageDescription" = "To take pictures of the trees you have planted, please allow access to your camera.";
 "NSLocationWhenInUseUsageDescription" = "We need access to precise location to be able to register trees.";
-"NSPhotoLibraryAddUsageDescription" = "Tree Mapper would like to save photos from the app to your gallery.";
-"NSPhotoLibraryUsageDescription" = "Allow access to your photo gallery.";
+"NSPhotoLibraryAddUsageDescription" = "TreeMapper would like to save photos from the app to your gallery.";
+"NSPhotoLibraryUsageDescription" = "TreeMapper would like to access to your photo gallery.";
