@@ -36,8 +36,6 @@ const Markers = ({ geoJSON }: { geoJSON: geoJSONType }) => {
     setAlphabets(alphabetsArray);
   }, []);
   for (let i = 0; i < geoJSON.features.length; i++) {
-    console.log(i, 'i');
-
     return (
       <PointAnnotationMarker markers={markers} geoJSON={geoJSON} i={i} alphabets={alphabets} />
     );

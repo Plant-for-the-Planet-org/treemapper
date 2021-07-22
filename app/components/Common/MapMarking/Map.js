@@ -38,7 +38,6 @@ export default function Map({
   setLocation,
 }) {
   let shouldRenderShape = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
-  console.log(JSON.stringify(geoJSON), 'geoJSON');
   const onChangeRegionStart = () => setLoader(true);
 
   const onChangeRegionComplete = () => {
