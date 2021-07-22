@@ -14,7 +14,7 @@ const shouldUpdateSpeciesSync = async (): Promise<boolean> => {
     let differenceNoOfDays: any =
       new Date(currentDate).getTime() - new Date(previousUpdatedSyncDate).getTime();
 
-    differenceNoOfDays = differenceNoOfDays * (1000 * 60 * 60 * 24);
+    differenceNoOfDays = differenceNoOfDays / (1000 * 60 * 60 * 24);
 
     if (differenceNoOfDays > 90) {
       return true;
