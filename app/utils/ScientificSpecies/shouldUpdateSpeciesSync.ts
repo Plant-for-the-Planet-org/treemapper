@@ -6,7 +6,6 @@ import { LogTypes } from '../constants';
 const shouldUpdateSpeciesSync = async (): Promise<boolean> => {
   const currentDate = new Date().toISOString().split('T')[0];
   const previousUpdatedSyncDate = await getSpeciesSyncUpdateDate();
-  console.log('previousUpdatedSyncDate', previousUpdatedSyncDate);
 
   if (previousUpdatedSyncDate) {
     let differenceNoOfDays: any =
