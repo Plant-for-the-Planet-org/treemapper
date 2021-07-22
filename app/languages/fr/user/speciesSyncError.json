@@ -4,5 +4,7 @@
   "something_went_wrong": "Un problème est survenu!",
   "no_internet_connection": "Pas de connexion Internet!",
   "verify_email": "Vérifier votre e-mail",
-  "verify_email_message": "Vérifier votre adresse e-mail avant de vous connecter."
+  "verify_email_message": "Vérifier votre adresse e-mail avant de vous connecter.",
+  "species_sync_update_alert_title": "Mise à jour de l'espèces",
+  "species_sync_update_alert_message": "La mise à jour des espèces nécessite l'utilisation d'Internet et prend un certain temps jusqu'à ce qu'elle soit terminée. Êtes-vous sûr de vouloir continuer ?"
 }
