@@ -66,10 +66,9 @@ export const getFormattedAdditionalDetails = (metadata: any) => {
 
   if (metadata && Object.keys(metadata).length > 0) {
     for (const dataKey of Object.keys(metadata)) {
-      if (!metadata[dataKey]) {
+      if (!metadata[dataKey] || Object.keys(metadata[dataKey]).length === 0) {
         continue;
-      }
-      if (dataKey === accessTypes.APP && metadata[dataKey]?.appVersion) {
+      } else if (dataKey === accessTypes.APP && metadata[dataKey]?.appVersion) {
         additionalDetails.push({
           key: 'appVersion',
           value: metadata[dataKey].appVersion,
@@ -80,11 +79,13 @@ export const getFormattedAdditionalDetails = (metadata: any) => {
       const accessType = dataKey === 'public' ? accessTypes.PUBLIC : accessTypes.PRIVATE;
 
       for (const [key, value] of Object.entries(metadata[dataKey])) {
-        additionalDetails.push({
-          key,
-          value,
-          accessType,
-        });
+        if (typeof value === 'string') {
+          additionalDetails.push({
+            key,
+            value,
+            accessType,
+          });
+        }
       }
     }
   }
