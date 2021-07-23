@@ -68,6 +68,7 @@ export default function ProfileListItem({
 
   return (
     <View style={[styles.profileSection, containerStyle ? containerStyle : {}]}>
+      <View style={styles.iconColumn}>
       {mediaType === 'image' ? (
         <Image source={media} style={[styles.imgIcon, mediaStyle ? mediaStyle : {}]} />
       ) : mediaType === 'icon' ? (
@@ -77,6 +78,7 @@ export default function ProfileListItem({
       ) : (
         <Ionicons name={media} size={20} color={Colors.TEXT_COLOR} style={styles.avatar} />
       )}
+      </View>
       <TouchableOpacity
         onPress={onPressFunction ? onPressFunction : () => {}}
         style={[styles.nameAndEmailContainer, { position: 'relative' }]}>
@@ -136,5 +138,8 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     marginHorizontal: 20,
+  },
+  iconColumn: {
+    width: 64,
   },
 });
