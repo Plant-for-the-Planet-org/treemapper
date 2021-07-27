@@ -147,7 +147,7 @@ jobs:
         upload_file=TreeMapper-`echo $GITHUB_REF | awk '{split($0,a,"/"); print a[3]}'`.ipa
         echo "upload_file=$upload_file" >> $GITHUB_ENV
         mkdir -p uploads
-        mv 'ios/DerivedData/ipa/Tree Mapper.ipa' uploads/$upload_file
+        mv 'ios/DerivedData/ipa/TreeMapper.ipa' uploads/$upload_file
 
     # depends on existence of upload file at uploads/$upload_file
     - name: Upload iOS IPA to Browserstack

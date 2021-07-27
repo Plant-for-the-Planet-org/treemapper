@@ -28,6 +28,7 @@ import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common
 import TreeCountModal from '../Common/TreeCountModal';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
+import Markers from '../Common/Markers';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -358,6 +359,7 @@ export default function TotalTreesSpecies() {
           </MapboxGL.ShapeSource>
         )}
         <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
+        {inventory?.treeType === MULTI && <Markers geoJSON={geoJSON} />}
       </MapboxGL.MapView>
     );
   };
