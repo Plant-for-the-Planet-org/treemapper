@@ -1,3 +1,10 @@
+import {
+  getBrand,
+  getManufacturer,
+  getModel,
+  getSystemName,
+  getSystemVersion,
+} from 'react-native-device-info';
 import RNFS from 'react-native-fs';
 import { version } from '../../../package.json';
 import {
@@ -8,7 +15,15 @@ import {
 } from '../../repositories/additionalData';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../constants';
-import { MULTI, ON_SITE, SAMPLE, SINGLE } from '../inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  MULTI,
+  OFF_SITE,
+  ON_SITE,
+  SAMPLE,
+  SINGLE,
+} from '../inventoryConstants';
 import { accessTypes, elementsType } from './constants';
 import { IAdditionalDataImport, IFormData } from './interfaces';
 
@@ -210,13 +225,60 @@ export const readJsonFileAndAddAdditionalData = (res: any) => {
   });
 };
 
+const getDeviceDetails = async () => {
+  return {
+    deviceBrand: getBrand(),
+    deviceModel: getModel(),
+    deviceManufacturer: await getManufacturer(),
+    deviceSystemName: getSystemName(),
+    deviceSystemVersion: getSystemVersion(),
+  };
+};
+
 interface IGetAppMetadata {
   data: any;
   isSampleTree?: boolean;
 }
 
-export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
-  const appAdditionalDetails: any = {};
+export const appAdditionalDataForAPI = async ({ data, isSampleTree = false }: IGetAppMetadata) => {
+  let appAdditionalDetails: any = {};
+
+  // adding dates to additional details
+  if (data.registrationDate) {
+    appAdditionalDetails['registrationDate'] = data.registrationDate;
+  }
+
+  // adding species to additional details
+  if (!isSampleTree) {
+    if (data.polygons.length === 0) {
+      return;
+    }
+    let coords = data.polygons[0].coordinates;
+
+    if (data.locateTree !== OFF_SITE) {
+      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    }
+  } else {
+    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+  }
+
+  const deviceDetails = await getDeviceDetails();
+
+  appAdditionalDetails['appVersion'] = version;
+
+  appAdditionalDetails = {
+    ...appAdditionalDetails,
+    ...deviceDetails,
+  };
+
+  return appAdditionalDetails;
+};
+
+export const appAdditionalDataForGeoJSON = async ({
+  data,
+  isSampleTree = false,
+}: IGetAppMetadata) => {
+  let appAdditionalDetails: any = {};
 
   if (data.treeType === SINGLE || isSampleTree) {
     appAdditionalDetails['speciesHeight'] = data.specieHeight;
@@ -243,7 +305,9 @@ export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppM
     let coords = data.polygons[0].coordinates;
 
     appAdditionalDetails['species'] = data.species;
-    appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    if (data.locateTree !== OFF_SITE) {
+      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    }
     if (data.projectId) {
       appAdditionalDetails['projectId'] = data.projectId;
     }
@@ -258,7 +322,21 @@ export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppM
     appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
   }
 
-  appAdditionalDetails['appVersion'] = version;
+  if (data.status === INCOMPLETE || data.status === INCOMPLETE_SAMPLE_TREE) {
+    const deviceDetails = await getDeviceDetails();
+
+    appAdditionalDetails['appVersion'] = version;
+
+    appAdditionalDetails = {
+      ...appAdditionalDetails,
+      ...deviceDetails,
+    };
+  } else if (data.appMetadata) {
+    appAdditionalDetails = {
+      ...appAdditionalDetails,
+      ...JSON.parse(data.appMetadata),
+    };
+  }
 
   return appAdditionalDetails;
 };
@@ -269,11 +347,13 @@ export const additionalDataForUI = ({ data, isSampleTree = false }: IGetAppMetad
   if (!isSampleTree) {
     let coords = data.polygons[0].coordinates;
 
-    appAdditionalDetails.push({
-      key: 'deviceLocation',
-      value: `${coords[0].latitude}, ${coords[0].longitude}`,
-      accessType: accessTypes.APP,
-    });
+    if (data.locateTree !== OFF_SITE) {
+      appAdditionalDetails.push({
+        key: 'deviceLocation',
+        value: `${coords[0].latitude}, ${coords[0].longitude}`,
+        accessType: accessTypes.APP,
+      });
+    }
   } else {
     appAdditionalDetails.push({
       key: 'deviceLocation',

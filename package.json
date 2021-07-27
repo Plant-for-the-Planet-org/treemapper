@@ -40,6 +40,7 @@
     "react-native-auth0": "^2.8.2",
     "react-native-camera": "^3.43.6",
     "react-native-config": "1.4.1",
+    "react-native-device-info": "^8.1.4",
     "react-native-document-picker": "^5.0.4",
     "react-native-draggable-flatlist": "^2.6.1",
     "react-native-fs": "^2.16.6",

@@ -380,42 +380,45 @@ const migration = (oldRealm: any, newRealm: any) => {
           accessType: accessTypes.APP,
         });
 
-        const appMetadata = appAdditionalDataForAPI({ data: oldInventoryObject[index] });
-        // overrides the appVersion
-        appMetadata.appVersion = appVersion;
-
-        // adds appMetadata which is used to send data to API
-        newInventoryObject[index].appMetadata = JSON.stringify(appMetadata);
-
-        for (const sampleIndex in oldInventoryObject[index].sampleTrees) {
-          const sampleTree = oldInventoryObject[index].sampleTrees[sampleIndex];
-
-          // adds all the data from old inventory except APP accessType
-          newInventoryObject[index].sampleTrees[
-            sampleIndex
-          ].additionalDetails = sampleTree.additionalDetails.filter(
-            (d: any) => d.accessType === accessTypes.PRIVATE || d.accessType === accessTypes.PUBLIC,
-          );
-
-          // adds app version to additional details
-          newInventoryObject[index].sampleTrees[sampleIndex].additionalDetails.push({
-            key: 'appVersion',
-            value: appVersion,
-            accessType: accessTypes.APP,
-          });
-
-          const sampleAppMetadata = appAdditionalDataForAPI({
-            data: sampleTree,
-            isSampleTree: true,
-          });
+        appAdditionalDataForAPI({ data: oldInventoryObject[index] }).then((appMetadata) => {
           // overrides the appVersion
-          sampleAppMetadata.appVersion = appVersion;
+          appMetadata.appVersion = appVersion;
 
           // adds appMetadata which is used to send data to API
-          newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
-            sampleAppMetadata,
-          );
-        }
+          newInventoryObject[index].appMetadata = JSON.stringify(appMetadata);
+
+          for (const sampleIndex in oldInventoryObject[index].sampleTrees) {
+            const sampleTree = oldInventoryObject[index].sampleTrees[sampleIndex];
+
+            // adds all the data from old inventory except APP accessType
+            newInventoryObject[index].sampleTrees[
+              sampleIndex
+            ].additionalDetails = sampleTree.additionalDetails.filter(
+              (d: any) =>
+                d.accessType === accessTypes.PRIVATE || d.accessType === accessTypes.PUBLIC,
+            );
+
+            // adds app version to additional details
+            newInventoryObject[index].sampleTrees[sampleIndex].additionalDetails.push({
+              key: 'appVersion',
+              value: appVersion,
+              accessType: accessTypes.APP,
+            });
+
+            appAdditionalDataForAPI({
+              data: sampleTree,
+              isSampleTree: true,
+            }).then((sampleAppMetadata) => {
+              // overrides the appVersion
+              sampleAppMetadata.appVersion = appVersion;
+
+              // adds appMetadata which is used to send data to API
+              newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
+                sampleAppMetadata,
+              );
+            });
+          }
+        });
       }
     }
   }
