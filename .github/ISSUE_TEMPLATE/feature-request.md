@@ -1,12 +1,12 @@
 ---
 name: Feature request
-about: Suggest a feature for Tree Mapper App
+about: Suggest a feature for TreeMapper App
 title: ''
 labels: enhancement
 assignees: ''
 ---
 
-**Describe the feature you'd like to see included in Tree Mapper App.**
+**Describe the feature you'd like to see included in TreeMapper App.**
 *A clear, detailed description of the feature you're requesting.*
 
 **What are the use cases for this feature?**

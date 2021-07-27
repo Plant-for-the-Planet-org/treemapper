@@ -967,18 +967,28 @@ export const addInventoryToDB = (inventoryFromServer) => {
               }
               species.push({ aliases, treeCount, id });
             }
+          } else {
+            dbLog.warn({
+              logType: LogTypes.INVENTORY,
+              message: 'Tree type does not match with single or multi',
+            });
+            resolve(false);
+            return;
           }
 
           for (
             let index = 0;
             index <
-            (inventoryFromServer.type === MULTI
+            (inventoryFromServer.type === MULTI && inventoryFromServer.geometry.type === 'Polygon'
               ? inventoryFromServer.geometry.coordinates[0].length
               : 1);
             index++
           ) {
             let coordinate;
-            if (inventoryFromServer.type === MULTI) {
+            if (
+              inventoryFromServer.type === MULTI &&
+              inventoryFromServer.geometry.type === 'Polygon'
+            ) {
               coordinate = inventoryFromServer.geometry.coordinates[0][index];
             } else {
               coordinate = inventoryFromServer.geometry.coordinates;
@@ -1070,63 +1080,83 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let inventory = realm
             .objects('Inventory')
             .filtered(`locationId="${sampleTreeFromServer.parent}"`);
-
-          let specieName;
-          if (sampleTreeFromServer.scientificSpecies) {
-            let specie = realm.objectForPrimaryKey(
-              'ScientificSpecies',
-              `${sampleTreeFromServer.scientificSpecies}`,
-            );
-            specieName = specie.scientificName;
+          if (inventory.length === 0) {
+            dbLog.error({
+              logType: LogTypes.INVENTORY,
+              message: `Cannot find parent for sample tree having location id ${sampleTreeFromServer.id} and parent id ${sampleTreeFromServer.parent}`,
+            });
+            resolve(false);
           } else {
-            specieName = 'Unknown';
-          }
-          let latitude = sampleTreeFromServer.geometry.coordinates[0];
-          let longitude = sampleTreeFromServer.geometry.coordinates[1];
-          let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
-          let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
-          let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
-          let specieId = sampleTreeFromServer.scientificSpecies;
-          let specieDiameter = sampleTreeFromServer.measurements.width;
-          let specieHeight = sampleTreeFromServer.measurements.height;
-          let tagId = sampleTreeFromServer.tag;
-          let status = SYNCED;
-          let plantationDate = new Date(sampleTreeFromServer.plantDate.split(' ')[0]);
-          let locationId = sampleTreeFromServer.id;
-          let treeType = SAMPLE;
-          let sampleTrees = inventory[0].sampleTrees;
-          const additionalDetails = getFormattedAdditionalDetails(sampleTreeFromServer.metadata);
-          const appMetadata = JSON.stringify(sampleTreeFromServer.metadata.app);
+            let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
+            if (!locationIds.includes(sampleTreeFromServer.id)) {
+              let specieName;
+              if (sampleTreeFromServer.scientificSpecies) {
+                let specie = realm.objectForPrimaryKey(
+                  'ScientificSpecies',
+                  `${sampleTreeFromServer.scientificSpecies}`,
+                );
+                specieName = specie.scientificName;
+              } else {
+                specieName = 'Unknown';
+              }
+              let latitude = sampleTreeFromServer.geometry.coordinates[0];
+              let longitude = sampleTreeFromServer.geometry.coordinates[1];
+              let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
+              let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
+              let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
+              let specieId = sampleTreeFromServer.scientificSpecies || 'unknown';
+              let specieDiameter = sampleTreeFromServer.measurements.width;
+              let specieHeight = sampleTreeFromServer.measurements.height;
+              let tagId = sampleTreeFromServer.tag;
+              let status = SYNCED;
+              let plantationDate = new Date(sampleTreeFromServer.plantDate.split(' ')[0]);
+              let locationId = sampleTreeFromServer.id;
+              let treeType = SAMPLE;
+              let sampleTrees = inventory[0].sampleTrees;
+              const additionalDetails = getFormattedAdditionalDetails(
+                sampleTreeFromServer.metadata,
+              );
 
-          const sampleTreeData = {
-            latitude,
-            longitude,
-            deviceLatitude,
-            deviceLongitude,
-            cdnImageUrl,
-            specieId,
-            specieName,
-            specieDiameter,
-            specieHeight,
-            tagId,
-            status,
-            plantationDate,
-            locationId,
-            treeType,
-            additionalDetails,
-            appMetadata,
-          };
-          let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
-          if (!locationIds.includes(sampleTreeFromServer.id)) {
-            sampleTrees.push(sampleTreeData);
-            inventory[0].sampleTrees = sampleTrees;
-            inventory[0].sampleTreesCount = inventory[0].sampleTreesCount + parseInt(1);
-            inventory[0].completedSampleTreesCount =
-              inventory[0].completedSampleTreesCount + parseInt(1);
-            inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
-              1,
-            );
-            resolve();
+              let appMetadata;
+              if (sampleTreeFromServer?.metadata?.app) {
+                appMetadata = JSON.stringify(sampleTreeFromServer.metadata.app);
+              }
+
+              const sampleTreeData = {
+                latitude,
+                longitude,
+                deviceLatitude,
+                deviceLongitude,
+                cdnImageUrl,
+                specieId,
+                specieName,
+                specieDiameter,
+                specieHeight,
+                tagId,
+                status,
+                plantationDate,
+                locationId,
+                treeType,
+                additionalDetails,
+                appMetadata,
+              };
+
+              sampleTrees.push(sampleTreeData);
+              inventory[0].sampleTrees = sampleTrees;
+              inventory[0].sampleTreesCount = inventory[0].sampleTreesCount + parseInt(1);
+              inventory[0].completedSampleTreesCount =
+                inventory[0].completedSampleTreesCount + parseInt(1);
+              inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
+                1,
+              );
+              resolve();
+            } else {
+              dbLog.info({
+                logType: LogTypes.INVENTORY,
+                message: `Sample tree is already added for location id ${sampleTreeFromServer.id} and parent id ${sampleTreeFromServer.parent}`,
+              });
+              resolve(true);
+            }
           }
         });
       })

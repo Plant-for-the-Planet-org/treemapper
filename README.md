@@ -1,7 +1,7 @@
-# Tree Mapper App
+# TreeMapper App
 ![iOS build on MacOS](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/iOS%20build%20on%20MacOS/badge.svg) ![Android build on Ubuntu](https://github.com/Plant-for-the-Planet-org/treemapper/workflows/Android%20build%20on%20Ubuntu/badge.svg)
 
-Tree Mapper is open source application based on react-native licensed under terms of GPL v3. It is managed by [Plant-for-the-Planet Foundation](https://www.plant-for-the-planet.org/) and open source contributors.
+TreeMapper is open source application based on react-native licensed under terms of GPL v3. It is managed by [Plant-for-the-Planet Foundation](https://www.plant-for-the-planet.org/) and open source contributors.
 
 For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CODE_OF_CONDUCT.md) and the following information:
 
