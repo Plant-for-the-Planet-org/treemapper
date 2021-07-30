@@ -385,7 +385,7 @@ export const appAdditionalDataForGeoJSON = async ({
     const coordinateImages = [];
 
     // adds CDN url to single tree if present else if it's multiple the then adds array of object which
-    // contains image url with lat, long and coordinateID
+    // contains image url with lat and long
     if (data.polygons[0]?.coordinates[0]?.cdnImageUrl && data.treeType === SINGLE) {
       appAdditionalDetails[
         'imageUrl'
@@ -397,7 +397,6 @@ export const appAdditionalDataForGeoJSON = async ({
             latitude: coordinate.latitude,
             longitude: coordinate.longitude,
             cdnImageUrl: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${coordinate.cdnImageUrl}`,
-            coordinateID: coordinate.coordinateID,
           });
         }
       }
