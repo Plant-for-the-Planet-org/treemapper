@@ -7,6 +7,7 @@ import {
 } from 'react-native-device-info';
 import RNFS from 'react-native-fs';
 import { version } from '../../../package.json';
+import { APIConfig } from '../../actions/Config';
 import {
   deleteAllAdditionalData,
   getSchemaNameFromType,
@@ -26,6 +27,7 @@ import {
 } from '../inventoryConstants';
 import { accessTypes, elementsType } from './constants';
 import { IAdditionalDataImport, IFormData } from './interfaces';
+const { protocol, cdnUrl } = APIConfig;
 
 export const sortByField = (fieldName: string, arrayData: any) => {
   return arrayData.sort((a: any, b: any) => {
@@ -240,45 +242,12 @@ interface IGetAppMetadata {
   isSampleTree?: boolean;
 }
 
-export const appAdditionalDataForAPI = async ({ data, isSampleTree = false }: IGetAppMetadata) => {
-  let appAdditionalDetails: any = {};
-
-  // adding dates to additional details
-  if (data.registrationDate) {
-    appAdditionalDetails['registrationDate'] = data.registrationDate;
-  }
-
-  // adding species to additional details
-  if (!isSampleTree) {
-    if (data.polygons.length === 0) {
-      return;
-    }
-    let coords = data.polygons[0].coordinates;
-
-    if (data.locateTree !== OFF_SITE) {
-      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
-    }
-  } else {
-    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
-  }
-
-  const deviceDetails = await getDeviceDetails();
-
-  appAdditionalDetails['appVersion'] = version;
-
-  appAdditionalDetails = {
-    ...appAdditionalDetails,
-    ...deviceDetails,
-  };
-
-  return appAdditionalDetails;
-};
-
-export const appAdditionalDataForGeoJSON = async ({
+// used to support schema 11 migration
+export const appAdditionalDataForAPISchema11 = ({
   data,
   isSampleTree = false,
 }: IGetAppMetadata) => {
-  let appAdditionalDetails: any = {};
+  const appAdditionalDetails: any = {};
 
   if (data.treeType === SINGLE || isSampleTree) {
     appAdditionalDetails['speciesHeight'] = data.specieHeight;
@@ -305,9 +274,7 @@ export const appAdditionalDataForGeoJSON = async ({
     let coords = data.polygons[0].coordinates;
 
     appAdditionalDetails['species'] = data.species;
-    if (data.locateTree !== OFF_SITE) {
-      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
-    }
+    appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
     if (data.projectId) {
       appAdditionalDetails['projectId'] = data.projectId;
     }
@@ -320,6 +287,138 @@ export const appAdditionalDataForGeoJSON = async ({
       },
     ];
     appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+  }
+
+  appAdditionalDetails['appVersion'] = version;
+
+  return appAdditionalDetails;
+};
+
+export const appAdditionalDataForAPI = async ({ data, isSampleTree = false }: IGetAppMetadata) => {
+  let appAdditionalDetails: any = basicAppAdditionalDataForAPI({ data, isSampleTree });
+
+  appAdditionalDetails = {
+    ...appAdditionalDetails,
+    deviceManufacturer: await getManufacturer(),
+  };
+
+  return appAdditionalDetails;
+};
+
+export const basicAppAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
+  let appAdditionalDetails: any = {};
+
+  // adding dates to additional details
+  if (data.registrationDate) {
+    appAdditionalDetails['registrationDate'] = data.registrationDate;
+  }
+
+  // adding species to additional details
+  if (!isSampleTree) {
+    if (data.polygons.length === 0) {
+      return;
+    }
+    let coords = data.polygons[0].coordinates;
+
+    if (data.locateTree !== OFF_SITE) {
+      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    }
+  } else {
+    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+  }
+  appAdditionalDetails['appVersion'] = version;
+
+  return {
+    ...appAdditionalDetails,
+    deviceBrand: getBrand(),
+    deviceModel: getModel(),
+    deviceSystemName: getSystemName(),
+    deviceSystemVersion: getSystemVersion(),
+  };
+};
+
+export const appAdditionalDataForGeoJSON = async ({
+  data,
+  isSampleTree = false,
+}: IGetAppMetadata) => {
+  let appAdditionalDetails: any = {};
+
+  appAdditionalDetails['treeType'] = data.treeType;
+  appAdditionalDetails['captureMode'] = data.locateTree;
+
+  if (data.treeType === SINGLE || isSampleTree) {
+    appAdditionalDetails['speciesHeight'] = data.specieHeight;
+    appAdditionalDetails['speciesDiameter'] = data.specieDiameter;
+
+    if (data.tagId) {
+      appAdditionalDetails['tagId'] = data.tagId;
+    }
+    if (data.locationId) {
+      appAdditionalDetails['locationId'] = data.locationId;
+    }
+  }
+
+  // adding dates to additional details
+  if (data.registrationDate) {
+    appAdditionalDetails['registrationDate'] = data.registrationDate;
+  }
+  if (data.plantationDate || data.plantation_date) {
+    appAdditionalDetails['plantationDate'] = data.plantationDate || data.plantation_date;
+  }
+
+  // adding species to additional details
+  if (!isSampleTree) {
+    if (data.polygons.length === 0) {
+      return;
+    }
+    let coords = data.polygons[0].coordinates;
+
+    appAdditionalDetails['species'] = data.species;
+    if (data.locateTree !== OFF_SITE) {
+      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    }
+    if (data.projectId) {
+      appAdditionalDetails['projectId'] = data.projectId;
+    }
+
+    // adding cdn image url to geoJSON.
+    const coordinateImages = [];
+
+    // adds CDN url to single tree if present else if it's multiple the then adds array of object which
+    // contains image url with lat, long and coordinateID
+    if (data.polygons[0]?.coordinates[0]?.cdnImageUrl && data.treeType === SINGLE) {
+      appAdditionalDetails[
+        'imageUrl'
+      ] = `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${data.polygons[0]?.coordinates[0]?.cdnImageUrl}`;
+    } else {
+      for (const coordinate of data.polygons[0]?.coordinates) {
+        if (coordinate.cdnImageUrl) {
+          coordinateImages.push({
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            cdnImageUrl: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${coordinate.cdnImageUrl}`,
+            coordinateID: coordinate.coordinateID,
+          });
+        }
+      }
+      if (coordinateImages.length > 0) {
+        appAdditionalDetails['coordinateImages'] = coordinateImages;
+      }
+    }
+  } else {
+    appAdditionalDetails['species'] = [
+      {
+        id: data.specieId,
+        aliases: data.specieId === 'unknown' ? 'Unknown' : data.specieName,
+        treeCount: 1,
+      },
+    ];
+    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+    if (data.cdnImageUrl) {
+      appAdditionalDetails[
+        'imageUrl'
+      ] = `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${data.cdnImageUrl}`;
+    }
   }
 
   if (data.status === INCOMPLETE || data.status === INCOMPLETE_SAMPLE_TREE) {
