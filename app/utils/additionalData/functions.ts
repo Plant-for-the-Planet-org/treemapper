@@ -353,9 +353,10 @@ export const appAdditionalDataForGeoJSON = async ({
     if (data.tagId) {
       appAdditionalDetails['tagId'] = data.tagId;
     }
-    if (data.locationId) {
-      appAdditionalDetails['locationId'] = data.locationId;
-    }
+  }
+  
+  if (data.locationId) {
+    appAdditionalDetails['locationId'] = data.locationId;
   }
 
   // adding dates to additional details
