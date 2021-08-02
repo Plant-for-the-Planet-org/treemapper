@@ -1,4 +1,4 @@
-import { version } from 'react';
+import { version } from '../../../package.json';
 import { basicAppAdditionalDataForAPI } from '../../utils/additionalData/functions';
 import {
   INCOMPLETE,
