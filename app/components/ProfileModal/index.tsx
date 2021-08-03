@@ -143,7 +143,8 @@ const ProfileModal = ({
 
   return (
     <Modal visible={isProfileModalVisible} transparent>
-      <TouchableOpacity style={styles.container} onPressIn={() => onPressCloseProfileModal()}>
+      <TouchableOpacity style={styles.container} onPressIn={() => onPressCloseProfileModal()} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <View style={styles.subContainer}>
           <View style={styles.headerContainer}>
             <TouchableOpacity
@@ -215,9 +216,7 @@ const ProfileModal = ({
             </TouchableOpacity>
           </View>
         </View>
-
-        <View />
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };
@@ -228,6 +227,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   subContainer: {
     width: '90%',
