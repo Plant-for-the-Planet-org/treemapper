@@ -16,6 +16,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -61,13 +63,16 @@ import MarkerSVG from '../Common/MarkerSVG';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
+let scrollAdjust = 0;
+
 const InventoryOverview = ({ navigation }: any) => {
   const { protocol, cdnUrl } = APIConfig;
+  const windowHeight = Dimensions.get('window').height;
 
   const cameraRef = useRef();
   // reference for camera to focus on map
   const camera = useRef(null);
-
+  const scrollPosition = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useContext(InventoryContext);
 
   const [inventory, setInventory] = useState<any>(null);
@@ -93,6 +98,8 @@ const InventoryOverview = ({ navigation }: any) => {
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [isPointForMultipleTree, setIsPointForMultipleTree] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
+  const [layoutAboveMap, setLayoutAboveMap] = useState<number | null>();
+  const [customModalPosition, setCustomModalPosition] = useState<number | null>();
   const map = useRef(null);
   const scroll = useRef();
   const [geoJSON, setGeoJSON] = useState({
@@ -154,13 +161,19 @@ const InventoryOverview = ({ navigation }: any) => {
     const unsubscribeBlur = navigation.addListener('focus', () => {
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
     });
-    // new mapboxgl.Popup().setLngLat(coordinates).setHTML(description).addTo(map);
     return () => {
       unsubscribeFocus();
       unsubscribeBlur();
       BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
     };
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      initialState();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const hardBackHandler = () => {
     navigation.dispatch(
@@ -366,11 +379,6 @@ const InventoryOverview = ({ navigation }: any) => {
             setIsCameraRefVisible(!!el);
           }}
         />
-        <MapboxGL.Images
-          images={{
-            marker_png: marker_png,
-          }}
-        />
         {shouldRenderShape && !isPointForMultipleTree && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
@@ -420,10 +428,35 @@ const InventoryOverview = ({ navigation }: any) => {
       return false;
     }
   };
-  const onPressMarker = (scrollX: number, scrollY: number, coordinate: []) => {
-    console.log('scrollX', scrollX, 'scrollY', scrollY);
+  const onPressMarker = async (isSampleTree: boolean, coordinate: []) => {
+    let approxModalHeight = isSampleTree ? 250 : 150;
+    let halfMapHeight = 215;
+    let markerHeight = 45;
 
-    scroll.current.scrollTo({ x: 0, y: 0, animated: true });
+    if (layoutAboveMap + halfMapHeight - scrollPosition._value + 100 > windowHeight) {
+      scrollAdjust = layoutAboveMap + halfMapHeight + 150 - windowHeight;
+      await scroll.current.scrollTo({
+        x: 0,
+        y: layoutAboveMap + halfMapHeight + 150 - windowHeight,
+        animated: true,
+      });
+    }
+    if (
+      layoutAboveMap + halfMapHeight - scrollPosition._value - scrollAdjust >
+      approxModalHeight + 50
+    ) {
+      setCustomModalPosition(
+        layoutAboveMap +
+          halfMapHeight -
+          scrollPosition._value -
+          scrollAdjust -
+          approxModalHeight -
+          markerHeight,
+      );
+    } else if (scrollPosition._value > layoutAboveMap + 25) {
+      scroll.current.scrollTo({ x: 0, y: layoutAboveMap, animated: true });
+      setCustomModalPosition(halfMapHeight);
+    }
     focusMarker(coordinate);
   };
 
@@ -635,8 +668,12 @@ const InventoryOverview = ({ navigation }: any) => {
         ? i18next.t('label.tree_inventory_off_site')
         : i18next.t('label.tree_inventory_on_site');
   }
-
+  const handleScroll = (event) => {
+    const positionX = event.nativeEvent.contentOffset.x;
+    const positionY = event.nativeEvent.contentOffset.y;
+  };
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {renderViewLOCModal()}
@@ -646,36 +683,46 @@ const InventoryOverview = ({ navigation }: any) => {
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps={'always'}
-              ref={scroll}>
-              <Header
-                closeIcon
-                headingText={i18next.t('label.inventory_overview_header_text')}
-                subHeadingText={i18next.t('label.inventory_overview_sub_header')}
-                onBackPress={() => navigation.navigate('TreeInventory')}
-                rightText={
-                  status == INCOMPLETE_SAMPLE_TREE ||
-                  status == INCOMPLETE ||
-                  status == PENDING_DATA_UPLOAD
-                    ? i18next.t('label.tree_review_delete')
-                    : []
-                }
-                onPressFunction={() => setShowAlert(true)}
-              />
-              <Label
-                leftText={i18next.t('label.inventory_overview_left_text')}
-                rightText={i18next.t('label.inventory_overview_date', {
-                  date: new Date(inventory.plantation_date),
-                })}
-                onPressRightText={() => onPressDate(status)}
-                rightTextStyle={
-                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
-                    ? { color: Colors.PRIMARY }
-                    : { color: Colors.TEXT_COLOR }
-                }
-              />
-              {!isSingleCoordinate && (
-                <Label leftText={`${locateType} Registration`} rightText={''} />
-              )}
+              ref={scroll}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollPosition } } }],
+                { useNativeDriver: false },
+              )}>
+              <View
+                onLayout={(e) => {
+                  setLayoutAboveMap(e.nativeEvent.layout.height);
+                }}>
+                <Header
+                  closeIcon
+                  headingText={i18next.t('label.inventory_overview_header_text')}
+                  subHeadingText={i18next.t('label.inventory_overview_sub_header')}
+                  onBackPress={() => navigation.navigate('TreeInventory')}
+                  rightText={
+                    status == INCOMPLETE_SAMPLE_TREE ||
+                    status == INCOMPLETE ||
+                    status == PENDING_DATA_UPLOAD
+                      ? i18next.t('label.tree_review_delete')
+                      : []
+                  }
+                  onPressFunction={() => setShowAlert(true)}
+                />
+                <Label
+                  leftText={i18next.t('label.inventory_overview_left_text')}
+                  rightText={i18next.t('label.inventory_overview_date', {
+                    date: new Date(inventory.plantation_date),
+                  })}
+                  onPressRightText={() => onPressDate(status)}
+                  rightTextStyle={
+                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                      ? { color: Colors.PRIMARY }
+                      : { color: Colors.TEXT_COLOR }
+                  }
+                />
+
+                {!isSingleCoordinate && (
+                  <Label leftText={`${locateType} Registration`} rightText={''} />
+                )}
+              </View>
               <View>
                 {renderMapView()}
                 {inventory?.status === INCOMPLETE ||
@@ -846,6 +893,11 @@ const InventoryOverview = ({ navigation }: any) => {
         inventory={inventory}
         initialState={initialState}
         navigation={navigation}
+        layoutAboveMap={layoutAboveMap}
+        scrollPosition={scrollPosition._value}
+        customModalPosition={customModalPosition}
+        setCustomModalPosition={setCustomModalPosition}
+        // setScrollAdjust={setScrollAdjust}
       />
       {renderDatePicker()}
     </SafeAreaView>
@@ -863,6 +915,10 @@ const CoordinateOverviewModal = ({
   isSampleTree,
   initialState,
   navigation,
+  scrollPosition,
+  layoutAboveMap,
+  customModalPosition,
+  setCustomModalPosition,
 }: any) => {
   const [imageSource, setImageSource] = useState<any>();
   const [marker, setMarker] = useState<any>();
@@ -881,7 +937,7 @@ const CoordinateOverviewModal = ({
     getUserInformation().then((data) => {
       setCountryCode(data.country);
     });
-  }, [coordinateIndex]);
+  }, [coordinateIndex, coordinateModalShow]);
 
   const initiateMarkerData = (marker: any) => {
     if (marker) {
@@ -923,31 +979,38 @@ const CoordinateOverviewModal = ({
         style={styles.outsideModalContainer}
         onPressIn={() => {
           setCoordinateModalShow(false);
+          setCustomModalPosition();
+          scrollAdjust = 0;
           initialState();
         }}
       />
       <View style={styles.modalContainer}>
-        <View style={styles.modalSubContainer}>
-          <View style={styles.headerContainer}>
-            <TouchableOpacity
-              style={styles.closeButtonContainer}
-              onPress={() => {
-                setCoordinateModalShow(false);
-              }}
-              accessible={true}>
-              <Ionicons name={'md-close'} size={30} color={Colors.WHITE} />
-            </TouchableOpacity>
-          </View>
+        <View
+          style={{
+            width: 225,
+            backgroundColor: Colors.WHITE,
+            borderRadius: 10,
+            overflow: 'hidden',
+            elevation: 10,
+            position: 'absolute',
+            top: customModalPosition ? customModalPosition : layoutAboveMap - scrollPosition + 215,
+          }}>
           <Image
             source={imageSource}
             style={{
-              height: isSampleTree ? '65%' : '100%',
+              height: 150,
+              width: '100%',
             }}
             resizeMode={'cover'}
           />
           {isSampleTree ? (
             <TouchableOpacity
-              style={{ padding: 10 }}
+              style={{
+                padding: 10,
+                paddingRight: 0,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}
               onPress={() => {
                 setCoordinateModalShow(false);
                 navigation.navigate('SingleTreeOverview', {
@@ -983,13 +1046,22 @@ const CoordinateOverviewModal = ({
                         fontFamily: Typography.FONT_FAMILY_REGULAR,
                         color: Colors.TEXT_COLOR,
                       }}>
-                      {specieDiameter}
-                      {diameterUnit} • {specieHeight}
+                      {Math.round(specieDiameter * 100) / 100}
+                      {diameterUnit} • {Math.round(specieHeight * 100) / 100}
                       {heightUnit} • {marker?.tagId}
                     </Text>
                   </View>
                 </View>
               </View>
+              <Ionicons
+                name="chevron-forward-outline"
+                size={30}
+                style={{
+                  flexDirection: 'row',
+                  alignSelf: 'center',
+                  color: Colors.GRAY_DARK,
+                }}
+              />
             </TouchableOpacity>
           ) : (
             []
@@ -1053,25 +1125,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'space-evenly',
+    // justifyContent: 'center',
     alignItems: 'center',
-  },
-  modalSubContainer: {
-    height: 250,
-    width: 250,
-    backgroundColor: Colors.WHITE,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  headerContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    // borderWidth: 3,
+    // borderColor: 'green',
     position: 'relative',
-  },
-  closeButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
   },
   outsideModalContainer: {
     flex: 1,

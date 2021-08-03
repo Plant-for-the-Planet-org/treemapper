@@ -31,7 +31,7 @@ interface MarkersProps {
   geoJSON: geoJSONType;
   setCoordinateModalShow: React.Dispatch<React.SetStateAction<boolean>>;
   setCoordinateIndex: React.Dispatch<React.SetStateAction<number | null | undefined>>;
-  onPressMarker: (scrollX: number, scrollY: number, coordinate: []) => void;
+  onPressMarker: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree: string;
 }
@@ -79,7 +79,7 @@ interface PointAnnotationMarkerProps {
   alphabets: string[];
   setCoordinateModalShow: React.Dispatch<React.SetStateAction<boolean>>;
   setCoordinateIndex: React.Dispatch<React.SetStateAction<number | null | undefined>>;
-  onPressMarker: (scrollX: number, scrollY: number, coordinate: []) => void;
+  onPressMarker: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree: string;
 }
@@ -169,11 +169,7 @@ const PointAnnotationMarker = ({
           }}
           onSelected={(feature) => {
             if (locateTree == ON_SITE) {
-              onPressMarker(
-                feature.properties.screenPointX,
-                feature.properties.screenPointY,
-                feature.geometry.coordinates,
-              );
+              onPressMarker(false, feature.geometry.coordinates);
               setCoordinateIndex(j);
               setIsSampleTree(false);
               setCoordinateModalShow(true);
