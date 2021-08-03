@@ -753,7 +753,7 @@ const InventoryOverview = ({ navigation }: any) => {
                           fontSize: Typography.FONT_SIZE_14,
                           fontWeight: Typography.FONT_WEIGHT_BOLD,
                         }}>
-                        Add Sample Tree
+                        {i18next.t('label.add_sample_tree')}
                       </Text>
                     </TouchableOpacity>
                   </View>
