@@ -395,14 +395,18 @@ const InventoryOverview = ({ navigation }: any) => {
           onPressMarker={onPressMarker}
           locateTree={inventory.locateTree}
         />
-        <Markers
-          geoJSON={geoJSON}
-          setCoordinateModalShow={setCoordinateModalShow}
-          setCoordinateIndex={setCoordinateIndex}
-          onPressMarker={onPressMarker}
-          setIsSampleTree={setIsSampleTree}
-          locateTree={inventory.locateTree}
-        />
+        {!isPointForMultipleTree ? (
+          <Markers
+            geoJSON={geoJSON}
+            setCoordinateModalShow={setCoordinateModalShow}
+            setCoordinateIndex={setCoordinateIndex}
+            onPressMarker={onPressMarker}
+            setIsSampleTree={setIsSampleTree}
+            locateTree={inventory.locateTree}
+          />
+        ) : (
+          []
+        )}
       </MapboxGL.MapView>
     );
   };
@@ -727,8 +731,9 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
-                {inventory?.status === INCOMPLETE ||
-                inventory?.status === INCOMPLETE_SAMPLE_TREE ? (
+                {(inventory?.status === INCOMPLETE ||
+                  inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
+                inventory?.locateTree === ON_SITE ? (
                   <View style={{ position: 'absolute', top: 0, right: 0, paddingTop: 25 }}>
                     <TouchableOpacity
                       style={{
