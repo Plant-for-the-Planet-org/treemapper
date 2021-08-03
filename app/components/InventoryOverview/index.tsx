@@ -69,6 +69,8 @@ const InventoryOverview = ({ navigation }: any) => {
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
   const [showLessSampleTreesAlert, setShowLessSampleTreesAlert] = useState(false);
   const [countryCode, setCountryCode] = useState<string>('');
+  const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
+  const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
 
   useEffect(() => {
     getUserDetails().then((userDetails) => {
@@ -202,25 +204,44 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  const onPressSave = ({ forceContinue }: { forceContinue?: boolean }) => {
+  const onPressSave = ({
+    forceContinue,
+    continueWithoutProject,
+  }: {
+    forceContinue?: boolean;
+    continueWithoutProject?: boolean;
+  }) => {
+    continueWithoutProject = continueWithoutProject || saveWithoutProject;
+    setSaveWithoutProject(continueWithoutProject);
+
     if (inventory.species.length > 0) {
       if (inventory.locateTree === OFF_SITE) {
-        addAppDataAndSave();
-      } else if (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) {
-        let notSampledSpecies = getNotSampledSpecies(inventory);
-        if (notSampledSpecies?.size == 0 || forceContinue) {
+        if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
+          setShowNoProjectWarning(false);
           addAppDataAndSave();
-        } else if (forceContinue !== undefined && !forceContinue) {
-          setSkipToInventoryOverview(true)(dispatch);
-          navigation.navigate('SpecieSampleTree', { notSampledSpecies });
         } else {
-          setShowAddSampleTrees(true);
+          setShowNoProjectWarning(true);
+        }
+      } else if (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) {
+        if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
+          setShowNoProjectWarning(false);
+          let notSampledSpecies = getNotSampledSpecies(inventory);
+          if (notSampledSpecies?.size == 0 || forceContinue) {
+            addAppDataAndSave();
+          } else if (forceContinue !== undefined && !forceContinue) {
+            setSkipToInventoryOverview(true)(dispatch);
+            navigation.navigate('SpecieSampleTree', { notSampledSpecies });
+          } else {
+            setShowAddSampleTrees(true);
+          }
+        } else {
+          setShowNoProjectWarning(true);
         }
       } else {
         setShowLessSampleTreesAlert(true);
       }
     } else {
-      alert(i18next.t('label.inventory_overview_select_species'));
+      setShowNoSpeciesAlert(true);
     }
   };
 
@@ -612,6 +633,16 @@ const InventoryOverview = ({ navigation }: any) => {
         message={i18next.t('label.at_least_five_sample_trees')}
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => setShowLessSampleTreesAlert(false)}
+      />
+      <AlertModal
+        visible={showNoProjectWarning}
+        heading={i18next.t('label.project_not_assigned')}
+        message={i18next.t('label.project_not_assigned_message')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => onPressSave({ continueWithoutProject: true })}
+        onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
+        showSecondaryButton={true}
       />
       {renderDatePicker()}
     </SafeAreaView>
