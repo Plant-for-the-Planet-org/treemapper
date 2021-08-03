@@ -318,10 +318,12 @@ const InventoryOverview = ({ navigation }: any) => {
     }
   };
 
-  const focusMarker = (coordinate: []) => {
+  const focusMarker = async (coordinate: []) => {
+    const zoom = await map?.current?.getZoom();
+
     camera?.current?.setCamera({
       centerCoordinate: coordinate,
-      zoomLevel: 20,
+      zoomLevel: zoom > 20 ? zoom : 20,
       animationDuration: 1500,
       animationMode: 'flyTo',
     });
@@ -793,7 +795,10 @@ const InventoryOverview = ({ navigation }: any) => {
                     leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
                     rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
                     style={{ marginVertical: 10 }}
-                    leftTextStyle={{ paddingLeft: 20, fontFamily: Typography.FONT_FAMILY_REGULAR }}
+                    leftTextStyle={{
+                      paddingLeft: 20,
+                      fontFamily: Typography.FONT_FAMILY_REGULAR,
+                    }}
                     rightTextStyle={{ color: Colors.TEXT_COLOR }}
                   />
                 )}
@@ -1048,7 +1053,8 @@ const CoordinateOverviewModal = ({
                       }}>
                       {Math.round(specieDiameter * 100) / 100}
                       {diameterUnit} • {Math.round(specieHeight * 100) / 100}
-                      {heightUnit} • {marker?.tagId}
+                      {heightUnit}
+                      {marker?.tagId ? ` • ${marker?.tagId}` : []}
                     </Text>
                   </View>
                 </View>

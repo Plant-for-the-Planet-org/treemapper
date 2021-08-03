@@ -436,7 +436,7 @@ const SingleTreeOverview = () => {
         setInventory,
       });
     }
-    setSpecieText(specie.scientificName);
+    setSpecieText(specie.aliases);
   };
 
   const onChangeDate = (selectedDate: any) => {

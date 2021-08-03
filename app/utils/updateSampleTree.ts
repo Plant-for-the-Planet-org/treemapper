@@ -54,7 +54,7 @@ export const updateSampleTree = ({
         sampleTree = {
           ...sampleTree,
           specieId: value?.guid,
-          specieName: value?.scientificName,
+          specieName: value?.aliases,
         };
         break;
       }
