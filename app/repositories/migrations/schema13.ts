@@ -1,4 +1,10 @@
-import { SYNCED } from '../../utils/inventoryConstants';
+import { version } from '../../../package.json';
+import { basicAppAdditionalDataForAPI } from '../../utils/additionalData/functions';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  PENDING_DATA_UPLOAD,
+} from '../../utils/inventoryConstants';
 
 // schema version
 const schemaVersion = 13;
@@ -351,17 +357,40 @@ const migration = (oldRealm: any, newRealm: any) => {
     const oldInventoryObject = oldRealm.objects('Inventory');
     const newInventoryObject = newRealm.objects('Inventory');
 
-    const syncedInventoriesIndexToDelete = [];
-
     for (const index in oldInventoryObject) {
-      if (oldInventoryObject[index].status === SYNCED) {
-        syncedInventoriesIndexToDelete.push(index);
-      }
-    }
+      if (
+        oldInventoryObject[index].inventory_id &&
+        (oldInventoryObject[index].status === INCOMPLETE ||
+          oldInventoryObject[index].status === INCOMPLETE_SAMPLE_TREE ||
+          oldInventoryObject[index].status === PENDING_DATA_UPLOAD)
+      ) {
+        const appVersion =
+          oldInventoryObject[index].status === PENDING_DATA_UPLOAD ? '1.0.4' : version;
 
-    // delete all the synced inventory objects;
-    for (let i = syncedInventoriesIndexToDelete.length - 1; i >= 0; i--) {
-      newRealm.delete(newInventoryObject[syncedInventoriesIndexToDelete[i]]);
+        const appMetadata = basicAppAdditionalDataForAPI({ data: oldInventoryObject[index] });
+        delete appMetadata.deviceManufacturer;
+        // overrides the appVersion
+        appMetadata.appVersion = appVersion;
+
+        // adds appMetadata which is used to send data to API
+        newInventoryObject[index].appMetadata = JSON.stringify(appMetadata);
+
+        for (const sampleIndex in oldInventoryObject[index].sampleTrees) {
+          const sampleTree = oldInventoryObject[index].sampleTrees[sampleIndex];
+
+          const sampleAppMetadata = basicAppAdditionalDataForAPI({
+            data: sampleTree,
+            isSampleTree: true,
+          });
+          // overrides the appVersion
+          sampleAppMetadata.appVersion = appVersion;
+
+          // adds appMetadata which is used to send data to API
+          newInventoryObject[index].sampleTrees[sampleIndex].appMetadata = JSON.stringify(
+            sampleAppMetadata,
+          );
+        }
+      }
     }
   }
 };

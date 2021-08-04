@@ -1,5 +1,5 @@
 import { accessTypes } from '../../utils/additionalData/constants';
-import { appAdditionalDataForAPI } from '../../utils/additionalData/functions';
+import { appAdditionalDataForAPISchema11 } from '../../utils/additionalData/functions';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -380,7 +380,7 @@ const migration = (oldRealm: any, newRealm: any) => {
           accessType: accessTypes.APP,
         });
 
-        const appMetadata = appAdditionalDataForAPI({ data: oldInventoryObject[index] });
+        const appMetadata = appAdditionalDataForAPISchema11({ data: oldInventoryObject[index] });
         // overrides the appVersion
         appMetadata.appVersion = appVersion;
 
@@ -404,7 +404,7 @@ const migration = (oldRealm: any, newRealm: any) => {
             accessType: accessTypes.APP,
           });
 
-          const sampleAppMetadata = appAdditionalDataForAPI({
+          const sampleAppMetadata = appAdditionalDataForAPISchema11({
             data: sampleTree,
             isSampleTree: true,
           });

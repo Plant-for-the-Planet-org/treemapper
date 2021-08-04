@@ -467,9 +467,9 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const onPressExportJSON = async () => {
-    const exportGeoJSONFile = () => {
+    const exportGeoJSONFile = async () => {
       if (inventory.polygons.length > 0) {
-        const geoJSON = getGeoJsonData(inventory);
+        const geoJSON = await getGeoJsonData(inventory);
 
         const options = {
           url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
@@ -492,7 +492,7 @@ const InventoryOverview = ({ navigation }: any) => {
     };
     const permissionResult = await askExternalStoragePermission();
     if (permissionResult) {
-      exportGeoJSONFile();
+      await exportGeoJSONFile();
     }
   };
 
