@@ -67,6 +67,7 @@ import AlertModal from '../Common/AlertModal';
 import SpecieSampleTree from '../SpecieSampleTree';
 import ManageSpecies from '../ManageSpecies';
 import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -676,6 +677,7 @@ const SingleTreeOverview = () => {
             {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
+        {!isSampleTree ? <ExportGeoJSON inventory={inventory} /> : []}
         <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
         <AdditionalDataOverview

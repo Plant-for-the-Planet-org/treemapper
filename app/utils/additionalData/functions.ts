@@ -346,6 +346,22 @@ export const appAdditionalDataForGeoJSON = async ({
   appAdditionalDetails['treeType'] = data.treeType;
   appAdditionalDetails['captureMode'] = data.locateTree;
 
+  if (data.status === INCOMPLETE || data.status === INCOMPLETE_SAMPLE_TREE) {
+    const deviceDetails = await getDeviceDetails();
+
+    appAdditionalDetails['appVersion'] = version;
+
+    appAdditionalDetails = {
+      ...appAdditionalDetails,
+      ...deviceDetails,
+    };
+  } else if (data.appMetadata) {
+    appAdditionalDetails = {
+      ...appAdditionalDetails,
+      ...JSON.parse(data.appMetadata),
+    };
+  }
+
   if (data.treeType === SINGLE || isSampleTree) {
     appAdditionalDetails['speciesHeight'] = data.specieHeight;
     appAdditionalDetails['speciesDiameter'] = data.specieDiameter;
@@ -354,7 +370,7 @@ export const appAdditionalDataForGeoJSON = async ({
       appAdditionalDetails['tagId'] = data.tagId;
     }
   }
-  
+
   if (data.locationId) {
     appAdditionalDetails['locationId'] = data.locationId;
   }
@@ -377,7 +393,10 @@ export const appAdditionalDataForGeoJSON = async ({
     appAdditionalDetails['species'] = data.species;
     if (data.locateTree !== OFF_SITE) {
       appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+    } else {
+      delete appAdditionalDetails.deviceLocation;
     }
+
     if (data.projectId) {
       appAdditionalDetails['projectId'] = data.projectId;
     }
@@ -397,7 +416,7 @@ export const appAdditionalDataForGeoJSON = async ({
           coordinateImages.push({
             latitude: coordinate.latitude,
             longitude: coordinate.longitude,
-            cdnImageUrl: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${coordinate.cdnImageUrl}`,
+            imageUrl: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${coordinate.cdnImageUrl}`,
           });
         }
       }
@@ -419,22 +438,6 @@ export const appAdditionalDataForGeoJSON = async ({
         'imageUrl'
       ] = `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${data.cdnImageUrl}`;
     }
-  }
-
-  if (data.status === INCOMPLETE || data.status === INCOMPLETE_SAMPLE_TREE) {
-    const deviceDetails = await getDeviceDetails();
-
-    appAdditionalDetails['appVersion'] = version;
-
-    appAdditionalDetails = {
-      ...appAdditionalDetails,
-      ...deviceDetails,
-    };
-  } else if (data.appMetadata) {
-    appAdditionalDetails = {
-      ...appAdditionalDetails,
-      ...JSON.parse(data.appMetadata),
-    };
   }
 
   return appAdditionalDetails;

@@ -47,6 +47,7 @@ import { askExternalStoragePermission } from '../../utils/permissions';
 import { Header, InventoryCard, Label, LargeButton, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
 import MarkerSVG from '../Common/MarkerSVG';
 import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
@@ -541,12 +542,7 @@ const InventoryOverview = ({ navigation }: any) => {
               {inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
                 ? renderAddSampleTreeButton(status)
                 : null}
-              <LargeButton
-                onPress={onPressExportJSON}
-                heading={i18next.t('label.inventory_overview_loc_export_json')}
-                active={false}
-                medium
-              />
+              <ExportGeoJSON inventory={inventory} />
               <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
               <AdditionalDataOverview data={inventory} />
