@@ -17,7 +17,7 @@ export const updateSampleTree = ({
   sampleTreeIndex: any;
   setInventory: any;
 }) => {
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<any>(async (resolve, reject) => {
     let updatedSampleTrees = inventory.sampleTrees;
     let sampleTree = updatedSampleTrees[sampleTreeIndex];
     let inventoryData = {};
@@ -59,10 +59,11 @@ export const updateSampleTree = ({
         break;
       }
       case 'changeStatusToPending': {
-        const appAdditionalDetails = appAdditionalDataForAPI({
+        const appAdditionalDetails = await appAdditionalDataForAPI({
           data: sampleTree,
           isSampleTree: true,
         });
+
         sampleTree = {
           ...sampleTree,
           status: PENDING_DATA_UPLOAD,
