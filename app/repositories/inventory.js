@@ -1252,6 +1252,26 @@ export const addAppMetadata = ({ inventory_id }) => {
   });
 };
 
+export const deleteSyncedAndMigrate = (oldRealm, newRealm, schemaVersion) => {
+  if (oldRealm.schemaVersion < schemaVersion) {
+    const oldInventoryObject = oldRealm.objects('Inventory');
+    const newInventoryObject = newRealm.objects('Inventory');
+
+    const syncedInventoriesIndexToDelete = [];
+
+    for (const index in oldInventoryObject) {
+      if (oldInventoryObject[index].status === SYNCED) {
+        syncedInventoriesIndexToDelete.push(index);
+      }
+    }
+
+    // delete all the synced inventory objects;
+    for (let i = syncedInventoriesIndexToDelete.length - 1; i >= 0; i--) {
+      newRealm.delete(newInventoryObject[syncedInventoriesIndexToDelete[i]]);
+    }
+  }
+};
+
 function getFields(input, field) {
   var output = [];
   for (var i = 0; i < input.length; ++i) output.push(input[i][field]);

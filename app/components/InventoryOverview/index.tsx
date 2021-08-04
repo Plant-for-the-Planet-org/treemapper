@@ -193,7 +193,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
-        const geoJSONData = getGeoJsonData(inventoryData);
+        const geoJSONData = await getGeoJsonData(inventoryData);
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
@@ -373,8 +373,6 @@ const InventoryOverview = ({ navigation }: any) => {
         zoomEnabled={true}
         scrollEnabled={true}
         rotateEnabled={false}>
-        {/* <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} /> */}
-        {/* <Markers geoJSON={geoJSON} alphabets={alphabets} /> */}
         <MapboxGL.Camera
           ref={(el) => {
             camera.current = el;
@@ -907,7 +905,6 @@ const InventoryOverview = ({ navigation }: any) => {
         scrollPosition={scrollPosition._value}
         customModalPosition={customModalPosition}
         setCustomModalPosition={setCustomModalPosition}
-        // setScrollAdjust={setScrollAdjust}
       />
       {renderDatePicker()}
     </SafeAreaView>
@@ -997,7 +994,7 @@ const CoordinateOverviewModal = ({
       <View style={styles.modalContainer}>
         <View
           style={{
-            width: 225,
+            width: 250,
             backgroundColor: Colors.WHITE,
             borderRadius: 10,
             overflow: 'hidden',
