@@ -2,7 +2,7 @@ import { getInventory, updateInventory } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
 import { appAdditionalDataForAPI } from './additionalData/functions';
 import { LogTypes } from './constants';
-import { PENDING_DATA_UPLOAD } from './inventoryConstants';
+import { INCOMPLETE, PENDING_DATA_UPLOAD } from './inventoryConstants';
 
 export const updateSampleTree = ({
   toUpdate,
@@ -76,10 +76,13 @@ export const updateSampleTree = ({
         break;
       }
       case 'deleteSampleTree': {
-        if (sampleTree.status === PENDING_DATA_UPLOAD) {
+        if (sampleTree.status === PENDING_DATA_UPLOAD || sampleTree.status === INCOMPLETE) {
           inventoryData = {
             ...inventoryData,
-            completedSampleTreesCount: inventory.completedSampleTreesCount - 1,
+            completedSampleTreesCount:
+              sampleTree.status === INCOMPLETE
+                ? inventory.completedSampleTreesCount
+                : inventory.completedSampleTreesCount - 1,
             sampleTreesCount:
               inventory.sampleTreesCount < 6
                 ? inventory.sampleTreesCount
