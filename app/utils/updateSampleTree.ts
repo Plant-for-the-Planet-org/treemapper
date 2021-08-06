@@ -91,6 +91,15 @@ export const updateSampleTree = ({
         }
         break;
       }
+      case 'deleteExtraSampleTree': {
+        if (sampleTree.status === INCOMPLETE) {
+          inventoryData = {
+            ...inventoryData,
+            sampleTreesCount: inventory.sampleTreesCount - 1,
+          };
+        }
+        break;
+      }
       default:
         break;
     }

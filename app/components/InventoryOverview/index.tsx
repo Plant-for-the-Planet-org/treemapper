@@ -17,7 +17,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
-import { setSkipToInventoryOverview } from '../../actions/inventory';
+import { setSkipToInventoryOverview, setIsExtraSampleTree } from '../../actions/inventory';
 import { marker_png, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -413,6 +413,7 @@ const InventoryOverview = ({ navigation }: any) => {
     if (inventory.species.length === 0) {
       setShowNoSpeciesAlert(true);
     } else {
+      setIsExtraSampleTree(true)(dispatch);
       let data = {
         inventory_id: inventory.inventory_id,
         lastScreen: 'RecordSampleTrees',

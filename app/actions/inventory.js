@@ -8,6 +8,7 @@ import {
   UPDATE_UPLOAD_COUNT,
   UPDATE_PROGRESS_COUNT,
   SET_SKIP_TO_INVENTORY_OVERVIEW,
+  SET_IS_EXTRA_SAMPLE_TREE,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
@@ -95,6 +96,18 @@ export const setSkipToInventoryOverview = (skipToInventoryOverview) => (dispatch
   dispatch({
     type: SET_SKIP_TO_INVENTORY_OVERVIEW,
     payload: skipToInventoryOverview,
+  });
+};
+
+/**
+ * This function dispatches type SET_IS_EXTRA_SAMPLE_TREE with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
+ */
+export const setIsExtraSampleTree = (isExtraSampleTree) => (dispatch) => {
+  dispatch({
+    type: SET_IS_EXTRA_SAMPLE_TREE,
+    payload: isExtraSampleTree,
   });
 };
 
