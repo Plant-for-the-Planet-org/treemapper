@@ -39,8 +39,8 @@ export default async function getGeoJsonData(inventoryData: any) {
           type: 'Polygon',
           coordinates: [
             onePolygon.coordinates.map((oneCoordinate: any) => [
-              oneCoordinate.longitude,
               oneCoordinate.latitude,
+              oneCoordinate.longitude,
             ]),
           ],
         },
