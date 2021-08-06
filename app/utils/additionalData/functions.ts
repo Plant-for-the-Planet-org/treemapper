@@ -321,10 +321,16 @@ export const basicAppAdditionalDataForAPI = ({ data, isSampleTree = false }: IGe
     let coords = data.polygons[0].coordinates;
 
     if (data.locateTree !== OFF_SITE) {
-      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+      appAdditionalDetails['deviceLocation'] = {
+        coordinates: [coords[0].latitude, coords[0].longitude],
+        type: 'Point',
+      };
     }
   } else {
-    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+    appAdditionalDetails['deviceLocation'] = {
+      coordinates: [data.deviceLatitude, data.deviceLongitude],
+      type: 'Point',
+    };
   }
   appAdditionalDetails['appVersion'] = version;
 
@@ -362,12 +368,18 @@ export const appAdditionalDataForGeoJSON = async ({
     };
   }
 
+  delete appAdditionalDetails.speciesHeight;
+  delete appAdditionalDetails.speciesDiameter;
+  delete appAdditionalDetails.tagId;
+
   if (data.treeType === SINGLE || isSampleTree) {
-    appAdditionalDetails['speciesHeight'] = data.specieHeight;
-    appAdditionalDetails['speciesDiameter'] = data.specieDiameter;
+    appAdditionalDetails['measurements'] = {
+      height: data.specieHeight,
+      diameter: data.specieDiameter,
+    };
 
     if (data.tagId) {
-      appAdditionalDetails['tagId'] = data.tagId;
+      appAdditionalDetails['treeTag'] = data.tagId;
     }
   }
 
@@ -392,7 +404,10 @@ export const appAdditionalDataForGeoJSON = async ({
 
     appAdditionalDetails['species'] = data.species;
     if (data.locateTree !== OFF_SITE) {
-      appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
+      appAdditionalDetails['deviceLocation'] = {
+        coordinates: [coords[0].latitude, coords[0].longitude],
+        type: 'Point',
+      };
     } else {
       delete appAdditionalDetails.deviceLocation;
     }
@@ -432,7 +447,10 @@ export const appAdditionalDataForGeoJSON = async ({
         treeCount: 1,
       },
     ];
-    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+    appAdditionalDetails['deviceLocation'] = {
+      coordinates: [data.deviceLatitude, data.deviceLongitude],
+      type: 'Point',
+    };
     if (data.cdnImageUrl) {
       appAdditionalDetails[
         'imageUrl'

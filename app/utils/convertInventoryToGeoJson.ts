@@ -17,14 +17,13 @@ export default async function getGeoJsonData(inventoryData: any) {
       {
         type: 'Feature',
         properties: {
-          isPolygonComplete: inventoryData.polygons[0].isPolygonComplete,
           ...metadata,
         },
         geometry: {
           type: 'Point',
           coordinates: [
-            inventoryData.polygons[0].coordinates[0].longitude,
             inventoryData.polygons[0].coordinates[0].latitude,
+            inventoryData.polygons[0].coordinates[0].longitude,
           ],
         },
       },
@@ -34,15 +33,16 @@ export default async function getGeoJsonData(inventoryData: any) {
       return {
         type: 'Feature',
         properties: {
-          isPolygonComplete: onePolygon.isPolygonComplete,
           ...metadata,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: onePolygon.coordinates.map((oneCoordinate: any) => [
-            oneCoordinate.longitude,
-            oneCoordinate.latitude,
-          ]),
+          type: 'Polygon',
+          coordinates: [
+            onePolygon.coordinates.map((oneCoordinate: any) => [
+              oneCoordinate.longitude,
+              oneCoordinate.latitude,
+            ]),
+          ],
         },
       };
     });
@@ -62,7 +62,7 @@ export default async function getGeoJsonData(inventoryData: any) {
           properties: { ...metadata },
           geometry: {
             type: 'Point',
-            coordinates: [sampleTree.longitude, sampleTree.latitude],
+            coordinates: [sampleTree.latitude, sampleTree.longitude],
           },
         });
       }
