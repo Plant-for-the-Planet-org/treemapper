@@ -115,6 +115,7 @@ const SingleTreeOverview = () => {
   );
 
   const [isError, setIsError] = useState<boolean>(false);
+  const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -692,11 +693,14 @@ const SingleTreeOverview = () => {
     );
   };
 
-  const onPressSave = () => {
+  const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
-      if (specieText) {
+      if (showProject && !selectedProjectName && !forceContinue) {
+        setShowNoProjectWarning(true);
+      } else if (specieText) {
+        setShowNoProjectWarning(false);
         addAppMetadata({ inventory_id: inventoryState.inventoryID })
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
@@ -950,6 +954,16 @@ const SingleTreeOverview = () => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showNoProjectWarning}
+        heading={i18next.t('label.project_not_assigned')}
+        message={i18next.t('label.project_not_assigned_message')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => onPressSave(true)}
+        onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
       />
       <AlertModal

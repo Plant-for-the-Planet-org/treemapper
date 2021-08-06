@@ -367,6 +367,8 @@ PODS:
     - React
   - RNDateTimePicker (3.4.7):
     - React-Core
+  - RNDeviceInfo (8.1.4):
+    - React-Core
   - RNFS (2.16.6):
     - React
   - RNGestureHandler (1.10.3):
@@ -464,6 +466,7 @@ DEPENDENCIES:
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
@@ -580,6 +583,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -663,6 +668,7 @@ SPEC CHECKSUMS:
   RNCCheckbox: 500919ac122273ea8eef93dae01431091968c14a
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNDateTimePicker: 624e46df09f3f8bb38aea717cd364dc6d2605737
+  RNDeviceInfo: 4975ca642df085a3e5458be4be1de7b7f3d5f24f
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNInAppBrowser: 3733c1aa6699983a1c9b4963e85d5e5a48ad297e
