@@ -807,7 +807,16 @@ const SingleTreeOverview = () => {
             navigation.navigate('RecordSampleTrees');
           } else {
             setSkipToInventoryOverview(false)(dispatch);
-            navigation.navigate('InventoryOverview');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'InventoryOverview' },
+                ],
+              }),
+            );
           }
         })
         .catch((err) => console.error(err));

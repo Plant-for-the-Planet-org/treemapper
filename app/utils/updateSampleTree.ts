@@ -76,13 +76,10 @@ export const updateSampleTree = ({
         break;
       }
       case 'deleteSampleTree': {
-        if (sampleTree.status === PENDING_DATA_UPLOAD || sampleTree.status === INCOMPLETE) {
+        if (sampleTree.status === PENDING_DATA_UPLOAD) {
           inventoryData = {
             ...inventoryData,
-            completedSampleTreesCount:
-              sampleTree.status === INCOMPLETE
-                ? inventory.completedSampleTreesCount
-                : inventory.completedSampleTreesCount - 1,
+            completedSampleTreesCount: inventory.completedSampleTreesCount - 1,
             sampleTreesCount:
               inventory.sampleTreesCount < 6
                 ? inventory.sampleTreesCount
@@ -95,7 +92,10 @@ export const updateSampleTree = ({
         if (sampleTree.status === INCOMPLETE) {
           inventoryData = {
             ...inventoryData,
-            sampleTreesCount: inventory.sampleTreesCount - 1,
+            sampleTreesCount:
+              inventory.sampleTreesCount < 6
+                ? inventory.sampleTreesCount
+                : inventory.sampleTreesCount - 1,
           };
         }
         break;
@@ -103,7 +103,7 @@ export const updateSampleTree = ({
       default:
         break;
     }
-    if (toUpdate === 'deleteSampleTree') {
+    if (toUpdate === 'deleteSampleTree' || toUpdate === 'deleteExtraSampleTree') {
       updatedSampleTrees.splice(sampleTreeIndex, 1);
     } else {
       updatedSampleTrees[sampleTreeIndex] = sampleTree;

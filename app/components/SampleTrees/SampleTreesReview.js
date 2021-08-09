@@ -10,7 +10,7 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import Label from '../Common/Label';
 import { getUserInformation } from '../../repositories/user';
 import { APIConfig } from '../../actions/Config';
-import { setSkipToInventoryOverview } from '../../actions/inventory';
+import { setSkipToInventoryOverview, setIsExtraSampleTree } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
@@ -96,6 +96,7 @@ export default function SampleTreesReview({
             : inventory.sampleTreesCount,
       },
     }).then(() => {
+      setIsExtraSampleTree(true)(inventoryDispatch);
       let data = {
         inventory_id: inventory.inventory_id,
         lastScreen: 'RecordSampleTrees',
