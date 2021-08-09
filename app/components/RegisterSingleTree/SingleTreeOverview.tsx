@@ -18,7 +18,11 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { deleteInventoryId, setSkipToInventoryOverview } from '../../actions/inventory';
+import {
+  deleteInventoryId,
+  setSkipToInventoryOverview,
+  setIsExtraSampleTree,
+} from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -728,6 +732,7 @@ const SingleTreeOverview = () => {
     })
       .then(() => {
         setSkipToInventoryOverview(false)(dispatch);
+        setIsExtraSampleTree(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
             index: 3,
@@ -790,18 +795,28 @@ const SingleTreeOverview = () => {
     if (isSampleTree) {
       let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
       updateSampleTree({
-        toUpdate: 'deleteSampleTree',
+        toUpdate: inventoryState.isExtraSampleTree ? 'deleteExtraSampleTree' : 'deleteSampleTree',
         sampleTreeIndex,
         inventory,
         setInventory,
       })
         .then(() => {
+          setIsExtraSampleTree(false)(dispatch);
           setShowDeleteAlert(!showDeleteAlert);
           if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
             navigation.navigate('RecordSampleTrees');
           } else {
             setSkipToInventoryOverview(false)(dispatch);
-            navigation.navigate('InventoryOverview');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'InventoryOverview' },
+                ],
+              }),
+            );
           }
         })
         .catch((err) => console.error(err));

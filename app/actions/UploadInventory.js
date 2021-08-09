@@ -368,11 +368,12 @@ const getBodyData = (inventory) => {
     body.plantedSpecies = plantedSpecies;
 
     // adds sampleTreeCount in request body if tree type is multi
-    body.sampleTreeCount = inventory.sampleTreeCount;
+    body.sampleTreeCount = inventory.sampleTreesCount;
   }
   if (inventory.projectId) {
     body.plantProject = inventory.projectId;
   }
+
   return body;
 };
 
