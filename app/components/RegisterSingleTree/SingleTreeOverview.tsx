@@ -18,7 +18,11 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { deleteInventoryId, setSkipToInventoryOverview } from '../../actions/inventory';
+import {
+  deleteInventoryId,
+  setSkipToInventoryOverview,
+  setIsExtraSampleTree,
+} from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -114,6 +118,7 @@ const SingleTreeOverview = () => {
   );
 
   const [isError, setIsError] = useState<boolean>(false);
+  const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -690,11 +695,14 @@ const SingleTreeOverview = () => {
     );
   };
 
-  const onPressSave = () => {
+  const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
-      if (specieText) {
+      if (showProject && !selectedProjectName && !forceContinue) {
+        setShowNoProjectWarning(true);
+      } else if (specieText) {
+        setShowNoProjectWarning(false);
         addAppMetadata({ inventory_id: inventoryState.inventoryID })
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
@@ -724,6 +732,7 @@ const SingleTreeOverview = () => {
     })
       .then(() => {
         setSkipToInventoryOverview(false)(dispatch);
+        setIsExtraSampleTree(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
             index: 3,
@@ -786,18 +795,28 @@ const SingleTreeOverview = () => {
     if (isSampleTree) {
       let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
       updateSampleTree({
-        toUpdate: 'deleteSampleTree',
+        toUpdate: inventoryState.isExtraSampleTree ? 'deleteExtraSampleTree' : 'deleteSampleTree',
         sampleTreeIndex,
         inventory,
         setInventory,
       })
         .then(() => {
+          setIsExtraSampleTree(false)(dispatch);
           setShowDeleteAlert(!showDeleteAlert);
           if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
             navigation.navigate('RecordSampleTrees');
           } else {
             setSkipToInventoryOverview(false)(dispatch);
-            navigation.navigate('InventoryOverview');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'InventoryOverview' },
+                ],
+              }),
+            );
           }
         })
         .catch((err) => console.error(err));
@@ -948,6 +967,16 @@ const SingleTreeOverview = () => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showNoProjectWarning}
+        heading={i18next.t('label.project_not_assigned')}
+        message={i18next.t('label.project_not_assigned_message')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => onPressSave(true)}
+        onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
       />
       <AlertModal

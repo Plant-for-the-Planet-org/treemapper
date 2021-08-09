@@ -8,7 +8,8 @@ import {
   INITIATE_INVENTORY_STATE,
   DELETE_INVENTORY_ID,
   UPDATE_PROGRESS_COUNT,
-  SET_SKIP_TO_INVENTORY_OVERVIEW
+  SET_SKIP_TO_INVENTORY_OVERVIEW,
+  SET_IS_EXTRA_SAMPLE_TREE,
 } from '../actions/Types';
 
 // stores the initial properties of the inventory state
@@ -21,6 +22,7 @@ const initialState = {
   isUploading: false,
   progressCount: 0,
   skipToInventoryOverview: false,
+  isExtraSampleTree: false,
 };
 
 // Inventory reducer function which takes the state and action param
@@ -114,7 +116,13 @@ const inventoryReducer = (state = initialState, action) => {
     case SET_SKIP_TO_INVENTORY_OVERVIEW:
       return {
         ...state,
-        skipToInventoryOverview: action.payload
+        skipToInventoryOverview: action.payload,
+      };
+
+    case SET_IS_EXTRA_SAMPLE_TREE:
+      return {
+        ...state,
+        isExtraSampleTree: action.payload,
       };
     default:
       return state;

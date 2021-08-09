@@ -18,6 +18,8 @@ import {
   View,
   Dimensions,
   Animated,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -25,8 +27,8 @@ import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APIConfig } from '../../actions/Config';
-import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { map_img, marker_png, plus_icon, two_trees } from '../../assets';
+import { setIsExtraSampleTree, setSkipToInventoryOverview } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -41,7 +43,7 @@ import { getProjectById } from '../../repositories/projects';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import { ALPHABETS } from '../../utils';
+import { ALPHABETS, bugsnag } from '../../utils';
 import { toBase64 } from '../../utils/base64';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
@@ -117,6 +119,9 @@ const InventoryOverview = ({ navigation }: any) => {
       },
     ],
   });
+
+  const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
+  const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
 
   useEffect(() => {
     if (
@@ -296,25 +301,44 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  const onPressSave = ({ forceContinue }: { forceContinue?: boolean }) => {
+  const onPressSave = ({
+    forceContinue,
+    continueWithoutProject,
+  }: {
+    forceContinue?: boolean;
+    continueWithoutProject?: boolean;
+  }) => {
+    continueWithoutProject = continueWithoutProject || saveWithoutProject;
+    setSaveWithoutProject(continueWithoutProject);
+
     if (inventory.species.length > 0) {
       if (inventory.locateTree === OFF_SITE) {
-        addAppDataAndSave();
-      } else if (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) {
-        let notSampledSpecies = getNotSampledSpecies(inventory);
-        if (notSampledSpecies?.size == 0 || forceContinue) {
+        if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
+          setShowNoProjectWarning(false);
           addAppDataAndSave();
-        } else if (forceContinue !== undefined && !forceContinue) {
-          setSkipToInventoryOverview(true)(dispatch);
-          navigation.navigate('SpecieSampleTree', { notSampledSpecies });
         } else {
-          setShowAddSampleTrees(true);
+          setShowNoProjectWarning(true);
+        }
+      } else if (inventory?.sampleTrees && inventory?.sampleTrees?.length > 4) {
+        if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
+          setShowNoProjectWarning(false);
+          let notSampledSpecies = getNotSampledSpecies(inventory);
+          if (notSampledSpecies?.size == 0 || forceContinue) {
+            addAppDataAndSave();
+          } else if (forceContinue !== undefined && !forceContinue) {
+            setSkipToInventoryOverview(true)(dispatch);
+            navigation.navigate('SpecieSampleTree', { notSampledSpecies });
+          } else {
+            setShowAddSampleTrees(true);
+          }
+        } else {
+          setShowNoProjectWarning(true);
         }
       } else {
         setShowLessSampleTreesAlert(true);
       }
     } else {
-      alert(i18next.t('label.inventory_overview_select_species'));
+      setShowNoSpeciesAlert(true);
     }
   };
 
@@ -905,6 +929,16 @@ const InventoryOverview = ({ navigation }: any) => {
         scrollPosition={scrollPosition._value}
         customModalPosition={customModalPosition}
         setCustomModalPosition={setCustomModalPosition}
+      />
+      <AlertModal
+        visible={showNoProjectWarning}
+        heading={i18next.t('label.project_not_assigned')}
+        message={i18next.t('label.project_not_assigned_message')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => onPressSave({ continueWithoutProject: true })}
+        onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
+        showSecondaryButton={true}
       />
       {renderDatePicker()}
     </SafeAreaView>

@@ -5,6 +5,10 @@ TreeMapper is open source application based on react-native licensed under terms
 
 For contributions please read our [contribution guide](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CONTRIBUTING.md) as well as our [code of conduct](https://github.com/Plant-for-the-Planet-org/treemapper/blob/develop/CODE_OF_CONDUCT.md) and the following information:
 
+## TreeMapper on Web
+Data uploaded by TreeMapper can be viewed on the [Plant-for-the-Planet Platform](https://pp.eco)
+<img width="1289" alt="Screen Shot 2021-08-04 at 4 05 38 PM" src="https://user-images.githubusercontent.com/5401575/128246400-949f9502-0ecd-4e6b-8695-003752b05331.png">
+
 ## Directory Structure
 
 `ios` houses the iOS project files and `android` contains Android project files. The `app` contains the react code base for all platform.

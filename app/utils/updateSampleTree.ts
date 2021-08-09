@@ -2,7 +2,7 @@ import { getInventory, updateInventory } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
 import { appAdditionalDataForAPI } from './additionalData/functions';
 import { LogTypes } from './constants';
-import { PENDING_DATA_UPLOAD } from './inventoryConstants';
+import { INCOMPLETE, PENDING_DATA_UPLOAD } from './inventoryConstants';
 
 export const updateSampleTree = ({
   toUpdate,
@@ -88,10 +88,22 @@ export const updateSampleTree = ({
         }
         break;
       }
+      case 'deleteExtraSampleTree': {
+        if (sampleTree.status === INCOMPLETE) {
+          inventoryData = {
+            ...inventoryData,
+            sampleTreesCount:
+              inventory.sampleTreesCount < 6
+                ? inventory.sampleTreesCount
+                : inventory.sampleTreesCount - 1,
+          };
+        }
+        break;
+      }
       default:
         break;
     }
-    if (toUpdate === 'deleteSampleTree') {
+    if (toUpdate === 'deleteSampleTree' || toUpdate === 'deleteExtraSampleTree') {
       updatedSampleTrees.splice(sampleTreeIndex, 1);
     } else {
       updatedSampleTrees[sampleTreeIndex] = sampleTree;
