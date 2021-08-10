@@ -5,10 +5,14 @@ import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
+  Animated,
   BackHandler,
+  Dimensions,
   FlatList,
   Image,
   Modal,
+  PermissionsAndroid,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -16,10 +20,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
-  Animated,
-  PermissionsAndroid,
-  Alert,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -27,8 +27,8 @@ import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APIConfig } from '../../actions/Config';
-import { map_img, marker_png, plus_icon, two_trees } from '../../assets';
-import { setIsExtraSampleTree, setSkipToInventoryOverview } from '../../actions/inventory';
+import { setSkipToInventoryOverview } from '../../actions/inventory';
+import { map_img, plus_icon, two_trees } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -63,7 +63,6 @@ import AlertModal from '../Common/AlertModal';
 import Markers from '../Common/Markers';
 import MarkerSVG from '../Common/MarkerSVG';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-import SampleTreesReview from '../SampleTrees/SampleTreesReview';
 
 let scrollAdjust = 0;
 
@@ -91,15 +90,14 @@ const InventoryOverview = ({ navigation }: any) => {
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
   const [showLessSampleTreesAlert, setShowLessSampleTreesAlert] = useState(false);
   const [countryCode, setCountryCode] = useState<string>('');
-  // const [focusCoordinate, setFocusCoordinate] = useState<number[] | null>();
-  const [alphabets, setAlphabets] = useState([]);
+
   const [coordinateModalShow, setCoordinateModalShow] = useState<boolean>(false);
   const [coordinateIndex, setCoordinateIndex] = useState<number | null>();
-  const [isSampleTree, setIsSampleTree] = useState<boolean | null>();
-  const [bounds, setBounds] = useState([]);
+  const [isSampleTree, setIsSampleTree] = useState<boolean | null>(false);
+  const [bounds, setBounds] = useState<any>([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [isPointForMultipleTree, setIsPointForMultipleTree] = useState(false);
-  const [centerCoordinate, setCenterCoordinate] = useState([]);
+  const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
   const [layoutAboveMap, setLayoutAboveMap] = useState<number | null>();
   const [customModalPosition, setCustomModalPosition] = useState<number | null>();
   const map = useRef(null);
@@ -197,7 +195,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const initialState = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData: any) => {
         const geoJSONData = await getGeoJsonData(inventoryData);
         setInventory(inventoryData);
 
@@ -432,30 +430,7 @@ const InventoryOverview = ({ navigation }: any) => {
       </MapboxGL.MapView>
     );
   };
-  const askAndroidStoragePermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        {
-          title: i18next.t('label.storage_permission_android_title'),
-          message: i18next.t('label.storage_permission_android_message'),
-          buttonPositive: i18next.t('label.permission_camera_ok'),
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        return true;
-      } else {
-        Alert.alert(
-          i18next.t('label.storage_permission_denied_header'),
-          i18next.t('label.storage_permission_denied_sub_header'),
-        );
-        return false;
-      }
-    } catch (err) {
-      bugsnag.notify(err);
-      return false;
-    }
-  };
+
   const onPressMarker = async (isSampleTree: boolean, coordinate: []) => {
     let approxModalHeight = isSampleTree ? 250 : 150;
     let halfMapHeight = 215;
@@ -582,35 +557,6 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const renderAddSampleTreeButton = (inventoryStatus: string) => {
-    return (
-      (inventoryStatus === INCOMPLETE || inventoryStatus === INCOMPLETE_SAMPLE_TREE) && (
-        <TouchableOpacity
-          onPress={addSampleTree}
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            backgroundColor: '#F0F0F0',
-            borderRadius: 10,
-            marginVertical: 10,
-          }}
-          accessibilityLabel="Species Button"
-          testID="species_btn">
-          <Text style={styles.plantSpeciesText}>
-            {i18next.t('label.inventory_overview_add_sample_tree')}
-          </Text>
-          <View>
-            <SvgXml xml={plus_icon} />
-          </View>
-          <View>
-            <SvgXml xml={two_trees} />
-          </View>
-        </TouchableOpacity>
-      )
-    );
-  };
-
   const addSampleTree = () => {
     if (inventory.species.length === 0) {
       setShowNoSpeciesAlert(true);
@@ -696,10 +642,7 @@ const InventoryOverview = ({ navigation }: any) => {
         ? i18next.t('label.tree_inventory_off_site')
         : i18next.t('label.tree_inventory_on_site');
   }
-  const handleScroll = (event) => {
-    const positionX = event.nativeEvent.contentOffset.x;
-    const positionY = event.nativeEvent.contentOffset.y;
-  };
+
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
 
   return (
@@ -767,7 +710,12 @@ const InventoryOverview = ({ navigation }: any) => {
                         borderWidth: 1,
                         borderColor: Colors.LIGHT_BORDER_COLOR,
                       }}
-                      onPress={() => addAnotherSampleTree()}>
+                      onPress={
+                        inventory?.completedSampleTreesCount == 0 &&
+                        inventory?.locateTree === ON_SITE
+                          ? addSampleTree
+                          : addAnotherSampleTree
+                      }>
                       <Text
                         style={{
                           color: '#007A49',
@@ -831,18 +779,7 @@ const InventoryOverview = ({ navigation }: any) => {
                 )}
               />
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
-              {/* {renderPolygon(inventory.polygons, locationType)} */}
-              {/* {inventory?.sampleTrees.length > 0 && (
-                <SampleTreesReview
-                  sampleTrees={inventory?.sampleTrees}
-                  navigation={navigation}
-                  totalSampleTrees={inventory.sampleTreesCount}
-                  inventoryDispatch={dispatch}
-                />
-              )} */}
-              {inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
-                ? renderAddSampleTreeButton(status)
-                : null}
+
               <LargeButton
                 onPress={onPressExportJSON}
                 heading={i18next.t('label.inventory_overview_loc_export_json')}

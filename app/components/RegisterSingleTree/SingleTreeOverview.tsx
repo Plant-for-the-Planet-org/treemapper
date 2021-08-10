@@ -707,7 +707,12 @@ const SingleTreeOverview = () => {
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
             changeInventoryStatus(data, dispatch).then(() => {
-              navigation.navigate('TreeInventory');
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 1,
+                  routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+                }),
+              );
             });
           })
           .catch((err) => {
@@ -718,7 +723,12 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     } else {
-      navigation.navigate('TreeInventory');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+        }),
+      );
     }
     return true;
   };
@@ -758,8 +768,16 @@ const SingleTreeOverview = () => {
           let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
           changeInventoryStatus(data, dispatch).then(() => {
             deleteInventoryId()(dispatch);
-
-            navigation.navigate('RegisterSingleTree');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'RegisterSingleTree' },
+                ],
+              }),
+            );
           });
         })
         .catch(() => setIsError(true));
@@ -804,9 +822,28 @@ const SingleTreeOverview = () => {
           setIsExtraSampleTree(false)(dispatch);
           setShowDeleteAlert(!showDeleteAlert);
           if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
-            navigation.navigate('RecordSampleTrees');
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'RecordSampleTrees',
+            };
+            updateLastScreen(data);
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'RecordSampleTrees' },
+                ],
+              }),
+            );
           } else {
             setSkipToInventoryOverview(false)(dispatch);
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'InventoryOverview',
+            };
+            updateLastScreen(data);
             navigation.dispatch(
               CommonActions.reset({
                 index: 2,
@@ -824,7 +861,12 @@ const SingleTreeOverview = () => {
       deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          navigation.navigate('TreeInventory');
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 1,
+              routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+            }),
+          );
         })
         .catch((err) => console.error(err));
     }
