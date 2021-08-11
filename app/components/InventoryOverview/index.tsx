@@ -954,15 +954,14 @@ const CoordinateOverviewModal = ({
   return (
     <Modal visible={coordinateModalShow} transparent>
       <TouchableOpacity
-        style={styles.outsideModalContainer}
+        style={styles.modalContainer}
         onPressIn={() => {
           setCoordinateModalShow(false);
           setCustomModalPosition();
           scrollAdjust = 0;
           initialState();
         }}
-      />
-      <View style={styles.modalContainer}>
+      >
         <View
           style={{
             width: 250,
@@ -1046,7 +1045,7 @@ const CoordinateOverviewModal = ({
             []
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -1109,16 +1108,6 @@ const styles = StyleSheet.create({
     // borderWidth: 3,
     // borderColor: 'green',
     position: 'relative',
-  },
-  outsideModalContainer: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });
 
