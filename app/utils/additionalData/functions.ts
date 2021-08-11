@@ -405,7 +405,7 @@ export const appAdditionalDataForGeoJSON = async ({
     appAdditionalDetails['species'] = data.species;
     if (data.locateTree !== OFF_SITE) {
       appAdditionalDetails['deviceLocation'] = {
-        coordinates: [coords[0].latitude, coords[0].longitude],
+        coordinates: [coords[0].longitude, coords[0].latitude],
         type: 'Point',
       };
     } else {
@@ -448,7 +448,7 @@ export const appAdditionalDataForGeoJSON = async ({
       },
     ];
     appAdditionalDetails['deviceLocation'] = {
-      coordinates: [data.deviceLatitude, data.deviceLongitude],
+      coordinates: [data.deviceLongitude, data.deviceLatitude],
       type: 'Point',
     };
     if (data.cdnImageUrl) {

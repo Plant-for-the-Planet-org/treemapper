@@ -3,6 +3,7 @@ import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalD
 export default async function getGeoJsonData(inventoryData: any) {
   let featureList;
   let appAdditionalDetails: any = {};
+
   const metadata = getFormattedMetadata([...inventoryData.additionalDetails]);
   if (inventoryData) {
     appAdditionalDetails = await appAdditionalDataForGeoJSON({ data: inventoryData });
@@ -22,8 +23,8 @@ export default async function getGeoJsonData(inventoryData: any) {
         geometry: {
           type: 'Point',
           coordinates: [
-            inventoryData.polygons[0].coordinates[0].latitude,
             inventoryData.polygons[0].coordinates[0].longitude,
+            inventoryData.polygons[0].coordinates[0].latitude,
           ],
         },
       },
@@ -36,13 +37,11 @@ export default async function getGeoJsonData(inventoryData: any) {
           ...metadata,
         },
         geometry: {
-          type: 'Polygon',
-          coordinates: [
-            onePolygon.coordinates.map((oneCoordinate: any) => [
-              oneCoordinate.latitude,
-              oneCoordinate.longitude,
-            ]),
-          ],
+          type: 'LineString',
+          coordinates: onePolygon.coordinates.map((oneCoordinate: any) => [
+            oneCoordinate.longitude,
+            oneCoordinate.latitude,
+          ]),
         },
       };
     });
@@ -62,7 +61,7 @@ export default async function getGeoJsonData(inventoryData: any) {
           properties: { ...metadata },
           geometry: {
             type: 'Point',
-            coordinates: [sampleTree.latitude, sampleTree.longitude],
+            coordinates: [sampleTree.longitude, sampleTree.latitude],
           },
         });
       }
