@@ -119,6 +119,7 @@ const SingleTreeOverview = () => {
 
   const [isError, setIsError] = useState<boolean>(false);
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
+  const [navigationType, setNavigationType] = useState<string>('save');
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -699,6 +700,7 @@ const SingleTreeOverview = () => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
+      setNavigationType('save');
       if (showProject && !selectedProjectName && !forceContinue) {
         setShowNoProjectWarning(true);
       } else if (specieText) {
@@ -751,18 +753,26 @@ const SingleTreeOverview = () => {
       .catch(() => setIsError(true));
   };
 
-  const onPressNextTree = () => {
+  const onPressNextTree = (forceContinue = false) => {
     if (inventory.status === INCOMPLETE) {
-      addAppMetadata({ inventory_id: inventoryState.inventoryID })
-        .then(() => {
-          let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
-          changeInventoryStatus(data, dispatch).then(() => {
-            deleteInventoryId()(dispatch);
+      if (showProject && !selectedProjectName && !forceContinue) {
+        setNavigationType('next-tree');
+        setShowNoProjectWarning(true);
+      } else {
+        setNavigationType('save');
+        setShowNoProjectWarning(false);
 
-            navigation.navigate('RegisterSingleTree');
-          });
-        })
-        .catch(() => setIsError(true));
+        addAppMetadata({ inventory_id: inventoryState.inventoryID })
+          .then(() => {
+            let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+            changeInventoryStatus(data, dispatch).then(() => {
+              deleteInventoryId()(dispatch);
+
+              navigation.navigate('RegisterSingleTree');
+            });
+          })
+          .catch(() => setIsError(true));
+      }
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
       updateSampleTree({
         toUpdate: 'changeStatusToPending',
@@ -883,7 +893,7 @@ const SingleTreeOverview = () => {
             <Header
               style={{ flex: 1 }}
               closeIcon
-              onBackPress={onPressSave}
+              onBackPress={() => onPressSave()}
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
@@ -975,7 +985,9 @@ const SingleTreeOverview = () => {
         message={i18next.t('label.project_not_assigned_message')}
         primaryBtnText={i18next.t('label.continue')}
         secondaryBtnText={i18next.t('label.cancel')}
-        onPressPrimaryBtn={() => onPressSave(true)}
+        onPressPrimaryBtn={() =>
+          navigationType === 'save' ? onPressSave(true) : onPressNextTree(true)
+        }
         onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
       />
