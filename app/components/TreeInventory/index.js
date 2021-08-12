@@ -320,8 +320,8 @@ const RenderInventory = ({
           <SmallHeader
             onPressRight={onPressClearAll}
             leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
-            rightText={i18next.t('label.tree_inventory_clear_all')}
             rightTheme={'red'}
+            icon={'trash'}
             style={{ marginVertical: 15 }}
           />
           <InventoryList

@@ -42,7 +42,7 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
         button={
           <TouchableOpacity onPress={showMenu} style={{ padding: 10 }}>
             <IconSwitcher
-              iconType={'MCIIcon'}
+              iconType={'MCIcon'}
               name={'dots-vertical'}
               size={24}
               color={Colors.TEXT_COLOR}

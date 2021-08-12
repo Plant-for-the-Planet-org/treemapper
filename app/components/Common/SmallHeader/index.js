@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '_styles';
-import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RotatingView from '../../Common/RotatingView';
+import IconSwitcher from '../../Common/IconSwitcher';
 
-const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, style, sync }) => {
+const SmallHeader = ({ leftText, rightText, rightTheme, icon, iconType, onPressRight, style, sync }) => {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
       <Text style={styles.subHeadingText}>{leftText}</Text>
@@ -24,10 +25,16 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, onPressRight, styl
             {rightText}
           </Text>
           {icon ? (
-            <MCIcons name={icon} size={22} style={styles.activeText} />
+            <IconSwitcher
+              name={icon}
+              size={22}
+              color={Colors.TEXT_COLOR}
+              style={styles.activeText}
+              iconType={iconType ? iconType : 'FAIcon'}
+            />
           ) : sync ? (
             <RotatingView isClockwise={false}>
-              <MCIcons size={24} name="sync" color={Colors.PRIMARY} />
+              <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
             </RotatingView>
           ) : (
             []

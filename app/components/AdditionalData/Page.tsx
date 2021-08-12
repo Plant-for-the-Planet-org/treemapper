@@ -3,8 +3,8 @@ import i18next from 'i18next';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
-import FeatherIcon from 'react-native-vector-icons/Feather';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
@@ -90,7 +90,7 @@ export default function Page({
           <FA5Icon name="pen" size={16} color={Colors.GRAY_LIGHTEST} style={styles.pageTitleIcon} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteIcon} onPress={handleDeletePress}>
-          <FeatherIcon name="trash-2" size={20} color={Colors.ALERT} />
+          <FAIcon name={'trash'} size={18} color={Colors.ALERT} />
         </TouchableOpacity>
       </View>
       <DraggableFlatList

@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Ionicons from 'react-native-vector-icons/MaterialIcons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Colors, CommonStyles, Typography } from '_styles';
 import { PENDING_DATA_UPLOAD } from '../../../utils/inventoryConstants';
 
@@ -130,7 +130,7 @@ const Accordian = ({
                 </Text>
               </View>
             ) : (
-              <Ionicons
+              <MIcon
                 onPress={onPressAccordian}
                 name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                 size={30}

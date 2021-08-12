@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
@@ -92,10 +92,10 @@ export default function Syncing({
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={false}>
-              <Icon size={24} name="sync" color={Colors.PRIMARY} />
+              <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
             </RotatingView>
           ) : (
-            <Icon size={24} name="sync" color={Colors.PRIMARY} />
+            <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
           )}
           <Text style={styles.syncText}>{syncText}</Text>
         </View>
