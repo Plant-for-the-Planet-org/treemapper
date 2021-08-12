@@ -21,7 +21,6 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APIConfig } from '../../actions/Config';
@@ -41,8 +40,6 @@ import { getProjectById } from '../../repositories/projects';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import { ALPHABETS } from '../../utils';
-import { toBase64 } from '../../utils/base64';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
@@ -54,14 +51,12 @@ import {
   PENDING_DATA_UPLOAD,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { askExternalStoragePermission } from '../../utils/permissions';
-import { Header, InventoryCard, Label, PrimaryButton } from '../Common';
+import { Header, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
-import MarkerSVG from '../Common/MarkerSVG';
-import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import Markers from '../Common/Markers';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 let scrollAdjust = 0;
 
@@ -69,16 +64,12 @@ const InventoryOverview = ({ navigation }: any) => {
   const { protocol, cdnUrl } = APIConfig;
   const windowHeight = Dimensions.get('window').height;
 
-  const cameraRef = useRef();
   // reference for camera to focus on map
   const camera = useRef(null);
   const scrollPosition = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useContext(InventoryContext);
 
   const [inventory, setInventory] = useState<any>(null);
-  const [locationTitle, setLocationTitle] = useState<string>('');
-  const [selectedLOC, setSelectedLOC] = useState<any>(null);
-  const [isLOCModalOpen, setIsLOCModalOpen] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
@@ -88,7 +79,6 @@ const InventoryOverview = ({ navigation }: any) => {
   const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
   const [showLessSampleTreesAlert, setShowLessSampleTreesAlert] = useState(false);
-  const [countryCode, setCountryCode] = useState<string>('');
 
   const [coordinateModalShow, setCoordinateModalShow] = useState<boolean>(false);
   const [coordinateIndex, setCoordinateIndex] = useState<number | null>();
@@ -144,7 +134,6 @@ const InventoryOverview = ({ navigation }: any) => {
   useEffect(() => {
     getUserDetails().then((userDetails) => {
       if (userDetails) {
-        setCountryCode(userDetails.country || '');
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
           setShowProject(true);
@@ -229,61 +218,6 @@ const InventoryOverview = ({ navigation }: any) => {
     }
   };
 
-  const renderPolygon = (polygons: any, locationType: any) => {
-    return (
-      <FlatList
-        keyboardShouldPersistTaps={'always'}
-        data={polygons}
-        renderItem={({ item, index }) => {
-          return (
-            <View>
-              <Label
-                leftText={i18next.t('label.inventory_overview_polygon_left_text', {
-                  locationType,
-                })}
-                rightText={''}
-              />
-              <FlatList
-                data={item.coordinates}
-                renderItem={({ item: oneCoordinate, index }) => {
-                  let normalizeData = {
-                    title: i18next.t('label.inventory_overview_title_coordinates', {
-                      alphabetindex: ALPHABETS[index],
-                    }),
-                    subHeading: `${oneCoordinate.latitude.toFixed(
-                      5,
-                    )}˚N,${oneCoordinate.longitude.toFixed(7)}˚E`,
-                    date: i18next.t('label.inventory_overview_view_location'),
-                    imageURL: oneCoordinate.imageUrl,
-                    cdnImageUrl: oneCoordinate.cdnImageUrl,
-                    index: index,
-                    countryCode: countryCode,
-                  };
-                  return (
-                    <InventoryCard
-                      data={normalizeData}
-                      activeBtn={true}
-                      onPressActiveBtn={onPressViewLOC}
-                    />
-                  );
-                }}
-                keyExtractor={(item, index) => `location-${index}`}
-              />
-            </View>
-          );
-        }}
-      />
-    );
-  };
-
-  const onPressViewLOC = (index: number) => {
-    let selectedCoords = inventory.polygons[0].coordinates[index];
-    let normalCoords: any = [selectedCoords.longitude, selectedCoords.latitude];
-    setSelectedLOC(normalCoords);
-    setLocationTitle(ALPHABETS[index]);
-    setIsLOCModalOpen(!isLOCModalOpen);
-  };
-
   const addAppDataAndSave = () => {
     addAppMetadata({ inventory_id: state.inventoryID })
       .then(() => {
@@ -350,40 +284,6 @@ const InventoryOverview = ({ navigation }: any) => {
     });
   };
 
-  const onBackPress = () => {
-    // * FOR LOCATION MODAL
-    setIsLOCModalOpen(!isLOCModalOpen);
-    setSelectedLOC(null);
-  };
-
-  const renderViewLOCModal = () => {
-    return (
-      <Modal transparent visible={isLOCModalOpen} animationType={'slide'}>
-        <SafeAreaView />
-        <View style={styles.mainContainer}>
-          <View style={styles.screenMargin}>
-            <Header
-              onBackPress={onBackPress}
-              closeIcon
-              headingText={i18next.t('label.inventory_overview_view_loc_modal_header', {
-                locationTitle,
-              })}
-            />
-          </View>
-          <MapboxGL.MapView onDidFinishRenderingMapFully={focusMarker} style={styles.cont}>
-            <MapboxGL.Camera ref={cameraRef} />
-            {/* {inventory.treeType === MULTI && <Markers geoJSON={geoJSON} alphabets={alphabets} />} */}
-
-            {selectedLOC && (
-              <MapboxGL.PointAnnotation id={'markerContainer1'} coordinate={selectedLOC}>
-                <MarkerSVG point={locationTitle} color={Colors.PRIMARY} />
-              </MapboxGL.PointAnnotation>
-            )}
-          </MapboxGL.MapView>
-        </View>
-      </Modal>
-    );
-  };
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
     return (
@@ -460,36 +360,6 @@ const InventoryOverview = ({ navigation }: any) => {
       setCustomModalPosition(halfMapHeight);
     }
     focusMarker(coordinate);
-  };
-
-  const onPressExportJSON = async () => {
-    const exportGeoJSONFile = async () => {
-      if (inventory.polygons.length > 0) {
-        const geoJSON = await getGeoJsonData(inventory);
-
-        const options = {
-          url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
-          message: i18next.t('label.inventory_overview_export_json_message'),
-          title: i18next.t('label.inventory_overview_export_json_title'),
-          filename: `TreeMapper GeoJSON ${inventory.inventory_id}`,
-          saveToFiles: true,
-        };
-        Share.open(options)
-          .then(() => {
-            alert(i18next.t('label.inventory_overview_export_json_success'));
-          })
-          .catch((err) => {
-            if (err?.error?.code != 'ECANCELLED500') {
-              // iOS cancel button pressed
-              alert(i18next.t('label.inventory_overview_export_json_error'));
-            }
-          });
-      }
-    };
-    const permissionResult = await askExternalStoragePermission();
-    if (permissionResult) {
-      await exportGeoJSONFile();
-    }
   };
 
   const onChangeDate = (selectedDate: any) => {
@@ -629,13 +499,10 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  let locationType;
   let isSingleCoordinate, locateType;
   if (inventory) {
     isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
-    locationType = isSingleCoordinate
-      ? i18next.t('label.tree_inventory_point')
-      : i18next.t('label.tree_inventory_polygon');
+
     locateType =
       inventory.locateTree === OFF_SITE
         ? i18next.t('label.tree_inventory_off_site')
@@ -646,7 +513,6 @@ const InventoryOverview = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {renderViewLOCModal()}
       <View style={styles.container}>
         {inventory !== null ? (
           <View style={styles.cont}>
@@ -896,7 +762,7 @@ const CoordinateOverviewModal = ({
   const [imageSource, setImageSource] = useState<any>();
   const [marker, setMarker] = useState<any>();
   const [scientificSpecies, setScientificSpecies] = useState<any>();
-  const [countryCode, setCountryCode] = useState<string | undefined>();
+  const [countryCode, setCountryCode] = useState<string>('');
   useEffect(() => {
     if (coordinateIndex || coordinateIndex === 0) {
       if (isSampleTree !== null && !isSampleTree) {

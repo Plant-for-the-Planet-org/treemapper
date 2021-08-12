@@ -1,6 +1,5 @@
 import i18next from 'i18next';
 import React from 'react';
-import { View } from 'react-native';
 import Share from 'react-native-share';
 import { toBase64 } from '../../../utils/base64';
 import getGeoJsonData from '../../../utils/convertInventoryToGeoJson';
