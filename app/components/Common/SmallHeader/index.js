@@ -28,8 +28,7 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, iconType, onPressR
             <IconSwitcher
               name={icon}
               size={22}
-              color={Colors.TEXT_COLOR}
-              style={styles.activeText}
+              color={rightTheme == 'red' ? Colors.ALERT : Colors.TEXT_COLOR}
               iconType={iconType ? iconType : 'FAIcon'}
             />
           ) : sync ? (

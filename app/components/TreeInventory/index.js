@@ -322,6 +322,7 @@ const RenderInventory = ({
             leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
             rightTheme={'red'}
             icon={'trash'}
+            iconType={'FAIcon'}
             style={{ marginVertical: 15 }}
           />
           <InventoryList
