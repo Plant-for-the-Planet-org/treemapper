@@ -322,13 +322,13 @@ export const basicAppAdditionalDataForAPI = ({ data, isSampleTree = false }: IGe
 
     if (data.locateTree !== OFF_SITE) {
       appAdditionalDetails['deviceLocation'] = {
-        coordinates: [coords[0].latitude, coords[0].longitude],
+        coordinates: [coords[0].longitude, coords[0].latitude],
         type: 'Point',
       };
     }
   } else {
     appAdditionalDetails['deviceLocation'] = {
-      coordinates: [data.deviceLatitude, data.deviceLongitude],
+      coordinates: [data.deviceLongitude, data.deviceLatitude],
       type: 'Point',
     };
   }
