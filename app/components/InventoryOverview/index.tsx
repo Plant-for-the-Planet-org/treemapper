@@ -17,7 +17,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -35,7 +35,7 @@ import {
   getInventory,
   updateInventory,
   updateLastScreen,
-  updatePlantingDate
+  updatePlantingDate,
 } from '../../repositories/inventory';
 import { getProjectById } from '../../repositories/projects';
 import { getScientificSpeciesById } from '../../repositories/species';
@@ -52,7 +52,7 @@ import {
   OFF_SITE,
   ON_SITE,
   PENDING_DATA_UPLOAD,
-  SYNCED
+  SYNCED,
 } from '../../utils/inventoryConstants';
 import { askExternalStoragePermission } from '../../utils/permissions';
 import { Header, InventoryCard, Label, PrimaryButton } from '../Common';
@@ -61,10 +61,7 @@ import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
 import MarkerSVG from '../Common/MarkerSVG';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-<<<<<<< HEAD
-=======
 import Markers from '../Common/Markers';
->>>>>>> develop
 
 let scrollAdjust = 0;
 
@@ -958,8 +955,7 @@ const CoordinateOverviewModal = ({
           setCustomModalPosition();
           scrollAdjust = 0;
           initialState();
-        }}
-      >
+        }}>
         <View
           style={{
             width: 250,
