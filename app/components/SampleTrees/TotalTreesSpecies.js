@@ -5,13 +5,13 @@ import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
 } from 'react-native';
 import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
@@ -25,10 +25,10 @@ import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
-import TreeCountModal from '../Common/TreeCountModal';
-import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-import ManageSpecies from '../ManageSpecies';
 import Markers from '../Common/Markers';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import TreeCountModal from '../Common/TreeCountModal';
+import ManageSpecies from '../ManageSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 

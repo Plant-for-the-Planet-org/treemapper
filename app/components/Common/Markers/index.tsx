@@ -1,17 +1,13 @@
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import MarkerSVG from '../../Common/MarkerSVG';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { Platform, StyleSheet, Animated, View, Text, TouchableOpacity } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import Config from 'react-native-config';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import { Colors } from '../../../styles';
-import { species_default } from '../../../assets';
-import PrimaryButton from '../PrimaryButton';
-import Svg, { Image } from 'react-native-svg';
 import { ON_SITE } from '../../../utils/inventoryConstants';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import MarkerSVG from '../../Common/MarkerSVG';
 
-const IS_ANDROID = Platform.OS === 'android';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 type geoJSONType = {
