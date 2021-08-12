@@ -5,13 +5,13 @@ import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
 } from 'react-native';
 import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
@@ -25,10 +25,10 @@ import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
-import TreeCountModal from '../Common/TreeCountModal';
-import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-import ManageSpecies from '../ManageSpecies';
 import Markers from '../Common/Markers';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import TreeCountModal from '../Common/TreeCountModal';
+import ManageSpecies from '../ManageSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -359,7 +359,7 @@ export default function TotalTreesSpecies() {
           </MapboxGL.ShapeSource>
         )}
         <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
-        {inventory?.treeType === MULTI && <Markers geoJSON={geoJSON} />}
+        {inventory?.treeType === MULTI && !isPointForMultipleTree && <Markers geoJSON={geoJSON} />}
       </MapboxGL.MapView>
     );
   };
@@ -433,26 +433,26 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((plantedSpecie, index) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setSpecie(plantedSpecie);
-                  setSpecieIndex(index);
-                  setShowTreeCountModal(true);
-                }}
-                key={index}>
-                <SpecieListItem
-                  item={plantedSpecie}
-                  index={index}
-                  key={`${plantedSpecie.id}`}
-                  deleteSpecie={() =>
-                    inventory.completedSampleTreesCount > 0
-                      ? onPressDelete(index)
-                      : deleteSpecie(index)
-                  }
-                  setSpecieIndex={setSpecieIndex}
-                />
-              </TouchableOpacity>
-            ))
+                <TouchableOpacity
+                  onPress={() => {
+                    setSpecie(plantedSpecie);
+                    setSpecieIndex(index);
+                    setShowTreeCountModal(true);
+                  }}
+                  key={index}>
+                  <SpecieListItem
+                    item={plantedSpecie}
+                    index={index}
+                    key={`${plantedSpecie.id}`}
+                    deleteSpecie={() =>
+                      inventory.completedSampleTreesCount > 0
+                        ? onPressDelete(index)
+                        : deleteSpecie(index)
+                    }
+                    setSpecieIndex={setSpecieIndex}
+                  />
+                </TouchableOpacity>
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
