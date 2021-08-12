@@ -3,6 +3,7 @@ import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalD
 export default async function getGeoJsonData(inventoryData: any) {
   let featureList;
   let appAdditionalDetails: any = {};
+
   const metadata = getFormattedMetadata([...inventoryData.additionalDetails]);
   if (inventoryData) {
     appAdditionalDetails = await appAdditionalDataForGeoJSON({ data: inventoryData });
@@ -17,7 +18,6 @@ export default async function getGeoJsonData(inventoryData: any) {
       {
         type: 'Feature',
         properties: {
-          isPolygonComplete: inventoryData.polygons[0].isPolygonComplete,
           ...metadata,
         },
         geometry: {
@@ -34,7 +34,6 @@ export default async function getGeoJsonData(inventoryData: any) {
       return {
         type: 'Feature',
         properties: {
-          isPolygonComplete: onePolygon.isPolygonComplete,
           ...metadata,
         },
         geometry: {

@@ -20,8 +20,8 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
 import {
   deleteInventoryId,
-  setSkipToInventoryOverview,
   setIsExtraSampleTree,
+  setSkipToInventoryOverview,
 } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
@@ -39,6 +39,7 @@ import {
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
+import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 import {
   cmToInch,
   DBHInMeter,
@@ -68,9 +69,9 @@ import { updateSampleTree } from '../../utils/updateSampleTree';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
-import SpecieSampleTree from '../SpecieSampleTree';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
 import ManageSpecies from '../ManageSpecies';
-import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
+import SpecieSampleTree from '../SpecieSampleTree';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -681,6 +682,7 @@ const SingleTreeOverview = () => {
             {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
+        {!isSampleTree ? <ExportGeoJSON inventory={inventory} /> : []}
         <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
         <AdditionalDataOverview

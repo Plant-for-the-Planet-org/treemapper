@@ -1,7 +1,6 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import React from 'react';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { marker_png } from '../../../assets';
+import { StyleSheet } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
