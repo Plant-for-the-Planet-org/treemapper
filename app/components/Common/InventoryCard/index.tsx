@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
-import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
@@ -10,8 +10,22 @@ import { APIConfig } from './../../../actions/Config';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../../utils/constants';
 const { protocol, cdnUrl } = APIConfig;
 
-const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
-  const [imageSource, setImageSource] = useState();
+interface IInventoryCardProps {
+  data?: any;
+  icon?: any;
+  activeBtn?: any;
+  onPressActiveBtn?: any;
+  hideImage?: any;
+}
+
+const InventoryCard = ({
+  data,
+  icon,
+  activeBtn,
+  onPressActiveBtn,
+  hideImage,
+}: IInventoryCardProps) => {
+  const [imageSource, setImageSource] = useState<any>();
   useEffect(() => {
     if (data.imageURL) {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
@@ -76,7 +90,7 @@ const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) =
             {data.date}
           </Text>
           {icon && data.status !== INCOMPLETE && data.status !== INCOMPLETE_SAMPLE_TREE && (
-            <MCIcons name={icon} size={22} style={styles.activeText} />
+            <MCIcon name={icon} size={22} style={styles.activeText} />
           )}
         </View>
       </View>

@@ -152,7 +152,7 @@ export default function Logs() {
                     name={'share-variant'}
                     size={24}
                     color={Colors.TEXT_COLOR}
-                    iconType={'MCIIcon'}
+                    iconType={'MCIcon'}
                   />
                 </TouchableOpacity>
               )}

@@ -8,7 +8,7 @@ import IconSwitcher from '../IconSwitcher';
 export type OptionsType = {
   key: string;
   disabled?: boolean;
-  iconType: string;
+  iconType: 'MCIcon' | 'FA5Icon' | 'FAIcon';
   iconName: string;
   text: string;
   iconStyle?: any;
@@ -42,7 +42,7 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
         button={
           <TouchableOpacity onPress={showMenu} style={{ padding: 10 }}>
             <IconSwitcher
-              iconType={'MCIIcon'}
+              iconType={'MCIcon'}
               name={'dots-vertical'}
               size={24}
               color={Colors.TEXT_COLOR}

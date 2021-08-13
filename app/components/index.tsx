@@ -1,5 +1,4 @@
 import RegisterTree from './RegisterTree';
-import MultipleTrees from './MultipleTrees';
 import TPOQuestion from './TPOQuestion';
 import LocateTree from './LocateTree';
 import CreatePolygon from './CreatePolygon';
@@ -29,7 +28,6 @@ import SpecieSampleTree from './SpecieSampleTree';
 
 export {
   RegisterTree,
-  MultipleTrees,
   TPOQuestion,
   LocateTree,
   CreatePolygon,

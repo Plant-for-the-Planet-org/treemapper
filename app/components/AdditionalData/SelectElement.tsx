@@ -27,7 +27,7 @@ const containerWidth = (Dimensions.get('window').width - 75) / 2;
 const elements = [
   {
     icon: 'form-textbox',
-    iconType: 'MCIIcon',
+    iconType: 'MCIcon',
     name: 'input',
     type: elementsType.INPUT,
   },
@@ -39,13 +39,13 @@ const elements = [
   },
   {
     icon: 'format-line-spacing',
-    iconType: 'MCIIcon',
+    iconType: 'MCIcon',
     name: 'gap',
     type: elementsType.GAP,
   },
   {
     icon: 'form-dropdown',
-    iconType: 'MCIIcon',
+    iconType: 'MCIcon',
     name: 'dropdown',
     type: elementsType.DROPDOWN,
   },
