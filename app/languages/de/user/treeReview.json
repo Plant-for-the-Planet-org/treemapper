@@ -30,7 +30,9 @@
   "add_more_sample_trees": "Weitere Beispielbäume hinzufügen",
   "recommend_at_least_one_sample": "Für einige der gepflanzten Arten gibt es kein Beispiel. Wir empfehlen Dir, für jede gepflanzte Art mindestens einen Beispielbaum anzugeben.",
   "no_species_found": "Keine Arten gefunden",
-  "at_least_one_species": "Du solltest mindestens eine Art auswählen, bevor du Beispielbäume hinzufügst.",
+  "at_least_one_species": "Du solltest mindestens eine Art auswählen, bevor du fortfährst.",
   "need_more_sample_trees": "Benötigt mehr Beispielbäume",
-  "at_least_five_sample_trees": "Du solltest mindestens 5 Beispielbäume hinzufügen."
+  "at_least_five_sample_trees": "Du solltest mindestens 5 Beispielbäume hinzufügen.",
+  "project_not_assigned": "Projekt nicht zugewiesen!",
+  "project_not_assigned_message": "Bist du sicher, dass du diese Registrierung speichern willst, ohne ihr ein Projekt zuzuordnen?"
 }

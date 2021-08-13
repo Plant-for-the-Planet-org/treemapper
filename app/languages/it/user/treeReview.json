@@ -32,5 +32,7 @@
   "no_species_found": "Nessuna specie trovata",
   "at_least_one_species": "Dovresti avere almeno 1 specie prima di aggiungere Sample Trees",
   "need_more_sample_trees": "Bisogno di altri alberi campione",
-  "at_least_five_sample_trees": "Dovresti aggiungere almeno 5 alberi campione"
+  "at_least_five_sample_trees": "Dovresti aggiungere almeno 5 alberi campione",
+  "project_not_assigned": "Progetto non assegnato!",
+  "project_not_assigned_message": "Sei sicuro di voler salvare questa registrazione senza assegnare un progetto?"
 }
