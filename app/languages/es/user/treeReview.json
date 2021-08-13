@@ -32,5 +32,7 @@
   "no_species_found": "No se han encontrado especies",
   "at_least_one_species": "Debe tener al menos 1 especie antes de añadir árboles de muestra",
   "need_more_sample_trees": "Necesita más árboles de muestra",
-  "at_least_five_sample_trees": "Debe añadir al menos 5 árboles de muestra"
+  "at_least_five_sample_trees": "Debe añadir al menos 5 árboles de muestra",
+  "project_not_assigned": "Proyecto no asignado!",
+  "project_not_assigned_message": "¿Está seguro de que quiere guardar este registro sin asignar un proyecto?"
 }
