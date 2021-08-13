@@ -13,6 +13,15 @@ import { LogTypes } from '../../../utils/constants';
 import { useNetInfo } from '@react-native-community/netinfo';
 import AlertModal from '../AlertModal';
 
+interface ISyncingProps {
+  uploadCount: number;
+  pendingCount: number;
+  isUploading: boolean;
+  isUserLogin?: boolean;
+  setEmailAlert?: React.Dispatch<React.SetStateAction<boolean>>;
+  borderLess?: boolean;
+}
+
 export default function Syncing({
   uploadCount,
   pendingCount,
@@ -20,7 +29,7 @@ export default function Syncing({
   isUserLogin,
   setEmailAlert,
   borderLess = false,
-}) {
+}: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
 

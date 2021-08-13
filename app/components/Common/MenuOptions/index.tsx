@@ -8,7 +8,7 @@ import IconSwitcher from '../IconSwitcher';
 export type OptionsType = {
   key: string;
   disabled?: boolean;
-  iconType: string;
+  iconType: 'MCIcon' | 'FA5Icon' | 'FAIcon';
   iconName: string;
   text: string;
   iconStyle?: any;

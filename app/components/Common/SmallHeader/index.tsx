@@ -1,11 +1,31 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../../styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RotatingView from '../../Common/RotatingView';
 import IconSwitcher from '../../Common/IconSwitcher';
 
-const SmallHeader = ({ leftText, rightText, rightTheme, icon, iconType, onPressRight, style, sync }) => {
+interface ISmallHeaderProps {
+  leftText: string;
+  rightText?: string;
+  rightTheme?: string;
+  icon?: string;
+  iconType?: 'MCIcon' | 'FA5Icon' | 'FAIcon';
+  onPressRight?: any;
+  style?: any;
+  sync?: any;
+}
+
+const SmallHeader = ({
+  leftText,
+  rightText,
+  rightTheme,
+  icon,
+  iconType,
+  onPressRight,
+  style,
+  sync,
+}: ISmallHeaderProps) => {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
       <Text style={styles.subHeadingText}>{leftText}</Text>
@@ -29,7 +49,7 @@ const SmallHeader = ({ leftText, rightText, rightTheme, icon, iconType, onPressR
               name={icon}
               size={22}
               color={rightTheme == 'red' ? Colors.ALERT : Colors.TEXT_COLOR}
-              iconType={iconType ? iconType : 'FAIcon'}
+              iconType={iconType || 'FAIcon'}
             />
           ) : sync ? (
             <RotatingView isClockwise={false}>

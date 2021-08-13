@@ -10,8 +10,22 @@ import { APIConfig } from './../../../actions/Config';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../../utils/constants';
 const { protocol, cdnUrl } = APIConfig;
 
-const InventoryCard = ({ data, icon, activeBtn, onPressActiveBtn, hideImage }) => {
-  const [imageSource, setImageSource] = useState();
+interface IInventoryCardProps {
+  data?: any;
+  icon?: any;
+  activeBtn?: any;
+  onPressActiveBtn?: any;
+  hideImage?: any;
+}
+
+const InventoryCard = ({
+  data,
+  icon,
+  activeBtn,
+  onPressActiveBtn,
+  hideImage,
+}: IInventoryCardProps) => {
+  const [imageSource, setImageSource] = useState<any>();
   useEffect(() => {
     if (data.imageURL) {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
