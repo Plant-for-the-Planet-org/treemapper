@@ -27,5 +27,5 @@
   "tree_inventory_overview_date": "{{date, ll}}",
   "tree_inventory_input_error": "Input Error",
   "tree_inventory_input_error_message": "Please Enter Valid Input",
-  "delete_incomplete_registrations_warning":"These registrations are not yet saved and will be deleted forever if you continue."
+  "delete_incomplete_registrations_warning": "These registrations are not yet uploaded and will be deleted forever if you continue."
 }
