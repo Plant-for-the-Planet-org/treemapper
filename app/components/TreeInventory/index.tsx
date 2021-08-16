@@ -1,23 +1,24 @@
-import { StackActions } from '@react-navigation/native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
+  Linking,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   View,
-  BackHandler,
-  Linking,
-  Platform,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Colors } from '_styles';
+import { Colors } from '../../styles';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { uploadInventoryData } from '../../utils/uploadInventory';
-import { Header, InventoryList, PrimaryButton, SmallHeader, AlertModal, Sync } from '../Common';
+import { getUserDetails } from '../../repositories/user';
 import {
   DATA_UPLOAD_START,
   INCOMPLETE,
@@ -27,14 +28,13 @@ import {
   PENDING_SAMPLE_TREES_UPLOAD,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { UserContext } from '../../reducers/user';
+import { uploadInventoryData } from '../../utils/uploadInventory';
+import { AlertModal, Header, InventoryList, PrimaryButton, SmallHeader, Sync } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { getUserDetails } from '../../repositories/user';
-import { useNetInfo } from '@react-native-community/netinfo';
 
 const IS_ANDROID = Platform.OS === 'android';
 
-const TreeInventory = ({ navigation }) => {
+const TreeInventory = () => {
   const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
 
@@ -47,8 +47,10 @@ const TreeInventory = ({ navigation }) => {
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
+  const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
 
   const netInfo = useNetInfo();
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -73,7 +75,7 @@ const TreeInventory = ({ navigation }) => {
 
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
-    // navigation.goBack();
+    return true;
   };
 
   const initialState = () => {
@@ -88,6 +90,7 @@ const TreeInventory = ({ navigation }) => {
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
+      setShowDeleteIncompleteAlert(false);
       getInventoryByStatus([]).then((allInventory) => {
         setAllInventory(allInventory);
       });
@@ -193,7 +196,7 @@ const TreeInventory = ({ navigation }) => {
             uploadedInventory={uploadedInventory}
             pendingInventory={pendingInventory}
             inCompleteInventory={inCompleteInventory}
-            onPressClearAll={onPressClearAll}
+            onPressClearAll={() => setShowDeleteIncompleteAlert(true)}
             state={state}
             navigation={navigation}
             onPressUploadNow={onPressUploadNow}
@@ -230,12 +233,11 @@ const TreeInventory = ({ navigation }) => {
       uploadingInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
-          ? renderLoadingInventoryList()
-          : renderEmptyInventoryList()}
+        ? renderLoadingInventoryList()
+        : renderEmptyInventoryList()}
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
-        handleBackPress={handleBackPress}
       />
       <AlertModal
         visible={offlineModal}
@@ -246,11 +248,33 @@ const TreeInventory = ({ navigation }) => {
           setOfflineModal(false);
         }}
       />
+      <AlertModal
+        visible={showDeleteIncompleteAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={i18next.t('label.delete_incomplete_registrations_warning')}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={onPressClearAll}
+        onPressSecondaryBtn={() => setShowDeleteIncompleteAlert(false)}
+        showSecondaryButton={true}
+      />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </View>
   );
 };
 export default TreeInventory;
+
+interface IRenderInventoryProps {
+  uploadingInventory: any;
+  uploadedInventory: any;
+  pendingInventory: any;
+  inCompleteInventory: any;
+  onPressClearAll: any;
+  state: any;
+  navigation: any;
+  onPressUploadNow: any;
+  countryCode: any;
+}
 
 const RenderInventory = ({
   uploadingInventory,
@@ -262,20 +286,17 @@ const RenderInventory = ({
   navigation,
   onPressUploadNow,
   countryCode,
-}) => {
+}: IRenderInventoryProps) => {
   return (
     <View style={styles.cont}>
       {uploadingInventory.length > 0 && (
         <>
-          {/* {state.isUploading && ( */}
           <SmallHeader
-            // onPressRight={onPressUploadNow}
             leftText={i18next.t('label.tree_inventory_left_text_uploading')}
             rightText={state.isUploading ? 'Uploading' : ''}
             sync={state.isUploading}
             style={{ marginVertical: 15 }}
           />
-          {/* )} */}
           <InventoryList
             accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
             inventoryList={uploadingInventory}
@@ -284,23 +305,11 @@ const RenderInventory = ({
       )}
       {pendingInventory.length > 0 && (
         <>
-          {/* {!state.isUploading ? ( */}
           <SmallHeader
             onPressRight={onPressUploadNow}
             leftText={i18next.t('label.tree_inventory_left_text')}
-            // rightText={i18next.t('label.tree_inventory_right_text')}
-            // icon={'cloud-upload'}
             style={{ marginVertical: 15 }}
           />
-          {/* ) : (
-              <SmallHeader
-                // onPressRight={onPressUploadNow}
-                leftText={i18next.t('label.tree_inventory_left_text')}
-                rightText={'Uploading'}
-                sync={true}
-                style={{ marginVertical: 15 }}
-              />
-            )} */}
           <InventoryList
             accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
             inventoryList={pendingInventory}
@@ -320,8 +329,9 @@ const RenderInventory = ({
           <SmallHeader
             onPressRight={onPressClearAll}
             leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
-            rightText={i18next.t('label.tree_inventory_clear_all')}
             rightTheme={'red'}
+            icon={'trash'}
+            iconType={'FAIcon'}
             style={{ marginVertical: 15 }}
           />
           <InventoryList
@@ -370,11 +380,15 @@ const styles = StyleSheet.create({
   },
 });
 
+interface IPermissionBlockedAlertShowProps {
+  isPermissionBlockedAlertShow: boolean;
+  setIsPermissionBlockedAlertShow: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 const PermissionBlockedAlert = ({
   isPermissionBlockedAlertShow,
   setIsPermissionBlockedAlertShow,
-  handleBackPress,
-}) => {
+}: IPermissionBlockedAlertShowProps) => {
   return (
     <AlertModal
       visible={isPermissionBlockedAlertShow}
