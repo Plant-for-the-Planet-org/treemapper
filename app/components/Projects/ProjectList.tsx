@@ -40,9 +40,18 @@ export default function ProjectList({
 
   const openWebView = async (link: string) => {
     try {
+      const url = link;
       if (await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(link);
-      } else Linking.openURL(link);
+        await InAppBrowser.open(url, {
+          // iOS Properties
+          animated: true,
+          modalPresentationStyle: 'fullScreen',
+          enableBarCollapsing: true,
+          // Android Properties
+          enableUrlBarHiding: true,
+          enableDefaultShare: true,
+        });
+      } else Linking.openURL(url);
     } catch (error) {
       console.error(error);
       bugsnag.notify(error);

@@ -24,7 +24,15 @@ export default function Legals() {
     try {
       const url = link;
       if (await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(url);
+        await InAppBrowser.open(url, {
+          // iOS Properties
+          animated: true,
+          modalPresentationStyle: 'fullScreen',
+          enableBarCollapsing: true,
+          // Android Properties
+          enableUrlBarHiding: true,
+          enableDefaultShare: true,
+        });
       } else Linking.openURL(url);
     } catch (error) {
       console.error(error);
@@ -33,13 +41,13 @@ export default function Legals() {
     }
   };
   const onPressImprint = () => {
-    openWebView('https://a.plant-for-the-planet.org/imprint');
+    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/imprint`);
   };
   const onPressPolicy = () => {
-    openWebView('https://a.plant-for-the-planet.org/privacy-terms');
+    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/privacy-terms`);
   };
   const onPressTerms = () => {
-    openWebView('https://a.plant-for-the-planet.org/privacy-terms');
+    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/privacy-terms`);
   };
   const onPressOpenSource = () => {
     openWebView('https://github.com/Plant-for-the-Planet-org/treemapper/network/dependencies');

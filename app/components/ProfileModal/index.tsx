@@ -1,7 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APIConfig } from '../../actions/Config';
@@ -9,6 +10,7 @@ import { logo } from '../../assets';
 import { Colors, Typography } from '../../styles';
 import AvatarIcon from '../Common/AvatarIcon';
 import ProfileListItem from './ProfileListItem';
+import { bugsnag } from '../../utils';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -25,8 +27,30 @@ const ProfileModal = ({
   onPressLogout,
   userInfo,
 }: ProfileModalProps) => {
+
+  const openWebView = async (link: string) => {
+    try {
+      const url = link;
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(url, {
+          // iOS Properties
+          animated: true,
+          modalPresentationStyle: 'fullScreen',
+          enableBarCollapsing: true,
+          // Android Properties
+          enableUrlBarHiding: true,
+          enableDefaultShare: true,
+        });
+      } else Linking.openURL(url);
+    } catch (error) {
+      console.error(error);
+      bugsnag.notify(error);
+      Alert.alert(error.message);
+    }
+  };
+
   const onPressEdit = () => {
-    Linking.openURL(`${protocol}://${webAppUrl}/login`);
+    openWebView(`${protocol}://${webAppUrl}/login`);
   };
 
   const onPressManageSpecies = () => {
