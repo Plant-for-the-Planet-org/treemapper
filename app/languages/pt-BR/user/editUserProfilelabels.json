@@ -14,7 +14,7 @@
   "activity_logs": "Registros de atividades",
   "all_backed_up": "Todas as mudanças salvas",
   "upload_pending": "{{count}}pendente",
-  "sync_remaining": "Sincronizando - {{count}} restante",
+  "sync_remaining": "Sincronizando - {{count}} restantes",
   "support": "Suporte",
   "complete_signup": "Inscrição completa",
   "manage_projects": "Gerenciar Projetos",

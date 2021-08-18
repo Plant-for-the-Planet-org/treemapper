@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Typography, Colors } from '_styles';
 import RotatingView from '../RotatingView';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
@@ -13,6 +13,15 @@ import { LogTypes } from '../../../utils/constants';
 import { useNetInfo } from '@react-native-community/netinfo';
 import AlertModal from '../AlertModal';
 
+interface ISyncingProps {
+  uploadCount: number;
+  pendingCount: number;
+  isUploading: boolean;
+  isUserLogin?: boolean;
+  setEmailAlert?: React.Dispatch<React.SetStateAction<boolean>>;
+  borderLess?: boolean;
+}
+
 export default function Syncing({
   uploadCount,
   pendingCount,
@@ -20,7 +29,7 @@ export default function Syncing({
   isUserLogin,
   setEmailAlert,
   borderLess = false,
-}) {
+}: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
 
@@ -92,10 +101,10 @@ export default function Syncing({
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={false}>
-              <Icon size={24} name="sync" color={Colors.PRIMARY} />
+              <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
             </RotatingView>
           ) : (
-            <Icon size={24} name="sync" color={Colors.PRIMARY} />
+            <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
           )}
           <Text style={styles.syncText}>{syncText}</Text>
         </View>

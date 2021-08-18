@@ -7,5 +7,6 @@
   "how_many_sample_trees_to_record": "Quanti alberi vorresti registrare?",
   "invalid_tree_count": "Conteggio degli alberi non valido",
   "enter_valid_tree_count": "Dovresti campionare almeno 5 alberi.",
-  "add_another": "Aggiungi un altro"
+  "add_another": "Aggiungi un altro",
+  "add_sample_tree": "Aggiungi albero campione"
 }

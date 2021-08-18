@@ -5,13 +5,13 @@ import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
 } from 'react-native';
 import Config from 'react-native-config';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
@@ -25,10 +25,10 @@ import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
-import TreeCountModal from '../Common/TreeCountModal';
-import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-import ManageSpecies from '../ManageSpecies';
 import Markers from '../Common/Markers';
+import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import TreeCountModal from '../Common/TreeCountModal';
+import ManageSpecies from '../ManageSpecies';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -110,10 +110,10 @@ export default function TotalTreesSpecies() {
   // initializes the state by updating state
   const initializeState = () => {
     if (inventoryState.inventoryID) {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
-          const geoJSONData = getGeoJsonData(inventoryData);
+          const geoJSONData = await getGeoJsonData(inventoryData);
           if (
             inventoryData.polygons[0].coordinates.length === 1 &&
             inventoryData.polygons[0].isPolygonComplete
@@ -359,7 +359,7 @@ export default function TotalTreesSpecies() {
           </MapboxGL.ShapeSource>
         )}
         <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
-        {inventory?.treeType === MULTI && <Markers geoJSON={geoJSON} />}
+        {inventory?.treeType === MULTI && !isPointForMultipleTree && <Markers geoJSON={geoJSON} />}
       </MapboxGL.MapView>
     );
   };
@@ -592,8 +592,8 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     backgroundColor: Colors.WHITE,
-    height: 230,
-    marginVertical: 40,
+    height: 270,
+    marginVertical: 30,
     paddingHorizontal: 25,
   },
   descriptionContainer: {

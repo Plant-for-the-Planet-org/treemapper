@@ -1,17 +1,14 @@
-import { appAdditionalDataForAPI, getFormattedMetadata } from './additionalData/functions';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from './inventoryConstants';
+import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalData/functions';
 
-export default function getGeoJsonData(inventoryData: any) {
+export default async function getGeoJsonData(inventoryData: any) {
   let featureList;
   let appAdditionalDetails: any = {};
-  if (
-    inventoryData &&
-    (inventoryData.status === INCOMPLETE || inventoryData.status === INCOMPLETE_SAMPLE_TREE)
-  ) {
-    appAdditionalDetails = appAdditionalDataForAPI({ data: inventoryData });
-  }
+
   const metadata = getFormattedMetadata([...inventoryData.additionalDetails]);
-  metadata.app = { ...metadata.app, ...appAdditionalDetails };
+  if (inventoryData) {
+    appAdditionalDetails = await appAdditionalDataForGeoJSON({ data: inventoryData });
+    metadata.app = { ...metadata.app, ...appAdditionalDetails };
+  }
 
   if (
     inventoryData.polygons[0].coordinates.length === 1 &&
@@ -21,7 +18,6 @@ export default function getGeoJsonData(inventoryData: any) {
       {
         type: 'Feature',
         properties: {
-          isPolygonComplete: inventoryData.polygons[0].isPolygonComplete,
           ...metadata,
         },
         geometry: {
@@ -38,7 +34,6 @@ export default function getGeoJsonData(inventoryData: any) {
       return {
         type: 'Feature',
         properties: {
-          isPolygonComplete: onePolygon.isPolygonComplete,
           ...metadata,
         },
         geometry: {
@@ -53,16 +48,12 @@ export default function getGeoJsonData(inventoryData: any) {
     if (inventoryData.sampleTrees.length > 0) {
       for (const sampleTree of inventoryData.sampleTrees) {
         let appAdditionalDetails: any = [];
-        if (
-          inventoryData.status === INCOMPLETE ||
-          inventoryData.status === INCOMPLETE_SAMPLE_TREE
-        ) {
-          appAdditionalDetails = appAdditionalDataForAPI({
-            data: sampleTree,
-            isSampleTree: true,
-          });
-        }
         const metadata = getFormattedMetadata([...sampleTree.additionalDetails]);
+
+        appAdditionalDetails = await appAdditionalDataForGeoJSON({
+          data: sampleTree,
+          isSampleTree: true,
+        });
         metadata.app = { ...metadata.app, ...appAdditionalDetails };
 
         featureList.push({

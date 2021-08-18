@@ -42,3 +42,6 @@ export const CLEAR_USER_DETAILS = 'CLEAR_USER_DETAILS';
 
 // Type to show main screens navigation stack
 export const SET_SKIP_TO_INVENTORY_OVERVIEW = 'SET_SKIP_TO_INVENTORY_OVERVIEW';
+
+// Type to set if the sample which is being added is extra or same as the count that the user has set
+export const SET_IS_EXTRA_SAMPLE_TREE = 'SET_IS_EXTRA_SAMPLE_TREE';

@@ -26,11 +26,13 @@
   "tree_review_continue_to_review": "Continuar a revisão",
   "tree_review_continue_to_sampleTrees": "Continuar para Árvores de Amostra",
   "tree_review_continue_to_additional_data": "Continuar para dados adicionais",
-  "skip": "Saltar e Salvar",
-  "add_more_sample_trees": "Adicionar mais Árvores Exemplares",
+  "skip": "Pular e Salvar",
+  "add_more_sample_trees": "Adicionar mais Árvores de Amostra",
   "recommend_at_least_one_sample": "Algumas das espécies plantadas não são amostradas. Recomendamos que você experimente pelo menos uma árvore para cada espécie plantada.",
   "no_species_found": "Nenhuma espécie encontrada",
   "at_least_one_species": "Você deve ter pelo menos 1 espécie antes de adicionar Amostra de Árvores",
   "need_more_sample_trees": "Precisa de mais Árvores de Amostra",
-  "at_least_five_sample_trees": "Você deve adicionar pelo menos 5 Árvores de Amostra"
+  "at_least_five_sample_trees": "Você deve adicionar pelo menos 5 Árvores de Amostra",
+  "project_not_assigned": "Projeto não atribuído!",
+  "project_not_assigned_message": "Tem a certeza que quer guardar este registo sem atribuir um projecto?"
 }

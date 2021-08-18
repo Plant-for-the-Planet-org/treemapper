@@ -5,6 +5,6 @@
   "no_internet_connection": "No hay conexión a Internet",
   "verify_email": "Verifique su correo electrónico",
   "verify_email_message": "Por favor, verifique su correo electrónico antes de iniciar sesión.",
-  "species_sync_update_alert_title": "Actualización de especies",
-  "species_sync_update_alert_message": "La actualización de las especies requiere Internet y tarda un poco en completarse. ¿Estás seguro de que quieres continuar?"
+  "species_sync_update_alert_title": "Actualizar especies",
+  "species_sync_update_alert_message": "La actualización de las especies requiere Internet y puede tardar un poco en completarse. ¿Estás seguro de que quieres continuar?"
 }

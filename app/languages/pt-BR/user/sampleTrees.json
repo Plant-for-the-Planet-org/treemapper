@@ -7,5 +7,6 @@
   "how_many_sample_trees_to_record": "Quantas árvores você gostaria de registrar?",
   "invalid_tree_count": "Contagem de árvores inválidas",
   "enter_valid_tree_count": "Você deve amostrar pelo menos 5 árvores.",
-  "add_another": "Adicione outro"
+  "add_another": "Adicione outro",
+  "add_sample_tree": "Adicionar árvore de amostra"
 }

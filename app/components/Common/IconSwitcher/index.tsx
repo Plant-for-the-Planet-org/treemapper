@@ -1,5 +1,6 @@
 import React from 'react';
-import MCIIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 
 interface IIconSwitcherProps {
@@ -7,13 +8,15 @@ interface IIconSwitcherProps {
   size: number;
   color: string;
   style?: any;
-  iconType: 'MCIIcon' | 'FA5Icon';
+  iconType: 'MCIcon' | 'FA5Icon' | 'FAIcon';
 }
 
 const IconSwitcher = ({ name, size, color, style = {}, iconType }: IIconSwitcherProps) => {
   switch (iconType) {
-    case 'MCIIcon':
-      return <MCIIcon name={name} size={size} color={color} style={style} />;
+    case 'MCIcon':
+      return <MCIcon name={name} size={size} color={color} style={style} />;
+    case 'FAIcon':
+      return <FAIcon name={name} size={size} color={color} style={style} />;
     case 'FA5Icon':
       return <FA5Icon name={name} size={size} color={color} style={style} />;
     default:

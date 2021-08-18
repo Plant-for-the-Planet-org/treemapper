@@ -331,7 +331,6 @@ const getBodyData = (inventory) => {
     },
     plantDate: inventory.plantation_date.toISOString().split('T')[0],
     registrationDate: inventory.registrationDate.toISOString().split('T')[0],
-    sampleTreeCount: inventory.treeType === MULTI ? inventory.sampleTreesCount : null,
     metadata,
   };
 
@@ -367,10 +366,14 @@ const getBodyData = (inventory) => {
       return specie;
     });
     body.plantedSpecies = plantedSpecies;
+
+    // adds sampleTreeCount in request body if tree type is multi
+    body.sampleTreeCount = inventory.sampleTreesCount;
   }
   if (inventory.projectId) {
     body.plantProject = inventory.projectId;
   }
+
   return body;
 };
 

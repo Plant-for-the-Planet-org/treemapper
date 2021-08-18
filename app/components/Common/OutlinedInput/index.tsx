@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -10,9 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors, Typography } from '../../../styles';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import i18next from 'i18next';
+import { Colors, Typography } from '../../../styles';
 import IconSwitcher from '../IconSwitcher';
 
 type secureTextEntryType = true | false;
@@ -368,7 +368,7 @@ const OutlinedInput = React.forwardRef(
                     name={'information-outline'}
                     color={Colors.GRAY_LIGHTEST}
                     size={20}
-                    iconType={'MCIIcon'}
+                    iconType={'MCIcon'}
                   />
                   {showInfoIconText ? (
                     <View style={[styles.infoTextContainer, { maxWidth: inputWidth - 16 }]}>

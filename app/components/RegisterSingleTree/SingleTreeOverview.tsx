@@ -18,7 +18,11 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { deleteInventoryId, setSkipToInventoryOverview } from '../../actions/inventory';
+import {
+  deleteInventoryId,
+  setIsExtraSampleTree,
+  setSkipToInventoryOverview,
+} from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
@@ -35,6 +39,7 @@ import {
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
+import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 import {
   cmToInch,
   DBHInMeter,
@@ -64,9 +69,9 @@ import { updateSampleTree } from '../../utils/updateSampleTree';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
-import SpecieSampleTree from '../SpecieSampleTree';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
 import ManageSpecies from '../ManageSpecies';
-import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
+import SpecieSampleTree from '../SpecieSampleTree';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -114,6 +119,8 @@ const SingleTreeOverview = () => {
   );
 
   const [isError, setIsError] = useState<boolean>(false);
+  const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
+  const [navigationType, setNavigationType] = useState<string>('save');
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -436,7 +443,7 @@ const SingleTreeOverview = () => {
         setInventory,
       });
     }
-    setSpecieText(specie.scientificName);
+    setSpecieText(specie.aliases);
   };
 
   const onChangeDate = (selectedDate: any) => {
@@ -676,6 +683,7 @@ const SingleTreeOverview = () => {
             {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
           </Text>
         </View>
+        {!isSampleTree ? <ExportGeoJSON inventory={inventory} /> : []}
         <Label leftText={i18next.t('label.additional_data')} rightText={''} />
 
         <AdditionalDataOverview
@@ -690,16 +698,25 @@ const SingleTreeOverview = () => {
     );
   };
 
-  const onPressSave = () => {
+  const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
-      if (specieText) {
+      setNavigationType('save');
+      if (showProject && !selectedProjectName && !forceContinue) {
+        setShowNoProjectWarning(true);
+      } else if (specieText) {
+        setShowNoProjectWarning(false);
         addAppMetadata({ inventory_id: inventoryState.inventoryID })
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
             changeInventoryStatus(data, dispatch).then(() => {
-              navigation.navigate('TreeInventory');
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 1,
+                  routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+                }),
+              );
             });
           })
           .catch((err) => {
@@ -710,7 +727,12 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     } else {
-      navigation.navigate('TreeInventory');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+        }),
+      );
     }
     return true;
   };
@@ -724,6 +746,7 @@ const SingleTreeOverview = () => {
     })
       .then(() => {
         setSkipToInventoryOverview(false)(dispatch);
+        setIsExtraSampleTree(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
             index: 3,
@@ -742,18 +765,35 @@ const SingleTreeOverview = () => {
       .catch(() => setIsError(true));
   };
 
-  const onPressNextTree = () => {
+  const onPressNextTree = (forceContinue = false) => {
     if (inventory.status === INCOMPLETE) {
-      addAppMetadata({ inventory_id: inventoryState.inventoryID })
-        .then(() => {
-          let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
-          changeInventoryStatus(data, dispatch).then(() => {
-            deleteInventoryId()(dispatch);
+      if (showProject && !selectedProjectName && !forceContinue) {
+        setNavigationType('next-tree');
+        setShowNoProjectWarning(true);
+      } else {
+        setNavigationType('save');
+        setShowNoProjectWarning(false);
 
-            navigation.navigate('RegisterSingleTree');
-          });
-        })
-        .catch(() => setIsError(true));
+        addAppMetadata({ inventory_id: inventoryState.inventoryID })
+          .then(() => {
+            let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+            changeInventoryStatus(data, dispatch).then(() => {
+              deleteInventoryId()(dispatch);
+
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 2,
+                  routes: [
+                    { name: 'MainScreen' },
+                    { name: 'TreeInventory' },
+                    { name: 'RegisterSingleTree' },
+                  ],
+                }),
+              );
+            });
+          })
+          .catch(() => setIsError(true));
+      }
     } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
       updateSampleTree({
         toUpdate: 'changeStatusToPending',
@@ -786,18 +826,47 @@ const SingleTreeOverview = () => {
     if (isSampleTree) {
       let inventoryStatus = inventory?.sampleTrees[sampleTreeIndex].status;
       updateSampleTree({
-        toUpdate: 'deleteSampleTree',
+        toUpdate: inventoryState.isExtraSampleTree ? 'deleteExtraSampleTree' : 'deleteSampleTree',
         sampleTreeIndex,
         inventory,
         setInventory,
       })
         .then(() => {
+          setIsExtraSampleTree(false)(dispatch);
           setShowDeleteAlert(!showDeleteAlert);
           if (inventoryStatus == INCOMPLETE && !inventoryState.skipToInventoryOverview) {
-            navigation.navigate('RecordSampleTrees');
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'RecordSampleTrees',
+            };
+            updateLastScreen(data);
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'RecordSampleTrees' },
+                ],
+              }),
+            );
           } else {
             setSkipToInventoryOverview(false)(dispatch);
-            navigation.navigate('InventoryOverview');
+            let data = {
+              inventory_id: inventory.inventory_id,
+              lastScreen: 'InventoryOverview',
+            };
+            updateLastScreen(data);
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 2,
+                routes: [
+                  { name: 'MainScreen' },
+                  { name: 'TreeInventory' },
+                  { name: 'InventoryOverview' },
+                ],
+              }),
+            );
           }
         })
         .catch((err) => console.error(err));
@@ -805,7 +874,12 @@ const SingleTreeOverview = () => {
       deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          navigation.navigate('TreeInventory');
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 1,
+              routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+            }),
+          );
         })
         .catch((err) => console.error(err));
     }
@@ -864,7 +938,7 @@ const SingleTreeOverview = () => {
             <Header
               style={{ flex: 1 }}
               closeIcon
-              onBackPress={onPressSave}
+              onBackPress={() => onPressSave()}
               headingText={
                 isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
                   ? i18next.t('label.sample_tree_review_tree_number', {
@@ -948,6 +1022,18 @@ const SingleTreeOverview = () => {
         secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
         onPressPrimaryBtn={handleDeleteInventory}
         onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showNoProjectWarning}
+        heading={i18next.t('label.project_not_assigned')}
+        message={i18next.t('label.project_not_assigned_message')}
+        primaryBtnText={i18next.t('label.continue')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() =>
+          navigationType === 'save' ? onPressSave(true) : onPressNextTree(true)
+        }
+        onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
       />
       <AlertModal

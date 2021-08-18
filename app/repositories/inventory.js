@@ -1099,10 +1099,10 @@ export const addSampleTree = (sampleTreeFromServer) => {
               } else {
                 specieName = 'Unknown';
               }
-              let latitude = sampleTreeFromServer.geometry.coordinates[0];
-              let longitude = sampleTreeFromServer.geometry.coordinates[1];
-              let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[0];
-              let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[1];
+              let latitude = sampleTreeFromServer.geometry.coordinates[1];
+              let longitude = sampleTreeFromServer.geometry.coordinates[0];
+              let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[1];
+              let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[0];
               let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
               let specieId = sampleTreeFromServer.scientificSpecies || 'unknown';
               let specieDiameter = sampleTreeFromServer.measurements.width;
@@ -1223,19 +1223,21 @@ export const addAppMetadata = ({ inventory_id }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
-        realm.write(() => {
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          const appAdditionalDetails = appAdditionalDataForAPI({
-            data: inventory,
+        let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+        appAdditionalDataForAPI({
+          data: inventory,
+        }).then((appAdditionalDetails) => {
+          realm.write(() => {
+            inventory.appMetadata = JSON.stringify(appAdditionalDetails);
+
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Successfully added app metadata in additional details for inventory_id: ${inventory_id}`,
+            });
+            resolve();
           });
-          inventory.appMetadata = JSON.stringify(appAdditionalDetails);
         });
         // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.INVENTORY,
-          message: `Successfully added app metadata in additional details for inventory_id: ${inventory_id}`,
-        });
-        resolve();
       })
       .catch((err) => {
         // logging the error in to the db
@@ -1248,6 +1250,26 @@ export const addAppMetadata = ({ inventory_id }) => {
         reject(err);
       });
   });
+};
+
+export const deleteSyncedAndMigrate = (oldRealm, newRealm, schemaVersion) => {
+  if (oldRealm.schemaVersion < schemaVersion) {
+    const oldInventoryObject = oldRealm.objects('Inventory');
+    const newInventoryObject = newRealm.objects('Inventory');
+
+    const syncedInventoriesIndexToDelete = [];
+
+    for (const index in oldInventoryObject) {
+      if (oldInventoryObject[index].status === SYNCED) {
+        syncedInventoriesIndexToDelete.push(index);
+      }
+    }
+
+    // delete all the synced inventory objects;
+    for (let i = syncedInventoriesIndexToDelete.length - 1; i >= 0; i--) {
+      newRealm.delete(newInventoryObject[syncedInventoriesIndexToDelete[i]]);
+    }
+  }
 };
 
 function getFields(input, field) {

@@ -7,5 +7,6 @@
   "how_many_sample_trees_to_record": "¿Cuántos árboles te gustaría registrar?",
   "invalid_tree_count": "Recuento de árboles no válido",
   "enter_valid_tree_count": "Debes tomar mínimo 5 y máximo 999 árboles de muestra. ",
-  "add_another": "Añadir otro"
+  "add_another": "Añadir otro",
+  "add_sample_tree": "Añadir árbol de muestra"
 }
