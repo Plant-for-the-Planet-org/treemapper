@@ -424,14 +424,14 @@ export const appAdditionalDataForGeoJSON = async ({
     if (data.polygons[0]?.coordinates[0]?.cdnImageUrl && data.treeType === SINGLE) {
       appAdditionalDetails[
         'imageUrl'
-      ] = `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${data.polygons[0]?.coordinates[0]?.cdnImageUrl}`;
+      ] = `${protocol}://${cdnUrl}/media/cache/coordinate/large/${data.polygons[0]?.coordinates[0]?.cdnImageUrl}`;
     } else {
       for (const coordinate of data.polygons[0]?.coordinates) {
         if (coordinate.cdnImageUrl) {
           coordinateImages.push({
             latitude: coordinate.latitude,
             longitude: coordinate.longitude,
-            imageUrl: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${coordinate.cdnImageUrl}`,
+            imageUrl: `${protocol}://${cdnUrl}/media/cache/coordinate/large/${coordinate.cdnImageUrl}`,
           });
         }
       }
@@ -454,7 +454,7 @@ export const appAdditionalDataForGeoJSON = async ({
     if (data.cdnImageUrl) {
       appAdditionalDetails[
         'imageUrl'
-      ] = `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${data.cdnImageUrl}`;
+      ] = `${protocol}://${cdnUrl}/media/cache/coordinate/large/${data.cdnImageUrl}`;
     }
   }
 

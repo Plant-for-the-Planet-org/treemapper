@@ -533,7 +533,7 @@ const SingleTreeOverview = () => {
       filePath
     ) {
       imageSource = {
-        uri: `${protocol}://${cdnUrl}/media/uploads/images/coordinate/${filePath}`,
+        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/large/${filePath}`,
       };
     } else {
       imageSource = false;
