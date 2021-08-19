@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APIConfig } from '../../actions/Config';
 import { logo } from '../../assets';
 import { Colors, Typography } from '../../styles';
+import openWebView from '../../utils/openWebView';
 import AvatarIcon from '../Common/AvatarIcon';
 import ProfileListItem from './ProfileListItem';
 
@@ -26,7 +27,7 @@ const ProfileModal = ({
   userInfo,
 }: ProfileModalProps) => {
   const onPressEdit = () => {
-    Linking.openURL(`${protocol}://${webAppUrl}/login`);
+    openWebView(`${protocol}://${webAppUrl}/login`);
   };
 
   const onPressManageSpecies = () => {
