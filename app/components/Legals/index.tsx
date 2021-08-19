@@ -1,45 +1,16 @@
-import React from 'react';
-import {
-  View,
-  Linking,
-  StyleSheet,
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Header from '../Common/Header';
-import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, Typography } from '_styles';
-import { version } from '../../../package';
-import { InAppBrowser } from 'react-native-inappbrowser-reborn';
-import { bugsnag } from '../../utils';
+import i18next from 'i18next';
+import React from 'react';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { version } from '../../../package.json';
+import { Colors, Typography } from '../../styles';
+import openWebView from '../../utils/openWebView';
+import Header from '../Common/Header';
 
 export default function Legals() {
   const navigation = useNavigation();
 
-  const openWebView = async (link) => {
-    try {
-      const url = link;
-      if (await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(url, {
-          // iOS Properties
-          animated: true,
-          modalPresentationStyle: 'fullScreen',
-          enableBarCollapsing: true,
-          // Android Properties
-          enableUrlBarHiding: true,
-          enableDefaultShare: true,
-        });
-      } else Linking.openURL(url);
-    } catch (error) {
-      console.error(error);
-      bugsnag.notify(error);
-      Alert.alert(error.message);
-    }
-  };
   const onPressImprint = () => {
     openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/imprint`);
   };
