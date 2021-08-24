@@ -20,6 +20,6 @@
   "try_again": "Try Again",
   "continue": "Continue",
   "location_service": "Location Service",
-  "location_service_message": "Location settings are not satisfied.",
+  "location_service_message": "Location settings are not satisfied. Please make sure you have given location permission to the app and turned on GPS",
   "cancel": "Cancel"
 }
