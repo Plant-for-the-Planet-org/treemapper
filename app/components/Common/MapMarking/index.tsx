@@ -37,13 +37,15 @@ import { LogTypes } from '../../../utils/constants';
 import distanceCalculator from '../../../utils/distanceCalculator';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import { locationPermission } from '../../../utils/permissions';
+import { PermissionBlockedAlert, PermissionDeniedAlert } from './LocationPermissionAlerts';
 import Map from './Map';
 import MapAlrightyModal from './MapAlrightyModal';
 import MapButtons from './MapButtons';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-const IS_ANDROID = Platform.OS === 'android';
+const isAndroid = Platform.OS === 'android';
 
 interface IMapMarkingProps {
   updateScreenState?: any;
@@ -100,6 +102,8 @@ export default function MapMarking({
 
   const [bounds, setBounds] = useState<any>([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
+  const [isPermissionBlocked, setIsPermissionBlocked] = useState(false);
+  const [isPermissionDenied, setIsPermissionDenied] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
   const [polygonCoordinates, setPolygonCoordinates] = useState<any>([]);
   // stores the geoJSON
@@ -121,22 +125,14 @@ export default function MapMarking({
 
   useEffect(() => {
     const captureMode = multipleLocateTree || ON_SITE;
-
-    console.log('captureMode', captureMode);
     setLocateTree(captureMode);
-    if (captureMode !== OFF_SITE) {
-      getLocationPermission();
-    }
+    checkPermission({ showAlert: captureMode !== OFF_SITE });
   }, [multipleLocateTree]);
 
   useEffect(() => {
     let isCancelled = false;
 
     if (!isCancelled) {
-      console.log('locateTree', locateTree);
-      if (locateTree !== OFF_SITE) {
-        getLocationPermission();
-      }
       if (
         (treeType === SAMPLE || treeType === MULTI || treeType === SINGLE) &&
         inventoryState.inventoryID
@@ -167,33 +163,30 @@ export default function MapMarking({
     }
   }, [isCameraRefVisible, centerCoordinate]);
 
-  useEffect(() => {
-    setLocateTree(multipleLocateTree);
-  }, [multipleLocateTree]);
-
-  const getLocationPermission = (shouldOpenSettings = false) => {
-    if (IS_ANDROID) {
-      MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-        if (permission) {
-          MapboxGL.setTelemetryEnabled(false);
-          updateCurrentPosition();
-        } else if (shouldOpenSettings) {
-          Linking.openSettings();
+  const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
+    try {
+      await locationPermission();
+      MapboxGL.setTelemetryEnabled(false);
+      updateCurrentPosition();
+      return true;
+    } catch (err) {
+      if (showAlert) {
+        if (err?.message == 'blocked') {
+          if (isOffsite) {
+            setShowSecondaryButton(false);
+            setAlertHeading(i18next.t('label.location_service'));
+            setAlertSubHeading(i18next.t('label.location_service_message'));
+            setShowAlert(true);
+          } else {
+            setIsPermissionBlocked(true);
+          }
+        } else if (err?.message == 'denied') {
+          setIsPermissionDenied(true);
         } else {
-          setIsLocationAlertShow(true);
+          bugsnag.notify(err);
         }
-      });
-    } else {
-      Geolocation.requestAuthorization('whenInUse').then((permission) => {
-        if (permission === 'granted') {
-          updateCurrentPosition();
-        } else if (shouldOpenSettings) {
-          Linking.openURL('app-settings:');
-          resetRouteStack();
-        } else {
-          setIsLocationAlertShow(true);
-        }
-      });
+      }
+      return false;
     }
   };
 
@@ -327,47 +320,50 @@ export default function MapMarking({
     } else if (locateTree === OFF_SITE) {
       pushMaker();
     } else {
-      updateCurrentPosition()
-        .then(async (location: any) => {
-          let currentCoords = [location.coords.latitude, location.coords.longitude];
+      const isGranted = await checkPermission({ showAlert: true });
+      if (isGranted) {
+        updateCurrentPosition()
+          .then(async (location: any) => {
+            let currentCoords = [location.coords.latitude, location.coords.longitude];
 
-          if (!isValidMarkers) {
-            setShowSecondaryButton(false);
-            setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
-            setAlertSubHeading(i18next.t('label.locate_tree_add_marker_valid'));
-            setShowAlert(true);
-          } else if (accuracyInMeters < 30 || forceContinue) {
-            let distance = distanceCalculator(
-              currentCoords[0],
-              currentCoords[1],
-              centerCoordinates[1],
-              centerCoordinates[0],
-              'K',
-            );
-
-            let distanceInMeters = distance * 1000;
-
-            if (distanceInMeters < 100) {
-              pushMaker(currentCoords);
-            } else {
+            if (!isValidMarkers) {
               setShowSecondaryButton(false);
               setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
-              setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
+              setAlertSubHeading(i18next.t('label.locate_tree_add_marker_valid'));
               setShowAlert(true);
+            } else if (accuracyInMeters < 30 || forceContinue) {
+              let distance = distanceCalculator(
+                currentCoords[0],
+                currentCoords[1],
+                centerCoordinates[1],
+                centerCoordinates[0],
+                'K',
+              );
+
+              let distanceInMeters = distance * 1000;
+
+              if (distanceInMeters < 100) {
+                pushMaker(currentCoords);
+              } else {
+                setShowSecondaryButton(false);
+                setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
+                setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
+                setShowAlert(true);
+              }
+            } else if (accuracyInMeters >= 30 || !forceContinue) {
+              setIsAlertShow(true);
             }
-          } else if (accuracyInMeters >= 30 || !forceContinue) {
-            setIsAlertShow(true);
-          }
-        })
-        .catch((err) => {
-          bugsnag.notify(err);
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: 'Failed to update Current Position',
-            logStack: JSON.stringify(err),
+          })
+          .catch((err) => {
+            bugsnag.notify(err);
+            dbLog.error({
+              logType: LogTypes.INVENTORY,
+              message: 'Failed to update Current Position',
+              logStack: JSON.stringify(err),
+            });
+            showUnknownLocationAlert();
           });
-          showUnknownLocationAlert();
-        });
+      }
     }
     // Check distance
   };
@@ -424,7 +420,6 @@ export default function MapMarking({
   const addPointMarker = async (forceContinue = false) => {
     let centerCoordinates = await map.current.getCenter();
     if (isPointForMultipleTree) {
-      console.log('isPointForMultipleTree');
       onPressContinue([0, 0], centerCoordinates, OFF_SITE);
     }
     // Check distance
@@ -482,7 +477,16 @@ export default function MapMarking({
           resolve(position);
         },
         (err) => {
-          setIsLocationAlertShow(true);
+          const captureMode = multipleLocateTree || ON_SITE;
+
+          if (captureMode === OFF_SITE) {
+            setShowSecondaryButton(false);
+            setAlertHeading(i18next.t('label.location_service'));
+            setAlertSubHeading(i18next.t('label.location_service_message'));
+            setShowAlert(true);
+          } else {
+            setIsLocationAlertShow(true);
+          }
         },
         {
           enableHighAccuracy: true,
@@ -614,7 +618,6 @@ export default function MapMarking({
             ? { latitude: 0, longitude: 0 }
             : { latitude: currentCoords[0], longitude: currentCoords[1] },
         }).then(() => {
-          console.log('then block', isPointForMultipleTree);
           if (isPointForMultipleTree) {
             // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
             navigation.dispatch(
@@ -633,59 +636,6 @@ export default function MapMarking({
         });
       }
     }
-  };
-
-  const skipPicture = () => {
-    let sampleTrees = [...inventory.sampleTrees];
-
-    updateInventory({
-      inventory_id: inventory.inventory_id,
-      inventoryData: {
-        sampleTrees: [...sampleTrees],
-      },
-    })
-      .then(() => {
-        dbLog.info({
-          logType: LogTypes.INVENTORY,
-          message: `Skipped picture for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-        });
-
-        setShowAlrightyModal(false);
-        navigation.navigate('SelectSpecies');
-        updateLastScreen({ inventory_id: inventory.inventory_id, lastScreen: 'SelectSpecies' });
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.INVENTORY,
-          message: `Error while skipping picture for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-          logStack: JSON.stringify(err),
-        });
-        console.error(
-          `Error while skipping picture for sample tree #${
-            inventory.completedSampleTreesCount + 1
-          } having inventory_id: ${inventory.inventory_id}`,
-          err,
-        );
-      });
-  };
-
-  const onPressBack = () => {
-    // resets the navigation stack with MainScreen => TreeInventory
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'MainScreen' },
-          {
-            name: 'TreeInventory',
-          },
-        ],
-      }),
-    );
   };
 
   //this modal shows the information about GPS accuracy and accuracy range for red, yellow and green colour
@@ -783,11 +733,11 @@ export default function MapMarking({
         visible={isLocationAlertShow}
         heading={i18next.t('label.location_service')}
         message={i18next.t('label.location_service_message')}
-        primaryBtnText={IS_ANDROID ? i18next.t('label.ok') : i18next.t('label.open_settings')}
+        primaryBtnText={isAndroid ? i18next.t('label.ok') : i18next.t('label.open_settings')}
         secondaryBtnText={i18next.t('label.back')}
         onPressPrimaryBtn={() => {
           setIsLocationAlertShow(false);
-          getLocationPermission(true);
+          updateCurrentPosition();
         }}
         onPressSecondaryBtn={() => {
           setIsLocationAlertShow(false);
@@ -849,7 +799,9 @@ export default function MapMarking({
       <MapButtons
         location={location}
         onPressMyLocationIcon={onPressMyLocationIcon}
-        setIsLocationAlertShow={setIsLocationAlertShow}
+        setIsLocationAlertShow={() =>
+          checkPermission({ showAlert: true, isOffsite: locateTree === OFF_SITE })
+        }
         addMarker={
           treeType === MULTI && !isPointForMultipleTree
             ? () => addPolygonMarker()
@@ -861,7 +813,7 @@ export default function MapMarking({
       <View style={styles.headerCont}>
         <SafeAreaView />
         <Header
-          onBackPress={onPressBack}
+          onBackPress={resetRouteStack}
           closeIcon
           headingText={
             treeType === SAMPLE
@@ -916,6 +868,18 @@ export default function MapMarking({
           setShowAlert(false);
         }}
         showSecondaryButton={showSecondaryButton}
+      />
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlocked}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlocked}
+        onPressPrimaryBtn={resetRouteStack}
+        onPressSecondaryBtn={resetRouteStack}
+      />
+      <PermissionDeniedAlert
+        isPermissionDeniedAlertShow={isPermissionDenied}
+        setIsPermissionDeniedAlertShow={setIsPermissionDenied}
+        onPressPrimaryBtn={() => {}}
+        onPressSecondaryBtn={resetRouteStack}
       />
     </View>
   );

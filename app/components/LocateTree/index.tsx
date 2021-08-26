@@ -1,27 +1,33 @@
+import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import JailMonkey from 'jail-monkey';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { addLocateTree } from '../../repositories/inventory';
 import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 import { Header, LargeButton, PrimaryButton } from '../Common';
 
-const LocateTree = ({ navigation }) => {
+const LocateTree = () => {
   const isRooted = JailMonkey.isJailBroken();
 
   const { state, dispatch } = useContext(InventoryContext);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
-    deleteInventoryId()(dispatch);
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      deleteInventoryId()(dispatch);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const [locateTree, setLocateTree] = useState(ON_SITE);
   const [isSelectCoordinates, setIsSelectCoordinates] = useState(false);
 
-  const onPressItem = (value) => {
+  const onPressItem = (value: string) => {
     setIsSelectCoordinates(false);
     setLocateTree(value);
   };
