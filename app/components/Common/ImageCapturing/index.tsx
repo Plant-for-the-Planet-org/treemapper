@@ -13,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { Colors, Typography } from '_styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import {
   completePolygon,
@@ -26,6 +25,7 @@ import {
   updateLastScreen,
 } from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
+import { Colors, Typography } from '../../../styles';
 import { LogTypes } from '../../../utils/constants';
 import { copyImageAndGetData } from '../../../utils/FSInteration';
 import { MULTI, ON_SITE } from '../../../utils/inventoryConstants';
@@ -49,6 +49,16 @@ const infographicText = [
   },
 ];
 
+interface IImageCapturingProps {
+  toggleState?: any;
+  updateActiveMarkerIndex?: any;
+  activeMarkerIndex?: any;
+  isCompletePolygon?: any;
+  inventoryType: any;
+  updateScreenState?: any;
+  isSampleTree?: any;
+}
+
 const ImageCapturing = ({
   toggleState,
   updateActiveMarkerIndex,
@@ -57,14 +67,14 @@ const ImageCapturing = ({
   updateScreenState,
   inventoryType,
   isSampleTree,
-}) => {
+}: IImageCapturingProps) => {
   const camera = useRef();
 
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
   const [imagePath, setImagePath] = useState('');
-  const [ALPHABETS, setALPHABETS] = useState([]);
-  const [inventory, setInventory] = useState(null);
+  const [ALPHABETS, setALPHABETS] = useState<string[]>([]);
+  const [inventory, setInventory] = useState<any>(null);
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
 
   useEffect(() => {
@@ -106,7 +116,7 @@ const ImageCapturing = ({
       setImagePath('');
       return;
     }
-    const data = await camera.current.takePictureAsync().catch((err) => {
+    const data = await camera?.current?.takePictureAsync().catch((err: any) => {
       alert(i18next.t('label.permission_camera_message'));
       dbLog.error({
         logType: LogTypes.OTHER,
@@ -129,7 +139,7 @@ const ImageCapturing = ({
     if (imagePath) {
       try {
         const imageUrl = await copyImageAndGetData(imagePath);
-        let data = {
+        let data: any = {
           inventory_id: state.inventoryID,
           imageUrl,
         };
@@ -223,11 +233,12 @@ const ImageCapturing = ({
     } else {
       updateScreenState('MapMarking');
     }
+    return true;
   };
 
   const onPressCompletePolygon = async () => {
     const imageUrl = await copyImageAndGetData(imagePath);
-    let data = {
+    let data: any = {
       inventory_id: state.inventoryID,
       imageUrl,
     };
@@ -240,8 +251,7 @@ const ImageCapturing = ({
           locateTree: inventory.locateTree,
         }).then(() => {
           setIsAlrightyModalShow(false);
-          // if (inventory.locateTree === ON_SITE) {
-          // resets the navigation stack with MainScreen => TreeInventory => SampleTreesCount
+          // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
           navigation.dispatch(
             CommonActions.reset({
               index: 2,
@@ -252,19 +262,6 @@ const ImageCapturing = ({
               ],
             }),
           );
-          // } else {
-          // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-          // navigation.dispatch(
-          //   CommonActions.reset({
-          //     index: 2,
-          //     routes: [
-          //       { name: 'MainScreen' },
-          //       { name: 'TreeInventory' },
-          //       { name: 'TotalTreesSpecies' },
-          //     ],
-          //   }),
-          // );
-          // }
         });
       });
     });

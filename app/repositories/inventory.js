@@ -11,6 +11,7 @@ import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   MULTI,
+  OFF_SITE,
   ON_SITE,
   PENDING_DATA_UPLOAD,
   SAMPLE,
@@ -643,8 +644,8 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
               coordinates.push({
                 longitude: coordinate[0],
                 latitude: coordinate[1],
-                currentloclat: currentCoords.latitude ? currentCoords.latitude : 0,
-                currentloclong: currentCoords.longitude ? currentCoords.longitude : 0,
+                currentloclat: currentCoords?.latitude || 0,
+                currentloclong: currentCoords?.longitude || 0,
                 isImageUploaded: false,
               });
             });
@@ -701,8 +702,9 @@ export const addCoordinateSingleRegisterTree = ({
                 {
                   latitude: markedCoords[1],
                   longitude: markedCoords[0],
-                  currentloclat: currentCoords.latitude,
-                  currentloclong: currentCoords.longitude,
+                  currentloclat: locateTree === OFF_SITE ? markedCoords[1] : currentCoords.latitude,
+                  currentloclong:
+                    locateTree === OFF_SITE ? markedCoords[0] : currentCoords.longitude,
                   isImageUploaded: false,
                 },
               ],

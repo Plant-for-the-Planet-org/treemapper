@@ -13,7 +13,7 @@ import { StatusBar, Platform } from 'react-native';
 import { Colors } from '../../styles';
 
 const Stack = createStackNavigator();
-const IS_ANDROID = Platform.OS === 'android';
+const isAndroid = Platform.OS === 'android';
 
 export default function AppNavigator() {
   const { showInitialStack } = React.useContext(NavigationContext);
@@ -56,7 +56,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <StatusBar
         backgroundColor={Colors.PRIMARY}
-        barStyle={IS_ANDROID ? 'light-content' : 'dark-content'}
+        barStyle={isAndroid ? 'light-content' : 'dark-content'}
       />
       <Stack.Navigator headerMode="none">
         {showInitialStack ? (
