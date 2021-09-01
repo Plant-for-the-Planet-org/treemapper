@@ -1,24 +1,14 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Image,
-  Linking,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { APIConfig } from '../../actions/Config';
+import { plant_project } from '../../assets';
 import { getAllProjects } from '../../repositories/projects';
 import { Colors, Typography } from '../../styles';
-import { bugsnag } from '../../utils';
 import { handleFilter } from '../../utils/CountryDataFilter';
+import openWebView from '../../utils/openWebView';
 import { LargeButton } from '../Common';
-import { plant_project } from '../../assets';
-import { SvgXml } from 'react-native-svg';
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProjectListProps {
@@ -37,18 +27,6 @@ export default function ProjectList({
   useEffect(() => {
     getAllProjects().then((projectsData: any) => (projectsData ? setProjects(projectsData) : {}));
   }, []);
-
-  const openWebView = async (link: string) => {
-    try {
-      if (await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(link);
-      } else Linking.openURL(link);
-    } catch (error) {
-      console.error(error);
-      bugsnag.notify(error);
-      Alert.alert(error.message);
-    }
-  };
 
   return (
     <FlatList

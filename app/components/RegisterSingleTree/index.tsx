@@ -1,26 +1,31 @@
-import { CommonActions } from '@react-navigation/native';
-import i18next from 'i18next';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
-import { BackHandler, Linking, PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { Colors } from '_styles';
-import { bugsnag } from '_utils';
 import { InventoryContext } from '../../reducers/inventory';
 import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
+import { Colors } from '../../styles';
+import { bugsnag } from '../../utils';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { INCOMPLETE, OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryConstants';
+import { locationPermission } from '../../utils/permissions';
 import { Loader } from '../Common';
-import AlertModal from '../Common/AlertModal';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from '../Common/MapMarking';
-const IS_ANDROID = Platform.OS === 'android';
+import {
+  PermissionBlockedAlert,
+  PermissionDeniedAlert,
+} from '../Common/MapMarking/LocationPermissionAlerts';
 
-const RegisterSingleTree = ({ navigation }) => {
+const RegisterSingleTree = () => {
   const { state: inventoryState } = useContext(InventoryContext);
   const [screenState, setScreenState] = useState('');
   const [isGranted, setIsGranted] = useState(false);
   const [isPermissionDeniedAlertShow, setIsPermissionDeniedAlertShow] = useState(false);
   const [isPermissionBlockedAlertShow, setIsPermissionBlockedAlertShow] = useState(false);
+
+  const navigation = useNavigation();
+
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
     const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -34,8 +39,9 @@ const RegisterSingleTree = ({ navigation }) => {
             };
             updateLastScreen(data);
 
-            permission()
+            locationPermission()
               .then((granted) => {
+                setIsGranted(true);
                 if (granted && InventoryData.polygons[0]) {
                   Geolocation.getCurrentPosition(
                     (position) => {
@@ -64,7 +70,7 @@ const RegisterSingleTree = ({ navigation }) => {
                         navigation.navigate('SelectSpecies');
                       }
                     },
-                    (err) => {
+                    (err: Geolocation.GeoError) => {
                       console.error(err);
                     },
                     {
@@ -82,14 +88,19 @@ const RegisterSingleTree = ({ navigation }) => {
                 }
               })
               .catch((err) => {
-                console.error(err);
+                checkPermissionAlert(err);
               });
           }
         });
       } else {
-        permission()
-          .then(() => setScreenState('MapMarking'))
-          .catch((err) => console.error(err));
+        locationPermission()
+          .then(() => {
+            setIsGranted(true);
+            setScreenState('MapMarking');
+          })
+          .catch((err) => {
+            checkPermissionAlert(err);
+          });
       }
     });
     return () => {
@@ -97,6 +108,18 @@ const RegisterSingleTree = ({ navigation }) => {
       unsubscribe();
     };
   }, [inventoryState, isGranted, navigation]);
+
+  const checkPermissionAlert = (err: any) => {
+    setScreenState('MapMarking');
+    setIsGranted(false);
+    if (err?.message == 'blocked') {
+      setIsPermissionBlockedAlertShow(true);
+    } else if (err?.message == 'denied') {
+      setIsPermissionDeniedAlertShow(true);
+    } else {
+      bugsnag.notify(err);
+    }
+  };
 
   const hardBackHandler = () => {
     navigation.navigate('TreeInventory');
@@ -118,33 +141,7 @@ const RegisterSingleTree = ({ navigation }) => {
     );
   };
 
-  const updateScreenState = (state) => setScreenState(state);
-
-  const permission = async () => {
-    if (IS_ANDROID) {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        );
-        switch (granted) {
-          case PermissionsAndroid.RESULTS.GRANTED:
-            setIsGranted(true);
-            return true;
-          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
-            setIsPermissionBlockedAlertShow(true);
-            return false;
-          case PermissionsAndroid.RESULTS.DENIED:
-            setIsPermissionDeniedAlertShow(true);
-            return false;
-        }
-      } catch (err) {
-        bugsnag.notify(err);
-        return false;
-      }
-    } else {
-      setIsGranted(true);
-    }
-  };
+  const updateScreenState = (state: string) => setScreenState(state);
 
   return (
     <View style={styles.container}>
@@ -155,14 +152,17 @@ const RegisterSingleTree = ({ navigation }) => {
           <PermissionDeniedAlert
             isPermissionDeniedAlertShow={isPermissionDeniedAlertShow}
             setIsPermissionDeniedAlertShow={setIsPermissionDeniedAlertShow}
-            permission={permission}
-            resetRouteStack={resetRouteStack}
+            onPressPrimaryBtn={() =>
+              locationPermission().catch((err: any) => checkPermissionAlert(err))
+            }
+            onPressSecondaryBtn={resetRouteStack}
           />
         ) : (
           <PermissionBlockedAlert
             isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
             setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
-            resetRouteStack={resetRouteStack}
+            onPressPrimaryBtn={resetRouteStack}
+            onPressSecondaryBtn={resetRouteStack}
           />
         ))}
 
@@ -182,55 +182,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
 });
-
-const PermissionDeniedAlert = ({
-  isPermissionDeniedAlertShow,
-  setIsPermissionDeniedAlertShow,
-  permission,
-  resetRouteStack,
-}) => {
-  return (
-    <AlertModal
-      visible={isPermissionDeniedAlertShow}
-      heading={i18next.t('label.permission_denied')}
-      message={i18next.t('label.permission_denied_message')}
-      primaryBtnText={i18next.t('label.ok')}
-      secondaryBtnText={i18next.t('label.back')}
-      onPressPrimaryBtn={() => {
-        setIsPermissionDeniedAlertShow(false);
-        permission().catch((err) => console.error(err));
-      }}
-      onPressSecondaryBtn={() => {
-        setIsPermissionDeniedAlertShow(false);
-        resetRouteStack();
-      }}
-      showSecondaryButton={true}
-    />
-  );
-};
-
-const PermissionBlockedAlert = ({
-  isPermissionBlockedAlertShow,
-  setIsPermissionBlockedAlertShow,
-  resetRouteStack,
-}) => {
-  return (
-    <AlertModal
-      visible={isPermissionBlockedAlertShow}
-      heading={i18next.t('label.permission_blocked')}
-      message={i18next.t('label.permission_blocked_message')}
-      primaryBtnText={i18next.t('label.open_settings')}
-      secondaryBtnText={i18next.t('label.back')}
-      onPressPrimaryBtn={() => {
-        setIsPermissionBlockedAlertShow(false);
-        resetRouteStack();
-        Linking.openSettings();
-      }}
-      onPressSecondaryBtn={() => {
-        setIsPermissionBlockedAlertShow(false);
-        resetRouteStack();
-      }}
-      showSecondaryButton={true}
-    />
-  );
-};

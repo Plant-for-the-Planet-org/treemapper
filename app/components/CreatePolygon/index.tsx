@@ -1,19 +1,32 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { useRoute } from '@react-navigation/core';
+import { RouteProp } from '@react-navigation/native';
+import React, { useContext, useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { InventoryContext } from '../../reducers/inventory';
+import { getInventory, updateLastScreen } from '../../repositories/inventory';
+import { Colors, Typography } from '../../styles';
+import { MULTI, OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from '../Common/MapMarking';
-import { getInventory, updateLastScreen } from '../../repositories/inventory';
-import { InventoryContext } from '../../reducers/inventory';
-import { MULTI, ON_SITE } from '../../utils/inventoryConstants';
 
-const CreatePolygon = ({ route }) => {
+type RootStackParamList = {
+  CreatePolygon: {
+    locateTree?: string;
+    isEdit?: boolean;
+  };
+};
+
+type CreatePolygonRouteProp = RouteProp<RootStackParamList, 'CreatePolygon'>;
+
+const CreatePolygon = () => {
   const { state } = useContext(InventoryContext);
 
   const [isMapMarkingState, setIsMapMarkingState] = useState(true);
   const [isCompletePolygon, setIsCompletePolygon] = useState(false);
   const [activeMarkerIndex, setActiveMarkerIndex] = useState(0);
-  const [locateTree, setLocateTree] = useState(ON_SITE);
+  const [locateTree, setLocateTree] = useState(OFF_SITE);
+
+  const route: CreatePolygonRouteProp = useRoute();
 
   useEffect(() => {
     checkIsEdit();
@@ -50,7 +63,7 @@ const CreatePolygon = ({ route }) => {
     setIsMapMarkingState(!isMapMarkingState);
   };
 
-  const updateActiveMarkerIndex = (index) => {
+  const updateActiveMarkerIndex = (index: number) => {
     setActiveMarkerIndex(index);
   };
   return (
@@ -59,10 +72,9 @@ const CreatePolygon = ({ route }) => {
         {isMapMarkingState ? (
           <MapMarking
             toggleState={toggleState}
-            isCompletePolygon={isCompletePolygon}
-            setIsCompletePolygon={setIsCompletePolygon}
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
+            setIsCompletePolygon={setIsCompletePolygon}
             multipleLocateTree={locateTree}
             treeType={MULTI}
           />

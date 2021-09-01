@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import i18next from 'i18next';
-import { Colors } from '_styles';
+import React from 'react';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { PrimaryButton } from '../';
+import { Colors } from '../../../styles';
+
+interface IMapButtonsProps {
+  location: any;
+  onPressMyLocationIcon: any;
+  setIsLocationAlertShow: any;
+  addMarker: any;
+  loader: any;
+}
 
 export default function MapButtons({
   location,
@@ -11,7 +19,7 @@ export default function MapButtons({
   setIsLocationAlertShow,
   addMarker,
   loader,
-}) {
+}: IMapButtonsProps) {
   return (
     <View>
       <TouchableOpacity

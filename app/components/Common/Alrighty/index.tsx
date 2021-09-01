@@ -1,12 +1,23 @@
+import i18next from 'i18next';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
+import { alrighty_banner } from '../../../assets';
+import { Colors, Typography } from '../../../styles';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
-import { SafeAreaView } from 'react-native';
-import { Colors, Typography } from '_styles';
-import { alrighty_banner } from '../../../assets';
-import { SvgXml } from 'react-native-svg';
-import i18next from 'i18next';
+
+interface IAlrightyProps {
+  heading: any;
+  subHeading: any;
+  onPressClose: any;
+  onPressContinue: any;
+  coordsLength?: any;
+  onPressWhiteButton: any;
+  whiteBtnText?: any;
+  bannerImage?: any;
+  closeIcon?: any;
+}
 
 const Alrighty = ({
   heading,
@@ -18,7 +29,7 @@ const Alrighty = ({
   whiteBtnText,
   bannerImage,
   closeIcon,
-}) => {
+}: IAlrightyProps) => {
   const isShowBottomWhiteBtn = whiteBtnText || coordsLength > 2;
   return (
     <SafeAreaView style={styles.mainContainer}>

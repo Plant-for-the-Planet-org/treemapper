@@ -32,7 +32,7 @@ import { uploadInventoryData } from '../../utils/uploadInventory';
 import { AlertModal, Header, InventoryList, PrimaryButton, SmallHeader, Sync } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
 
-const IS_ANDROID = Platform.OS === 'android';
+const isAndroid = Platform.OS === 'android';
 
 const TreeInventory = () => {
   const { state, dispatch } = useContext(InventoryContext);
@@ -398,7 +398,7 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.cancel')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        if (IS_ANDROID) {
+        if (isAndroid) {
           Linking.openSettings();
         } else {
           Linking.openURL('app-settings:');
