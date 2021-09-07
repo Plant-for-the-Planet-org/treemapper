@@ -25,6 +25,26 @@ export const SYNCED = 'SYNCED';
 
 /* === Inventory registration statuses - ENDS === */
 
+/* ============================================== *\
+      Inventory registration count - STARTS
+\* ============================================== */
+
+// used as status to mark inventory as incomplete.
+export const TOTAL_COUNT = 'TOTAL_COUNT';
+export const PENDING_UPLOAD_COUNT = 'PENDING_UPLOAD_COUNT';
+export const INCOMPLETE_COUNT = 'INCOMPLETE_COUNT';
+
+export const getPendingStatus = () => [
+  PENDING_DATA_UPLOAD,
+  PENDING_IMAGE_UPLOAD,
+  PENDING_SAMPLE_TREES_UPLOAD,
+  DATA_UPLOAD_START,
+];
+export const getIncompleteStatus = () => [INCOMPLETE, INCOMPLETE_SAMPLE_TREE];
+export const getCompletedStatus = () => [SYNCED];
+
+/* === Inventory registration count - ENDS === */
+
 /* ========================================================= *\
       Inventory trees location while registering - STARTS
 \* ========================================================= */

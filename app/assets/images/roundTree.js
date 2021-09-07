@@ -1,0 +1,18 @@
+const roundTree = `<svg width="100%" height="100%" viewBox="0 0 340 513" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M301.501 260.478C298.501 125.957 250 -0.00203076 167.5 0C84.9998 0.00203081 36.0004 125.968 36 260.484C35.9996 395 150.002 395 167.501 395C185 395 304.501 395 301.501 260.478Z" fill="url(#paint0_linear)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M154 172.012C154 163.176 161.163 156.012 170 156.012C178.836 156.012 186 163.176 186 172.012V285.924L202.598 269.326C208.846 263.078 218.977 263.078 225.225 269.326C231.474 275.574 231.474 285.705 225.225 291.953L186 331.179V496.012H154V264.639L123.313 233.953C117.065 227.704 117.065 217.574 123.313 211.325C129.562 205.077 139.692 205.077 145.941 211.325L154 219.384V172.012Z" fill="url(#paint1_linear)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M154 172.012C154 163.176 161.163 156.012 170 156.012C178.836 156.012 186 163.176 186 172.012V285.924L202.598 269.326C208.846 263.078 218.977 263.078 225.225 269.326C231.474 275.574 231.474 285.705 225.225 291.953L186 331.179V496.012H154V264.639L123.313 233.953C117.065 227.704 117.065 217.574 123.313 211.325C129.562 205.077 139.692 205.077 145.941 211.325L154 219.384V172.012Z" fill="white" fill-opacity="0.5"/>
+<rect x="340" y="480.013" width="32" height="340" rx="16" transform="rotate(90 340 480.013)" fill="#007A49"/>
+<defs>
+<linearGradient id="paint0_linear" x1="169" y1="-5.24176e-06" x2="307.058" y2="338.731" gradientUnits="userSpaceOnUse">
+<stop stop-color="#68B030"/>
+<stop offset="1" stop-color="#007A49"/>
+</linearGradient>
+<linearGradient id="paint1_linear" x1="167.5" y1="156.012" x2="328.928" y2="275.831" gradientUnits="userSpaceOnUse">
+<stop stop-color="#68B030"/>
+<stop offset="1" stop-color="#007A49"/>
+</linearGradient>
+</defs>
+</svg>`;
+
+export default roundTree;

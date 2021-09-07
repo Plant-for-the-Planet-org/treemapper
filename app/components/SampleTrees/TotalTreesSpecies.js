@@ -113,7 +113,7 @@ export default function TotalTreesSpecies() {
       getInventory({ inventoryID: inventoryState.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
-          const geoJSONData = await getGeoJsonData(inventoryData);
+          const geoJSONData = await getGeoJsonData({inventoryData});
           if (
             inventoryData.polygons[0].coordinates.length === 1 &&
             inventoryData.polygons[0].isPolygonComplete

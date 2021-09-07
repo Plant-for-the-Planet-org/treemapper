@@ -184,7 +184,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData: any) => {
-        const geoJSONData = await getGeoJsonData(inventoryData);
+        const geoJSONData = await getGeoJsonData({ inventoryData });
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {

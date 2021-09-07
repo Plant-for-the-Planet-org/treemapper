@@ -1,72 +1,52 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import { useNavigation } from '@react-navigation/core';
+import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  ImageBackground,
-  Linking,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SvgXml } from 'react-native-svg';
-import Realm from 'realm';
+import { View } from 'react-native';
 import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import { main_screen_banner, map_texture } from '../../assets';
-import i18next from '../../languages/languages';
 import { InventoryContext } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
-import { clearAllUploadedInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { clearAllUploadedInventory, getInventoryCount } from '../../repositories/inventory';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import {
-  PENDING_DATA_UPLOAD,
-  INCOMPLETE_SAMPLE_TREE,
-  INCOMPLETE,
-  SYNCED,
-} from '../../utils/inventoryConstants';
-import {
-  Header,
-  LargeButton,
-  Loader,
-  MainScreenHeader,
-  PrimaryButton,
-  SpeciesSyncError,
-  Sync,
-  AlertModal,
-} from '../Common';
-import VerifyEmailAlert from '../Common/EmailAlert';
+import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
+import { AlertModal, Sync } from '../Common';
 import ProfileModal from '../ProfileModal';
-import { useNetInfo } from '@react-native-community/netinfo';
+import BottomBar from './BottomBar';
+import LoginButton from './LoginButton';
+import MainMap from './MainMap';
 
 const { protocol, cdnUrl } = APIConfig;
 
-const MainScreen = () => {
+export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-  const [numberOfInventory, setNumberOfInventory] = useState(0);
   const [isUserLogin, setIsUserLogin] = useState(false);
   const [userInfo, setUserInfo] = useState<any>({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [offlineModal, setOfflineModal] = useState(false);
-  const { state, dispatch } = useContext(InventoryContext);
-  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
+  const [numberOfInventory, setNumberOfInventory] = useState(0);
 
-  const navigation = useNavigation();
+  // If true then hides bottom bar, pending and login buttons and shows the selected polygon
+  const [showClickedGeoJSON, setShowClickedGeoJSON] = useState(false);
+
+  const { state, dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+
   const netInfo = useNetInfo();
+  const navigation = useNavigation();
 
   useEffect(() => {
     let realm: Realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
-      fetchInventory();
       fetchUserDetails();
+      fetchInventoryCount();
 
       realm = await Realm.open(getSchema());
       initializeRealm(realm);
@@ -82,53 +62,24 @@ const MainScreen = () => {
     };
   }, [navigation]);
 
-  const fetchInventory = () => {
-    getInventoryByStatus([]).then((data) => {
-      let count = 0;
-      for (const inventory of data) {
-        if (
-          inventory.status !== SYNCED &&
-          inventory.status !== INCOMPLETE &&
-          inventory.status !== INCOMPLETE_SAMPLE_TREE
-        ) {
-          count++;
-        }
-      }
-      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
-      setNumberOfInventory(data ? data.length : 0);
-    });
-  };
+  useEffect(() => {
+    if (showClickedGeoJSON) {
+      setOfflineModal(false);
+      setIsProfileModalVisible(false);
+    }
+  }, [showClickedGeoJSON]);
 
-  const fetchUserDetails = () => {
-    if (!loadingState.isLoading) {
-      getUserDetails().then((userDetails) => {
-        if (userDetails) {
-          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          if (stringifiedUserDetails) {
-            setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(!!stringifiedUserDetails.accessToken);
-          }
-        }
-      });
+  const checkIsSignedInAndUpdate = (userDetail: any) => {
+    const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
+    if (stringifiedUserDetails.isSignUpRequired) {
+      navigation.navigate('SignUp');
+    } else {
+      // dispatch function sets the passed user details into the user state
+      setUserDetails(stringifiedUserDetails)(userDispatch);
+      setUserInfo(stringifiedUserDetails);
+      setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
   };
-
-  useEffect(() => {
-    fetchUserDetails();
-  }, [loadingState.isLoading]);
-
-  // ! Need to changed when auto upload is implemented
-  // useEffect(() => {
-  //   if (pendingInventory !== 0 && isFocused && !loadingState.isLoading) {
-  //     checkLoginAndSync({
-  //       sync: true,
-  //       dispatch,
-  //       userDispatch,
-  //       connected: netInfo.isConnected,
-  //       internet: netInfo.isInternetReachable,
-  //     });
-  //   }
-  // }, [pendingInventory, netInfo, isFocused]);
 
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
@@ -145,20 +96,21 @@ const MainScreen = () => {
       }
     });
 
+    // TODO: change this to newModifications or oldModifications
     // Update UI in response to modified objects
-    changes.modifications.forEach((index) => {
-      if (userData[index].id === 'id0001') {
-        checkIsSignedInAndUpdate(userData[index]);
-      }
-    });
+    // changes.modifications.forEach((index) => {
+    //   if (userData[index].id === 'id0001') {
+    //     checkIsSignedInAndUpdate(userData[index]);
+    //   }
+    // });
   }
 
   function inventoryListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
-      fetchInventory();
+      fetchInventoryCount();
     }
     if (changes.insertions.length > 0) {
-      fetchInventory();
+      fetchInventoryCount();
     }
   }
 
@@ -177,21 +129,30 @@ const MainScreen = () => {
     }
   };
 
-  const checkIsSignedInAndUpdate = (userDetail: any) => {
-    const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
-    if (stringifiedUserDetails.isSignUpRequired) {
-      navigation.navigate('SignUp');
-    } else {
-      // dispatch function sets the passed user details into the user state
-      setUserDetails(stringifiedUserDetails)(userDispatch);
-      setUserInfo(stringifiedUserDetails);
-      setIsUserLogin(!!stringifiedUserDetails.accessToken);
+  const closeProfileModal = () => setIsProfileModalVisible(false);
+
+  const fetchUserDetails = () => {
+    if (!loadingState.isLoading) {
+      getUserDetails().then((userDetails) => {
+        if (userDetails) {
+          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
+          if (stringifiedUserDetails) {
+            setUserInfo(stringifiedUserDetails);
+            setIsUserLogin(!!stringifiedUserDetails.accessToken);
+          }
+        }
+      });
     }
   };
 
-  const onPressLargeButtons = (screenName: string) => navigation.navigate(screenName);
-
-  const onPressCloseProfileModal = () => setIsProfileModalVisible(!isProfileModalVisible);
+  const fetchInventoryCount = () => {
+    getInventoryCount(PENDING_UPLOAD_COUNT).then((count) => {
+      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
+    });
+    getInventoryCount().then((count) => {
+      setNumberOfInventory(count);
+    });
+  };
 
   const onPressLogin = async () => {
     if (isUserLogin) {
@@ -202,6 +163,7 @@ const MainScreen = () => {
         .then(() => {
           stopLoading()(loadingDispatch);
           fetchUserDetails();
+          fetchInventoryCount();
         })
         .catch((err) => {
           if (err?.response?.status === 303) {
@@ -219,7 +181,7 @@ const MainScreen = () => {
 
   const onPressLogout = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      onPressCloseProfileModal();
+      closeProfileModal();
       clearAllUploadedInventory();
       shouldSpeciesUpdate()
         .then((isSyncRequired) => {
@@ -238,115 +200,49 @@ const MainScreen = () => {
       setOfflineModal(true);
     }
   };
-
-  const onPressLegals = () => {
-    navigation.navigate('Legals');
-  };
-
-  const onPressSupport = () => {
-    Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
-      // TODO:i18n - if this is used, please add translations
-      alert('Can write mail to support@plant-for-the-planet.org'),
-    );
-  };
+  console.log('showClickedGeoJSON', showClickedGeoJSON);
 
   return (
-    <SafeAreaView style={styles.safeAreaViewCont}>
-      {loadingState.isLoading ? (
-        <Loader isLoaderShow={true} />
-      ) : (
-        <View style={styles.container}>
-          <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <Sync
-                uploadCount={state.uploadCount}
-                pendingCount={state.pendingCount}
-                isUploading={state.isUploading}
-                isUserLogin={isUserLogin}
-                setEmailAlert={setEmailAlert}
-              />
-              <MainScreenHeader
-                onPressLogin={onPressLogin}
-                isUserLogin={isUserLogin}
-                testID={'btn_login'}
-                accessibilityLabel={'Login/Sign Up'}
-                photo={
-                  cdnUrl && userInfo.image
-                    ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
-                    : ''
-                }
-                name={userInfo?.firstName || ''}
-              />
-            </View>
-            <SpeciesSyncError />
-            <View style={styles.bannerImgContainer}>
-              <SvgXml xml={main_screen_banner} />
-            </View>
-            <Header
-              headingText={i18next.t('label.tree_mapper')}
-              hideBackIcon
-              textAlignStyle={{ textAlign: 'center' }}
+    <>
+      <MainMap
+        showClickedGeoJSON={showClickedGeoJSON}
+        setShowClickedGeoJSON={setShowClickedGeoJSON}
+      />
+
+      {!showClickedGeoJSON ? (
+        <>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              position: 'absolute',
+              top: 25,
+              left: 25,
+              right: 25,
+            }}>
+            <Sync
+              uploadCount={state.uploadCount}
+              pendingCount={state.pendingCount}
+              isUploading={state.isUploading}
+              isUserLogin={isUserLogin}
+              setEmailAlert={setEmailAlert}
             />
-            <View>
-              <ImageBackground source={map_texture} style={styles.bgImage}>
-                <LargeButton
-                  onPress={() => onPressLargeButtons('TreeInventory')}
-                  style={styles.customStyleLargeBtn}
-                  heading={i18next.t('label.tree_inventory')}
-                  active={false}
-                  subHeading={i18next.t('label.tree_inventory_sub_header')}
-                  notification={numberOfInventory > 0 ? `${numberOfInventory}` : ''}
-                  testID="page_tree_inventory"
-                  accessibilityLabel="Tree Inventory"
-                />
-              </ImageBackground>
-              <ImageBackground source={map_texture} style={styles.bgImage}>
-                <LargeButton
-                  onPress={() => onPressLargeButtons('DownloadMap')}
-                  style={styles.customStyleLargeBtn}
-                  heading={i18next.t('label.download_maps')}
-                  active={false}
-                  subHeading={i18next.t('label.download_maps_sub_header')}
-                  testID="page_map"
-                  accessibilityLabel="Download Map"
-                />
-              </ImageBackground>
-            </View>
-          </ScrollView>
-          <PrimaryButton
-            onPress={() => onPressLargeButtons('RegisterTree')}
-            btnText={i18next.t('label.register_tree')}
-            testID={'btn_register_trees'}
-            accessibilityLabel={'Register Tree'}
+            <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+          </View>
+          <BottomBar
+            onMenuPress={() => setIsProfileModalVisible(true)}
+            onTreeInventoryPress={() => navigation.navigate('TreeInventory')}
+            numberOfInventory={numberOfInventory}
           />
-          {!isUserLogin ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-evenly',
-                marginHorizontal: 50,
-              }}>
-              <Text onPress={onPressLegals} style={styles.textAlignCenter}>
-                {i18next.t('label.legal_docs')}
-              </Text>
-              <Text>•</Text>
-              <Text onPress={onPressSupport} style={styles.textAlignCenter}>
-                {i18next.t('label.support')}
-              </Text>
-            </View>
-          ) : (
-            <View />
-          )}
-        </View>
+        </>
+      ) : (
+        []
       )}
+
       <ProfileModal
         isProfileModalVisible={isProfileModalVisible}
-        onPressCloseProfileModal={onPressCloseProfileModal}
+        onPressCloseProfileModal={() => closeProfileModal()}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
       />
@@ -357,58 +253,9 @@ const MainScreen = () => {
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => {
           setOfflineModal(false);
-          onPressCloseProfileModal();
+          closeProfileModal();
         }}
       />
-      <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
-    </SafeAreaView>
+    </>
   );
-};
-export default MainScreen;
-
-const styles = StyleSheet.create({
-  safeAreaViewCont: {
-    flex: 1,
-    backgroundColor: Colors.WHITE,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 25,
-    paddingTop: 20,
-    backgroundColor: Colors.WHITE,
-  },
-  addSpecies: {
-    color: Colors.ALERT,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_24,
-    textAlign: 'center',
-  },
-  customStyleLargeBtn: {
-    backgroundColor: 'transparent',
-    paddingVertical: 10,
-    marginVertical: 0,
-    borderWidth: 0.1,
-  },
-  bgImage: {
-    flex: 1,
-    width: '100%',
-    height: '150%',
-    overflow: 'hidden',
-    marginVertical: 10,
-    borderRadius: 5,
-  },
-  bannerImgContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: 50,
-  },
-  bannerImage: {
-    alignSelf: 'center',
-  },
-  textAlignCenter: {
-    color: Colors.TEXT_COLOR,
-    fontSize: Typography.FONT_SIZE_10,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
-});
+}

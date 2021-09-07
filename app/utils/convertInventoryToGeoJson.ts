@@ -1,6 +1,16 @@
 import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalData/functions';
 
-export default async function getGeoJsonData(inventoryData: any) {
+interface IGeoJsonDataParams {
+  inventoryData: any;
+  includeInventoryId?: boolean;
+  ignoreSampleTrees?: boolean;
+}
+
+export default async function getGeoJsonData({
+  inventoryData,
+  includeInventoryId = false,
+  ignoreSampleTrees = false,
+}: IGeoJsonDataParams) {
   let featureList;
   let appAdditionalDetails: any = {};
 
@@ -29,9 +39,14 @@ export default async function getGeoJsonData(inventoryData: any) {
         },
       },
     ];
+
+    // includes inventory id if asked for
+    if (includeInventoryId) {
+      featureList[0].properties.inventoryId = inventoryData.inventory_id;
+    }
   } else {
     featureList = inventoryData.polygons.map((onePolygon: any) => {
-      return {
+      const feature = {
         type: 'Feature',
         properties: {
           ...metadata,
@@ -44,8 +59,13 @@ export default async function getGeoJsonData(inventoryData: any) {
           ]),
         },
       };
+      // includes inventory id if asked for
+      if (includeInventoryId) {
+        feature.properties.inventoryId = inventoryData.inventory_id;
+      }
+      return feature;
     });
-    if (inventoryData.sampleTrees.length > 0) {
+    if (inventoryData.sampleTrees.length > 0 && !ignoreSampleTrees) {
       for (const sampleTree of inventoryData.sampleTrees) {
         let appAdditionalDetails: any = [];
         const metadata = getFormattedMetadata([...sampleTree.additionalDetails]);

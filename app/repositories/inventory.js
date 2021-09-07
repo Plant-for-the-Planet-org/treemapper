@@ -16,6 +16,11 @@ import {
   SAMPLE,
   SINGLE,
   SYNCED,
+  getPendingStatus,
+  getIncompleteStatus,
+  TOTAL_COUNT,
+  PENDING_UPLOAD_COUNT,
+  INCOMPLETE_COUNT,
 } from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';
@@ -1270,6 +1275,47 @@ export const deleteSyncedAndMigrate = (oldRealm, newRealm, schemaVersion) => {
       newRealm.delete(newInventoryObject[syncedInventoriesIndexToDelete[i]]);
     }
   }
+};
+
+export const getInventoryCount = (countOf = TOTAL_COUNT) => {
+  return new Promise((resolve) => {
+    Realm.open(getSchema())
+      .then((realm) => {
+        let inventory = realm.objects('Inventory').filtered('status != null');
+        let status = [];
+        if (countOf === PENDING_UPLOAD_COUNT) {
+          status = getPendingStatus();
+        } else if (countOf === INCOMPLETE_COUNT) {
+          status = getIncompleteStatus();
+        }
+        if (status.length !== 0) {
+          var query = 'status == ';
+          for (var i = 0; i < status.length; i++) {
+            query += `'${status[i]}'`;
+            if (i + 1 < status.length) {
+              query += ' || status == ';
+            }
+          }
+          inventory = inventory.filtered(query);
+        }
+        const inventoryCount = inventory.length;
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Fetched inventory count for ${countOf} from DB`,
+        });
+        resolve(inventoryCount);
+      })
+      .catch((err) => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventory count for ${countOf} from DB`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
+  });
 };
 
 function getFields(input, field) {
