@@ -28,7 +28,7 @@
     "@turf/boolean-point-in-polygon": "^6.3.0",
     "@turf/center": "^6.3.0",
     "@turf/helpers": "^6.3.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.3",
     "buffer": "^6.0.3",
     "bugsnag-react-native": "^2.23.10",
     "i18next": "^20.3.0",
