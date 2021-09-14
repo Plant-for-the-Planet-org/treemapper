@@ -9,11 +9,11 @@ import MarkerSVG from '../../Common/MarkerSVG';
 interface Props {
   geoJSON: any;
   isPointForMultipleTree?: boolean;
-  setCoordinateModalShow: React.Dispatch<React.SetStateAction<boolean>>;
-  setCoordinateIndex: React.Dispatch<React.SetStateAction<number | null | undefined>>;
-  onPressMarker: (isSampleTree: boolean, coordinate: []) => void;
-  setIsSampleTree: React.Dispatch<React.SetStateAction<boolean | null>>;
-  locateTree: string;
+  setCoordinateModalShow?: React.Dispatch<React.SetStateAction<boolean>>;
+  setCoordinateIndex?: React.Dispatch<React.SetStateAction<number | null | undefined>>;
+  onPressMarker?: (isSampleTree: boolean, coordinate: []) => void;
+  setIsSampleTree?: React.Dispatch<React.SetStateAction<boolean | null>>;
+  locateTree?: string;
 }
 
 const SampleTreeMarkers = ({
@@ -36,7 +36,13 @@ const SampleTreeMarkers = ({
         id={`sampleTree-${i}`}
         coordinate={oneMarker}
         onSelected={(feature) => {
-          if (locateTree == ON_SITE) {
+          if (
+            locateTree == ON_SITE &&
+            onPressMarker &&
+            setCoordinateIndex &&
+            setIsSampleTree &&
+            setCoordinateModalShow
+          ) {
             onPressMarker(true, feature.geometry.coordinates);
             setCoordinateIndex(i);
             setIsSampleTree(true);
@@ -47,7 +53,7 @@ const SampleTreeMarkers = ({
       </MapboxGL.PointAnnotation>,
     );
   }
-  return markers;
+  return <>{markers}</>;
 };
 
 export default SampleTreeMarkers;

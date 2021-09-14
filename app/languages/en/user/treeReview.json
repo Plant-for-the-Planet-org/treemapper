@@ -34,5 +34,7 @@
   "need_more_sample_trees": "Need more Sample Trees",
   "at_least_five_sample_trees": "You should add at least 5 Sample Trees.",
   "project_not_assigned": "Project not assigned!",
-  "project_not_assigned_message": "Are you sure, you want to save this registration without assigning a project?"
+  "project_not_assigned_message": "Are you sure, you want to save this registration without assigning a project?",
+  "plantation_date":"Plantation date: ",
+  "plantation_period":"Plantation period: "
 }

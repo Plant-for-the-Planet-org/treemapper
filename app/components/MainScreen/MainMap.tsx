@@ -1,19 +1,29 @@
 import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
-import { Linking, Platform, StyleProp, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Linking,
+  Platform,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { Colors } from '../../styles';
+import { getUserInformation } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { SYNCED } from '../../utils/inventoryConstants';
 import { AlertModal } from '../Common';
-import SelectedPlantLocations from './SelectedPlantLocations';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
-import { BBox, Feature, Point, Polygon } from '@turf/helpers';
+import GeoJSONMap from './GeoJSONMap';
+import SelectedPlantLocationSampleTreesCards from './SelectedPlantLocationSampleTreesCards';
+import SelectedPlantLocationsCards from './SelectedPlantLocationsCards';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -29,8 +39,8 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       {
         type: 'Feature',
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -44,7 +54,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
-  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState(geoJSONInitialState);
@@ -52,14 +62,18 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   const [clickedGeoJSON, setClickedGeoJSON] = useState<any[]>([geoJSONInitialState]);
   // stores the plant locations details of the selected geoJSON
   const [selectedPlantLocations, setSelectedPlantLocations] = useState([]);
-  // sets the bound to focus the selected polygon
-  const [bounds, setBounds] = useState<any>([]);
-  // used to store and focus on the center of the bounding box of the polygon selected
-  const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
+
+  const [showSinglePlantLocation, setShowSinglePlantLocation] = useState(false);
+  // stores the plant locations details of the selected geoJSON
+  const [singleSelectedGeoJSON, setSingleSelectedGeoJSON] = useState(geoJSONInitialState);
+  // stores the plant locations details of the selected geoJSON
+  const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
+  const [countryCode, setCountryCode] = useState('');
 
   const camera = useRef<MapboxGL.Camera | null>(null);
-  const map = useRef(null);
+
   const carouselRef = useRef(null);
+  const sampleCarouselRef = useRef(null);
 
   const navigation = useNavigation();
 
@@ -67,6 +81,10 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     let isCancelled = false;
 
     initializeInventory();
+
+    getUserInformation().then((data) => {
+      setCountryCode(data.country);
+    });
 
     if (!isCancelled) {
       if (IS_ANDROID) {
@@ -91,30 +109,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       isCancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (isCameraRefVisible && carouselRef?.current) {
-      setActiveCarouselIndex(carouselRef.current.currentIndex);
-      const selectedGeoJSON = clickedGeoJSON[carouselRef.current.currentIndex];
-
-      setCenterCoordinate(turfCenter(selectedGeoJSON.features[0]));
-
-      setBounds(bbox(selectedGeoJSON.features[0]));
-    }
-  }, [carouselRef?.current?.currentIndex, isCarouselRefVisible]);
-
-  // used to focus the selected polygon whenever the bounds are changed or center coordinate is updated
-  useEffect(() => {
-    if (isCameraRefVisible && bounds.length > 0 && camera?.current?.fitBounds) {
-      camera.current.fitBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]], 100, 1000);
-    }
-    if (isCameraRefVisible && centerCoordinate.length > 0 && camera?.current?.setCamera) {
-      let config = {
-        centerCoordinate,
-      };
-      camera.current.setCamera(config);
-    }
-  }, [isCameraRefVisible, bounds, centerCoordinate]);
 
   /**
    * Fetches the registrations details of the polygon which are selected and
@@ -189,12 +183,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     });
   };
 
-  const onChangeRegionStart = () => setLoader(true);
-
-  const onChangeRegionComplete = () => {
-    setLoader(false);
-  };
-
   // recenter the map to the current coordinates of user location
   const onPressMyLocationIcon = (position: MapboxGL.Location | Geolocation.GeoPosition) => {
     if (isInitial) {
@@ -243,83 +231,33 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     });
   };
 
+  const onPressViewSampleTrees = (index: number) => {
+    console.log('onPressViewSampleTrees', index);
+    setSingleSelectedPlantLocation(selectedPlantLocations[index]);
+    setSingleSelectedGeoJSON(clickedGeoJSON[index]);
+    setShowSinglePlantLocation(true);
+  };
+
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView
-        style={styles.container}
-        ref={map}
-        compassViewPosition={3}
-        compassViewMargins={{
-          x: 30,
-          y: 180,
-        }}
-        logoEnabled
-        onRegionWillChange={onChangeRegionStart}
-        onRegionDidChange={onChangeRegionComplete}>
-        <MapboxGL.Camera
-          ref={(el) => {
-            camera.current = el;
-            setIsCameraRefVisible(!!el);
-          }}
-        />
-
-        {/* Shows only clicked polygons after user clicks on the polygon. */}
-        {/* Can show more than 1 if clicked on overlapping polygons.  */}
-        {/* If not clicked on any polygon then shows all the polygons. */}
-        {showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
-          clickedGeoJSON.map((singleGeoJson, index) => {
-            return (
-              <MapboxGL.ShapeSource
-                id={`polygonClicked-${index}`}
-                shape={singleGeoJson}
-                onPress={(e) => {
-                  if (isCarouselRefVisible) {
-                    carouselRef.current.snapToItem(index);
-                    setActiveCarouselIndex(index);
-                  }
-                }}>
-                <MapboxGL.FillLayer
-                  id={`polyFillClicked-${index}`}
-                  style={activeCarouselIndex !== index ? inactiveFillStyle : fillStyle}
-                />
-                <MapboxGL.LineLayer
-                  id={`polylineClicked-${index}`}
-                  style={activeCarouselIndex !== index ? inactivePolyline : polyline}
-                />
-
-                <MapboxGL.CircleLayer
-                  id={`circleClicked-${index}`}
-                  style={activeCarouselIndex !== index ? inactiveCircleStyle : circleStyle}
-                  // belowLayerID={'polylineClicked'}
-                  // belowLayerID={
-                  //   activeCarouselIndex !== index
-                  //     ? `polylineClicked-${activeCarouselIndex}`
-                  //     : undefined
-                  // }
-                  // aboveLayerID={`polyFillClicked-${index}`}
-                />
-              </MapboxGL.ShapeSource>
-            );
-          })
-        ) : (
-          <MapboxGL.ShapeSource
-            id={'polygon'}
-            shape={geoJSON}
-            onPress={(e) => {
-              if (e?.features.length > 0) {
-                console.log(e?.features.length, e?.features);
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-          </MapboxGL.ShapeSource>
-        )}
-        {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
-        )}
-      </MapboxGL.MapView>
+      <GeoJSONMap
+        setLoader={setLoader}
+        setIsCameraRefVisible={setIsCameraRefVisible}
+        showClickedGeoJSON={showClickedGeoJSON}
+        clickedGeoJSON={clickedGeoJSON}
+        carouselRef={carouselRef}
+        isCameraRefVisible={isCameraRefVisible}
+        camera={camera}
+        location={location}
+        setLocation={setLocation}
+        geoJSON={geoJSON}
+        getSelectedPlantLocations={getSelectedPlantLocations}
+        isCarouselRefVisible={isCarouselRefVisible}
+        showSinglePlantLocation={showSinglePlantLocation}
+        singleSelectedGeoJSON={singleSelectedGeoJSON}
+        isSampleCarouselRefVisible={isSampleCarouselRefVisible}
+        sampleCarouselRef={sampleCarouselRef}
+      />
 
       {/* shows alert if location permission is not provided */}
       <AlertModal
@@ -341,17 +279,38 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       />
 
       {/* shows the back button when plant location is selected */}
-      {showClickedGeoJSON ? (
-        <TouchableOpacity
-          onPress={() => {
-            console.log('setShowClickedGeoJSON');
-            setShowClickedGeoJSON(false);
-            setClickedGeoJSON(geoJSONInitialState);
-            setSelectedPlantLocations([]);
-          }}
-          style={styles.backIconContainer}>
-          <Icon name="chevron-left" size={30} />
-        </TouchableOpacity>
+      {/* shows single plant location hid if single plant location is selected */}
+      {showClickedGeoJSON || showSinglePlantLocation ? (
+        <View style={styles.extraInfoContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              if (showSinglePlantLocation) {
+                console.log('showSinglePlantLocation');
+                setShowSinglePlantLocation(false);
+                setSingleSelectedPlantLocation(undefined);
+                setSingleSelectedGeoJSON(geoJSONInitialState);
+              } else {
+                console.log('setShowClickedGeoJSON');
+                setShowClickedGeoJSON(false);
+                setClickedGeoJSON([geoJSONInitialState]);
+                setSelectedPlantLocations([]);
+              }
+            }}
+            style={styles.backIconContainer}>
+            <Icon name="chevron-left" size={30} />
+          </TouchableOpacity>
+          {showSinglePlantLocation && singleSelectedPlantLocation ? (
+            <>
+              <Text style={styles.heading}>HID: {singleSelectedPlantLocation?.hid}</Text>
+              <TouchableOpacity style={styles.textButtonContainer}>
+                <Text style={styles.textButton}>{i18next.t('label.more_details')}</Text>
+                <Icon name="chevron-right" size={18} color={Colors.TEXT_COLOR} />
+              </TouchableOpacity>
+            </>
+          ) : (
+            []
+          )}
+        </View>
       ) : (
         <>
           {/* shows my location icons */}
@@ -377,11 +336,19 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       )}
 
       {/* shows the selected polygon details in horizontal scrollable card */}
-      {selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
-        <SelectedPlantLocations
+      {showSinglePlantLocation ? (
+        <SelectedPlantLocationSampleTreesCards
+          singleSelectedPlantLocation={singleSelectedPlantLocation}
+          carouselRef={sampleCarouselRef}
+          setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
+          countryCode={countryCode}
+        />
+      ) : selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
+        <SelectedPlantLocationsCards
           plantLocations={selectedPlantLocations}
-          setIsCarouselRefVisible={setIsCarouselRefVisible}
           carouselRef={carouselRef}
+          setIsCarouselRefVisible={setIsCarouselRefVisible}
+          onPressViewSampleTrees={onPressViewSampleTrees}
         />
       ) : (
         []
@@ -397,13 +364,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
+  extraInfoContainer: {
+    position: 'absolute',
+    top: 25,
+    left: 25,
+    alignItems: 'flex-start',
+  },
   backIconContainer: {
     backgroundColor: Colors.WHITE,
     padding: 10,
     borderRadius: 16,
-    position: 'absolute',
-    top: 25,
-    left: 25,
     borderWidth: 1,
     borderColor: Colors.GRAY_LIGHT,
   },
@@ -425,22 +395,25 @@ const styles = StyleSheet.create({
     top: 1.5,
     left: 0.8,
   },
+  heading: {
+    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+    fontSize: Typography.FONT_SIZE_27,
+    color: Colors.TEXT_COLOR,
+    marginTop: 10,
+  },
+  textButtonContainer: {
+    padding: 10,
+    borderRadius: 8,
+    position: 'relative',
+    left: -8,
+    top: -4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textButton: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.TEXT_COLOR,
+  },
 });
-const polyline: StyleProp<LineLayerStyle> = {
-  lineWidth: 2,
-  lineColor: Colors.PRIMARY,
-  lineOpacity: 0.5,
-  lineJoin: 'bevel',
-};
-const inactivePolyline: StyleProp<LineLayerStyle> = {
-  lineWidth: 2,
-  lineColor: Colors.PLANET_BLACK,
-  lineOpacity: 0.3,
-  lineJoin: 'bevel',
-};
-
-const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
-const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
-
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 1 };
-const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };

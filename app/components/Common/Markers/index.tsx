@@ -19,7 +19,7 @@ type geoJSONType = {
     };
     geometry: {
       type: string;
-      coordinates: never[];
+      coordinates: any[];
     };
   }[];
 };
@@ -105,28 +105,13 @@ const PointAnnotationMarker = ({
   useEffect(() => {
     annotationRefList.current = annotationRefList.current.slice(
       0,
-      onePolygon.geometry.coordinates.length,
+      onePolygon.geometry.coordinates[0].length,
     );
     calloutRefList.current = calloutRefList.current.slice(
       0,
-      onePolygon.geometry.coordinates.length,
+      onePolygon.geometry.coordinates[0].length,
     );
   }, [onePolygon.geometry.coordinates]);
-
-  const onAnnotationSelected = (activeIndex, feature) => {
-    if (activeAnnotationIndex === activeIndex) {
-      return;
-    }
-
-    scaleIn = new Animated.Value(0.6);
-    Animated.timing(scaleIn, { toValue: 1.0, duration: 200 }).start();
-    // setState({ activeAnnotationIndex: activeIndex });
-    setActiveAnnotationIndex(activeIndex);
-
-    if (previousActiveAnnotationIndex !== -1) {
-      // this._map.moveTo(feature.geometry.coordinates, 500);
-    }
-  };
 
   if (onePolygon.geometry.type === 'Point') {
     markers.push(
@@ -153,8 +138,8 @@ const PointAnnotationMarker = ({
       </MapboxGL.PointAnnotation>,
     );
   } else {
-    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
-      let oneMarker = onePolygon.geometry.coordinates[j];
+    for (let j = 0; j < onePolygon.geometry.coordinates[0].length; j++) {
+      let oneMarker = onePolygon.geometry.coordinates[0][j];
       markers.push(
         <MapboxGL.PointAnnotation
           key={`${i}${j}`}
@@ -165,50 +150,13 @@ const PointAnnotationMarker = ({
           }}
           onSelected={(feature) => {
             if (locateTree == ON_SITE) {
-              onPressMarker(false, feature.geometry.coordinates);
+              onPressMarker(false, feature.geometry.coordinates[0]);
               setCoordinateIndex(j);
               setIsSampleTree(false);
               setCoordinateModalShow(true);
             }
-          }}
-          // onDeselected={() => {
-          //   setCoordinateModalShow(false);
-          // }}
-        >
+          }}>
           <MarkerSVG point={alphabets[j]} color={Colors.PRIMARY} />
-          {/* <View style={styles.annotationContainer}>
-            <Image
-              source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }}
-              style={{ width: ANNOTATION_SIZE, height: ANNOTATION_SIZE }}
-              onLoad={() => {
-                annotationRefList.current[j].refresh();
-              }}
-            />
-          </View> */}
-          {/* <MapboxGL.Callout
-            ref={(el) => {
-              calloutRefList.current[j] = el;
-            }}>
-            <View
-              style={{
-                // flex: 1,
-                borderWidth: 1,
-                height: 200,
-                width: 450,
-                borderColor: 'black',
-                backgroundColor: 'pink',
-              }}>
-              <Svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="100"
-                height="100"
-                viewBox="0 0 100 100">
-                <Image x="0" y="0" width="50" height="50" href={species_default} />
-              </Svg>
-
-              <Text>Something</Text>
-            </View>
-          </MapboxGL.Callout> */}
         </MapboxGL.PointAnnotation>,
       );
     }
@@ -219,16 +167,6 @@ const PointAnnotationMarker = ({
 const ANNOTATION_SIZE = 45;
 
 const styles = StyleSheet.create({
-  // annotationContainer: {
-  //   width: ANNOTATION_SIZE,
-  //   height: ANNOTATION_SIZE,
-  //   alignItems: 'center',
-  //   justifyContent: 'center',
-  //   backgroundColor: 'white',
-  //   borderRadius: ANNOTATION_SIZE / 2,
-  //   borderWidth: StyleSheet.hairlineWidth,
-  //   borderColor: 'rgba(0, 0, 0, 0.45)',
-  // },
   annotationContainer: {
     alignItems: 'center',
     backgroundColor: 'white',

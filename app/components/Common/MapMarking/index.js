@@ -98,8 +98,8 @@ export default function MapMarking({
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -172,11 +172,13 @@ export default function MapMarking({
               isPolygonComplete: onePolygon.isPolygonComplete,
             },
             geometry: {
-              type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
-                oneCoordinate.longitude,
-                oneCoordinate.latitude,
-              ]),
+              type: 'Polygon',
+              coordinates: [
+                onePolygon.coordinates.map((oneCoordinate) => [
+                  oneCoordinate.longitude,
+                  oneCoordinate.latitude,
+                ]),
+              ],
             },
           };
         });
@@ -335,7 +337,7 @@ export default function MapMarking({
   };
 
   const pushMaker = async (currentCoords) => {
-    geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = await map.current.getCenter();
+    geoJSON.features[0].geometry.coordinates[0][activeMarkerIndex] = await map.current.getCenter();
 
     setGeoJSON(geoJSON);
 
@@ -765,8 +767,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -811,19 +813,19 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
-                sampleTreesCount:
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
+                  sampleTreesCount:
                     specieId &&
                     specieName &&
                     inventory?.sampleTreesCount == inventory?.completedSampleTreesCount
                       ? inventory?.sampleTreesCount + 1
                       : inventory?.sampleTreesCount || '',
-              })
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${
+              ? `${i18next.t('label.locate_tree_location')} ${
                   alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           TitleRightComponent={renderAccuracyInfo}
         />

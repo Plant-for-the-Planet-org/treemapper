@@ -13,7 +13,7 @@ export const checkLoginAndSync = async ({ sync, dispatch, userDispatch, connecte
         getAllProjects();
 
         checkAndAddUserSpecies().then(() => {
-          // addInventoryFromServer();
+          addInventoryFromServer();
         });
       })
       .catch((err) => bugsnag.notify(err));

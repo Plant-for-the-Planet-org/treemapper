@@ -644,7 +644,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
             let onePolygonTemp = {};
             onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete || false;
             let coordinates = [];
-            onePolygon.geometry.coordinates.map((coordinate) => {
+            onePolygon.geometry.coordinates[0].map((coordinate) => {
               coordinates.push({
                 longitude: coordinate[0],
                 latitude: coordinate[1],
@@ -940,6 +940,16 @@ export const addInventoryToDB = (inventoryFromServer) => {
         realm.write(() => {
           let species = [];
           let coordinates = [];
+          const samplePlantLocations = [];
+
+          if (!inventoryFromServer.id) {
+            console.log(typeof inventoryFromServer);
+            console.log(inventoryFromServer.length);
+            resolve(false);
+            return;
+          }
+
+          console.log('inventoryFromServer', inventoryFromServer.id);
           //for single tree
           if (inventoryFromServer.type === 'single') {
             if (inventoryFromServer.scientificSpecies) {
@@ -947,7 +957,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
                 'ScientificSpecies',
                 `${inventoryFromServer.scientificSpecies}`,
               );
-              let aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              let aliases = specie.aliases || specie.scientificName;
               let treeCount = parseInt(1);
               let id = inventoryFromServer.scientificSpecies;
               species.push({ aliases, treeCount, id });
@@ -965,12 +975,17 @@ export const addInventoryToDB = (inventoryFromServer) => {
               if (plantedSpecie.scientificSpecies && !plantedSpecie.otherSpecies) {
                 id = plantedSpecie.scientificSpecies;
                 specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
-                aliases = specie.aliases ? specie.aliases : specie.scientificName;
+                console.log('species', id, specie);
+                aliases = specie.aliases || specie.scientificName;
               } else {
                 id = 'unknown';
                 aliases = 'Unknown';
               }
               species.push({ aliases, treeCount, id });
+            }
+
+            for (const sample of inventoryFromServer.samplePlantLocations) {
+              samplePlantLocations.push(getFormattedSampleData(sample));
             }
           } else {
             dbLog.warn({
@@ -981,14 +996,20 @@ export const addInventoryToDB = (inventoryFromServer) => {
             return;
           }
 
-          for (
-            let index = 0;
-            index <
-            (inventoryFromServer.type === MULTI && inventoryFromServer.geometry.type === 'Polygon'
+          // if registration is SINGLE or geometry type is Point then [numberOfIterations = 1] else length of coordinates
+          const numberOfIterations =
+            inventoryFromServer.type === MULTI && inventoryFromServer.geometry.type === 'Polygon'
               ? inventoryFromServer.geometry.coordinates[0].length
-              : 1);
-            index++
-          ) {
+              : 1;
+
+          console.log('\n\n');
+          console.log(
+            'samplePlantLocations',
+            inventoryFromServer.samplePlantLocations.length === samplePlantLocations.length,
+          );
+          console.log(`numberOfIterations`, numberOfIterations);
+
+          for (let index = 0; index < numberOfIterations; index++) {
             let coordinate;
             if (
               inventoryFromServer.type === MULTI &&
@@ -998,27 +1019,22 @@ export const addInventoryToDB = (inventoryFromServer) => {
             } else {
               coordinate = inventoryFromServer.geometry.coordinates;
             }
-            let latitude = coordinate[1];
-            let longitude = coordinate[0];
-            let currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
-            let currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
-            let cdnImageUrl;
-            if (inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE) {
-              cdnImageUrl = inventoryFromServer.coordinates[0].image;
-            } else {
-              cdnImageUrl =
-                index === inventoryFromServer.geometry.coordinates[0].length - 1
-                  ? inventoryFromServer.coordinates[0].image
-                  : inventoryFromServer.coordinates[index].image;
-            }
-            let isImageUploaded = true;
+            const latitude = coordinate[1];
+            const longitude = coordinate[0];
+            const currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
+            const currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
+            const cdnImageUrl =
+              inventoryFromServer.geometry.coordinates[0].length - 1
+                ? inventoryFromServer.coordinates[0].image
+                : inventoryFromServer.coordinates[index].image;
+
             coordinates.push({
               latitude,
               longitude,
               currentloclat,
               currentloclong,
               cdnImageUrl,
-              isImageUploaded,
+              isImageUploaded: true,
             });
           }
 
@@ -1050,9 +1066,14 @@ export const addInventoryToDB = (inventoryFromServer) => {
                 : null,
             tagId: inventoryFromServer.tag,
             registrationDate: new Date(inventoryFromServer.registrationDate.split(' ')[0]),
+            sampleTreesCount: samplePlantLocations.length,
+            sampleTrees: samplePlantLocations,
+            completedSampleTreesCount: samplePlantLocations.length,
+            uploadedSampleTreesCount: samplePlantLocations.length,
             locationId: inventoryFromServer.id,
             additionalDetails,
             appMetadata,
+            hid: inventoryFromServer.hid,
           };
           realm.create('Inventory', inventoryData);
 
@@ -1065,6 +1086,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
         });
       })
       .catch((err) => {
+        console.log('err', err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
@@ -1077,105 +1099,31 @@ export const addInventoryToDB = (inventoryFromServer) => {
   });
 };
 
-export const addSampleTree = (sampleTreeFromServer) => {
-  return new Promise((resolve, reject) => {
-    Realm.open(getSchema())
-      .then((realm) => {
-        realm.write(() => {
-          let inventory = realm
-            .objects('Inventory')
-            .filtered(`locationId="${sampleTreeFromServer.parent}"`);
-          if (inventory.length === 0) {
-            dbLog.error({
-              logType: LogTypes.INVENTORY,
-              message: `Cannot find parent for sample tree having location id ${sampleTreeFromServer.id} and parent id ${sampleTreeFromServer.parent}`,
-            });
-            resolve(false);
-          } else {
-            let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
-            if (!locationIds.includes(sampleTreeFromServer.id)) {
-              let specieName;
-              if (sampleTreeFromServer.scientificSpecies) {
-                let specie = realm.objectForPrimaryKey(
-                  'ScientificSpecies',
-                  `${sampleTreeFromServer.scientificSpecies}`,
-                );
-                specieName = specie.scientificName;
-              } else {
-                specieName = 'Unknown';
-              }
-              let latitude = sampleTreeFromServer.geometry.coordinates[1];
-              let longitude = sampleTreeFromServer.geometry.coordinates[0];
-              let deviceLatitude = sampleTreeFromServer.deviceLocation.coordinates[1];
-              let deviceLongitude = sampleTreeFromServer.deviceLocation.coordinates[0];
-              let cdnImageUrl = sampleTreeFromServer.coordinates[0].image;
-              let specieId = sampleTreeFromServer.scientificSpecies || 'unknown';
-              let specieDiameter = sampleTreeFromServer.measurements.width;
-              let specieHeight = sampleTreeFromServer.measurements.height;
-              let tagId = sampleTreeFromServer.tag;
-              let status = SYNCED;
-              let plantationDate = new Date(sampleTreeFromServer.plantDate.split(' ')[0]);
-              let locationId = sampleTreeFromServer.id;
-              let treeType = SAMPLE;
-              let sampleTrees = inventory[0].sampleTrees;
-              const additionalDetails = getFormattedAdditionalDetails(
-                sampleTreeFromServer.metadata,
-              );
+const getFormattedSampleData = (sample) => {
+  let appMetadata;
+  if (sample?.metadata?.app) {
+    appMetadata = JSON.stringify(sample.metadata.app);
+  }
 
-              let appMetadata;
-              if (sampleTreeFromServer?.metadata?.app) {
-                appMetadata = JSON.stringify(sampleTreeFromServer.metadata.app);
-              }
-
-              const sampleTreeData = {
-                latitude,
-                longitude,
-                deviceLatitude,
-                deviceLongitude,
-                cdnImageUrl,
-                specieId,
-                specieName,
-                specieDiameter,
-                specieHeight,
-                tagId,
-                status,
-                plantationDate,
-                locationId,
-                treeType,
-                additionalDetails,
-                appMetadata,
-              };
-
-              sampleTrees.push(sampleTreeData);
-              inventory[0].sampleTrees = sampleTrees;
-              inventory[0].sampleTreesCount = inventory[0].sampleTreesCount + parseInt(1);
-              inventory[0].completedSampleTreesCount =
-                inventory[0].completedSampleTreesCount + parseInt(1);
-              inventory[0].uploadedSampleTreesCount = inventory[0].uploadedSampleTreesCount = parseInt(
-                1,
-              );
-              resolve();
-            } else {
-              dbLog.info({
-                logType: LogTypes.INVENTORY,
-                message: `Sample tree is already added for location id ${sampleTreeFromServer.id} and parent id ${sampleTreeFromServer.parent}`,
-              });
-              resolve(true);
-            }
-          }
-        });
-      })
-      .catch((err) => {
-        // logging the error in to the db
-        dbLog.error({
-          logType: LogTypes.INVENTORY,
-          message: `Error while Adding Sample Tree having location Id ${sampleTreeFromServer.id}`,
-          logStack: JSON.stringify(err),
-        });
-        bugsnag.notify(err);
-        resolve(false);
-      });
-  });
+  const sampleTreeData = {
+    latitude: sample.geometry.coordinates[1],
+    longitude: sample.geometry.coordinates[0],
+    deviceLatitude: sample.deviceLocation.coordinates[1],
+    deviceLongitude: sample.deviceLocation.coordinates[0],
+    cdnImageUrl: sample.coordinates[0].image,
+    specieId: sample.scientificSpecies || 'unknown',
+    specieName: sample.scientificName || 'Unknown',
+    specieDiameter: sample.measurements.width,
+    specieHeight: sample.measurements.height,
+    tagId: sample.tag,
+    status: SYNCED,
+    plantationDate: new Date(sample.plantDate.split(' ')[0]),
+    locationId: sample.id,
+    treeType: SAMPLE,
+    additionalDetails: getFormattedAdditionalDetails(sample.metadata),
+    appMetadata,
+  };
+  return sampleTreeData;
 };
 
 export const addCdnUrl = ({

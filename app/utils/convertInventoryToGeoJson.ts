@@ -52,13 +52,16 @@ export default async function getGeoJsonData({
           ...metadata,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: onePolygon.coordinates.map((oneCoordinate: any) => [
-            oneCoordinate.longitude,
-            oneCoordinate.latitude,
-          ]),
+          type: 'Polygon',
+          coordinates: [
+            onePolygon.coordinates.map((oneCoordinate: any) => [
+              oneCoordinate.longitude,
+              oneCoordinate.latitude,
+            ]),
+          ],
         },
       };
+      console.log('feature', feature.geometry.coordinates);
       // includes inventory id if asked for
       if (includeInventoryId) {
         feature.properties.inventoryId = inventoryData.inventory_id;

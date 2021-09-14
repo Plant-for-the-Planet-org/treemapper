@@ -100,8 +100,8 @@ const InventoryOverview = ({ navigation }: any) => {
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -285,7 +285,7 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const renderMapView = () => {
-    let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
+    let shouldRenderShape = geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
       <MapboxGL.MapView
         showUserLocation={false}

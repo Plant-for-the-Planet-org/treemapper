@@ -13,14 +13,15 @@ import {
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
+import React from 'react';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
  * It requires the following param
  * @param {string} inventoryId - inventory id which should be added/updated in inventory state
  */
-export const setInventoryId = (inventoryId) => async (dispatch) => {
-  await dispatch({
+export const setInventoryId = (inventoryId: string) => (dispatch: React.Dispatch<any>) => {
+  dispatch({
     type: SET_INVENTORY_ID,
     payload: inventoryId,
   });
@@ -29,7 +30,7 @@ export const setInventoryId = (inventoryId) => async (dispatch) => {
 /**
  * This function dispatches type DELETE_INVENTORY_ID and deletes inventory id in inventory state
  */
-export const deleteInventoryId = () => (dispatch) => {
+export const deleteInventoryId = () => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: DELETE_INVENTORY_ID,
   });
@@ -39,7 +40,7 @@ export const deleteInventoryId = () => (dispatch) => {
  * It requires the following param
  * @param {Object} inventoryData - inventory data which should be added in allInventory of inventory state
  */
-export const initiateInventoryState = (inventoryData) => (dispatch) => {
+export const initiateInventoryState = (inventoryData: any) => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: INITIATE_INVENTORY_STATE,
     payload: inventoryData,
@@ -54,7 +55,7 @@ export const initiateInventoryState = (inventoryData) => (dispatch) => {
  * It requires the following param
  * @param {Object} data - data which includes type of count to update and count itself to update in inventory state
  */
-export const updateCount = (data) => (dispatch) => {
+export const updateCount = (data: any) => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: data.type === PENDING_DATA_UPLOAD ? UPDATE_PENDING_COUNT : UPDATE_UPLOAD_COUNT,
     payload: data.count,
@@ -68,7 +69,7 @@ export const updateCount = (data) => (dispatch) => {
  * It requires the following param
  * @param {Object} data - data which includes type of count to update and count itself to update in inventory state
  */
-export const updateProgressCount = (data) => (dispatch) => {
+export const updateProgressCount = (data: any) => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: UPDATE_PROGRESS_COUNT,
     payload: data.count,
@@ -80,7 +81,7 @@ export const updateProgressCount = (data) => (dispatch) => {
  * It requires the following param
  * @param {boolean} isUploading - used to update the uploading status in inventory state
  */
-export const updateIsUploading = (isUploading) => (dispatch) => {
+export const updateIsUploading = (isUploading: boolean) => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: IS_UPLOADING,
     payload: isUploading,
@@ -92,7 +93,9 @@ export const updateIsUploading = (isUploading) => (dispatch) => {
  * It requires the following param
  * @param {boolean} skipToInventoryOverview - used to update the skipToInventoryOverview in inventory state
  */
-export const setSkipToInventoryOverview = (skipToInventoryOverview) => (dispatch) => {
+export const setSkipToInventoryOverview = (skipToInventoryOverview: boolean) => (
+  dispatch: React.Dispatch<any>,
+) => {
   dispatch({
     type: SET_SKIP_TO_INVENTORY_OVERVIEW,
     payload: skipToInventoryOverview,
@@ -104,7 +107,9 @@ export const setSkipToInventoryOverview = (skipToInventoryOverview) => (dispatch
  * It requires the following param
  * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
  */
-export const setIsExtraSampleTree = (isExtraSampleTree) => (dispatch) => {
+export const setIsExtraSampleTree = (isExtraSampleTree: boolean) => (
+  dispatch: React.Dispatch<any>,
+) => {
   dispatch({
     type: SET_IS_EXTRA_SAMPLE_TREE,
     payload: isExtraSampleTree,
@@ -112,26 +117,20 @@ export const setIsExtraSampleTree = (isExtraSampleTree) => (dispatch) => {
 };
 
 export const getAllInventoryFromServer = async (
-  requestRoute = '/treemapper/plantLocations',
-  allInventory = [],
-) => {
+  requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',
+): Promise<any> => {
   try {
-    let data = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
-    let updatedAllInventory = data.data.items.concat(allInventory);
+    let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
+
+    dbLog.info({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Successfully fetched all Inventories From server',
+    });
+
     if (data.data._links.next) {
-      return await getAllInventoryFromServer(data.data._links.next, updatedAllInventory);
+      return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
     } else {
-      let exceptSampleTrees = updatedAllInventory.filter((inventory) => {
-        return inventory.type !== 'sample' && inventory.captureStatus === 'complete';
-      });
-      let sampleTrees = updatedAllInventory.filter((inventory) => {
-        return inventory.type === 'sample' && inventory.captureStatus === 'complete';
-      });
-      dbLog.info({
-        logType: LogTypes.DATA_SYNC,
-        message: 'Successfully fetched all Inventories From server',
-      });
-      return [exceptSampleTrees, sampleTrees];
+      return { data: data?.data?.items ?? [], nextRouteLink: null };
     }
   } catch (err) {
     dbLog.error({
@@ -142,4 +141,5 @@ export const getAllInventoryFromServer = async (
     });
     return [];
   }
+  return [];
 };
