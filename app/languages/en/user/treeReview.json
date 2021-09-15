@@ -36,5 +36,7 @@
   "project_not_assigned": "Project not assigned!",
   "project_not_assigned_message": "Are you sure, you want to save this registration without assigning a project?",
   "plantation_date":"Plantation date: ",
-  "plantation_period":"Plantation period: "
+  "plantation_period":"Plantation period: ",
+  "more_details":"More details",
+  "view_sample_trees":"View sample trees"
 }

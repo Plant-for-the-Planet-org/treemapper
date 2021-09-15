@@ -943,13 +943,10 @@ export const addInventoryToDB = (inventoryFromServer) => {
           const samplePlantLocations = [];
 
           if (!inventoryFromServer.id) {
-            console.log(typeof inventoryFromServer);
-            console.log(inventoryFromServer.length);
             resolve(false);
             return;
           }
 
-          console.log('inventoryFromServer', inventoryFromServer.id);
           //for single tree
           if (inventoryFromServer.type === 'single') {
             if (inventoryFromServer.scientificSpecies) {
@@ -975,7 +972,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
               if (plantedSpecie.scientificSpecies && !plantedSpecie.otherSpecies) {
                 id = plantedSpecie.scientificSpecies;
                 specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
-                console.log('species', id, specie);
                 aliases = specie.aliases || specie.scientificName;
               } else {
                 id = 'unknown';
@@ -1001,13 +997,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
             inventoryFromServer.type === MULTI && inventoryFromServer.geometry.type === 'Polygon'
               ? inventoryFromServer.geometry.coordinates[0].length
               : 1;
-
-          console.log('\n\n');
-          console.log(
-            'samplePlantLocations',
-            inventoryFromServer.samplePlantLocations.length === samplePlantLocations.length,
-          );
-          console.log(`numberOfIterations`, numberOfIterations);
 
           for (let index = 0; index < numberOfIterations; index++) {
             let coordinate;
@@ -1086,7 +1075,6 @@ export const addInventoryToDB = (inventoryFromServer) => {
         });
       })
       .catch((err) => {
-        console.log('err', err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,

@@ -140,6 +140,7 @@ const PointAnnotationMarker = ({
   } else {
     for (let j = 0; j < onePolygon.geometry.coordinates[0].length; j++) {
       let oneMarker = onePolygon.geometry.coordinates[0][j];
+
       markers.push(
         <MapboxGL.PointAnnotation
           key={`${i}${j}`}
@@ -150,7 +151,7 @@ const PointAnnotationMarker = ({
           }}
           onSelected={(feature) => {
             if (locateTree == ON_SITE) {
-              onPressMarker(false, feature.geometry.coordinates[0]);
+              onPressMarker(false, feature.geometry.coordinates);
               setCoordinateIndex(j);
               setIsSampleTree(false);
               setCoordinateModalShow(true);

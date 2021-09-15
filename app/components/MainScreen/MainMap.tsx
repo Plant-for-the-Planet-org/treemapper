@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import i18next from 'i18next';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Linking,
   Platform,
@@ -15,11 +15,13 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { setInventoryId } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { SYNCED } from '../../utils/inventoryConstants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE, SYNCED } from '../../utils/inventoryConstants';
 import { AlertModal } from '../Common';
 import GeoJSONMap from './GeoJSONMap';
 import SelectedPlantLocationSampleTreesCards from './SelectedPlantLocationSampleTreesCards';
@@ -69,6 +71,8 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   // stores the plant locations details of the selected geoJSON
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
+
+  const { dispatch } = useContext(InventoryContext);
 
   const camera = useRef<MapboxGL.Camera | null>(null);
 
@@ -148,15 +152,12 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       }
     }
 
-    console.log('\n\nindexToDelete', indexToDelete);
-
     for (const index of indexToDelete) {
       features.splice(Number(index), 1);
     }
 
     setClickedGeoJSON(newClickedGeoJson);
 
-    // console.log('\n\n', registrations, registrations.length);
     setSelectedPlantLocations(registrations);
     setShowClickedGeoJSON(true);
   };
@@ -175,7 +176,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
         geoJSONFeatures.push(...data.features);
       }
 
-      console.log('geoJSONFeatures', geoJSONFeatures.length);
       setGeoJSON({
         type: 'FeatureCollection',
         features: geoJSONFeatures,
@@ -232,10 +232,23 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   };
 
   const onPressViewSampleTrees = (index: number) => {
-    console.log('onPressViewSampleTrees', index);
+    setInventoryId(selectedPlantLocations[index]?.inventory_id || '')(dispatch);
     setSingleSelectedPlantLocation(selectedPlantLocations[index]);
     setSingleSelectedGeoJSON(clickedGeoJSON[index]);
     setShowSinglePlantLocation(true);
+  };
+
+  const navigateToDetailsScreen = (item: any) => {
+    setInventoryId(item.inventory_id)(dispatch);
+    if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
+      if (item.treeType === SINGLE) {
+        navigation.navigate('SingleTreeOverview');
+      } else {
+        navigation.navigate('InventoryOverview');
+      }
+    } else {
+      navigation.navigate(item.lastScreen);
+    }
   };
 
   return (
@@ -257,6 +270,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
         singleSelectedGeoJSON={singleSelectedGeoJSON}
         isSampleCarouselRefVisible={isSampleCarouselRefVisible}
         sampleCarouselRef={sampleCarouselRef}
+        onPressViewSampleTrees={onPressViewSampleTrees}
       />
 
       {/* shows alert if location permission is not provided */}
@@ -285,15 +299,15 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
           <TouchableOpacity
             onPress={() => {
               if (showSinglePlantLocation) {
-                console.log('showSinglePlantLocation');
                 setShowSinglePlantLocation(false);
                 setSingleSelectedPlantLocation(undefined);
                 setSingleSelectedGeoJSON(geoJSONInitialState);
+                setInventoryId('')(dispatch);
               } else {
-                console.log('setShowClickedGeoJSON');
                 setShowClickedGeoJSON(false);
                 setClickedGeoJSON([geoJSONInitialState]);
                 setSelectedPlantLocations([]);
+                setInventoryId('')(dispatch);
               }
             }}
             style={styles.backIconContainer}>
@@ -302,7 +316,9 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
           {showSinglePlantLocation && singleSelectedPlantLocation ? (
             <>
               <Text style={styles.heading}>HID: {singleSelectedPlantLocation?.hid}</Text>
-              <TouchableOpacity style={styles.textButtonContainer}>
+              <TouchableOpacity
+                style={styles.textButtonContainer}
+                onPress={() => navigateToDetailsScreen(singleSelectedPlantLocation)}>
                 <Text style={styles.textButton}>{i18next.t('label.more_details')}</Text>
                 <Icon name="chevron-right" size={18} color={Colors.TEXT_COLOR} />
               </TouchableOpacity>
@@ -349,6 +365,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
           carouselRef={carouselRef}
           setIsCarouselRefVisible={setIsCarouselRefVisible}
           onPressViewSampleTrees={onPressViewSampleTrees}
+          navigateToDetailsScreen={navigateToDetailsScreen}
         />
       ) : (
         []

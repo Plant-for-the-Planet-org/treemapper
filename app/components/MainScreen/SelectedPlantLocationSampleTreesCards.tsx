@@ -1,6 +1,15 @@
+import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React from 'react';
-import { Dimensions, Image, Platform, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
 import { APIConfig } from '../../actions/Config';
@@ -16,7 +25,7 @@ interface ISelectedPlantLocationSampleTreesCardsProps {
 }
 
 const { width } = Dimensions.get('window');
-const itemWidth = width - 25 * 2;
+const itemWidth = width - 25 * 3;
 
 const SelectedPlantLocationSampleTreesCards = ({
   singleSelectedPlantLocation,
@@ -24,12 +33,15 @@ const SelectedPlantLocationSampleTreesCards = ({
   setIsCarouselRefVisible,
   countryCode,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
+  const navigation = useNavigation();
+
   const heightUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_feet')
     : 'm';
   const diameterUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_inches')
     : 'cm';
+
   return (
     <View style={styles.carousel}>
       <Carousel
@@ -50,37 +62,56 @@ const SelectedPlantLocationSampleTreesCards = ({
             };
           } else if (item?.cdnImageUrl) {
             imageSource = {
-              uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${item?.cdnImageUrl}`,
+              uri: `${protocol}://${cdnUrl}/media/cache/coordinate/large/${item?.cdnImageUrl}`,
             };
           }
-          console.log('imageSource', imageSource);
 
           return (
-            <View style={styles.cardContainer} key={item.locationId}>
-              <View style={styles.slideUpBarContainer}>
-                <View style={styles.slideUpBar} />
-              </View>
-              <View style={styles.infoContainer}>
-                {imageSource ? <Image source={imageSource} style={styles.image} /> : []}
-                <View>
-                  <Text style={styles.hidText}>HID: {item.hid}</Text>
-                  <Text style={[styles.text, { fontStyle: 'italic' }]}>{item.specieName}</Text>
-                  <Text style={styles.text}>
-                    {`${i18next.t('label.plantation_date')} ${i18next.t(
-                      'label.inventory_overview_date',
-                      {
-                        date: new Date(item.plantationDate),
-                      },
-                    )}`}
-                  </Text>
-                  {/* <Text style={styles.text}>{`${item.specieHeight} ${item.specieDiameter}`}</Text> */}
-                  <Text style={styles.text}>
-                    {Math.round(item.specieHeight * 100) / 100} {heightUnit} •{' '}
-                    {Math.round(item.specieDiameter * 100) / 100} {diameterUnit}
-                  </Text>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('SingleTreeOverview', {
+                  isSampleTree: true,
+                  sampleTreeIndex: index,
+                  totalSampleTrees: singleSelectedPlantLocation.totalSampleTrees,
+                });
+              }}>
+              <View style={styles.cardContainer} key={item.locationId}>
+                {/* shows the pull up bar */}
+                <View style={styles.slideUpBarContainer}>
+                  <View style={styles.slideUpBar} />
+                </View>
+                <View style={styles.infoContainer}>
+                  {imageSource ? <Image source={imageSource} style={styles.image} /> : []}
+
+                  {/* textual info of sample tree */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.hidText}>HID: {item.hid}</Text>
+
+                    {/* species name */}
+                    <Text style={[styles.text, { fontStyle: 'italic', opacity: 0.6 }]}>
+                      {item.specieName}
+                    </Text>
+
+                    {/* plantation date */}
+                    <Text style={styles.text}>
+                      {`${i18next.t('label.plantation_date')} ${i18next.t(
+                        'label.inventory_overview_date',
+                        {
+                          date: new Date(item.plantationDate),
+                        },
+                      )}`}
+                    </Text>
+
+                    {/* dimensions and tree tag */}
+                    <Text style={styles.text}>
+                      {`${Math.round(item.specieHeight * 100) / 100}${heightUnit} • ${
+                        Math.round(item.specieDiameter * 100) / 100
+                      }${diameterUnit} • #${item.tagId}`}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />
@@ -101,9 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.GRAY_LIGHT,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
     height: '100%',
   },
   hidText: {
@@ -132,8 +163,10 @@ const styles = StyleSheet.create({
   image: {
     borderRadius: 10,
     marginRight: 16,
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
   textButtonContainer: {
     paddingVertical: 10,

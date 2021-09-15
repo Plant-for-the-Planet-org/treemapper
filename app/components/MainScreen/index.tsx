@@ -200,7 +200,6 @@ export default function MainScreen() {
       setOfflineModal(true);
     }
   };
-  console.log('showClickedGeoJSON', showClickedGeoJSON);
 
   return (
     <>

@@ -23,6 +23,7 @@ import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
 import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { map_img, plus_icon, two_trees } from '../../assets';
@@ -199,7 +200,7 @@ const InventoryOverview = ({ navigation }: any) => {
         }
         if (inventoryData.polygons.length > 0) {
           if (
-            inventoryData.polygons[0].coordinates.length === 1 &&
+            inventoryData.polygons[0].coordinates[0].length === 1 &&
             inventoryData.polygons[0].isPolygonComplete
           ) {
             setIsPointForMultipleTree(true);
@@ -501,7 +502,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates[0].length == 1;
 
     locateType =
       inventory.locateTree === OFF_SITE
@@ -561,6 +562,21 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
+                <TouchableOpacity
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 10,
+                    backgroundColor: Colors.WHITE,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: Colors.GRAY_LIGHT,
+                    position: 'absolute',
+                    top: 30,
+                    right: 6,
+                  }}
+                  onPress={() => navigation.navigate('EditPolygon')}>
+                  <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
+                </TouchableOpacity>
                 {(inventory?.status === INCOMPLETE ||
                   inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
                 inventory?.locateTree === ON_SITE ? (
@@ -766,8 +782,8 @@ const CoordinateOverviewModal = ({
   useEffect(() => {
     if (coordinateIndex || coordinateIndex === 0) {
       if (isSampleTree !== null && !isSampleTree) {
-        setMarker(inventory?.polygons[0].coordinates[coordinateIndex]);
-        initiateMarkerData(inventory?.polygons[0].coordinates[coordinateIndex]);
+        setMarker(inventory?.polygons[0].coordinates[0][coordinateIndex]);
+        initiateMarkerData(inventory?.polygons[0].coordinates[0][coordinateIndex]);
       } else if (isSampleTree !== null && isSampleTree) {
         setMarker(inventory?.sampleTrees[coordinateIndex - 1]);
         initiateMarkerData(inventory?.sampleTrees[coordinateIndex - 1]);
@@ -960,13 +976,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     height: 380,
     marginVertical: 25,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   modalContainer: {
     flex: 1,
-    // justifyContent: 'center',
     alignItems: 'center',
-    // borderWidth: 3,
-    // borderColor: 'green',
     position: 'relative',
   },
 });

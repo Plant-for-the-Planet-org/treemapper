@@ -10,16 +10,18 @@ interface ISelectedPlantLocationsCardsProps {
   carouselRef: any;
   setIsCarouselRefVisible: React.Dispatch<React.SetStateAction<boolean>>;
   onPressViewSampleTrees: any;
+  navigateToDetailsScreen: any;
 }
 
 const { width } = Dimensions.get('window');
-const itemWidth = width - 25 * 2;
+const itemWidth = width - 25 * 3;
 
 const SelectedPlantLocationsCards = ({
   plantLocations,
   carouselRef,
   setIsCarouselRefVisible,
   onPressViewSampleTrees,
+  navigateToDetailsScreen,
 }: ISelectedPlantLocationsCardsProps) => {
   return (
     <View style={styles.carousel}>
@@ -33,20 +35,42 @@ const SelectedPlantLocationsCards = ({
         sliderWidth={width}
         renderItem={({ item, index }: any) => {
           return (
-            <View style={styles.cardContainer} key={item.locationId}>
-              <View style={styles.slideUpBarContainer}>
-                <View style={styles.slideUpBar} />
-              </View>
-              <Text style={styles.hidText}>HID: {item.hid}</Text>
-              {item.sampleTreesCount ? (
-                <Text style={styles.text}>
-                  {`${item.sampleTreesCount} ${i18next.t('label.sample_trees')}`}
-                </Text>
-              ) : (
-                []
-              )}
-              {item.treeType === MULTI ? (
-                <>
+            <TouchableOpacity onPress={() => navigateToDetailsScreen(item)}>
+              <View style={styles.cardContainer} key={item.locationId}>
+                <View style={styles.slideUpBarContainer}>
+                  <View style={styles.slideUpBar} />
+                </View>
+                <Text style={styles.hidText}>HID: {item.hid}</Text>
+                {item.sampleTreesCount ? (
+                  <Text style={styles.text}>
+                    {`${item.sampleTreesCount} ${i18next.t('label.sample_trees')}`}
+                  </Text>
+                ) : (
+                  []
+                )}
+                {item.treeType === MULTI ? (
+                  <>
+                    <Text style={styles.text}>
+                      {`${i18next.t('label.plantation_date')} ${i18next.t(
+                        'label.inventory_overview_date',
+                        {
+                          date: new Date(item.plantation_date),
+                        },
+                      )}`}
+                    </Text>
+                    {item.sampleTreesCount > 0 ? (
+                      <TouchableOpacity
+                        style={styles.textButtonContainer}
+                        onPress={() => onPressViewSampleTrees(index)}>
+                        <Text style={styles.textButton}>
+                          {i18next.t('label.view_sample_trees')}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      []
+                    )}
+                  </>
+                ) : (
                   <Text style={styles.text}>
                     {`${i18next.t('label.plantation_date')} ${i18next.t(
                       'label.inventory_overview_date',
@@ -55,27 +79,9 @@ const SelectedPlantLocationsCards = ({
                       },
                     )}`}
                   </Text>
-                  {item.sampleTreesCount > 0 ? (
-                    <TouchableOpacity
-                      style={styles.textButtonContainer}
-                      onPress={() => onPressViewSampleTrees(index)}>
-                      <Text style={styles.textButton}>{i18next.t('label.view_sample_trees')}</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    []
-                  )}
-                </>
-              ) : (
-                <Text style={styles.text}>
-                  {`${i18next.t('label.plantation_date')} ${i18next.t(
-                    'label.inventory_overview_date',
-                    {
-                      date: new Date(item.plantation_date),
-                    },
-                  )}`}
-                </Text>
-              )}
-            </View>
+                )}
+              </View>
+            </TouchableOpacity>
           );
         }}
       />

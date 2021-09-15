@@ -26,6 +26,7 @@ interface IGeoJSONMapProps {
   singleSelectedGeoJSON: any;
   isSampleCarouselRefVisible: boolean;
   sampleCarouselRef: any;
+  onPressViewSampleTrees: any;
 }
 
 const GeoJSONMap = ({
@@ -45,6 +46,7 @@ const GeoJSONMap = ({
   singleSelectedGeoJSON,
   isSampleCarouselRefVisible,
   sampleCarouselRef,
+  onPressViewSampleTrees,
 }: IGeoJSONMapProps) => {
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
@@ -133,11 +135,7 @@ const GeoJSONMap = ({
             }}>
             <MapboxGL.FillLayer id={'singleSelectedPolyFill'} style={fillStyle} />
             <MapboxGL.LineLayer id={'singleSelectedPolyline'} style={polyline} />
-            <MapboxGL.CircleLayer
-              id={'singleSelectedPolyCircle'}
-              style={circleStyle}
-              aboveLayerID={'singleSelectedPolyFill'}
-            />
+            <MapboxGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} />
           </MapboxGL.ShapeSource>
         </>
       ) : showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
@@ -147,12 +145,15 @@ const GeoJSONMap = ({
               key={`polygonClicked-${index}`}
               id={`polygonClicked-${index}`}
               shape={singleGeoJson}
-              onPress={(e) => {
-                if (isCarouselRefVisible) {
+              onPress={() => {
+                if (activeCarouselIndex === index) {
+                  onPressViewSampleTrees(index);
+                } else if (isCarouselRefVisible) {
                   carouselRef.current.snapToItem(index);
                   setActiveCarouselIndex(index);
                 }
-              }}>
+              }}
+              style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
               <MapboxGL.FillLayer
                 id={`polyFillClicked-${index}`}
                 style={activeCarouselIndex !== index ? inactiveFillStyle : fillStyle}
@@ -182,7 +183,6 @@ const GeoJSONMap = ({
           shape={geoJSON}
           onPress={(e) => {
             if (e?.features.length > 0) {
-              console.log(e?.features.length, e?.features);
               getSelectedPlantLocations(e.features);
             }
           }}>

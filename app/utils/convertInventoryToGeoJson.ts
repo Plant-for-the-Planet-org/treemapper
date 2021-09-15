@@ -61,7 +61,7 @@ export default async function getGeoJsonData({
           ],
         },
       };
-      console.log('feature', feature.geometry.coordinates);
+
       // includes inventory id if asked for
       if (includeInventoryId) {
         feature.properties.inventoryId = inventoryData.inventory_id;

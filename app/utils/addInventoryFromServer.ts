@@ -13,7 +13,6 @@ export const addInventoryFromServer = async (nextRouteLink = '') => {
   if (allRegistrationsDetails.data.length !== 0) {
     getInventoryByStatus([SYNCED])
       .then((allRegistrations: any) => {
-        console.log('allRegistrations', allRegistrations.length);
         if (allRegistrations.length === 0) {
           for (const registration of allRegistrationsDetails.data) {
             if (registration.captureStatus === 'complete') addInventoryToDB(registration);
@@ -25,8 +24,6 @@ export const addInventoryFromServer = async (nextRouteLink = '') => {
                 ({ locationId: locationId2 }: any) => locationId2 === locationId1,
               ),
           );
-
-          console.log('notAddedRegistrations', notAddedRegistrations.length);
 
           for (const registration of notAddedRegistrations) {
             if (registration.captureStatus === 'complete') addInventoryToDB(registration);
