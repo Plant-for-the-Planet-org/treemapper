@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Modal, StyleSheet } from 'react-native';
-import { SAMPLE, OFF_SITE, MULTI, ON_SITE } from '../../../utils/inventoryConstants';
-import { Alrighty } from '../';
-import i18next from 'i18next';
-import { updateLastScreen, polygonUpdate, addCoordinates } from '../../../repositories/inventory';
-import { off_site_enable_banner } from '../../../assets';
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React from 'react';
+import { Modal, StyleSheet, View } from 'react-native';
+import { Alrighty } from '../';
+import { off_site_enable_banner } from '../../../assets';
+import { addCoordinates, polygonUpdate, updateLastScreen } from '../../../repositories/inventory';
+import { MULTI, OFF_SITE, ON_SITE, SAMPLE } from '../../../utils/inventoryConstants';
 
 const infographicText = [
   {
@@ -22,12 +22,26 @@ const infographicText = [
   },
 ];
 
+interface IMapAlrightyModalProps {
+  treeType?: any;
+  updateScreenState?: any;
+  showAlrightyModal?: any;
+  setShowAlrightyModal?: any;
+  locateTree?: any;
+  setIsCompletePolygon?: any;
+  activePolygonIndex?: any;
+  geoJSON?: any;
+  location?: any;
+  updateActiveMarkerIndex?: any;
+  activeMarkerIndex?: any;
+  inventoryId?: any;
+}
+
 export default function MapAlrightyModal({
   treeType,
   updateScreenState,
   showAlrightyModal,
   setShowAlrightyModal,
-  skipPicture,
   locateTree,
   setIsCompletePolygon,
   activePolygonIndex,
@@ -36,7 +50,7 @@ export default function MapAlrightyModal({
   updateActiveMarkerIndex,
   activeMarkerIndex,
   inventoryId,
-}) {
+}: IMapAlrightyModalProps) {
   let navigation = useNavigation();
 
   let subHeading = i18next.t('label.alright_modal_sub_header');
@@ -81,7 +95,10 @@ export default function MapAlrightyModal({
     addCoordinates({
       inventory_id: inventoryId,
       geoJSON: geoJSON,
-      currentCoords: { latitude: location.coords.latitude, longitude: location.coords.longitude },
+      currentCoords:
+        locateTree === OFF_SITE
+          ? null
+          : { latitude: location.coords.latitude, longitude: location.coords.longitude },
     }).then(() => {
       if (locateTree !== ON_SITE) {
         // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
@@ -113,18 +130,13 @@ export default function MapAlrightyModal({
           closeIcon
           bannerImage={bannerImage}
           onPressClose={onPressClose}
-          onPressWhiteButton={
-            // treeType === SAMPLE
-            //   ? skipPicture
-            //   :
-            treeType === MULTI ? updateAndCompletePolygon : onPressClose
-          }
+          onPressWhiteButton={treeType === MULTI ? updateAndCompletePolygon : onPressClose}
           onPressContinue={
             treeType === MULTI
               ? () => setShowAlrightyModal(false)
               : locateTree === OFF_SITE
-                ? offSiteContinue
-                : moveScreen
+              ? offSiteContinue
+              : moveScreen
           }
           heading={heading}
           subHeading={subHeading}

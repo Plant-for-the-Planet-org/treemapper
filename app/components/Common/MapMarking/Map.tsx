@@ -1,16 +1,15 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Logger from '@react-native-mapbox-gl/maps/javascript/utils/Logger';
-import React, { useState, createRef, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Platform } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Config from 'react-native-config';
-import { SvgXml, Svg } from 'react-native-svg';
+import { SvgXml } from 'react-native-svg';
+import { active_marker } from '../../../assets';
+import { Colors, Typography } from '../../../styles';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
-import { active_marker, marker_png } from '../../../assets';
-import { Colors, Typography } from '_styles';
-import SampleTreeMarkers from '../SampleTreeMarkers';
 import Markers from '../Markers';
+import SampleTreeMarkers from '../SampleTreeMarkers';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
-const IS_ANDROID = Platform.OS === 'android';
 
 Logger.setLogCallback((log) => {
   const { message } = log;
@@ -24,6 +23,20 @@ Logger.setLogCallback((log) => {
   return false;
 });
 
+interface IMapProps {
+  geoJSON?: any;
+  treeType?: any;
+  setLoader?: any;
+  map?: any;
+  camera?: any;
+  setIsCameraRefVisible?: any;
+  location?: any;
+  loader?: any;
+  markerText?: any;
+  activePolygonIndex?: any;
+  setLocation?: any;
+}
+
 export default function Map({
   geoJSON,
   treeType,
@@ -36,7 +49,7 @@ export default function Map({
   markerText,
   activePolygonIndex,
   setLocation,
-}) {
+}: IMapProps) {
   let shouldRenderShape = geoJSON.features[activePolygonIndex].geometry.coordinates.length > 1;
   const onChangeRegionStart = () => setLoader(true);
 
@@ -70,22 +83,6 @@ export default function Map({
         {(treeType === MULTI || treeType === SAMPLE) && shouldRenderShape && (
           <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            {/* <MapboxGL.SymbolLayer
-              id="asd"
-              sourceID="polygon"
-              style={{
-                iconSize: 1,
-                iconAllowOverlap: true,
-              }}>
-              <View
-                style={{ height: 40, width: 40 }}
-                pointerEvents="none" // this is important for the onPress prop of ShapeSource to work
-              >
-                <SvgXml xml={active_marker} style={styles.markerImage} />
-
-                <Text>something</Text>
-              </View>
-            </MapboxGL.SymbolLayer> */}
           </MapboxGL.ShapeSource>
         )}
         {location && (

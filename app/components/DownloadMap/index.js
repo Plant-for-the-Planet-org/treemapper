@@ -1,3 +1,4 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import i18next from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
@@ -15,16 +16,15 @@ import {
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNetInfo } from '@react-native-community/netinfo';
 import { Colors, Typography } from '_styles';
-import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
-import { permission } from '../../utils/permissions';
-import { AlertModal, Header, PrimaryButton } from '../Common';
 import dbLog from '../../repositories/logs';
+import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 import { LogTypes } from '../../utils/constants';
+import { locationPermission } from '../../utils/permissions';
+import { AlertModal, Header, PrimaryButton } from '../Common';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
-const IS_ANDROID = Platform.OS === 'android';
+const isAndroid = Platform.OS === 'android';
 
 const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
@@ -52,7 +52,7 @@ const DownloadMap = ({ navigation }) => {
   };
 
   const initialMapCamera = () => {
-    permission()
+    locationPermission()
       .then(() => {
         Geolocation.getCurrentPosition(
           (position) => {
@@ -350,7 +350,7 @@ const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.cancel')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        if (IS_ANDROID) {
+        if (isAndroid) {
           Linking.openSettings();
         } else {
           Linking.openURL('app-settings:');

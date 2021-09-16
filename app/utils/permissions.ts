@@ -3,19 +3,23 @@ import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { bugsnag } from '.';
 
-const IS_ANDROID = Platform.OS === 'android';
+const isAndroid = Platform.OS === 'android';
 
-export const permission = () => {
+export const locationPermission = () => {
   return new Promise((resolve, reject) => {
-    if (IS_ANDROID) {
+    if (isAndroid) {
       PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
         .then((granted) => {
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            resolve('granted');
-          } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            reject(new Error('blocked'));
-          } else {
-            reject(new Error('denied'));
+          switch (granted) {
+            case PermissionsAndroid.RESULTS.GRANTED:
+              resolve('granted');
+              return true;
+            case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+              reject(new Error('blocked'));
+              return false;
+            case PermissionsAndroid.RESULTS.DENIED:
+              reject(new Error('denied'));
+              return false;
           }
         })
         .catch((err) => console.warn(err));
@@ -33,7 +37,7 @@ export const permission = () => {
 
 export const askExternalStoragePermission = async () => {
   try {
-    if (!IS_ANDROID) {
+    if (!isAndroid) {
       return true;
     }
     const granted = await PermissionsAndroid.request(
