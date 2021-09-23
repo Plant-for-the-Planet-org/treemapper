@@ -14,6 +14,8 @@
 		20D2644A2B20FFD63D269B6F /* libPods-treemapper-treemapperTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F5F7791F10A781C1870B0145 /* libPods-treemapper-treemapperTests.a */; };
 		63AB860FEF872767267EAC84 /* libPods-treemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BE722054B5D5A8289BA867A2 /* libPods-treemapper.a */; };
 		6B2967AB24C95D480025A1E2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */; };
+		6B9F6B7226FCD571008A6FFC /* Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F6B7126FCD571008A6FFC /* Void.swift */; };
+		6B9F6B7326FCD571008A6FFC /* Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F6B7126FCD571008A6FFC /* Void.swift */; };
 		6BD599BD24DFF67F00E90953 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6BD599BF24DFF67F00E90953 /* InfoPlist.strings */; };
 		C46E965824740409003148A3 /* OpenSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */; };
 		C46E965924740411003148A3 /* OpenSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */; };
@@ -54,6 +56,9 @@
 		4A744DF6EAD84ED68E567CA0 /* OpenSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6B2B65B55D99DB7473C6C3EE /* libPods-treemapper-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B9F6B6F26FCD571008A6FFC /* treemapper-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "treemapper-Bridging-Header.h"; sourceTree = "<group>"; };
+		6B9F6B7026FCD571008A6FFC /* treemapperTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "treemapperTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		6B9F6B7126FCD571008A6FFC /* Void.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Void.swift; path = treemapper/Void.swift; sourceTree = "<group>"; };
 		6BD599BE24DFF67F00E90953 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6BD599C024DFF68700E90953 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6BD599C124DFF68700E90953 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -143,6 +148,9 @@
 				6BD599BF24DFF67F00E90953 /* InfoPlist.strings */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */,
+				6B9F6B7126FCD571008A6FFC /* Void.swift */,
+				6B9F6B6F26FCD571008A6FFC /* treemapper-Bridging-Header.h */,
+				6B9F6B7026FCD571008A6FFC /* treemapperTests-Bridging-Header.h */,
 			);
 			name = treemapper;
 			sourceTree = "<group>";
@@ -304,11 +312,12 @@
 					00E356ED1AD99517003FC87E = {
 						CreatedOnToolsVersion = 6.2;
 						DevelopmentTeam = UYRJ8SA699;
+						LastSwiftMigration = 1300;
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = UYRJ8SA699;
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1300;
 					};
 				};
 			};
@@ -594,6 +603,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00E356F31AD99517003FC87E /* treemapperTests.m in Sources */,
+				6B9F6B7326FCD571008A6FFC /* Void.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -603,6 +613,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				6B9F6B7226FCD571008A6FFC /* Void.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,7 +647,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A1F7C12F347A846DEE89AFB9 /* Pods-treemapper-treemapperTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -652,6 +665,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "treemapperTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
 			};
 			name = Debug;
@@ -660,7 +676,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 49B873912C5F56DFA70E5800 /* Pods-treemapper-treemapperTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = UYRJ8SA699;
 				INFOPLIST_FILE = treemapperTests/Info.plist;
@@ -673,6 +691,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "treemapperTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
 			};
 			name = Release;
@@ -696,6 +716,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treemapper;
 				PRODUCT_NAME = TreeMapper;
+				SWIFT_OBJC_BRIDGING_HEADER = "treemapper-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -721,6 +742,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.pftp.treemapper;
 				PRODUCT_NAME = TreeMapper;
+				SWIFT_OBJC_BRIDGING_HEADER = "treemapper-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
