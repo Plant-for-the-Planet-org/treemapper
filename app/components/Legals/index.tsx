@@ -12,13 +12,13 @@ export default function Legals() {
   const navigation = useNavigation();
 
   const onPressImprint = () => {
-    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/imprint`);
+    openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
   };
   const onPressPolicy = () => {
-    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/privacy-terms`);
+    openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
   };
   const onPressTerms = () => {
-    openWebView(`https://a.plant-for-the-planet.org/${i18next.language}/privacy-terms`);
+    openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
   };
   const onPressOpenSource = () => {
     openWebView('https://github.com/Plant-for-the-Planet-org/treemapper/network/dependencies');
