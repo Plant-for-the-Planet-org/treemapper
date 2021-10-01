@@ -1,8 +1,9 @@
-import { getAllInventoryFromServer } from '../actions/inventory';
+import { getAllInventoryFromServer, updateInventoryFetchFromServer } from '../actions/inventory';
+import { inventoryFetchConstant } from '../reducers/inventory';
 import { addInventoryToDB, getInventoryByStatus } from '../repositories/inventory';
 import { SYNCED } from './inventoryConstants';
 
-export const addInventoryFromServer = async (nextRouteLink = '') => {
+export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
   let allRegistrationsDetails: any;
   if (nextRouteLink) {
     allRegistrationsDetails = await getAllInventoryFromServer(`${nextRouteLink}&_scope=extended`);
@@ -31,9 +32,13 @@ export const addInventoryFromServer = async (nextRouteLink = '') => {
         }
 
         if (allRegistrationsDetails.nextRouteLink) {
-          addInventoryFromServer(allRegistrationsDetails.nextRouteLink);
+          addInventoryFromServer(allRegistrationsDetails.nextRouteLink, dispatch);
+        } else {
+          updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch)
         }
       })
-      .catch((err: any) => {});
+      .catch((err: any) => { });
+  } else {
+    updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch)
   }
 };

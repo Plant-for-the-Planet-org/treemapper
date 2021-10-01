@@ -45,6 +45,8 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
+  DATA_UPLOAD_START,
+  getPendingStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -200,7 +202,7 @@ const InventoryOverview = ({ navigation }: any) => {
         }
         if (inventoryData.polygons.length > 0) {
           if (
-            inventoryData.polygons[0].coordinates[0].length === 1 &&
+            inventoryData.polygons[0].coordinates.length === 1 &&
             inventoryData.polygons[0].isPolygonComplete
           ) {
             setIsPointForMultipleTree(true);
@@ -318,10 +320,7 @@ const InventoryOverview = ({ navigation }: any) => {
         {!isPointForMultipleTree ? (
           <Markers
             geoJSON={geoJSON}
-            setCoordinateModalShow={setCoordinateModalShow}
-            setCoordinateIndex={setCoordinateIndex}
             onPressMarker={onPressMarker}
-            setIsSampleTree={setIsSampleTree}
             locateTree={inventory.locateTree}
           />
         ) : (
@@ -331,7 +330,9 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const onPressMarker = async (isSampleTree: boolean, coordinate: []) => {
+  const onPressMarker = async ({ isSampleTree, coordinate, coordinateIndex }: any) => {
+    setCoordinateIndex(coordinateIndex);
+    setIsSampleTree(isSampleTree);
     let approxModalHeight = isSampleTree ? 250 : 150;
     let halfMapHeight = 215;
     let markerHeight = 45;
@@ -361,6 +362,7 @@ const InventoryOverview = ({ navigation }: any) => {
       setCustomModalPosition(halfMapHeight);
     }
     focusMarker(coordinate);
+    setCoordinateModalShow(true);
   };
 
   const onChangeDate = (selectedDate: any) => {
@@ -562,21 +564,25 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
-                <TouchableOpacity
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 10,
-                    backgroundColor: Colors.WHITE,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: Colors.GRAY_LIGHT,
-                    position: 'absolute',
-                    top: 30,
-                    right: 6,
-                  }}
-                  onPress={() => navigation.navigate('EditPolygon')}>
-                  <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
-                </TouchableOpacity>
+                {inventory?.status && !getPendingStatus().includes(inventory?.status) ? (
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      backgroundColor: Colors.WHITE,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: Colors.GRAY_LIGHT,
+                      position: 'absolute',
+                      top: 30,
+                      right: 6,
+                    }}
+                    onPress={() => navigation.navigate('EditPolygon')}>
+                    <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
+                  </TouchableOpacity>
+                ) : (
+                  []
+                )}
                 {(inventory?.status === INCOMPLETE ||
                   inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
                 inventory?.locateTree === ON_SITE ? (

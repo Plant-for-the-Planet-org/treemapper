@@ -1,28 +1,20 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import {
-  Linking,
-  Platform,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { setInventoryId } from '../../actions/inventory';
-import { InventoryContext } from '../../reducers/inventory';
+import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { getSchema } from '../../repositories/default';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE, SYNCED } from '../../utils/inventoryConstants';
 import { AlertModal } from '../Common';
+import BackButton from '../Common/BackButton';
 import GeoJSONMap from './GeoJSONMap';
 import SelectedPlantLocationSampleTreesCards from './SelectedPlantLocationSampleTreesCards';
 import SelectedPlantLocationsCards from './SelectedPlantLocationsCards';
@@ -72,7 +64,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
 
-  const { dispatch } = useContext(InventoryContext);
+  const { state, dispatch } = useContext(InventoryContext);
 
   const camera = useRef<MapboxGL.Camera | null>(null);
 
@@ -80,6 +72,12 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
   const sampleCarouselRef = useRef(null);
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+    if (state.inventoryFetchProgress === inventoryFetchConstant.COMPLETED) {
+      initializeInventory();
+    }
+  }, [state.inventoryFetchProgress]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -192,8 +190,8 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     if (isCameraRefVisible && camera?.current?.setCamera) {
       setIsInitial(false);
       camera.current.setCamera({
-        // centerCoordinate: [position.coords.longitude, position.coords.latitude],
-        centerCoordinate: [-90.133284, 18.675638],
+        centerCoordinate: [position.coords.longitude, position.coords.latitude],
+        // centerCoordinate: [-90.133284, 18.675638],
         zoomLevel: 15,
         animationDuration: 1000,
       });
@@ -296,8 +294,8 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
       {/* shows single plant location hid if single plant location is selected */}
       {showClickedGeoJSON || showSinglePlantLocation ? (
         <View style={styles.extraInfoContainer}>
-          <TouchableOpacity
-            onPress={() => {
+          <BackButton
+            onBackPress={() => {
               if (showSinglePlantLocation) {
                 setShowSinglePlantLocation(false);
                 setSingleSelectedPlantLocation(undefined);
@@ -310,9 +308,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
                 setInventoryId('')(dispatch);
               }
             }}
-            style={styles.backIconContainer}>
-            <Icon name="chevron-left" size={30} />
-          </TouchableOpacity>
+          />
           {showSinglePlantLocation && singleSelectedPlantLocation ? (
             <>
               <Text style={styles.heading}>HID: {singleSelectedPlantLocation?.hid}</Text>
@@ -340,9 +336,9 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
                 }
               }}
               style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
-              accessibilityLabel="Register Tree Camera"
+              accessibilityLabel="my_location"
               accessible={true}
-              testID="register_tree_camera">
+              testID="my_location">
               <View style={Platform.OS === 'ios' && styles.myLocationIconContainer}>
                 <Icon name={'my-location'} size={22} />
               </View>

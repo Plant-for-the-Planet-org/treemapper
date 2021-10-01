@@ -2,24 +2,27 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import { InventoryContext } from '../../reducers/inventory';
+import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { clearAllUploadedInventory, getInventoryCount } from '../../repositories/inventory';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { AlertModal, Sync } from '../Common';
+import RotatingView from '../Common/RotatingView';
 import ProfileModal from '../ProfileModal';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import MainMap from './MainMap';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -106,10 +109,7 @@ export default function MainScreen() {
   }
 
   function inventoryListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
-    if (changes.deletions.length > 0) {
-      fetchInventoryCount();
-    }
-    if (changes.insertions.length > 0) {
+    if (changes.deletions.length > 0 || changes.insertions.length > 0) {
       fetchInventoryCount();
     }
   }
@@ -159,7 +159,7 @@ export default function MainScreen() {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
-      auth0Login(userDispatch)
+      auth0Login(userDispatch, dispatch)
         .then(() => {
           stopLoading()(loadingDispatch);
           fetchUserDetails();
@@ -210,24 +210,38 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              position: 'absolute',
-              top: 25,
-              left: 25,
-              right: 25,
-            }}>
-            <Sync
-              uploadCount={state.uploadCount}
-              pendingCount={state.pendingCount}
-              isUploading={state.isUploading}
-              isUserLogin={isUserLogin}
-              setEmailAlert={setEmailAlert}
-            />
-            <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+          <View style={{ position: 'absolute', top: 25, left: 25, right: 25 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Sync
+                uploadCount={state.uploadCount}
+                pendingCount={state.pendingCount}
+                isUploading={state.isUploading}
+                isUserLogin={isUserLogin}
+                setEmailAlert={setEmailAlert}
+              />
+              <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+            </View>
+            {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
+              <View style={styles.fetchPlantLocationContainer}>
+                <View style={{ marginRight: 16 }}>
+                  <RotatingView isClockwise={true}>
+                    <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
+                  </RotatingView>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.text}>
+                    {i18next.t('label.plant_location_fetch_in_progress')}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              []
+            )}
           </View>
           <BottomBar
             onMenuPress={() => setIsProfileModalVisible(true)}
@@ -258,3 +272,22 @@ export default function MainScreen() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  fetchPlantLocationContainer: {
+    marginTop: 20,
+    backgroundColor: Colors.WHITE,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  text: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.TEXT_COLOR,
+  },
+});

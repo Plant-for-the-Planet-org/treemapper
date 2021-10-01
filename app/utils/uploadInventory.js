@@ -6,7 +6,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
   return new Promise((resolve, reject) => {
     isLogin().then((isUserLogin) => {
       if (!isUserLogin) {
-        auth0Login(userDispatch)
+        auth0Login(userDispatch, dispatch)
           .then((isUserLogin) => {
             isUserLogin ? resolve() : reject(new Error('User is not logged in'));
           })

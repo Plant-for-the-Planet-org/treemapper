@@ -645,7 +645,7 @@ export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
             let onePolygonTemp = {};
             onePolygonTemp.isPolygonComplete = onePolygon.properties.isPolygonComplete || false;
             let coordinates = [];
-            onePolygon.geometry.coordinates[0].map((coordinate) => {
+            onePolygon.geometry.coordinates.map((coordinate) => {
               coordinates.push({
                 longitude: coordinate[0],
                 latitude: coordinate[1],
@@ -1035,6 +1035,19 @@ export const addInventoryToDB = (inventoryFromServer) => {
             appMetadata = JSON.stringify(inventoryFromServer.metadata.app);
           }
 
+          let originalGeometry = '';
+
+          if (
+            (inventoryFromServer?.originalGeometry &&
+              Array.isArray(inventoryFromServer?.originalGeometry?.coordinates) &&
+              inventoryFromServer?.originalGeometry?.type === 'Point' &&
+              inventoryFromServer?.originalGeometry?.coordinates.length === 2) ||
+            (inventoryFromServer?.originalGeometry?.type === 'Polygon' &&
+              inventoryFromServer?.originalGeometry?.coordinates.length > 0)
+          ) {
+            originalGeometry = JSON.stringify(inventoryFromServer.originalGeometry);
+          }
+
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
@@ -1065,13 +1078,14 @@ export const addInventoryToDB = (inventoryFromServer) => {
             additionalDetails,
             appMetadata,
             hid: inventoryFromServer.hid,
+            originalGeometry,
           };
           realm.create('Inventory', inventoryData);
 
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
-            message: `Inventory added with inventory_id: ${inventoryID}`,
+            message: `Inventory added with location id: ${inventoryFromServer.id}`,
           });
           resolve(inventoryData);
         });
@@ -1080,7 +1094,7 @@ export const addInventoryToDB = (inventoryFromServer) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: 'Error while adding inventory',
+          message: `Error while adding inventory with location id: ${inventoryFromServer.id}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -1105,6 +1119,7 @@ const getFormattedSampleData = (sample) => {
     specieName: sample.scientificName || 'Unknown',
     specieDiameter: sample.measurements.width,
     specieHeight: sample.measurements.height,
+    hid: sample.hid,
     tagId: sample.tag,
     status: SYNCED,
     plantationDate: new Date(sample.plantDate.split(' ')[0]),

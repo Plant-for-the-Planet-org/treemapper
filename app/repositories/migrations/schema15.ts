@@ -141,6 +141,9 @@ const Inventory = {
     appMetadata: 'string?',
     // stores the hid when registration is uploaded successfully
     hid: 'string?',
+    // stores the original geoJSON of coordinates in string which was uploaded
+    // for the first time for a registration
+    originalGeometry: 'string?'
   },
 };
 

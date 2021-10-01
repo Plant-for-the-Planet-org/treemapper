@@ -21,6 +21,7 @@ import {
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
+  getPendingStatus,
   POINT,
   POLYGON,
   SINGLE,
@@ -146,14 +147,8 @@ export const uploadInventory = async (dispatch) => {
   return new Promise((resolve, reject) => {
     const init = async () => {
       // get pending inventories from realm DB
-      const pendingInventory = await getInventoryByStatus([PENDING_DATA_UPLOAD, DATA_UPLOAD_START]);
-      // get inventories whose images are pending tob be uploaded from realm DB
-      const uploadingInventory = await getInventoryByStatus([
-        PENDING_IMAGE_UPLOAD,
-        PENDING_SAMPLE_TREES_UPLOAD,
-      ]);
-      // copies pending and uploading inventory
-      let inventoryData = [...uploadingInventory, ...pendingInventory];
+      let inventoryData = await getInventoryByStatus(getPendingStatus());
+
       // updates the count of inventories that is going to be uploaded
       updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
       // changes the status of isUploading to true, to show that data started to sync

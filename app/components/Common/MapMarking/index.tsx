@@ -116,8 +116,8 @@ export default function MapMarking({
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'Polygon',
-          coordinates: [[]],
+          type: 'LineString',
+          coordinates: [],
         },
       },
     ],
@@ -203,13 +203,11 @@ export default function MapMarking({
               isPolygonComplete: onePolygon.isPolygonComplete,
             },
             geometry: {
-              type: 'Polygon',
-              coordinates: [
-                onePolygon.coordinates.map((oneCoordinate) => [
-                  oneCoordinate.longitude,
-                  oneCoordinate.latitude,
-                ]),
-              ],
+              type: 'LineString',
+              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
+                oneCoordinate.longitude,
+                oneCoordinate.latitude,
+              ]),
             },
           };
         });
@@ -378,7 +376,7 @@ export default function MapMarking({
   };
 
   const pushMaker = async (currentCoords: any = null) => {
-    geoJSON.features[0].geometry.coordinates[0][activeMarkerIndex] = await map.current.getCenter();
+    geoJSON.features[0].geometry.coordinates[activeMarkerIndex] = await map.current.getCenter();
 
     setGeoJSON(geoJSON);
 
@@ -570,20 +568,23 @@ export default function MapMarking({
             });
             dbLog.info({
               logType: LogTypes.INVENTORY,
-              message: `Successfully added map coordinate for sample tree #${inventory.completedSampleTreesCount + 1
-                } having inventory_id: ${inventoryID}`,
+              message: `Successfully added map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventoryID}`,
             });
             setShowAlrightyModal(true);
           })
           .catch((err) => {
             dbLog.error({
               logType: LogTypes.INVENTORY,
-              message: `Failed to add map coordinate for sample tree #${inventory.completedSampleTreesCount + 1
-                } having inventory_id: ${inventoryID}`,
+              message: `Failed to add map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
+              } having inventory_id: ${inventoryID}`,
               logStack: JSON.stringify(err),
             });
             console.error(
-              `Failed to add map coordinate for sample tree #${inventory.completedSampleTreesCount + 1
+              `Failed to add map coordinate for sample tree #${
+                inventory.completedSampleTreesCount + 1
               } having inventory_id: ${inventoryID}`,
               err,
             );
@@ -770,8 +771,8 @@ export default function MapMarking({
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -817,18 +818,19 @@ export default function MapMarking({
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
-                ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
-                sampleTreesCount:
-                  specieId &&
+                  ongoingSampleTreeNumber: inventory?.completedSampleTreesCount + 1 || '',
+                  sampleTreesCount:
+                    specieId &&
                     specieName &&
                     inventory?.sampleTreesCount == inventory?.completedSampleTreesCount
-                    ? inventory?.sampleTreesCount + 1
-                    : inventory?.sampleTreesCount || '',
-              })
+                      ? inventory?.sampleTreesCount + 1
+                      : inventory?.sampleTreesCount || '',
+                })
               : treeType === MULTI
-                ? `${i18next.t('label.locate_tree_location')} ${alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
+              ? `${i18next.t('label.locate_tree_location')} ${
+                  alphabets.length > 0 ? alphabets[activeMarkerIndex] : ''
                 }`
-                : i18next.t('label.tree_map_marking_header')
+              : i18next.t('label.tree_map_marking_header')
           }
           TitleRightComponent={renderAccuracyInfo}
         />
@@ -876,7 +878,7 @@ export default function MapMarking({
       <PermissionDeniedAlert
         isPermissionDeniedAlertShow={isPermissionDenied}
         setIsPermissionDeniedAlertShow={setIsPermissionDenied}
-        onPressPrimaryBtn={() => { }}
+        onPressPrimaryBtn={() => {}}
         onPressSecondaryBtn={resetRouteStack}
       />
     </View>

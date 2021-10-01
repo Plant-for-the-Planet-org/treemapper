@@ -23,6 +23,7 @@ import {
   DATA_UPLOAD_START,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
+  PENDING_DATA_UPDATE,
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
@@ -101,7 +102,7 @@ const TreeInventory = () => {
     getInventoryByStatus([INCOMPLETE, INCOMPLETE_SAMPLE_TREE]).then((inventoryList) => {
       setInCompleteInventory(inventoryList);
     });
-    getInventoryByStatus([PENDING_DATA_UPLOAD]).then((inventoryList) => {
+    getInventoryByStatus([PENDING_DATA_UPLOAD, PENDING_DATA_UPDATE]).then((inventoryList) => {
       setPendingInventory(inventoryList);
     });
     getInventoryByStatus([

@@ -9,6 +9,7 @@ import {
   UPDATE_PROGRESS_COUNT,
   SET_SKIP_TO_INVENTORY_OVERVIEW,
   SET_IS_EXTRA_SAMPLE_TREE,
+  INVENTORY_FETCH_FROM_SERVER
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
@@ -116,6 +117,20 @@ export const setIsExtraSampleTree = (isExtraSampleTree: boolean) => (
   });
 };
 
+/**
+ * This function dispatches type INVENTORY_FETCH_FROM_SERVER with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {string} fetchStatus - used to update the inventoryFetchProgress in inventory state
+ */
+export const updateInventoryFetchFromServer = (fetchStatus: string) => (
+  dispatch: React.Dispatch<any>,
+) => {
+  dispatch({
+    type: INVENTORY_FETCH_FROM_SERVER,
+    payload: fetchStatus,
+  });
+};
+
 export const getAllInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',
 ): Promise<any> => {
@@ -139,7 +154,6 @@ export const getAllInventoryFromServer = async (
       statusCode: err?.response?.status,
       logStack: JSON.stringify(err?.response),
     });
-    return [];
+    return { data: [], nextRouteLink: null };
   }
-  return [];
 };
