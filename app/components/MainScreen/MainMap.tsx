@@ -158,6 +158,10 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
 
     setSelectedPlantLocations(registrations);
     setShowClickedGeoJSON(true);
+
+    if (features.length === 1) {
+      onPressViewSampleTrees(0, registrations, newClickedGeoJson);
+    }
   };
 
   // initialize the state by fetching all the geoJSON of the SYNCED registrations
@@ -229,10 +233,17 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     });
   };
 
-  const onPressViewSampleTrees = (index: number) => {
-    setInventoryId(selectedPlantLocations[index]?.inventory_id || '')(dispatch);
-    setSingleSelectedPlantLocation(selectedPlantLocations[index]);
-    setSingleSelectedGeoJSON(clickedGeoJSON[index]);
+  const onPressViewSampleTrees = (
+    index: number,
+    plantLocations: any = null,
+    clickedJSON: any = null,
+  ) => {
+    plantLocations = plantLocations || selectedPlantLocations;
+    clickedJSON = clickedJSON || clickedGeoJSON;
+
+    setInventoryId(plantLocations[index]?.inventory_id || '')(dispatch);
+    setSingleSelectedPlantLocation(plantLocations[index]);
+    setSingleSelectedGeoJSON(clickedJSON[index]);
     setShowSinglePlantLocation(true);
   };
 
@@ -247,6 +258,20 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     } else {
       navigation.navigate(item.lastScreen);
     }
+  };
+
+  const navigateBackToClickedGeoJSON = () => {
+    setShowSinglePlantLocation(false);
+    setSingleSelectedPlantLocation(undefined);
+    setSingleSelectedGeoJSON(geoJSONInitialState);
+    setInventoryId('')(dispatch);
+  };
+
+  const navigateBackToMainMap = () => {
+    setShowClickedGeoJSON(false);
+    setClickedGeoJSON([geoJSONInitialState]);
+    setSelectedPlantLocations([]);
+    setInventoryId('')(dispatch);
   };
 
   return (
@@ -296,16 +321,13 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
         <View style={styles.extraInfoContainer}>
           <BackButton
             onBackPress={() => {
-              if (showSinglePlantLocation) {
-                setShowSinglePlantLocation(false);
-                setSingleSelectedPlantLocation(undefined);
-                setSingleSelectedGeoJSON(geoJSONInitialState);
-                setInventoryId('')(dispatch);
+              if (showSinglePlantLocation && selectedPlantLocations.length === 1) {
+                navigateBackToClickedGeoJSON();
+                navigateBackToMainMap();
+              } else if (showSinglePlantLocation) {
+                navigateBackToClickedGeoJSON();
               } else {
-                setShowClickedGeoJSON(false);
-                setClickedGeoJSON([geoJSONInitialState]);
-                setSelectedPlantLocations([]);
-                setInventoryId('')(dispatch);
+                navigateBackToMainMap();
               }
             }}
           />

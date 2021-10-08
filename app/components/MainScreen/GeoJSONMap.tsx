@@ -71,12 +71,6 @@ const GeoJSONMap = ({
   useEffect(() => {
     if (isCameraRefVisible && sampleCarouselRef?.current) {
       setActiveSampleCarouselIndex(sampleCarouselRef.current.currentIndex);
-      // const selectedCoordinate =
-      //   singleSelectedGeoJSON.features[sampleCarouselRef.current.currentIndex + 1].geometry
-      //     .coordinates;
-      // if (camera?.current?.setCamera) {
-      //   camera.current.setCamera({ centerCoordinate: selectedCoordinate });
-      // }
     }
   }, [sampleCarouselRef?.current?.currentIndex, isSampleCarouselRefVisible]);
 
@@ -119,7 +113,6 @@ const GeoJSONMap = ({
       {/* Shows only clicked polygons after user clicks on the polygon. */}
       {/* Can show more than 1 if clicked on overlapping polygons.  */}
       {/* If not clicked on any polygon then shows all the polygons. */}
-
       {showSinglePlantLocation ? (
         <>
           <SampleTreeMarkers

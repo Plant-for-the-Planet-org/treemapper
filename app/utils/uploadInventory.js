@@ -1,4 +1,4 @@
-import { uploadInventory } from '../actions/UploadInventory';
+import { uploadInventory } from '../actions/uploadInventory';
 import { isLogin } from '../repositories/user';
 import { auth0Login } from '../actions/user';
 

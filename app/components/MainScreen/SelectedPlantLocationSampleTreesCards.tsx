@@ -49,7 +49,7 @@ const SelectedPlantLocationSampleTreesCards = ({
           carouselRef.current = el;
           setIsCarouselRefVisible(true);
         }}
-        data={singleSelectedPlantLocation.sampleTrees}
+        data={singleSelectedPlantLocation?.sampleTrees}
         itemWidth={itemWidth}
         sliderWidth={width}
         renderItem={({ item, index }: any) => {
@@ -72,7 +72,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                 navigation.navigate('SingleTreeOverview', {
                   isSampleTree: true,
                   sampleTreeIndex: index,
-                  totalSampleTrees: singleSelectedPlantLocation.totalSampleTrees,
+                  totalSampleTrees: singleSelectedPlantLocation?.totalSampleTrees,
                 });
               }}>
               <View style={styles.cardContainer} key={item.locationId}>
