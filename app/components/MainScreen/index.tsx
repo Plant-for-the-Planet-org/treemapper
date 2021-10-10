@@ -2,7 +2,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform, SafeAreaView } from 'react-native';
 import { APIConfig } from '../../actions/Config';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
@@ -201,6 +201,8 @@ export default function MainScreen() {
     }
   };
 
+  const topValue = Platform.OS === 'ios' ? 50 : 25;
+
   return (
     <>
       <MainMap
@@ -210,7 +212,7 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={{ position: 'absolute', top: 25, left: 25, right: 25 }}>
+          <View style={{ position: 'absolute', top: topValue, left: 25, right: 25 }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -243,11 +245,13 @@ export default function MainScreen() {
               []
             )}
           </View>
-          <BottomBar
-            onMenuPress={() => setIsProfileModalVisible(true)}
-            onTreeInventoryPress={() => navigation.navigate('TreeInventory')}
-            numberOfInventory={numberOfInventory}
-          />
+          <SafeAreaView>
+            <BottomBar
+              onMenuPress={() => setIsProfileModalVisible(true)}
+              onTreeInventoryPress={() => navigation.navigate('TreeInventory')}
+              numberOfInventory={numberOfInventory}
+            />
+          </SafeAreaView>
         </>
       ) : (
         []
