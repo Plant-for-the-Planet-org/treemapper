@@ -31,5 +31,7 @@
   "plant_location_fetch_in_progress": "Retrieving your plant locations. This might take some time.",
   "edit_polygon": "Edit polygon",
   "edit_point": "Edit point",
-  "edit_geometry_message": "Click and drag a marker to change it's position"
+  "edit_geometry_message": "Click and drag a marker to change it's position.",
+  "reset": "Reset",
+  "save": "Save"
 }
