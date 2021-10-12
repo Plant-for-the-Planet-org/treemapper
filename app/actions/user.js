@@ -323,6 +323,7 @@ export const SignupService = (payload, dispatch) => {
             displayName: data.displayName,
             country: data.country,
             userId: data.id,
+            type: data.type,
             isSignUpRequired: false,
           });
           // logging the success in to the db

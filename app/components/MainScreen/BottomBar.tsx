@@ -67,19 +67,38 @@ const getPath = (): string => {
 const d = getPath();
 
 const AddOptions = ({ navigation }: any) => {
+  const addOptions = [
+    {
+      svgXML: singleTreeIcon,
+      title: 'label.tree_registration_type_1',
+      onPress: () => navigation.navigate('RegisterSingleTree'),
+    },
+    {
+      svgXML: multipleTreesIcon,
+      title: 'label.tree_registration_type_2',
+      onPress: () => navigation.navigate('LocateTree'),
+    },
+  ];
+
   return (
     <View style={styles.addOptionsParent}>
       <View style={styles.addOptionsContainer}>
-        <TouchableOpacity
-          style={[styles.addButtons, { marginRight: 16 }]}
-          onPress={() => navigation.navigate('RegisterSingleTree')}>
-          <SvgXml xml={singleTreeIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.addButtons}
-          onPress={() => navigation.navigate('LocateTree')}>
-          <SvgXml xml={multipleTreesIcon} />
-        </TouchableOpacity>
+        {addOptions.length > 0
+          ? addOptions.map((option: any, index: number) => (
+              <TouchableOpacity
+                style={[
+                  styles.addButtonOption,
+                  addOptions.length - 1 !== index ? { marginBottom: 8 } : {},
+                ]}
+                onPress={option.onPress}
+                key={`addOption${index}`}>
+                <View style={styles.icon}>
+                  <SvgXml xml={option.svgXML} />
+                </View>
+                <Text style={styles.text}>{i18next.t(option.title)}</Text>
+              </TouchableOpacity>
+            ))
+          : []}
       </View>
     </View>
   );
@@ -195,18 +214,21 @@ const styles = StyleSheet.create({
   },
   addOptionsContainer: {
     borderRadius: 14,
-    padding: 6,
+    padding: 8,
     backgroundColor: Colors.WHITE,
-    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     elevation: 4,
   },
-  addButtons: {
-    padding: 8,
+  addButtonOption: {
+    padding: 12,
     borderRadius: 8,
-    height: 56,
-    width: 56,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    // borderWidth: 1,
+    // backgroundColor: '#f2f2f2',
   },
   inventoryCount: {
     position: 'absolute',
@@ -221,5 +243,11 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     fontSize: Typography.FONT_SIZE_10,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+  },
+  icon: { height: 48, width: 48, marginRight: 16 },
+  text: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
   },
 });
