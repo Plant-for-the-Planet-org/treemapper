@@ -108,11 +108,17 @@ const EditPolygon = ({}: IEditPolygonProps) => {
     return (distanceInMeters <= 100) as boolean;
   };
 
+  // updates the coordinates whenever the marker position is updated
   const dragCoordinates = (coordinates: number[], index: number) => {
+    // copies the draggedGeoJSON to remove reference
     const geoJSONData = JSON.parse(JSON.stringify(draggedGeoJSON));
+
+    // copies the current polygon shown on the screen
     const newData = JSON.parse(JSON.stringify(geoJSONData[currentStackIndex]));
     let isValidCoordinate = false;
 
+    // if originalGeometry is present then compares whether the new coordinate is valid or not
+    // else compares it with the initial geometry
     if (originalGeometry.coordinates.length > 0) {
       isValidCoordinate = checkIsCoordinateDistanceValid(
         isPointJSON ? originalGeometry.coordinates : originalGeometry.coordinates[0][index],
@@ -127,15 +133,23 @@ const EditPolygon = ({}: IEditPolygonProps) => {
       );
     }
 
+    // updates the coordinate according to Point or Polygon geometry type
     if (isPointJSON) {
       newData.features[0].geometry.coordinates = coordinates;
     } else {
       newData.features[0].geometry.coordinates[0][index] = coordinates;
     }
 
+    // changes the last marker coordinate to match with the first one if
+    // geometry type is not Point
     if (index === 0 && !isPointJSON) {
       const lastCoordinate = newData.features[0].geometry.coordinates[0].length - 1;
       newData.features[0].geometry.coordinates[0][lastCoordinate] = coordinates;
+    }
+
+    // removes all the redo state polygons if current polygon is created after undo state
+    if (geoJSONData.length - 1 > currentStackIndex) {
+      geoJSONData.splice(currentStackIndex + 1, geoJSONData.length - 1);
     }
 
     geoJSONData.push(newData);
@@ -143,6 +157,7 @@ const EditPolygon = ({}: IEditPolygonProps) => {
     setDraggedGeoJSON(geoJSONData);
     setCurrentStackIndex(currentStackIndex + 1);
 
+    // shows error message if coordinate is not valid
     if (!isValidCoordinate) {
       setShowInvalidCoordinateAlert(true);
     }
@@ -156,19 +171,24 @@ const EditPolygon = ({}: IEditPolygonProps) => {
     setShowInvalidCoordinateAlert(false);
   };
 
+  // resets the current polygon to it's original state
   const resetGeoJSON = () => {
     setCurrentStackIndex(0);
     setDraggedGeoJSON([draggedGeoJSON[0]]);
   };
 
+  // decrements the currentStackIndex
   const undoGeoJSON = () =>
     setCurrentStackIndex(currentStackIndex === 0 ? 0 : currentStackIndex - 1);
 
+  // increments the currentStackIndex
   const redoGeoJSON = () =>
     setCurrentStackIndex(
       currentStackIndex === draggedGeoJSON.length ? draggedGeoJSON.length : currentStackIndex + 1,
     );
 
+  // saves the current geoJSON in the realm database and updates the
+  // registration status to PENDING_DATA_UPDATE if the registration is already SYNCED
   const saveGeoJSON = () => {
     const geoJSONToSave = draggedGeoJSON[currentStackIndex];
     const coordinates = geoJSONToSave?.features[0]?.geometry?.coordinates[0];
@@ -195,6 +215,7 @@ const EditPolygon = ({}: IEditPolygonProps) => {
     }
   };
 
+  // shows the gray polygon for reference to older polygon while updating markers
   const nonDragableGeoJSON =
     originalGeometry.coordinates.length > 0
       ? {
