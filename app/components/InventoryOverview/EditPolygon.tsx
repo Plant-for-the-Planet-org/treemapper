@@ -1,4 +1,8 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
+import MapboxGL, {
+  CircleLayerStyle,
+  FillLayerStyle,
+  LineLayerStyle,
+} from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import i18next from 'i18next';
@@ -70,6 +74,7 @@ const EditPolygon = ({}: IEditPolygonProps) => {
         }
 
         const geoJSONData = await getGeoJsonData({ inventoryData });
+        console.log('geoJSONData', JSON.stringify(geoJSONData));
         const isPoint =
           (geoJSONData.features[0].geometry.type === 'Point' && inventoryData.treeType === MULTI) ||
           inventoryData.treeType === SINGLE;
@@ -244,7 +249,8 @@ const EditPolygon = ({}: IEditPolygonProps) => {
             {/* original geoJSON to show */}
             <MapboxGL.ShapeSource id={'nonDragablePolygon'} shape={nonDragableGeoJSON}>
               <MapboxGL.FillLayer id={'nonDragablePolyFill'} style={inactiveFillStyle} />
-              <MapboxGL.LineLayer id={'nonDragablePolyline'} style={inactivePolyline} />
+              {/* <MapboxGL.LineLayer id={'nonDragablePolyline'} style={inactivePolyline} /> */}
+              <MapboxGL.CircleLayer id={'nonDragableCircle'} style={inactiveCircle} />
             </MapboxGL.ShapeSource>
 
             {/* changes as the coordinates changes */}
@@ -307,13 +313,21 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 };
 
-const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
+const fillStyle: StyleProp<FillLayerStyle> = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
 
-const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.3 };
+const inactiveFillStyle: StyleProp<FillLayerStyle> = {
+  fillColor: Colors.PLANET_BLACK,
+  fillOpacity: 0.3,
+};
 
-const inactivePolyline: StyleProp<LineLayerStyle> = {
-  lineWidth: 1,
-  lineColor: Colors.PLANET_BLACK,
-  lineOpacity: 0.3,
-  lineJoin: 'bevel',
+// const inactivePolyline: StyleProp<LineLayerStyle> = {
+//   lineWidth: 1,
+//   lineColor: Colors.PLANET_BLACK,
+//   lineOpacity: 0.3,
+//   lineJoin: 'bevel',
+// };
+
+const inactiveCircle: StyleProp<CircleLayerStyle> = {
+  circleColor: Colors.PLANET_BLACK,
+  circleOpacity: 0.3,
 };

@@ -513,6 +513,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
+  const showEditButton = inventory?.status && !getPendingStatus().includes(inventory?.status);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -564,13 +565,13 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
-                {inventory?.status && !getPendingStatus().includes(inventory?.status) ? (
+                {showEditButton ? (
                   <TouchableOpacity
                     style={{
                       paddingVertical: 10,
                       paddingHorizontal: 10,
                       backgroundColor: Colors.WHITE,
-                      borderRadius: 8,
+                      borderRadius: 12,
                       borderWidth: 1,
                       borderColor: Colors.GRAY_LIGHT,
                       position: 'absolute',
@@ -586,16 +587,22 @@ const InventoryOverview = ({ navigation }: any) => {
                 {(inventory?.status === INCOMPLETE ||
                   inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
                 inventory?.locateTree === ON_SITE ? (
-                  <View style={{ position: 'absolute', top: 0, right: 0, paddingTop: 25 }}>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: showEditButton ? 48 : 0,
+                      paddingTop: 20,
+                    }}>
                     <TouchableOpacity
                       style={{
-                        paddingVertical: 5,
-                        paddingHorizontal: 10,
+                        paddingVertical: 11,
+                        paddingHorizontal: 12,
                         margin: 10,
                         backgroundColor: Colors.WHITE,
                         borderRadius: 12,
                         borderWidth: 1,
-                        borderColor: Colors.LIGHT_BORDER_COLOR,
+                        borderColor: Colors.GRAY_LIGHT,
                       }}
                       onPress={
                         inventory?.completedSampleTreesCount == 0 &&
