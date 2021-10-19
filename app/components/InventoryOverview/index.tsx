@@ -45,7 +45,6 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
-  DATA_UPLOAD_START,
   getPendingStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,

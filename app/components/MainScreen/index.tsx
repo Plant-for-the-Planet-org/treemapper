@@ -208,6 +208,7 @@ export default function MainScreen() {
       <MainMap
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}
+        userInfo={userInfo}
       />
 
       {!showClickedGeoJSON ? (

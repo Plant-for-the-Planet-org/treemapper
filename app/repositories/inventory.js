@@ -1235,6 +1235,7 @@ export const getInventoryCount = (countOf = TOTAL_COUNT) => {
     Realm.open(getSchema())
       .then((realm) => {
         let inventory = realm.objects('Inventory').filtered('status != null');
+
         let status = [];
         if (countOf === PENDING_UPLOAD_COUNT) {
           status = getPendingStatus();

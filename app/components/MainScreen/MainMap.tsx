@@ -24,9 +24,10 @@ const IS_ANDROID = Platform.OS === 'android';
 interface IMainMapProps {
   showClickedGeoJSON: boolean;
   setShowClickedGeoJSON: React.Dispatch<React.SetStateAction<boolean>>;
+  userInfo: any;
 }
 
-const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) => {
+const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainMapProps) => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
     features: [
@@ -77,7 +78,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     if (state.inventoryFetchProgress === inventoryFetchConstant.COMPLETED) {
       initializeInventory();
     }
-  }, [state.inventoryFetchProgress]);
+  }, [state.inventoryFetchProgress, userInfo]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -109,6 +110,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
 
     return () => {
       isCancelled = true;
+      setGeoJSON(geoJSONInitialState);
     };
   }, []);
 
@@ -169,7 +171,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON }: IMainMapProps) =
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
-      for (const inventoryData of syncedInventory) {
+      for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
           inventoryData,
           includeInventoryId: true,

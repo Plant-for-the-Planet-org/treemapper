@@ -74,7 +74,7 @@ const EditPolygon = ({}: IEditPolygonProps) => {
         }
 
         const geoJSONData = await getGeoJsonData({ inventoryData });
-        console.log('geoJSONData', JSON.stringify(geoJSONData));
+
         const isPoint =
           (geoJSONData.features[0].geometry.type === 'Point' && inventoryData.treeType === MULTI) ||
           inventoryData.treeType === SINGLE;
