@@ -26,7 +26,7 @@ import EditPolygonButtons from './EditPolygonButtons';
 
 interface IEditPolygonProps {}
 
-const EditPolygon = ({}: IEditPolygonProps) => {
+const EditPolygon = () => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
     features: [
