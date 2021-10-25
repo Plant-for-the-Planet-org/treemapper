@@ -287,7 +287,7 @@ const EditPolygon = () => {
       />
       <AlertModal
         visible={showInvalidCoordinateAlert}
-        heading={i18next.t('label.invalid_coordinate')}
+        heading={i18next.t('label.locate_tree_cannot_mark_location')}
         message={i18next.t('label.distance_more_than_100_meter')}
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => onPressInvalidCoordinateAlert()}
