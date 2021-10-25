@@ -7,7 +7,6 @@ import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { setInventoryId } from '../../actions/inventory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { getSchema } from '../../repositories/default';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';

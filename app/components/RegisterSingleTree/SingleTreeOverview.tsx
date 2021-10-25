@@ -717,8 +717,6 @@ const SingleTreeOverview = () => {
   };
 
   const onPressSave = (forceContinue: boolean = false) => {
-    const routesArr = [{ name: 'MainScreen' }, { name: 'TreeInventory' }];
-
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {

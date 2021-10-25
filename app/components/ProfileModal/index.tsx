@@ -212,9 +212,6 @@ const ProfileModal = ({
                   <Text style={styles.userEmail}>{userInfo.email}</Text>
                 </View>
               </View>
-              {/* {profileListItems.map((item: any, index: number) =>
-                item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
-              )} */}
             </>
           ) : (
             []

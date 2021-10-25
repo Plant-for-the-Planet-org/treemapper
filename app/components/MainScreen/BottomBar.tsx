@@ -1,20 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import * as shape from 'd3-shape';
-import Svg, { Path, SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '../../styles';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import i18next from 'i18next';
-import { multipleTreesIcon, singleTreeIcon } from '../../assets';
 import { useNavigation } from '@react-navigation/core';
+import * as shape from 'd3-shape';
+import i18next from 'i18next';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Svg, { Path, SvgXml } from 'react-native-svg';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { multipleTreesIcon, singleTreeIcon } from '../../assets';
+import { Colors, Typography } from '../../styles';
 
 let { width } = Dimensions.get('window');
 const buttonWidth = 64;

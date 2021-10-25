@@ -110,7 +110,7 @@ const EditPolygon = () => {
         'K',
       ) * 1000;
 
-    return (distanceInMeters <= 100) as boolean;
+    return distanceInMeters <= 100;
   };
 
   // updates the coordinates whenever the marker position is updated
@@ -319,13 +319,6 @@ const inactiveFillStyle: StyleProp<FillLayerStyle> = {
   fillColor: Colors.PLANET_BLACK,
   fillOpacity: 0.3,
 };
-
-// const inactivePolyline: StyleProp<LineLayerStyle> = {
-//   lineWidth: 1,
-//   lineColor: Colors.PLANET_BLACK,
-//   lineOpacity: 0.3,
-//   lineJoin: 'bevel',
-// };
 
 const inactiveCircle: StyleProp<CircleLayerStyle> = {
   circleColor: Colors.PLANET_BLACK,

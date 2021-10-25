@@ -1,7 +1,7 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Config from 'react-native-config';
 import { Colors } from '../../../styles';
 import { geoJSONType, ON_SITE } from '../../../utils/inventoryConstants';

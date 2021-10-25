@@ -1,10 +1,10 @@
 import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleProp, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../../styles';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleProp, StyleSheet } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { Colors } from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 interface IGeoJSONMapProps {

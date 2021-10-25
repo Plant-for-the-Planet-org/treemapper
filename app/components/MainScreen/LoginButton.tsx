@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '../../styles';
 
 interface ILoginButtonProps {

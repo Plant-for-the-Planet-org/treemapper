@@ -225,7 +225,7 @@ export const uploadInventory = async (dispatch: any) => {
               }
             }
 
-            const result = await putAuthenticatedRequest(`/treemapper/plantLocations/${oneInventory.locationId}`, body)
+            await putAuthenticatedRequest(`/treemapper/plantLocations/${oneInventory.locationId}`, body)
 
             dbLog.info({
               logType: LogTypes.DATA_SYNC,
@@ -257,10 +257,6 @@ export const uploadInventory = async (dispatch: any) => {
                   reject(err);
                 }
               });
-
-            // await changeStatusAndUpload(response, oneInventory, dispatch);
-
-
 
           } catch (err) {
             if (inventoryData.length - 1 === i) {
@@ -600,9 +596,7 @@ const checkAndUploadImage = async (oneInventory: any, response: any) => {
     let coordinatesList = oneInventory.polygons[0].coordinates;
     const responseCoords = response.coordinates;
     let completedUploadCount = 0;
-    for (let i = 0; i < responseCoords.length; i++) {
-      const oneResponseCoords = responseCoords[i];
-
+    for (const oneResponseCoords of responseCoords) {
       if (oneResponseCoords.status === 'complete') {
         completedUploadCount++;
         continue;
