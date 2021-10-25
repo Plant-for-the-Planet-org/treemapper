@@ -1,4 +1,5 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/routers';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
@@ -62,6 +63,14 @@ import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 let scrollAdjust = 0;
 
+type RootStackParamList = {
+  InventoryOverview: {
+    navigateBackToHomeScreen: boolean;
+  };
+};
+
+type InventoryOverviewScreenRouteProp = RouteProp<RootStackParamList, 'InventoryOverview'>;
+
 const InventoryOverview = ({ navigation }: any) => {
   const { protocol, cdnUrl } = APIConfig;
   const windowHeight = Dimensions.get('window').height;
@@ -111,6 +120,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
+
+  const route: InventoryOverviewScreenRouteProp = useRoute();
 
   useEffect(() => {
     if (
@@ -535,7 +546,13 @@ const InventoryOverview = ({ navigation }: any) => {
                   closeIcon
                   headingText={i18next.t('label.inventory_overview_header_text')}
                   subHeadingText={i18next.t('label.inventory_overview_sub_header')}
-                  onBackPress={() => navigation.navigate('TreeInventory')}
+                  onBackPress={() => {
+                    if (route?.params?.navigateBackToHomeScreen) {
+                      navigation.navigate('MainScreen');
+                    } else {
+                      navigation.navigate('TreeInventory');
+                    }
+                  }}
                   rightText={
                     status == INCOMPLETE_SAMPLE_TREE ||
                     status == INCOMPLETE ||

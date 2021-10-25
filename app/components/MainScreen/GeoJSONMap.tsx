@@ -20,6 +20,7 @@ interface IGeoJSONMapProps {
     React.SetStateAction<MapboxGL.Location | Geolocation.GeoPosition | undefined>
   >;
   geoJSON: any;
+  pointGeoJSON: any;
   getSelectedPlantLocations: any;
   isCarouselRefVisible: boolean;
   showSinglePlantLocation: boolean;
@@ -40,6 +41,7 @@ const GeoJSONMap = ({
   location,
   setLocation,
   geoJSON,
+  pointGeoJSON,
   getSelectedPlantLocations,
   isCarouselRefVisible,
   showSinglePlantLocation,
@@ -159,30 +161,35 @@ const GeoJSONMap = ({
               <MapboxGL.CircleLayer
                 id={`circleClicked-${index}`}
                 style={activeCarouselIndex !== index ? inactiveCircleStyle : circleStyle}
-                // belowLayerID={'polylineClicked'}
-                // belowLayerID={
-                //   activeCarouselIndex !== index
-                //     ? `polylineClicked-${activeCarouselIndex}`
-                //     : undefined
-                // }
-                // aboveLayerID={`polyFillClicked-${index}`}
               />
             </MapboxGL.ShapeSource>
           );
         })
       ) : (
-        <MapboxGL.ShapeSource
-          id={'polygon'}
-          shape={geoJSON}
-          onPress={(e) => {
-            if (e?.features.length > 0) {
-              getSelectedPlantLocations(e.features);
-            }
-          }}>
-          <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
-          <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-          {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-        </MapboxGL.ShapeSource>
+        <>
+          <MapboxGL.ShapeSource
+            id={'polygon'}
+            shape={geoJSON}
+            onPress={(e) => {
+              if (e?.features.length > 0) {
+                getSelectedPlantLocations(e.features);
+              }
+            }}>
+            <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
+            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
+            {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
+          </MapboxGL.ShapeSource>
+          <MapboxGL.ShapeSource
+            id={'point'}
+            shape={pointGeoJSON}
+            onPress={(e) => {
+              if (e?.features.length > 0) {
+                getSelectedPlantLocations(e.features);
+              }
+            }}>
+            <MapboxGL.CircleLayer id={'pointCircle'} style={circleStyle} />
+          </MapboxGL.ShapeSource>
+        </>
       )}
       {location && (
         <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
@@ -216,5 +223,5 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
 const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
 const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
 
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 1 };
+const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
 const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };

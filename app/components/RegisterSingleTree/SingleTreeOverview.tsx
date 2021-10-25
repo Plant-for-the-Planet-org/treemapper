@@ -75,7 +75,12 @@ import SpecieSampleTree from '../SpecieSampleTree';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
-  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number; totalSampleTrees: number };
+  SingleTreeOverview: {
+    isSampleTree: boolean;
+    sampleTreeIndex: number;
+    totalSampleTrees: number;
+    navigateBackToHomeScreen: boolean;
+  };
 };
 
 type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTreeOverview'>;
@@ -698,7 +703,22 @@ const SingleTreeOverview = () => {
     );
   };
 
+  const navigateBack = () => {
+    if (!route?.params?.navigateBackToHomeScreen) {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+        }),
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const onPressSave = (forceContinue: boolean = false) => {
+    const routesArr = [{ name: 'MainScreen' }, { name: 'TreeInventory' }];
+
     if (route?.params?.isSampleTree) {
       navigation.goBack();
     } else if (inventory.status === INCOMPLETE) {
@@ -711,12 +731,7 @@ const SingleTreeOverview = () => {
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
             changeInventoryStatus(data, dispatch).then(() => {
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 1,
-                  routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
-                }),
-              );
+              navigateBack();
             });
           })
           .catch((err) => {
@@ -727,12 +742,11 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     } else {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
-        }),
+      console.log(
+        'route?.params?.navigateBackToHomeScreen',
+        route?.params?.navigateBackToHomeScreen,
       );
+      navigateBack();
     }
     return true;
   };

@@ -12,7 +12,13 @@ import { getInventory, getInventoryByStatus } from '../../repositories/inventory
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE, SYNCED } from '../../utils/inventoryConstants';
+import {
+  INCOMPLETE,
+  INCOMPLETE_SAMPLE_TREE,
+  POINT,
+  SINGLE,
+  SYNCED,
+} from '../../utils/inventoryConstants';
 import { AlertModal } from '../Common';
 import BackButton from '../Common/BackButton';
 import GeoJSONMap from './GeoJSONMap';
@@ -53,6 +59,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState(geoJSONInitialState);
+  const [pointGeoJSON, setPointGeoJSON] = useState(geoJSONInitialState);
   // stores the geoJSON which are selected when user clicks on a polygon
   const [clickedGeoJSON, setClickedGeoJSON] = useState<any[]>([geoJSONInitialState]);
   // stores the plant locations details of the selected geoJSON
@@ -121,6 +128,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
    * @param features - takes the array of features which are selected by user
    */
   const getSelectedPlantLocations = async (features: any) => {
+    console.log(`features`, features);
     const registrations: any = [];
     const indexToDelete: Number[] = [];
 
@@ -161,8 +169,11 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     setSelectedPlantLocations(registrations);
     setShowClickedGeoJSON(true);
 
-    if (features.length === 1) {
+    if (features.length === 1 && features[0].geometry.type !== POINT) {
       onPressViewSampleTrees(0, registrations, newClickedGeoJson);
+    } else if (features.length === 1) {
+      console.log('navigateToDetailsScreen', registrations[0]);
+      navigateToDetailsScreen(registrations[0]);
     }
   };
 
@@ -170,6 +181,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
   const initializeInventory = () => {
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
+      const pointGeoJSONFeatures = [];
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
       for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
@@ -177,12 +189,20 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
           includeInventoryId: true,
           ignoreSampleTrees: true,
         });
-        geoJSONFeatures.push(...data.features);
+        if (inventoryData.treeType === SINGLE) {
+          pointGeoJSONFeatures.push(...data.features);
+        } else {
+          geoJSONFeatures.push(...data.features);
+        }
       }
 
       setGeoJSON({
         type: 'FeatureCollection',
         features: geoJSONFeatures,
+      });
+      setPointGeoJSON({
+        type: 'FeatureCollection',
+        features: pointGeoJSONFeatures,
       });
     });
   };
@@ -253,9 +273,9 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.treeType === SINGLE) {
-        navigation.navigate('SingleTreeOverview');
+        navigation.navigate('SingleTreeOverview', { navigateBackToHomeScreen: true });
       } else {
-        navigation.navigate('InventoryOverview');
+        navigation.navigate('InventoryOverview', { navigateBackToHomeScreen: true });
       }
     } else {
       navigation.navigate(item.lastScreen);
@@ -289,6 +309,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
         location={location}
         setLocation={setLocation}
         geoJSON={geoJSON}
+        pointGeoJSON={pointGeoJSON}
         getSelectedPlantLocations={getSelectedPlantLocations}
         isCarouselRefVisible={isCarouselRefVisible}
         showSinglePlantLocation={showSinglePlantLocation}
