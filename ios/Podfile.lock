@@ -651,7 +651,7 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-camera: fefef39fcd20850d17c3780638b04f741e0ccaae
+  react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: 3690b7d064a1153d4d572ab6a045fdd130cbf14c
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
