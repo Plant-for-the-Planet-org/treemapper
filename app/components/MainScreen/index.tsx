@@ -2,8 +2,8 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Platform, SafeAreaView } from 'react-native';
-import { APIConfig } from '../../actions/Config';
+import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { updateCount } from '../../actions/inventory';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
@@ -22,9 +22,6 @@ import ProfileModal from '../ProfileModal';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import MainMap from './MainMap';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-
-const { protocol, cdnUrl } = APIConfig;
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);

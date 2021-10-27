@@ -163,6 +163,12 @@ export default function MapMarking({
     }
   }, [isCameraRefVisible, centerCoordinate]);
 
+  useEffect(() => {
+    if (isInitial && location) {
+      onPressMyLocationIcon(location);
+    }
+  }, [isCameraRefVisible, location]);
+
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
@@ -265,12 +271,6 @@ export default function MapMarking({
       onPressMyLocationIcon(userLocation);
     }
   };
-
-  useEffect(() => {
-    if (isInitial && location) {
-      onPressMyLocationIcon(location);
-    }
-  }, [isCameraRefVisible, location]);
 
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position: any) => {

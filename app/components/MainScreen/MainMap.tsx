@@ -2,7 +2,15 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  BackHandler,
+  Linking,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { setInventoryId } from '../../actions/inventory';
@@ -10,6 +18,7 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
+import { bugsnag } from '../../utils';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import {
   INCOMPLETE,
@@ -18,8 +27,13 @@ import {
   SINGLE,
   SYNCED,
 } from '../../utils/inventoryConstants';
+import { locationPermission } from '../../utils/permissions';
 import { AlertModal } from '../Common';
 import BackButton from '../Common/BackButton';
+import {
+  PermissionBlockedAlert,
+  PermissionDeniedAlert,
+} from '../Common/MapMarking/LocationPermissionAlerts';
 import GeoJSONMap from './GeoJSONMap';
 import SelectedPlantLocationSampleTreesCards from './SelectedPlantLocationSampleTreesCards';
 import SelectedPlantLocationsCards from './SelectedPlantLocationsCards';
@@ -52,6 +66,8 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
 
   const [location, setLocation] = useState<MapboxGL.Location | Geolocation.GeoPosition>();
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
+  const [isPermissionBlocked, setIsPermissionBlocked] = useState(false);
+  const [isPermissionDenied, setIsPermissionDenied] = useState(false);
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
   const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
@@ -96,22 +112,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     });
 
     if (!isCancelled) {
-      if (IS_ANDROID) {
-        MapboxGL.requestAndroidLocationPermissions().then((permission) => {
-          if (permission) {
-            MapboxGL.setTelemetryEnabled(false);
-            updateCurrentPosition();
-          }
-        });
-      } else {
-        Geolocation.requestAuthorization('whenInUse').then((permission) => {
-          if (permission === 'granted') {
-            updateCurrentPosition();
-          } else {
-            setIsLocationAlertShow(true);
-          }
-        });
-      }
+      checkPermission();
     }
 
     return () => {
@@ -120,6 +121,29 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     };
   }, []);
 
+  useEffect(() => {
+    onUpdateUserLocation(location);
+  }, [isCameraRefVisible, location]);
+
+  const checkPermission = async (showAlert = true) => {
+    try {
+      await locationPermission();
+      MapboxGL.setTelemetryEnabled(false);
+      console.log(`showAlert`, showAlert);
+      updateCurrentPosition(showAlert);
+      return true;
+    } catch (err: any) {
+      if (err?.message == 'blocked') {
+        setIsPermissionBlocked(true);
+      } else if (err?.message == 'denied') {
+        setIsPermissionDenied(true);
+      } else {
+        bugsnag.notify(err);
+      }
+      return false;
+    }
+  };
+
   /**
    * Fetches the registrations details of the polygon which are selected and
    * deletes the polygons from the map if inventory id or data is not present
@@ -127,7 +151,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
    * @param features - takes the array of features which are selected by user
    */
   const getSelectedPlantLocations = async (features: any) => {
-    console.log(`features`, features);
     const registrations: any = [];
     const indexToDelete: Number[] = [];
 
@@ -171,7 +194,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     if (features.length === 1 && features[0].geometry.type !== POINT) {
       onPressViewSampleTrees(0, registrations, newClickedGeoJson);
     } else if (features.length === 1) {
-      console.log('navigateToDetailsScreen', registrations[0]);
       navigateToDetailsScreen(registrations[0]);
     }
   };
@@ -208,10 +230,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
 
   // recenter the map to the current coordinates of user location
   const onPressMyLocationIcon = (position: MapboxGL.Location | Geolocation.GeoPosition) => {
-    if (isInitial) {
-      setIsInitial(false);
-      return;
-    }
     if (isCameraRefVisible && camera?.current?.setCamera) {
       setIsInitial(false);
       camera.current.setCamera({
@@ -224,14 +242,16 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
   };
 
   // only for the first time map will follow the user's current location by default
-  const onUpdateUserLocation = (userLocation: MapboxGL.Location | Geolocation.GeoPosition) => {
+  const onUpdateUserLocation = (
+    userLocation: MapboxGL.Location | Geolocation.GeoPosition | undefined,
+  ) => {
     if (isInitial && userLocation) {
       onPressMyLocationIcon(userLocation);
     }
   };
 
   //getting current position of the user with high accuracy
-  const updateCurrentPosition = async () => {
+  const updateCurrentPosition = async (showAlert = true) => {
     return new Promise((resolve) => {
       Geolocation.getCurrentPosition(
         (position) => {
@@ -240,7 +260,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
           resolve(position);
         },
         (err) => {
-          setIsLocationAlertShow(true);
+          if (showAlert) setIsLocationAlertShow(true);
         },
         {
           enableHighAccuracy: true,
@@ -336,6 +356,23 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
         onPressSecondaryBtn={() => setIsLocationAlertShow(false)}
         showSecondaryButton={true}
       />
+      <PermissionBlockedAlert
+        isPermissionBlockedAlertShow={isPermissionBlocked}
+        setIsPermissionBlockedAlertShow={setIsPermissionBlocked}
+        message={i18next.t('label.need_location_permission_to_continue')}
+        onPressPrimaryBtn={() => {}}
+        onPressSecondaryBtn={() => {
+          console.log('exit');
+          BackHandler.exitApp();
+        }}
+      />
+      <PermissionDeniedAlert
+        isPermissionDeniedAlertShow={isPermissionDenied}
+        setIsPermissionDeniedAlertShow={setIsPermissionDenied}
+        message={i18next.t('label.need_location_permission_to_continue')}
+        onPressPrimaryBtn={() => checkPermission()}
+        onPressSecondaryBtn={() => checkPermission()}
+      />
 
       {/* shows the back button when plant location is selected */}
       {/* shows single plant location hid if single plant location is selected */}
@@ -376,7 +413,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
                 if (location) {
                   onPressMyLocationIcon(location);
                 } else {
-                  setIsLocationAlertShow(true);
+                  checkPermission();
                 }
               }}
               style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
