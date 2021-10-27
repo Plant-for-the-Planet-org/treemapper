@@ -129,7 +129,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
     try {
       await locationPermission();
       MapboxGL.setTelemetryEnabled(false);
-      console.log(`showAlert`, showAlert);
+
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
@@ -362,7 +362,6 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
         message={i18next.t('label.need_location_permission_to_continue')}
         onPressPrimaryBtn={() => {}}
         onPressSecondaryBtn={() => {
-          console.log('exit');
           BackHandler.exitApp();
         }}
       />
