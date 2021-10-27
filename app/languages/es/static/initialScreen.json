@@ -5,7 +5,7 @@
   "species_data_status": "Comprobación del estado de los datos de las especies.",
   "downloading_archive": "Descarga del archivo de especies.",
   "unzipping_archive": "Descomprimir el archivo de especies.",
-  "fetch_and_add_species_to_database": "Recogida y adición de especies en la base de datos.",
+  "fetch_and_add_species_to_database": "Buscando y agregando especies en la base de datos.",
   "species_data_loaded": "Datos de las especies cargadas.",
   "please_wait": "Por favor, espere..."
 }
