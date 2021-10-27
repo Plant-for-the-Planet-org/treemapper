@@ -35,12 +35,12 @@ const PrimaryButton = ({
       accessibilityLabel={accessibilityLabel}
       style={[
         styles.container,
-        isWhiteTheme && styles.whiteTheme,
+        isWhiteTheme && !disabled && styles.whiteTheme,
         halfWidth && styles.halfWidth,
         disabled && styles.disabledCont,
         style,
       ]}>
-      <Text style={[styles.btnText, isWhiteTheme && styles.primaryText, textStyle]}>{btnText}</Text>
+      <Text style={[styles.btnText, isWhiteTheme && !disabled && styles.primaryText, textStyle]}>{btnText}</Text>
     </TouchableOpacity>
   );
 };

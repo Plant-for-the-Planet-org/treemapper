@@ -10,6 +10,7 @@ interface IPermissionDeniedAlertProps {
   setIsPermissionDeniedAlertShow: React.Dispatch<React.SetStateAction<boolean>>;
   onPressPrimaryBtn: any;
   onPressSecondaryBtn: any;
+  message?: string;
 }
 
 export const PermissionDeniedAlert = ({
@@ -17,12 +18,15 @@ export const PermissionDeniedAlert = ({
   setIsPermissionDeniedAlertShow,
   onPressPrimaryBtn,
   onPressSecondaryBtn,
+  message = '',
 }: IPermissionDeniedAlertProps) => {
+  message = message || i18next.t('label.permission_denied_message');
+
   return (
     <AlertModal
       visible={isPermissionDeniedAlertShow}
       heading={i18next.t('label.permission_denied')}
-      message={i18next.t('label.permission_denied_message')}
+      message={message}
       primaryBtnText={i18next.t('label.ok')}
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
@@ -43,6 +47,7 @@ interface IPermissionBlockAlertProps {
   setIsPermissionBlockedAlertShow: React.Dispatch<React.SetStateAction<boolean>>;
   onPressPrimaryBtn: any;
   onPressSecondaryBtn: any;
+  message?: string;
 }
 
 export const PermissionBlockedAlert = ({
@@ -50,12 +55,14 @@ export const PermissionBlockedAlert = ({
   setIsPermissionBlockedAlertShow,
   onPressPrimaryBtn,
   onPressSecondaryBtn,
+  message = '',
 }: IPermissionBlockAlertProps) => {
+  message = message || i18next.t('label.permission_blocked_message');
   return (
     <AlertModal
       visible={isPermissionBlockedAlertShow}
       heading={i18next.t('label.permission_blocked')}
-      message={i18next.t('label.permission_blocked_message')}
+      message={message}
       primaryBtnText={i18next.t('label.open_settings')}
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {

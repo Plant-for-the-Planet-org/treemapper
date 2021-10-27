@@ -10,7 +10,14 @@ import {
   UPDATE_PROGRESS_COUNT,
   SET_SKIP_TO_INVENTORY_OVERVIEW,
   SET_IS_EXTRA_SAMPLE_TREE,
+  INVENTORY_FETCH_FROM_SERVER,
 } from '../actions/Types';
+
+export const inventoryFetchConstant = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+};
 
 // stores the initial properties of the inventory state
 const initialState = {
@@ -23,6 +30,7 @@ const initialState = {
   progressCount: 0,
   skipToInventoryOverview: false,
   isExtraSampleTree: false,
+  inventoryFetchProgress: inventoryFetchConstant.PENDING,
 };
 
 // Inventory reducer function which takes the state and action param
@@ -123,6 +131,11 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         isExtraSampleTree: action.payload,
+      };
+    case INVENTORY_FETCH_FROM_SERVER:
+      return {
+        ...state,
+        inventoryFetchProgress: action.payload,
       };
     default:
       return state;

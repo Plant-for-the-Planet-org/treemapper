@@ -71,7 +71,9 @@ export default function Map({
         logo
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
-        {(treeType === MULTI || treeType === SAMPLE) && <Markers geoJSON={geoJSON} />}
+        {(treeType === MULTI || treeType === SAMPLE) && (
+          <Markers geoJSON={geoJSON} type={'LineString'} />
+        )}
         {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera

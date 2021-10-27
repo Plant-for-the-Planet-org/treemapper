@@ -1,7 +1,7 @@
 import { deleteSyncedAndMigrate } from '../inventory';
 
 // schema version
-const schemaVersion = 14;
+const schemaVersion = 15;
 
 // SCHEMAS
 const Coordinates = {
@@ -95,6 +95,8 @@ const SampleTrees = {
     additionalDetails: 'AdditionalDetail[]',
     // stores the app metadata. Needs to be stringified as it might contain nested array/objects
     appMetadata: 'string?',
+    // stores the hid when registration is uploaded successfully
+    hid: 'string?',
   },
 };
 
@@ -137,6 +139,11 @@ const Inventory = {
     additionalDetails: 'AdditionalDetail[]',
     // stores the app metadata. Needs to be stringified as it might contain nested array/objects
     appMetadata: 'string?',
+    // stores the hid when registration is uploaded successfully
+    hid: 'string?',
+    // stores the original geoJSON of coordinates in string which was uploaded
+    // for the first time for a registration
+    originalGeometry: 'string?'
   },
 };
 

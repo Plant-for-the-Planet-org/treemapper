@@ -13,7 +13,7 @@ interface ExportGeoJSONProps {
 const ExportGeoJSON: React.FunctionComponent<ExportGeoJSONProps> = ({ inventory }) => {
   const exportGeoJSONFile = async () => {
     if (inventory.polygons.length > 0) {
-      const geoJSON = await getGeoJsonData(inventory);
+      const geoJSON = await getGeoJsonData({ inventoryData: inventory });
 
       const options = {
         url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),

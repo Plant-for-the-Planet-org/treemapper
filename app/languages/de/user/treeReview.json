@@ -34,5 +34,9 @@
   "need_more_sample_trees": "Benötigt mehr Beispielbäume",
   "at_least_five_sample_trees": "Du solltest mindestens 5 Beispielbäume hinzufügen.",
   "project_not_assigned": "Projekt nicht zugewiesen!",
-  "project_not_assigned_message": "Bist du sicher, dass du diese Registrierung speichern willst, ohne ihr ein Projekt zuzuordnen?"
+  "project_not_assigned_message": "Bist du sicher, dass du diese Registrierung speichern willst, ohne ihr ein Projekt zuzuordnen?",
+  "plantation_date":"Datum der Pflanzung: ",
+  "plantation_period":"Zeitraum der Pflanzung: ",
+  "more_details":"Mehr Details",
+  "view_sample_trees":"Beispielbäume ansehen"
 }

@@ -1,4 +1,5 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/routers';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
@@ -23,6 +24,7 @@ import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
 import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { map_img, plus_icon, two_trees } from '../../assets';
@@ -44,6 +46,7 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
+  getPendingStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -59,6 +62,14 @@ import Markers from '../Common/Markers';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 let scrollAdjust = 0;
+
+type RootStackParamList = {
+  InventoryOverview: {
+    navigateBackToHomeScreen: boolean;
+  };
+};
+
+type InventoryOverviewScreenRouteProp = RouteProp<RootStackParamList, 'InventoryOverview'>;
 
 const InventoryOverview = ({ navigation }: any) => {
   const { protocol, cdnUrl } = APIConfig;
@@ -100,8 +111,8 @@ const InventoryOverview = ({ navigation }: any) => {
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -109,6 +120,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
+
+  const route: InventoryOverviewScreenRouteProp = useRoute();
 
   useEffect(() => {
     if (
@@ -184,7 +197,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData: any) => {
-        const geoJSONData = await getGeoJsonData(inventoryData);
+        const geoJSONData = await getGeoJsonData({ inventoryData });
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
@@ -285,7 +298,7 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const renderMapView = () => {
-    let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
+    let shouldRenderShape = geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
       <MapboxGL.MapView
         showUserLocation={false}
@@ -317,10 +330,7 @@ const InventoryOverview = ({ navigation }: any) => {
         {!isPointForMultipleTree ? (
           <Markers
             geoJSON={geoJSON}
-            setCoordinateModalShow={setCoordinateModalShow}
-            setCoordinateIndex={setCoordinateIndex}
             onPressMarker={onPressMarker}
-            setIsSampleTree={setIsSampleTree}
             locateTree={inventory.locateTree}
           />
         ) : (
@@ -330,7 +340,9 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const onPressMarker = async (isSampleTree: boolean, coordinate: []) => {
+  const onPressMarker = async ({ isSampleTree, coordinate, coordinateIndex }: any) => {
+    setCoordinateIndex(coordinateIndex);
+    setIsSampleTree(isSampleTree);
     let approxModalHeight = isSampleTree ? 250 : 150;
     let halfMapHeight = 215;
     let markerHeight = 45;
@@ -360,6 +372,7 @@ const InventoryOverview = ({ navigation }: any) => {
       setCustomModalPosition(halfMapHeight);
     }
     focusMarker(coordinate);
+    setCoordinateModalShow(true);
   };
 
   const onChangeDate = (selectedDate: any) => {
@@ -501,7 +514,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates[0].length == 1;
 
     locateType =
       inventory.locateTree === OFF_SITE
@@ -510,6 +523,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
+  const showEditButton = inventory?.status && !getPendingStatus().includes(inventory?.status);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -532,7 +546,13 @@ const InventoryOverview = ({ navigation }: any) => {
                   closeIcon
                   headingText={i18next.t('label.inventory_overview_header_text')}
                   subHeadingText={i18next.t('label.inventory_overview_sub_header')}
-                  onBackPress={() => navigation.navigate('TreeInventory')}
+                  onBackPress={() => {
+                    if (route?.params?.navigateBackToHomeScreen) {
+                      navigation.navigate('MainScreen');
+                    } else {
+                      navigation.navigate('TreeInventory');
+                    }
+                  }}
                   rightText={
                     status == INCOMPLETE_SAMPLE_TREE ||
                     status == INCOMPLETE ||
@@ -561,19 +581,44 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
+                {showEditButton ? (
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      backgroundColor: Colors.WHITE,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: Colors.GRAY_LIGHT,
+                      position: 'absolute',
+                      top: 30,
+                      right: 6,
+                    }}
+                    onPress={() => navigation.navigate('EditPolygon')}>
+                    <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
+                  </TouchableOpacity>
+                ) : (
+                  []
+                )}
                 {(inventory?.status === INCOMPLETE ||
                   inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
                 inventory?.locateTree === ON_SITE ? (
-                  <View style={{ position: 'absolute', top: 0, right: 0, paddingTop: 25 }}>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: showEditButton ? 48 : 0,
+                      paddingTop: 20,
+                    }}>
                     <TouchableOpacity
                       style={{
-                        paddingVertical: 5,
-                        paddingHorizontal: 10,
+                        paddingVertical: 11,
+                        paddingHorizontal: 12,
                         margin: 10,
                         backgroundColor: Colors.WHITE,
                         borderRadius: 12,
                         borderWidth: 1,
-                        borderColor: Colors.LIGHT_BORDER_COLOR,
+                        borderColor: Colors.GRAY_LIGHT,
                       }}
                       onPress={
                         inventory?.completedSampleTreesCount == 0 &&
@@ -766,8 +811,8 @@ const CoordinateOverviewModal = ({
   useEffect(() => {
     if (coordinateIndex || coordinateIndex === 0) {
       if (isSampleTree !== null && !isSampleTree) {
-        setMarker(inventory?.polygons[0].coordinates[coordinateIndex]);
-        initiateMarkerData(inventory?.polygons[0].coordinates[coordinateIndex]);
+        setMarker(inventory?.polygons[0].coordinates[0][coordinateIndex]);
+        initiateMarkerData(inventory?.polygons[0].coordinates[0][coordinateIndex]);
       } else if (isSampleTree !== null && isSampleTree) {
         setMarker(inventory?.sampleTrees[coordinateIndex - 1]);
         initiateMarkerData(inventory?.sampleTrees[coordinateIndex - 1]);
@@ -960,13 +1005,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     height: 380,
     marginVertical: 25,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   modalContainer: {
     flex: 1,
-    // justifyContent: 'center',
     alignItems: 'center',
-    // borderWidth: 3,
-    // borderColor: 'green',
     position: 'relative',
   },
 });

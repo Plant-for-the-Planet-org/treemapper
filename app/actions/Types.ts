@@ -45,3 +45,6 @@ export const SET_SKIP_TO_INVENTORY_OVERVIEW = 'SET_SKIP_TO_INVENTORY_OVERVIEW';
 
 // Type to set if the sample which is being added is extra or same as the count that the user has set
 export const SET_IS_EXTRA_SAMPLE_TREE = 'SET_IS_EXTRA_SAMPLE_TREE';
+
+// Used to check if fetching of registrations are completed and load the geoJSON on the map
+export const INVENTORY_FETCH_FROM_SERVER = 'INVENTORY_FETCH_FROM_SERVER';

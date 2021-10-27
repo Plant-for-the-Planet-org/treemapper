@@ -21,5 +21,6 @@
   "continue": "Continue",
   "location_service": "Location Service",
   "location_service_message": "Location settings are not satisfied. Please make sure you have given location permission to the app and turned on GPS",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "need_location_permission_to_continue": "You need to give location permission to continue."
 }

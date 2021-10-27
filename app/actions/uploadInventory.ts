@@ -9,7 +9,7 @@ import {
 import dbLog from '../repositories/logs';
 import { bugsnag } from '../utils';
 import { getFormattedMetadata } from '../utils/additionalData/functions';
-import { getAuthenticatedRequest, postAuthenticatedRequest, putRequest } from '../utils/api';
+import { getAuthenticatedRequest, postAuthenticatedRequest, putAuthenticatedRequest, putRequest } from '../utils/api';
 import { LogTypes } from '../utils/constants';
 import {
   DATA_UPLOAD_START,
@@ -21,6 +21,8 @@ import {
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
+  PENDING_DATA_UPDATE,
+  getPendingStatus,
   POINT,
   POLYGON,
   SINGLE,
@@ -142,18 +144,15 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
   });
 };
 
-export const uploadInventory = async (dispatch) => {
+export const uploadInventory = async (dispatch: any) => {
   return new Promise((resolve, reject) => {
     const init = async () => {
       // get pending inventories from realm DB
-      const pendingInventory = await getInventoryByStatus([PENDING_DATA_UPLOAD, DATA_UPLOAD_START]);
-      // get inventories whose images are pending tob be uploaded from realm DB
-      const uploadingInventory = await getInventoryByStatus([
-        PENDING_IMAGE_UPLOAD,
-        PENDING_SAMPLE_TREES_UPLOAD,
-      ]);
-      // copies pending and uploading inventory
-      let inventoryData = [...uploadingInventory, ...pendingInventory];
+      let inventoryData = await getInventoryByStatus(getPendingStatus());
+
+      // used to copy the data so the reference to realm result is removed
+      inventoryData = JSON.parse(JSON.stringify(inventoryData))
+
       // updates the count of inventories that is going to be uploaded
       updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
       // changes the status of isUploading to true, to show that data started to sync
@@ -215,7 +214,58 @@ export const uploadInventory = async (dispatch) => {
               reject(err);
             }
           }
-        } else {
+        } else if (oneInventory.locationId && oneInventory.status === PENDING_DATA_UPDATE) {
+          try {
+            const { coordinates, coordinatesType } = getCoordinatesAndType(oneInventory);
+
+            body = {
+              geometry: {
+                coordinates,
+                type: coordinatesType,
+              }
+            }
+
+            await putAuthenticatedRequest(`/treemapper/plantLocations/${oneInventory.locationId}`, body)
+
+            dbLog.info({
+              logType: LogTypes.DATA_SYNC,
+              message: `Successfully updated geometry of inventory ${oneInventory.inventory_id}`,
+              referenceId: oneInventory.inventory_id,
+            });
+
+            changeInventoryStatus(
+              {
+                inventory_id: oneInventory.inventory_id,
+                status: SYNCED,
+              },
+              dispatch,
+            )
+              .then(() => {
+                if (inventoryData.length - 1 === i) {
+                  updateIsUploading(false)(dispatch);
+                  resolve(true);
+                }
+              })
+              .catch((err) => {
+                dbLog.error({
+                  logType: LogTypes.INVENTORY,
+                  message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
+                  logStack: JSON.stringify(err),
+                });
+                if (inventoryData.length - 1 === i) {
+                  updateIsUploading(false)(dispatch);
+                  reject(err);
+                }
+              });
+
+          } catch (err) {
+            if (inventoryData.length - 1 === i) {
+              updateIsUploading(false)(dispatch);
+              reject(err);
+            }
+          }
+        }
+        else {
           try {
             await changeInventoryStatus(
               {
@@ -287,13 +337,24 @@ export const uploadInventory = async (dispatch) => {
   });
 };
 
-const getBodyData = (inventory) => {
+const getCoordinatesAndType = (inventory: any) => {
   let coords = inventory.polygons[0].coordinates;
 
   // stores the coordinates of the registered tree(s)
   let coordinates = coords.map((x) => [x.longitude, x.latitude]);
   let coordinatesType = coordinates.length > 1 ? POLYGON : POINT;
   coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
+  return {
+    coordinates,
+    coordinatesType
+  }
+}
+
+const getBodyData = (inventory) => {
+  let coords = inventory.polygons[0].coordinates;
+
+  const { coordinates, coordinatesType } = getCoordinatesAndType(inventory)
+
 
   // stores the device coordinated of the registered tree(s)
   let deviceCoordinatesType = POINT;
@@ -304,7 +365,7 @@ const getBodyData = (inventory) => {
   metadata.app = JSON.parse(inventory.appMetadata);
 
   // prepares the body which is to be passed to api
-  let body = {
+  let body: any = {
     type: inventory.treeType,
     captureMode: inventory.locateTree,
     deviceLocation: {
@@ -315,14 +376,14 @@ const getBodyData = (inventory) => {
       coordinates,
       type: coordinatesType,
     },
-    plantDate: inventory.plantation_date.toISOString().split('T')[0],
-    registrationDate: inventory.registrationDate.toISOString().split('T')[0],
+    plantDate: new Date(inventory.plantation_date).toISOString().split('T')[0],
+    registrationDate: new Date(inventory.registrationDate).toISOString().split('T')[0],
     metadata,
   };
 
   // if inventory type is scientific species then adds measurements and scientific species to body
   if (inventory.treeType === SINGLE) {
-    let bodyData = {
+    let bodyData: any = {
       measurements: {
         height: inventory.specieHeight,
         width: inventory.specieDiameter,
@@ -340,8 +401,8 @@ const getBodyData = (inventory) => {
       ...bodyData,
     };
   } else {
-    let plantedSpecies = inventory.species.map((x) => {
-      let specie = {
+    let plantedSpecies = inventory.species.map((x: any) => {
+      let specie: any = {
         treeCount: Number(x.treeCount),
       };
       if (x.id === 'unknown') {
@@ -363,12 +424,12 @@ const getBodyData = (inventory) => {
   return body;
 };
 
-const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
+const getSampleBodyData = (sampleTree: any, registrationDate: any, parentId: string) => {
   const metadata = getFormattedMetadata(sampleTree.additionalDetails);
   metadata.app = JSON.parse(sampleTree.appMetadata);
 
   // prepares the body which is to be passed to api
-  let body = {
+  let body: any = {
     type: sampleTree.treeType,
     captureMode: ON_SITE,
     deviceLocation: {
@@ -396,7 +457,7 @@ const getSampleBodyData = (sampleTree, registrationDate, parentId) => {
   return body;
 };
 
-const checkSampleTreesAndUpload = async (inventory) => {
+const checkSampleTreesAndUpload = async (inventory: any) => {
   if (
     inventory.treeType === MULTI &&
     inventory.locateTree === ON_SITE &&
@@ -408,7 +469,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
       sampleTree = JSON.parse(JSON.stringify(sampleTree));
 
       if (sampleTree.status !== SYNCED) {
-        let response;
+        let response: any;
 
         if (sampleTree.locationId && sampleTree.status === PENDING_IMAGE_UPLOAD) {
           try {
@@ -429,7 +490,7 @@ const checkSampleTreesAndUpload = async (inventory) => {
           );
           try {
             response = await postAuthenticatedRequest('/treemapper/plantLocations', body);
-          } catch (err) {
+          } catch (err: any) {
             dbLog.error({
               logType: LogTypes.DATA_SYNC,
               message: `Error while creating Plant Location details for Sample Trees with Inventory Location Id: ${inventory.locationId}`,
@@ -508,7 +569,7 @@ const updateSampleTreeByIndex = (
       ...sampleTree,
     };
 
-    let inventoryData = {
+    let inventoryData: any = {
       sampleTrees,
     };
 
@@ -529,15 +590,13 @@ const updateSampleTreeByIndex = (
   });
 };
 
-const checkAndUploadImage = async (oneInventory, response) => {
+const checkAndUploadImage = async (oneInventory: any, response: any) => {
   try {
     let locationId = response.id;
     let coordinatesList = oneInventory.polygons[0].coordinates;
     const responseCoords = response.coordinates;
     let completedUploadCount = 0;
-    for (let i = 0; i < responseCoords.length; i++) {
-      const oneResponseCoords = responseCoords[i];
-
+    for (const oneResponseCoords of responseCoords) {
       if (oneResponseCoords.status === 'complete') {
         completedUploadCount++;
         continue;

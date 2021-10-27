@@ -12,6 +12,8 @@ import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '..
 import { isInternetConnected } from '../utils/checkInternet';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
+import { updateInventoryFetchFromServer } from './inventory';
+import { inventoryFetchConstant } from '../reducers/inventory';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -30,7 +32,7 @@ const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CL
  * to get the user details.
  * @param {ActionDispatch} dispatch - requires dispatch function of user context to pass it to func [setUserInitialState]
  */
-export const auth0Login = (dispatch) => {
+export const auth0Login = (dispatch, inventoryDispatch) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
       .authorize(
@@ -83,7 +85,8 @@ export const auth0Login = (dispatch) => {
 
             getAllProjects();
             checkAndAddUserSpecies().then(() => {
-              addInventoryFromServer();
+              updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
+              addInventoryFromServer('', inventoryDispatch);
             });
             resolve(true);
           })
@@ -320,6 +323,7 @@ export const SignupService = (payload, dispatch) => {
             displayName: data.displayName,
             country: data.country,
             userId: data.id,
+            type: data.type,
             isSignUpRequired: false,
           });
           // logging the success in to the db
