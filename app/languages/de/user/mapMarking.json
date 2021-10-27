@@ -20,6 +20,7 @@
   "try_again": "Erneut versuchen",
   "continue": "Weiter",
   "location_service": "Standortbestimmung",
-  "location_service_message": "Einstellungen zur Standortbestimmung sind nicht ausreichend.",
-  "cancel": "Abbrechen"
+  "location_service_message": "Die Standorteinstellungen sind nicht ausreichend. Bitte vergewissere dich, dass du der App die Standortberechtigung erteilt und GPS eingeschaltet hast.",
+  "cancel": "Abbrechen",
+  "need_location_permission_to_continue": "Eine Standortfreigabe ist erforderlich um fortzufahren."
 }

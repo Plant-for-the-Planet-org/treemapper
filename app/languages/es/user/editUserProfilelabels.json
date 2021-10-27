@@ -9,14 +9,14 @@
   "open_source_license": "Licencia de código abierto",
   "edit": "Editar",
   "manage_offline": "Administrar los mapas fuera de línea",
-  "manage_species": "Gestión de especies",
+  "manage_species": "Administrar especies",
   "activity_logging": "Registro de actividades",
   "activity_logs": "Registro de actividades",
   "all_backed_up": "Todos los cambios se han guardado",
   "upload_pending": "{{count}}pendiente",
   "sync_remaining": "Sincronización - {{count}} restante",
   "support": "Ayuda",
-  "complete_signup": "Inscripción completa",
+  "complete_signup": "Registro completo",
   "manage_projects": "Administrar los proyectos",
   "additional_data": "Datos adicionales"
 }

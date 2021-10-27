@@ -20,7 +20,7 @@
   "tree_review_delete": "Borrar",
   "tree_review_details": "Detalles del árbol",
   "tree_review_not_tagged": "No etiquetado",
-  "tree_review_delete_not_yet_uploaded_registration": "El registro aún no está cargado en Plant-for-the-Planet. Una vez eliminada se perderá para siempre.",
+  "tree_review_delete_not_yet_uploaded_registration": "El registro aún no está cargado en Plant-for-the-Planet. Una vez eliminado se perderá para siempre.",
   "tree_review_delete_uploaded_registration": "Los registros están seguros en la nube. Una vez que los registros son eliminados, actualmente no es posible recuperarlos en esta aplicación.",
   "tree_review_continue_to_species": "Continuar con las especies",
   "tree_review_continue_to_review": "Continuar con la revisión",
@@ -33,6 +33,6 @@
   "at_least_one_species": "Debe tener al menos 1 especie antes de añadir árboles de muestra",
   "need_more_sample_trees": "Necesita más árboles de muestra",
   "at_least_five_sample_trees": "Debe añadir al menos 5 árboles de muestra",
-  "project_not_assigned": "Proyecto no asignado!",
+  "project_not_assigned": "¡Proyecto no asignado!",
   "project_not_assigned_message": "¿Está seguro de que quiere guardar este registro sin asignar un proyecto?"
 }
