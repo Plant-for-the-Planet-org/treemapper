@@ -21,5 +21,6 @@
   "locate_tree_location": "Standort",
   "locate_tree_cannot_record_tree": "Beispielbaum konnte nicht erfasst werden",
   "locate_tree_cannot_record_tree_outside_polygon": "Der Beispielbaum kann nur innerhalb der markierten Stelle aufgenommen werden.",
-  "locate_tree_unable_to_retrieve_location": "Standort kann nicht abgerufen werden."
+  "locate_tree_unable_to_retrieve_location": "Standort kann nicht abgerufen werden.",
+  "distance_more_than_100_meter": "Die aktuelle Position der Markierung ist mehr als 100 Meter von den ursprünglichen Koordinaten entfernt."
 }

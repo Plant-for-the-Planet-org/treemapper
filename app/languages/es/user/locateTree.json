@@ -1,9 +1,9 @@
 {
   "locate_tree_header": "Localizar los árboles",
   "locate_tree_heading": "Sobre el terreno (Preferido)",
-  "locate_tree_sub_heading": "Recolectar Polygon e imágenes para una alta precisión y verificabilidad",
+  "locate_tree_sub_heading": "Registrar Polígono e imágenes para una alta precisión y verificabilidad",
   "locate_tree_off_site": "Fuera del sitio - Polígono",
-  "locate_tree_off_site_sub_heading": "Recolectar Polygon. Es mejor utilizarlo cuando se registra desde la oficina.",
+  "locate_tree_off_site_sub_heading": "Registrar Polígono. Es mejor utilizarlo cuando se registra desde la oficina.",
   "locate_tree_off_site_point_heading": "Fuera del sitio - Punto",
   "locate_tree_off_site_point_sub_heading": "Sólo latitud y longitud",
   "locate_tree_geo_json": "Subir GeoJson",
@@ -20,6 +20,6 @@
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   "locate_tree_location": "Ubicación",
   "locate_tree_cannot_record_tree": "No se puede registrar el árbol de muestra",
-  "locate_tree_cannot_record_tree_outside_polygon": "El árbol de muestra sólo puede registrarse en del lugar marcado.",
-  "locate_tree_unable_to_retrieve_location": "No se puede recuperar la ubicación."
+  "locate_tree_cannot_record_tree_outside_polygon": "El árbol de muestra sólo puede registrarse dentro del lugar marcado.",
+  "locate_tree_unable_to_retrieve_location": "No se puede encontrar la ubicación."
 }
