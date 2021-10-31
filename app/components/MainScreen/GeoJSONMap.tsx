@@ -168,6 +168,16 @@ const GeoJSONMap = ({
       ) : (
         <>
           <MapboxGL.ShapeSource
+            id={'point'}
+            shape={pointGeoJSON}
+            onPress={(e) => {
+              if (e?.features.length > 0) {
+                getSelectedPlantLocations(e.features);
+              }
+            }}>
+            <MapboxGL.CircleLayer id={'pointCircle'} style={circleStyle} />
+          </MapboxGL.ShapeSource>
+          <MapboxGL.ShapeSource
             id={'polygon'}
             shape={geoJSON}
             onPress={(e) => {
@@ -178,16 +188,6 @@ const GeoJSONMap = ({
             <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-          </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'point'}
-            shape={pointGeoJSON}
-            onPress={(e) => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={circleStyle} />
           </MapboxGL.ShapeSource>
         </>
       )}
