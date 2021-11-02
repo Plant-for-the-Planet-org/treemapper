@@ -415,12 +415,12 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
+              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 56 }]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">
-              <View style={Platform.OS === 'ios' && styles.myLocationIconContainer}>
-                <Icon name={'my-location'} size={22} />
+              <View>
+                <Icon name={'my-location'} size={24} color={Colors.PLANET_BLACK} />
               </View>
             </TouchableOpacity>
           </View>
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   extraInfoContainer: {
     position: 'absolute',
-    top: 25,
+    top: IS_ANDROID ? 25 : 56,
     left: 25,
     alignItems: 'flex-start',
   },
@@ -471,22 +471,18 @@ const styles = StyleSheet.create({
     borderColor: Colors.GRAY_LIGHT,
   },
   myLocationIcon: {
+    position: 'absolute',
+    right: -16,
+    bottom: 36,
     width: 45,
     height: 45,
     backgroundColor: Colors.WHITE,
-    position: 'absolute',
     borderRadius: 100,
-    right: 0,
     marginHorizontal: 25,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.GRAY_LIGHT,
-    bottom: 80,
-  },
-  myLocationIconContainer: {
-    top: 1.5,
-    left: 0.8,
   },
   heading: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,

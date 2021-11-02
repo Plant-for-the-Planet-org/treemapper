@@ -31,11 +31,11 @@ export default function MapButtons({
           }
         }}
         style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
-        accessibilityLabel="Register Tree Camera"
+        accessibilityLabel="main-my-location"
         accessible={true}
-        testID="register_tree_camera">
+        testID="main-my-location">
         <View style={Platform.OS === 'ios' && styles.myLocationIconContainer}>
-          <Icon name={'my-location'} size={22} />
+          <Icon name={'my-location'} size={24} color={Colors.PLANET_BLACK} />
         </View>
       </TouchableOpacity>
       <View style={[styles.continueBtnCont, Platform.OS === 'ios' ? { bottom: 70 } : {}]}>

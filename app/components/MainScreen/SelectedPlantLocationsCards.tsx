@@ -1,9 +1,11 @@
 import i18next from 'i18next';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Colors, Typography } from '../../styles';
 import { MULTI } from '../../utils/inventoryConstants';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 interface ISelectedPlantLocationsCardsProps {
   plantLocations: any;
@@ -94,7 +96,7 @@ export default SelectedPlantLocationsCards;
 const styles = StyleSheet.create({
   carousel: {
     position: 'absolute',
-    bottom: 36,
+    bottom: IS_ANDROID ? 36 : 72,
     zIndex: 2,
   },
   cardContainer: {

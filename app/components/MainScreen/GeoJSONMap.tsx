@@ -2,10 +2,12 @@ import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleProp, StyleSheet } from 'react-native';
+import { Platform, StyleProp, StyleSheet } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 interface IGeoJSONMapProps {
   setLoader: React.Dispatch<React.SetStateAction<boolean>>;
@@ -93,16 +95,30 @@ const GeoJSONMap = ({
 
   const onChangeRegionComplete = () => setLoader(false);
 
+  let attributionPosition: any = {
+    bottom: IS_ANDROID ? 92 : 56,
+    left: 8,
+  };
+
+  let compassViewMargins = {
+    x: IS_ANDROID ? 12 : 16,
+    y: IS_ANDROID ? 160 : 120,
+  };
+
+  if (showSinglePlantLocation || showClickedGeoJSON) {
+    attributionPosition = {
+      bottom: 8,
+      right: 8,
+    };
+  }
+
   return (
     <MapboxGL.MapView
       style={styles.container}
       ref={map}
       compassViewPosition={3}
-      compassViewMargins={{
-        x: 30,
-        y: 180,
-      }}
-      logoEnabled
+      compassViewMargins={compassViewMargins}
+      attributionPosition={attributionPosition}
       onRegionWillChange={onChangeRegionStart}
       onRegionDidChange={onChangeRegionComplete}>
       <MapboxGL.Camera
@@ -120,7 +136,8 @@ const GeoJSONMap = ({
           <SampleTreeMarkers
             geoJSON={singleSelectedGeoJSON}
             isPointForMultipleTree={false}
-            locateTree={''}
+            activeSampleCarouselIndex={activeSampleCarouselIndex}
+            isCarouselSample
           />
           <MapboxGL.ShapeSource
             id={'singleSelectedPolygon'}
@@ -187,7 +204,7 @@ const GeoJSONMap = ({
                 getSelectedPlantLocations(e.features);
               }
             }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={circleStyle} />
+            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
           </MapboxGL.ShapeSource>
         </>
       )}
@@ -223,5 +240,6 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
 const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
 const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
 
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
+const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
+const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };

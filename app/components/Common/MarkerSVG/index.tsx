@@ -1,10 +1,10 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, G, Text, Path } from 'react-native-svg';
 
-function MarkerSVG({ point, color }) {
+function MarkerSVG({ point, color, opacity = 1 }) {
   return (
     <Svg xmlns="http://www.w3.org/2000/svg" width="38" height="91" viewBox="0 0 38 91">
-      <G data-name="Group 2286" transform="translate(-101 -368)">
+      <G data-name="Group 2286" transform="translate(-101 -368)" opacity={opacity}>
         <G data-name="Group 1661" transform="translate(-38 -63.09)">
           <Path
             fill="none"

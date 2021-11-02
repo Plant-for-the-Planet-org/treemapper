@@ -2,20 +2,32 @@ import { useNavigation } from '@react-navigation/core';
 import * as shape from 'd3-shape';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Svg, { Path, SvgXml } from 'react-native-svg';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { multipleTreesIcon, singleTreeIcon } from '../../assets';
 import { Colors, Typography } from '../../styles';
 
+const IS_ANDROID = Platform.OS === 'android';
+
 let { width } = Dimensions.get('window');
 const buttonWidth = 64;
 const buttonGutter = 10;
-const tabbarHeight = 60;
+const extraHeight = IS_ANDROID ? 0 : 20;
+const tabbarHeight = 60 + extraHeight;
 
 const tabWidth = buttonWidth + buttonGutter * 2;
 width = (width - tabWidth) / 2;
-const curveHeight = tabbarHeight - 22;
+const curveHeight = tabbarHeight - (22 + extraHeight);
 
 const getPath = (): string => {
   const left = shape
@@ -105,10 +117,35 @@ interface IBottomBarProps {
 const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBottomBarProps) => {
   const [showAddOptions, setShowAddOptions] = useState(false);
   const navigation = useNavigation();
+  const [spinValue] = useState(new Animated.Value(0));
 
   useEffect(() => {
     return () => setShowAddOptions(false);
   }, []);
+
+  // Next, interpolate beginning and end values (in this case 0 and 1)
+  // if Clockwise icon will rotate clockwise, else anti-clockwise
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '225deg'],
+  });
+
+  const animatedScaleStyle = {
+    transform: [{ rotate: spin }],
+  };
+
+  const onAddPress = () => {
+    {
+      setShowAddOptions(!showAddOptions);
+      Animated.spring(
+        spinValue, // The animated value to drive
+        {
+          toValue: showAddOptions ? 0 : 1,
+          useNativeDriver: true,
+        },
+      ).start();
+    }
+  };
 
   return (
     <>
@@ -121,22 +158,27 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
           stroke={Colors.GRAY_LIGHT}>
           <Path {...{ d }} fill={Colors.WHITE} />
         </Svg>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddOptions(!showAddOptions)}>
-          <FA5Icon name="plus" color={Colors.WHITE} size={32} />
+        {/* add button */}
+        <TouchableOpacity style={styles.addButton} onPress={() => onAddPress()}>
+          <Animated.View style={animatedScaleStyle}>
+            <FA5Icon name="plus" color={Colors.WHITE} size={32} />
+          </Animated.View>
         </TouchableOpacity>
+
+        {/* menu button */}
         <TouchableOpacity style={[styles.left, styles.tabButton]} onPress={onMenuPress}>
           <>
             <View style={[styles.menuDash, { width: 16 }]} />
             <View style={[styles.menuDash, { width: 24, marginTop: 6 }]} />
           </>
         </TouchableOpacity>
+
+        {/* Tree Inventory button */}
         <TouchableOpacity style={[styles.right, styles.tabButton]} onPress={onTreeInventoryPress}>
           <Text style={styles.tabText}>{i18next.t('label.tree_inventory')}</Text>
-          <Text style={styles.inventoryCount}>
-            {numberOfInventory > 99 ? '99+' : numberOfInventory}
-          </Text>
+          <View style={styles.inventoryCount}>
+            <Text style={styles.inventoryCountText}>{numberOfInventory}</Text>
+          </View>
         </TouchableOpacity>
         <SafeAreaView style={styles.safeArea} />
       </View>
@@ -165,6 +207,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     justifyContent: 'space-around',
     alignItems: 'flex-start',
+    marginBottom: IS_ANDROID ? 0 : 6,
   },
   // 44 = height of menu container + 2 * padding
   left: {
@@ -219,19 +262,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    // borderWidth: 1,
-    // backgroundColor: '#f2f2f2',
   },
   inventoryCount: {
     position: 'absolute',
     top: 0,
     right: -6,
-    height: 20,
-    width: 20,
-    lineHeight: 20,
+    minWidth: 18,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
     borderRadius: 100,
-    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.PRIMARY_DARK,
+  },
+  inventoryCountText: {
     color: Colors.WHITE,
     fontSize: Typography.FONT_SIZE_10,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

@@ -60,6 +60,8 @@ import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
 import Markers from '../Common/Markers';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import turfArea from '@turf/area';
+import { convertArea } from '@turf/helpers';
 
 let scrollAdjust = 0;
 
@@ -100,6 +102,9 @@ const InventoryOverview = ({ navigation }: any) => {
   const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
   const [layoutAboveMap, setLayoutAboveMap] = useState<number | null>();
   const [customModalPosition, setCustomModalPosition] = useState<number | null>();
+  const [plantingAreaInHa, setPlantingAreaInHa] = useState<number>(0);
+  const [plantingDensity, setPlantingDensity] = useState<number>(0);
+
   const map = useRef(null);
   const scroll = useRef();
   const [geoJSON, setGeoJSON] = useState({
@@ -178,6 +183,24 @@ const InventoryOverview = ({ navigation }: any) => {
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    const setPlantingArea = async (totalTreeCount: number) => {
+      const geoJSONData = await getGeoJsonData({ inventoryData: inventory });
+      if (geoJSONData.features.length > 0) {
+        const areaInSqM = turfArea(geoJSONData.features[0]);
+        const areaInHa = Math.round(convertArea(areaInSqM, 'meters', 'hectares') * 10000) / 10000;
+        setPlantingAreaInHa(areaInHa);
+        setPlantingDensity(Math.round((totalTreeCount / areaInHa) * 100) / 100);
+      }
+    };
+    if (inventory) {
+      const totalTreeCount = inventory?.species
+        .map((species: any) => species.treeCount)
+        .reduce((a: any, b: any) => a + b, 0);
+      setPlantingArea(totalTreeCount);
+    }
+  }, [inventory]);
 
   const hardBackHandler = () => {
     navigation.dispatch(
@@ -641,6 +664,26 @@ const InventoryOverview = ({ navigation }: any) => {
                   []
                 )}
               </View>
+
+              {/* display planting area on the screen */}
+              {!isSingleCoordinate ? (
+                <>
+                  <Label
+                    leftText={i18next.t('label.planting_area')}
+                    rightText={i18next.t('label.planting_area_value', { plantingAreaInHa })}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                  />
+                  <Label
+                    leftText={i18next.t('label.planting_density')}
+                    rightText={i18next.t('label.planting_density_value', { plantingDensity })}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                  />
+                </>
+              ) : (
+                []
+              )}
+
+              {/* display projects on the screen */}
               {showProject ? (
                 <Label
                   leftText={i18next.t('label.tree_review_project')}

@@ -14,6 +14,8 @@ interface Props {
   onPressMarker?: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree?: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree?: string;
+  isCarouselSample?: boolean;
+  activeSampleCarouselIndex?: number | null;
 }
 
 const SampleTreeMarkers = ({
@@ -23,13 +25,24 @@ const SampleTreeMarkers = ({
   setCoordinateIndex,
   onPressMarker,
   setIsSampleTree,
-  locateTree,
+  locateTree = '',
+  isCarouselSample = false,
+  activeSampleCarouselIndex = null,
 }: Props) => {
   const markers = [];
   for (let i = isPointForMultipleTree ? 0 : 1; i < geoJSON.features.length; i++) {
     let onePoint = geoJSON.features[i];
     const markerText = isPointForMultipleTree ? toLetters(1) : `${i}`;
     let oneMarker = onePoint.geometry.coordinates;
+
+    let color = Colors.PRIMARY_DARK;
+    let opacity = 1;
+
+    if (isCarouselSample && activeSampleCarouselIndex !== i - 1) {
+      color = Colors.GRAY_LIGHTEST;
+      opacity = 0.6;
+    }
+
     markers.push(
       <MapboxGL.PointAnnotation
         key={`sampleTree-${i}`}
@@ -49,7 +62,7 @@ const SampleTreeMarkers = ({
             setCoordinateModalShow(true);
           }
         }}>
-        <MarkerSVG point={markerText} color={isPointForMultipleTree ? Colors.PRIMARY : '#007A49'} />
+        <MarkerSVG point={markerText} color={color} opacity={opacity} />
       </MapboxGL.PointAnnotation>,
     );
   }

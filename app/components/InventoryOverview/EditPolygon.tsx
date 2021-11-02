@@ -236,6 +236,10 @@ const EditPolygon = () => {
         ref={map}
         pitchEnabled={false}
         rotateEnabled={false}
+        attributionPosition={{
+          bottom: 8,
+          right: 8,
+        }}
         logoEnabled>
         <MapboxGL.Camera
           ref={(el) => {
