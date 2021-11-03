@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 6,
     backgroundColor: Colors.WHITE,
+    color: Colors.PLANET_BLACK,
   },
   noDataContainer: {
     backgroundColor: Colors.GRAY_LIGHT,

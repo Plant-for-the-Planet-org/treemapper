@@ -57,6 +57,7 @@ const MySpecies: React.FC<MySpeciesProps> = ({
             paddingBottom: 15,
             fontFamily: Typography.FONT_FAMILY_BOLD,
             fontSize: Typography.FONT_SIZE_16,
+            color: Colors.PLANET_BLACK,
           }}>
           {i18next.t('label.select_species_my_species')}
         </Text>
@@ -67,7 +68,7 @@ const MySpecies: React.FC<MySpeciesProps> = ({
             style={{ flex: 1 }}
             data={specieList}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.guid}
+            keyExtractor={item => item.guid}
             renderItem={renderSpecieCard}
             keyboardShouldPersistTaps="always"
           />
@@ -173,15 +174,21 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             fontSize: Typography.FONT_SIZE_16,
             fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
             paddingBottom: 6,
+            color: Colors.PLANET_BLACK,
           }}>
-          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.aliases : i18next.t('label.select_species_unknown')}
+          {item.guid !== 'unknown' || item.id === 'unknown'
+            ? item.aliases
+            : i18next.t('label.select_species_unknown')}
         </Text>
         <Text
           style={{
             fontSize: Typography.FONT_SIZE_12,
             fontFamily: Typography.FONT_FAMILY_REGULAR,
+            color: Colors.PLANET_BLACK,
           }}>
-          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.scientificName : i18next.t('label.select_species_unknown')}
+          {item.guid !== 'unknown' || item.id === 'unknown'
+            ? item.scientificName
+            : i18next.t('label.select_species_unknown')}
         </Text>
       </View>
       {item.guid !== 'unknown' && screen === 'SelectSpecies' && navigateToSpecieInfo ? (
