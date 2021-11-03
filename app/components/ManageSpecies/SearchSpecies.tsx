@@ -45,6 +45,7 @@ const SearchSpecies: React.FC<SearchSpeciesProps> = ({
               style={{
                 fontSize: Typography.FONT_SIZE_16,
                 fontFamily: Typography.FONT_FAMILY_REGULAR,
+                color: Colors.PLANET_BLACK,
               }}>
               {item.scientificName}
             </Text>
@@ -96,7 +97,7 @@ const SearchSpecies: React.FC<SearchSpeciesProps> = ({
         style={{ flex: 1 }}
         data={searchList}
         showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.guid}
+        keyExtractor={item => item.guid}
         renderItem={memoizedRenderSearchSpecieCard}
         keyboardShouldPersistTaps="always"
       />

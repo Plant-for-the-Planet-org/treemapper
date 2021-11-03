@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import i18next from 'i18next';
-import { TouchableOpacity, FlatList } from 'react-native';
+import { TouchableOpacity, FlatList, StyleProp, ViewStyle } from 'react-native';
 import InventoryCard from '../InventoryCard';
 import { useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../../reducers/inventory';
@@ -13,12 +13,56 @@ import {
   SYNCED,
 } from '../../../utils/inventoryConstants';
 
-export default function InventoryList({ inventoryList, accessibilityLabel, countryCode }) {
+interface IInventoryListProps {
+  inventoryList: any;
+  accessibilityLabel: string;
+  countryCode?: string;
+  /**
+   * Rendered in between each item, but not at the top or bottom
+   */
+  ItemSeparatorComponent?: React.ComponentType<any> | null;
+
+  /**
+   * Rendered when the list is empty.
+   */
+  ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+
+  /**
+   * Rendered at the very end of the list.
+   */
+  ListFooterComponent?: React.ComponentType<any> | React.ReactElement | null;
+
+  /**
+   * Styling for internal View for ListFooterComponent
+   */
+  ListFooterComponentStyle?: StyleProp<ViewStyle>;
+
+  /**
+   * Rendered at the very beginning of the list.
+   */
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+
+  /**
+   * Styling for internal View for ListHeaderComponent
+   */
+  ListHeaderComponentStyle?: StyleProp<ViewStyle>;
+}
+export default function InventoryList({
+  inventoryList,
+  accessibilityLabel,
+  countryCode = '',
+  ItemSeparatorComponent,
+  ListEmptyComponent,
+  ListFooterComponent,
+  ListFooterComponentStyle,
+  ListHeaderComponent,
+  ListHeaderComponentStyle,
+}: IInventoryListProps) {
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
 
-  const onPressInventory = (item) => {
+  const onPressInventory = (item: any) => {
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.treeType === SINGLE) {
@@ -34,7 +78,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, count
     <FlatList
       showsVerticalScrollIndicator={false}
       data={inventoryList}
-      keyExtractor={(item, index) => `inventory-${index}`}
+      keyExtractor={(_, index) => `inventory-${index}`}
       renderItem={({ item }) => {
         let imageURL;
         let cdnImageUrl;
@@ -88,7 +132,7 @@ export default function InventoryList({ inventoryList, accessibilityLabel, count
           diameter: item.specieDiameter,
           height: item.specieHeight,
           tagId: item.tagId,
-          countryCode: countryCode,
+          countryCode,
         };
 
         return (
@@ -102,14 +146,20 @@ export default function InventoryList({ inventoryList, accessibilityLabel, count
                 item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
                   ? null
                   : item.status === SYNCED
-                    ? 'cloud-check'
-                    : 'cloud-outline'
+                  ? 'cloud-check'
+                  : 'cloud-outline'
               }
               data={data}
             />
           </TouchableOpacity>
         );
       }}
+      ItemSeparatorComponent={ItemSeparatorComponent}
+      ListEmptyComponent={ListEmptyComponent}
+      ListFooterComponent={ListFooterComponent}
+      ListFooterComponentStyle={ListFooterComponentStyle}
+      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponentStyle={ListHeaderComponentStyle}
     />
   );
 }

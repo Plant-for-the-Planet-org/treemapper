@@ -122,7 +122,7 @@ const GeoJSONMap = ({
       onRegionWillChange={onChangeRegionStart}
       onRegionDidChange={onChangeRegionComplete}>
       <MapboxGL.Camera
-        ref={(el) => {
+        ref={el => {
           camera.current = el;
           setIsCameraRefVisible(!!el);
         }}
@@ -185,9 +185,19 @@ const GeoJSONMap = ({
       ) : (
         <>
           <MapboxGL.ShapeSource
+            id={'point'}
+            shape={pointGeoJSON}
+            onPress={e => {
+              if (e?.features.length > 0) {
+                getSelectedPlantLocations(e.features);
+              }
+            }}>
+            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
+          </MapboxGL.ShapeSource>
+          <MapboxGL.ShapeSource
             id={'polygon'}
             shape={geoJSON}
-            onPress={(e) => {
+            onPress={e => {
               if (e?.features.length > 0) {
                 getSelectedPlantLocations(e.features);
               }
@@ -196,20 +206,10 @@ const GeoJSONMap = ({
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
           </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'point'}
-            shape={pointGeoJSON}
-            onPress={(e) => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
-          </MapboxGL.ShapeSource>
         </>
       )}
       {location && (
-        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
+        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
       )}
     </MapboxGL.MapView>
   );

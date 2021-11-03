@@ -3,9 +3,9 @@ import { CommonActions, useNavigation, useRoute } from '@react-navigation/native
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
+  FlatList,
   Keyboard,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,9 +14,12 @@ import {
   View,
 } from 'react-native';
 import Snackbar from 'react-native-snackbar';
+import { SvgXml } from 'react-native-svg';
+import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
 import { setSpecie } from '../../actions/species';
+import { empty } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import { SpeciesContext } from '../../reducers/species';
@@ -26,14 +29,13 @@ import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { Colors, Typography } from '../../styles';
 import { LogTypes } from '../../utils/constants';
-import { MULTI } from '../../utils/inventoryConstants';
+import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 import { IScientificSpecies } from '../../utils/schemaInterfaces';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 import { AlertModal, Header, SpeciesSyncError } from '../Common';
 import IconSwitcher from '../Common/IconSwitcher';
 import TreeCountModal from '../Common/TreeCountModal';
-import MySpecies from './MySpecies';
-import SearchSpecies from './SearchSpecies';
+import { SpecieCard } from './MySpecies';
 
 const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -44,7 +46,7 @@ const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
 };
 
 interface ManageSpeciesProps {
-  onPressSpeciesSingle?: () => void;
+  onPressSpeciesSingle?: (item?: any) => void;
   onPressBack?: () => void;
   registrationType: any;
   addSpecieToInventory: any;
@@ -82,6 +84,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
   const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
+  const [list, setList] = useState<ScientificSpeciesType[]>(specieList);
 
   const netInfo = useNetInfo();
 
@@ -137,11 +140,22 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
 
   useEffect(() => {
     if (screen === 'SelectSpecies') {
-      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
         setInventory(inventoryData);
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (showSearchSpecies && searchText && searchText.length > 2) {
+      setList(searchList);
+    } else {
+      setList(specieList);
+    }
+    return () => {
+      setList([]);
+    };
+  }, [searchText, showSearchSpecies, specieList, searchList]);
 
   // used to navigate to main screen
   const onPressHome = () => {
@@ -151,9 +165,9 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid: string, addSpecie = false) => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Realm.open(getSchema())
-        .then((realm) => {
+        .then(realm => {
           realm.write(() => {
             let specieToToggle: any = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (addSpecie) {
@@ -177,7 +191,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
           });
           resolve(true);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
           // logging the error in to the db
           dbLog.error({
@@ -194,7 +208,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     setSearchText(text);
     if (text && text.length > 2) {
       setShowSearchSpecies(true);
-      searchSpeciesFromLocal(text).then((data) => {
+      searchSpeciesFromLocal(text).then(data => {
         setSearchList([...data]);
       });
     } else if (!text) {
@@ -296,99 +310,210 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     }
   };
 
-  return (
-    <SafeAreaView style={styles.mainContainer}>
-      <DismissKeyBoard>
-        <ScrollView style={{ flex: 1 }}>
-          <Header
-            closeIcon
-            onBackPress={onPressBack ? onPressBack : onPressHome}
-            headingText={
-              registrationType
-                ? i18next.t('label.select_species_header')
-                : i18next.t('label.select_species_tree_species')
-            }
-            TitleRightComponent={
-              route.name === 'ManageSpecies'
-                ? () => (
-                    <TouchableOpacity
-                      style={{ padding: 10 }}
-                      onPress={() => setShowSpeciesSyncAlert(true)}>
-                      <IconSwitcher
-                        name={'sync-alt'}
-                        iconType={'FA5Icon'}
-                        size={20}
-                        color={Colors.TEXT_COLOR}
-                      />
-                    </TouchableOpacity>
-                  )
-                : () => <></>
-            }
-            style={{ paddingLeft: 25, paddingRight: route.name === 'ManageSpecies' ? 15 : 25 }}
-          />
-          <View style={styles.container}>
-            <SpeciesSyncError />
-            <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchText}
-                placeholder={i18next.t('label.select_species_search_species')}
-                onChangeText={handleSpeciesSearch}
-                value={searchText}
-                returnKeyType={'search'}
-                autoCorrect={false}
-              />
-              {searchText ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSearchText('');
-                  }}>
-                  <Ionicons name="md-close" size={20} style={styles.closeIcon} />
-                </TouchableOpacity>
-              ) : (
-                []
-              )}
-            </View>
-            {showSearchSpecies ? (
-              searchText.length < 3 ? (
-                <Text style={styles.notPresentText}>
-                  {i18next.t('label.select_species_search_atleast_3_characters')}
-                </Text>
-              ) : searchList && searchList.length > 0 ? (
-                <SearchSpecies
-                  searchList={searchList}
-                  registrationType={registrationType}
-                  onPressSpeciesSingle={onPressSpeciesSingle}
-                  toggleUserSpecies={toggleUserSpecies}
-                  addSpecieToInventory={handleSpeciePress}
-                  editOnlySpecieName={editOnlySpecieName}
-                  onPressBack={onPressBack}
-                  clearSearchText={() => setSearchText('')}
-                  isSampleTree={isSampleTree}
-                />
-              ) : (
-                <Text style={styles.notPresentText}>
-                  {i18next.t('label.select_species_search_specie_not_present', {
-                    searchText,
-                  })}
-                </Text>
-              )
+  const renderSearchSpecieCard = ({
+    item,
+    index,
+  }: {
+    item: ScientificSpeciesType;
+    index: number;
+  }) => {
+    const isCheck = item.isUserSpecies;
+
+    const SpecieListItem = () => {
+      return (
+        <>
+          <View>
+            <Text
+              style={{
+                fontSize: Typography.FONT_SIZE_16,
+                fontFamily: Typography.FONT_FAMILY_REGULAR,
+                color: Colors.PLANET_BLACK,
+              }}>
+              {item.scientificName}
+            </Text>
+          </View>
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              toggleUserSpecies(item.guid);
+            }}>
+            <Icon
+              name={isCheck ? 'check-circle' : 'plus-circle'}
+              size={25}
+              color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+        </>
+      );
+    };
+
+    return (
+      <TouchableOpacity
+        key={index}
+        style={styles.specieListItem}
+        onPress={() => {
+          toggleUserSpecies(item.guid, true);
+          if (registrationType || isSampleTree) {
+            handleSpeciePress(item);
+          }
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree) && onPressBack) {
+            onPressBack();
+          } else if (registrationType === SINGLE && !editOnlySpecieName && onPressSpeciesSingle) {
+            onPressSpeciesSingle(item);
+          }
+
+          if (registrationType === SINGLE) {
+            setSearchText('');
+          }
+        }}>
+        <SpecieListItem />
+      </TouchableOpacity>
+    );
+  };
+
+  const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [searchList]);
+
+  const renderSpecieCard = ({ item, index }: { item: ScientificSpeciesType; index: number }) => {
+    return (
+      <SpecieCard
+        item={item}
+        index={index}
+        registrationType={registrationType}
+        onPressSpecies={onPressSpeciesSingle}
+        addSpecieToInventory={handleSpeciePress}
+        editOnlySpecieName={editOnlySpecieName}
+        onPressBack={onPressBack ? onPressBack : () => {}}
+        isSampleTree={isSampleTree}
+        navigateToSpecieInfo={navigateToSpecieInfo}
+        screen={screen || 'ManageSpecies'}
+      />
+    );
+  };
+
+  const renderListHeader = React.useMemo(() => {
+    return (
+      <>
+        <Header
+          closeIcon
+          onBackPress={onPressBack ? onPressBack : onPressHome}
+          headingText={
+            registrationType
+              ? i18next.t('label.select_species_header')
+              : i18next.t('label.select_species_tree_species')
+          }
+          TitleRightComponent={
+            route.name === 'ManageSpecies'
+              ? () => (
+                  <TouchableOpacity
+                    style={{ padding: 10 }}
+                    onPress={() => setShowSpeciesSyncAlert(true)}>
+                    <IconSwitcher
+                      name={'sync-alt'}
+                      iconType={'FA5Icon'}
+                      size={20}
+                      color={Colors.TEXT_COLOR}
+                    />
+                  </TouchableOpacity>
+                )
+              : () => <></>
+          }
+          style={{
+            paddingLeft: 25,
+            paddingRight: route.name === 'ManageSpecies' ? 15 : 25,
+          }}
+        />
+        <View style={styles.container}>
+          <SpeciesSyncError />
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchText}
+              placeholder={i18next.t('label.select_species_search_species')}
+              onChangeText={handleSpeciesSearch}
+              value={searchText}
+              returnKeyType={'search'}
+              autoCorrect={false}
+              placeholderTextColor={Colors.GRAY_LIGHTEST}
+            />
+            {searchText ? (
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchText('');
+                }}>
+                <Ionicons name="md-close" size={20} style={styles.closeIcon} />
+              </TouchableOpacity>
             ) : (
-              <MySpecies
-                registrationType={registrationType}
-                onPressSpeciesSingle={onPressSpeciesSingle}
-                specieList={specieList}
-                addSpecieToInventory={handleSpeciePress}
-                editOnlySpecieName={editOnlySpecieName}
-                onPressBack={onPressBack ? onPressBack : () => {}}
-                isSampleTree={isSampleTree}
-                navigateToSpecieInfo={navigateToSpecieInfo}
-                screen={screen || 'ManageSpecies'}
-              />
+              []
             )}
           </View>
-        </ScrollView>
-      </DismissKeyBoard>
+          {showSearchSpecies && searchText.length < 3 ? (
+            <Text style={styles.notPresentText}>
+              {i18next.t('label.select_species_search_atleast_3_characters')}
+            </Text>
+          ) : (
+            []
+          )}
+
+          {!showSearchSpecies ? (
+            <Text style={styles.listTitle}>{i18next.t('label.select_species_my_species')}</Text>
+          ) : showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
+            <Text style={styles.listTitle}>{i18next.t('label.search_result')}</Text>
+          ) : (
+            []
+          )}
+        </View>
+      </>
+    );
+  }, [searchText, showSearchSpecies, searchList]);
+
+  return (
+    <SafeAreaView style={styles.mainContainer}>
+      {/* <DismissKeyBoard> */}
+      <FlatList
+        style={{ flex: 1 }}
+        data={list}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={item => item.guid}
+        keyboardShouldPersistTaps="always"
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={() => {
+          if (showSearchSpecies && searchList && searchList.length > 0) {
+            return <></>;
+          } else {
+            return (
+              <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
+                <SvgXml
+                  xml={empty}
+                  style={{
+                    bottom: 10,
+                  }}
+                />
+                <Text style={styles.headerText}>
+                  {i18next.t('label.select_species_looks_empty_here')}
+                </Text>
+                <Text style={styles.subHeadingText}>
+                  {i18next.t('label.select_species_add_species_desscription')}
+                </Text>
+              </View>
+            );
+          }
+        }}
+        contentContainerStyle={{}}
+        renderItem={(props: any) => {
+          return (
+            <View style={styles.container}>
+              {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
+                memoizedRenderSearchSpecieCard(props)
+              ) : !showSearchSpecies ? (
+                renderSpecieCard(props)
+              ) : (
+                <></>
+              )}
+            </View>
+          );
+        }}
+      />
+      {/* </DismissKeyBoard> */}
       <TreeCountModal
         showTreeCountModal={showTreeCountModal}
         activeSpecie={activeSpecie}
@@ -440,7 +565,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 24,
     backgroundColor: Colors.WHITE,
-    shadowColor: '#00000024',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
       height: 6,
@@ -459,6 +584,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     paddingLeft: 12,
     flex: 1,
+    color: Colors.PLANET_BLACK,
   },
   specieListItem: {
     paddingVertical: 20,
@@ -475,10 +601,35 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     paddingVertical: 20,
     alignSelf: 'center',
+    color: Colors.PLANET_BLACK,
   },
   closeIcon: {
     justifyContent: 'flex-end',
     color: Colors.TEXT_COLOR,
     paddingRight: 20,
+  },
+  headerText: {
+    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+    fontSize: Typography.FONT_SIZE_27,
+    lineHeight: Typography.LINE_HEIGHT_40,
+    color: Colors.TEXT_COLOR,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  subHeadingText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_18,
+    lineHeight: Typography.LINE_HEIGHT_24,
+    color: Colors.TEXT_COLOR,
+    paddingLeft: 25,
+    paddingRight: 25,
+    textAlign: 'center',
+  },
+  listTitle: {
+    paddingTop: 25,
+    paddingBottom: 15,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PLANET_BLACK,
   },
 });

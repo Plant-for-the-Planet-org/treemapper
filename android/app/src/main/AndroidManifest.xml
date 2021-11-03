@@ -20,27 +20,15 @@
         android:name=".MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
-        android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize"
         android:screenOrientation="portrait"
-        android:theme="@style/AppTheme.LaunchScreen"
-        >
+        android:theme="@style/AppTheme.LaunchScreen">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
             <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
         </intent-filter>
-        <intent-filter android:autoVerify="true">
-          <action android:name="android.intent.action.VIEW" />
-          <category android:name="android.intent.category.DEFAULT" />
-          <category android:name="android.intent.category.BROWSABLE" />
-          <data
-              android:host="@string/AUTH0_DOMAIN"
-              android:pathPrefix="/android/${applicationId}/callback"
-              android:scheme="${applicationId}" />
-          </intent-filter>
       </activity>
-      <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
     </application>
 
 </manifest>

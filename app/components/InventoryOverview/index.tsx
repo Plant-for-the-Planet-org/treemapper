@@ -150,7 +150,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }, [isCameraRefVisible, bounds, centerCoordinate]);
 
   useEffect(() => {
-    getUserDetails().then((userDetails) => {
+    getUserDetails().then(userDetails => {
       if (userDetails) {
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
@@ -331,7 +331,7 @@ const InventoryOverview = ({ navigation }: any) => {
         scrollEnabled={true}
         rotateEnabled={false}>
         <MapboxGL.Camera
-          ref={(el) => {
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
@@ -530,7 +530,7 @@ const InventoryOverview = ({ navigation }: any) => {
         setShowAlert(!showAlert);
         navigation.navigate('TreeInventory');
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
       });
   };
@@ -562,7 +562,7 @@ const InventoryOverview = ({ navigation }: any) => {
                 { useNativeDriver: false },
               )}>
               <View
-                onLayout={(e) => {
+                onLayout={e => {
                   setLayoutAboveMap(e.nativeEvent.layout.height);
                 }}>
                 <Header
@@ -716,21 +716,19 @@ const InventoryOverview = ({ navigation }: any) => {
                 }
                 onPressRightText={handleSelectSpecies}
               />
-              <FlatList
-                data={inventory.species}
-                renderItem={({ item }) => (
-                  <Label
-                    leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
-                    rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
-                    style={{ marginVertical: 10 }}
-                    leftTextStyle={{
-                      paddingLeft: 20,
-                      fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    }}
-                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
-                  />
-                )}
-              />
+              {inventory.species.map((item: any, index: number) => (
+                <Label
+                  key={`species-${index}`}
+                  leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
+                  rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
+                  style={{ marginVertical: 10 }}
+                  leftTextStyle={{
+                    paddingLeft: 20,
+                    fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  }}
+                  rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                />
+              ))}
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
 
               <ExportGeoJSON inventory={inventory} />
@@ -861,7 +859,7 @@ const CoordinateOverviewModal = ({
         initiateMarkerData(inventory?.sampleTrees[coordinateIndex - 1]);
       }
     }
-    getUserInformation().then((data) => {
+    getUserInformation().then(data => {
       setCountryCode(data.country);
     });
   }, [coordinateIndex, coordinateModalShow]);
