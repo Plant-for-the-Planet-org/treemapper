@@ -144,8 +144,37 @@ export default function MapMarking({
       }
     }
 
+    const watchId = Geolocation.watchPosition(
+      (position) => {
+        setAccuracyInMeters(position.coords.accuracy);
+        onUpdateUserLocation(position);
+        setLocation(position);
+      },
+      (err) => {
+        const captureMode = multipleLocateTree || ON_SITE;
+
+        if (captureMode === OFF_SITE) {
+          setShowSecondaryButton(false);
+          setAlertHeading(i18next.t('label.location_service'));
+          setAlertSubHeading(i18next.t('label.location_service_message'));
+          setShowAlert(true);
+        } else {
+          setIsLocationAlertShow(true);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        accuracy: {
+          android: 'high',
+          ios: 'bestForNavigation',
+        },
+        interval: 1000,
+      },
+    );
+
     return () => {
       isCancelled = true;
+      Geolocation.clearWatch(watchId);
     };
   }, []);
 
@@ -291,14 +320,11 @@ export default function MapMarking({
   const checkIsValidMarker = async (centerCoordinates: number[]) => {
     let isValidMarkers = true;
     for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
-      let distance = distanceCalculator(
-        centerCoordinates[1],
-        centerCoordinates[0],
-        oneMarker[1],
-        oneMarker[0],
-        'K',
+      const distanceInMeters = distanceCalculator(
+        [centerCoordinates[1], centerCoordinates[0]],
+        [oneMarker[1], oneMarker[0]],
+        'meters',
       );
-      let distanceInMeters = distance * 1000;
       // if the current marker position is less than one meter to already present markers nearby,
       // then makes the current marker position invalid
       if (distanceInMeters < 1) {
@@ -322,47 +348,39 @@ export default function MapMarking({
     } else {
       const isGranted = await checkPermission({ showAlert: true });
       if (isGranted) {
-        updateCurrentPosition()
-          .then(async (location: any) => {
-            let currentCoords = [location.coords.latitude, location.coords.longitude];
+        if (location && location.coords) {
+          let currentCoords = [location.coords.latitude, location.coords.longitude];
 
-            if (!isValidMarkers) {
+          if (!isValidMarkers) {
+            setShowSecondaryButton(false);
+            setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
+            setAlertSubHeading(i18next.t('label.locate_tree_add_marker_valid'));
+            setShowAlert(true);
+          } else if (accuracyInMeters < 30 || forceContinue) {
+            const distanceInMeters = distanceCalculator(
+              [currentCoords[0], currentCoords[1]],
+              [centerCoordinates[1], centerCoordinates[0]],
+              'meters',
+            );
+
+            if (distanceInMeters < 100) {
+              pushMaker(currentCoords);
+            } else {
               setShowSecondaryButton(false);
               setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
-              setAlertSubHeading(i18next.t('label.locate_tree_add_marker_valid'));
+              setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
               setShowAlert(true);
-            } else if (accuracyInMeters < 30 || forceContinue) {
-              let distance = distanceCalculator(
-                currentCoords[0],
-                currentCoords[1],
-                centerCoordinates[1],
-                centerCoordinates[0],
-                'K',
-              );
-
-              let distanceInMeters = distance * 1000;
-
-              if (distanceInMeters < 100) {
-                pushMaker(currentCoords);
-              } else {
-                setShowSecondaryButton(false);
-                setAlertHeading(i18next.t('label.locate_tree_cannot_mark_location'));
-                setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
-                setShowAlert(true);
-              }
-            } else if (accuracyInMeters >= 30 || !forceContinue) {
-              setIsAlertShow(true);
             }
-          })
-          .catch((err) => {
-            bugsnag.notify(err);
-            dbLog.error({
-              logType: LogTypes.INVENTORY,
-              message: 'Failed to update Current Position',
-              logStack: JSON.stringify(err),
-            });
-            showUnknownLocationAlert();
+          } else if (accuracyInMeters >= 30 || !forceContinue) {
+            setIsAlertShow(true);
+          }
+        } else {
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: 'Failed to update Current Position',
           });
+          showUnknownLocationAlert();
+        }
       }
     }
     // Check distance
@@ -424,43 +442,36 @@ export default function MapMarking({
     }
     // Check distance
     else if (accuracyInMeters < 30 || forceContinue) {
-      updateCurrentPosition()
-        .then(async (location: any) => {
-          let currentCoords = [location.coords.latitude, location.coords.longitude];
+      if (location && location.coords) {
+        let currentCoords = [location.coords.latitude, location.coords.longitude];
 
-          let distance = distanceCalculator(
-            currentCoords[0],
-            currentCoords[1],
-            centerCoordinates[1],
-            centerCoordinates[0],
-            'K',
-          );
+        const distanceInMeters = distanceCalculator(
+          [currentCoords[0], currentCoords[1]],
+          [centerCoordinates[1], centerCoordinates[0]],
+          'meters',
+        );
 
-          let distanceInMeters = distance * 1000;
-          let locateTreeVariable;
-          if (distanceInMeters < 100) {
-            setLocateTree(ON_SITE);
-            locateTreeVariable = ON_SITE;
-            onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
-          } else if (treeType !== SAMPLE) {
-            setLocateTree(OFF_SITE);
-            locateTreeVariable = OFF_SITE;
-            onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
-          } else {
-            setAlertHeading(i18next.t('label.locate_tree_cannot_record_tree'));
-            setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
-            setShowAlert(true);
-          }
-        })
-        .catch((err) => {
-          bugsnag.notify(err);
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: 'Failed to update Current Position',
-            logStack: JSON.stringify(err),
-          });
-          showUnknownLocationAlert();
+        let locateTreeVariable;
+        if (distanceInMeters < 100) {
+          setLocateTree(ON_SITE);
+          locateTreeVariable = ON_SITE;
+          onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
+        } else if (treeType !== SAMPLE) {
+          setLocateTree(OFF_SITE);
+          locateTreeVariable = OFF_SITE;
+          onPressContinue(currentCoords, centerCoordinates, locateTreeVariable);
+        } else {
+          setAlertHeading(i18next.t('label.locate_tree_cannot_record_tree'));
+          setAlertSubHeading(i18next.t('label.locate_tree_add_marker_invalid'));
+          setShowAlert(true);
+        }
+      } else {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Failed to update Current Position',
         });
+        showUnknownLocationAlert();
+      }
     } else {
       setIsAlertShow(true);
     }

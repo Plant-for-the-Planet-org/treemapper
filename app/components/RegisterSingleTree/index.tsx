@@ -45,15 +45,15 @@ const RegisterSingleTree = () => {
                 if (granted && InventoryData.polygons[0]) {
                   Geolocation.getCurrentPosition(
                     (position) => {
-                      let distanceInMeters =
-                        distanceCalculator(
-                          position.coords.latitude,
-                          position.coords.longitude,
+                      const distanceInMeters = distanceCalculator(
+                        [position.coords.latitude, position.coords.longitude],
+                        [
                           InventoryData.polygons[0].coordinates[0].latitude,
                           InventoryData.polygons[0].coordinates[0].longitude,
-                          'K',
-                        ) * 1000;
-                      if (distanceInMeters && distanceInMeters < 100) {
+                        ],
+                        'meters',
+                      );
+                      if (distanceInMeters < 100) {
                         //set onsite
                         addLocateTree({
                           inventory_id: inventoryState.inventoryID,
