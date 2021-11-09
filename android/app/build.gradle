@@ -148,7 +148,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 21
-        versionName "1.0.8"
+        versionName "1.0.7"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general'
