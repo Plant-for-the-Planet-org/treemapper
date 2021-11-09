@@ -101,14 +101,13 @@ const EditPolygon = () => {
     originalCoordinates: number[],
     currentCoordinates: number[],
   ): boolean => {
-    let distanceInMeters =
-      distanceCalculator(
-        originalCoordinates[1],
-        originalCoordinates[0],
-        currentCoordinates[1],
-        currentCoordinates[0],
-        'K',
-      ) * 1000;
+    let distanceInMeters = distanceCalculator(
+      originalCoordinates[1],
+      originalCoordinates[0],
+      currentCoordinates[1],
+      currentCoordinates[0],
+      'meters',
+    );
 
     return distanceInMeters <= 100;
   };

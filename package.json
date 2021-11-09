@@ -30,6 +30,7 @@
     "@turf/boolean-point-in-polygon": "^6.3.0",
     "@turf/buffer": "^6.5.0",
     "@turf/center": "^6.3.0",
+    "@turf/distance": "^6.5.0",
     "@turf/helpers": "^6.3.0",
     "@types/react-native-snap-carousel": "^3.8.4",
     "axios": "^0.21.1",
