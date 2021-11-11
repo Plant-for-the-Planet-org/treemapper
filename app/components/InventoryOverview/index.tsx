@@ -9,7 +9,6 @@ import {
   Animated,
   BackHandler,
   Dimensions,
-  FlatList,
   Image,
   Modal,
   Platform,

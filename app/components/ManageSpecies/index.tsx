@@ -37,14 +37,6 @@ import IconSwitcher from '../Common/IconSwitcher';
 import TreeCountModal from '../Common/TreeCountModal';
 import { SpecieCard } from './MySpecies';
 
-const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      {children}
-    </TouchableWithoutFeedback>
-  );
-};
-
 interface ManageSpeciesProps {
   onPressSpeciesSingle?: (item?: any) => void;
   onPressBack?: () => void;
