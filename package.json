@@ -1,6 +1,6 @@
 {
   "name": "treemapper",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "scripts": {
     "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
@@ -27,6 +27,7 @@
     "@turf/bbox": "^6.3.0",
     "@turf/boolean-point-in-polygon": "^6.3.0",
     "@turf/center": "^6.3.0",
+    "@turf/distance": "^6.5.0",
     "@turf/helpers": "^6.3.0",
     "axios": "^0.21.1",
     "buffer": "^6.0.3",
