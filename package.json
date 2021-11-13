@@ -33,7 +33,7 @@
     "@turf/distance": "^6.5.0",
     "@turf/helpers": "^6.3.0",
     "@types/react-native-snap-carousel": "^3.8.4",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "buffer": "^6.0.3",
     "bugsnag-react-native": "^2.23.10",
     "d3-shape": "^3.0.1",
