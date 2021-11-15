@@ -192,6 +192,19 @@ export default function MapMarking({
     }
   }, [isCameraRefVisible, centerCoordinate]);
 
+  // removes the coordinates from the polygon if the user press back button from alrighty modal
+  useEffect(() => {
+    if (
+      activeMarkerIndex < geoJSON.features[activePolygonIndex].geometry.coordinates.length &&
+      !showAlrightyModal
+    ) {
+      const newGeoJSON = { ...geoJSON };
+      newGeoJSON.features[activePolygonIndex].geometry.coordinates.pop();
+
+      setGeoJSON(newGeoJSON);
+    }
+  }, [showAlrightyModal]);
+
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
