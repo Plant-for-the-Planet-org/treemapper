@@ -30,6 +30,7 @@ interface MarkersProps {
   onPressMarker: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree: string;
+  ignoreLastMarker?: boolean;
 }
 const Markers = ({
   geoJSON,
@@ -38,6 +39,7 @@ const Markers = ({
   onPressMarker,
   setIsSampleTree,
   locateTree,
+  ignoreLastMarker = false,
 }: MarkersProps) => {
   const [alphabets, setAlphabets] = useState<string[]>([]);
   const markers: JSX.Element[] = [];
@@ -62,6 +64,7 @@ const Markers = ({
         onPressMarker={onPressMarker}
         setIsSampleTree={setIsSampleTree}
         locateTree={locateTree}
+        ignoreLastMarker={ignoreLastMarker}
       />
     );
   }
@@ -78,6 +81,7 @@ interface PointAnnotationMarkerProps {
   onPressMarker: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree: string;
+  ignoreLastMarker?: boolean;
 }
 
 const PointAnnotationMarker = ({
@@ -90,6 +94,7 @@ const PointAnnotationMarker = ({
   onPressMarker,
   setIsSampleTree,
   locateTree,
+  ignoreLastMarker = false,
 }: PointAnnotationMarkerProps): JSX.Element[] => {
   const [activeAnnotationIndex, setActiveAnnotationIndex] = useState<number>(-1);
   const [previousActiveAnnotationIndex, setPreviousActiveAnnotationIndex] = useState<number>(-1);
@@ -153,7 +158,10 @@ const PointAnnotationMarker = ({
       </MapboxGL.PointAnnotation>,
     );
   } else {
-    for (let j = 0; j < onePolygon.geometry.coordinates.length; j++) {
+    const iterationCount = ignoreLastMarker
+      ? onePolygon.geometry.coordinates.length - 1
+      : onePolygon.geometry.coordinates.length;
+    for (let j = 0; j < iterationCount; j++) {
       let oneMarker = onePolygon.geometry.coordinates[j];
       markers.push(
         <MapboxGL.PointAnnotation
