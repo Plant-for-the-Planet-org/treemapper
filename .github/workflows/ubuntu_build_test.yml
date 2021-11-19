@@ -25,6 +25,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-treemapper-
 
+    - name: Upgrade npm to latest version
+      run: sudo npm i -g npm@latest
+
     - name: Install react-native CLI
       run: 'sudo npm install -g react-native-cli'
 
