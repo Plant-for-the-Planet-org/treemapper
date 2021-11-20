@@ -75,6 +75,7 @@ const CreatePolygon = () => {
             activeMarkerIndex={activeMarkerIndex}
             updateActiveMarkerIndex={updateActiveMarkerIndex}
             setIsCompletePolygon={setIsCompletePolygon}
+            isCompletePolygon={isCompletePolygon}
             multipleLocateTree={locateTree}
             treeType={MULTI}
           />

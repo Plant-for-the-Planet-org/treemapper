@@ -322,6 +322,7 @@ const InventoryOverview = ({ navigation }: any) => {
             onPressMarker={onPressMarker}
             setIsSampleTree={setIsSampleTree}
             locateTree={inventory.locateTree}
+            ignoreLastMarker
           />
         ) : (
           []

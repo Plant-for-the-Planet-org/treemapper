@@ -54,6 +54,7 @@ interface IMapMarkingProps {
   activeMarkerIndex?: any;
   toggleState?: any;
   setIsCompletePolygon?: any;
+  isCompletePolygon?: boolean;
   multipleLocateTree?: any;
   isPointForMultipleTree?: any;
   specieId?: any;
@@ -67,6 +68,7 @@ export default function MapMarking({
   activeMarkerIndex,
   toggleState,
   setIsCompletePolygon,
+  isCompletePolygon,
   multipleLocateTree,
   isPointForMultipleTree,
   specieId,
@@ -191,6 +193,20 @@ export default function MapMarking({
       });
     }
   }, [isCameraRefVisible, centerCoordinate]);
+
+  // removes the coordinates from the polygon if the user press back button from alrighty modal
+  useEffect(() => {
+    if (
+      activeMarkerIndex < geoJSON.features[activePolygonIndex].geometry.coordinates.length &&
+      !showAlrightyModal &&
+      !isCompletePolygon
+    ) {
+      const newGeoJSON = { ...geoJSON };
+      newGeoJSON.features[activePolygonIndex].geometry.coordinates.pop();
+
+      setGeoJSON(newGeoJSON);
+    }
+  }, [showAlrightyModal, isCompletePolygon]);
 
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
@@ -319,6 +335,7 @@ export default function MapMarking({
 
   const checkIsValidMarker = async (centerCoordinates: number[]) => {
     let isValidMarkers = true;
+
     for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
       const distanceInMeters = distanceCalculator(
         [centerCoordinates[1], centerCoordinates[0]],
