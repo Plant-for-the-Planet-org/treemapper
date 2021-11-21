@@ -34,21 +34,6 @@ import Alrighty from '../Alrighty';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
 
-const infographicText = [
-  {
-    heading: i18next.t('label.info_graphic_header_1'),
-    subHeading: i18next.t('label.info_graphic_sub_header_1'),
-  },
-  {
-    heading: i18next.t('label.info_graphic_header_2'),
-    subHeading: i18next.t('label.info_graphic_sub_header_2'),
-  },
-  {
-    heading: i18next.t('label.info_graphic_header_3'),
-    subHeading: i18next.t('label.info_graphic_sub_header_3'),
-  },
-];
-
 interface IImageCapturingProps {
   toggleState?: any;
   updateActiveMarkerIndex?: any;
@@ -101,6 +86,21 @@ const ImageCapturing = ({
     }
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
+
+  const infographicText = [
+    {
+      heading: i18next.t('label.info_graphic_header_1'),
+      subHeading: i18next.t('label.info_graphic_sub_header_1'),
+    },
+    {
+      heading: i18next.t('label.info_graphic_header_2'),
+      subHeading: i18next.t('label.info_graphic_sub_header_2'),
+    },
+    {
+      heading: i18next.t('label.info_graphic_header_3'),
+      subHeading: i18next.t('label.info_graphic_sub_header_3'),
+    },
+  ];
 
   const generateMarkers = () => {
     let array = [];

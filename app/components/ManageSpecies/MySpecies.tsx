@@ -8,90 +8,6 @@ import { empty, species_default } from '../../assets';
 import { SINGLE } from '../../utils/inventoryConstants';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
-interface MySpeciesProps {
-  registrationType: any;
-  onPressSpeciesSingle: () => void;
-  specieList: ScientificSpeciesType[];
-  addSpecieToInventory: (specie: ScientificSpeciesType) => void;
-  editOnlySpecieName: any;
-  onPressBack: () => void;
-  isSampleTree: boolean;
-  navigateToSpecieInfo: (specie: ScientificSpeciesType) => void;
-  screen: string;
-}
-
-const MySpecies: React.FC<MySpeciesProps> = ({
-  registrationType,
-  onPressSpeciesSingle,
-  specieList,
-  addSpecieToInventory,
-  editOnlySpecieName,
-  onPressBack,
-  isSampleTree,
-  navigateToSpecieInfo,
-  screen,
-}) => {
-  const renderSpecieCard = ({ item, index }: { item: ScientificSpeciesType; index: number }) => {
-    return (
-      <SpecieCard
-        item={item}
-        index={index}
-        registrationType={registrationType}
-        onPressSpecies={onPressSpeciesSingle}
-        addSpecieToInventory={addSpecieToInventory}
-        editOnlySpecieName={editOnlySpecieName}
-        onPressBack={onPressBack}
-        isSampleTree={isSampleTree}
-        navigateToSpecieInfo={navigateToSpecieInfo}
-        screen={screen}
-      />
-    );
-  };
-
-  return (
-    <View style={{ flex: 1 }}>
-      <View>
-        <Text
-          style={{
-            paddingTop: 25,
-            paddingBottom: 15,
-            fontFamily: Typography.FONT_FAMILY_BOLD,
-            fontSize: Typography.FONT_SIZE_16,
-          }}>
-          {i18next.t('label.select_species_my_species')}
-        </Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        {specieList && specieList.length !== 0 ? (
-          <FlatList
-            style={{ flex: 1 }}
-            data={specieList}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.guid}
-            renderItem={renderSpecieCard}
-            keyboardShouldPersistTaps="always"
-          />
-        ) : (
-          <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
-            <SvgXml
-              xml={empty}
-              style={{
-                bottom: 10,
-              }}
-            />
-            <Text style={styles.headerText}>
-              {i18next.t('label.select_species_looks_empty_here')}
-            </Text>
-            <Text style={styles.subHeadingText}>
-              {i18next.t('label.select_species_add_species_desscription')}
-            </Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-};
-
 interface SpecieCardProps {
   item: any;
   index: number;
@@ -173,15 +89,21 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             fontSize: Typography.FONT_SIZE_16,
             fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
             paddingBottom: 6,
+            color: Colors.PLANET_BLACK,
           }}>
-          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.aliases : i18next.t('label.select_species_unknown')}
+          {item.guid !== 'unknown' || item.id === 'unknown'
+            ? item.aliases
+            : i18next.t('label.select_species_unknown')}
         </Text>
         <Text
           style={{
             fontSize: Typography.FONT_SIZE_12,
             fontFamily: Typography.FONT_FAMILY_REGULAR,
+            color: Colors.PLANET_BLACK,
           }}>
-          {(item.guid !== 'unknown' || item.id === 'unknown') ? item.scientificName : i18next.t('label.select_species_unknown')}
+          {item.guid !== 'unknown' || item.id === 'unknown'
+            ? item.scientificName
+            : i18next.t('label.select_species_unknown')}
         </Text>
       </View>
       {item.guid !== 'unknown' && screen === 'SelectSpecies' && navigateToSpecieInfo ? (
@@ -195,23 +117,6 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   );
 };
 const styles = StyleSheet.create({
-  headerText: {
-    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
-    color: Colors.TEXT_COLOR,
-    paddingTop: 10,
-    paddingBottom: 15,
-  },
-  subHeadingText: {
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_24,
-    color: Colors.TEXT_COLOR,
-    paddingLeft: 25,
-    paddingRight: 25,
-    textAlign: 'center',
-  },
   imageView: {
     borderRadius: 8,
     resizeMode: 'cover',
@@ -220,5 +125,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.TEXT_COLOR,
   },
 });
-
-export default MySpecies;

@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BackButton from '../Common/BackButton';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '../../styles';
 import { PrimaryButton } from '../Common';
 import i18next from 'i18next';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 interface IEditPolygonButtonsProps {
   navigation: any;
@@ -95,13 +97,13 @@ export default EditPolygonButtons;
 const styles = StyleSheet.create({
   extraInfoContainer: {
     position: 'absolute',
-    top: 25,
+    top: IS_ANDROID ? 25 : 56,
     left: 25,
     alignItems: 'flex-start',
   },
   bottomButtons: {
     position: 'absolute',
-    bottom: 25,
+    bottom: IS_ANDROID ? 36 : 72,
     left: 25,
     right: 25,
     flexDirection: 'column',

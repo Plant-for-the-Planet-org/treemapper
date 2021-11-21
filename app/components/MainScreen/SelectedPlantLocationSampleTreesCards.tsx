@@ -17,6 +17,8 @@ import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 const { protocol, cdnUrl } = APIConfig;
 
+const IS_ANDROID = Platform.OS === 'android';
+
 interface ISelectedPlantLocationSampleTreesCardsProps {
   singleSelectedPlantLocation: any;
   carouselRef: any;
@@ -124,7 +126,7 @@ export default SelectedPlantLocationSampleTreesCards;
 const styles = StyleSheet.create({
   carousel: {
     position: 'absolute',
-    bottom: 36,
+    bottom: IS_ANDROID ? 36 : 72,
     zIndex: 2,
   },
   cardContainer: {

@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 6,
     backgroundColor: Colors.WHITE,
+    color: Colors.TEXT_COLOR,
   },
   placeholderColor: {
     color: '#9a9a9a',
