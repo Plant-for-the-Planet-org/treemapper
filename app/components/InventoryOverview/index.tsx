@@ -354,6 +354,7 @@ const InventoryOverview = ({ navigation }: any) => {
             geoJSON={geoJSON}
             onPressMarker={onPressMarker}
             locateTree={inventory.locateTree}
+            ignoreLastMarker
           />
         ) : (
           []

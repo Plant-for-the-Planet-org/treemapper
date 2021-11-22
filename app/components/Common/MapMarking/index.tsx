@@ -54,6 +54,7 @@ interface IMapMarkingProps {
   activeMarkerIndex?: any;
   toggleState?: any;
   setIsCompletePolygon?: any;
+  isCompletePolygon?: boolean;
   multipleLocateTree?: any;
   isPointForMultipleTree?: any;
   specieId?: any;
@@ -67,6 +68,7 @@ export default function MapMarking({
   activeMarkerIndex,
   toggleState,
   setIsCompletePolygon,
+  isCompletePolygon,
   multipleLocateTree,
   isPointForMultipleTree,
   specieId,
@@ -145,12 +147,12 @@ export default function MapMarking({
     }
 
     const watchId = Geolocation.watchPosition(
-      (position) => {
+      position => {
         setAccuracyInMeters(position.coords.accuracy);
         onUpdateUserLocation(position);
         setLocation(position);
       },
-      (err) => {
+      err => {
         const captureMode = multipleLocateTree || ON_SITE;
 
         if (captureMode === OFF_SITE) {
@@ -198,6 +200,20 @@ export default function MapMarking({
     }
   }, [isCameraRefVisible, location]);
 
+  // removes the coordinates from the polygon if the user press back button from alrighty modal
+  useEffect(() => {
+    if (
+      activeMarkerIndex < geoJSON.features[activePolygonIndex].geometry.coordinates.length &&
+      !showAlrightyModal &&
+      !isCompletePolygon
+    ) {
+      const newGeoJSON = { ...geoJSON };
+      newGeoJSON.features[activePolygonIndex].geometry.coordinates.pop();
+
+      setGeoJSON(newGeoJSON);
+    }
+  }, [showAlrightyModal, isCompletePolygon]);
+
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
@@ -227,7 +243,7 @@ export default function MapMarking({
 
   // initializes the state by updating state
   const initializeState = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
       setInventory(inventoryData);
       setLocateTree(inventoryData.locateTree);
       if (inventoryData.polygons.length > 0) {
@@ -239,7 +255,7 @@ export default function MapMarking({
             },
             geometry: {
               type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate) => [
+              coordinates: onePolygon.coordinates.map(oneCoordinate => [
                 oneCoordinate.longitude,
                 oneCoordinate.latitude,
               ]),
@@ -319,6 +335,7 @@ export default function MapMarking({
 
   const checkIsValidMarker = async (centerCoordinates: number[]) => {
     let isValidMarkers = true;
+
     for (const oneMarker of geoJSON.features[activePolygonIndex].geometry.coordinates) {
       const distanceInMeters = distanceCalculator(
         [centerCoordinates[1], centerCoordinates[0]],
@@ -404,7 +421,7 @@ export default function MapMarking({
       if (result) {
         initiateInventoryState(result)(dispatch);
         addLocateTree({ inventory_id: result.inventory_id, locateTree });
-        getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+        getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
           setInventory(inventoryData);
         });
         let data = { inventory_id: result.inventory_id, lastScreen: 'CreatePolygon' };
@@ -479,15 +496,15 @@ export default function MapMarking({
 
   //getting current position of the user with high accuracy
   const updateCurrentPosition = async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
           resolve(position);
         },
-        (err) => {
+        err => {
           const captureMode = multipleLocateTree || ON_SITE;
 
           if (captureMode === OFF_SITE) {
@@ -574,7 +591,7 @@ export default function MapMarking({
               lastScreen: 'RecordSampleTrees',
             };
             updateLastScreen(data);
-            getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
+            getInventory({ inventoryID: inventoryID }).then(inventoryData => {
               setInventory(inventoryData);
             });
             dbLog.info({
@@ -585,7 +602,7 @@ export default function MapMarking({
             });
             setShowAlrightyModal(true);
           })
-          .catch((err) => {
+          .catch(err => {
             dbLog.error({
               logType: LogTypes.INVENTORY,
               message: `Failed to add map coordinate for sample tree #${
@@ -615,7 +632,7 @@ export default function MapMarking({
         );
         if (result) {
           initiateInventoryState(result)(dispatch);
-          getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+          getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
             setInventory(inventoryData);
           });
         }
