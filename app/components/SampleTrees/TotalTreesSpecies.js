@@ -362,7 +362,9 @@ export default function TotalTreesSpecies() {
           </MapboxGL.ShapeSource>
         )}
         <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
-        {inventory?.treeType === MULTI && !isPointForMultipleTree && <Markers geoJSON={geoJSON} />}
+        {inventory?.treeType === MULTI && !isPointForMultipleTree && (
+          <Markers geoJSON={geoJSON} ignoreLastMarker />
+        )}
       </MapboxGL.MapView>
     );
   };
