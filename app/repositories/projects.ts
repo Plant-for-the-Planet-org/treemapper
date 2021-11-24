@@ -9,6 +9,7 @@ export const getAllProjects = () => {
     Realm.open(getSchema())
       .then((realm) => {
         const projects = realm.objects('Projects');
+
         // logging the error in to the db
         dbLog.info({
           logType: LogTypes.PROJECTS,
@@ -89,7 +90,9 @@ export const addProjects = (projects: any) => {
         realm.write(() => {
           projects.forEach((project: any, index: number) => {
             const { properties } = project;
-            let projectData = {
+            const sites = [];
+
+            const projectData: any = {
               allowDonations: properties.allowDonations,
               countPlanted: properties.countPlanted,
               countTarget: properties.countTarget,
@@ -100,7 +103,17 @@ export const addProjects = (projects: any) => {
               name: properties.name,
               slug: properties.slug,
               treeCost: properties.treeCost,
+              sites: []
             };
+
+            for (const site of properties.sites) {
+              sites.push({
+                ...site,
+                geometry: JSON.stringify(site.geometry),
+              })
+            }
+
+            projectData.sites = sites;
 
             realm.create('Projects', projectData, Realm.UpdateMode.Modified);
 
@@ -116,7 +129,6 @@ export const addProjects = (projects: any) => {
         });
       })
       .catch((err) => {
-        console.error('error while creating projects', err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.PROJECTS,
