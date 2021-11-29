@@ -66,7 +66,7 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      uploadInventoryData(dispatch, userDispatch).catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: 'Failed to upload Inventories',
@@ -100,7 +100,7 @@ export default function Syncing({
   };
   const SyncContainer = () => {
     return (
-      <View>
+      <View style={{ maxWidth: '50%' }}>
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>

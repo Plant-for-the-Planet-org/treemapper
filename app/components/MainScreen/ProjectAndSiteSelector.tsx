@@ -1,10 +1,9 @@
-import i18next from 'i18next';
-import React, { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Entypo';
-import { Colors, Typography } from '../../styles';
-import turfCenter from '@turf/center';
+// import turfCenter from '@turf/center';
 import bbox from '@turf/bbox';
+import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { Colors, Typography } from '../../styles';
 
 interface Props {
   projects: any[];
@@ -32,83 +31,107 @@ const ProjectAndSiteSelector = ({
   const [projectOptions, setProjectOptions] = React.useState([]);
 
   // used to set the selected project
-  const [selectedProject, setSelectedProject] = React.useState(null);
+  const [selectedProjectId, setSelectedProjectId] = React.useState(null);
   // used to set the selected project site
-  const [selectedProjectSite, setSelectedProjectSite] = React.useState(null);
+  const [selectedProjectSiteId, setSelectedProjectSiteId] = React.useState(null);
 
   useEffect(() => {
     const options = projects.map(project => ({
-      key: project.id,
-      value: project.name,
-      sites: project?.sites,
+      label: project.name,
+      value: project.id,
+      sites: project.sites,
     }));
+
     if (options.length > 0) {
-      setSelectedProject(options[0]);
-      if (options[0].sites.length > 0) {
-        const sites = options[0].sites.map(site => ({
-          key: site.id,
-          value: site.name,
-          geometry: JSON.parse(site.geometry),
-        }));
-        setSelectedProjectStates(sites);
-      }
+      setSelectedProjectId(options[0].value);
+      setProjectSitesUsingProject(options[0]);
     }
     setProjectOptions(options);
   }, [projects]);
 
   useEffect(() => {
-    if (selectedProject && selectedProject.sites && selectedProject.sites.length > 0) {
-      const sites = selectedProject.sites.map(site => ({
-        key: site.id,
-        value: site.name,
+    if (selectedProjectId) {
+      const project = projects.find(project => project.id === selectedProjectId);
+      const sites = project.sites.map(site => ({
+        label: site.name,
+        value: site.id,
         geometry: JSON.parse(site.geometry),
       }));
 
       setSelectedProjectStates(sites);
     }
-  }, [selectedProject]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
-    if (selectedProjectSite?.geometry) {
-      // setSiteCenterCoordinate(turfCenter(selectedProjectSite.geometry));
+    if (selectedProjectSiteId) {
+      const site = projectSites.find(site => site.id === selectedProjectSiteId);
+      if (site) {
+        // setSiteCenterCoordinate(turfCenter(site.geometry));
 
-      setSiteBounds(bbox(selectedProjectSite.geometry));
+        setSiteBounds(bbox(site.geometry));
+      }
     }
-  }, [selectedProjectSite]);
+  }, [selectedProjectSiteId]);
 
   const setSelectedProjectStates = (sites: any) => {
     setProjectSites(sites);
-    setSelectedProjectSite(sites[0]);
-    // setSiteCenterCoordinate(turfCenter(sites[0].geometry));
+    if (sites && sites.length > 0) {
+      setSelectedProjectSiteId(sites[0].value);
+      // setSiteCenterCoordinate(turfCenter(sites[0].geometry));
 
-    setSiteBounds(bbox(sites[0].geometry));
+      setSiteBounds(bbox(sites[0].geometry));
+    }
+  };
+
+  const setProjectSitesUsingProject = (project: any) => {
+    if (project) {
+      const sites = project.sites.map(site => ({
+        label: site.name,
+        value: site.id,
+        geometry: JSON.parse(site.geometry),
+      }));
+      setSelectedProjectStates(sites);
+    }
   };
 
   return (
-    <View style={{ display: 'flex', flex: 1 }}>
-      <Dropdown
-        options={projectOptions}
-        onChange={(project: any) => {
-          setSelectedProject(project);
-          setProjectSites(project.sites);
-        }}
-        defaultValue={selectedProject}
-        label={i18next.t('label.select_project')}
-        showOptions={showProjectOptions}
-        setShowOptions={setShowProjectOptions}
-        containerStyle={{ marginBottom: 8, minHeight: 44, zIndex: 20001 }}
+    <View style={{ display: 'flex', flex: 1, maxWidth: '50%' }}>
+      <DropDownPicker
+        items={projectOptions}
+        open={showProjectOptions}
+        setOpen={setShowProjectOptions}
+        value={selectedProjectId}
+        setValue={setSelectedProjectId}
+        style={styles.dropDown}
+        textStyle={styles.textStyle}
+        selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
+        listItemContainerStyle={styles.listItemContainer}
+        listItemLabelStyle={styles.listItemLabel}
+        dropDownContainerStyle={styles.dropDownContainerStyle}
+        zIndex={3000}
+        zIndexInverse={1000}
+        showTickIcon={false}
+        itemSeparatorStyle={styles.itemSeparator}
+        itemSeparator
       />
       {projectSites && projectSites.length > 0 && (
-        <Dropdown
-          options={projectSites}
-          onChange={(site: any) => {
-            setSelectedProjectSite(site);
-          }}
-          defaultValue={selectedProjectSite}
-          label={i18next.t('label.select_project_site')}
-          showOptions={showProjectSiteOptions}
-          setShowOptions={setShowProjectSiteOptions}
-          containerStyle={{ minHeight: 44 }}
+        <DropDownPicker
+          items={projectSites}
+          open={showProjectSiteOptions}
+          setOpen={setShowProjectSiteOptions}
+          value={selectedProjectSiteId}
+          setValue={setSelectedProjectSiteId}
+          style={styles.dropDown}
+          textStyle={styles.textStyle}
+          selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
+          listItemContainerStyle={styles.listItemContainer}
+          listItemLabelStyle={styles.listItemLabel}
+          dropDownContainerStyle={styles.dropDownContainerStyle}
+          zIndex={2000}
+          zIndexInverse={2000}
+          showTickIcon={false}
+          itemSeparatorStyle={styles.itemSeparator}
+          itemSeparator
         />
       )}
     </View>
@@ -117,119 +140,40 @@ const ProjectAndSiteSelector = ({
 
 export default ProjectAndSiteSelector;
 
-const Dropdown = ({
-  options,
-  onChange,
-  defaultValue,
-  containerStyle,
-  label,
-  showOptions,
-  setShowOptions,
-}: {
-  options: any[];
-  onChange: (project: any) => void;
-  defaultValue: any;
-  containerStyle?: any;
-  label: string;
-  showOptions: boolean;
-  setShowOptions: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const [selectedValue, setSelectedValue] = React.useState(defaultValue);
-
-  React.useEffect(() => {
-    setSelectedValue(defaultValue);
-  }, [defaultValue]);
-
-  const onSelect = (option: any) => {
-    setSelectedValue(option);
-    onChange(option);
-    setShowOptions(false);
-  };
-
-  const onToggleOptions = () => {
-    setShowOptions(!showOptions);
-  };
-
-  return (
-    <View style={[styles.container, containerStyle]}>
-      <TouchableOpacity style={styles.dropdownContainer} onPress={() => onToggleOptions()}>
-        <Text style={styles.dropdownText} numberOfLines={1} ellipsizeMode={'tail'}>
-          {selectedValue ? selectedValue.value : label}
-        </Text>
-        <Icon
-          name={showOptions ? 'chevron-up' : 'chevron-down'}
-          size={18}
-          color="#8E8E93"
-          style={{ paddingLeft: 4 }}
-        />
-      </TouchableOpacity>
-      {showOptions && (
-        <View style={styles.optionParent}>
-          <ScrollView style={styles.optionsContainer} contentContainerStyle={{ maxHeight: 400 }}>
-            {options.map(option => (
-              <TouchableOpacity
-                key={option.key}
-                style={[styles.option, selectedValue === option ? styles.selectedOption : {}]}
-                onPress={() => onSelect(option)}>
-                <Text style={styles.optionText}>{option.value}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: 'relative',
+  dropDown: {
+    height: 44,
+    borderWidth: 0,
+    marginBottom: 8,
+    borderRadius: 14,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: Colors.WHITE,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.GRAY_LIGHT,
-    zIndex: 20000,
+    paddingVertical: 12,
   },
-  dropdownContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flex: 1,
-  },
-  dropdownText: {
-    fontSize: 12,
+  textStyle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.PLANET_BLACK,
+  },
+  containerStyle: {
+    zIndex: 10000,
+  },
+  dropDownContainerStyle: {
+    borderWidth: 0,
+  },
+  listItemContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flex: 1,
+    overflow: 'visible',
+    height: 'auto',
   },
-  optionParent: {
-    backgroundColor: Colors.WHITE,
-    borderRadius: 14,
-    position: 'absolute',
-    top: 48,
-    left: 0,
-    right: 0,
-    overflow: 'hidden',
-    elevation: 20,
+  listItemLabel: {
+    flex: 1,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
-  optionsContainer: {
-    borderRadius: 14,
-    maxHeight: 400,
-  },
-  option: {
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  selectedOption: {
+  itemSeparator: {
     backgroundColor: Colors.GRAY_LIGHT,
-  },
-  optionText: {
-    fontSize: 12,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.PLANET_BLACK,
+    height: 1,
+    marginHorizontal: 8,
   },
 });

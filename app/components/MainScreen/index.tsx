@@ -79,13 +79,7 @@ export default function MainScreen() {
 
   // added projects to the state
   useEffect(() => {
-    const fetchProjects = async () => {
-      const allProjects = await getAllProjects();
-      if (allProjects && allProjects.length > 0) {
-        setProjects(allProjects);
-      }
-    };
-    fetchProjects();
+    fetchAndSaveProjects();
   }, []);
 
   useEffect(() => {
@@ -101,6 +95,13 @@ export default function MainScreen() {
       setShowProjectSiteOptions(false);
     }
   }, [showProjectOptions]);
+
+  const fetchAndSaveProjects = async () => {
+    const allProjects = await getAllProjects();
+    if (allProjects && allProjects.length > 0) {
+      setProjects(allProjects);
+    }
+  };
 
   const checkIsSignedInAndUpdate = (userDetail: any) => {
     const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
@@ -144,6 +145,16 @@ export default function MainScreen() {
     }
   }
 
+  function projectListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
+    if (
+      changes.deletions.length > 0 ||
+      changes.insertions.length > 0 ||
+      changes.newModifications.length > 0
+    ) {
+      fetchAndSaveProjects();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm: Realm) => {
@@ -151,9 +162,11 @@ export default function MainScreen() {
       // gets the user object from realm
       const userObject = realm.objects('User');
       const plantLocationObject = realm.objects('Inventory');
+      const projectsObject = realm.objects('Projects');
       // Observe collection notifications.
       userObject.addListener(listener);
       plantLocationObject.addListener(inventoryListener);
+      projectsObject.addListener(projectListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }

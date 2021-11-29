@@ -50,6 +50,7 @@
     "react-native-device-info": "^8.4.3",
     "react-native-document-picker": "^5.2.0",
     "react-native-draggable-flatlist": "^2.6.2",
+    "react-native-dropdown-picker": "^5.2.3",
     "react-native-fs": "^2.18.0",
     "react-native-geolocation-service": "^5.2.0",
     "react-native-gesture-handler": "^1.9.0",
