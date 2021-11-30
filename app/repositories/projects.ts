@@ -103,7 +103,8 @@ export const addProjects = (projects: any) => {
               name: properties.name,
               slug: properties.slug,
               treeCost: properties.treeCost,
-              sites: []
+              sites: [],
+              geometry: JSON.stringify(project.geometry)
             };
 
             for (const site of properties.sites) {

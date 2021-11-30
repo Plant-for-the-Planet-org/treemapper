@@ -249,6 +249,8 @@ const Projects = {
     name: 'string',
     treeCost: 'double',
     sites: 'ProjectSites[]',
+    // stores the geometry of the project
+    geometry: 'string',
   },
 };
 

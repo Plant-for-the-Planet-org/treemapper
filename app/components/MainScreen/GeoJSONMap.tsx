@@ -118,13 +118,14 @@ const GeoJSONMap = ({
       camera.current.fitBounds(
         [siteBounds[0], siteBounds[1]],
         [siteBounds[2], siteBounds[3]],
-        100,
+        40,
         1000,
       );
     }
     if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
+      console.log(`siteCenterCoordiasdanate`, siteCenterCoordinate);
       let config = {
-        siteCenterCoordinate,
+        centerCoordinate: siteCenterCoordinate,
       };
       camera.current.setCamera(config);
     }

@@ -1,5 +1,5 @@
-// import turfCenter from '@turf/center';
 import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -58,28 +58,31 @@ const ProjectAndSiteSelector = ({
         geometry: JSON.parse(site.geometry),
       }));
 
-      setSelectedProjectStates(sites);
+      setSelectedProjectStates(sites, project);
     }
   }, [selectedProjectId]);
 
   useEffect(() => {
     if (selectedProjectSiteId) {
-      const site = projectSites.find(site => site.id === selectedProjectSiteId);
+      const site = projectSites.find(site => site.value === selectedProjectSiteId);
       if (site) {
-        // setSiteCenterCoordinate(turfCenter(site.geometry));
-
+        setSiteCenterCoordinate([]);
         setSiteBounds(bbox(site.geometry));
       }
     }
   }, [selectedProjectSiteId]);
 
-  const setSelectedProjectStates = (sites: any) => {
+  const setSelectedProjectStates = (sites: any, project: any) => {
     setProjectSites(sites);
     if (sites && sites.length > 0) {
       setSelectedProjectSiteId(sites[0].value);
-      // setSiteCenterCoordinate(turfCenter(sites[0].geometry));
+      setSiteCenterCoordinate([]);
 
       setSiteBounds(bbox(sites[0].geometry));
+    } else {
+      setSelectedProjectSiteId(null);
+      setSiteBounds([]);
+      setSiteCenterCoordinate(turfCenter(JSON.parse(project.geometry)).geometry.coordinates);
     }
   };
 
@@ -90,7 +93,7 @@ const ProjectAndSiteSelector = ({
         value: site.id,
         geometry: JSON.parse(site.geometry),
       }));
-      setSelectedProjectStates(sites);
+      setSelectedProjectStates(sites, project);
     }
   };
 
