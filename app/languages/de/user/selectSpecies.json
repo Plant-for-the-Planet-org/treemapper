@@ -33,6 +33,7 @@
   "select_species_done": "Fertig",
   "select_species_add_name": "Name hinzufügen",
   "select_species_my_species": "Meine Arten",
+  "search_result": "Suchergebnis",
   "select_species_diameter_more_than_error": "Durchmesser muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_height_more_than_error": "Höhe muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_diameter_invalid": "Durchmesser ist ungültig",
