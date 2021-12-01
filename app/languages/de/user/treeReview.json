@@ -38,5 +38,9 @@
   "plantation_date": "Datum der Pflanzung: ",
   "plantation_period": "Zeitraum der Pflanzung: ",
   "more_details": "Mehr Details",
-  "view_sample_trees": "Beispielbäume ansehen"
+  "view_sample_trees": "Beispielbäume ansehen",
+  "planting_area": "Fläche der Pflanzung",
+  "planting_area_value": "{{plantingAreaInHa}} ha",
+  "planting_density": "Dichte der Pflanzung",
+  "planting_density_value": "{{plantingDensity}} per ha"
 }
