@@ -11,12 +11,12 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		3BBC9938D3000FE6FA8375DD /* libPods-treemapper-treemapperTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 22C3DF0D9047E47639485628 /* libPods-treemapper-treemapperTests.a */; };
+		2F0E84F51BD8032AE3768683 /* libPods-treemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B9ECC8CA1EED0AE998FA127 /* libPods-treemapper.a */; };
 		6B2967AB24C95D480025A1E2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */; };
 		6B9F6B7226FCD571008A6FFC /* Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F6B7126FCD571008A6FFC /* Void.swift */; };
 		6B9F6B7326FCD571008A6FFC /* Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F6B7126FCD571008A6FFC /* Void.swift */; };
 		6BD599BD24DFF67F00E90953 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6BD599BF24DFF67F00E90953 /* InfoPlist.strings */; };
-		8B450B43108518752CEFF758 /* libPods-treemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE1AF855DEE6CC838B75B0F /* libPods-treemapper.a */; };
+		88605FC7674A9297DEC2632C /* libPods-treemapper-treemapperTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F7598255B0A60B3CC1D41F8E /* libPods-treemapper-treemapperTests.a */; };
 		C46E965824740409003148A3 /* OpenSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */; };
 		C46E965924740411003148A3 /* OpenSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */; };
 		C46E965A24740414003148A3 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB729F9728FD4576B1C1A595 /* OpenSans-ExtraBold.ttf */; };
@@ -43,14 +43,15 @@
 		00E356EE1AD99517003FC87E /* treemapperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = treemapperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* treemapperTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = treemapperTests.m; sourceTree = "<group>"; };
-		0C3A69254CC4C1785A19D0B4 /* Pods-treemapper-treemapperTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.release.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.release.xcconfig"; sourceTree = "<group>"; };
+		033223A577A1716D24AA62D8 /* Pods-treemapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.release.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.release.xcconfig"; sourceTree = "<group>"; };
+		0B9ECC8CA1EED0AE998FA127 /* libPods-treemapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* TreeMapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TreeMapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = treemapper/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = treemapper/AppDelegate.m; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = treemapper/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = treemapper/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = treemapper/main.m; sourceTree = "<group>"; };
-		22C3DF0D9047E47639485628 /* libPods-treemapper-treemapperTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-treemapperTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		331F3E516ECE0ADCA9B67836 /* Pods-treemapper-treemapperTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.debug.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.debug.xcconfig"; sourceTree = "<group>"; };
 		4A744DF6EAD84ED68E567CA0 /* OpenSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		6B2967AA24C95D480025A1E2 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6B9F6B6F26FCD571008A6FFC /* treemapper-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "treemapper-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -61,14 +62,12 @@
 		6BD599C124DFF68700E90953 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6BD599C224DFF68800E90953 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		6BD599C324DFF68900E90953 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		6F5B74D7F4C35CC8B9FACB58 /* Pods-treemapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.release.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.release.xcconfig"; sourceTree = "<group>"; };
 		71CC7B10BB7A41429F9F70DF /* OpenSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-SemiBold.ttf"; path = "../app/assets/fonts/OpenSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		8F4953E65CFD4FE5A51D8596 /* OpenSans-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-ExtraBoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
-		9AE1AF855DEE6CC838B75B0F /* libPods-treemapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9269716F44ACAE1891D4FD93 /* Pods-treemapper-treemapperTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.release.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.release.xcconfig"; sourceTree = "<group>"; };
 		9AEB2BA6B9AC4F93ACB85A50 /* OpenSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Bold.ttf"; path = "../app/assets/fonts/OpenSans-Bold.ttf"; sourceTree = "<group>"; };
 		A2BE498C8A084B578A774037 /* OpenSans-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-BoldItalic.ttf"; path = "../app/assets/fonts/OpenSans-BoldItalic.ttf"; sourceTree = "<group>"; };
 		A5EFA044EE7C42C88DB9AF87 /* OpenSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Italic.ttf"; path = "../app/assets/fonts/OpenSans-Italic.ttf"; sourceTree = "<group>"; };
-		A7BDA9AB95F992DE7DB6582F /* Pods-treemapper-treemapperTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper-treemapperTests.debug.xcconfig"; path = "Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests.debug.xcconfig"; sourceTree = "<group>"; };
 		AF78F24F0F5D43E0AC9CF429 /* OpenSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Regular.ttf"; path = "../app/assets/fonts/OpenSans-Regular.ttf"; sourceTree = "<group>"; };
 		C46E96382473FEBF003148A3 /* Ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		C46E96392473FEBF003148A3 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
@@ -90,7 +89,8 @@
 		CFAC24B41EAE4792AAA2B481 /* OpenSans-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-Light.ttf"; path = "../app/assets/fonts/OpenSans-Light.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
-		F365A10AB4339F527C8DF150 /* Pods-treemapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.debug.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.debug.xcconfig"; sourceTree = "<group>"; };
+		F6D5BD24D863DDBFA74E9DD8 /* Pods-treemapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-treemapper.debug.xcconfig"; path = "Target Support Files/Pods-treemapper/Pods-treemapper.debug.xcconfig"; sourceTree = "<group>"; };
+		F7598255B0A60B3CC1D41F8E /* libPods-treemapper-treemapperTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-treemapper-treemapperTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F77F8C3DB9C64EA89C73A716 /* OpenSans-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "OpenSans-LightItalic.ttf"; path = "../app/assets/fonts/OpenSans-LightItalic.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,7 +99,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3BBC9938D3000FE6FA8375DD /* libPods-treemapper-treemapperTests.a in Frameworks */,
+				88605FC7674A9297DEC2632C /* libPods-treemapper-treemapperTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,7 +107,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8B450B43108518752CEFF758 /* libPods-treemapper.a in Frameworks */,
+				2F0E84F51BD8032AE3768683 /* libPods-treemapper.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,8 +154,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				9AE1AF855DEE6CC838B75B0F /* libPods-treemapper.a */,
-				22C3DF0D9047E47639485628 /* libPods-treemapper-treemapperTests.a */,
+				0B9ECC8CA1EED0AE998FA127 /* libPods-treemapper.a */,
+				F7598255B0A60B3CC1D41F8E /* libPods-treemapper-treemapperTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -163,10 +163,10 @@
 		3BFF86C06BC433403BAA7A08 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				F365A10AB4339F527C8DF150 /* Pods-treemapper.debug.xcconfig */,
-				6F5B74D7F4C35CC8B9FACB58 /* Pods-treemapper.release.xcconfig */,
-				A7BDA9AB95F992DE7DB6582F /* Pods-treemapper-treemapperTests.debug.xcconfig */,
-				0C3A69254CC4C1785A19D0B4 /* Pods-treemapper-treemapperTests.release.xcconfig */,
+				F6D5BD24D863DDBFA74E9DD8 /* Pods-treemapper.debug.xcconfig */,
+				033223A577A1716D24AA62D8 /* Pods-treemapper.release.xcconfig */,
+				331F3E516ECE0ADCA9B67836 /* Pods-treemapper-treemapperTests.debug.xcconfig */,
+				9269716F44ACAE1891D4FD93 /* Pods-treemapper-treemapperTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -250,12 +250,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "treemapperTests" */;
 			buildPhases = (
-				EE4FB731D933A5013298C57E /* [CP] Check Pods Manifest.lock */,
+				401B123F4013D0A467E0D2ED /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				636FA24120387C1DCA07D833 /* [CP] Embed Pods Frameworks */,
-				71AAF9B2A5461B23BA33F95A /* [CP] Copy Pods Resources */,
+				F71763605AAEFD96D26711A1 /* [CP] Embed Pods Frameworks */,
+				3BFA16BA777E8B0AA0B347E3 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -271,14 +271,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "treemapper" */;
 			buildPhases = (
-				EEFAECC5E63D9A3F2FF95F29 /* [CP] Check Pods Manifest.lock */,
+				99A57B15F11F9224A772662E /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				43C1AA4D8264C43313B7F8AB /* [CP] Embed Pods Frameworks */,
-				A2B063DA56D130D3A13428AA /* [CP] Copy Pods Resources */,
+				AF83157D28EAABC9DF20F893 /* [CP] Embed Pods Frameworks */,
+				91A0DA90D7EAE94E3A6D7900 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -376,41 +376,7 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
-		43C1AA4D8264C43313B7F8AB /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		636FA24120387C1DCA07D833 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		71AAF9B2A5461B23BA33F95A /* [CP] Copy Pods Resources */ = {
+		3BFA16BA777E8B0AA0B347E3 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -427,24 +393,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A2B063DA56D130D3A13428AA /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		EE4FB731D933A5013298C57E /* [CP] Check Pods Manifest.lock */ = {
+		401B123F4013D0A467E0D2ED /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -466,7 +415,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EEFAECC5E63D9A3F2FF95F29 /* [CP] Check Pods Manifest.lock */ = {
+		91A0DA90D7EAE94E3A6D7900 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		99A57B15F11F9224A772662E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -486,6 +452,40 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AF83157D28EAABC9DF20F893 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F71763605AAEFD96D26711A1 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-treemapper-treemapperTests/Pods-treemapper-treemapperTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -557,7 +557,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A7BDA9AB95F992DE7DB6582F /* Pods-treemapper-treemapperTests.debug.xcconfig */;
+			baseConfigurationReference = 331F3E516ECE0ADCA9B67836 /* Pods-treemapper-treemapperTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -590,7 +590,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0C3A69254CC4C1785A19D0B4 /* Pods-treemapper-treemapperTests.release.xcconfig */;
+			baseConfigurationReference = 9269716F44ACAE1891D4FD93 /* Pods-treemapper-treemapperTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -619,7 +619,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F365A10AB4339F527C8DF150 /* Pods-treemapper.debug.xcconfig */;
+			baseConfigurationReference = F6D5BD24D863DDBFA74E9DD8 /* Pods-treemapper.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -650,7 +650,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6F5B74D7F4C35CC8B9FACB58 /* Pods-treemapper.release.xcconfig */;
+			baseConfigurationReference = 033223A577A1716D24AA62D8 /* Pods-treemapper.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

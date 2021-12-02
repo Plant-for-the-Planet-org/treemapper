@@ -703,7 +703,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: db2f6e22a534d466fc0e34e622df47d9d20bab2f
   React-jsinspector: 8c0517dee5e8c70cd6c3066f20213ff7ce54f176
   React-logger: bfddd3418dc1d45b77b822958f3e31422e2c179b
-  react-native-camera: fefef39fcd20850d17c3780638b04f741e0ccaae
+  react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: f1b5398801b332c77bc62ae0eae2116f49bdff26
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
@@ -724,7 +724,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 33a949a51bec5f8a3c9e8d8092deb259600d761e
   ReactCommon: 620442811dc6f707b4bf5e3b27d4f19c12d5a821
   RealmJS: 5195064e9aeccf94ae3756bd9d0f2301b9074b07
-  RNCAsyncStorage: cb9a623793918c6699586281f0b51cbc38f046f9
+  RNCAsyncStorage: b03032fdbdb725bea0bd9e5ec5a7272865ae7398
   RNCCheckbox: 6369808337432cdbd5025d62ceced2480b4c51df
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
@@ -732,14 +732,14 @@ SPEC CHECKSUMS:
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNInAppBrowser: 3ff3a3b8f458aaf25aaee879d057352862edf357
-  RNLocalize: ff8b96bffbe096a158f952a170741208f2c18746
+  RNLocalize: 7c7aeda16c01db7a0918981c14875c0a53be9b79
   RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
   RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
   RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
-  RNSnackbar: b6cbf294923b8d6c6056592bca87527c81a0130b
+  RNSnackbar: be3333a21a453ccc272f41a8add5a71f7d44dfcd
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
-  RNZipArchive: 0c9463e46a56d93b29cd8a306e051f24397f5dfa
+  RNZipArchive: 9dfdaa1d1ad49a423e83df505f292e0ae8126a5d
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   toolbar-android: 2a73856e98b750d7e71ce4644d3f41cc98211719
   Yoga: 2b4a01651f42a32f82e6cef3830a3ba48088237f
