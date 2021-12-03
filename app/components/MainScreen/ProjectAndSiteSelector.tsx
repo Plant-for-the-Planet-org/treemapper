@@ -55,13 +55,15 @@ const ProjectAndSiteSelector = ({
   useEffect(() => {
     if (selectedProjectId) {
       const project = projects.find(project => project.id === selectedProjectId);
-      const sites = project.sites.map(site => ({
-        label: site.name,
-        value: site.id,
-        geometry: JSON.parse(site.geometry),
-      }));
+      if (project) {
+        const sites = project.sites.map(site => ({
+          label: site.name,
+          value: site.id,
+          geometry: JSON.parse(site.geometry),
+        }));
 
-      setSelectedProjectStates(sites, project);
+        setSelectedProjectStates(sites, project);
+      }
     }
   }, [selectedProjectId]);
 
