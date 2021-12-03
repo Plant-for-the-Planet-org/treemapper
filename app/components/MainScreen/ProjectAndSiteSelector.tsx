@@ -98,7 +98,7 @@ const ProjectAndSiteSelector = ({
   };
 
   return (
-    <View style={{ display: 'flex', flex: 1, maxWidth: '50%' }}>
+    <View style={{ display: 'flex', flex: 1, maxWidth: '50%', zIndex: 2 }}>
       <DropDownPicker
         items={projectOptions}
         open={showProjectOptions}

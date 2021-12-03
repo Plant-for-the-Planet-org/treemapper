@@ -25,6 +25,8 @@ import LoginButton from './LoginButton';
 import MainMap from './MainMap';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
 
+const IS_ANDROID = Platform.OS === 'android';
+
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [isUserLogin, setIsUserLogin] = useState(false);
@@ -293,7 +295,7 @@ export default function MainScreen() {
               )}
             </View>
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
-              <View style={styles.fetchPlantLocationContainer}>
+              <View style={[styles.fetchPlantLocationContainer, { zIndex: IS_ANDROID ? 0 : -1 }]}>
                 <View style={{ marginRight: 16 }}>
                   <RotatingView isClockwise={true}>
                     <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
