@@ -6,6 +6,8 @@ platform :ios, '11.0'
 target 'treemapper' do
   config = use_native_modules!
 
+  $ReactNativeMapboxGLIOSVersion = '~> 6.1'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
@@ -28,6 +30,7 @@ target 'treemapper' do
   # you should disable the next line.
   use_flipper!()
   post_install do |installer|
+    $RNMBGL.post_install(installer)
     react_native_post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
   end
