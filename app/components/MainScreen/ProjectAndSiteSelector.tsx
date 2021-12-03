@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Colors, Typography } from '../../styles';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 
 interface Props {
   projects: any[];
@@ -107,7 +108,7 @@ const ProjectAndSiteSelector = ({
         setOpen={setShowProjectOptions}
         value={selectedProjectId}
         setValue={setSelectedProjectId}
-        style={styles.dropDown}
+        style={{ ...styles.dropDown, marginBottom: 8 }}
         textStyle={styles.textStyle}
         selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
         listItemContainerStyle={styles.listItemContainer}
@@ -118,6 +119,12 @@ const ProjectAndSiteSelector = ({
         showTickIcon={false}
         itemSeparatorStyle={styles.itemSeparator}
         itemSeparator
+        ArrowDownIconComponent={() => (
+          <EntypoIcon name="chevron-down" color={Colors.GRAY_LIGHTEST} size={20} />
+        )}
+        ArrowUpIconComponent={() => (
+          <EntypoIcon name="chevron-up" color={Colors.GRAY_LIGHTEST} size={20} />
+        )}
       />
       {projectSites && projectSites.length > 0 && (
         <DropDownPicker
@@ -137,6 +144,12 @@ const ProjectAndSiteSelector = ({
           showTickIcon={false}
           itemSeparatorStyle={styles.itemSeparator}
           itemSeparator
+          ArrowDownIconComponent={() => (
+            <EntypoIcon name="chevron-down" color={Colors.GRAY_LIGHTEST} size={20} />
+          )}
+          ArrowUpIconComponent={() => (
+            <EntypoIcon name="chevron-up" color={Colors.GRAY_LIGHTEST} size={20} />
+          )}
         />
       )}
     </View>
@@ -147,8 +160,6 @@ export default ProjectAndSiteSelector;
 
 const styles = StyleSheet.create({
   dropDown: {
-    height: 44,
-    marginBottom: 8,
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -158,7 +169,7 @@ const styles = StyleSheet.create({
   textStyle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
-    color: Colors.PLANET_BLACK,
+    color: Colors.TEXT_COLOR,
   },
   dropDownContainerStyle: {
     borderWidth: 1,
@@ -168,7 +179,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     flex: 1,
-    overflow: 'visible',
     height: 'auto',
   },
   listItemLabel: {
