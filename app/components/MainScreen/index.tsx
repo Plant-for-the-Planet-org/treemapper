@@ -288,6 +288,7 @@ export default function MainScreen() {
                     setSiteBounds={setSiteBounds}
                     projectSites={projectSites}
                     setProjectSites={setProjectSites}
+                    IS_ANDROID={IS_ANDROID}
                   />
                 )
               ) : (

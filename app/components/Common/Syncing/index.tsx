@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   syncText: {
     paddingLeft: 6,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
   progressText: {

@@ -15,6 +15,7 @@ interface Props {
   setSiteBounds: React.Dispatch<React.SetStateAction<any>>;
   projectSites: any;
   setProjectSites: React.Dispatch<React.SetStateAction<any>>;
+  IS_ANDROID: boolean;
 }
 
 const ProjectAndSiteSelector = ({
@@ -27,6 +28,7 @@ const ProjectAndSiteSelector = ({
   setSiteBounds,
   projectSites,
   setProjectSites,
+  IS_ANDROID,
 }: Props) => {
   const [projectOptions, setProjectOptions] = React.useState([]);
 
@@ -98,7 +100,7 @@ const ProjectAndSiteSelector = ({
   };
 
   return (
-    <View style={{ display: 'flex', flex: 1, maxWidth: '50%', zIndex: 2 }}>
+    <View style={[{ display: 'flex', flex: 1, maxWidth: '50%' }, !IS_ANDROID ? { zIndex: 2 } : {}]}>
       <DropDownPicker
         items={projectOptions}
         open={showProjectOptions}
@@ -146,22 +148,21 @@ export default ProjectAndSiteSelector;
 const styles = StyleSheet.create({
   dropDown: {
     height: 44,
-    borderWidth: 0,
     marginBottom: 8,
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
   textStyle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.PLANET_BLACK,
   },
-  containerStyle: {
-    zIndex: 10000,
-  },
   dropDownContainerStyle: {
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
   listItemContainer: {
     paddingHorizontal: 16,
