@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
-import { addProjects } from '../repositories/projects';
+import { addProjects, deleteAllProjects } from '../repositories/projects';
 import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
@@ -136,6 +136,7 @@ export const auth0Logout = async (userDispatch = null) => {
       .then(async () => {
         // deletes the user from DB
         await deleteUser();
+        await deleteAllProjects()
 
         await resetAllSpecies();
 

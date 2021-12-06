@@ -43,6 +43,7 @@ const ProjectAndSiteSelector = ({
       label: project.name,
       value: project.id,
       sites: project.sites,
+      geometry: project.geometry,
     }));
 
     if (options.length > 0) {
@@ -82,7 +83,6 @@ const ProjectAndSiteSelector = ({
     if (sites && sites.length > 0) {
       setSelectedProjectSiteId(sites[0].value);
       setSiteCenterCoordinate([]);
-
       setSiteBounds(bbox(sites[0].geometry));
     } else {
       setSelectedProjectSiteId(null);

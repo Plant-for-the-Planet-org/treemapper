@@ -123,7 +123,6 @@ const GeoJSONMap = ({
       );
     }
     if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
-      console.log(`siteCenterCoordiasdanate`, siteCenterCoordinate);
       let config = {
         centerCoordinate: siteCenterCoordinate,
       };
