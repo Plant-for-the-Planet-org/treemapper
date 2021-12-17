@@ -247,7 +247,7 @@ const Projects = {
     image: 'string',
     country: 'string',
     name: 'string',
-    treeCost: 'double',
+    treeCost: 'double?',
     sites: 'ProjectSites[]',
     // stores the geometry of the project
     geometry: 'string',
