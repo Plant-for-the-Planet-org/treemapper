@@ -44,9 +44,19 @@ interface IMainMapProps {
   showClickedGeoJSON: boolean;
   setShowClickedGeoJSON: React.Dispatch<React.SetStateAction<boolean>>;
   userInfo: any;
+  siteCenterCoordinate: any;
+  siteBounds: any;
+  projectSites: any;
 }
 
-const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainMapProps) => {
+const MainMap = ({
+  showClickedGeoJSON,
+  setShowClickedGeoJSON,
+  userInfo,
+  siteCenterCoordinate,
+  siteBounds,
+  projectSites,
+}: IMainMapProps) => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
     features: [
@@ -107,7 +117,7 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
 
     initializeInventory();
 
-    getUserInformation().then((data) => {
+    getUserInformation().then(data => {
       setCountryCode(data.country);
     });
 
@@ -252,14 +262,14 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
 
   //getting current position of the user with high accuracy
   const updateCurrentPosition = async (showAlert = true) => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           onUpdateUserLocation(position);
           setLocation(position);
           resolve(position);
         },
-        (err) => {
+        err => {
           if (showAlert) setIsLocationAlertShow(true);
         },
         {
@@ -336,6 +346,9 @@ const MainMap = ({ showClickedGeoJSON, setShowClickedGeoJSON, userInfo }: IMainM
         isSampleCarouselRefVisible={isSampleCarouselRefVisible}
         sampleCarouselRef={sampleCarouselRef}
         onPressViewSampleTrees={onPressViewSampleTrees}
+        siteCenterCoordinate={siteCenterCoordinate}
+        siteBounds={siteBounds}
+        projectSites={projectSites}
       />
 
       {/* shows alert if location permission is not provided */}

@@ -145,7 +145,7 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
-    getUserDetails().then((userDetails) => {
+    getUserDetails().then(userDetails => {
       if (userDetails) {
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
@@ -170,13 +170,13 @@ const SingleTreeOverview = () => {
   }, []);
 
   const fetchAndUpdateInventoryDetails = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
       setInventory(inventoryData);
       setStatus(inventoryData.status);
       setLocateTree(inventoryData.locateTree);
       setRegistrationType(inventoryData.treeType);
 
-      getUserInformation().then(async (data) => {
+      getUserInformation().then(async data => {
         setCountryCode(data.country);
         if (
           inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
@@ -732,7 +732,7 @@ const SingleTreeOverview = () => {
               navigateBack();
             });
           })
-          .catch((err) => {
+          .catch(err => {
             setIsError(true);
           });
       } else {
@@ -740,10 +740,6 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     } else {
-      console.log(
-        'route?.params?.navigateBackToHomeScreen',
-        route?.params?.navigateBackToHomeScreen,
-      );
       navigateBack();
     }
     return true;
@@ -881,7 +877,7 @@ const SingleTreeOverview = () => {
             );
           }
         })
-        .catch((err) => console.error(err));
+        .catch(err => console.error(err));
     } else {
       deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
         .then(() => {
@@ -893,7 +889,7 @@ const SingleTreeOverview = () => {
             }),
           );
         })
-        .catch((err) => console.error(err));
+        .catch(err => console.error(err));
     }
   };
 

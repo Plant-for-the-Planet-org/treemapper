@@ -12,6 +12,7 @@ import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import { clearAllUploadedInventory, getInventoryCount } from '../../repositories/inventory';
+import { getAllProjects } from '../../repositories/projects';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
@@ -22,6 +23,9 @@ import ProfileModal from '../ProfileModal';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import MainMap from './MainMap';
+import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -30,9 +34,22 @@ export default function MainScreen() {
   const [emailAlert, setEmailAlert] = useState(false);
   const [offlineModal, setOfflineModal] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
+  const [showProjectOptions, setShowProjectOptions] = useState(false);
+  const [showProjectSiteOptions, setShowProjectSiteOptions] = useState(false);
 
   // If true then hides bottom bar, pending and login buttons and shows the selected polygon
   const [showClickedGeoJSON, setShowClickedGeoJSON] = useState(false);
+
+  // used to store all the projects
+  const [projects, setProjects] = useState<any>([]);
+  // used to set all the project sites of selected project
+  const [projectSites, setProjectSites] = React.useState([]);
+
+  // sets the bound to focus the selected site
+  const [siteBounds, setSiteBounds] = useState<any>([]);
+
+  // used to store and focus on the center of the bounding box of the selected site
+  const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
   const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
@@ -62,12 +79,31 @@ export default function MainScreen() {
     };
   }, [navigation]);
 
+  // added projects to the state
+  useEffect(() => {
+    fetchAndSaveProjects();
+  }, []);
+
   useEffect(() => {
     if (showClickedGeoJSON) {
       setOfflineModal(false);
       setIsProfileModalVisible(false);
     }
   }, [showClickedGeoJSON]);
+
+  // hides project site option if project options is shown
+  useEffect(() => {
+    if (showProjectOptions) {
+      setShowProjectSiteOptions(false);
+    }
+  }, [showProjectOptions]);
+
+  const fetchAndSaveProjects = async () => {
+    const allProjects = await getAllProjects();
+    if (allProjects && allProjects.length > 0) {
+      setProjects(allProjects);
+    }
+  };
 
   const checkIsSignedInAndUpdate = (userDetail: any) => {
     const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetail));
@@ -90,7 +126,7 @@ export default function MainScreen() {
     }
 
     // Update UI in response to inserted objects
-    changes.insertions.forEach((index) => {
+    changes.insertions.forEach(index => {
       if (userData[index].id === 'id0001') {
         checkIsSignedInAndUpdate(userData[index]);
       }
@@ -111,6 +147,16 @@ export default function MainScreen() {
     }
   }
 
+  function projectListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
+    if (
+      changes.deletions.length > 0 ||
+      changes.insertions.length > 0 ||
+      changes.newModifications.length > 0
+    ) {
+      fetchAndSaveProjects();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm: Realm) => {
@@ -118,9 +164,11 @@ export default function MainScreen() {
       // gets the user object from realm
       const userObject = realm.objects('User');
       const plantLocationObject = realm.objects('Inventory');
+      const projectsObject = realm.objects('Projects');
       // Observe collection notifications.
       userObject.addListener(listener);
       plantLocationObject.addListener(inventoryListener);
+      projectsObject.addListener(projectListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -130,7 +178,7 @@ export default function MainScreen() {
 
   const fetchUserDetails = () => {
     if (!loadingState.isLoading) {
-      getUserDetails().then((userDetails) => {
+      getUserDetails().then(userDetails => {
         if (userDetails) {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
@@ -143,10 +191,10 @@ export default function MainScreen() {
   };
 
   const fetchInventoryCount = () => {
-    getInventoryCount(PENDING_UPLOAD_COUNT).then((count) => {
+    getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
       updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
     });
-    getInventoryCount().then((count) => {
+    getInventoryCount().then(count => {
       setNumberOfInventory(count);
     });
   };
@@ -162,7 +210,7 @@ export default function MainScreen() {
           fetchUserDetails();
           fetchInventoryCount();
         })
-        .catch((err) => {
+        .catch(err => {
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (
@@ -181,18 +229,18 @@ export default function MainScreen() {
       closeProfileModal();
       clearAllUploadedInventory();
       shouldSpeciesUpdate()
-        .then((isSyncRequired) => {
+        .then(isSyncRequired => {
           if (isSyncRequired) {
             navigation.navigate('LogoutWarning');
           } else {
-            auth0Logout(userDispatch).then((result) => {
+            auth0Logout(userDispatch).then(result => {
               if (result) {
                 setUserInfo({});
               }
             });
           }
         })
-        .catch((err) => console.error(err));
+        .catch(err => console.error(err));
     } else {
       setOfflineModal(true);
     }
@@ -206,6 +254,9 @@ export default function MainScreen() {
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}
         userInfo={userInfo}
+        siteCenterCoordinate={siteCenterCoordinate}
+        siteBounds={siteBounds}
+        projectSites={projectSites}
       />
 
       {!showClickedGeoJSON ? (
@@ -214,7 +265,7 @@ export default function MainScreen() {
             <View
               style={{
                 flexDirection: 'row',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
               <Sync
@@ -224,10 +275,28 @@ export default function MainScreen() {
                 isUserLogin={isUserLogin}
                 setEmailAlert={setEmailAlert}
               />
-              <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+
+              {isUserLogin ? (
+                userInfo?.type === 'tpo' && (
+                  <ProjectAndSiteSelector
+                    projects={projects}
+                    showProjectOptions={showProjectOptions}
+                    setShowProjectOptions={setShowProjectOptions}
+                    showProjectSiteOptions={showProjectSiteOptions}
+                    setShowProjectSiteOptions={setShowProjectSiteOptions}
+                    setSiteCenterCoordinate={setSiteCenterCoordinate}
+                    setSiteBounds={setSiteBounds}
+                    projectSites={projectSites}
+                    setProjectSites={setProjectSites}
+                    IS_ANDROID={IS_ANDROID}
+                  />
+                )
+              ) : (
+                <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
+              )}
             </View>
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
-              <View style={styles.fetchPlantLocationContainer}>
+              <View style={[styles.fetchPlantLocationContainer, { zIndex: IS_ANDROID ? 0 : -1 }]}>
                 <View style={{ marginRight: 16 }}>
                   <RotatingView isClockwise={true}>
                     <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
