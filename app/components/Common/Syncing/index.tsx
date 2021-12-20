@@ -31,6 +31,7 @@ export default function Syncing({
   borderLess = false,
 }: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
+  const [maxWidth, setMaxWidth] = useState('100%');
   const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
@@ -47,7 +48,9 @@ export default function Syncing({
           count: pendingCount,
         }),
       );
+      setMaxWidth('100%');
     } else {
+      setMaxWidth('50%');
       setSyncText(i18next.t('label.all_backed_up'));
     }
   };
@@ -100,7 +103,7 @@ export default function Syncing({
   };
   const SyncContainer = () => {
     return (
-      <View style={{ maxWidth: '50%' }}>
+      <View style={{ maxWidth }}>
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>
