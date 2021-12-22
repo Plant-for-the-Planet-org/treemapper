@@ -33,5 +33,6 @@
   "edit_point": "Edit point",
   "edit_geometry_message": "Click and drag a marker to change it's position.",
   "reset": "Reset",
-  "save": "Save"
+  "save": "Save",
+  "uploading": "Uploading"
 }

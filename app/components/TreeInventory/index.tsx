@@ -24,6 +24,7 @@ import { clearAllIncompleteInventory, getInventoryByStatus } from '../../reposit
 import { getUserDetails } from '../../repositories/user';
 import {
   DATA_UPLOAD_START,
+  FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -60,6 +61,7 @@ const TreeInventory = () => {
   const [uploadingInventory, setUploadingInventory] = useState([]);
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
+  const [fixNeededInventory, setFixNeededInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
@@ -141,6 +143,9 @@ const TreeInventory = () => {
     });
     getInventoryByStatus([SYNCED]).then(inventoryList => {
       setUploadedInventory(inventoryList);
+    });
+    getInventoryByStatus([FIX_NEEDED]).then(inventoryList => {
+      setFixNeededInventory(inventoryList);
     });
   };
 
@@ -233,6 +238,11 @@ const TreeInventory = () => {
       data: inCompleteInventory,
       type: 'incomplete',
     },
+    {
+      title: i18next.t('label.tree_inventory_fix_needed_registrations'),
+      data: fixNeededInventory,
+      type: 'fix_needed',
+    },
   ];
 
   return (
@@ -271,34 +281,39 @@ const TreeInventory = () => {
             />
           )}
           renderSectionHeader={({ section: { title, type, data } }) => {
-            if (type === 'uploading' && data.length > 0) {
-              return (
-                <SmallHeader
-                  leftText={title}
-                  rightText={state.isUploading ? 'Uploading' : ''}
-                  sync={state.isUploading}
-                  style={{ marginVertical: 15 }}
-                />
-              );
-            } else if (type === 'pending' && data.length > 0) {
-              return (
-                <SmallHeader
-                  onPressRight={onPressUploadNow}
-                  leftText={i18next.t('label.tree_inventory_left_text')}
-                  style={{ marginVertical: 15 }}
-                />
-              );
-            } else if (type === 'incomplete' && data.length > 0) {
-              return (
-                <SmallHeader
-                  onPressRight={onPressClearAll}
-                  leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
-                  rightTheme={'red'}
-                  icon={'trash'}
-                  iconType={'FAIcon'}
-                  style={{ marginVertical: 15 }}
-                />
-              );
+            if (data.length > 0) {
+              switch (type) {
+                case 'uploading':
+                  return (
+                    <SmallHeader
+                      leftText={title}
+                      rightText={state.isUploading ? i18next.t('uploading') : ''}
+                      sync={state.isUploading}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+                case 'pending':
+                  return (
+                    <SmallHeader
+                      onPressRight={onPressUploadNow}
+                      leftText={i18next.t('label.tree_inventory_left_text')}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+                case 'incomplete':
+                  return (
+                    <SmallHeader
+                      onPressRight={onPressClearAll}
+                      leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
+                      rightTheme={'red'}
+                      icon={'trash'}
+                      iconType={'FAIcon'}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+                default:
+                  return <></>;
+              }
             } else {
               return <></>;
             }

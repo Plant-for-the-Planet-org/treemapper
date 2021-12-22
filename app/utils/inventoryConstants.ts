@@ -26,6 +26,9 @@ export const SYNCED = 'SYNCED';
 // used as status to mark that the inventory is synced
 export const PENDING_DATA_UPDATE = 'PENDING_DATA_UPDATE';
 
+// used to mark the registration as it needs to be fixed
+export const FIX_NEEDED = 'FIX_NEEDED';
+
 /* === Inventory registration statuses - ENDS === */
 
 /* ============================================== *\
