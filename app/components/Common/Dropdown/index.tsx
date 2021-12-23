@@ -6,7 +6,7 @@ import { Colors, Typography } from '../../../styles';
 import OutlinedInput from '../OutlinedInput';
 
 interface IDropdownProps {
-  label: string;
+  label?: string;
   defaultValue?: any;
   options?: any;
   onChange?: any;

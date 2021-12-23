@@ -31,6 +31,7 @@ export default function Syncing({
   borderLess = false,
 }: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
+  const [maxWidth, setMaxWidth] = useState('100%');
   const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
@@ -47,7 +48,9 @@ export default function Syncing({
           count: pendingCount,
         }),
       );
+      setMaxWidth('100%');
     } else {
+      setMaxWidth('50%');
       setSyncText(i18next.t('label.all_backed_up'));
     }
   };
@@ -66,7 +69,7 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      uploadInventoryData(dispatch, userDispatch).catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: 'Failed to upload Inventories',
@@ -100,7 +103,7 @@ export default function Syncing({
   };
   const SyncContainer = () => {
     return (
-      <View>
+      <View style={{ maxWidth }}>
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>
@@ -145,7 +148,7 @@ const styles = StyleSheet.create({
   syncText: {
     paddingLeft: 6,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
   progressText: {

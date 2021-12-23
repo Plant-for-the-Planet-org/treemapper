@@ -1,7 +1,7 @@
 import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleProp, StyleSheet } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Colors } from '../../styles';
@@ -30,6 +30,9 @@ interface IGeoJSONMapProps {
   isSampleCarouselRefVisible: boolean;
   sampleCarouselRef: any;
   onPressViewSampleTrees: any;
+  siteCenterCoordinate: any;
+  siteBounds: any;
+  projectSites: any;
 }
 
 const GeoJSONMap = ({
@@ -51,13 +54,31 @@ const GeoJSONMap = ({
   isSampleCarouselRefVisible,
   sampleCarouselRef,
   onPressViewSampleTrees,
+  siteCenterCoordinate,
+  siteBounds,
+  projectSites,
 }: IGeoJSONMapProps) => {
+  const geoJSONInitialState = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[]],
+        },
+      },
+    ],
+  };
+
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
   // sets the bound to focus the selected polygon
   const [bounds, setBounds] = useState<any>([]);
   // used to store and focus on the center of the bounding box of the polygon selected
   const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
+  // used to store the selected project sites geoJSON
+  const [projectSitesGeoJSON, setProjectSitesGeoJSON] = useState<any>(geoJSONInitialState);
 
   const map = useRef(null);
 
@@ -91,6 +112,57 @@ const GeoJSONMap = ({
     }
   }, [isCameraRefVisible, bounds, centerCoordinate]);
 
+  // used to focus the selected polygon whenever the bounds are changed or center coordinate is updated
+  useEffect(() => {
+    if (isCameraRefVisible && siteBounds.length > 0 && camera?.current?.fitBounds) {
+      camera.current.fitBounds(
+        [siteBounds[0], siteBounds[1]],
+        [siteBounds[2], siteBounds[3]],
+        40,
+        1000,
+      );
+    }
+    if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
+      let config = {
+        centerCoordinate: siteCenterCoordinate,
+      };
+      camera.current.setCamera(config);
+    }
+  }, [isCameraRefVisible, siteBounds, siteCenterCoordinate]);
+
+  // creates geoJSON object for the selected project sites
+  useEffect(() => {
+    if (projectSites.length > 0) {
+      const features = projectSites.map(site => {
+        const geometry = site.geometry;
+
+        if (geometry.type === 'MultiPolygon') {
+          const coordinates = geometry.coordinates.map(polygon => {
+            return polygon[0];
+          });
+          geometry.coordinates = coordinates;
+          geometry.type = 'Polygon';
+        }
+
+        return {
+          type: 'Feature',
+          properties: {
+            id: site.id,
+            name: site.name,
+            description: site.description,
+            type: 'site',
+          },
+          geometry,
+        };
+      });
+
+      setProjectSitesGeoJSON({
+        type: 'FeatureCollection',
+        features,
+      });
+    }
+  }, [projectSites]);
+
   const onChangeRegionStart = () => setLoader(true);
 
   const onChangeRegionComplete = () => setLoader(false);
@@ -111,6 +183,17 @@ const GeoJSONMap = ({
       right: 8,
     };
   }
+
+  const SitePolygon = useCallback(() => {
+    return (
+      <MapboxGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
+        <MapboxGL.LineLayer
+          id={'projectSitesPolyline'}
+          style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
+        />
+      </MapboxGL.ShapeSource>
+    );
+  }, [projectSitesGeoJSON]);
 
   return (
     <MapboxGL.MapView
@@ -206,6 +289,7 @@ const GeoJSONMap = ({
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
             {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
           </MapboxGL.ShapeSource>
+          <SitePolygon />
         </>
       )}
       {location && (
