@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Colors } from '../../styles';
+import { Colors, Typography } from '../../styles';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { UserContext } from '../../reducers/user';
@@ -239,7 +239,7 @@ const TreeInventory = () => {
       type: 'incomplete',
     },
     {
-      title: i18next.t('label.tree_inventory_fix_needed_registrations'),
+      title: i18next.t('label.missing_data_found_registration'),
       data: fixNeededInventory,
       type: 'fix_needed',
     },
@@ -250,6 +250,7 @@ const TreeInventory = () => {
       {pendingInventory.length > 0 ||
       inCompleteInventory.length > 0 ||
       uploadedInventory.length > 0 ||
+      fixNeededInventory.length > 0 ||
       uploadingInventory.length > 0 ? (
         <SectionList
           sections={allData}
@@ -273,13 +274,30 @@ const TreeInventory = () => {
               )}
             </>
           )}
-          renderItem={({ item, index }) => (
-            <Item
-              item={item}
-              accessibilityLabel={`inventory-${index}`}
-              onPressInventory={onPressInventory}
-            />
-          )}
+          renderItem={({ item, index, section }) => {
+            console.log(`section`, section.data);
+            return (
+              <Item
+                item={item}
+                accessibilityLabel={`inventory-${index}`}
+                onPressInventory={onPressInventory}
+                itemStyle={
+                  section.type === 'fix_needed'
+                    ? {
+                        backgroundColor: '#E86F5620',
+                        paddingHorizontal: 12,
+                        margin: 0,
+                        borderBottomLeftRadius: index === section.data.length - 1 ? 16 : 0,
+                        borderBottomRightRadius: index === section.data.length - 1 ? 16 : 0,
+                      }
+                    : {}
+                }
+                containerStyle={
+                  section.type === 'fix_needed' ? { padding: 12, borderRadius: 12 } : {}
+                }
+              />
+            );
+          }}
           renderSectionHeader={({ section: { title, type, data } }) => {
             if (data.length > 0) {
               switch (type) {
@@ -296,7 +314,7 @@ const TreeInventory = () => {
                   return (
                     <SmallHeader
                       onPressRight={onPressUploadNow}
-                      leftText={i18next.t('label.tree_inventory_left_text')}
+                      leftText={title}
                       style={{ marginVertical: 15 }}
                     />
                   );
@@ -304,11 +322,31 @@ const TreeInventory = () => {
                   return (
                     <SmallHeader
                       onPressRight={onPressClearAll}
-                      leftText={i18next.t('label.tree_inventory_incomplete_registrations')}
+                      leftText={title}
                       rightTheme={'red'}
                       icon={'trash'}
                       iconType={'FAIcon'}
                       style={{ marginVertical: 15 }}
+                    />
+                  );
+                case 'fix_needed':
+                  return (
+                    <SmallHeader
+                      leftText={title}
+                      leftTextStyle={{
+                        color: Colors.PLANET_RED,
+                        fontFamily: Typography.FONT_FAMILY_REGULAR,
+                        fontWeight: '600',
+                        fontSize: Typography.FONT_SIZE_16,
+                      }}
+                      style={{
+                        marginTop: 15,
+                        marginBottom: 0,
+                        padding: 15,
+                        backgroundColor: '#E86F5620',
+                        borderTopRightRadius: 16,
+                        borderTopLeftRadius: 16,
+                      }}
                     />
                   );
                 default:
@@ -422,7 +460,14 @@ const PermissionBlockedAlert = ({
   );
 };
 
-const Item = ({ item, countryCode, accessibilityLabel, onPressInventory }: any) => {
+const Item = ({
+  item,
+  countryCode,
+  accessibilityLabel,
+  onPressInventory,
+  itemStyle = {},
+  containerStyle = {},
+}: any) => {
   let imageURL;
   let cdnImageUrl;
   let isOffSitePoint = false;
@@ -478,7 +523,8 @@ const Item = ({ item, countryCode, accessibilityLabel, onPressInventory }: any) 
       onPress={() => onPressInventory(item)}
       accessible={true}
       accessibilityLabel={accessibilityLabel}
-      testID="upload_inventory_list">
+      testID="upload_inventory_list"
+      style={itemStyle}>
       <InventoryCard
         icon={
           item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE
@@ -488,6 +534,7 @@ const Item = ({ item, countryCode, accessibilityLabel, onPressInventory }: any) 
             : 'cloud-outline'
         }
         data={data}
+        containerStyle={containerStyle}
       />
     </TouchableOpacity>
   );

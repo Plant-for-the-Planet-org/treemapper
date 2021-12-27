@@ -35,6 +35,7 @@ import {
   getInventory,
   updateInventory,
   updateLastScreen,
+  updateMissingStatusOfSingleInventory,
   updatePlantingDate,
 } from '../../repositories/inventory';
 import { getProjectById } from '../../repositories/projects';
@@ -45,6 +46,7 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
+  FIX_NEEDED,
   getPendingStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -124,6 +126,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
+  const [showMissingDataWarning, setShowMissingDataWarning] = useState<boolean>(false);
 
   const route: InventoryOverviewScreenRouteProp = useRoute();
 
@@ -267,7 +270,7 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  const onPressSave = ({
+  const onPressSave = async ({
     forceContinue,
     continueWithoutProject,
   }: {
@@ -277,7 +280,12 @@ const InventoryOverview = ({ navigation }: any) => {
     continueWithoutProject = continueWithoutProject || saveWithoutProject;
     setSaveWithoutProject(continueWithoutProject);
 
-    if (inventory.species.length > 0) {
+    const result = await updateMissingStatusOfSingleInventory(inventory?.inventory_id);
+
+    if (result?.isFixNeeded) {
+      setShowMissingDataWarning(true);
+    } else if (inventory.species.length > 0) {
+      setShowMissingDataWarning(false);
       if (inventory.locateTree === OFF_SITE) {
         if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
           setShowNoProjectWarning(false);
@@ -624,7 +632,8 @@ const InventoryOverview = ({ navigation }: any) => {
                   []
                 )}
                 {(inventory?.status === INCOMPLETE ||
-                  inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
+                  inventory?.status === INCOMPLETE_SAMPLE_TREE ||
+                  inventory?.status === FIX_NEEDED) &&
                 inventory?.locateTree === ON_SITE ? (
                   <View
                     style={{
@@ -737,7 +746,9 @@ const InventoryOverview = ({ navigation }: any) => {
 
               <AdditionalDataOverview data={inventory} />
             </ScrollView>
-            {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
+            {(inventory.status === INCOMPLETE ||
+              inventory.status === INCOMPLETE_SAMPLE_TREE ||
+              inventory.status === FIX_NEEDED) && (
               <View style={styles.bottomButtonContainer}>
                 <PrimaryButton
                   onPress={() => onPressSave({})}
@@ -823,6 +834,14 @@ const InventoryOverview = ({ navigation }: any) => {
         onPressPrimaryBtn={() => onPressSave({ continueWithoutProject: true })}
         onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={showMissingDataWarning}
+        heading={i18next.t('label.missing_data_found')}
+        message={i18next.t('label.missing_data_found_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setShowMissingDataWarning(false)}
+        showSecondaryButton={false}
       />
       {renderDatePicker()}
     </SafeAreaView>

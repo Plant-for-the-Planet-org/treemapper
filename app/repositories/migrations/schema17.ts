@@ -144,7 +144,7 @@ const Inventory = {
     hid: 'string?',
     // stores the original geoJSON of coordinates in string which was uploaded
     // for the first time for a registration
-    originalGeometry: 'string?'
+    originalGeometry: 'string?',
   },
 };
 
@@ -230,9 +230,8 @@ const ProjectSites = {
     description: 'string?',
     status: 'string?',
     geometry: 'string',
-  }
-
-}
+  },
+};
 
 // used to store all the available scientific species extracted from zip
 const Projects = {
@@ -372,7 +371,7 @@ const Metadata = {
 // migration to delete all the SYNCED registrations
 const migration = (oldRealm: any, newRealm: any) => {
   deleteSyncedAndMigrate(oldRealm, newRealm, schemaVersion);
-  checkAndMarkMissingData(oldRealm, newRealm, schemaVersion);
+  checkAndMarkMissingData({ oldRealm, newRealm, schemaVersion, isMigration: true });
 };
 
 export default {
@@ -395,7 +394,7 @@ export default {
     Form,
     Metadata,
     AdditionalDetail,
-    ProjectSites
+    ProjectSites,
   ],
   schemaVersion,
   migration,
