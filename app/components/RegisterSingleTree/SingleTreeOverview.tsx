@@ -921,9 +921,13 @@ const SingleTreeOverview = () => {
         setIsOpenModal={setIsOpenModal}
         value={
           editEnable === 'diameter'
-            ? specieEditDiameter.toString()
+            ? specieEditDiameter
+              ? specieEditDiameter.toString()
+              : '0'
             : editEnable === 'height'
-            ? specieEditHeight.toString()
+            ? specieEditHeight
+              ? specieEditHeight.toString()
+              : '0'
             : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
