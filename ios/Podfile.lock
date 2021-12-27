@@ -671,7 +671,7 @@ SPEC CHECKSUMS:
   BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: cde416483dac037923206447da6e1454df403714
+  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: 500821d196c3d1bd10e7e828bc93ce075234080f
   FBReactNativeSpec: 74c869e2cffa2ffec685cd1bac6788c021da6005
   Flipper: 30e8eeeed6abdc98edaf32af0cda2f198be4b733
@@ -685,7 +685,7 @@ SPEC CHECKSUMS:
   FlipperKit: d8d346844eca5d9120c17d441a2f38596e8ed2b9
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   GCDWebServer: 2c156a56c8226e2d5c0c3f208a3621ccffbe3ce4
-  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
+  glog: 5337263514dd6f09803962437687240c5dc39aa4
   jail-monkey: 07b83767601a373db876e939b8dbf3f5eb15f073
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   Mapbox-iOS-SDK: f870f83cbdc7aa4a74afcee143aafb0dae390c82
@@ -703,14 +703,14 @@ SPEC CHECKSUMS:
   React-jsiexecutor: db2f6e22a534d466fc0e34e622df47d9d20bab2f
   React-jsinspector: 8c0517dee5e8c70cd6c3066f20213ff7ce54f176
   React-logger: bfddd3418dc1d45b77b822958f3e31422e2c179b
-  react-native-camera: fefef39fcd20850d17c3780638b04f741e0ccaae
+  react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: aa3fd58d5fcc1fdbf6939510b9407d16377f5832
+  react-native-document-picker: f1b5398801b332c77bc62ae0eae2116f49bdff26
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
   react-native-get-random-values: 237bffb1c7e05fb142092681531810a29ba53015
   react-native-mapbox-gl: 70b58464609b34d1480381bc46e208453264f91e
-  react-native-netinfo: 78bb0c4bf96177a14ea1bba951de9ad27419965b
-  react-native-safe-area-context: 5cf05f49df9d17261e40e518481f2e334c6cd4b5
+  react-native-netinfo: 1c7676413ab265759c7b3da205efab163f5366ef
+  react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   React-perflogger: fcac6090a80e3d967791b4c7f1b1a017f9d4a398
   React-RCTActionSheet: caf5913d9f9e605f5467206cf9d1caa6d47d7ad6
   React-RCTAnimation: 6539e3bf594f6a529cd861985ba6548286ae1ead
@@ -724,24 +724,24 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 33a949a51bec5f8a3c9e8d8092deb259600d761e
   ReactCommon: 620442811dc6f707b4bf5e3b27d4f19c12d5a821
   RealmJS: 5195064e9aeccf94ae3756bd9d0f2301b9074b07
-  RNCAsyncStorage: cb9a623793918c6699586281f0b51cbc38f046f9
-  RNCCheckbox: 7e2cd6ea8e200210c36fe0898bbe200826bdaf56
-  RNCMaskedView: f127cd9652acfa31b91dcff613e07ba18b774db6
-  RNDateTimePicker: c9911be59b1f8670b9f244b85af3a7c295e175ed
-  RNDeviceInfo: b930fb5d20b1aa43c93a09a22af00f601a87a286
+  RNCAsyncStorage: b03032fdbdb725bea0bd9e5ec5a7272865ae7398
+  RNCCheckbox: 6369808337432cdbd5025d62ceced2480b4c51df
+  RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
+  RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
+  RNDeviceInfo: 25a16a2a03049e88e800f3f41ca540e645b8a95a
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNInAppBrowser: 5672feb84e731411f6911979c71649c240a90202
-  RNLocalize: ff8b96bffbe096a158f952a170741208f2c18746
+  RNInAppBrowser: 3ff3a3b8f458aaf25aaee879d057352862edf357
+  RNLocalize: 7c7aeda16c01db7a0918981c14875c0a53be9b79
   RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
   RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
   RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
-  RNSnackbar: b6cbf294923b8d6c6056592bca87527c81a0130b
+  RNSnackbar: be3333a21a453ccc272f41a8add5a71f7d44dfcd
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
-  RNZipArchive: 0c9463e46a56d93b29cd8a306e051f24397f5dfa
+  RNZipArchive: 9dfdaa1d1ad49a423e83df505f292e0ae8126a5d
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
-  toolbar-android: 7c528a58a3d79f03124cbb370f738280bf1114a6
+  toolbar-android: 2a73856e98b750d7e71ce4644d3f41cc98211719
   Yoga: 2b4a01651f42a32f82e6cef3830a3ba48088237f
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
