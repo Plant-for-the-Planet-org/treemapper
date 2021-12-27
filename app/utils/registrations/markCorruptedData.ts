@@ -93,7 +93,7 @@ export const updateSingleInventoryMissingStatus = (
         const sampleTree = sampleTrees[sampleTreeIndex];
         const areCoordinatesNull =
           isNull(sampleTree.latitude) ||
-          isNull(sampleTree.latitude) ||
+          isNull(sampleTree.longitude) ||
           isNull(sampleTree.deviceLatitude) ||
           isNull(sampleTree.deviceLongitude);
 
