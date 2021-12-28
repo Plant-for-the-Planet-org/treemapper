@@ -23,8 +23,8 @@ import {
 import { AlertModal } from '../Common';
 import Markers from '../Common/Markers';
 import EditPolygonButtons from './EditPolygonButtons';
-
-interface IEditPolygonProps {}
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { Coord } from '@turf/helpers';
 
 const EditPolygon = () => {
   const geoJSONInitialState = {
@@ -43,6 +43,7 @@ const EditPolygon = () => {
   const [draggedGeoJSON, setDraggedGeoJSON] = useState<geoJSONType[]>([geoJSONInitialState]);
   const [currentStackIndex, setCurrentStackIndex] = useState<number>(0);
   const [showInvalidCoordinateAlert, setShowInvalidCoordinateAlert] = useState<boolean>(false);
+  const [isSampleTreeOutside, setIsSampleTreeOutside] = useState<boolean>(false);
   const [inventory, setInventory] = useState<any>();
 
   // used to check if geoJSON geometry type is Point or Polygon and switches
@@ -54,6 +55,10 @@ const EditPolygon = () => {
     coordinates: [],
     type: 'Polygon',
   });
+
+  // stores the original geometry feature JSON (includes sample trees, if any)
+  // to show on the map to compare the changes with
+  const [originalGeometryJSON, setOriginalGeometryJSON] = useState<any>(geoJSONInitialState);
 
   const map = useRef(null);
   const camera = useRef(null);
@@ -69,15 +74,31 @@ const EditPolygon = () => {
         const inventoryData = await getInventory({ inventoryID: state.inventoryID });
         setInventory(inventoryData);
 
-        if (inventoryData?.originalGeometry) {
-          setOriginalGeometry(JSON.parse(inventoryData?.originalGeometry));
-        }
-
         const geoJSONData = await getGeoJsonData({ inventoryData });
 
+        // if original geometry is available, set it
+        if (inventoryData?.originalGeometry) {
+          const geometry = JSON.parse(inventoryData?.originalGeometry);
+          setOriginalGeometry(geometry);
+
+          // if coordinates are availbale for original geometry then adds it
+          // to FeatureColection. Also adds sample trees features if available
+          if (geometry?.coordinates?.length > 0) {
+            setOriginalGeometryJSON({
+              type: 'FeatureCollection',
+              features: [
+                { type: 'Feature', geometry },
+                ...(geoJSONData.features.length > 1 ? geoJSONData.features.slice(1) : []),
+              ],
+            });
+          }
+        }
+
+        // checks if the geometry is a point or not, and sets the state accordingly
         const isPoint =
           (geoJSONData.features[0].geometry.type === 'Point' && inventoryData.treeType === MULTI) ||
           inventoryData.treeType === SINGLE;
+
         setIsPointJSON(isPoint);
 
         setDraggedGeoJSON([geoJSONData]);
@@ -197,37 +218,64 @@ const EditPolygon = () => {
   const saveGeoJSON = () => {
     const geoJSONToSave = draggedGeoJSON[currentStackIndex];
     const coordinates = geoJSONToSave?.features[0]?.geometry?.coordinates[0];
+    let isCoordinateInside = true;
 
     if (coordinates) {
-      const inventoryData = JSON.parse(JSON.stringify(inventory));
+      const polygon = {
+        type: 'Polygon',
+        coordinates: [coordinates],
+      };
 
-      inventoryData.status =
-        inventoryData.status === SYNCED ? PENDING_DATA_UPDATE : inventoryData.status;
-
-      const lastIndex = inventoryData.polygons[0].coordinates.length - 1;
-
-      for (const i in coordinates) {
-        inventoryData.polygons[0].coordinates[i].latitude = coordinates[i][1];
-        inventoryData.polygons[0].coordinates[i].longitude = coordinates[i][0];
-        if (Number(i) === 0) {
-          inventoryData.polygons[0].coordinates[lastIndex].latitude = coordinates[i][1];
-          inventoryData.polygons[0].coordinates[lastIndex].longitude = coordinates[i][0];
+      // checks if the sample trees coordinates are inside the updated polygon geometry
+      if (inventory?.sampleTrees && Array.isArray(inventory?.sampleTrees)) {
+        for (const sampleTree of inventory.sampleTrees) {
+          const point: Coord = {
+            type: 'Point',
+            coordinates: [sampleTree.longitude, sampleTree.latitude],
+          };
+          isCoordinateInside = booleanPointInPolygon(point, polygon);
+          if (!isCoordinateInside) {
+            break;
+          }
         }
       }
 
-      updateInventory({ inventory_id: state.inventoryID, inventoryData });
-      navigation.goBack();
+      // if the coordinates are inside then updated polygon geometry then save
+      // the geoJSON else show alert for same
+      if (isCoordinateInside) {
+        // unlinks the inventory/registration data and creates a copy of it
+        const inventoryData = JSON.parse(JSON.stringify(inventory));
+
+        // updates the registration status
+        inventoryData.status =
+          inventoryData.status === SYNCED ? PENDING_DATA_UPDATE : inventoryData.status;
+
+        // stores the last index position of the registration polygon coordinate
+        const lastIndex = inventoryData.polygons[0].coordinates.length - 1;
+
+        // changes the coordinates value in the registration with the edited coordinates
+        for (const i in coordinates) {
+          inventoryData.polygons[0].coordinates[i].latitude = coordinates[i][1];
+          inventoryData.polygons[0].coordinates[i].longitude = coordinates[i][0];
+          // if coordinate is first then changes the lat, long for last coordinate
+          // as well as last coordinate marker is hidden
+          if (Number(i) === 0) {
+            inventoryData.polygons[0].coordinates[lastIndex].latitude = coordinates[i][1];
+            inventoryData.polygons[0].coordinates[lastIndex].longitude = coordinates[i][0];
+          }
+        }
+
+        updateInventory({ inventory_id: state.inventoryID, inventoryData });
+        navigation.goBack();
+      } else {
+        setIsSampleTreeOutside(!isCoordinateInside);
+      }
     }
   };
 
   // shows the gray polygon for reference to older polygon while updating markers
   const nonDragableGeoJSON =
-    originalGeometry.coordinates.length > 0
-      ? {
-          type: 'Feature',
-          geometry: originalGeometry,
-        }
-      : draggedGeoJSON[0];
+    originalGeometry?.coordinates?.length > 0 ? originalGeometryJSON : draggedGeoJSON[0];
 
   return (
     <View style={styles.container}>
@@ -242,7 +290,7 @@ const EditPolygon = () => {
         }}
         logoEnabled>
         <MapboxGL.Camera
-          ref={(el) => {
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
@@ -267,6 +315,7 @@ const EditPolygon = () => {
           []
         )}
 
+        {/* shows draggable markers */}
         <Markers
           geoJSON={draggedGeoJSON[currentStackIndex]}
           draggable
@@ -289,12 +338,25 @@ const EditPolygon = () => {
         hid={inventory?.hid || ''}
         isPointJSON={isPointJSON}
       />
+
+      {/* shows alert if edited marker coordinate is more than 100m away from 
+      original coordinate */}
       <AlertModal
         visible={showInvalidCoordinateAlert}
         heading={i18next.t('label.locate_tree_cannot_mark_location')}
         message={i18next.t('label.distance_more_than_100_meter')}
         primaryBtnText={i18next.t('label.ok')}
         onPressPrimaryBtn={() => onPressInvalidCoordinateAlert()}
+        showSecondaryButton={false}
+      />
+
+      {/* shows alert message when sampleTrees are outside polygon */}
+      <AlertModal
+        visible={isSampleTreeOutside}
+        heading={i18next.t('label.cannot_update_polygon')}
+        message={i18next.t('label.sample_trees_outside_polygon')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setIsSampleTreeOutside(false)}
         showSecondaryButton={false}
       />
     </View>
