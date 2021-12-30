@@ -168,7 +168,6 @@
 				331F3E516ECE0ADCA9B67836 /* Pods-treemapper-treemapperTests.debug.xcconfig */,
 				9269716F44ACAE1891D4FD93 /* Pods-treemapper-treemapperTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -585,7 +584,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "treemapperTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TreeMapper.app/TreeMapper";
 			};
 			name = Debug;
 		};
@@ -614,7 +613,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "treemapperTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/treemapper.app/treemapper";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TreeMapper.app/TreeMapper";
 			};
 			name = Release;
 		};
