@@ -33,6 +33,8 @@ echo "API_ENDPOINT=$API_ENDPOINT" >> .env
 echo "CDN_URL=$CDN_URL" >> .env
 echo "WEB_APP_URL=$WEB_APP_URL" >> .env
 cp .env $ENV_FILENAME
+echo "ENV_FILENAME is $ENV_FILENAME"
+cat $ENV_FILENAME
 
 # Create .netrc file for Mapbox SDK download
 touch ~/.netrc
