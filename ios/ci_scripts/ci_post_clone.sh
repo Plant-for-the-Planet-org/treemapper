@@ -24,6 +24,7 @@ echo "PATH:"
 echo $PATH
 
 # Setting Environment Variables
+cd ../..
 echo "MAPBOXGL_ACCCESS_TOKEN=$MAPBOXGL_ACCCESS_TOKEN" >> .env
 echo "BUGSNAP_CLIENT_KEY=$BUGSNAP_CLIENT_KEY" >> .env
 echo "AUTH0_DOMAIN=$AUTH0_DOMAIN" >> .env
@@ -44,4 +45,5 @@ echo "password $MAPBOXGL_DOWNLOAD_TOKEN" >> ~/.netrc
 echo "Running npm install"
 npm install
 echo "Running pod install"
+cd ios
 pod install
