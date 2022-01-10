@@ -1,8 +1,10 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/routers';
+import turfArea from '@turf/area';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
+import { convertArea } from '@turf/helpers';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -45,7 +47,7 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
-  getPendingStatus,
+  getIncompleteStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -59,8 +61,6 @@ import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
 import Markers from '../Common/Markers';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
-import turfArea from '@turf/area';
-import { convertArea } from '@turf/helpers';
 
 let scrollAdjust = 0;
 
@@ -546,7 +546,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
-  const showEditButton = inventory?.status && !getPendingStatus().includes(inventory?.status);
+  const showEditButton = inventory?.status && getIncompleteStatus().includes(inventory?.status);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -623,8 +623,8 @@ const InventoryOverview = ({ navigation }: any) => {
                 ) : (
                   []
                 )}
-                {(inventory?.status === INCOMPLETE ||
-                  inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
+                {inventory?.status &&
+                getIncompleteStatus().includes(inventory?.status) &&
                 inventory?.locateTree === ON_SITE ? (
                   <View
                     style={{
@@ -665,6 +665,18 @@ const InventoryOverview = ({ navigation }: any) => {
                 )}
               </View>
 
+              {/* display the HID if available */}
+
+              {inventory?.hid ? (
+                <Label
+                  leftText={'HID'}
+                  rightText={inventory?.hid}
+                  rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                />
+              ) : (
+                []
+              )}
+
               {/* display planting area on the screen */}
               {!isSingleCoordinate ? (
                 <>
@@ -693,12 +705,12 @@ const InventoryOverview = ({ navigation }: any) => {
                       : i18next.t('label.tree_review_unassigned')
                   }
                   onPressRightText={() =>
-                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    getIncompleteStatus().includes(status)
                       ? navigation.navigate('SelectProject', { selectedProjectId })
                       : {}
                   }
                   rightTextStyle={
-                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    getIncompleteStatus().includes(status)
                       ? { color: Colors.PRIMARY }
                       : { color: Colors.TEXT_COLOR }
                   }
@@ -709,11 +721,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={
-                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
-                    ? i18next.t('label.edit')
-                    : ''
-                }
+                rightText={getIncompleteStatus().includes(status) ? i18next.t('label.edit') : ''}
                 onPressRightText={handleSelectSpecies}
               />
               {inventory.species.map((item: any, index: number) => (
@@ -737,7 +745,7 @@ const InventoryOverview = ({ navigation }: any) => {
 
               <AdditionalDataOverview data={inventory} />
             </ScrollView>
-            {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
+            {getIncompleteStatus().includes(inventory.status) && (
               <View style={styles.bottomButtonContainer}>
                 <PrimaryButton
                   onPress={() => onPressSave({})}

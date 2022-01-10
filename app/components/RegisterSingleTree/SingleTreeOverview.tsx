@@ -545,7 +545,7 @@ const SingleTreeOverview = () => {
     }
   }
 
-  const renderDetails = ({ polygons }: any) => {
+  const renderDetails = ({ polygons, hid }: any) => {
     let coords;
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
@@ -566,6 +566,14 @@ const SingleTreeOverview = () => {
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
 
+    if (
+      route?.params?.isSampleTree &&
+      inventory?.sampleTrees?.length &&
+      inventory?.sampleTrees[sampleTreeIndex].hid
+    ) {
+      hid = inventory.sampleTrees[sampleTreeIndex].hid;
+    }
+
     const isNonISUCountry: boolean = nonISUCountries.includes(countryCode);
 
     // used to get the text to show on UI for diameter and height
@@ -584,6 +592,15 @@ const SingleTreeOverview = () => {
 
     return (
       <View style={detailContainerStyle}>
+        {hid ? (
+          <View style={{ marginVertical: 5 }}>
+            <Text style={detailHeaderStyle}>HID</Text>
+
+            <Text style={styles.detailText}>{hid}</Text>
+          </View>
+        ) : (
+          []
+        )}
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
           <TouchableOpacity
