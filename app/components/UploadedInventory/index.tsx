@@ -107,7 +107,7 @@ const UploadedInventory = () => {
               return (
                 <>
                   <Header headingText={i18next.t('label.tree_inventory_upload_list_header')} />
-                  {allInventory && Array.isArray(allInventory) && allInventory.length > 0 && (
+                  {allInventory && allInventory.length > 0 && (
                     <TouchableOpacity
                       onPress={toogleIsShowFreeUpSpaceAlert}
                       accessible={true}
