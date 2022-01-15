@@ -4,5 +4,9 @@
   "select_project": "Projekt aussuchen",
   "select_project_desc": "Bäume, die du registrierst, können mit einem bestimmten Projekt verknüpft werden.",
   "continue_without_project": "Weiter ohne Projekt",
-  "continue_without_project_desc": "Bäume werden nicht mit einem Projekt verbunden."
+  "continue_without_project_desc": "Bäume werden nicht mit einem Projekt verbunden.",
+  "dropdownpicker_placeholder": "Auswählen",
+  "dropdownpicker_search_placeholder": "Suche nach ...",
+  "dropdownpicker_selected_items_count": "{count} Einträge wurden ausgewählt",
+  "dropdownpicker_nothing_to_show": "Keine Einträge gefunden!"
 }
