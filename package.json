@@ -62,7 +62,7 @@
     "react-native-localize": "^1.4.3",
     "react-native-material-menu": "git+https://github.com/ankitecd/react-native-material-menu.git",
     "react-native-modal-datetime-picker": "^8.9.3",
-    "react-native-reanimated": "^1.13.2",
+    "react-native-reanimated": "^2.3.0",
     "react-native-redash": "^16.2.2",
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^2.18.1",
