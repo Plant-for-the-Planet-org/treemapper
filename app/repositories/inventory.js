@@ -1215,12 +1215,12 @@ export const addAppMetadata = ({ inventory_id }) => {
   });
 };
 
-export const changeSampleTreesStatusToPendingUpload = ({ inventory_id }) => {
+export const changeSampleTreesStatusToPendingUpload = inventoryId => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
         realm.write(() => {
-          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
           if (inventory?.sampleTrees) {
             for (const sampleTreeIndex in inventory.sampleTrees) {
               inventory.sampleTrees[sampleTreeIndex].status = PENDING_DATA_UPLOAD;
@@ -1228,8 +1228,8 @@ export const changeSampleTreesStatusToPendingUpload = ({ inventory_id }) => {
             // logging the success in to the db
             dbLog.info({
               logType: LogTypes.INVENTORY,
-              message: `Successfully changed sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventory_id}`,
-              referenceId: inventory_id,
+              message: `Successfully changed sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventoryId}`,
+              referenceId: inventoryId,
             });
           }
           resolve();
@@ -1239,9 +1239,9 @@ export const changeSampleTreesStatusToPendingUpload = ({ inventory_id }) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while changing sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventory_id}`,
+          message: `Error while changing sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventoryId}`,
           logStack: JSON.stringify(err),
-          referenceId: inventory_id,
+          referenceId: inventoryId,
         });
         bugsnag.notify(err);
         resolve(false);
