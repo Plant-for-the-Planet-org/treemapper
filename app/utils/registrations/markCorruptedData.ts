@@ -56,13 +56,7 @@ export const updateSingleInventoryMissingStatus = (
       treeType === SINGLE &&
       (isNull(specieDiameter) ||
         isNull(specieHeight) ||
-        !(
-          species &&
-          Array.isArray(species) &&
-          species.length === 0 &&
-          species[0].aliases &&
-          species[0].treeCount > 0
-        ) ||
+        !(species && species.length === 1 && species[0].aliases && species[0].treeCount > 0) ||
         isNull(plantation_date))
     ) {
       newInventory.status = FIX_NEEDED;

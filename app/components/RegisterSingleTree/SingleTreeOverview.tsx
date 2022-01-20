@@ -181,7 +181,7 @@ const SingleTreeOverview = () => {
         setCountryCode(data.country);
         if (
           inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
-          inventoryData.status === FIX_NEEDED ||
+          // inventoryData.status === FIX_NEEDED ||
           (route?.params?.isSampleTree &&
             (route?.params?.sampleTreeIndex === 0 || route?.params?.sampleTreeIndex))
         ) {
