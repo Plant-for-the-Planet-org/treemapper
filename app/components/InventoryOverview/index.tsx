@@ -31,6 +31,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
   changeInventoryStatus,
+  changeSampleTreesStatusToPendingUpload,
   deleteInventory,
   getInventory,
   updateInventory,
@@ -285,6 +286,7 @@ const InventoryOverview = ({ navigation }: any) => {
     if (result?.isFixNeeded) {
       setShowMissingDataWarning(true);
     } else if (inventory.species.length > 0) {
+      changeSampleTreesStatusToPendingUpload(inventory?.inventory_id);
       setShowMissingDataWarning(false);
       if (inventory.locateTree === OFF_SITE) {
         if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {

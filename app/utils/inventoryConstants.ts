@@ -41,11 +41,11 @@ export const PENDING_UPLOAD_COUNT = 'PENDING_UPLOAD_COUNT';
 export const INCOMPLETE_COUNT = 'INCOMPLETE_COUNT';
 
 export const getPendingStatus = () => [
-      PENDING_DATA_UPLOAD,
-      PENDING_IMAGE_UPLOAD,
-      PENDING_SAMPLE_TREES_UPLOAD,
-      DATA_UPLOAD_START,
-      PENDING_DATA_UPDATE
+  PENDING_DATA_UPLOAD,
+  PENDING_IMAGE_UPLOAD,
+  PENDING_SAMPLE_TREES_UPLOAD,
+  DATA_UPLOAD_START,
+  PENDING_DATA_UPDATE,
 ];
 export const getIncompleteStatus = () => [INCOMPLETE, INCOMPLETE_SAMPLE_TREE];
 export const getCompletedStatus = () => [SYNCED];
@@ -99,15 +99,15 @@ export const INCREMENT = 'increment';
 export const DECREMENT = 'decrement';
 
 export type geoJSONType = {
+  type: string;
+  features: {
+    type: string;
+    properties?: {
+      isPolygonComplete: boolean;
+    };
+    geometry: {
       type: string;
-      features: {
-            type: string;
-            properties?: {
-                  isPolygonComplete: boolean;
-            };
-            geometry: {
-                  type: string;
-                  coordinates: any[];
-            };
-      }[];
+      coordinates: any[];
+    };
+  }[];
 };

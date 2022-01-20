@@ -38,15 +38,11 @@ export const updateSingleInventoryMissingStatus = (
   const {
     status,
     treeType,
-    locateTree,
     species,
-    polygons,
     specieDiameter,
     specieHeight,
     registrationDate,
     sampleTrees,
-    locationId,
-    hid,
     plantation_date,
   }: any = oldInventory;
   let isFixNeeded = false;

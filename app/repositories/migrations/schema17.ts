@@ -370,8 +370,8 @@ const Metadata = {
 
 // migration to delete all the SYNCED registrations
 const migration = (oldRealm: any, newRealm: any) => {
-  deleteSyncedAndMigrate(oldRealm, newRealm, schemaVersion);
   checkAndMarkMissingData({ oldRealm, newRealm, schemaVersion, isMigration: true });
+  // deleteSyncedAndMigrate(oldRealm, newRealm, schemaVersion);
 };
 
 export default {

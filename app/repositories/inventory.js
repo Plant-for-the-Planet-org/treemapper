@@ -1215,6 +1215,40 @@ export const addAppMetadata = ({ inventory_id }) => {
   });
 };
 
+export const changeSampleTreesStatusToPendingUpload = ({ inventory_id }) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
+          if (inventory?.sampleTrees) {
+            for (const sampleTreeIndex in inventory.sampleTrees) {
+              inventory.sampleTrees[sampleTreeIndex].status = PENDING_DATA_UPLOAD;
+            }
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Successfully changed sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventory_id}`,
+              referenceId: inventory_id,
+            });
+          }
+          resolve();
+        });
+      })
+      .catch(err => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while changing sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventory_id}`,
+          logStack: JSON.stringify(err),
+          referenceId: inventory_id,
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
 export const deleteSyncedAndMigrate = (oldRealm, newRealm, schemaVersion) => {
   if (oldRealm.schemaVersion < schemaVersion) {
     const oldInventoryObject = oldRealm.objects('Inventory');

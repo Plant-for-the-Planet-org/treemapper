@@ -275,7 +275,6 @@ const TreeInventory = () => {
             </>
           )}
           renderItem={({ item, index, section }) => {
-            console.log(`section`, section.data);
             return (
               <Item
                 item={item}
