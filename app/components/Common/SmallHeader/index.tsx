@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RotatingView from '../../Common/RotatingView';
@@ -14,6 +14,7 @@ interface ISmallHeaderProps {
   onPressRight?: any;
   style?: any;
   sync?: any;
+  leftTextStyle?: TextStyle;
 }
 
 const SmallHeader = ({
@@ -25,10 +26,16 @@ const SmallHeader = ({
   onPressRight,
   style,
   sync,
+  leftTextStyle = {},
 }: ISmallHeaderProps) => {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', ...style }}>
-      <Text style={styles.subHeadingText}>{leftText}</Text>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        ...style,
+      }}>
+      <Text style={[styles.subHeadingText, leftTextStyle]}>{leftText}</Text>
       <View>
         <TouchableOpacity
           onPress={onPressRight ? onPressRight : null}

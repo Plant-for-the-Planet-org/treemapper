@@ -11,7 +11,11 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
-import { clearAllUploadedInventory, getInventoryCount } from '../../repositories/inventory';
+import {
+  clearAllUploadedInventory,
+  getInventoryCount,
+  updateMissingDataStatus,
+} from '../../repositories/inventory';
 import { getAllProjects } from '../../repositories/projects';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import { getUserDetails } from '../../repositories/user';
@@ -82,6 +86,7 @@ export default function MainScreen() {
   // added projects to the state
   useEffect(() => {
     fetchAndSaveProjects();
+    updateMissingDataStatus();
   }, []);
 
   useEffect(() => {

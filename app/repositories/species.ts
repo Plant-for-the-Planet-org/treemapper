@@ -18,7 +18,7 @@ export const updateAndSyncLocalSpecies = (
 ) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           speciesData.forEach((specie, index) => {
             const speciesToAdd = {
@@ -47,7 +47,7 @@ export const updateAndSyncLocalSpecies = (
           });
         });
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Error while updating the Local Scientific species',
@@ -65,7 +65,7 @@ export const updateAndSyncLocalSpecies = (
 export const searchSpeciesFromLocal = (text: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         let species = realm.objects('ScientificSpecies');
         let searchedSpecies = species.filtered(`scientificName BEGINSWITH[c] '${text}'`);
         searchedSpecies = searchedSpecies.sorted('scientificName');
@@ -76,7 +76,7 @@ export const searchSpeciesFromLocal = (text: string) => {
         });
         resolve(searchedSpecies);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while searching in Local Scientific species with text:${text}`,
@@ -94,7 +94,7 @@ export const searchSpeciesFromLocal = (text: string) => {
 export const getUserSpecies = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         let species = realm.objects('ScientificSpecies');
         let userSpecies = species.filtered('isUserSpecies = true');
         userSpecies = userSpecies.sorted('scientificName');
@@ -105,7 +105,7 @@ export const getUserSpecies = (): Promise<any> => {
         });
         resolve(userSpecies);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Error while retrieving User Species from Local',
@@ -127,7 +127,7 @@ export const getUserSpecies = (): Promise<any> => {
 export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies: any) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then(async (realm) => {
+      .then(async realm => {
         if (alreadySyncedSpecies) {
           // iterates through all the user preferred species which are already synced and updates the same in DB
 
@@ -206,7 +206,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies: any) => {
         });
         resolve({ speciesToAdd, speciesToDelete, speciesToUpdate });
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Error while retrieving not uploaded user Species',
@@ -231,7 +231,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies: any) => {
 export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid: string, specie: any) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(async () => {
           // find the scientific specie using scientific specie guid and updates the specieId
           // modifies [isUploaded] and [isUserSpecies] to [true]
@@ -292,7 +292,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid: string, specie
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while adding specie id from already synced specie with scientific specie guid: ${scientificSpecieGuid} and specie id: ${specie.id}`,
@@ -316,7 +316,7 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid: string, specie
 export const removeSpecieId = (scientificSpecieGuid: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
@@ -338,7 +338,7 @@ export const removeSpecieId = (scientificSpecieGuid: string) => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while removing specie id having scientific specie guid: ${scientificSpecieGuid}`,
@@ -364,7 +364,7 @@ export const updateSpecieData = ({
 }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
@@ -392,7 +392,7 @@ export const updateSpecieData = ({
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while adding Aliases to a specie having scientific specie guid: ${scientificSpecieGuid}`,
@@ -414,7 +414,7 @@ export const changeIsUpdatedStatus = ({
 }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
             'ScientificSpecies',
@@ -431,7 +431,7 @@ export const changeIsUpdatedStatus = ({
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
           message: `Error while Changing update status of specie having scientific specie guid: ${scientificSpecieGuid}`,
@@ -448,7 +448,7 @@ export const changeIsUpdatedStatus = ({
 export const toggleUserSpecies = (guid: string, addSpecie: boolean = false) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let specieToToggle: IScientificSpecies | undefined = realm.objectForPrimaryKey(
             'ScientificSpecies',
@@ -472,7 +472,7 @@ export const toggleUserSpecies = (guid: string, addSpecie: boolean = false) => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error at /repositories/species/toggleUserSpecies, ', err);
         // logging the error in to the db
         dbLog.error({
@@ -489,7 +489,7 @@ export const toggleUserSpecies = (guid: string, addSpecie: boolean = false) => {
 export const shouldSpeciesUpdate = () => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           // fetches all the scientific species
           let species = realm.objects('ScientificSpecies');
@@ -513,7 +513,7 @@ export const shouldSpeciesUpdate = () => {
           resolve(shouldSpeciesSync);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error at /repositories/species/isSpeciesToUpdate,', err);
         // logging the error in to the db
         dbLog.error({
@@ -530,7 +530,7 @@ export const shouldSpeciesUpdate = () => {
 export const resetAllSpecies = () => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           // fetches all the scientific species
           let species: any = realm.objects('ScientificSpecies').filtered('isUserSpecies = true');
@@ -552,7 +552,7 @@ export const resetAllSpecies = () => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error at /repositories/species/resetAllSpecies,', err);
         // logging the error in to the db
         dbLog.error({
@@ -568,10 +568,14 @@ export const resetAllSpecies = () => {
 export const getScientificSpeciesById = (id: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         if (id !== 'unknown') {
-          let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
-          resolve(specie);
+          if (id) {
+            let specie = realm.objectForPrimaryKey('ScientificSpecies', id);
+            resolve(specie);
+          } else {
+            resolve();
+          }
         } else {
           resolve({
             aliases: 'Unknown',
@@ -585,7 +589,7 @@ export const getScientificSpeciesById = (id: string) => {
           });
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error at /repositories/species/getScientificSpeciesById,', err);
         // logging the error in to the db
         dbLog.error({
