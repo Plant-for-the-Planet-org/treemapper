@@ -2,6 +2,7 @@ import i18next from 'i18next';
 // import { getLanguages } from 'react-native-i18n';
 import * as RNLocalize from 'react-native-localize';
 import moment from 'moment/min/moment-with-locales';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 // Refer this for checking the codes and creating new folders https://developer.chrome.com/webstore/i18n
 // Step 1 - Create index.js files for each language we want to have, in this file you can import all the json files (Step 4) and export them
@@ -67,6 +68,12 @@ i18next.init({
 });
 i18next.on('languageChanged', function (lng) {
   moment.locale(lng);
+  DropDownPicker.addTranslation(lng.toUpperCase(), {
+    PLACEHOLDER: i18next.t('label.dropdownpicker_placeholder', { lng: lng }),
+    SEARCH_PLACEHOLDER: i18next.t('label.dropdownpicker_search_placeholder', { lng: lng }),
+    SELECTED_ITEMS_COUNT_TEXT: i18next.t('label.dropdownpicker_selected_items_count', { lng: lng }),
+    NOTHING_TO_SHOW: i18next.t('label.dropdownpicker_nothing_to_show', { lng: lng }),
+  });
 });
 i18next.changeLanguage(userLang);
 
