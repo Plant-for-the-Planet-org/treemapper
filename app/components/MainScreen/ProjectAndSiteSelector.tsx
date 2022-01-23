@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Colors, Typography } from '../../styles';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+import i18next from 'i18next';
 
 interface Props {
   projects: any[];
@@ -105,6 +106,7 @@ const ProjectAndSiteSelector = ({
   return (
     <View style={[{ display: 'flex', flex: 1, maxWidth: '50%' }, !IS_ANDROID ? { zIndex: 2 } : {}]}>
       <DropDownPicker
+        language={i18next.language.toUpperCase()}
         items={projectOptions}
         open={showProjectOptions}
         setOpen={setShowProjectOptions}
@@ -130,6 +132,7 @@ const ProjectAndSiteSelector = ({
       />
       {projectSites && projectSites.length > 0 && (
         <DropDownPicker
+          language={i18next.language.toUpperCase()}
           items={projectSites}
           open={showProjectSiteOptions}
           setOpen={setShowProjectSiteOptions}

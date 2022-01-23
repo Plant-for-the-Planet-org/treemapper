@@ -9,7 +9,12 @@ import {
 import dbLog from '../repositories/logs';
 import { bugsnag } from '../utils';
 import { getFormattedMetadata } from '../utils/additionalData/functions';
-import { getAuthenticatedRequest, postAuthenticatedRequest, putAuthenticatedRequest, putRequest } from '../utils/api';
+import {
+  getAuthenticatedRequest,
+  postAuthenticatedRequest,
+  putAuthenticatedRequest,
+  putRequest,
+} from '../utils/api';
 import { LogTypes } from '../utils/constants';
 import {
   DATA_UPLOAD_START,
@@ -54,7 +59,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
           },
           dispatch,
         )
-          .then(async (isSucceed) => {
+          .then(async isSucceed => {
             if (isSucceed) {
               const result = await checkAndUploadImage(oneInventory, response);
               if (result.allUploadCompleted) {
@@ -67,7 +72,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                     dispatch,
                   )
                     .then(() => resolve())
-                    .catch((err) => {
+                    .catch(err => {
                       dbLog.error({
                         logType: LogTypes.INVENTORY,
                         message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
@@ -85,7 +90,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                   )
                     .then(async () => {
                       let inventory = {};
-                      inventory = oneInventory;
+                      inventory = { ...oneInventory, locationId: response?.id };
                       const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
 
                       if (sampleTreeUploadResult) {
@@ -97,7 +102,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                           dispatch,
                         )
                           .then(() => resolve())
-                          .catch((err) => {
+                          .catch(err => {
                             console.error('Error at: /action/upload/changeInventoryStatus', err);
                             dbLog.error({
                               logType: LogTypes.INVENTORY,
@@ -110,7 +115,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                         reject(new Error('Some sample tree upload are pending'));
                       }
                     })
-                    .catch((err) => {
+                    .catch(err => {
                       dbLog.error({
                         logType: LogTypes.INVENTORY,
                         message: `Failed to change inventory status: ${PENDING_SAMPLE_TREES_UPLOAD} with inventory id: ${oneInventory.inventory_id}.`,
@@ -124,7 +129,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
               }
             }
           })
-          .catch((err) => {
+          .catch(err => {
             reject(err);
             dbLog.error({
               logType: LogTypes.INVENTORY,
@@ -151,7 +156,7 @@ export const uploadInventory = async (dispatch: any) => {
       let inventoryData = await getInventoryByStatus(getPendingStatus());
 
       // used to copy the data so the reference to realm result is removed
-      inventoryData = JSON.parse(JSON.stringify(inventoryData))
+      inventoryData = JSON.parse(JSON.stringify(inventoryData));
 
       // updates the count of inventories that is going to be uploaded
       updateCount({ type: 'upload', count: inventoryData.length })(dispatch);
@@ -187,7 +192,7 @@ export const uploadInventory = async (dispatch: any) => {
                     status: SYNCED,
                   },
                   dispatch,
-                ).catch((err) => {
+                ).catch(err => {
                   dbLog.error({
                     logType: LogTypes.INVENTORY,
                     message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
@@ -222,10 +227,13 @@ export const uploadInventory = async (dispatch: any) => {
               geometry: {
                 coordinates,
                 type: coordinatesType,
-              }
-            }
+              },
+            };
 
-            await putAuthenticatedRequest(`/treemapper/plantLocations/${oneInventory.locationId}`, body)
+            await putAuthenticatedRequest(
+              `/treemapper/plantLocations/${oneInventory.locationId}`,
+              body,
+            );
 
             dbLog.info({
               logType: LogTypes.DATA_SYNC,
@@ -246,7 +254,7 @@ export const uploadInventory = async (dispatch: any) => {
                   resolve(true);
                 }
               })
-              .catch((err) => {
+              .catch(err => {
                 dbLog.error({
                   logType: LogTypes.INVENTORY,
                   message: `Failed to change inventory status: ${SYNCED} with inventory id: ${oneInventory.inventory_id}.`,
@@ -257,15 +265,13 @@ export const uploadInventory = async (dispatch: any) => {
                   reject(err);
                 }
               });
-
           } catch (err) {
             if (inventoryData.length - 1 === i) {
               updateIsUploading(false)(dispatch);
               reject(err);
             }
           }
-        }
-        else {
+        } else {
           try {
             await changeInventoryStatus(
               {
@@ -291,7 +297,7 @@ export const uploadInventory = async (dispatch: any) => {
                     resolve();
                   }
                 })
-                .catch((err) => {
+                .catch(err => {
                   if (inventoryData.length - 1 === i) {
                     updateIsUploading(false)(dispatch);
                     reject(err);
@@ -341,20 +347,19 @@ const getCoordinatesAndType = (inventory: any) => {
   let coords = inventory.polygons[0].coordinates;
 
   // stores the coordinates of the registered tree(s)
-  let coordinates = coords.map((x) => [x.longitude, x.latitude]);
+  let coordinates = coords.map(x => [x.longitude, x.latitude]);
   let coordinatesType = coordinates.length > 1 ? POLYGON : POINT;
   coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
   return {
     coordinates,
-    coordinatesType
-  }
-}
+    coordinatesType,
+  };
+};
 
-const getBodyData = (inventory) => {
+const getBodyData = inventory => {
   let coords = inventory.polygons[0].coordinates;
 
-  const { coordinates, coordinatesType } = getCoordinatesAndType(inventory)
-
+  const { coordinates, coordinatesType } = getCoordinatesAndType(inventory);
 
   // stores the device coordinated of the registered tree(s)
   let deviceCoordinatesType = POINT;
@@ -506,7 +511,7 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
           sampleTree.status = PENDING_IMAGE_UPLOAD;
           sampleTree.locationId = response.id;
 
-          await updateSampleTreeByIndex(inventory, sampleTree, index).catch((err) => {
+          await updateSampleTreeByIndex(inventory, sampleTree, index).catch(err => {
             dbLog.error({
               logType: LogTypes.DATA_SYNC,
               message: `Error while updating sample tree data for location id: ${response.id}`,
@@ -529,7 +534,7 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
               .then(() => {
                 uploadedCount += 1;
               })
-              .catch((err) => {
+              .catch(err => {
                 console.error('Error while updating sample tree data', err);
               });
           } else {
@@ -543,7 +548,7 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
             .then(() => {
               uploadedCount += 1;
             })
-            .catch((err) => {
+            .catch(err => {
               console.error('Error while updating sample tree data', err);
             });
         }
@@ -579,7 +584,7 @@ const updateSampleTreeByIndex = (
 
     updateInventory({ inventory_id: inventory.inventory_id, inventoryData })
       .then(resolve)
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.DATA_SYNC,
           message: `Error while updating sample tree data by Index with Inventory id: ${inventory?.inventory_id}`,
@@ -693,10 +698,10 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
   }
 };
 
-const getPlantLocationDetails = (locationId) => {
+const getPlantLocationDetails = locationId => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest(`/treemapper/plantLocations/${locationId}`)
-      .then((res) => {
+      .then(res => {
         const { data, status } = res;
         if (status === 200) {
           resolve(data);
@@ -706,7 +711,7 @@ const getPlantLocationDetails = (locationId) => {
           message: `Fetched planted location details, GET - /treemapper/plantLocations/${locationId}.`,
         });
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
         console.error(err, 'error');
         dbLog.error({

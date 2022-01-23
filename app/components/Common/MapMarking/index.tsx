@@ -351,6 +351,33 @@ export default function MapMarking({
     return isValidMarkers;
   };
 
+  /**
+   * Checks if the current marker position of sample tree is valid or not by
+   * checking the distance between the current marker position and the already
+   * present markers of sample trees
+   * @param centerCoordinates - the coordinates of the marker
+   * @param sampleTrees - array of sample trees to compare the current marker position with
+   * @returns {boolean} - true if the current marker position is valid, false otherwise
+   */
+  const checkIsSampleMarkerValid = (centerCoordinates: number[], sampleTrees: any) => {
+    let isValidMarker = true;
+
+    for (const sampleTree of sampleTrees) {
+      const distanceInCentimeters = distanceCalculator(
+        [centerCoordinates[1], centerCoordinates[0]],
+        [sampleTree.latitude, sampleTree.longitude],
+        'centimeters',
+      );
+      // if the current marker position is less than 300cm to already present sample tree nearby,
+      // then makes the current marker position as invalid
+      if (distanceInCentimeters < 30) {
+        isValidMarker = false;
+        break;
+      }
+    }
+    return isValidMarker;
+  };
+
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
   const addPolygonMarker = async (forceContinue = false) => {
     let centerCoordinates = await map.current.getCenter();
@@ -538,6 +565,18 @@ export default function MapMarking({
 
     if (treeType === SAMPLE) {
       let sampleTrees = [...inventory?.sampleTrees];
+
+      const isSampleMarkerValid = checkIsSampleMarkerValid(centerCoordinates, sampleTrees);
+
+      // If sample marker is not valid then alerts the user the same and cancels
+      // the operation of marking the sample tree marker
+      if (!isSampleMarkerValid) {
+        setAlertHeading(i18next.t('label.locate_tree_cannot_record_tree'));
+        setAlertSubHeading(i18next.t('label.cannot_mark_sample_tree_under_distance'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
+        return;
+      }
 
       if (
         specieId &&

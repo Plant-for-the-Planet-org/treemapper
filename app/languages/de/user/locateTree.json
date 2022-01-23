@@ -19,10 +19,11 @@
   "locate_tree_cannot_mark_location": "Kann diese Stelle nicht markieren.",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   "locate_tree_location": "Standort",
-  "locate_tree_cannot_record_tree": "Beispielbaum konnte nicht erfasst werden",
-  "locate_tree_cannot_record_tree_outside_polygon": "Der Beispielbaum kann nur innerhalb der markierten Stelle aufgenommen werden.",
+  "locate_tree_cannot_record_tree": "Musterbaum konnte nicht erfasst werden",
+  "locate_tree_cannot_record_tree_outside_polygon": "Der Musterbaum kann nur innerhalb der markierten Stelle aufgenommen werden.",
   "locate_tree_unable_to_retrieve_location": "Standort kann nicht abgerufen werden.",
   "distance_more_than_100_meter": "Die aktuelle Position der Markierung ist mehr als 100 Meter von den ursprünglichen Koordinaten entfernt.",
   "cannot_update_polygon": "Polygon kann nicht aktualisiert werden!",
-  "sample_trees_outside_polygon": "Die Beispielbäume sind außerhalb des Polygons. Bitte überprüfe und aktualisiere das Polygon."
+  "sample_trees_outside_polygon": "Die Musterbäume sind außerhalb des Polygons. Bitte überprüfe und aktualisiere das Polygon.",
+  "cannot_mark_sample_tree_under_distance": "Es kann kein Musterbaum markiert werden, der weniger als 30 cm von einem anderen Musterbaum entfernt ist."
 }

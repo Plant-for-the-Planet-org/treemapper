@@ -33,5 +33,7 @@
   "edit_point": "Bearbeite Punkt",
   "edit_geometry_message": "Klicke und ziehe eine Markierung, um ihre Position zu ändern.",
   "reset": "Zurücksetzen",
-  "save": "Speichern"
+  "save": "Speichern",
+  "uploading": "Hochladen",
+  "missing_data_found_registration": "Fehlende Daten in Registrierungen gefunden"
 }

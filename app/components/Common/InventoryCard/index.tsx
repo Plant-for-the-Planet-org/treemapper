@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform, ViewStyle } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,6 +16,7 @@ interface IInventoryCardProps {
   activeBtn?: any;
   onPressActiveBtn?: any;
   hideImage?: any;
+  containerStyle?: ViewStyle;
 }
 
 const InventoryCard = ({
@@ -24,6 +25,7 @@ const InventoryCard = ({
   activeBtn,
   onPressActiveBtn,
   hideImage,
+  containerStyle = {},
 }: IInventoryCardProps) => {
   const [imageSource, setImageSource] = useState<any>();
   useEffect(() => {
@@ -63,7 +65,7 @@ const InventoryCard = ({
     : `${data.diameter} cm`;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {!hideImage && (
         <View style={styles.imageContainer}>
           <Image source={imageSource} style={styles.image} resizeMode={'stretch'} />

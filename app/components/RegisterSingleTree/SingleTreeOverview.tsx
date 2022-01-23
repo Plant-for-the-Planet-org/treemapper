@@ -57,6 +57,7 @@ import {
   nonISUCountries,
 } from '../../utils/constants';
 import {
+  FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   MULTI,
@@ -180,6 +181,7 @@ const SingleTreeOverview = () => {
         setCountryCode(data.country);
         if (
           inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
+          // inventoryData.status === FIX_NEEDED ||
           (route?.params?.isSampleTree &&
             (route?.params?.sampleTreeIndex === 0 || route?.params?.sampleTreeIndex))
         ) {
@@ -555,6 +557,7 @@ const SingleTreeOverview = () => {
       inventory &&
       (inventory.status === INCOMPLETE ||
         inventory.status === INCOMPLETE_SAMPLE_TREE ||
+        inventory.status === FIX_NEEDED ||
         !inventory.status)
     ) {
       shouldEdit = true;
@@ -802,7 +805,7 @@ const SingleTreeOverview = () => {
           })
           .catch(() => setIsError(true));
       }
-    } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
+    } else if (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === FIX_NEEDED) {
       updateSampleTree({
         toUpdate: 'changeStatusToPending',
         inventory,
@@ -918,9 +921,13 @@ const SingleTreeOverview = () => {
         setIsOpenModal={setIsOpenModal}
         value={
           editEnable === 'diameter'
-            ? specieEditDiameter.toString()
+            ? specieEditDiameter
+              ? specieEditDiameter.toString()
+              : '0'
             : editEnable === 'height'
-            ? specieEditHeight.toString()
+            ? specieEditHeight
+              ? specieEditHeight.toString()
+              : '0'
             : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
@@ -960,6 +967,7 @@ const SingleTreeOverview = () => {
               rightText={
                 status === INCOMPLETE ||
                 status === INCOMPLETE_SAMPLE_TREE ||
+                status === FIX_NEEDED ||
                 (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
                   ? i18next.t('label.tree_review_delete')
                   : ''
@@ -1006,7 +1014,7 @@ const SingleTreeOverview = () => {
               }
             />
           </View>
-        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
+        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE || status === FIX_NEEDED) &&
           !route?.params?.isSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
