@@ -304,7 +304,7 @@ const TreeInventory = () => {
                   return (
                     <SmallHeader
                       leftText={title}
-                      rightText={state.isUploading ? i18next.t('uploading') : ''}
+                      rightText={state.isUploading ? i18next.t('label.uploading') : ''}
                       sync={state.isUploading}
                       style={{ marginVertical: 15 }}
                     />
