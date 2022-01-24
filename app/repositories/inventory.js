@@ -23,6 +23,10 @@ import {
   PENDING_UPLOAD_COUNT,
   INCOMPLETE_COUNT,
 } from '../utils/inventoryConstants';
+import {
+  checkAndMarkMissingData,
+  updateSingleInventoryMissingStatus,
+} from '../utils/registrations/markCorruptedData';
 import { getSchema } from './default';
 import dbLog from './logs';
 
@@ -1163,6 +1167,7 @@ export const addCdnUrl = ({
       });
   });
 };
+
 export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sampleTreeIndex }) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema()).then(realm => {
@@ -1208,6 +1213,40 @@ export const addAppMetadata = ({ inventory_id }) => {
         });
         bugsnag.notify(err);
         reject(err);
+      });
+  });
+};
+
+export const changeSampleTreesStatusToPendingUpload = inventoryId => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+          if (inventory?.sampleTrees) {
+            for (const sampleTreeIndex in inventory.sampleTrees) {
+              inventory.sampleTrees[sampleTreeIndex].status = PENDING_DATA_UPLOAD;
+            }
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Successfully changed sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventoryId}`,
+              referenceId: inventoryId,
+            });
+          }
+          resolve();
+        });
+      })
+      .catch(err => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while changing sample trees status to PENDING_DATA_UPLOAD inventory_id: ${inventoryId}`,
+          logStack: JSON.stringify(err),
+          referenceId: inventoryId,
+        });
+        bugsnag.notify(err);
+        resolve(false);
       });
   });
 };
@@ -1274,8 +1313,29 @@ export const getInventoryCount = (countOf = TOTAL_COUNT) => {
   });
 };
 
-function getFields(input, field) {
-  var output = [];
-  for (var i = 0; i < input.length; ++i) output.push(input[i][field]);
-  return output;
-}
+export const updateMissingDataStatus = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then(realm => {
+      realm.write(async () => {
+        checkAndMarkMissingData({ oldRealm: realm });
+        resolve();
+      });
+    });
+  });
+};
+
+export const updateMissingStatusOfSingleInventory = inventoryId => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema()).then(realm => {
+      realm.write(async () => {
+        const inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+        if (inventory) {
+          const result = await updateSingleInventoryMissingStatus(inventory, inventory);
+          resolve(result);
+        } else {
+          resolve();
+        }
+      });
+    });
+  });
+};
