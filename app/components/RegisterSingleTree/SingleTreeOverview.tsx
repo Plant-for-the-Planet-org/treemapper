@@ -569,9 +569,9 @@ const SingleTreeOverview = () => {
     if (
       route?.params?.isSampleTree &&
       inventory?.sampleTrees?.length &&
-      inventory?.sampleTrees[sampleTreeIndex].hid
+      inventory?.sampleTrees[sampleTreeIndex]
     ) {
-      hid = inventory.sampleTrees[sampleTreeIndex].hid;
+      hid = inventory.sampleTrees[sampleTreeIndex]?.hid;
     }
 
     const isNonISUCountry: boolean = nonISUCountries.includes(countryCode);
