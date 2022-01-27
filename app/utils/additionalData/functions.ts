@@ -120,7 +120,7 @@ export const readJsonFileAndAddAdditionalData = (res: any) => {
 
     // reads the file content using the passed target path in utf-8 format
     RNFS.readFile(jsonFilePath, 'utf8')
-      .then(async (jsonContent) => {
+      .then(async jsonContent => {
         dbLog.info({
           logType: LogTypes.ADDITIONAL_DATA,
           message: `Successfully imported file and fetched file content to add additional data`,
@@ -216,7 +216,7 @@ export const readJsonFileAndAddAdditionalData = (res: any) => {
           return;
         }
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
           message: 'Error while reading imported file',
@@ -387,6 +387,10 @@ export const appAdditionalDataForGeoJSON = async ({
     appAdditionalDetails['locationId'] = data.locationId;
   }
 
+  if (data.hid) {
+    appAdditionalDetails['hid'] = data.hid;
+  }
+
   // adding dates to additional details
   if (data.registrationDate) {
     appAdditionalDetails['registrationDate'] = data.registrationDate;
@@ -395,11 +399,12 @@ export const appAdditionalDataForGeoJSON = async ({
     appAdditionalDetails['plantationDate'] = data.plantationDate || data.plantation_date;
   }
 
-  // adding species to additional details
+  // adding species and sample tree count to additional details
   if (!isSampleTree) {
     if (data.polygons.length === 0) {
       return;
     }
+
     let coords = data.polygons[0].coordinates;
 
     appAdditionalDetails['species'] = data.species;
@@ -439,6 +444,10 @@ export const appAdditionalDataForGeoJSON = async ({
         appAdditionalDetails['coordinateImages'] = coordinateImages;
       }
     }
+
+    // adds the total sample tree count and uploaded sample tree count to JSON
+    appAdditionalDetails['totalSampleTreesCount'] = data.sampleTreesCount;
+    appAdditionalDetails['uploadedSampleTreesCount'] = data.uploadedSampleTreesCount;
   } else {
     appAdditionalDetails['species'] = [
       {

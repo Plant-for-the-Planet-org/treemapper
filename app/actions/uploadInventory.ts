@@ -40,7 +40,15 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
     try {
       if (oneInventory.locateTree === OFF_SITE) {
         changeInventoryStatusAndLocationId(
-          { inventory_id: oneInventory.inventory_id, status: SYNCED, locationId: response.id },
+          {
+            inventory_id: oneInventory.inventory_id,
+            status: SYNCED,
+            locationId: response.id,
+            hid: response.hid,
+            originalGeometry: response.originalGeometry
+              ? JSON.stringify(response.originalGeometry)
+              : '',
+          },
           dispatch,
         ).then(() => {
           dbLog.info({
@@ -56,6 +64,10 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
             inventory_id: oneInventory.inventory_id,
             status: PENDING_IMAGE_UPLOAD,
             locationId: response.id,
+            hid: response.hid,
+            originalGeometry: response.originalGeometry
+              ? JSON.stringify(response.originalGeometry)
+              : '',
           },
           dispatch,
         )
@@ -90,7 +102,7 @@ const changeStatusAndUpload = async (response, oneInventory, dispatch) => {
                   )
                     .then(async () => {
                       let inventory = {};
-                      inventory = { ...oneInventory, locationId: response?.id };
+                      inventory = { ...oneInventory, locationId: response.id };
                       const sampleTreeUploadResult = await checkSampleTreesAndUpload(inventory);
 
                       if (sampleTreeUploadResult) {
@@ -510,6 +522,11 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
         if (response && response.coordinates[0].status === 'pending' && sampleTree.imageUrl) {
           sampleTree.status = PENDING_IMAGE_UPLOAD;
           sampleTree.locationId = response.id;
+          sampleTree.hid = response.hid;
+
+          inventory.sampleTrees[index].status = PENDING_IMAGE_UPLOAD;
+          inventory.sampleTrees[index].locationId = response.id;
+          inventory.sampleTrees[index].hid = response.hid;
 
           await updateSampleTreeByIndex(inventory, sampleTree, index).catch(err => {
             dbLog.error({
@@ -530,6 +547,10 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
           if (uploadResult) {
             sampleTree.status = SYNCED;
             sampleTree.cdnImageUrl = uploadResult;
+
+            inventory.sampleTrees[index].status = SYNCED;
+            inventory.sampleTrees[index].cdnImageUrl = uploadResult;
+
             await updateSampleTreeByIndex(inventory, sampleTree, index, true)
               .then(() => {
                 uploadedCount += 1;
@@ -543,6 +564,11 @@ const checkSampleTreesAndUpload = async (inventory: any) => {
         } else if (response && response.coordinates[0].status === 'complete') {
           sampleTree.status = SYNCED;
           sampleTree.locationId = response.id;
+          sampleTree.hid = response.hid;
+
+          inventory.sampleTrees[index].status = SYNCED;
+          inventory.sampleTrees[index].locationId = response.id;
+          inventory.sampleTrees[index].hid = response.hid;
 
           await updateSampleTreeByIndex(inventory, sampleTree, index, true)
             .then(() => {
