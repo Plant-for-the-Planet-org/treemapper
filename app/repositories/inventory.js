@@ -223,7 +223,7 @@ export const getInventory = ({ inventoryID }) => {
 };
 
 export const changeInventoryStatusAndLocationId = (
-  { inventory_id, status, locationId },
+  { inventory_id, status, locationId, hid, originalGeometry },
   dispatch,
 ) => {
   return new Promise(resolve => {
@@ -236,6 +236,8 @@ export const changeInventoryStatusAndLocationId = (
               inventory_id: `${inventory_id}`,
               status,
               locationId,
+              hid,
+              originalGeometry,
             },
             'modified',
           );

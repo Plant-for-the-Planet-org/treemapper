@@ -47,7 +47,7 @@ const SelectedPlantLocationSampleTreesCards = ({
   return (
     <View style={styles.carousel}>
       <Carousel
-        ref={(el) => {
+        ref={el => {
           carouselRef.current = el;
           setIsCarouselRefVisible(true);
         }}
@@ -108,7 +108,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                     <Text style={styles.text}>
                       {`${Math.round(item.specieHeight * 100) / 100}${heightUnit} • ${
                         Math.round(item.specieDiameter * 100) / 100
-                      }${diameterUnit} • #${item.tagId}`}
+                      }${diameterUnit} ${item.tagId ? `• #${item.tagId}` : ''}`}
                     </Text>
                   </View>
                 </View>
