@@ -58,11 +58,13 @@ const InventoryCard = ({
   };
 
   const heightWithUnit = nonISUCountries.includes(data.countryCode)
-    ? `${data.height * meterToFoot} ${i18next.t('label.select_species_feet')}`
-    : `${data.height} m`;
+    ? `${Math.round(data.height * meterToFoot * 1000) / 1000} ${i18next.t(
+        'label.select_species_feet',
+      )}`
+    : `${Math.round(data.height) / 1000} m`;
   const diameterWithUnit = nonISUCountries.includes(data.countryCode)
-    ? `${data.diameter * cmToInch} ${i18next.t('label.select_species_inches')}`
-    : `${data.diameter} cm`;
+    ? `${Math.round(data.diameter * cmToInch) / 1000} ${i18next.t('label.select_species_inches')}`
+    : `${Math.round(data.diameter) / 1000} cm`;
 
   return (
     <View style={[styles.container, containerStyle]}>
