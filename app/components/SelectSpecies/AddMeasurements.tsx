@@ -80,7 +80,7 @@ export const AddMeasurements = () => {
 
   const fetchInventory = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
         setInventory(inventoryData);
 
         if (inventoryData.species.length > 0 && inventoryData.specieDiameter == null) {
@@ -91,7 +91,7 @@ export const AddMeasurements = () => {
   };
 
   const setCountry = () => {
-    getUserInformation().then((data) => {
+    getUserInformation().then(data => {
       setCountryCode(data.country);
     });
   };
@@ -193,14 +193,13 @@ export const AddMeasurements = () => {
         .then(() => {
           postMeasurementUpdate();
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
         });
     } else {
       let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[
-        inventory.completedSampleTreesCount
-      ].specieDiameter = getConvertedDiameter();
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter =
+        getConvertedDiameter();
       updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = getConvertedHeight();
       if (tagId) {
         updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
@@ -221,7 +220,7 @@ export const AddMeasurements = () => {
           });
           postMeasurementUpdate();
         })
-        .catch((err) => {
+        .catch(err => {
           dbLog.error({
             logType: LogTypes.INVENTORY,
             message: `Error while adding measurements for sample tree #${
@@ -338,7 +337,9 @@ export const AddMeasurements = () => {
                       onSubmitEditing={isTagIdPresent ? () => tagIdRef.current.focus() : () => {}}
                       showInfo={true}
                       infoText={i18next.t('label.measurement_diameter_info', {
-                        height: isNonISUCountry ? DBHInMeter * meterToFoot : DBHInMeter,
+                        height: isNonISUCountry
+                          ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
+                          : DBHInMeter,
                         unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
                       })}
                     />
