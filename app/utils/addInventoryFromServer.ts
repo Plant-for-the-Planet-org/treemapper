@@ -1,7 +1,15 @@
 import { getAllInventoryFromServer, updateInventoryFetchFromServer } from '../actions/inventory';
 import { inventoryFetchConstant } from '../reducers/inventory';
 import { addInventoryToDB, getInventoryByStatus } from '../repositories/inventory';
-import { SYNCED } from './inventoryConstants';
+import {
+  DATA_UPLOAD_START,
+  FIX_NEEDED,
+  PENDING_DATA_UPDATE,
+  PENDING_DATA_UPLOAD,
+  PENDING_IMAGE_UPLOAD,
+  PENDING_SAMPLE_TREES_UPLOAD,
+  SYNCED,
+} from './inventoryConstants';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
   let allRegistrationsDetails: any;
@@ -12,7 +20,15 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
   }
 
   if (allRegistrationsDetails.data.length !== 0) {
-    getInventoryByStatus([SYNCED])
+    getInventoryByStatus([
+      PENDING_DATA_UPLOAD,
+      DATA_UPLOAD_START,
+      PENDING_IMAGE_UPLOAD,
+      PENDING_SAMPLE_TREES_UPLOAD,
+      SYNCED,
+      PENDING_DATA_UPDATE,
+      FIX_NEEDED,
+    ])
       .then((allRegistrations: any) => {
         if (allRegistrations.length === 0) {
           for (const registration of allRegistrationsDetails.data) {
@@ -34,11 +50,11 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
         if (allRegistrationsDetails.nextRouteLink) {
           addInventoryFromServer(allRegistrationsDetails.nextRouteLink, dispatch);
         } else {
-          updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch)
+          updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
         }
       })
-      .catch((err: any) => { });
+      .catch((err: any) => {});
   } else {
-    updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch)
+    updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
   }
 };

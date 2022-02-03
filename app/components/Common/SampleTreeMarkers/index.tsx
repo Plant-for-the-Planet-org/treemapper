@@ -2,7 +2,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Colors, Typography } from '../../../styles';
-import { ON_SITE } from '../../../utils/inventoryConstants';
+import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import MarkerSVG from '../../Common/MarkerSVG';
 
@@ -38,6 +38,10 @@ const SampleTreeMarkers = ({
     let color = Colors.PRIMARY_DARK;
     let opacity = 1;
 
+    if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {
+      color = Colors.PLANET_RED;
+    }
+
     if (isCarouselSample && activeSampleCarouselIndex !== i - 1) {
       color = Colors.GRAY_LIGHTEST;
       opacity = 0.6;
@@ -48,7 +52,7 @@ const SampleTreeMarkers = ({
         key={`sampleTree-${i}`}
         id={`sampleTree-${i}`}
         coordinate={oneMarker}
-        onSelected={(feature) => {
+        onSelected={feature => {
           if (
             locateTree == ON_SITE &&
             onPressMarker &&
