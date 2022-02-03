@@ -49,9 +49,8 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
-  getIncompleteStatus,
   FIX_NEEDED,
-  getPendingStatus,
+  getIncompleteStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -224,7 +223,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData: any) => {
-        const geoJSONData = await getGeoJsonData({ inventoryData });
+        const geoJSONData = await getGeoJsonData({ inventoryData, includeStatus: true });
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
@@ -596,6 +595,20 @@ const InventoryOverview = ({ navigation }: any) => {
                   }
                   onPressFunction={() => setShowAlert(true)}
                 />
+                {inventory.status === FIX_NEEDED ? (
+                  <View style={styles.fixNeededContainer}>
+                    <Text style={styles.fixNeededText}>
+                      {`${i18next.t('label.tree_inventory_fix_needed')} ${i18next.t(
+                        'label.tree_inventory_fix_needed_sample',
+                      )}`}
+                    </Text>
+                    <Text style={[styles.fixNeededText, { marginTop: 12 }]}>
+                      {i18next.t('label.fix_before_uploading')}
+                    </Text>
+                  </View>
+                ) : (
+                  []
+                )}
                 <Label
                   leftText={i18next.t('label.inventory_overview_left_text')}
                   rightText={i18next.t('label.inventory_overview_date', {
@@ -1082,6 +1095,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     position: 'relative',
+  },
+  fixNeededContainer: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#E86F5620',
+    marginVertical: 24,
+  },
+  fixNeededText: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.PLANET_RED,
   },
 });
 

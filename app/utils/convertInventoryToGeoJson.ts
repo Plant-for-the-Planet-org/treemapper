@@ -4,12 +4,14 @@ interface IGeoJsonDataParams {
   inventoryData: any;
   includeInventoryId?: boolean;
   ignoreSampleTrees?: boolean;
+  includeStatus?: boolean;
 }
 
 export default async function getGeoJsonData({
   inventoryData,
   includeInventoryId = false,
   ignoreSampleTrees = false,
+  includeStatus = false,
 }: IGeoJsonDataParams) {
   let featureList;
   let appAdditionalDetails: any = {};
@@ -18,6 +20,12 @@ export default async function getGeoJsonData({
   if (inventoryData) {
     appAdditionalDetails = await appAdditionalDataForGeoJSON({ data: inventoryData });
     metadata.app = { ...metadata.app, ...appAdditionalDetails };
+    if (includeStatus) {
+      metadata.app = {
+        ...metadata.app,
+        status: inventoryData.status,
+      };
+    }
   }
 
   if (
@@ -78,6 +86,13 @@ export default async function getGeoJsonData({
           isSampleTree: true,
         });
         metadata.app = { ...metadata.app, ...appAdditionalDetails };
+
+        if (includeStatus) {
+          metadata.app = {
+            ...metadata.app,
+            status: sampleTree.status,
+          };
+        }
 
         featureList.push({
           type: 'Feature',
