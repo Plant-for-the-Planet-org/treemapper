@@ -64,7 +64,7 @@ const SavedAreas = ({ navigation }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
         <Header headingText={i18next.t('label.save_areas_header')} />
-        <ScrollView showsVerticalScrollIndicator={false} style={styles.areaListContainer}>
+        <View style={styles.areaListContainer}>
           {areas && areas.length > 0 ? (
             <FlatList data={areas} renderItem={renderSavedAreaItem} />
           ) : areas && areas.length == 0 ? (
@@ -74,7 +74,7 @@ const SavedAreas = ({ navigation }) => {
           ) : (
             <ActivityIndicator size="large" color={Colors.PRIMARY} />
           )}
-        </ScrollView>
+        </View>
         <PrimaryButton onPress={onPressAddArea} btnText={i18next.t('label.save_areas_add_area')} />
       </View>
     </SafeAreaView>
@@ -112,7 +112,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   areaListContainer: {
+    flex: 1,
     marginHorizontal: -25,
+    paddingBottom: 10,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
