@@ -141,11 +141,11 @@ function Form({
             !isInitialLoading &&
             Array.isArray(filteredForm) &&
             filteredForm.length === 0 && (
-              <>
+              <View style={[styles.formMessageContainer]}>
                 <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
                 <Text style={styles.desc}>{i18next.t('label.get_started_forms_description')}</Text>
                 <PrimaryButton btnText={i18next.t('label.create_form')} onPress={addNewForm} />
-              </>
+              </View>
             )}
           <InputModal
             isOpenModal={showInputModal}
@@ -186,6 +186,8 @@ const styles = StyleSheet.create({
   },
   formMessageContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 25,
   },
   title: {
