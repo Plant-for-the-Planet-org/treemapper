@@ -50,6 +50,11 @@ const ProfileModal = ({
     navigation.navigate('Logs');
   };
 
+  const onPressAddArea = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('DownloadMap');
+  };
+
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const [profileListItems, setProfileListItems] = useState<any>([]);
   const navigation = useNavigation();
@@ -98,6 +103,14 @@ const ProfileModal = ({
       isVisible: true,
       order: 4,
     },
+    {
+      media: 'map',
+      mediaType: 'icon',
+      onPressFunction: onPressAddArea,
+      text: 'download_maps',
+      isVisible: true,
+      order: 5,
+    },
 
     {
       media: 'sign-out-alt',
@@ -105,7 +118,7 @@ const ProfileModal = ({
       text: 'logout',
       onPressFunction: onPressLogout,
       isVisible: true,
-      order: 5,
+      order: 6,
     },
   ];
 
@@ -161,6 +174,7 @@ const ProfileModal = ({
     onPressCloseProfileModal();
     navigation.navigate('Legals');
   };
+
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
       // TODO:i18n - if this is used, please add translations
