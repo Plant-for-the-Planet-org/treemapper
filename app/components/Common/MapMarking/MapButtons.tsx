@@ -61,12 +61,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: Colors.TEXT_COLOR,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
     bottom: 120,
   },
   myLocationIconContainer: {
-    top: 1.5,
-    left: 0.8,
+    top: 0,
+    left: 0,
   },
   continueBtnCont: {
     flexDirection: 'row',
