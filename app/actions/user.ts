@@ -42,7 +42,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           prompt: 'login',
           audience: 'urn:plant-for-the-planet',
         },
-        { ephemeralSession: true },
+        { ephemeralSession: false },
       )
       .then((credentials) => {
         const expirationTime = getExpirationTimeStamp(credentials.accessToken);
