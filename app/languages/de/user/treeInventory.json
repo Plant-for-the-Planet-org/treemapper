@@ -35,5 +35,8 @@
   "reset": "Zurücksetzen",
   "save": "Speichern",
   "uploading": "Hochladen",
-  "missing_data_found_registration": "Fehlende Daten in Registrierungen gefunden"
+  "missing_data_found_registration": "Fehlende Daten in Registrierungen gefunden",
+  "tree_inventory_fix_needed": "Fehlende Daten in Registrierungen gefunden.",
+  "tree_inventory_fix_needed_sample": "Prüfe in der nachstehenden Karte die rot markierten Musterbäume, um die fehlenden Daten (falls vorhanden) zu sehen.",
+  "fix_before_uploading": "Bitte ergänze die fehlenden Daten vor dem Hochladen."
 }
