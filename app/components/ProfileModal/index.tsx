@@ -50,23 +50,42 @@ const ProfileModal = ({
     navigation.navigate('Logs');
   };
 
+  const onPressAddArea = () => {
+    onPressCloseProfileModal();
+    navigation.navigate('DownloadMap');
+  };
+
   const [visibility, setVisibility] = useState(isProfileModalVisible);
   const [profileListItems, setProfileListItems] = useState<any>([]);
   const navigation = useNavigation();
   const profileItems = [
+    {
+      media: 'exclamation-circle',
+      mediaType: 'icon',
+      onPressFunction: () => {
+        navigation.navigate('SignUp');
+        onPressCloseProfileModal();
+      },
+      text: 'complete_signup',
+      isVisible: false,
+      order: 0,
+    },
     {
       media: 'user-edit',
       mediaType: 'icon',
       text: 'edit_profile',
       onPressFunction: onPressEdit,
       isVisible: true,
+      order: 1,
     },
+
     {
       media: 'leaf',
       mediaType: 'icon',
       text: 'manage_species',
       onPressFunction: onPressManageSpecies,
       isVisible: true,
+      order: 2,
     },
     {
       media: 'project',
@@ -74,6 +93,7 @@ const ProfileModal = ({
       text: 'manage_projects',
       onPressFunction: onPressManageProjects,
       isVisible: true,
+      order: 3,
     },
     {
       media: 'file-alt',
@@ -81,23 +101,52 @@ const ProfileModal = ({
       onPressFunction: onPressAdditionalData,
       text: 'additional_data',
       isVisible: true,
+      order: 4,
     },
+    {
+      media: 'map',
+      mediaType: 'icon',
+      onPressFunction: onPressAddArea,
+      text: 'download_maps',
+      isVisible: true,
+      order: 5,
+    },
+
     {
       media: 'sign-out-alt',
       mediaType: 'icon',
       text: 'logout',
       onPressFunction: onPressLogout,
       isVisible: true,
+      order: 6,
     },
   ];
 
   useEffect(() => {
     let updatedListItems = profileItems.map((profileItem: any) => {
+      // shows manage paroject item only in user account type is "tpo"
       if (profileItem.text === 'manage_projects') {
         profileItem.isVisible = userInfo?.type === 'tpo';
       }
+
+      // shows complete signup item only if signup is required
+      if (profileItem.text === 'complete_signup') {
+        profileItem.isVisible = userInfo?.isSignUpRequired;
+      }
+
+      // shows edit profile item only if email is present and used is already signed up
+      if (profileItem.text === 'edit_profile') {
+        profileItem.isVisible = userInfo?.email && !userInfo?.isSignUpRequired;
+      }
+
+      // shows logout only if user is logged i.e. when email id is present
+      if (profileItem.text === 'logout') {
+        profileItem.isVisible = !!userInfo?.email || userInfo?.isSignUpRequired;
+      }
+
       return profileItem;
     });
+
     setProfileListItems(updatedListItems);
   }, [userInfo, onPressCloseProfileModal]);
 
@@ -125,21 +174,12 @@ const ProfileModal = ({
     onPressCloseProfileModal();
     navigation.navigate('Legals');
   };
+
   const onPressSupport = () => {
     Linking.openURL('mailto:support@plant-for-the-planet.org').catch(() =>
       // TODO:i18n - if this is used, please add translations
       alert('Can write mail to support@plant-for-the-planet.org'),
     );
-  };
-
-  const signUpItem = {
-    media: 'exclamation-circle',
-    mediaType: 'icon',
-    onPressFunction: () => {
-      navigation.navigate('SignUp');
-      onPressCloseProfileModal();
-    },
-    text: 'complete_signup',
   };
 
   return (
@@ -186,15 +226,12 @@ const ProfileModal = ({
                   <Text style={styles.userEmail}>{userInfo.email}</Text>
                 </View>
               </View>
-              {profileListItems.map((item: any, index: number) =>
-                item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
-              )}
             </>
           ) : (
-            <View style={{ marginTop: 20 }}>
-              <ProfileListItem key={0} {...signUpItem} />
-              <ProfileListItem key={1} {...profileListItems[profileListItems.length - 1]} />
-            </View>
+            []
+          )}
+          {profileListItems.map((item: any, index: number) =>
+            item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
           )}
           <View style={styles.horizontalBar} />
           <View
@@ -245,6 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    marginBottom: 16,
   },
   closeButtonContainer: {
     position: 'absolute',

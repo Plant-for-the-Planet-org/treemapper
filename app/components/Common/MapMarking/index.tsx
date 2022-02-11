@@ -147,12 +147,12 @@ export default function MapMarking({
     }
 
     const watchId = Geolocation.watchPosition(
-      (position) => {
+      position => {
         setAccuracyInMeters(position.coords.accuracy);
         onUpdateUserLocation(position);
         setLocation(position);
       },
-      (err) => {
+      err => {
         const captureMode = multipleLocateTree || ON_SITE;
 
         if (captureMode === OFF_SITE) {
@@ -193,6 +193,12 @@ export default function MapMarking({
       });
     }
   }, [isCameraRefVisible, centerCoordinate]);
+
+  useEffect(() => {
+    if (isInitial && location) {
+      onPressMyLocationIcon(location);
+    }
+  }, [isCameraRefVisible, location]);
 
   // removes the coordinates from the polygon if the user press back button from alrighty modal
   useEffect(() => {
@@ -237,7 +243,7 @@ export default function MapMarking({
 
   // initializes the state by updating state
   const initializeState = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
       setInventory(inventoryData);
       setLocateTree(inventoryData.locateTree);
       if (inventoryData.polygons.length > 0) {
@@ -249,7 +255,7 @@ export default function MapMarking({
             },
             geometry: {
               type: 'LineString',
-              coordinates: onePolygon.coordinates.map((oneCoordinate: any) => [
+              coordinates: onePolygon.coordinates.map(oneCoordinate => [
                 oneCoordinate.longitude,
                 oneCoordinate.latitude,
               ]),
@@ -311,12 +317,6 @@ export default function MapMarking({
     }
   };
 
-  useEffect(() => {
-    if (isInitial && location) {
-      onPressMyLocationIcon(location);
-    }
-  }, [isCameraRefVisible, location]);
-
   //recenter the marker to the current coordinates
   const onPressMyLocationIcon = (position: any) => {
     if (isInitial && treeType === SAMPLE) {
@@ -349,6 +349,33 @@ export default function MapMarking({
       }
     }
     return isValidMarkers;
+  };
+
+  /**
+   * Checks if the current marker position of sample tree is valid or not by
+   * checking the distance between the current marker position and the already
+   * present markers of sample trees
+   * @param centerCoordinates - the coordinates of the marker
+   * @param sampleTrees - array of sample trees to compare the current marker position with
+   * @returns {boolean} - true if the current marker position is valid, false otherwise
+   */
+  const checkIsSampleMarkerValid = (centerCoordinates: number[], sampleTrees: any) => {
+    let isValidMarker = true;
+
+    for (const sampleTree of sampleTrees) {
+      const distanceInCentimeters = distanceCalculator(
+        [centerCoordinates[1], centerCoordinates[0]],
+        [sampleTree.latitude, sampleTree.longitude],
+        'centimeters',
+      );
+      // if the current marker position is less than 300cm to already present sample tree nearby,
+      // then makes the current marker position as invalid
+      if (distanceInCentimeters < 30) {
+        isValidMarker = false;
+        break;
+      }
+    }
+    return isValidMarker;
   };
 
   //checks if the marker is within 100 meters range or not and assigns a LocateTree label accordingly
@@ -421,7 +448,7 @@ export default function MapMarking({
       if (result) {
         initiateInventoryState(result)(dispatch);
         addLocateTree({ inventory_id: result.inventory_id, locateTree });
-        getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+        getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
           setInventory(inventoryData);
         });
         let data = { inventory_id: result.inventory_id, lastScreen: 'CreatePolygon' };
@@ -496,15 +523,15 @@ export default function MapMarking({
 
   //getting current position of the user with high accuracy
   const updateCurrentPosition = async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           setAccuracyInMeters(position.coords.accuracy);
           onUpdateUserLocation(position);
           setLocation(position);
           resolve(position);
         },
-        (err) => {
+        err => {
           const captureMode = multipleLocateTree || ON_SITE;
 
           if (captureMode === OFF_SITE) {
@@ -538,6 +565,18 @@ export default function MapMarking({
 
     if (treeType === SAMPLE) {
       let sampleTrees = [...inventory?.sampleTrees];
+
+      const isSampleMarkerValid = checkIsSampleMarkerValid(centerCoordinates, sampleTrees);
+
+      // If sample marker is not valid then alerts the user the same and cancels
+      // the operation of marking the sample tree marker
+      if (!isSampleMarkerValid) {
+        setAlertHeading(i18next.t('label.locate_tree_cannot_record_tree'));
+        setAlertSubHeading(i18next.t('label.cannot_mark_sample_tree_under_distance'));
+        setShowSecondaryButton(false);
+        setShowAlert(true);
+        return;
+      }
 
       if (
         specieId &&
@@ -591,7 +630,7 @@ export default function MapMarking({
               lastScreen: 'RecordSampleTrees',
             };
             updateLastScreen(data);
-            getInventory({ inventoryID: inventoryID }).then((inventoryData) => {
+            getInventory({ inventoryID: inventoryID }).then(inventoryData => {
               setInventory(inventoryData);
             });
             dbLog.info({
@@ -602,7 +641,7 @@ export default function MapMarking({
             });
             setShowAlrightyModal(true);
           })
-          .catch((err) => {
+          .catch(err => {
             dbLog.error({
               logType: LogTypes.INVENTORY,
               message: `Failed to add map coordinate for sample tree #${
@@ -632,7 +671,7 @@ export default function MapMarking({
         );
         if (result) {
           initiateInventoryState(result)(dispatch);
-          getInventory({ inventoryID: result.inventory_id }).then((inventoryData) => {
+          getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
             setInventory(inventoryData);
           });
         }

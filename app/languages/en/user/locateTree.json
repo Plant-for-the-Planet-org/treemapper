@@ -21,5 +21,9 @@
   "locate_tree_location": "Location",
   "locate_tree_cannot_record_tree": "Cannot record sample tree.",
   "locate_tree_cannot_record_tree_outside_polygon": "Sample tree can only be recorded inside the marked site.",
-  "locate_tree_unable_to_retrieve_location": "Unable to retrieve location."
+  "locate_tree_unable_to_retrieve_location": "Unable to retrieve location.",
+  "distance_more_than_100_meter": "Current marker position is more than 100 meter from original coordinate location.",
+  "cannot_update_polygon": "Cannot update polygon!",
+  "sample_trees_outside_polygon": "Sample trees are falling outside the polygon. Please check and update the polygon.",
+  "cannot_mark_sample_tree_under_distance": "Cannot mark sample tree under 30cm of another sample tree."
 }

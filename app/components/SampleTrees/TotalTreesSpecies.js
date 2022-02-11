@@ -67,8 +67,8 @@ export default function TotalTreesSpecies() {
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -113,7 +113,7 @@ export default function TotalTreesSpecies() {
       getInventory({ inventoryID: inventoryState.inventoryID }).then(async (inventoryData) => {
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
-          const geoJSONData = await getGeoJsonData(inventoryData);
+          const geoJSONData = await getGeoJsonData({ inventoryData });
           if (
             inventoryData.polygons[0].coordinates.length === 1 &&
             inventoryData.polygons[0].isPolygonComplete
@@ -337,7 +337,10 @@ export default function TotalTreesSpecies() {
   };
 
   const renderMapView = () => {
-    let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
+    let shouldRenderShape =
+      geoJSON.features[0].geometry.coordinates &&
+      geoJSON.features[0].geometry.coordinates.length > 0 &&
+      geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
       <MapboxGL.MapView
         showUserLocation={false}

@@ -7,21 +7,6 @@ import { off_site_enable_banner } from '../../../assets';
 import { addCoordinates, polygonUpdate, updateLastScreen } from '../../../repositories/inventory';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE } from '../../../utils/inventoryConstants';
 
-const infographicText = [
-  {
-    heading: i18next.t('label.info_graphic_header_1'),
-    subHeading: i18next.t('label.info_graphic_sub_header_1'),
-  },
-  {
-    heading: i18next.t('label.info_graphic_header_2'),
-    subHeading: i18next.t('label.info_graphic_sub_header_2'),
-  },
-  {
-    heading: i18next.t('label.info_graphic_header_3'),
-    subHeading: i18next.t('label.info_graphic_sub_header_3'),
-  },
-];
-
 interface IMapAlrightyModalProps {
   treeType?: any;
   updateScreenState?: any;
@@ -57,6 +42,21 @@ export default function MapAlrightyModal({
   let heading = i18next.t('label.alright_modal_header');
   let bannerImage = undefined;
   let whiteBtnText = treeType === SAMPLE ? i18next.t('label.alright_modal_skip') : '';
+
+  const infographicText = [
+    {
+      heading: i18next.t('label.info_graphic_header_1'),
+      subHeading: i18next.t('label.info_graphic_sub_header_1'),
+    },
+    {
+      heading: i18next.t('label.info_graphic_header_2'),
+      subHeading: i18next.t('label.info_graphic_sub_header_2'),
+    },
+    {
+      heading: i18next.t('label.info_graphic_header_3'),
+      subHeading: i18next.t('label.info_graphic_sub_header_3'),
+    },
+  ];
 
   if (treeType === MULTI) {
     const coordsLength = geoJSON.features[activePolygonIndex].geometry.coordinates.length;

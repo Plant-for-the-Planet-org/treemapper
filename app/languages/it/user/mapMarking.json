@@ -20,6 +20,6 @@
   "try_again": "Prova ancora",
   "continue": "Continua",
   "location_service": "Servizio di localizzazione",
-  "location_service_message": "Le impostazioni di posizione non sono soddisfatte.",
+  "location_service_message": "Le impostazioni di localizzazione non sono soddisfatte. Assicurati di aver dato il permesso di localizzazione all'app e di aver attivato il GPS",
   "cancel": "Cancellare"
 }

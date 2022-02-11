@@ -20,6 +20,6 @@
   "try_again": "Essayer à nouveau",
   "continue": "Pousuivre",
   "location_service": "Service de localisation",
-  "location_service_message": "Les paramètres de localisation ne sont pas complets.",
+  "location_service_message": "Les paramètres de localisation ne sont pas satisfaits. Assurez-vous d'avoir donné l'autorisation de localisation à l'application et d'avoir activé le GPS",
   "cancel": "Annuler"
 }

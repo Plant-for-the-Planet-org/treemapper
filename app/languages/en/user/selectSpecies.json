@@ -33,6 +33,7 @@
   "select_species_done": "Done",
   "select_species_add_name": "Add Name",
   "select_species_my_species": "My Species",
+  "search_result": "Search Result",
   "select_species_diameter_more_than_error": "Diameter should be between {{minValue}} to {{maxValue}}.",
   "select_species_height_more_than_error": "Height should be between {{minValue}} to {{maxValue}}.",
   "select_species_diameter_invalid": "Diameter is invalid",

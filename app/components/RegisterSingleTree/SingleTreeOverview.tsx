@@ -57,6 +57,7 @@ import {
   nonISUCountries,
 } from '../../utils/constants';
 import {
+  FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   MULTI,
@@ -75,7 +76,12 @@ import SpecieSampleTree from '../SpecieSampleTree';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
-  SingleTreeOverview: { isSampleTree: boolean; sampleTreeIndex: number; totalSampleTrees: number };
+  SingleTreeOverview: {
+    isSampleTree: boolean;
+    sampleTreeIndex: number;
+    totalSampleTrees: number;
+    navigateBackToHomeScreen: boolean;
+  };
 };
 
 type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTreeOverview'>;
@@ -140,7 +146,7 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
-    getUserDetails().then((userDetails) => {
+    getUserDetails().then(userDetails => {
       if (userDetails) {
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
@@ -165,16 +171,17 @@ const SingleTreeOverview = () => {
   }, []);
 
   const fetchAndUpdateInventoryDetails = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
       setInventory(inventoryData);
       setStatus(inventoryData.status);
       setLocateTree(inventoryData.locateTree);
       setRegistrationType(inventoryData.treeType);
 
-      getUserInformation().then(async (data) => {
+      getUserInformation().then(async data => {
         setCountryCode(data.country);
         if (
           inventoryData.status === INCOMPLETE_SAMPLE_TREE ||
+          // inventoryData.status === FIX_NEEDED ||
           (route?.params?.isSampleTree &&
             (route?.params?.sampleTreeIndex === 0 || route?.params?.sampleTreeIndex))
         ) {
@@ -540,7 +547,7 @@ const SingleTreeOverview = () => {
     }
   }
 
-  const renderDetails = ({ polygons }: any) => {
+  const renderDetails = ({ polygons, hid }: any) => {
     let coords;
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
@@ -550,6 +557,7 @@ const SingleTreeOverview = () => {
       inventory &&
       (inventory.status === INCOMPLETE ||
         inventory.status === INCOMPLETE_SAMPLE_TREE ||
+        inventory.status === FIX_NEEDED ||
         !inventory.status)
     ) {
       shouldEdit = true;
@@ -560,6 +568,14 @@ const SingleTreeOverview = () => {
       ? [styles.detailHeader, styles.defaultFontColor]
       : [styles.detailHeader];
     let detailContainerStyle = imageSource ? [styles.detailSubContainer] : [{}];
+
+    if (
+      route?.params?.isSampleTree &&
+      inventory?.sampleTrees?.length &&
+      inventory?.sampleTrees[sampleTreeIndex]
+    ) {
+      hid = inventory.sampleTrees[sampleTreeIndex]?.hid;
+    }
 
     const isNonISUCountry: boolean = nonISUCountries.includes(countryCode);
 
@@ -579,6 +595,15 @@ const SingleTreeOverview = () => {
 
     return (
       <View style={detailContainerStyle}>
+        {hid ? (
+          <View style={{ marginVertical: 5 }}>
+            <Text style={detailHeaderStyle}>HID</Text>
+
+            <Text style={styles.detailText}>{hid}</Text>
+          </View>
+        ) : (
+          []
+        )}
         <View style={{ marginVertical: 5 }}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
           <TouchableOpacity
@@ -698,6 +723,19 @@ const SingleTreeOverview = () => {
     );
   };
 
+  const navigateBack = () => {
+    if (!route?.params?.navigateBackToHomeScreen) {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+        }),
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
@@ -711,15 +749,10 @@ const SingleTreeOverview = () => {
           .then(() => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
             changeInventoryStatus(data, dispatch).then(() => {
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 1,
-                  routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
-                }),
-              );
+              navigateBack();
             });
           })
-          .catch((err) => {
+          .catch(err => {
             setIsError(true);
           });
       } else {
@@ -727,12 +760,7 @@ const SingleTreeOverview = () => {
         alert('Species Name  is required');
       }
     } else {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
-        }),
-      );
+      navigateBack();
     }
     return true;
   };
@@ -794,7 +822,7 @@ const SingleTreeOverview = () => {
           })
           .catch(() => setIsError(true));
       }
-    } else if (inventory.status === INCOMPLETE_SAMPLE_TREE) {
+    } else if (inventory.status === INCOMPLETE_SAMPLE_TREE || inventory.status === FIX_NEEDED) {
       updateSampleTree({
         toUpdate: 'changeStatusToPending',
         inventory,
@@ -869,7 +897,7 @@ const SingleTreeOverview = () => {
             );
           }
         })
-        .catch((err) => console.error(err));
+        .catch(err => console.error(err));
     } else {
       deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
         .then(() => {
@@ -881,7 +909,7 @@ const SingleTreeOverview = () => {
             }),
           );
         })
-        .catch((err) => console.error(err));
+        .catch(err => console.error(err));
     }
   };
 
@@ -910,9 +938,13 @@ const SingleTreeOverview = () => {
         setIsOpenModal={setIsOpenModal}
         value={
           editEnable === 'diameter'
-            ? specieEditDiameter.toString()
+            ? specieEditDiameter
+              ? specieEditDiameter.toString()
+              : '0'
             : editEnable === 'height'
-            ? specieEditHeight.toString()
+            ? specieEditHeight
+              ? specieEditHeight.toString()
+              : '0'
             : editedTagId
         }
         inputType={editEnable === 'diameter' || editEnable === 'height' ? 'number' : 'text'}
@@ -952,6 +984,7 @@ const SingleTreeOverview = () => {
               rightText={
                 status === INCOMPLETE ||
                 status === INCOMPLETE_SAMPLE_TREE ||
+                status === FIX_NEEDED ||
                 (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
                   ? i18next.t('label.tree_review_delete')
                   : ''
@@ -998,7 +1031,7 @@ const SingleTreeOverview = () => {
               }
             />
           </View>
-        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE) &&
+        ) : (status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE || status === FIX_NEEDED) &&
           !route?.params?.isSampleTree ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton

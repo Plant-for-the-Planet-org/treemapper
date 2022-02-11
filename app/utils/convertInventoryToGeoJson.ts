@@ -1,6 +1,18 @@
 import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalData/functions';
 
-export default async function getGeoJsonData(inventoryData: any) {
+interface IGeoJsonDataParams {
+  inventoryData: any;
+  includeInventoryId?: boolean;
+  ignoreSampleTrees?: boolean;
+  includeStatus?: boolean;
+}
+
+export default async function getGeoJsonData({
+  inventoryData,
+  includeInventoryId = false,
+  ignoreSampleTrees = false,
+  includeStatus = false,
+}: IGeoJsonDataParams) {
   let featureList;
   let appAdditionalDetails: any = {};
 
@@ -8,6 +20,12 @@ export default async function getGeoJsonData(inventoryData: any) {
   if (inventoryData) {
     appAdditionalDetails = await appAdditionalDataForGeoJSON({ data: inventoryData });
     metadata.app = { ...metadata.app, ...appAdditionalDetails };
+    if (includeStatus) {
+      metadata.app = {
+        ...metadata.app,
+        status: inventoryData.status,
+      };
+    }
   }
 
   if (
@@ -29,23 +47,36 @@ export default async function getGeoJsonData(inventoryData: any) {
         },
       },
     ];
+
+    // includes inventory id if asked for
+    if (includeInventoryId) {
+      featureList[0].properties.inventoryId = inventoryData.inventory_id;
+    }
   } else {
     featureList = inventoryData.polygons.map((onePolygon: any) => {
-      return {
+      const feature = {
         type: 'Feature',
         properties: {
           ...metadata,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: onePolygon.coordinates.map((oneCoordinate: any) => [
-            oneCoordinate.longitude,
-            oneCoordinate.latitude,
-          ]),
+          type: 'Polygon',
+          coordinates: [
+            onePolygon.coordinates.map((oneCoordinate: any) => [
+              oneCoordinate.longitude,
+              oneCoordinate.latitude,
+            ]),
+          ],
         },
       };
+
+      // includes inventory id if asked for
+      if (includeInventoryId) {
+        feature.properties.inventoryId = inventoryData.inventory_id;
+      }
+      return feature;
     });
-    if (inventoryData.sampleTrees.length > 0) {
+    if (inventoryData.sampleTrees.length > 0 && !ignoreSampleTrees) {
       for (const sampleTree of inventoryData.sampleTrees) {
         let appAdditionalDetails: any = [];
         const metadata = getFormattedMetadata([...sampleTree.additionalDetails]);
@@ -55,6 +86,13 @@ export default async function getGeoJsonData(inventoryData: any) {
           isSampleTree: true,
         });
         metadata.app = { ...metadata.app, ...appAdditionalDetails };
+
+        if (includeStatus) {
+          metadata.app = {
+            ...metadata.app,
+            status: sampleTree.status,
+          };
+        }
 
         featureList.push({
           type: 'Feature',

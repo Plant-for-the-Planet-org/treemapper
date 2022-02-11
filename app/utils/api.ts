@@ -4,7 +4,7 @@ import jwtDecode from 'jwt-decode';
 import { Platform } from 'react-native';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { name as packageName, version } from '../../package';
+import { name as packageName, version } from '../../package.json';
 import { APIConfig } from '../actions/Config';
 import { checkErrorCode, getNewAccessToken } from '../actions/user';
 import dbLog from '../repositories/logs';

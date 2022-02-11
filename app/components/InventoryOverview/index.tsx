@@ -1,14 +1,16 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/routers';
+import turfArea from '@turf/area';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
+import { convertArea } from '@turf/helpers';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   BackHandler,
   Dimensions,
-  FlatList,
   Image,
   Modal,
   Platform,
@@ -23,6 +25,7 @@ import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SvgXml } from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
 import { setSkipToInventoryOverview } from '../../actions/inventory';
 import { map_img, plus_icon, two_trees } from '../../assets';
@@ -30,10 +33,12 @@ import { InventoryContext } from '../../reducers/inventory';
 import {
   addAppMetadata,
   changeInventoryStatus,
+  changeSampleTreesStatusToPendingUpload,
   deleteInventory,
   getInventory,
   updateInventory,
   updateLastScreen,
+  updateMissingStatusOfSingleInventory,
   updatePlantingDate,
 } from '../../repositories/inventory';
 import { getProjectById } from '../../repositories/projects';
@@ -44,6 +49,8 @@ import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
+  FIX_NEEDED,
+  getIncompleteStatus,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   OFF_SITE,
@@ -59,6 +66,14 @@ import Markers from '../Common/Markers';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 let scrollAdjust = 0;
+
+type RootStackParamList = {
+  InventoryOverview: {
+    navigateBackToHomeScreen: boolean;
+  };
+};
+
+type InventoryOverviewScreenRouteProp = RouteProp<RootStackParamList, 'InventoryOverview'>;
 
 const InventoryOverview = ({ navigation }: any) => {
   const { protocol, cdnUrl } = APIConfig;
@@ -89,6 +104,9 @@ const InventoryOverview = ({ navigation }: any) => {
   const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
   const [layoutAboveMap, setLayoutAboveMap] = useState<number | null>();
   const [customModalPosition, setCustomModalPosition] = useState<number | null>();
+  const [plantingAreaInHa, setPlantingAreaInHa] = useState<number>(0);
+  const [plantingDensity, setPlantingDensity] = useState<number>(0);
+
   const map = useRef(null);
   const scroll = useRef();
   const [geoJSON, setGeoJSON] = useState({
@@ -100,8 +118,8 @@ const InventoryOverview = ({ navigation }: any) => {
           isPolygonComplete: false,
         },
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: 'Polygon',
+          coordinates: [[]],
         },
       },
     ],
@@ -109,6 +127,9 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [saveWithoutProject, setSaveWithoutProject] = useState<boolean>(false);
+  const [showMissingDataWarning, setShowMissingDataWarning] = useState<boolean>(false);
+
+  const route: InventoryOverviewScreenRouteProp = useRoute();
 
   useEffect(() => {
     if (
@@ -132,7 +153,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }, [isCameraRefVisible, bounds, centerCoordinate]);
 
   useEffect(() => {
-    getUserDetails().then((userDetails) => {
+    getUserDetails().then(userDetails => {
       if (userDetails) {
         const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
         if (stringifiedUserDetails?.type === 'tpo') {
@@ -166,6 +187,24 @@ const InventoryOverview = ({ navigation }: any) => {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    const setPlantingArea = async (totalTreeCount: number) => {
+      const geoJSONData = await getGeoJsonData({ inventoryData: inventory });
+      if (geoJSONData.features.length > 0) {
+        const areaInSqM = turfArea(geoJSONData.features[0]);
+        const areaInHa = Math.round(convertArea(areaInSqM, 'meters', 'hectares') * 10000) / 10000;
+        setPlantingAreaInHa(areaInHa);
+        setPlantingDensity(Math.round((totalTreeCount / areaInHa) * 100) / 100);
+      }
+    };
+    if (inventory) {
+      const totalTreeCount = inventory?.species
+        .map((species: any) => species.treeCount)
+        .reduce((a: any, b: any) => a + b, 0);
+      setPlantingArea(totalTreeCount);
+    }
+  }, [inventory]);
+
   const hardBackHandler = () => {
     navigation.dispatch(
       CommonActions.reset({
@@ -184,7 +223,7 @@ const InventoryOverview = ({ navigation }: any) => {
   const initialState = () => {
     if (state.inventoryID) {
       getInventory({ inventoryID: state.inventoryID }).then(async (inventoryData: any) => {
-        const geoJSONData = await getGeoJsonData(inventoryData);
+        const geoJSONData = await getGeoJsonData({ inventoryData, includeStatus: true });
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
@@ -232,7 +271,7 @@ const InventoryOverview = ({ navigation }: any) => {
       });
   };
 
-  const onPressSave = ({
+  const onPressSave = async ({
     forceContinue,
     continueWithoutProject,
   }: {
@@ -242,7 +281,13 @@ const InventoryOverview = ({ navigation }: any) => {
     continueWithoutProject = continueWithoutProject || saveWithoutProject;
     setSaveWithoutProject(continueWithoutProject);
 
-    if (inventory.species.length > 0) {
+    const result = await updateMissingStatusOfSingleInventory(inventory?.inventory_id);
+
+    if (result?.isFixNeeded) {
+      setShowMissingDataWarning(true);
+    } else if (inventory.species.length > 0) {
+      changeSampleTreesStatusToPendingUpload(inventory?.inventory_id);
+      setShowMissingDataWarning(false);
       if (inventory.locateTree === OFF_SITE) {
         if ((showProject && (selectedProjectName || continueWithoutProject)) || !showProject) {
           setShowNoProjectWarning(false);
@@ -285,7 +330,7 @@ const InventoryOverview = ({ navigation }: any) => {
   };
 
   const renderMapView = () => {
-    let shouldRenderShape = geoJSON.features[0].geometry.coordinates.length > 1;
+    let shouldRenderShape = geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
       <MapboxGL.MapView
         showUserLocation={false}
@@ -295,7 +340,7 @@ const InventoryOverview = ({ navigation }: any) => {
         scrollEnabled={true}
         rotateEnabled={false}>
         <MapboxGL.Camera
-          ref={(el) => {
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
@@ -317,10 +362,7 @@ const InventoryOverview = ({ navigation }: any) => {
         {!isPointForMultipleTree ? (
           <Markers
             geoJSON={geoJSON}
-            setCoordinateModalShow={setCoordinateModalShow}
-            setCoordinateIndex={setCoordinateIndex}
             onPressMarker={onPressMarker}
-            setIsSampleTree={setIsSampleTree}
             locateTree={inventory.locateTree}
             ignoreLastMarker
           />
@@ -331,7 +373,9 @@ const InventoryOverview = ({ navigation }: any) => {
     );
   };
 
-  const onPressMarker = async (isSampleTree: boolean, coordinate: []) => {
+  const onPressMarker = async ({ isSampleTree, coordinate, coordinateIndex }: any) => {
+    setCoordinateIndex(coordinateIndex);
+    setIsSampleTree(isSampleTree);
     let approxModalHeight = isSampleTree ? 250 : 150;
     let halfMapHeight = 215;
     let markerHeight = 45;
@@ -361,6 +405,7 @@ const InventoryOverview = ({ navigation }: any) => {
       setCustomModalPosition(halfMapHeight);
     }
     focusMarker(coordinate);
+    setCoordinateModalShow(true);
   };
 
   const onChangeDate = (selectedDate: any) => {
@@ -495,14 +540,14 @@ const InventoryOverview = ({ navigation }: any) => {
         setShowAlert(!showAlert);
         navigation.navigate('TreeInventory');
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
       });
   };
 
   let isSingleCoordinate, locateType;
   if (inventory) {
-    isSingleCoordinate = inventory.polygons[0].coordinates.length == 1;
+    isSingleCoordinate = inventory.polygons[0].coordinates[0].length == 1;
 
     locateType =
       inventory.locateTree === OFF_SITE
@@ -511,6 +556,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
+  const showEditButton = inventory?.status && getIncompleteStatus().includes(inventory?.status);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -526,14 +572,20 @@ const InventoryOverview = ({ navigation }: any) => {
                 { useNativeDriver: false },
               )}>
               <View
-                onLayout={(e) => {
+                onLayout={e => {
                   setLayoutAboveMap(e.nativeEvent.layout.height);
                 }}>
                 <Header
                   closeIcon
                   headingText={i18next.t('label.inventory_overview_header_text')}
                   subHeadingText={i18next.t('label.inventory_overview_sub_header')}
-                  onBackPress={() => navigation.navigate('TreeInventory')}
+                  onBackPress={() => {
+                    if (route?.params?.navigateBackToHomeScreen) {
+                      navigation.navigate('MainScreen');
+                    } else {
+                      navigation.navigate('TreeInventory');
+                    }
+                  }}
                   rightText={
                     status == INCOMPLETE_SAMPLE_TREE ||
                     status == INCOMPLETE ||
@@ -543,6 +595,20 @@ const InventoryOverview = ({ navigation }: any) => {
                   }
                   onPressFunction={() => setShowAlert(true)}
                 />
+                {inventory.status === FIX_NEEDED ? (
+                  <View style={styles.fixNeededContainer}>
+                    <Text style={styles.fixNeededText}>
+                      {`${i18next.t('label.tree_inventory_fix_needed')} ${i18next.t(
+                        'label.tree_inventory_fix_needed_sample',
+                      )}`}
+                    </Text>
+                    <Text style={[styles.fixNeededText, { marginTop: 12 }]}>
+                      {i18next.t('label.fix_before_uploading')}
+                    </Text>
+                  </View>
+                ) : (
+                  []
+                )}
                 <Label
                   leftText={i18next.t('label.inventory_overview_left_text')}
                   rightText={i18next.t('label.inventory_overview_date', {
@@ -562,19 +628,45 @@ const InventoryOverview = ({ navigation }: any) => {
               </View>
               <View>
                 {renderMapView()}
-                {(inventory?.status === INCOMPLETE ||
-                  inventory?.status === INCOMPLETE_SAMPLE_TREE) &&
+                {showEditButton ? (
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      backgroundColor: Colors.WHITE,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: Colors.GRAY_LIGHT,
+                      position: 'absolute',
+                      top: 30,
+                      right: 6,
+                    }}
+                    onPress={() => navigation.navigate('EditPolygon')}>
+                    <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
+                  </TouchableOpacity>
+                ) : (
+                  []
+                )}
+                {inventory?.status &&
+                (getIncompleteStatus().includes(inventory?.status) ||
+                  inventory?.status === FIX_NEEDED) &&
                 inventory?.locateTree === ON_SITE ? (
-                  <View style={{ position: 'absolute', top: 0, right: 0, paddingTop: 25 }}>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: showEditButton ? 48 : 0,
+                      paddingTop: 20,
+                    }}>
                     <TouchableOpacity
                       style={{
-                        paddingVertical: 5,
-                        paddingHorizontal: 10,
+                        paddingVertical: 11,
+                        paddingHorizontal: 12,
                         margin: 10,
                         backgroundColor: Colors.WHITE,
                         borderRadius: 12,
                         borderWidth: 1,
-                        borderColor: Colors.LIGHT_BORDER_COLOR,
+                        borderColor: Colors.GRAY_LIGHT,
                       }}
                       onPress={
                         inventory?.completedSampleTreesCount == 0 &&
@@ -597,6 +689,38 @@ const InventoryOverview = ({ navigation }: any) => {
                   []
                 )}
               </View>
+
+              {/* display the HID if available */}
+
+              {inventory?.hid ? (
+                <Label
+                  leftText={'HID'}
+                  rightText={inventory?.hid}
+                  rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                />
+              ) : (
+                []
+              )}
+
+              {/* display planting area on the screen */}
+              {!isSingleCoordinate ? (
+                <>
+                  <Label
+                    leftText={i18next.t('label.planting_area')}
+                    rightText={i18next.t('label.planting_area_value', { plantingAreaInHa })}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                  />
+                  <Label
+                    leftText={i18next.t('label.planting_density')}
+                    rightText={i18next.t('label.planting_density_value', { plantingDensity })}
+                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                  />
+                </>
+              ) : (
+                []
+              )}
+
+              {/* display projects on the screen */}
               {showProject ? (
                 <Label
                   leftText={i18next.t('label.tree_review_project')}
@@ -606,12 +730,12 @@ const InventoryOverview = ({ navigation }: any) => {
                       : i18next.t('label.tree_review_unassigned')
                   }
                   onPressRightText={() =>
-                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    getIncompleteStatus().includes(status)
                       ? navigation.navigate('SelectProject', { selectedProjectId })
                       : {}
                   }
                   rightTextStyle={
-                    status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
+                    getIncompleteStatus().includes(status)
                       ? { color: Colors.PRIMARY }
                       : { color: Colors.TEXT_COLOR }
                   }
@@ -622,28 +746,22 @@ const InventoryOverview = ({ navigation }: any) => {
 
               <Label
                 leftText={i18next.t('label.inventory_overview_left_text_planted_species')}
-                rightText={
-                  status === INCOMPLETE || status === INCOMPLETE_SAMPLE_TREE
-                    ? i18next.t('label.edit')
-                    : ''
-                }
+                rightText={getIncompleteStatus().includes(status) ? i18next.t('label.edit') : ''}
                 onPressRightText={handleSelectSpecies}
               />
-              <FlatList
-                data={inventory.species}
-                renderItem={({ item }) => (
-                  <Label
-                    leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
-                    rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
-                    style={{ marginVertical: 10 }}
-                    leftTextStyle={{
-                      paddingLeft: 20,
-                      fontFamily: Typography.FONT_FAMILY_REGULAR,
-                    }}
-                    rightTextStyle={{ color: Colors.TEXT_COLOR }}
-                  />
-                )}
-              />
+              {inventory.species.map((item: any, index: number) => (
+                <Label
+                  key={`species-${index}`}
+                  leftText={i18next.t('label.inventory_overview_loc_left_text', { item })}
+                  rightText={i18next.t('label.inventory_overview_loc_right_text', { item })}
+                  style={{ marginVertical: 10 }}
+                  leftTextStyle={{
+                    paddingLeft: 20,
+                    fontFamily: Typography.FONT_FAMILY_REGULAR,
+                  }}
+                  rightTextStyle={{ color: Colors.TEXT_COLOR }}
+                />
+              ))}
               {inventory && inventory.species.length <= 0 ? renderAddSpeciesButton(status) : null}
 
               <ExportGeoJSON inventory={inventory} />
@@ -652,7 +770,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
               <AdditionalDataOverview data={inventory} />
             </ScrollView>
-            {(inventory.status === INCOMPLETE || inventory.status === INCOMPLETE_SAMPLE_TREE) && (
+            {(getIncompleteStatus().includes(inventory.status) ||
+              inventory.status === FIX_NEEDED) && (
               <View style={styles.bottomButtonContainer}>
                 <PrimaryButton
                   onPress={() => onPressSave({})}
@@ -739,6 +858,14 @@ const InventoryOverview = ({ navigation }: any) => {
         onPressSecondaryBtn={() => setShowNoProjectWarning(false)}
         showSecondaryButton={true}
       />
+      <AlertModal
+        visible={showMissingDataWarning}
+        heading={i18next.t('label.missing_data_found')}
+        message={i18next.t('label.missing_data_found_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => setShowMissingDataWarning(false)}
+        showSecondaryButton={false}
+      />
       {renderDatePicker()}
     </SafeAreaView>
   );
@@ -767,14 +894,14 @@ const CoordinateOverviewModal = ({
   useEffect(() => {
     if (coordinateIndex || coordinateIndex === 0) {
       if (isSampleTree !== null && !isSampleTree) {
-        setMarker(inventory?.polygons[0].coordinates[coordinateIndex]);
-        initiateMarkerData(inventory?.polygons[0].coordinates[coordinateIndex]);
+        setMarker(inventory?.polygons[0].coordinates[0][coordinateIndex]);
+        initiateMarkerData(inventory?.polygons[0].coordinates[0][coordinateIndex]);
       } else if (isSampleTree !== null && isSampleTree) {
         setMarker(inventory?.sampleTrees[coordinateIndex - 1]);
         initiateMarkerData(inventory?.sampleTrees[coordinateIndex - 1]);
       }
     }
-    getUserInformation().then((data) => {
+    getUserInformation().then(data => {
       setCountryCode(data.country);
     });
   }, [coordinateIndex, coordinateModalShow]);
@@ -961,14 +1088,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     height: 380,
     marginVertical: 25,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   modalContainer: {
     flex: 1,
-    // justifyContent: 'center',
     alignItems: 'center',
-    // borderWidth: 3,
-    // borderColor: 'green',
     position: 'relative',
+  },
+  fixNeededContainer: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#E86F5620',
+    marginVertical: 24,
+  },
+  fixNeededText: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.PLANET_RED,
   },
 });
 

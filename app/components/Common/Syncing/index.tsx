@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Typography, Colors } from '_styles';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Typography, Colors } from '../../../styles';
 import RotatingView from '../RotatingView';
 import { uploadInventoryData } from '../../../utils/uploadInventory';
 import { InventoryContext } from '../../../reducers/inventory';
@@ -31,6 +31,7 @@ export default function Syncing({
   borderLess = false,
 }: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
+  const [maxWidth, setMaxWidth] = useState('100%');
   const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
@@ -47,7 +48,9 @@ export default function Syncing({
           count: pendingCount,
         }),
       );
+      setMaxWidth('100%');
     } else {
+      setMaxWidth('50%');
       setSyncText(i18next.t('label.all_backed_up'));
     }
   };
@@ -66,7 +69,7 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      uploadInventoryData(dispatch, userDispatch).catch((err) => {
+      uploadInventoryData(dispatch, userDispatch).catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: 'Failed to upload Inventories',
@@ -74,7 +77,7 @@ export default function Syncing({
         });
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
-        } else if (err.error !== 'a0.session.user_cancelled') {
+        } else if (err.error !== 'a0.session.user_cancelled' && setEmailAlert) {
           setEmailAlert(true);
         }
       });
@@ -95,16 +98,19 @@ export default function Syncing({
       />
     );
   };
-  const renderSyncContainer = () => {
+  const SyncIcon = () => {
+    return <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} style={{ marginRight: 6 }} />;
+  };
+  const SyncContainer = () => {
     return (
-      <View>
+      <View style={{ maxWidth }}>
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
-            <RotatingView isClockwise={false}>
-              <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
+            <RotatingView isClockwise={true}>
+              <SyncIcon />
             </RotatingView>
           ) : (
-            <MCIcon size={24} name="sync" color={Colors.PRIMARY} />
+            <SyncIcon />
           )}
           <Text style={styles.syncText}>{syncText}</Text>
         </View>
@@ -114,32 +120,35 @@ export default function Syncing({
   };
 
   if (!isUserLogin && !isUploading && pendingCount === 0) {
-    return <></>;
+    return <View></View>;
   }
 
   if (!isUploading && pendingCount > 0) {
-    return <TouchableOpacity onPress={onPressUploadNow}>{renderSyncContainer()}</TouchableOpacity>;
+    return (
+      <TouchableOpacity onPress={onPressUploadNow}>
+        <SyncContainer />
+      </TouchableOpacity>
+    );
   } else {
-    return renderSyncContainer();
+    return <SyncContainer />;
   }
 }
 
 const styles = StyleSheet.create({
   syncContainer: {
-    borderRadius: 6,
-
-    height: 40,
-    borderColor: '#c3c3c3',
+    borderRadius: 14,
+    borderColor: Colors.GRAY_LIGHT,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.WHITE,
   },
   syncText: {
     paddingLeft: 6,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
   progressText: {

@@ -34,5 +34,15 @@
   "need_more_sample_trees": "Need more Sample Trees",
   "at_least_five_sample_trees": "You should add at least 5 Sample Trees.",
   "project_not_assigned": "Project not assigned!",
-  "project_not_assigned_message": "Are you sure, you want to save this registration without assigning a project?"
+  "project_not_assigned_message": "Are you sure, you want to save this registration without assigning a project?",
+  "plantation_date": "Plantation date: ",
+  "plantation_period": "Plantation period: ",
+  "more_details": "More details",
+  "view_sample_trees": "View sample trees",
+  "planting_area": "Planting Area",
+  "planting_area_value": "{{plantingAreaInHa}} ha",
+  "planting_density": "Planting Density",
+  "planting_density_value": "{{plantingDensity}} per ha",
+  "missing_data_found": "Missing data!",
+  "missing_data_found_message": "There are some missing data in this registration. Please review the registration again, make sure to check sample trees as well."
 }

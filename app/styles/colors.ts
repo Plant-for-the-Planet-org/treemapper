@@ -1,4 +1,14 @@
 export const PRIMARY = '#68B030';
+export const PRIMARY_DARK = '#007A49';
+export const PLANET_PURPLE = '#6C63FF';
+export const PLANET_RED = '#E86F56';
+export const PLANET_GRAY = '#EBEBEB';
+export const PLANET_BLUE = '#48AADD';
+export const PLANET_BLACK = '#2F3336';
+export const PLANET_CHOCOLATE = '#6D4230';
+export const PLANET_CHOCOLATE_GRADIENT_1 = '#83583A';
+export const PLANET_CHOCOLATE_GRADIENT_2 = '#432918';
+
 // export export const SECONDARY = '#767676';
 export const WHITE = '#FFFFFF';
 export const BLACK = '#000000';

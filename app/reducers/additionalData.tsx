@@ -13,6 +13,7 @@ import {
   filterFormByTreeAndRegistrationType,
   sortByField,
 } from '../utils/additionalData/functions';
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 // Creates the context object for AdditionalData. Used by component to get the state and functions

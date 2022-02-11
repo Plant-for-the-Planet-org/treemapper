@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
 import dbLog from '../repositories/logs';
-import { addProjects } from '../repositories/projects';
+import { addProjects, deleteAllProjects } from '../repositories/projects';
 import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
@@ -12,6 +12,8 @@ import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '..
 import { isInternetConnected } from '../utils/checkInternet';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
+import { updateInventoryFetchFromServer } from './inventory';
+import { inventoryFetchConstant } from '../reducers/inventory';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -30,7 +32,7 @@ const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CL
  * to get the user details.
  * @param {ActionDispatch} dispatch - requires dispatch function of user context to pass it to func [setUserInitialState]
  */
-export const auth0Login = (dispatch) => {
+export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
   return new Promise((resolve, reject) => {
     auth0.webAuth
       .authorize(
@@ -40,7 +42,7 @@ export const auth0Login = (dispatch) => {
           prompt: 'login',
           audience: 'urn:plant-for-the-planet',
         },
-        { ephemeralSession: true },
+        { ephemeralSession: false },
       )
       .then((credentials) => {
         const expirationTime = getExpirationTimeStamp(credentials.accessToken);
@@ -69,7 +71,7 @@ export const auth0Login = (dispatch) => {
               image,
               country,
               id: userId,
-            } = userDetails;
+            }: any = userDetails;
 
             // dispatch function sets the passed user details into the user state
             setUserDetails({
@@ -83,7 +85,8 @@ export const auth0Login = (dispatch) => {
 
             getAllProjects();
             checkAndAddUserSpecies().then(() => {
-              addInventoryFromServer();
+              updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
+              addInventoryFromServer('', inventoryDispatch);
             });
             resolve(true);
           })
@@ -133,6 +136,7 @@ export const auth0Logout = async (userDispatch = null) => {
       .then(async () => {
         // deletes the user from DB
         await deleteUser();
+        await deleteAllProjects()
 
         await resetAllSpecies();
 
@@ -177,7 +181,7 @@ export const auth0Logout = async (userDispatch = null) => {
  * function [createOrModifyUserToken] to store the updated tokens fetched from auth0
  * @param {string} refreshToken - used to fetch a new access token
  */
-export const getNewAccessToken = async (refreshToken) => {
+export const getNewAccessToken = async (refreshToken: string) => {
   const isConnected = await isInternetConnected();
   return new Promise((resolve) => {
     if (!isConnected) {
@@ -234,7 +238,7 @@ export const getNewAccessToken = async (refreshToken) => {
  * @param {Error} error - error of api response to check for 401 error code.
  * @returns {boolean} - returns true if user is logged out else returns false
  */
-export const checkErrorCode = async (error, userDispatch = null) => {
+export const checkErrorCode = async (error: any, userDispatch: any = null) => {
   if (error?.response?.status === 401 || error?.response?.status === 403) {
     return await auth0Logout(userDispatch);
   }
@@ -248,12 +252,12 @@ export const checkErrorCode = async (error, userDispatch = null) => {
 
 /**
  * Fetches the detail of the user from the server using the accessToken and requesting the GET api - /app/profile
- * @param {string} userDispatch - used to clear the data if the error occurred will lead to logout
+ * @param {ActionDispatch} userDispatch - used to clear the data if the error occurred will lead to logout
  */
-export const getUserDetailsFromServer = (userDispatch) => {
+export const getUserDetailsFromServer = (userDispatch: any) => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile')
-      .then((data) => {
+      .then((data: any) => {
         // destructured and modified variable names which is used to set user state
         const {
           email,
@@ -264,7 +268,7 @@ export const getUserDetailsFromServer = (userDispatch) => {
           id: userId,
           type,
           displayName,
-        } = data.data;
+        } = data?.data;
 
         // calls modifyUserDetails function to add user's email, firstName, lastName, userId, image, accessToken and country in DB
         modifyUserDetails({
@@ -282,9 +286,9 @@ export const getUserDetailsFromServer = (userDispatch) => {
         dbLog.info({
           logType: LogTypes.USER,
           message: 'Successfully retrieved User Information from Server',
-          statusCode: data.status,
+          statusCode: data?.status,
         });
-        resolve(data.data);
+        resolve(data?.data);
       })
       .catch(async (err) => {
         // calls this function to check for the error code and either logout the user or ask to signup
@@ -306,12 +310,12 @@ export const getUserDetailsFromServer = (userDispatch) => {
   });
 };
 
-export const SignupService = (payload, dispatch) => {
+export const SignupService = (payload: any, dispatch: any) => {
   // try {
   return new Promise((resolve, reject) => {
     postRequest('/app/profile', payload)
       .then(async (res) => {
-        const { status, data } = res;
+        const { status, data }: any = res;
         if (status === 200) {
           await modifyUserDetails({
             firstName: data.firstname,
@@ -320,6 +324,7 @@ export const SignupService = (payload, dispatch) => {
             displayName: data.displayName,
             country: data.country,
             userId: data.id,
+            type: data.type,
             isSignUpRequired: false,
           });
           // logging the success in to the db
@@ -357,9 +362,9 @@ export const SignupService = (payload, dispatch) => {
  */
 export const getAllProjects = () => {
   return new Promise((resolve, reject) => {
-    getAuthenticatedRequest('/app/profile/projects')
+    getAuthenticatedRequest('/app/profile/projects?_scope=extended')
       .then(async (res) => {
-        const { status, data } = res;
+        const { status, data }: any = res;
         if (status === 200) {
           await addProjects(data);
           // logging the success in to the db
@@ -398,7 +403,7 @@ export const getAllProjects = () => {
  * dispatches type SET_INITIAL_USER_STATE with payload as loginData to add user tokens in the user state of the app
  * @param {object} loginData - used to add the tokens in the user state of the app. The object should have accessToken and idToken
  */
-export const setUserInitialState = (loginData) => (dispatch) => {
+export const setUserInitialState = (loginData: object) => (dispatch: any) => {
   dispatch({
     type: SET_INITIAL_USER_STATE,
     payload: loginData,
@@ -410,7 +415,7 @@ export const setUserInitialState = (loginData) => (dispatch) => {
  * @param {object} userDetails - used to add details of user in the app state. The object should include
  *                               accessToken?, idToken?, firstName, lastName, image, userId, email, country
  */
-export const setUserDetails = (userDetails) => (dispatch) => {
+export const setUserDetails = (userDetails: object) => (dispatch: any) => {
   dispatch({
     type: SET_USER_DETAILS,
     payload: userDetails,
@@ -420,7 +425,7 @@ export const setUserDetails = (userDetails) => (dispatch) => {
 /**
  * dispatches type CLEAR_USER_DETAILS to clear user details and reset to initial state from the user state of the app
  */
-export const clearUserDetails = () => (dispatch) => {
+export const clearUserDetails = () => (dispatch: any) => {
   dispatch({
     type: CLEAR_USER_DETAILS,
   });

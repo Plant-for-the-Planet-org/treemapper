@@ -345,7 +345,7 @@ const Metadata = {
   },
 };
 
-// migration to delete all the SYNCED registrations from and to server
+// migration to delete all the SYNCED registrations
 const migration = (oldRealm: any, newRealm: any) => {
   deleteSyncedAndMigrate(oldRealm, newRealm, schemaVersion);
 };

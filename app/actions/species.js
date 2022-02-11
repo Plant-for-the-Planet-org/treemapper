@@ -1,5 +1,4 @@
 import RNFS from 'react-native-fs';
-import i18next from '../languages/languages';
 import dbLog from '../repositories/logs';
 import { changeIsUpdatedStatus } from '../repositories/species';
 import { bugsnag } from '../utils';

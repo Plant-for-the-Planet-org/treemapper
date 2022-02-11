@@ -4,7 +4,7 @@ import { Colors, Typography } from '../../styles';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { mobile_download, cloud_sync } from '../../assets';
-import i18next from 'i18next';
+import i18next from '../../languages/languages';
 import { migrateRealm } from '../../repositories/default';
 import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -78,7 +78,7 @@ export default function InitialLoading() {
             navigation.navigate('SpeciesLoading');
           }
         })
-        .catch((err) => {
+        .catch(err => {
           dbLog.error({
             logType: LogTypes.OTHER,
             message: 'Failed to migrate the Realm Database',
@@ -94,7 +94,7 @@ export default function InitialLoading() {
           setInitialNavigationScreen('');
           showMainNavigationStack();
         })
-        .catch((err) => {
+        .catch(err => {
           dbLog.error({
             logType: LogTypes.OTHER,
             message: 'Failed to update and sync local species',

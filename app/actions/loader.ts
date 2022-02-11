@@ -1,9 +1,10 @@
 import { SET_LOADING, SET_SIGNUP_LOADING } from './Types';
+import React from 'react';
 
 /**
  * This function dispatches type SET_LOADING with payload of boolean value [true] to update in loading state.
  */
-export const startLoading = () => (dispatch) => {
+export const startLoading = () => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: SET_LOADING,
     payload: true,
@@ -14,7 +15,7 @@ export const startLoading = () => (dispatch) => {
 /**
  * This function dispatches type SET_LOADING with payload of boolean value [false] to update in loading state.
  */
-export const stopLoading = () => (dispatch) => {
+export const stopLoading = () => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: SET_LOADING,
     payload: false,
@@ -24,7 +25,7 @@ export const stopLoading = () => (dispatch) => {
 /**
  * This function dispatches type SET_SIGNUP_LOADING with payload of boolean value [true] to update in loading state.
  */
-export const startSignUpLoading = () => (dispatch) => {
+export const startSignUpLoading = () => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: SET_SIGNUP_LOADING,
     payload: true,
@@ -34,7 +35,7 @@ export const startSignUpLoading = () => (dispatch) => {
 /**
  * This function dispatches type SET_SIGNUP_LOADING with payload of boolean value [false] to update in loading state.
  */
-export const stopSignUpLoading = () => (dispatch) => {
+export const stopSignUpLoading = () => (dispatch: React.Dispatch<any>) => {
   dispatch({
     type: SET_SIGNUP_LOADING,
     payload: false,

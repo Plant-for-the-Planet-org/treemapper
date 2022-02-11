@@ -33,6 +33,7 @@
   "select_species_done": "Fertig",
   "select_species_add_name": "Name hinzufügen",
   "select_species_my_species": "Meine Arten",
+  "search_result": "Suchergebnis",
   "select_species_diameter_more_than_error": "Durchmesser muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_height_more_than_error": "Höhe muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_diameter_invalid": "Durchmesser ist ungültig",
@@ -45,7 +46,7 @@
   "select_species_looks_empty_here": "Sieht leer aus hier!",
   "select_species_add_species_desscription": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
   "select_species_tree_species": "Baumarten",
-  "sample_one_tree_for_each_species": "Bitte bestimme mindestens einen Beispielbaum für jede gepflanzte Art.",
+  "sample_one_tree_for_each_species": "Bitte bestimme mindestens einen Musterbaum für jede gepflanzte Art.",
   "species_name": "Artenname",
   "add_image": "Bild hinzufügen",
   "species_description": "Beschreibung",
@@ -59,6 +60,6 @@
   "not_optimal_ratio": "Nicht optimales Verhältnis",
   "not_optimal_ratio_message": "Das Verhältnis von Höhe zu Durchmesser fällt nicht in den optimalen Verhältnisbereich, der zwischen 2:1 (minimale Höhe:Durchmesser) und 160:1 (maximale Höhe:Durchmesser) liegt. Bist du sicher, dass du fortfahren möchtest?",
   "delete_species": "Spezies löschen?",
-  "delete_species_delete_sample_tree_warning": "Wenn du diese Art löscht, werden auch die mit dieser Art verbundenen Beispielbäume gelöscht. Bist du sicher, dass du sie löschen möchtest?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, unddie mit dieser Art verbundenen Beispielbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?"
+  "delete_species_delete_sample_tree_warning": "Wenn du diese Art löscht, werden auch die mit dieser Art verbundenen Musterbäume gelöscht. Bist du sicher, dass du sie löschen möchtest?",
+  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, und die mit dieser Art verbundenen Musterbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?"
 }

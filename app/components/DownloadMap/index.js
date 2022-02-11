@@ -16,7 +16,7 @@ import {
 import Config from 'react-native-config';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import dbLog from '../../repositories/logs';
 import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 import { LogTypes } from '../../utils/constants';
@@ -45,7 +45,7 @@ const DownloadMap = ({ navigation }) => {
   }, []);
 
   const getAllOfflineMapslocal = async () => {
-    getAllOfflineMaps().then((offlineMaps) => {
+    getAllOfflineMaps().then(offlineMaps => {
       setNumberOfOfflineMaps(offlineMaps.length);
       initialMapCamera();
     });
@@ -55,7 +55,7 @@ const DownloadMap = ({ navigation }) => {
     locationPermission()
       .then(() => {
         Geolocation.getCurrentPosition(
-          (position) => {
+          position => {
             if (camera?.current?.setCamera) {
               camera.current.setCamera({
                 centerCoordinate: [position.coords.longitude, position.coords.latitude],
@@ -64,7 +64,7 @@ const DownloadMap = ({ navigation }) => {
               });
             }
           },
-          (err) => {
+          err => {
             alert(err.message);
           },
           {
@@ -80,7 +80,7 @@ const DownloadMap = ({ navigation }) => {
           },
         );
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.OTHER,
           message: 'Error while checking location permission',
@@ -103,7 +103,7 @@ const DownloadMap = ({ navigation }) => {
       let coords = await MapBoxGLRef.current.getCenter();
       let bounds = await MapBoxGLRef.current.getVisibleBounds();
       getAreaName({ coords })
-        .then(async (areaName) => {
+        .then(async areaName => {
           setAreaName(areaName);
           const progressListener = (offlineRegion, status) => {
             if (status.percentage == 100) {
@@ -118,7 +118,7 @@ const DownloadMap = ({ navigation }) => {
                   getAllOfflineMapslocal();
                   setAreaName('');
                 })
-                .catch((err) => {
+                .catch(err => {
                   dbLog.error({
                     logType: LogTypes.OTHER,
                     message: 'Error while creating Offline Map',
@@ -149,7 +149,7 @@ const DownloadMap = ({ navigation }) => {
             errorListener,
           );
         })
-        .catch((err) => {
+        .catch(err => {
           dbLog.error({
             logType: LogTypes.OTHER,
             message: 'Error while getting area name',
@@ -192,8 +192,11 @@ const DownloadMap = ({ navigation }) => {
             ref={MapBoxGLRef}
             style={styles.cont}
             styleURL={MapboxGL.StyleURL.Street}
-            zoomLevel={15}
-            centerCoordinate={[11.256, 43.77]}>
+            attributionPosition={{
+              bottom: 7,
+              left: 96,
+            }}
+            zoomLevel={15}>
             <MapboxGL.UserLocation showsUserHeadingIndicator />
             <MapboxGL.Camera ref={camera} />
           </MapboxGL.MapView>
@@ -206,7 +209,7 @@ const DownloadMap = ({ navigation }) => {
             accessible={true}
             testID="register_tree_camera">
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
-              <Icon name={'my-location'} size={22} />
+              <Icon name={'my-location'} size={24} color={Colors.PLANET_BLACK} />
             </View>
           </TouchableOpacity>
         </View>
@@ -322,17 +325,17 @@ const styles = StyleSheet.create({
     height: 45,
     backgroundColor: Colors.WHITE,
     position: 'absolute',
+    right: 6,
+    bottom: 6,
     borderRadius: 100,
-    right: 0,
-    marginHorizontal: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: Colors.TEXT_COLOR,
-    bottom: 25,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
   myLocationIconContainer: {
-    top: 1.5,
-    left: 0.8,
+    top: 0,
+    left: 0,
   },
 });
 
