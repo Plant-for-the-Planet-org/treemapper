@@ -61,5 +61,6 @@
   "not_optimal_ratio_message": "The height to diameter ratio does not fall between the optimal ratio range which is between 2:1 (minimum height:diameter) and 160:1 (maximum height:diameter). Are you sure do you want to continue?",
   "delete_species": "Delete Species?",
   "delete_species_delete_sample_tree_warning": "If you delete this species, the sample tree(s) related to this species will also get deleted. Are you sure, that you want to delete?",
-  "zero_tree_count_species_delete_sample_tree_warning": "This species will be deleted if tree count is set to 0 and the sample tree(s) related to this species will also get deleted. Are you sure, that you want to set tree count to zero?"
+  "zero_tree_count_species_delete_sample_tree_warning": "This species will be deleted if tree count is set to 0 and the sample tree(s) related to this species will also get deleted. Are you sure, that you want to set tree count to zero?",
+  "tree_is_still_alive": "Tree is still alive"
 }

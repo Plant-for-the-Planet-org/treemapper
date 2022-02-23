@@ -44,5 +44,7 @@
   "planting_density": "Planting Density",
   "planting_density_value": "{{plantingDensity}} per ha",
   "missing_data_found": "Missing data!",
-  "missing_data_found_message": "There are some missing data in this registration. Please review the registration again, make sure to check sample trees as well."
+  "missing_data_found_message": "There are some missing data in this registration. Please review the registration again, make sure to check sample trees as well.",
+  "remeasure": "Remeasure",
+  "remeasurement": "Remeasurement"
 }

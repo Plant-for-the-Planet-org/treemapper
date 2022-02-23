@@ -31,6 +31,7 @@ const initialState = {
   skipToInventoryOverview: false,
   isExtraSampleTree: false,
   inventoryFetchProgress: inventoryFetchConstant.PENDING,
+  samplePlantLocationIndex: null,
 };
 
 // Inventory reducer function which takes the state and action param

@@ -42,6 +42,8 @@ import AddMetadata from '../AdditionalData/AddMetadata';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 import EditPolygon from '../InventoryOverview/EditPolygon';
+import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
+import RemeasurementForm from '../Remeasurements/RemeasurementForm';
 
 const Stack = createStackNavigator();
 
@@ -127,6 +129,8 @@ export default function MainNavigator() {
       <Stack.Screen name="SpecieSampleTree" component={SpecieSampleTree} options={MyTransition} />
       <Stack.Screen name="AddMeasurements" component={AddMeasurements} options={MyTransition} />
       <Stack.Screen name="EditPolygon" component={EditPolygon} options={MyTransition} />
+      <Stack.Screen name="TreeTypeSelection" component={TreeTypeSelection} options={MyTransition} />
+      <Stack.Screen name="RemeasurementForm" component={RemeasurementForm} options={MyTransition} />
     </Stack.Navigator>
   );
 }
