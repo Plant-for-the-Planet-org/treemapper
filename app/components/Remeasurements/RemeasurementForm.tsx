@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
+import { nanoid } from 'nanoid';
 import React, { createRef, useContext, useEffect, useState } from 'react';
 import {
   Keyboard,
@@ -18,7 +19,6 @@ import {
   getSystemName,
   getSystemVersion,
 } from 'react-native-device-info';
-import { v4 as uuidv4 } from 'uuid';
 import { InventoryContext } from '../../reducers/inventory';
 import { addPlantLocationHistory, getInventory } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
@@ -26,8 +26,8 @@ import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 import { measurementValidation } from '../../utils/validations/measurements';
 import { AlertModal, Header, PrimaryButton } from '../Common';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import MeasurementInputs from '../Common/MeasurementInputs';
-import OutlinedInput from '../Common/OutlinedInput';
 
 type Props = {};
 
@@ -42,12 +42,33 @@ export default function RemeasurementForm({}: Props) {
   const [isTreeAlive, setIsTreeAlive] = useState<boolean>(true);
   const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
   const [deadReason, setDeadReason] = useState<string>('');
+  const [showReasonOptions, setShowReasonOptions] = useState<boolean>(false);
 
   const diameterRef = createRef();
 
   const navigation = useNavigation();
 
   const { state } = useContext(InventoryContext);
+
+  // reasons to show if the tree is dead
+  const deadReasonOptions = [
+    {
+      label: i18next.t('label.flood'),
+      value: 'flood',
+    },
+    {
+      label: i18next.t('label.fire'),
+      value: 'fire',
+    },
+    {
+      label: i18next.t('label.drought'),
+      value: 'drought',
+    },
+    {
+      label: i18next.t('label.other'),
+      value: 'other',
+    },
+  ];
 
   useEffect(() => {
     fetchInventory();
@@ -103,7 +124,7 @@ export default function RemeasurementForm({}: Props) {
       deviceManufacturer: await getManufacturer(),
     };
     let historyData: any = {
-      id: uuidv4(),
+      id: nanoid(),
       eventDate: new Date(),
       appMetadata: JSON.stringify(appAdditionalDetails),
     };
@@ -125,6 +146,13 @@ export default function RemeasurementForm({}: Props) {
       samplePlantLocationIndex: state.samplePlantLocationIndex,
       historyData,
     });
+  };
+
+  const handleIsTreeAliveChange = () => {
+    setIsTreeAlive(!isTreeAlive);
+    setHeight('');
+    setDiameter('');
+    setDeadReason('');
   };
 
   return (
@@ -163,7 +191,7 @@ export default function RemeasurementForm({}: Props) {
                     trackColor={{ false: '#767577', true: '#d4e7b1' }}
                     thumbColor={isTreeAlive ? Colors.PRIMARY : '#f4f3f4'}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => setIsTreeAlive(!isTreeAlive)}
+                    onValueChange={() => handleIsTreeAliveChange()}
                     value={isTreeAlive}
                   />
                 </View>
@@ -181,14 +209,16 @@ export default function RemeasurementForm({}: Props) {
                   />
                 ) : (
                   <View style={styles.inputBox}>
-                    <View>
-                      <OutlinedInput
-                        value={height}
-                        onChangeText={(text: string) => setDeadReason(text)}
-                        label={i18next.t('label.dead_reason')}
-                        autoFocus
-                      />
-                    </View>
+                    <Text style={styles.reasonText}>{i18next.t('label.dead_reason')}</Text>
+                    <CustomDropDownPicker
+                      items={deadReasonOptions}
+                      open={showReasonOptions}
+                      setOpen={setShowReasonOptions}
+                      value={deadReason}
+                      setValue={setDeadReason}
+                      zIndex={3000}
+                      zIndexInverse={1000}
+                    />
                   </View>
                 )}
               </View>
@@ -253,5 +283,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
+  },
+  reasonText: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_COLOR,
+    marginBottom: 8,
   },
 });

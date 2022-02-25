@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Typography, Colors } from '../../styles';
 import { DBHInMeter, meterToFoot } from '../../utils/constants';
 import { getConvertedHeight } from '../../utils/measurements';
 import OutlinedInput from './OutlinedInput';

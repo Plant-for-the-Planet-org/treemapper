@@ -2,10 +2,8 @@ import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { Colors, Typography } from '../../styles';
-import EntypoIcon from 'react-native-vector-icons/Entypo';
-import i18next from 'i18next';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
 interface Props {
   projects: any[];
@@ -105,56 +103,23 @@ const ProjectAndSiteSelector = ({
 
   return (
     <View style={[{ display: 'flex', flex: 1, maxWidth: '50%' }, !IS_ANDROID ? { zIndex: 2 } : {}]}>
-      <DropDownPicker
-        language={i18next.language.toUpperCase()}
+      <CustomDropDownPicker
         items={projectOptions}
         open={showProjectOptions}
         setOpen={setShowProjectOptions}
         value={selectedProjectId}
         setValue={setSelectedProjectId}
-        style={{ ...styles.dropDown, marginBottom: 8 }}
-        textStyle={styles.textStyle}
-        selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
-        listItemContainerStyle={styles.listItemContainer}
-        listItemLabelStyle={styles.listItemLabel}
-        dropDownContainerStyle={styles.dropDownContainerStyle}
+        style={{ marginBottom: 8 }}
         zIndex={3000}
         zIndexInverse={1000}
-        showTickIcon={false}
-        itemSeparatorStyle={styles.itemSeparator}
-        itemSeparator
-        ArrowDownIconComponent={() => (
-          <EntypoIcon name="chevron-down" color={Colors.GRAY_LIGHTEST} size={20} />
-        )}
-        ArrowUpIconComponent={() => (
-          <EntypoIcon name="chevron-up" color={Colors.GRAY_LIGHTEST} size={20} />
-        )}
       />
       {projectSites && projectSites.length > 0 && (
-        <DropDownPicker
-          language={i18next.language.toUpperCase()}
+        <CustomDropDownPicker
           items={projectSites}
           open={showProjectSiteOptions}
           setOpen={setShowProjectSiteOptions}
           value={selectedProjectSiteId}
           setValue={setSelectedProjectSiteId}
-          style={styles.dropDown}
-          textStyle={styles.textStyle}
-          selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
-          listItemContainerStyle={styles.listItemContainer}
-          listItemLabelStyle={styles.listItemLabel}
-          dropDownContainerStyle={styles.dropDownContainerStyle}
-          zIndex={2000}
-          zIndexInverse={2000}
-          showTickIcon={false}
-          itemSeparatorStyle={styles.itemSeparator}
-          itemSeparator
-          ArrowDownIconComponent={() => (
-            <EntypoIcon name="chevron-down" color={Colors.GRAY_LIGHTEST} size={20} />
-          )}
-          ArrowUpIconComponent={() => (
-            <EntypoIcon name="chevron-up" color={Colors.GRAY_LIGHTEST} size={20} />
-          )}
         />
       )}
     </View>
@@ -162,37 +127,3 @@ const ProjectAndSiteSelector = ({
 };
 
 export default ProjectAndSiteSelector;
-
-const styles = StyleSheet.create({
-  dropDown: {
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: Colors.GRAY_LIGHT,
-  },
-  textStyle: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_14,
-    color: Colors.TEXT_COLOR,
-  },
-  dropDownContainerStyle: {
-    borderWidth: 1,
-    borderColor: Colors.GRAY_LIGHT,
-  },
-  listItemContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flex: 1,
-    height: 'auto',
-  },
-  listItemLabel: {
-    flex: 1,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
-  itemSeparator: {
-    backgroundColor: Colors.GRAY_LIGHT,
-    height: 1,
-    marginHorizontal: 8,
-  },
-});

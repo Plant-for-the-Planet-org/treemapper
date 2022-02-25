@@ -38,5 +38,10 @@
   "missing_data_found_registration": "Missing data found in registrations",
   "tree_inventory_fix_needed": "There are some missing data in this registration.",
   "tree_inventory_fix_needed_sample": "Check in the map below for the sample trees in red to see the missing data (if any).",
-  "fix_before_uploading": "Please fix the missing data before uploading."
+  "fix_before_uploading": "Please fix the missing data before uploading.",
+  "flood": "Flood",
+  "fire": "Fire",
+  "drought": "Drought",
+  "other": "Other",
+  "dead_reason": "Dead Reason"
 }

@@ -1,4 +1,6 @@
+import { nanoid } from 'nanoid';
 import React, { createContext, useState } from 'react';
+import 'react-native-get-random-values';
 import {
   addForm,
   addUpdateElement,
@@ -13,8 +15,6 @@ import {
   filterFormByTreeAndRegistrationType,
   sortByField,
 } from '../utils/additionalData/functions';
-import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
 
 // Creates the context object for AdditionalData. Used by component to get the state and functions
 export const AdditionalDataContext = createContext<any>(null);
@@ -71,7 +71,7 @@ export const AdditionalDataContextProvider = ({ children }: { children: JSX.Elem
     order = order !== null ? order : Array.isArray(forms) ? forms.length + 1 : 1;
 
     const formData: any = {
-      id: uuidv4(),
+      id: nanoid(),
       order,
       title,
       description,

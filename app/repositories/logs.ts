@@ -1,6 +1,6 @@
-import Realm from 'realm';
+import { nanoid } from 'nanoid';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
+import Realm from 'realm';
 import { version } from '../../package.json';
 import { bugsnag } from '../utils';
 import { LogLevels, LogTypes, TLogLevels, TLogTypes } from '../utils/constants';
@@ -29,14 +29,14 @@ const logToDB = (
   logLevel: TLogLevels,
   { referenceId, logType, message, statusCode, logStack }: ILogDataParams,
 ) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           // defines and stores the log data which is to be added in DB
           let logData: ILogDataParams = {
-            // uses uuid v4 to create a unique id i.e. primary key
-            id: uuidv4(),
+            // uses nanoid to create a unique id i.e. primary key
+            id: nanoid(),
             logType,
             logLevel,
             timestamp: new Date(),
@@ -69,7 +69,7 @@ const logToDB = (
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error while creating log', err);
         bugsnag.notify(err);
         resolve(false);
@@ -90,9 +90,9 @@ const dbLog = {
  * @returns {any} allLogs/errorLogs
  */
 export const getLogs = (type: 'all' | 'error') => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         if (type === 'all') {
           let logs = realm.objects('ActivityLogs');
           let allLogs = logs.filtered('TRUEPREDICATE SORT (timestamp DESC)');
@@ -105,7 +105,7 @@ export const getLogs = (type: 'all' | 'error') => {
           resolve(errorLogs);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Error while fetching logs of type ${type}`, err);
         bugsnag.notify(err);
         resolve(false);
@@ -117,7 +117,7 @@ export const getLogs = (type: 'all' | 'error') => {
 export const deleteOldLogs = () => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let logs = realm.objects('ActivityLogs');
           const currentDate: any = new Date();
@@ -148,7 +148,7 @@ export const deleteOldLogs = () => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error
         console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
         // logs the error of the failed request in DB

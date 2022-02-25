@@ -1,6 +1,6 @@
-import Realm from 'realm';
+import { nanoid } from 'nanoid';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
+import Realm from 'realm';
 import { bugsnag } from '../utils';
 import { elementsType } from '../utils/additionalData/constants';
 import { LogTypes } from '../utils/constants';
@@ -8,9 +8,9 @@ import { getSchema } from './default';
 import dbLog from './logs';
 
 export const getForms = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         let form: any = realm.objects('Form');
 
         let formData = JSON.parse(JSON.stringify(form));
@@ -24,7 +24,7 @@ export const getForms = () => {
         });
         resolve(formData);
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -38,9 +38,9 @@ export const getForms = () => {
 };
 
 export const addForm = ({ order, title = '', description = '', id }: any) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let form: any = realm.objects('Form').filtered(`order >= ${order}`);
 
@@ -64,7 +64,7 @@ export const addForm = ({ order, title = '', description = '', id }: any) => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -83,9 +83,9 @@ export const addUpdateElement = ({
   formId,
   isModification,
 }: any) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           if (isModification) {
             realm.create('Element', elementProperties, Realm.UpdateMode.Modified);
@@ -108,7 +108,7 @@ export const addUpdateElement = ({
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -122,9 +122,9 @@ export const addUpdateElement = ({
 };
 
 export const deleteForm = (formId: any) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         let form: any = realm.objectForPrimaryKey('Form', formId);
         getElementData([form], realm, 'delete');
         realm.write(() => {
@@ -137,7 +137,7 @@ export const deleteForm = (formId: any) => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -151,9 +151,9 @@ export const deleteForm = (formId: any) => {
 };
 
 export const deleteFormElement = (formId: string, elementIndexToDelete: number) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let form: any = realm.objectForPrimaryKey('Form', formId);
 
@@ -169,7 +169,7 @@ export const deleteFormElement = (formId: string, elementIndexToDelete: number) 
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -232,9 +232,9 @@ export const getSchemaNameFromType = (elementType: string): string => {
 };
 
 export const updateForm = (formData: any) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           let form: any = realm.objectForPrimaryKey('Form', formData.id);
 
@@ -253,7 +253,7 @@ export const updateForm = (formData: any) => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -267,9 +267,9 @@ export const updateForm = (formData: any) => {
 };
 
 export const getMetadata = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const Metadata = realm.objects('Metadata');
 
         // logging the success in to the db
@@ -279,7 +279,7 @@ export const getMetadata = () => {
         });
         resolve(Metadata ? JSON.parse(JSON.stringify(Metadata)) : []);
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -293,15 +293,15 @@ export const getMetadata = () => {
 };
 
 export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           realm.create(
             'Metadata',
             {
               ...fieldData,
-              id: fieldData.id ? fieldData.id : uuidv4(),
+              id: fieldData.id ? fieldData.id : nanoid(),
             },
             Realm.UpdateMode.Modified,
           );
@@ -314,7 +314,7 @@ export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -328,9 +328,9 @@ export const addOrUpdateMetadataField = (fieldData: any): Promise<boolean> => {
 };
 
 export const deleteMetadataField = (fieldId: string): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           const metadata = realm.objectForPrimaryKey('Metadata', fieldId);
           realm.delete(metadata);
@@ -342,7 +342,7 @@ export const deleteMetadataField = (fieldId: string): Promise<boolean> => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -356,9 +356,9 @@ export const deleteMetadataField = (fieldId: string): Promise<boolean> => {
 };
 
 export const updateMetadata = (metadata: any[]): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           if (Array.isArray(metadata)) {
             for (let i = 0; i < metadata.length; i++) {
@@ -380,7 +380,7 @@ export const updateMetadata = (metadata: any[]): Promise<boolean> => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -394,9 +394,9 @@ export const updateMetadata = (metadata: any[]): Promise<boolean> => {
 };
 
 export const deleteAllAdditionalData = (): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           const metadata = realm.objects('Metadata');
           const form = realm.objects('Form');
@@ -410,7 +410,7 @@ export const deleteAllAdditionalData = (): Promise<boolean> => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -424,9 +424,9 @@ export const deleteAllAdditionalData = (): Promise<boolean> => {
 };
 
 export const importForm = (formData: any, elementTypeData: any): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           for (const form of formData) {
             realm.create('Form', form, Realm.UpdateMode.Modified);
@@ -442,7 +442,7 @@ export const importForm = (formData: any, elementTypeData: any): Promise<boolean
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
@@ -456,9 +456,9 @@ export const importForm = (formData: any, elementTypeData: any): Promise<boolean
 };
 
 export const importMetadata = (metadata: any): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           for (const data of metadata) {
             realm.create('Metadata', data, Realm.UpdateMode.Modified);
@@ -471,7 +471,7 @@ export const importMetadata = (metadata: any): Promise<boolean> => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.ADDITIONAL_DATA,
