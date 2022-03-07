@@ -11,6 +11,7 @@ import {
   SET_SKIP_TO_INVENTORY_OVERVIEW,
   SET_IS_EXTRA_SAMPLE_TREE,
   INVENTORY_FETCH_FROM_SERVER,
+  SET_SELECTED_REMEASUREMENT_ID,
 } from '../actions/Types';
 
 export const inventoryFetchConstant = {
@@ -32,6 +33,7 @@ const initialState = {
   isExtraSampleTree: false,
   inventoryFetchProgress: inventoryFetchConstant.PENDING,
   samplePlantLocationIndex: null,
+  selectedRemeasurementId: '',
 };
 
 // Inventory reducer function which takes the state and action param
@@ -137,6 +139,11 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         inventoryFetchProgress: action.payload,
+      };
+    case SET_SELECTED_REMEASUREMENT_ID:
+      return {
+        ...state,
+        selectedRemeasurementId: action.payload,
       };
     default:
       return state;

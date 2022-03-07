@@ -9,7 +9,8 @@ import {
   UPDATE_PROGRESS_COUNT,
   SET_SKIP_TO_INVENTORY_OVERVIEW,
   SET_IS_EXTRA_SAMPLE_TREE,
-  INVENTORY_FETCH_FROM_SERVER
+  INVENTORY_FETCH_FROM_SERVER,
+  SET_SELECTED_REMEASUREMENT_ID,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
@@ -94,40 +95,50 @@ export const updateIsUploading = (isUploading: boolean) => (dispatch: React.Disp
  * It requires the following param
  * @param {boolean} skipToInventoryOverview - used to update the skipToInventoryOverview in inventory state
  */
-export const setSkipToInventoryOverview = (skipToInventoryOverview: boolean) => (
-  dispatch: React.Dispatch<any>,
-) => {
-  dispatch({
-    type: SET_SKIP_TO_INVENTORY_OVERVIEW,
-    payload: skipToInventoryOverview,
-  });
-};
+export const setSkipToInventoryOverview =
+  (skipToInventoryOverview: boolean) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_SKIP_TO_INVENTORY_OVERVIEW,
+      payload: skipToInventoryOverview,
+    });
+  };
 
 /**
  * This function dispatches type SET_IS_EXTRA_SAMPLE_TREE with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
  */
-export const setIsExtraSampleTree = (isExtraSampleTree: boolean) => (
-  dispatch: React.Dispatch<any>,
-) => {
-  dispatch({
-    type: SET_IS_EXTRA_SAMPLE_TREE,
-    payload: isExtraSampleTree,
-  });
-};
+export const setIsExtraSampleTree =
+  (isExtraSampleTree: boolean) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_IS_EXTRA_SAMPLE_TREE,
+      payload: isExtraSampleTree,
+    });
+  };
 
 /**
  * This function dispatches type INVENTORY_FETCH_FROM_SERVER with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {string} fetchStatus - used to update the inventoryFetchProgress in inventory state
  */
-export const updateInventoryFetchFromServer = (fetchStatus: string) => (
-  dispatch: React.Dispatch<any>,
-) => {
+export const updateInventoryFetchFromServer =
+  (fetchStatus: string) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: INVENTORY_FETCH_FROM_SERVER,
+      payload: fetchStatus,
+    });
+  };
+
+/**
+ * This function dispatches type SET_SELECTED_REMEASUREMENT_ID with payload as
+ * remeasurement id which will be used on remeasurement screens
+ * It requires the following param
+ * @param {string} remeasurementId - used to for recording data for that remeasurement id
+ */
+export const setRemeasurementId = (remeasurementId: string) => (dispatch: React.Dispatch<any>) => {
   dispatch({
-    type: INVENTORY_FETCH_FROM_SERVER,
-    payload: fetchStatus,
+    type: SET_SELECTED_REMEASUREMENT_ID,
+    payload: remeasurementId,
   });
 };
 

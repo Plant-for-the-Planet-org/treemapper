@@ -277,15 +277,6 @@ const SingleTreeOverview = () => {
     action: string;
     forceContinue?: boolean;
   }) => {
-    const diameterMinValue = nonISUCountries.includes(countryCode)
-      ? diameterMinInch
-      : diameterMinCm;
-    const diameterMaxValue = nonISUCountries.includes(countryCode)
-      ? diameterMaxInch
-      : diameterMaxCm;
-
-    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
-    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
     const isNonISUCountry = nonISUCountries.includes(countryCode);
     let validationObject;
     switch (action) {

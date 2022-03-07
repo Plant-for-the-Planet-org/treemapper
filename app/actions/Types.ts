@@ -48,3 +48,6 @@ export const SET_IS_EXTRA_SAMPLE_TREE = 'SET_IS_EXTRA_SAMPLE_TREE';
 
 // Used to check if fetching of registrations are completed and load the geoJSON on the map
 export const INVENTORY_FETCH_FROM_SERVER = 'INVENTORY_FETCH_FROM_SERVER';
+
+// Used to set the remeasurement id for an inventory
+export const SET_SELECTED_REMEASUREMENT_ID = 'SET_SELECTED_REMEASUREMENT_ID';

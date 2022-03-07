@@ -44,6 +44,8 @@ import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 import EditPolygon from '../InventoryOverview/EditPolygon';
 import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
 import RemeasurementForm from '../Remeasurements/RemeasurementForm';
+import TakePicture from '../../screens/TakePicture';
+import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
 
 const Stack = createStackNavigator();
 
@@ -131,6 +133,12 @@ export default function MainNavigator() {
       <Stack.Screen name="EditPolygon" component={EditPolygon} options={MyTransition} />
       <Stack.Screen name="TreeTypeSelection" component={TreeTypeSelection} options={MyTransition} />
       <Stack.Screen name="RemeasurementForm" component={RemeasurementForm} options={MyTransition} />
+      <Stack.Screen name="TakePicture" component={TakePicture} options={MyTransition} />
+      <Stack.Screen
+        name="RemeasurementReview"
+        component={RemeasurementReview}
+        options={MyTransition}
+      />
     </Stack.Navigator>
   );
 }

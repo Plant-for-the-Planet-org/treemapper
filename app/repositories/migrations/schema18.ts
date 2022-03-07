@@ -69,9 +69,9 @@ const PlantLocationHistory = {
     // CDN URL of the image if picture was clicked
     cdnImageUrl: 'string?',
     // diameter of selected species
-    speciesDiameter: 'double?',
+    diameter: 'double?',
     // height of selected species
-    speciesHeight: 'double?',
+    height: 'double?',
     // stores the additional details for the registration
     additionalDetails: 'AdditionalDetail[]',
     // stores the app metadata. Needs to be stringified as it might contain nested array/objects
@@ -80,6 +80,8 @@ const PlantLocationHistory = {
     status: 'string?',
     // reason for the current status
     statusReason: 'string?',
+    // status of data maintained for updating and uploading of the plant location history
+    dataStatus: 'string?',
   },
 };
 

@@ -19,8 +19,10 @@ import {
   getSystemName,
   getSystemVersion,
 } from 'react-native-device-info';
+import { setRemeasurementId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
-import { addPlantLocationHistory, getInventory } from '../../repositories/inventory';
+import { getInventory } from '../../repositories/inventory';
+import { addPlantLocationHistory } from '../../repositories/plantLocationHistory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
@@ -48,7 +50,7 @@ export default function RemeasurementForm({}: Props) {
 
   const navigation = useNavigation();
 
-  const { state } = useContext(InventoryContext);
+  const { state, dispatch } = useContext(InventoryContext);
 
   // reasons to show if the tree is dead
   const deadReasonOptions = [
@@ -114,7 +116,7 @@ export default function RemeasurementForm({}: Props) {
     }
   };
 
-  // adds height, diameter and tag in DB by checking the tree type
+  // adds height, diameter in DB by checking the tree type
   const addMeasurements = async () => {
     const appAdditionalDetails = {
       deviceBrand: getBrand(),
@@ -123,16 +125,17 @@ export default function RemeasurementForm({}: Props) {
       deviceSystemVersion: getSystemVersion(),
       deviceManufacturer: await getManufacturer(),
     };
+    const remeasurementId = nanoid();
     let historyData: any = {
-      id: nanoid(),
+      id: remeasurementId,
       eventDate: new Date(),
       appMetadata: JSON.stringify(appAdditionalDetails),
     };
     if (isTreeAlive) {
       historyData = {
         ...historyData,
-        speciesHeight: height,
-        speciesDiameter: diameter,
+        height: Number(height),
+        diameter: Number(diameter),
       };
     } else {
       historyData = {
@@ -142,10 +145,12 @@ export default function RemeasurementForm({}: Props) {
     }
 
     await addPlantLocationHistory({
-      inventoryId: state.inventoryID,
+      inventoryId: state.inventoryID || '',
       samplePlantLocationIndex: state.samplePlantLocationIndex,
       historyData,
     });
+    setRemeasurementId(remeasurementId)(dispatch);
+    navigation.navigate('TakePicture');
   };
 
   const handleIsTreeAliveChange = () => {
