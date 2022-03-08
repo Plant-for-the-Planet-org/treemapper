@@ -3,6 +3,69 @@ import { LogTypes } from '../utils/constants';
 import { getSchema } from './default';
 import dbLog from './logs';
 
+interface IWriteOperationPlantLocationHistory {
+  remeasurementId: string;
+  data: any;
+  successMessage: string;
+  errorMessage: string;
+}
+
+const writeOperationPlantLocationHistory = ({
+  remeasurementId,
+  data,
+  successMessage,
+  errorMessage,
+}: IWriteOperationPlantLocationHistory) => {
+  return new Promise((resolve, _) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          const plantLocationHistory = realm.objectForPrimaryKey(
+            'PlantLocationHistory',
+            `${remeasurementId}`,
+          );
+          if (plantLocationHistory) {
+            const newPlantLocationHistory = {
+              ...JSON.parse(JSON.stringify(plantLocationHistory)),
+              ...data,
+            };
+            realm.create(
+              'PlantLocationHistory',
+              newPlantLocationHistory,
+              Realm.UpdateMode.Modified,
+            );
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.REMEASUREMENT,
+              message: successMessage,
+              referenceId: remeasurementId,
+            });
+          } else {
+            // logging the success in to the db
+            dbLog.error({
+              logType: LogTypes.REMEASUREMENT,
+              message: `Cannot find plant location history with id: ${remeasurementId}`,
+              referenceId: remeasurementId,
+            });
+          }
+          resolve(plantLocationHistory);
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: errorMessage,
+          logStack: JSON.stringify(err),
+          referenceId: remeasurementId,
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
 interface IAddPlantLocationHistory {
   inventoryId: string;
   samplePlantLocationIndex?: number | null;
@@ -65,53 +128,17 @@ interface IAddImageToPlantLocationHistory {
   imageUrl: string;
 }
 
-export const addImageToPlantLocationHistory = ({
+export const addImageToPlantLocationHistory = async ({
   remeasurementId,
   imageUrl,
 }: IAddImageToPlantLocationHistory) => {
-  return new Promise((resolve, _) => {
-    Realm.open(getSchema())
-      .then(realm => {
-        realm.write(() => {
-          console.log('remeasurementId repo', remeasurementId);
-          let plantLocationHistory = realm.objectForPrimaryKey(
-            'PlantLocationHistory',
-            `${remeasurementId}`,
-          );
-          if (plantLocationHistory) {
-            console.log('plantLocationHistory', plantLocationHistory);
-            plantLocationHistory.imageUrl = imageUrl;
-
-            console.log('remeasurementId was added with image', remeasurementId);
-            // logging the success in to the db
-            dbLog.info({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Successfully added image in plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          } else {
-            // logging the success in to the db
-            dbLog.error({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Cannot find plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          }
-          resolve(true);
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        // logging the error in to the db
-        dbLog.error({
-          logType: LogTypes.REMEASUREMENT,
-          message: `Error while adding image in plant location history with id: ${remeasurementId}`,
-          logStack: JSON.stringify(err),
-          referenceId: remeasurementId,
-        });
-        bugsnag.notify(err);
-        resolve(false);
-      });
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data: {
+      imageUrl,
+    },
+    successMessage: `Successfully added image in plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while adding image in plant location history with id: ${remeasurementId}`,
   });
 };
 
@@ -121,59 +148,45 @@ interface IUpdatePlantLocationHistory {
   height?: number;
 }
 
-export const updatePlantLocationHistory = ({
+export const updatePlantLocationHistory = async ({
   remeasurementId,
   diameter,
   height,
 }: IUpdatePlantLocationHistory) => {
-  return new Promise((resolve, _) => {
-    Realm.open(getSchema())
-      .then(realm => {
-        realm.write(() => {
-          console.log('remeasurementId repo', remeasurementId);
-          let plantLocationHistory = realm.objectForPrimaryKey(
-            'PlantLocationHistory',
-            `${remeasurementId}`,
-          );
-          if (plantLocationHistory) {
-            console.log('plantLocationHistory', plantLocationHistory);
-            if (diameter) {
-              plantLocationHistory.diameter = diameter;
-            }
-            if (height) {
-              plantLocationHistory.height = height;
-            }
+  const data: {
+    diameter?: number;
+    height?: number;
+  } = {};
+  if (diameter) {
+    data.diameter = diameter;
+  }
+  if (height) {
+    data.height = height;
+  }
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data,
+    successMessage: `Successfully updated diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while updating  diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
+  });
+};
 
-            console.log('remeasurementId was added with image', remeasurementId);
-            // logging the success in to the db
-            dbLog.info({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Successfully updated diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          } else {
-            // logging the success in to the db
-            dbLog.error({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Cannot find plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          }
-          resolve(true);
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        // logging the error in to the db
-        dbLog.error({
-          logType: LogTypes.REMEASUREMENT,
-          message: `Error while updating  diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
-          logStack: JSON.stringify(err),
-          referenceId: remeasurementId,
-        });
-        bugsnag.notify(err);
-        resolve(false);
-      });
+interface IUpdatePlantLocationHistoryStatus {
+  remeasurementId: string;
+  status: string;
+}
+
+export const updatePlantLocationHistoryStatus = async ({
+  remeasurementId,
+  status,
+}: IUpdatePlantLocationHistoryStatus) => {
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data: {
+      dataStatus: status,
+    },
+    successMessage: `Successfully updated status to ${status} of plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while updating  status to ${status} of plant location history with id: ${remeasurementId}`,
   });
 };
 
@@ -181,30 +194,26 @@ export const getPlantLocationHistory = (remeasurementId: string) => {
   return new Promise((resolve, _) => {
     Realm.open(getSchema())
       .then(realm => {
-        realm.write(() => {
-          console.log('remeasurementId repo', remeasurementId);
-          let plantLocationHistory = realm.objectForPrimaryKey(
-            'PlantLocationHistory',
-            `${remeasurementId}`,
-          );
-          if (plantLocationHistory) {
-            console.log('remeasurementId was added with image', remeasurementId);
-            // logging the success in to the db
-            dbLog.info({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Successfully retrieved plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          } else {
-            // logging the success in to the db
-            dbLog.error({
-              logType: LogTypes.REMEASUREMENT,
-              message: `Cannot find plant location history with id: ${remeasurementId}`,
-              referenceId: remeasurementId,
-            });
-          }
-          resolve(plantLocationHistory);
-        });
+        let plantLocationHistory = realm.objectForPrimaryKey(
+          'PlantLocationHistory',
+          `${remeasurementId}`,
+        );
+        if (plantLocationHistory) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Successfully retrieved plant location history with id: ${remeasurementId}`,
+            referenceId: remeasurementId,
+          });
+        } else {
+          // logging the success in to the db
+          dbLog.error({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Cannot find plant location history with id: ${remeasurementId}`,
+            referenceId: remeasurementId,
+          });
+        }
+        resolve(plantLocationHistory);
       })
       .catch(err => {
         console.log(err);

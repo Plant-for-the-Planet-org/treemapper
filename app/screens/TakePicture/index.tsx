@@ -52,11 +52,9 @@ const TakePicture = ({}: Props) => {
   };
 
   const onPressContinue = async () => {
-    console.log('onPressContinue', imagePath);
     if (imagePath) {
       try {
         const imageUrl = await copyImageAndGetData(imagePath);
-        console.log('imageUrl', imageUrl, state.selectedRemeasurementId);
         let data: any = {
           remeasurementId: state.selectedRemeasurementId,
           imageUrl,
