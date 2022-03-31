@@ -28,6 +28,7 @@
     "@react-navigation/drawer": "^5.12.9",
     "@react-navigation/native": "^5.9.8",
     "@react-navigation/stack": "^5.14.5",
+    "@reduxjs/toolkit": "^1.8.0",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",
@@ -47,6 +48,7 @@
     "react": "17.0.2",
     "react-native": "0.66.1",
     "react-native-auth0": "^2.10.0",
+    "react-native-big-list": "^1.5.4",
     "react-native-camera": "^3.43.9",
     "react-native-config": "1.4.1",
     "react-native-device-info": "^8.4.3",
@@ -73,7 +75,9 @@
     "react-native-tab-view": "^2.15.2",
     "react-native-vector-icons": "^6.7.0",
     "react-native-zip-archive": "^5.0.6",
+    "react-redux": "^7.2.6",
     "realm": "10.2.0",
+    "recyclerlistview": "^3.0.5",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

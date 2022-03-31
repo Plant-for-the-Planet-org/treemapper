@@ -8,20 +8,18 @@ import {
   Linking,
   Platform,
   SafeAreaView,
-  ScrollView,
   SectionList,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '../../styles';
+import { setInventoryId } from '../../actions/inventory';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
 import { UserContext } from '../../reducers/user';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import {
   DATA_UPLOAD_START,
   FIX_NEEDED,
@@ -36,17 +34,8 @@ import {
   SYNCED,
 } from '../../utils/inventoryConstants';
 import { uploadInventoryData } from '../../utils/uploadInventory';
-import {
-  AlertModal,
-  Header,
-  InventoryCard,
-  InventoryList,
-  PrimaryButton,
-  SmallHeader,
-  Sync,
-} from '../Common';
+import { AlertModal, Header, InventoryCard, PrimaryButton, SmallHeader, Sync } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { setInventoryId } from '../../actions/inventory';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -62,7 +51,6 @@ const TreeInventory = () => {
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
-  const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
 
@@ -112,9 +100,6 @@ const TreeInventory = () => {
     getInventoryByStatus([]).then(allInventory => {
       setAllInventory(allInventory);
       filteredInventories();
-    });
-    getUserDetails().then(userDetails => {
-      setCountryCode(userDetails?.country || '');
     });
   };
 
@@ -205,7 +190,7 @@ const TreeInventory = () => {
             />
           )}
           <PrimaryButton
-            onPress={() => navigation.navigate('RegisterTree')}
+            onPress={() => navigation.navigate('TreeTypeSelection')}
             btnText={i18next.t('label.register_tree')}
             style={{ marginTop: 10 }}
           />
@@ -363,7 +348,7 @@ const TreeInventory = () => {
       )}
       <View style={styles.primaryBtnCont}>
         <PrimaryButton
-          onPress={() => navigation.navigate('RegisterTree')}
+          onPress={() => navigation.navigate('TreeTypeSelection')}
           btnText={i18next.t('label.register_tree')}
           style={{ marginTop: 10 }}
         />

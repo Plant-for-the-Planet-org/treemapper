@@ -71,6 +71,12 @@ export const REVIEW = 'review';
       Registered tree(s) type - STARTS
 \* ====================================== */
 
+export const enum TreeType {
+  SINGLE = 'single',
+  MULTIPLE = 'multiple',
+  SAMPLE = 'sample',
+}
+
 // used when inventory has multiple trees i.e. multiple trees registration
 export const MULTI = 'multi';
 

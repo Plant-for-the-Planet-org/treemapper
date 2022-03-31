@@ -153,7 +153,7 @@ export const getInventoryByStatus = status => {
   });
 };
 
-export const initiateInventory = ({ treeType }, dispatch) => {
+export const initiateInventory = ({ treeType }) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -164,10 +164,9 @@ export const initiateInventory = ({ treeType }, dispatch) => {
             treeType,
             status: INCOMPLETE,
             plantation_date: new Date(),
-            lastScreen: treeType === SINGLE ? 'RegisterSingleTree' : 'LocateTree',
+            lastScreen: treeType === SINGLE ? 'SingleTreeMarkerMap' : 'LocateTree',
           };
           realm.create('Inventory', inventoryData);
-          setInventoryId(inventoryID)(dispatch);
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,

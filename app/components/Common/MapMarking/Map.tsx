@@ -9,9 +9,10 @@ import { Colors, Typography } from '../../../styles';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import Markers from '../Markers';
 import SampleTreeMarkers from '../SampleTreeMarkers';
+import Geolocation from 'react-native-geolocation-service';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-Logger.setLogCallback((log) => {
+Logger.setLogCallback(log => {
   const { message } = log;
   // expected warnings - see https://github.com/mapbox/mapbox-gl-native/issues/15341#issuecomment-522889062
   if (
@@ -30,7 +31,7 @@ interface IMapProps {
   map?: any;
   camera?: any;
   setIsCameraRefVisible?: any;
-  location?: any;
+  location?: Geolocation.GeoPosition | MapboxGL.Location | null;
   loader?: any;
   markerText?: any;
   activePolygonIndex?: any;
@@ -77,7 +78,7 @@ export default function Map({
         {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera
-          ref={(el) => {
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
@@ -87,8 +88,10 @@ export default function Map({
             <MapboxGL.LineLayer id={'polyline'} style={polyline} />
           </MapboxGL.ShapeSource>
         )}
-        {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
+        {location ? (
+          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
+        ) : (
+          []
         )}
       </MapboxGL.MapView>
 

@@ -39,19 +39,10 @@ import {
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 import {
   cmToInch,
   DBHInMeter,
-  diameterMaxCm,
-  diameterMaxInch,
-  diameterMinCm,
-  diameterMinInch,
   footToMeter,
-  heightMaxFoot,
-  heightMaxM,
-  heightMinFoot,
-  heightMinM,
   inchToCm,
   meterToFoot,
   nonISUCountries,
@@ -67,6 +58,7 @@ import {
   SYNCED,
 } from '../../utils/inventoryConstants';
 import { updateSampleTree } from '../../utils/updateSampleTree';
+import { measurementValidation } from '../../utils/validations/measurements';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
@@ -277,111 +269,72 @@ const SingleTreeOverview = () => {
     action: string;
     forceContinue?: boolean;
   }) => {
-    const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
-
-    const diameterMinValue = nonISUCountries.includes(countryCode)
-      ? diameterMinInch
-      : diameterMinCm;
-    const diameterMaxValue = nonISUCountries.includes(countryCode)
-      ? diameterMaxInch
-      : diameterMaxCm;
-
-    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
-    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
+    const isNonISUCountry = nonISUCountries.includes(countryCode);
+    let validationObject;
 
     switch (action) {
       case 'diameter':
-        if (
-          !specieEditDiameter ||
-          Number(specieEditDiameter) < diameterMinValue ||
-          Number(specieEditDiameter) > diameterMaxValue
-        ) {
-          setInputErrorMessage(
-            i18next.t('label.select_species_diameter_more_than_error', {
-              minValue: diameterMinValue,
-              maxValue: diameterMaxValue,
-            }),
-          );
-          setShowInputError(true);
-        } else if (!dimensionRegex.test(specieEditDiameter)) {
-          setInputErrorMessage(i18next.t('label.select_species_diameter_invalid'));
-          setShowInputError(true);
-        } else {
-          const refactoredSpecieDiameter: number = getConvertedDiameter();
+        validationObject = measurementValidation(
+          specieEditHeight,
+          specieEditDiameter,
+          isNonISUCountry,
+        );
+        setInputErrorMessage(validationObject.diameterErrorMessage);
+        setShowInputError(!!validationObject.diameterErrorMessage);
+        const refactoredSpecieDiameter: number = getConvertedDiameter();
+        if (!validationObject.isRatioCorrect && !forceContinue) {
+          setShowIncorrectRatioAlert(true);
+          return;
+        }
+        setSpecieDiameter(specieEditDiameter);
 
-          const isRatioCorrect = getIsMeasurementRatioCorrect({
-            height: getConvertedHeight(),
-            diameter: refactoredSpecieDiameter,
+        if (!isSampleTree && !route?.params?.isSampleTree) {
+          updateSpecieDiameter({
+            inventory_id: inventory.inventory_id,
+            speciesDiameter: refactoredSpecieDiameter,
           });
-
-          if (!isRatioCorrect && !forceContinue) {
-            setShowIncorrectRatioAlert(true);
-            return;
-          }
-          setSpecieDiameter(specieEditDiameter);
-
-          if (!isSampleTree && !route?.params?.isSampleTree) {
-            updateSpecieDiameter({
-              inventory_id: inventory.inventory_id,
-              speciesDiameter: refactoredSpecieDiameter,
-            });
-          } else {
-            updateSampleTree({
-              toUpdate: action,
-              value: refactoredSpecieDiameter,
-              inventory,
-              sampleTreeIndex,
-              setInventory,
-            });
-          }
+        } else {
+          updateSampleTree({
+            toUpdate: action,
+            value: refactoredSpecieDiameter,
+            inventory,
+            sampleTreeIndex,
+            setInventory,
+          });
         }
         break;
       case 'height':
-        if (
-          !specieEditHeight ||
-          Number(specieEditHeight) < heightMinValue ||
-          Number(specieEditHeight) > heightMaxValue
-        ) {
-          setInputErrorMessage(
-            i18next.t('label.select_species_height_more_than_error', {
-              minValue: heightMinValue,
-              maxValue: heightMaxValue,
-            }),
-          );
-          setShowInputError(true);
-        } else if (!dimensionRegex.test(specieEditHeight)) {
-          setInputErrorMessage(i18next.t('label.select_species_height_invalid'));
-          setShowInputError(true);
-        } else {
-          const refactoredSpecieHeight = getConvertedHeight();
+        validationObject = measurementValidation(
+          specieEditHeight,
+          specieEditDiameter,
+          isNonISUCountry,
+        );
+        setInputErrorMessage(validationObject.heightErrorMessage);
+        setShowInputError(!!validationObject.heightErrorMessage);
 
-          const isRatioCorrect = getIsMeasurementRatioCorrect({
-            height: refactoredSpecieHeight,
-            diameter: getConvertedDiameter(),
+        const refactoredSpecieHeight = getConvertedHeight();
+
+        if (!validationObject.isRatioCorrect && !forceContinue) {
+          setShowIncorrectRatioAlert(true);
+          return;
+        }
+        setSpecieHeight(specieEditHeight);
+
+        updateDiameterLabel(refactoredSpecieHeight);
+
+        if (!isSampleTree && !route?.params?.isSampleTree) {
+          updateSpecieHeight({
+            inventory_id: inventory.inventory_id,
+            speciesHeight: refactoredSpecieHeight,
           });
-
-          if (!isRatioCorrect && !forceContinue) {
-            setShowIncorrectRatioAlert(true);
-            return;
-          }
-          setSpecieHeight(specieEditHeight);
-
-          updateDiameterLabel(refactoredSpecieHeight);
-
-          if (!isSampleTree && !route?.params?.isSampleTree) {
-            updateSpecieHeight({
-              inventory_id: inventory.inventory_id,
-              speciesHeight: refactoredSpecieHeight,
-            });
-          } else {
-            updateSampleTree({
-              toUpdate: action,
-              value: refactoredSpecieHeight,
-              inventory,
-              sampleTreeIndex,
-              setInventory,
-            });
-          }
+        } else {
+          updateSampleTree({
+            toUpdate: action,
+            value: refactoredSpecieHeight,
+            inventory,
+            sampleTreeIndex,
+            setInventory,
+          });
         }
         break;
       case 'tagId':

@@ -44,11 +44,6 @@ const LocateTree = () => {
     }
   };
 
-  const onPressSelectCoordinates = async () => {
-    onPressItem('');
-    setIsSelectCoordinates(true);
-  };
-
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
@@ -77,22 +72,6 @@ const LocateTree = () => {
             testID={'page_off_site_polygon'}
             accessibilityLabel={'Off Site Polygon'}
           />
-          <LargeButton
-            onPress={onPressSelectCoordinates}
-            heading={i18next.t('label.locate_tree_off_site_point_heading')}
-            subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')}
-            active={isSelectCoordinates}
-            subHeadingStyle={{ fontStyle: 'italic' }}
-            testID={'page_off_site_point'}
-            accessibilityLabel={'Off Site Point'}
-          />
-          {/* <LargeButton
-            onPress={onPressSelectCoordinates}
-            heading={i18next.t('label.locate_tree_geo_json')}
-            subHeadingStyle={{ fontStyle: 'italic' }}
-            rightIcon={<SvgXml xml={cloud_upload_gray} />}
-            disabled
-          /> */}
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
         <PrimaryButton

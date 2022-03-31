@@ -42,6 +42,9 @@ import AddMetadata from '../AdditionalData/AddMetadata';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 import EditPolygon from '../InventoryOverview/EditPolygon';
+import TreeTypeSelection from '../../screens/RegistrationFlow/TreeTypeSelection';
+import SingleTreeMarkerMap from '../../screens/RegistrationFlow/SingleTreeMarkerMap';
+import MultipleTreeMarkerMap from '../../screens/RegistrationFlow/MultipleTreeMarkerMap';
 
 const Stack = createStackNavigator();
 
@@ -127,6 +130,17 @@ export default function MainNavigator() {
       <Stack.Screen name="SpecieSampleTree" component={SpecieSampleTree} options={MyTransition} />
       <Stack.Screen name="AddMeasurements" component={AddMeasurements} options={MyTransition} />
       <Stack.Screen name="EditPolygon" component={EditPolygon} options={MyTransition} />
+      <Stack.Screen name="TreeTypeSelection" component={TreeTypeSelection} options={MyTransition} />
+      <Stack.Screen
+        name="SingleTreeMarkerMap"
+        component={SingleTreeMarkerMap}
+        options={MyTransition}
+      />
+      <Stack.Screen
+        name="MultipleTreeMarkerMap"
+        component={MultipleTreeMarkerMap}
+        options={MyTransition}
+      />
     </Stack.Navigator>
   );
 }

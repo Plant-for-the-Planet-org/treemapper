@@ -27,6 +27,7 @@ import {
   SINGLE,
   SYNCED,
 } from '../../utils/inventoryConstants';
+import { currentPositionOptions } from '../../utils/maps';
 import { locationPermission } from '../../utils/permissions';
 import { AlertModal } from '../Common';
 import BackButton from '../Common/BackButton';
@@ -272,14 +273,7 @@ const MainMap = ({
         err => {
           if (showAlert) setIsLocationAlertShow(true);
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          accuracy: {
-            android: 'high',
-            ios: 'bestForNavigation',
-          },
-        },
+        currentPositionOptions,
       );
     });
   };

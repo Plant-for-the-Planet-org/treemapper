@@ -37,7 +37,10 @@ import { LogTypes } from '../../../utils/constants';
 import distanceCalculator from '../../../utils/distanceCalculator';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import { currentPositionOptions } from '../../../utils/maps';
+import { resetRouteStack } from '../../../utils/navigation';
 import { locationPermission } from '../../../utils/permissions';
+import AccuracyModal from './AccuracyModal';
 import { PermissionBlockedAlert, PermissionDeniedAlert } from './LocationPermissionAlerts';
 import Map from './Map';
 import MapAlrightyModal from './MapAlrightyModal';
@@ -543,14 +546,7 @@ export default function MapMarking({
             setIsLocationAlertShow(true);
           }
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          accuracy: {
-            android: 'high',
-            ios: 'bestForNavigation',
-          },
-        },
+        currentPositionOptions,
       );
     });
   };
@@ -665,10 +661,7 @@ export default function MapMarking({
     } else {
       let result;
       if (!inventoryID) {
-        result = await initiateInventory(
-          { treeType: isPointForMultipleTree ? MULTI : SINGLE },
-          dispatch,
-        );
+        result = await initiateInventory({ treeType: isPointForMultipleTree ? MULTI : SINGLE });
         if (result) {
           initiateInventoryState(result)(dispatch);
           getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
@@ -705,63 +698,6 @@ export default function MapMarking({
     }
   };
 
-  //this modal shows the information about GPS accuracy and accuracy range for red, yellow and green colour
-  const renderAccuracyModal = () => {
-    return (
-      <Modal transparent visible={isAccuracyModalShow}>
-        <View style={styles.modalContainer}>
-          <View style={styles.contentContainer}>
-            <Text
-              style={{
-                color: '#000000',
-                fontFamily: Typography.FONT_FAMILY_BOLD,
-                fontSize: Typography.FONT_SIZE_18,
-                paddingBottom: 18,
-              }}>
-              {i18next.t('label.gps_accuracy')}
-            </Text>
-            <Text style={[styles.accuracyModalText, { marginBottom: 16 }]}>
-              {i18next.t('label.accuracy_info')}
-            </Text>
-            <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
-                {i18next.t('label.green')}
-              </Text>{' '}
-              {i18next.t('label.green_info')}
-            </Text>
-            <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
-                {i18next.t('label.yellow')}
-              </Text>{' '}
-              {i18next.t('label.yellow_info')}
-            </Text>
-            <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>
-                {i18next.t('label.red')}
-              </Text>{' '}
-              {i18next.t('label.red_info')}
-            </Text>
-            <TouchableOpacity
-              style={{
-                alignSelf: 'center',
-                paddingTop: 25,
-              }}>
-              <Text
-                style={{
-                  color: '#87B738',
-                  fontFamily: Typography.FONT_FAMILY_REGULAR,
-                  fontSize: Typography.FONT_SIZE_14,
-                }}
-                onPress={() => setIsAccuracyModalShow(false)}>
-                {i18next.t('label.close')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   //if the accuracy is greater than 30m, this alert will be shown to confirm if the user really want to continue with the poor level of accuracy
   const renderConfirmationModal = () => {
     return (
@@ -779,18 +715,8 @@ export default function MapMarking({
   };
 
   // resets the navigation stack with MainScreen => TreeInventory
-  const resetRouteStack = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'MainScreen' },
-          {
-            name: 'TreeInventory',
-          },
-        ],
-      }),
-    );
+  const resetRoute = () => {
+    resetRouteStack(navigation, ['MainScreen', 'TreeInventory']);
   };
 
   //alert shown if the location setting are not satisfied
@@ -808,7 +734,7 @@ export default function MapMarking({
         }}
         onPressSecondaryBtn={() => {
           setIsLocationAlertShow(false);
-          resetRouteStack();
+          resetRoute();
         }}
         showSecondaryButton={true}
       />
@@ -880,7 +806,7 @@ export default function MapMarking({
       <View style={styles.headerCont}>
         <SafeAreaView />
         <Header
-          onBackPress={resetRouteStack}
+          onBackPress={resetRoute}
           closeIcon
           headingText={
             treeType === SAMPLE
@@ -902,7 +828,10 @@ export default function MapMarking({
           TitleRightComponent={renderAccuracyInfo}
         />
       </View>
-      {renderAccuracyModal()}
+      <AccuracyModal
+        visible={isAccuracyModalShow}
+        closeModal={() => setIsAccuracyModalShow(false)}
+      />
       {renderConfirmationModal()}
       {renderLocationAlert()}
       <MapAlrightyModal
@@ -939,14 +868,14 @@ export default function MapMarking({
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlocked}
         setIsPermissionBlockedAlertShow={setIsPermissionBlocked}
-        onPressPrimaryBtn={resetRouteStack}
-        onPressSecondaryBtn={resetRouteStack}
+        onPressPrimaryBtn={resetRoute}
+        onPressSecondaryBtn={resetRoute}
       />
       <PermissionDeniedAlert
         isPermissionDeniedAlertShow={isPermissionDenied}
         setIsPermissionDeniedAlertShow={setIsPermissionDenied}
         onPressPrimaryBtn={() => {}}
-        onPressSecondaryBtn={resetRouteStack}
+        onPressSecondaryBtn={resetRoute}
       />
     </View>
   );

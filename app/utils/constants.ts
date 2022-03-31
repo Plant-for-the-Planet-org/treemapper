@@ -108,3 +108,9 @@ export const maxHeightDiameterRatio: number = 160 / 1;
 
 // countries which does not follow International System of Units for measurements
 export const nonISUCountries = ['US', 'LR', 'MM'];
+
+export enum ModalType {
+  LOCATION_SERVICE_NOT_SATISFIED = 'LOCATION_SERVICE_NOT_SATISFIED',
+  POOR_ACCURACY = 'POOR_ACCURACY',
+  UNKNOWN_LOCATION = 'UNKNOWN_LOCATION',
+}
