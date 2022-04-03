@@ -23,7 +23,7 @@ Run `nvm install && nvm use` to install and use required version of node.
 
 ## iOS Setup
 
-* Install xcode greater then 9.0.
+* Install latest Xcode.
 * Run following commands
 ```
 bash
@@ -33,8 +33,6 @@ npm install -g react-native-cli
 npm install
 cd ios && pod install
 ```
-
-* Please use node v 12.14.1 LTS; App doesn't build with 13.0 + versions.
 
 ### Running into iOS simulator
 
