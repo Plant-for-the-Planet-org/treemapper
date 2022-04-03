@@ -62,7 +62,7 @@ jobs:
           ${{ runner.os }}-node-treemapper2-
 
     - name: Install npm
-      run: npm install
+      run: npm install --legacy-peer-deps
 
     - name: Setting Environment Variables
       env:
