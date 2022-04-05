@@ -30,6 +30,7 @@ import {
   PENDING_DATA_UPDATE,
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
+  PENDING_REMEASUREMENT_DATA_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
   SINGLE,
   SYNCED,
@@ -52,6 +53,7 @@ const TreeInventory = () => {
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
+  const [remeasurementInventory, setRemeasurementInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
@@ -137,6 +139,10 @@ const TreeInventory = () => {
     getInventoryByStatus([FIX_NEEDED]).then(inventoryList => {
       setFixNeededInventory(inventoryList);
     });
+    getInventoryByStatus([PENDING_REMEASUREMENT_DATA_UPLOAD]).then(inventoryList => {
+      console.log('inventoryList', inventoryList);
+      setRemeasurementInventory(inventoryList);
+    });
   };
 
   const onPressUploadNow = () => {
@@ -216,13 +222,19 @@ const TreeInventory = () => {
     );
   };
 
+  console.log('remeasurementInventory', remeasurementInventory);
+
   const allData = [
     {
       title: i18next.t('label.tree_inventory_left_text_uploading'),
       data: uploadingInventory,
       type: 'uploading',
     },
-    { title: i18next.t('label.tree_inventory_left_text'), data: pendingInventory, type: 'pending' },
+    {
+      title: i18next.t('label.tree_inventory_left_text'),
+      data: [...pendingInventory, ...remeasurementInventory],
+      type: 'pending',
+    },
     {
       title: i18next.t('label.tree_inventory_incomplete_registrations'),
       data: inCompleteInventory,

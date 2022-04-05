@@ -29,6 +29,9 @@ export const PENDING_DATA_UPDATE = 'PENDING_DATA_UPDATE';
 // used to mark the registration as it needs to be fixed
 export const FIX_NEEDED = 'FIX_NEEDED';
 
+// used as status when data upload of remeasurement is pending.
+export const PENDING_REMEASUREMENT_DATA_UPLOAD = 'PENDING_REMEASUREMENT_DATA_UPLOAD';
+
 /* === Inventory registration statuses - ENDS === */
 
 /* ============================================== *\

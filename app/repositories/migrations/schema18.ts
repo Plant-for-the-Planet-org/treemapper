@@ -1,5 +1,3 @@
-import { checkAndMarkMissingData } from '../../utils/registrations/markCorruptedData';
-
 // schema version
 const schemaVersion = 18;
 
@@ -82,6 +80,10 @@ const PlantLocationHistory = {
     statusReason: 'string?',
     // status of data maintained for updating and uploading of the plant location history
     dataStatus: 'string?',
+    // id of the plant location
+    parentId: 'string?',
+    // if the plant location history is for sample tree then add the sample tree index
+    samplePlantLocationIndex: 'int?',
   },
 };
 

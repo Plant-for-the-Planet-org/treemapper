@@ -12,6 +12,7 @@ import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
 import { useNetInfo } from '@react-native-community/netinfo';
 import AlertModal from '../AlertModal';
+import { uploadRemeasurements } from '../../../actions/uploadRemeasurements';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -69,6 +70,7 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadRemeasurements();
       uploadInventoryData(dispatch, userDispatch).catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,

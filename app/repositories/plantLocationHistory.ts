@@ -84,9 +84,11 @@ export const addPlantLocationHistory = ({
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
           if (inventory) {
             if (samplePlantLocationIndex && samplePlantLocationIndex > -1) {
-              inventory.samplePlantLocations[samplePlantLocationIndex].plantLocationHistory.push(
-                historyData,
-              );
+              inventory.samplePlantLocations[samplePlantLocationIndex].plantLocationHistory.push({
+                ...historyData,
+                parentId: inventoryId,
+                samplePlantLocationIndex,
+              });
             } else {
               inventory.plantLocationHistory.push(historyData);
             }
@@ -171,6 +173,25 @@ export const updatePlantLocationHistory = async ({
   });
 };
 
+interface IUpdatePlantLocationHistoryEventDate {
+  remeasurementId: string;
+  eventDate: Date;
+}
+
+export const updatePlantLocationHistoryEventDate = async ({
+  remeasurementId,
+  eventDate,
+}: IUpdatePlantLocationHistoryEventDate) => {
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data: {
+      eventDate,
+    },
+    successMessage: `Successfully updated eventDate to ${eventDate} of plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while updating  eventDate to ${eventDate} of plant location history with id: ${remeasurementId}`,
+  });
+};
+
 interface IUpdatePlantLocationHistoryStatus {
   remeasurementId: string;
   status: string;
@@ -223,6 +244,45 @@ export const getPlantLocationHistory = (remeasurementId: string) => {
           message: `Error while retrieving plant location history with id: ${remeasurementId}`,
           logStack: JSON.stringify(err),
           referenceId: remeasurementId,
+        });
+        bugsnag.notify(err);
+        resolve(false);
+      });
+  });
+};
+
+export const getPlantLocationHistoryByStatus = (status: string): Promise<any[]> => {
+  return new Promise((resolve, _) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        const plantLocationHistory = realm
+          .objects('PlantLocationHistory')
+          .filtered(`dataStatus = "${status}"`);
+
+        if (plantLocationHistory) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Successfully retrieved plant location history with status: ${status}`,
+            referenceId: status,
+          });
+        } else {
+          // logging the success in to the db
+          dbLog.error({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Cannot find plant location history with status: ${status}`,
+            referenceId: status,
+          });
+        }
+        resolve(plantLocationHistory || []);
+      })
+      .catch(err => {
+        console.log(err);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Error while retrieving plant location history with status: ${status}`,
+          logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
         resolve(false);

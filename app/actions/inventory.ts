@@ -1,4 +1,4 @@
-import { getAuthenticatedRequest } from '../utils/api';
+import { getAuthenticatedRequest, postAuthenticatedRequest } from '../utils/api';
 import {
   DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
@@ -16,6 +16,7 @@ import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import React from 'react';
+import { IAddPlantLocationEventData } from '../types/inventory';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -167,4 +168,56 @@ export const getAllInventoryFromServer = async (
     });
     return { data: [], nextRouteLink: null };
   }
+};
+
+/**
+ * Adds a scientific specie to user's preferred species
+ * @param {string} locationId - location id of the plant location of which
+ *                              event is to be added
+ * @param {object} data - contains data to create an event
+ */
+export const addPlantLocationEvent = (locationId: string, data: IAddPlantLocationEventData) => {
+  if (!locationId) {
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    // makes an authorized POST request on /species to add a specie of user.
+    postAuthenticatedRequest(`/treemapper/plantLocations/${locationId}/event`, data)
+      .then(res => {
+        const { data, status } = res;
+
+        // checks if the status code is 200 the resolves the promise with the fetched data
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Successfully added event with plant location id: ${locationId}, POST - /treemapper/plantLocations/${locationId}/event`,
+            statusCode: status,
+          });
+          resolve(data);
+        } else {
+          // logging the success in to the db
+          dbLog.warn({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Got success response from server other than status code 200, POST - /treemapper/plantLocations/${locationId}/event`,
+            statusCode: status,
+          });
+          resolve(false);
+        }
+      })
+      .catch(err => {
+        // logs the error
+        console.error(
+          `Error at /actions/inventory/addPlantLocationEvent, ${JSON.stringify(err?.response)}`,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Failed to add event of plant locaiton having id ${locationId}, POST - /treemapper/plantLocations/${locationId}/event`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+        reject(err);
+      });
+  });
 };

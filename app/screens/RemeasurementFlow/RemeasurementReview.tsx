@@ -24,6 +24,7 @@ import { InventoryContext } from '../../reducers/inventory';
 import {
   getPlantLocationHistory,
   updatePlantLocationHistory,
+  updatePlantLocationHistoryEventDate,
   updatePlantLocationHistoryStatus,
 } from '../../repositories/plantLocationHistory';
 import { getUserInformation } from '../../repositories/user';
@@ -34,6 +35,7 @@ import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   PENDING_DATA_UPLOAD,
+  PENDING_REMEASUREMENT_DATA_UPLOAD,
 } from '../../utils/inventoryConstants';
 import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 import { measurementValidation } from '../../utils/validations/measurements';
@@ -147,11 +149,15 @@ export default function RemeasurementReview({}: Props) {
   };
 
   const onPressSave = async () => {
-    const result = await updatePlantLocationHistoryStatus({
+    const eventDateResult = await updatePlantLocationHistoryEventDate({
+      remeasurementId: selectedRemeasurementId,
+      eventDate: new Date(),
+    });
+    const statusResult = await updatePlantLocationHistoryStatus({
       remeasurementId: selectedRemeasurementId,
       status: PENDING_DATA_UPLOAD,
     });
-    if (result) {
+    if (eventDateResult && statusResult) {
       navigation.navigate('TreeInventory');
     }
   };

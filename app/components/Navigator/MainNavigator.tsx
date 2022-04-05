@@ -43,7 +43,7 @@ import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 import EditPolygon from '../InventoryOverview/EditPolygon';
 import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
-import RemeasurementForm from '../Remeasurements/RemeasurementForm';
+import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
 import TakePicture from '../../screens/TakePicture';
 import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
 

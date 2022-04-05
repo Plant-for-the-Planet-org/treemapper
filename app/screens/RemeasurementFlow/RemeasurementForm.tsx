@@ -27,9 +27,10 @@ import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 import { measurementValidation } from '../../utils/validations/measurements';
-import { AlertModal, Header, PrimaryButton } from '../Common';
-import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
-import MeasurementInputs from '../Common/MeasurementInputs';
+import { AlertModal, Header, PrimaryButton } from '../../components/Common';
+import CustomDropDownPicker from '../../components/Common/Dropdown/CustomDropDownPicker';
+import MeasurementInputs from '../../components/Common/MeasurementInputs';
+import { INCOMPLETE } from '../../utils/inventoryConstants';
 
 type Props = {};
 
@@ -144,10 +145,24 @@ export default function RemeasurementForm({}: Props) {
       };
     }
 
+    console.log(
+      'state.samplePlantLocationIndex',
+      state.samplePlantLocationIndex,
+      state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0,
+    );
+
     await addPlantLocationHistory({
       inventoryId: state.inventoryID || '',
       samplePlantLocationIndex: state.samplePlantLocationIndex,
-      historyData,
+      historyData: {
+        ...historyData,
+        dataStatus: INCOMPLETE,
+        eventName: 'measurement',
+        parentId:
+          state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0
+            ? inventory.sampleTrees[state.samplePlantLocationIndex].locationId
+            : inventory.locationId,
+      },
     });
     setRemeasurementId(remeasurementId)(dispatch);
     navigation.navigate('TakePicture');
