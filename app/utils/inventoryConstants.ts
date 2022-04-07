@@ -32,6 +32,9 @@ export const FIX_NEEDED = 'FIX_NEEDED';
 // used as status when data upload of remeasurement is pending.
 export const PENDING_REMEASUREMENT_DATA_UPLOAD = 'PENDING_REMEASUREMENT_DATA_UPLOAD';
 
+// used as status when data is being editted.
+export const EDITING = 'EDITING';
+
 /* === Inventory registration statuses - ENDS === */
 
 /* ============================================== *\

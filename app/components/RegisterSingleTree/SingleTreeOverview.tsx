@@ -65,6 +65,12 @@ import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
 import ManageSpecies from '../ManageSpecies';
 import SpecieSampleTree from '../SpecieSampleTree';
+import Geolocation from 'react-native-geolocation-service';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { locationPermission } from '../../utils/permissions';
+import { bugsnag } from '../../utils';
+import distanceCalculator from '../../utils/distanceCalculator';
+import { getIsDateInReameasurementRange } from '../../utils/remeasurement';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -119,6 +125,12 @@ const SingleTreeOverview = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [navigationType, setNavigationType] = useState<string>('save');
+  const [location, setLocation] = useState<MapboxGL.Location | Geolocation.GeoPosition>();
+  const [isRemeasurementDisabled, setIsRemeasurementDisabled] = useState<boolean>(false);
+  const [showRemeasurementButton, setShowRemeasurementButton] = useState<boolean>(false);
+  const [plantLocationCoordinates, setPlantLocationCoordinates] = useState<[number, number]>([
+    0, 0,
+  ]);
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -159,8 +171,78 @@ const SingleTreeOverview = () => {
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onPressSave);
-    return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+
+    let isCancelled = false;
+
+    if (!isCancelled) {
+      checkPermission();
+    }
+
+    return () => {
+      isCancelled = true;
+
+      BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+    };
   }, []);
+
+  useEffect(() => {
+    const distanceInMeters = distanceCalculator(
+      [location?.coords.latitude as number, location?.coords.longitude as number],
+      plantLocationCoordinates,
+      'meters',
+    );
+
+    setIsRemeasurementDisabled(distanceInMeters > 100);
+  }, [location, plantLocationCoordinates]);
+
+  useEffect(() => {
+    if (plantationDate && status === SYNCED) {
+      const isDateInRange = getIsDateInReameasurementRange(plantationDate);
+      setShowRemeasurementButton(isDateInRange);
+    } else {
+      setShowRemeasurementButton(false);
+    }
+  }, [plantationDate, status]);
+
+  const checkPermission = async (showAlert = true) => {
+    try {
+      await locationPermission();
+      MapboxGL.setTelemetryEnabled(false);
+
+      updateCurrentPosition(showAlert);
+      return true;
+    } catch (err: any) {
+      if (err?.message == 'blocked') {
+        // TODO: add permission blocked modal
+      } else if (err?.message == 'denied') {
+        // TODO: add permission denied modal
+      } else {
+        bugsnag.notify(err);
+      }
+      return false;
+    }
+  };
+
+  //getting current position of the user with high accuracy
+  const updateCurrentPosition = async () => {
+    return new Promise(resolve => {
+      Geolocation.getCurrentPosition(
+        position => {
+          setLocation(position);
+          resolve(position);
+        },
+        err => {},
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          accuracy: {
+            android: 'high',
+            ios: 'bestForNavigation',
+          },
+        },
+      );
+    });
+  };
 
   const fetchAndUpdateInventoryDetails = () => {
     getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
@@ -208,6 +290,7 @@ const SingleTreeOverview = () => {
           setTagId(currentSampleTree.tagId);
           setEditedTagId(currentSampleTree.tagId);
           setTotalSampleTrees(inventoryData.sampleTreesCount);
+          setPlantLocationCoordinates([currentSampleTree.latitude, currentSampleTree.longitude]);
         } else {
           const diameter = nonISUCountries.includes(data.country)
             ? Math.round(inventoryData.specieDiameter * cmToInch * 1000) / 1000
@@ -237,6 +320,10 @@ const SingleTreeOverview = () => {
           setPlantationDate(inventoryData.plantation_date);
           setTagId(inventoryData.tagId);
           setEditedTagId(inventoryData.tagId);
+          setPlantLocationCoordinates([
+            inventoryData.polygons[0]?.coordinates[0].latitude,
+            inventoryData.polygons[0]?.coordinates[0].longitude,
+          ]);
         }
       });
     });
@@ -993,12 +1080,18 @@ const SingleTreeOverview = () => {
               btnText={i18next.t('label.tree_review_next_btn')}
             />
           </View>
-        ) : status === SYNCED ? (
+        ) : showRemeasurementButton ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
               onPress={() => navigation.navigate('RemeasurementForm')}
               btnText={i18next.t('label.remeasure')}
+              disabled={isRemeasurementDisabled}
             />
+            {isRemeasurementDisabled ? (
+              <Text>{i18next.t('label.you_are_far_to_remeasure')}</Text>
+            ) : (
+              []
+            )}
           </View>
         ) : (
           []

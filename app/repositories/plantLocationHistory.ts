@@ -211,7 +211,7 @@ export const updatePlantLocationHistoryStatus = async ({
   });
 };
 
-export const getPlantLocationHistory = (remeasurementId: string) => {
+export const getPlantLocationHistoryById = (remeasurementId: string) => {
   return new Promise((resolve, _) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -251,27 +251,39 @@ export const getPlantLocationHistory = (remeasurementId: string) => {
   });
 };
 
-export const getPlantLocationHistoryByStatus = (status: string): Promise<any[]> => {
+export const getPlantLocationHistory = (status: string[] = []): Promise<any[]> => {
   return new Promise((resolve, _) => {
     Realm.open(getSchema())
       .then(realm => {
-        const plantLocationHistory = realm
+        let plantLocationHistory = realm
           .objects('PlantLocationHistory')
-          .filtered(`dataStatus = "${status}"`);
+          .filtered('dataStatus != null');
+        if (status.length !== 0) {
+          var query = 'dataStatus == ';
+          for (var i = 0; i < status.length; i++) {
+            query += `'${status[i]}'`;
+            if (i + 1 < status.length) {
+              query += ' || dataStatus == ';
+            }
+          }
+          plantLocationHistory = plantLocationHistory.filtered(query);
+        }
 
         if (plantLocationHistory) {
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.REMEASUREMENT,
-            message: `Successfully retrieved plant location history with status: ${status}`,
-            referenceId: status,
+            message: `Successfully retrieved plant location histor having ${
+              status.length == 0 ? 'all' : status.join(', ')
+            }`,
           });
         } else {
           // logging the success in to the db
           dbLog.error({
             logType: LogTypes.REMEASUREMENT,
-            message: `Cannot find plant location history with status: ${status}`,
-            referenceId: status,
+            message: `Cannot find plant location history having ${
+              status.length == 0 ? 'all' : status.join(', ')
+            }`,
           });
         }
         resolve(plantLocationHistory || []);
@@ -281,11 +293,13 @@ export const getPlantLocationHistoryByStatus = (status: string): Promise<any[]> 
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
-          message: `Error while retrieving plant location history with status: ${status}`,
+          message: `Error while retrieving plant location history${
+            status ? ` with status: ${status}` : ''
+          }`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
-        resolve(false);
+        resolve([]);
       });
   });
 };

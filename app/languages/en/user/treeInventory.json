@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Uploading .......",
   "tree_inventory_left_text": "Pending Upload",
+  "pending_remeasurement_upload": "Pending Remeasurement Upload",
   "tree_inventory_left_text_uploading": "Upload in progress",
   "tree_inventory_right_text": "Upload now",
   "tree_inventory_view_upload": "View all uploaded Items",

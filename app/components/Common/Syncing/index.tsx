@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { Typography, Colors } from '../../../styles';
-import RotatingView from '../RotatingView';
-import { uploadInventoryData } from '../../../utils/uploadInventory';
-import { InventoryContext } from '../../../reducers/inventory';
-import i18next from 'i18next';
-import { UserContext } from '../../../reducers/user';
-import { useNavigation } from '@react-navigation/native';
-import dbLog from '../../../repositories/logs';
-import { LogTypes } from '../../../utils/constants';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
+import React, { useContext, useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { InventoryContext } from '../../../reducers/inventory';
+import { UserContext } from '../../../reducers/user';
+import dbLog from '../../../repositories/logs';
+import { Colors, Typography } from '../../../styles';
+import { LogTypes } from '../../../utils/constants';
+import { uploadInventoryData } from '../../../utils/uploadInventory';
 import AlertModal from '../AlertModal';
-import { uploadRemeasurements } from '../../../actions/uploadRemeasurements';
+import RotatingView from '../RotatingView';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -70,7 +69,6 @@ export default function Syncing({
 
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      uploadRemeasurements();
       uploadInventoryData(dispatch, userDispatch).catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,

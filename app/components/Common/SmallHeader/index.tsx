@@ -33,13 +33,14 @@ const SmallHeader = ({
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...style,
       }}>
       <Text style={[styles.subHeadingText, leftTextStyle]}>{leftText}</Text>
       <View>
         <TouchableOpacity
           onPress={onPressRight ? onPressRight : null}
-          style={{ flexDirection: 'row' }}
+          style={{ flexDirection: 'row', flex: 1, marginLeft: 8 }}
           accessibilityLabel="Small header"
           accessible={true}
           testID="small_header">
@@ -86,6 +87,7 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    flex: 2,
   },
   activeText: {
     color: Colors.PRIMARY,

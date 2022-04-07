@@ -9,6 +9,7 @@ import { startLoading, stopLoading } from '../../actions/loader';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
 import { LoadingContext } from '../../reducers/loader';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { UserContext } from '../../reducers/user';
 import { getSchema } from '../../repositories/default';
 import {
@@ -58,6 +59,7 @@ export default function MainScreen() {
   const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+  const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -162,6 +164,19 @@ export default function MainScreen() {
     }
   }
 
+  function plantLocationHistoryListener(
+    _: Realm.Collection<any>,
+    changes: Realm.CollectionChangeSet,
+  ) {
+    if (
+      changes.deletions.length > 0 ||
+      changes.insertions.length > 0 ||
+      changes.newModifications.length > 0
+    ) {
+      getPendingPlantLocationHistory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm: Realm) => {
@@ -170,10 +185,12 @@ export default function MainScreen() {
       const userObject = realm.objects('User');
       const plantLocationObject = realm.objects('Inventory');
       const projectsObject = realm.objects('Projects');
+      const plantLocationHistoryObject = realm.objects('PlantLocationHistory');
       // Observe collection notifications.
       userObject.addListener(listener);
       plantLocationObject.addListener(inventoryListener);
       projectsObject.addListener(projectListener);
+      plantLocationHistoryObject.addListener(plantLocationHistoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }

@@ -16,13 +16,14 @@ import RNFS from 'react-native-fs';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
+import { setRemeasurementId } from '../../actions/inventory';
 import AlertModal from '../../components/Common/AlertModal';
 import Header from '../../components/Common/Header';
 import InputModal from '../../components/Common/InputModal';
 import PrimaryButton from '../../components/Common/PrimaryButton';
 import { InventoryContext } from '../../reducers/inventory';
 import {
-  getPlantLocationHistory,
+  getPlantLocationHistoryById,
   updatePlantLocationHistory,
   updatePlantLocationHistoryEventDate,
   updatePlantLocationHistoryStatus,
@@ -31,11 +32,13 @@ import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { DBHInMeter, nonISUCountries } from '../../utils/constants';
 import {
+  DATA_UPLOAD_START,
+  EDITING,
   FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   PENDING_DATA_UPLOAD,
-  PENDING_REMEASUREMENT_DATA_UPLOAD,
+  SYNCED,
 } from '../../utils/inventoryConstants';
 import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 import { measurementValidation } from '../../utils/validations/measurements';
@@ -59,22 +62,34 @@ export default function RemeasurementReview({}: Props) {
   );
   const [showInputError, setShowInputError] = useState<boolean>(false);
   const [dataStatus, setDataStatus] = useState<string>('');
+  const [oldDataStatus, setOldDataStatus] = useState('');
 
   const [diameterLabel, setDiameterLabel] = useState<string>(
     i18next.t('label.measurement_basal_diameter'),
   );
 
+  const [isEditable, setIsEditable] = useState<boolean>(false);
+
+  const editableStatusCondition = [
+    INCOMPLETE,
+    INCOMPLETE_SAMPLE_TREE,
+    FIX_NEEDED,
+    EDITING,
+    PENDING_DATA_UPLOAD,
+  ];
+
   const navigation = useNavigation();
 
   const {
     state: { selectedRemeasurementId },
+    dispatch,
   } = useContext(InventoryContext);
 
   useEffect(() => {
     getUserInformation().then(user => {
       setIsNonISUCountry(nonISUCountries.includes(user?.country || ''));
     });
-    getPlantLocationHistory(selectedRemeasurementId).then((plantLocationHistory: any) => {
+    getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
       let imageSource = '';
       if (plantLocationHistory.imageUrl) {
@@ -87,8 +102,24 @@ export default function RemeasurementReview({}: Props) {
         setHeight(plantLocationHistory.height);
         setImageUrl(imageSource);
         setDataStatus(plantLocationHistory.dataStatus);
+        setOldDataStatus(plantLocationHistory.dataStatus);
+
+        console.log('plantLocationHistory.dataStatus', plantLocationHistory.dataStatus);
+        console.log(
+          'editableStatusCondition.includes(plantLocationHistory.dataStatus)',
+          editableStatusCondition.includes(plantLocationHistory.dataStatus),
+        );
+        const canEdit = editableStatusCondition.includes(plantLocationHistory.dataStatus);
+        if (canEdit) {
+          changeStatusToEditing();
+        }
+        setIsEditable(canEdit);
       }
     });
+    return () => {
+      changeToOldStatus();
+      setRemeasurementId('')(dispatch);
+    };
   }, []);
 
   const onSubmitInputField = ({
@@ -117,6 +148,8 @@ export default function RemeasurementReview({}: Props) {
           diameter: refactoredSpecieDiameter,
         });
 
+        changeToOldStatus();
+
         break;
       case 'height':
         validationObject = measurementValidation(editableHeight, editableDiameter, isNonISUCountry);
@@ -138,6 +171,8 @@ export default function RemeasurementReview({}: Props) {
           height: refactoredSpecieHeight,
         });
 
+        changeToOldStatus();
+
         break;
       default:
         setInputErrorMessage(i18next.t('label.tree_inventory_input_error_message'));
@@ -157,6 +192,7 @@ export default function RemeasurementReview({}: Props) {
       remeasurementId: selectedRemeasurementId,
       status: PENDING_DATA_UPLOAD,
     });
+    setOldDataStatus(PENDING_DATA_UPLOAD);
     if (eventDateResult && statusResult) {
       navigation.navigate('TreeInventory');
     }
@@ -184,21 +220,23 @@ export default function RemeasurementReview({}: Props) {
     return text;
   };
 
+  const changeStatusToEditing = () => {
+    updatePlantLocationHistoryStatus({
+      remeasurementId: selectedRemeasurementId,
+      status: EDITING,
+    });
+  };
+
+  const changeToOldStatus = () => {
+    updatePlantLocationHistoryStatus({
+      remeasurementId: selectedRemeasurementId,
+      status: oldDataStatus,
+    });
+  };
+
   const detailHeaderStyle = !imageUrl
     ? [styles.detailHeader, styles.defaultFontColor]
     : [styles.detailHeader];
-
-  let shouldEdit;
-  if (
-    dataStatus === INCOMPLETE ||
-    dataStatus === INCOMPLETE_SAMPLE_TREE ||
-    dataStatus === FIX_NEEDED ||
-    !dataStatus
-  ) {
-    shouldEdit = true;
-  } else {
-    shouldEdit = false;
-  }
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -240,7 +278,7 @@ export default function RemeasurementReview({}: Props) {
             <View style={{ marginVertical: 5, marginTop: 16 }}>
               <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
               <TouchableOpacity
-                disabled={!shouldEdit}
+                disabled={!isEditable}
                 style={{ flexDirection: 'row', alignItems: 'center' }}
                 onPress={() => {
                   setEditEnabledFor('height');
@@ -252,14 +290,14 @@ export default function RemeasurementReview({}: Props) {
                 <FIcon name={'arrow-v'} style={styles.detailText} />
                 <Text style={styles.detailText}>
                   {getConvertedMeasurementText(height, 'm')}
-                  {shouldEdit && <MIcon name={'edit'} size={20} />}
+                  {isEditable && <MIcon name={'edit'} size={20} />}
                 </Text>
               </TouchableOpacity>
             </View>
             <View style={{ marginVertical: 5 }}>
               <Text style={detailHeaderStyle}>{diameterLabel}</Text>
               <TouchableOpacity
-                disabled={!shouldEdit}
+                disabled={!isEditable}
                 style={{ flexDirection: 'row', alignItems: 'center' }}
                 onPress={() => {
                   setEditEnabledFor('diameter');
@@ -271,7 +309,7 @@ export default function RemeasurementReview({}: Props) {
                 <FIcon name={'arrow-h'} style={styles.detailText} />
                 <Text style={styles.detailText}>
                   {getConvertedMeasurementText(diameter)}
-                  {shouldEdit && <MIcon name={'edit'} size={20} />}
+                  {isEditable && <MIcon name={'edit'} size={20} />}
                 </Text>
               </TouchableOpacity>
             </View>

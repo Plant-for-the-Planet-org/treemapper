@@ -17,6 +17,7 @@ import { SvgXml } from 'react-native-svg';
 import { setInventoryId } from '../../actions/inventory';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { UserContext } from '../../reducers/user';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserDetails } from '../../repositories/user';
@@ -30,7 +31,6 @@ import {
   PENDING_DATA_UPDATE,
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
-  PENDING_REMEASUREMENT_DATA_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
   SINGLE,
   SYNCED,
@@ -38,6 +38,7 @@ import {
 import { uploadInventoryData } from '../../utils/uploadInventory';
 import { AlertModal, Header, InventoryCard, PrimaryButton, SmallHeader, Sync } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
+import RemeasurementItem from '../Remeasurements/RemeasurementItem';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -53,10 +54,16 @@ const TreeInventory = () => {
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
-  const [remeasurementInventory, setRemeasurementInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
+
+  const {
+    pendingPlantLocationHistoryUpload,
+    uploadRemeasurements,
+    pendingPlantLocationHistoryUploadCount,
+    isUploading: isRemeasurementUploading,
+  } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -139,10 +146,6 @@ const TreeInventory = () => {
     getInventoryByStatus([FIX_NEEDED]).then(inventoryList => {
       setFixNeededInventory(inventoryList);
     });
-    getInventoryByStatus([PENDING_REMEASUREMENT_DATA_UPLOAD]).then(inventoryList => {
-      console.log('inventoryList', inventoryList);
-      setRemeasurementInventory(inventoryList);
-    });
   };
 
   const onPressUploadNow = () => {
@@ -161,6 +164,14 @@ const TreeInventory = () => {
           }
         });
       navigation.goBack();
+    } else {
+      setOfflineModal(true);
+    }
+  };
+
+  const onPressUploadRemeasurement = () => {
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadRemeasurements();
     } else {
       setOfflineModal(true);
     }
@@ -222,8 +233,6 @@ const TreeInventory = () => {
     );
   };
 
-  console.log('remeasurementInventory', remeasurementInventory);
-
   const allData = [
     {
       title: i18next.t('label.tree_inventory_left_text_uploading'),
@@ -232,8 +241,13 @@ const TreeInventory = () => {
     },
     {
       title: i18next.t('label.tree_inventory_left_text'),
-      data: [...pendingInventory, ...remeasurementInventory],
+      data: pendingInventory,
       type: 'pending',
+    },
+    {
+      title: i18next.t('label.pending_remeasurement_upload'),
+      data: pendingPlantLocationHistoryUpload,
+      type: 'pending_remeasurement',
     },
     {
       title: i18next.t('label.tree_inventory_incomplete_registrations'),
@@ -253,7 +267,8 @@ const TreeInventory = () => {
       inCompleteInventory.length > 0 ||
       uploadedInventory.length > 0 ||
       fixNeededInventory.length > 0 ||
-      uploadingInventory.length > 0 ? (
+      uploadingInventory.length > 0 ||
+      pendingPlantLocationHistoryUpload.length > 0 ? (
         <SectionList
           sections={allData}
           style={{ paddingHorizontal: 25 }}
@@ -277,6 +292,9 @@ const TreeInventory = () => {
             </>
           )}
           renderItem={({ item, index, section }) => {
+            if (section.type === 'pending_remeasurement') {
+              return <RemeasurementItem item={item} />;
+            }
             return (
               <Item
                 item={item}
@@ -315,6 +333,20 @@ const TreeInventory = () => {
                   return (
                     <SmallHeader
                       onPressRight={onPressUploadNow}
+                      leftText={title}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+                case 'pending_remeasurement':
+                  return (
+                    <SmallHeader
+                      rightText={i18next.t('label.upload_pending', {
+                        count: pendingPlantLocationHistoryUploadCount,
+                      })}
+                      icon={'cloud-upload'}
+                      iconType={'MCIcon'}
+                      sync={isRemeasurementUploading}
+                      onPressRight={onPressUploadRemeasurement}
                       leftText={title}
                       style={{ marginVertical: 15 }}
                     />

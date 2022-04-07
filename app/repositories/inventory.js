@@ -129,12 +129,12 @@ export const getInventoryByStatus = status => {
           }
           inventory = inventory.filtered(query);
         }
-        let sortedInventory = inventory.sorted('registrationDate', true);
+        let sortedInventory = inventory.sorted('plantation_date', false);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Fetched inventories from DB having status ${
-            status.length == 0 ? 'all' : status.join()
+            status.length == 0 ? 'all' : status.join(', ')
           }`,
         });
         resolve(sortedInventory);
@@ -144,7 +144,7 @@ export const getInventoryByStatus = status => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Error while fetching inventories from DB having status ${
-            status.length == 0 ? 'all' : status.join
+            status.length == 0 ? 'all' : status.join(', ')
           }`,
           logStack: JSON.stringify(err),
         });
@@ -215,6 +215,39 @@ export const getInventory = ({ inventoryID }) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Error while fetching inventory with inventory_id: ${inventoryID}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
+  });
+};
+
+export const getInventoryByLocationId = ({ locationId }) => {
+  return new Promise(resolve => {
+    Realm.open(getSchema())
+      .then(realm => {
+        let inventory = realm.objects('Inventory').filtered('locationId == $0', locationId);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Fetched inventory with location id: ${locationId}`,
+        });
+        if (inventory) {
+          // by doing stringify and parsing of inventory result it removes the
+          // reference of realm type Inventory from the result this helps to
+          // avoid any conflicts when data is modified outside the realm scope
+          resolve(JSON.parse(JSON.stringify(inventory)));
+        } else {
+          resolve(inventory);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        console.error(`Error while fetching inventory with location id: ${locationId}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching inventory with location id: ${locationId}`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
