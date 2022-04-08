@@ -166,7 +166,7 @@ export const updatePlantLocationHistory = async ({
     data.height = height;
   }
   return await writeOperationPlantLocationHistory({
-    remeasurementId: remeasurementId,
+    remeasurementId,
     data,
     successMessage: `Successfully updated diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
     errorMessage: `Error while updating  diameter to ${diameter} and height to ${height} of plant location history with id: ${remeasurementId}`,
