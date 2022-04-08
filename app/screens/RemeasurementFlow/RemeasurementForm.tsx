@@ -102,6 +102,7 @@ export default function RemeasurementForm({}: Props) {
     setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
   };
 
+  // handles the button press and checks if the values are valid and if so, saves the data
   const onPressMeasurementBtn = () => {
     Keyboard.dismiss();
     const validationObject = measurementValidation(height, diameter, isNonISUCountry);
@@ -117,8 +118,10 @@ export default function RemeasurementForm({}: Props) {
     }
   };
 
-  // adds height, diameter in DB by checking the tree type
+  // adds height, diameter or deadReason in DB by checking the tree type
+  // and then navigates to the next screen i.e. [TakePicture]
   const addMeasurements = async () => {
+    // app data to be attached with the measurement
     const appAdditionalDetails = {
       deviceBrand: getBrand(),
       deviceModel: getModel(),
@@ -126,12 +129,18 @@ export default function RemeasurementForm({}: Props) {
       deviceSystemVersion: getSystemVersion(),
       deviceManufacturer: await getManufacturer(),
     };
+
     const remeasurementId = nanoid();
+
+    // preparation of data which is to be stores in palnt locaiton history
     let historyData: any = {
       id: remeasurementId,
       eventDate: new Date(),
       appMetadata: JSON.stringify(appAdditionalDetails),
     };
+
+    // adds height and diameter to the history data if tree is alive
+    // else adds dead reason to the history data
     if (isTreeAlive) {
       historyData = {
         ...historyData,
@@ -145,12 +154,6 @@ export default function RemeasurementForm({}: Props) {
       };
     }
 
-    console.log(
-      'state.samplePlantLocationIndex',
-      state.samplePlantLocationIndex,
-      state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0,
-    );
-
     await addPlantLocationHistory({
       inventoryId: state.inventoryID || '',
       samplePlantLocationIndex: state.samplePlantLocationIndex,
@@ -158,6 +161,7 @@ export default function RemeasurementForm({}: Props) {
         ...historyData,
         dataStatus: INCOMPLETE,
         eventName: 'measurement',
+        // adds locationId to the history data depending on the tree type
         parentId:
           state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0
             ? inventory.sampleTrees[state.samplePlantLocationIndex].locationId
@@ -180,6 +184,7 @@ export default function RemeasurementForm({}: Props) {
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
           <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24 }}>
+            {/* header shows the HID and Species */}
             <Header
               headingText={i18next.t('label.remeasurement')}
               onBackPress={() => {
@@ -195,6 +200,8 @@ export default function RemeasurementForm({}: Props) {
               []
             )}
           </View>
+
+          {/* shows the form layout */}
           <KeyboardAvoidingView
             behavior={Platform.OS == 'ios' ? 'padding' : undefined}
             style={{ flex: 1 }}>
@@ -205,6 +212,8 @@ export default function RemeasurementForm({}: Props) {
                 justifyContent: 'space-between',
               }}>
               <View>
+                {/* Toggle - used to decide whether the tree is alive or not */}
+                {/* and toggles the form field based on same */}
                 <View style={[styles.switchContainer, { marginBottom: 24 }]}>
                   <Text style={styles.switchText}>{i18next.t('label.tree_is_still_alive')}</Text>
                   <Switch
@@ -216,6 +225,8 @@ export default function RemeasurementForm({}: Props) {
                   />
                 </View>
 
+                {/* If the tree is alive then shows height and diameter input fields */}
+                {/* Else shows the dead reason dropdown */}
                 {isTreeAlive ? (
                   <MeasurementInputs
                     height={height}
@@ -243,6 +254,7 @@ export default function RemeasurementForm({}: Props) {
                 )}
               </View>
 
+              {/* shows the button to save the data */}
               <View>
                 <PrimaryButton
                   onPress={onPressMeasurementBtn}
@@ -252,6 +264,8 @@ export default function RemeasurementForm({}: Props) {
             </View>
           </KeyboardAvoidingView>
         </View>
+
+        {/* shows the modal if the ratio between height and diameter is not optimal */}
         <AlertModal
           visible={showIncorrectRatioAlert}
           heading={i18next.t('label.not_optimal_ratio')}

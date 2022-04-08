@@ -346,6 +346,7 @@ const TreeInventory = () => {
                       icon={'cloud-upload'}
                       iconType={'MCIcon'}
                       sync={isRemeasurementUploading}
+                      iconColor={Colors.PRIMARY}
                       onPressRight={onPressUploadRemeasurement}
                       leftText={title}
                       style={{ marginVertical: 15 }}
@@ -356,7 +357,8 @@ const TreeInventory = () => {
                     <SmallHeader
                       onPressRight={onPressClearAll}
                       leftText={title}
-                      rightTheme={'red'}
+                      iconColor={Colors.ALERT}
+                      rightTextStyle={{ color: Colors.ALERT }}
                       icon={'trash'}
                       iconType={'FAIcon'}
                       style={{ marginVertical: 15 }}

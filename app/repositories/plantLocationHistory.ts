@@ -211,7 +211,9 @@ export const updatePlantLocationHistoryStatus = async ({
   });
 };
 
-export const getPlantLocationHistoryById = (remeasurementId: string) => {
+export const getPlantLocationHistoryById = (
+  remeasurementId: string,
+): Promise<Realm.Object | undefined> => {
   return new Promise((resolve, _) => {
     Realm.open(getSchema())
       .then(realm => {

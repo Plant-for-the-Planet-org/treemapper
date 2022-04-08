@@ -1,19 +1,20 @@
-import { View, Text, SafeAreaView, Image, Platform, StyleSheet, Linking } from 'react-native';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import Header from '../../components/Common/Header';
+import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
+import React, { useContext, useRef, useState } from 'react';
+import { Image, Linking, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { PrimaryButton } from '../../components/Common';
-import { Colors, Typography } from '../../styles';
-import { copyImageAndGetData } from '../../utils/FSInteration';
+import Header from '../../components/Common/Header';
 import { InventoryContext } from '../../reducers/inventory';
-import { LogTypes } from '../../utils/constants';
 import dbLog from '../../repositories/logs';
-import { useNavigation } from '@react-navigation/native';
 import { addImageToPlantLocationHistory } from '../../repositories/plantLocationHistory';
+import { Colors, Typography } from '../../styles';
+import { LogTypes } from '../../utils/constants';
+import { copyImageAndGetData } from '../../utils/FSInteration';
 
 type Props = {};
 
+// TODO: Make this component common for all the screens where Image Capture is used
 const TakePicture = ({}: Props) => {
   const [imagePath, setImagePath] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
@@ -21,7 +22,6 @@ const TakePicture = ({}: Props) => {
   const navigation = useNavigation();
 
   const { state } = useContext(InventoryContext);
-  console.log('state', state);
 
   const onClickOpenSettings = async () => {
     if (Platform.OS === 'ios') {
@@ -29,6 +29,7 @@ const TakePicture = ({}: Props) => {
     }
   };
 
+  // handles the camera taking a picture and stores the image in [imagePath]
   const onPressCamera = async () => {
     if (imagePath) {
       setImagePath('');
@@ -51,6 +52,8 @@ const TakePicture = ({}: Props) => {
     setIsCapturing(false);
   };
 
+  // stores the imagePath in the plant location history data
+  // TODO: Refactor this function to store the image according to the flow
   const onPressContinue = async () => {
     if (imagePath) {
       try {
@@ -71,6 +74,7 @@ const TakePicture = ({}: Props) => {
 
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
+      {/* shows the header text */}
       <View style={styles.screenMargin}>
         <Header
           onBackPress={() => {}}
@@ -79,6 +83,8 @@ const TakePicture = ({}: Props) => {
         />
       </View>
       <View style={styles.container}>
+        {/* if image path is present then shows the image with buttons to Retak and Continue */}
+        {/* else shows cameara to take the picture */}
         <View style={styles.container}>
           {imagePath ? (
             <Image source={{ uri: imagePath }} style={styles.container} />
@@ -115,6 +121,7 @@ const TakePicture = ({}: Props) => {
           )}
         </View>
       </View>
+      {/* shows the button depending on the imagePath */}
       <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
         <PrimaryButton
           onPress={isCapturing ? () => {} : onPressCamera}

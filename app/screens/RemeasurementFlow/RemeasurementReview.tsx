@@ -32,13 +32,11 @@ import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { DBHInMeter, nonISUCountries } from '../../utils/constants';
 import {
-  DATA_UPLOAD_START,
   EDITING,
   FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   PENDING_DATA_UPLOAD,
-  SYNCED,
 } from '../../utils/inventoryConstants';
 import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 import { measurementValidation } from '../../utils/validations/measurements';
@@ -70,6 +68,7 @@ export default function RemeasurementReview({}: Props) {
 
   const [isEditable, setIsEditable] = useState<boolean>(false);
 
+  // statues under which editing of data is possible
   const editableStatusCondition = [
     INCOMPLETE,
     INCOMPLETE_SAMPLE_TREE,
@@ -86,33 +85,33 @@ export default function RemeasurementReview({}: Props) {
   } = useContext(InventoryContext);
 
   useEffect(() => {
+    // used to check if the user is in non-ISU country
     getUserInformation().then(user => {
       setIsNonISUCountry(nonISUCountries.includes(user?.country || ''));
     });
+
+    // used to get the data for the selected remeasurement
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
-      let imageSource = '';
-      if (plantLocationHistory.imageUrl) {
-        imageSource = `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${plantLocationHistory.imageUrl}`;
-      } else if (plantLocationHistory.cdnImageUrl)
-        imageSource = `${protocol}://${cdnUrl}/media/cache/coordinate/large/${plantLocationHistory.cdnImageUrl}`;
 
+      // used to get the image url either from local storage or from the server
       if (plantLocationHistory) {
+        let imageSource = '';
+        if (plantLocationHistory.imageUrl)
+          imageSource = `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${plantLocationHistory.imageUrl}`;
+        else if (plantLocationHistory.cdnImageUrl)
+          imageSource = `${protocol}://${cdnUrl}/media/cache/coordinate/large/${plantLocationHistory.cdnImageUrl}`;
+
         setDiameter(plantLocationHistory.diameter);
         setHeight(plantLocationHistory.height);
-        setImageUrl(imageSource);
         setDataStatus(plantLocationHistory.dataStatus);
         setOldDataStatus(plantLocationHistory.dataStatus);
+        setImageUrl(imageSource);
 
-        console.log('plantLocationHistory.dataStatus', plantLocationHistory.dataStatus);
-        console.log(
-          'editableStatusCondition.includes(plantLocationHistory.dataStatus)',
-          editableStatusCondition.includes(plantLocationHistory.dataStatus),
-        );
+        // checks if editing is allowed for the selected remeasurement or not
         const canEdit = editableStatusCondition.includes(plantLocationHistory.dataStatus);
-        if (canEdit) {
-          changeStatusToEditing();
-        }
+        if (canEdit) changeStatusToEditing();
+
         setIsEditable(canEdit);
       }
     });
@@ -122,6 +121,8 @@ export default function RemeasurementReview({}: Props) {
     };
   }, []);
 
+  // checks if [diameter] or [height] is being edited and if so,
+  // updates the value in the state by validating the same
   const onSubmitInputField = ({
     action,
     forceContinue = false,
@@ -183,6 +184,10 @@ export default function RemeasurementReview({}: Props) {
     setEditEnabledFor('');
   };
 
+  // saves the plant location history data
+  // adds current date to the [eventDate]
+  // changes the status to [PENDING_DATA_UPLOAD]
+  // navigates to [TreeInventory]
   const onPressSave = async () => {
     const eventDateResult = await updatePlantLocationHistoryEventDate({
       remeasurementId: selectedRemeasurementId,
@@ -198,6 +203,8 @@ export default function RemeasurementReview({}: Props) {
     }
   };
 
+  // shows diameter label based on height
+  // i.e. either Basal diameter orDiameter at Breadth Height
   const updateDiameterLabel = (convertedHeight: number) => {
     if (convertedHeight < DBHInMeter) {
       setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
@@ -220,6 +227,8 @@ export default function RemeasurementReview({}: Props) {
     return text;
   };
 
+  // changes the plant location history status to editing,
+  // which helps to not upload this data
   const changeStatusToEditing = () => {
     updatePlantLocationHistoryStatus({
       remeasurementId: selectedRemeasurementId,
@@ -227,13 +236,18 @@ export default function RemeasurementReview({}: Props) {
     });
   };
 
+  // used to change the status to old status if the remeasurement is saved earlier
+  // i.e. if user cancels the editing, the status will be changed to old status
+  //      -> PENDING_DATA_UPLOAD, etc
   const changeToOldStatus = () => {
-    updatePlantLocationHistoryStatus({
-      remeasurementId: selectedRemeasurementId,
-      status: oldDataStatus,
-    });
+    if (dataStatus && oldDataStatus && dataStatus !== INCOMPLETE)
+      updatePlantLocationHistoryStatus({
+        remeasurementId: selectedRemeasurementId,
+        status: oldDataStatus,
+      });
   };
 
+  // changes styles depending on the imagePath
   const detailHeaderStyle = !imageUrl
     ? [styles.detailHeader, styles.defaultFontColor]
     : [styles.detailHeader];
@@ -273,8 +287,10 @@ export default function RemeasurementReview({}: Props) {
             />
           </View>
           <View style={styles.scrollViewContainer}>
+            {/* shows the image */}
             {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.imgSpecie} /> : []}
 
+            {/* shows the height and also shows the edit button if editable */}
             <View style={{ marginVertical: 5, marginTop: 16 }}>
               <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
               <TouchableOpacity
@@ -294,6 +310,9 @@ export default function RemeasurementReview({}: Props) {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* shows the diameter and also shows the edit button if editable */}
+
             <View style={{ marginVertical: 5 }}>
               <Text style={detailHeaderStyle}>{diameterLabel}</Text>
               <TouchableOpacity
@@ -315,12 +334,18 @@ export default function RemeasurementReview({}: Props) {
             </View>
           </View>
         </ScrollView>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <PrimaryButton
-            onPress={() => onPressSave()}
-            btnText={i18next.t('label.tree_review_Save')}
-          />
-        </View>
+
+        {/* shows button only if properties are editable and can be saved */}
+        {isEditable ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <PrimaryButton
+              onPress={() => onPressSave()}
+              btnText={i18next.t('label.tree_review_Save')}
+            />
+          </View>
+        ) : (
+          []
+        )}
       </View>
       <AlertModal
         visible={showIncorrectRatioAlert}
@@ -340,6 +365,15 @@ export default function RemeasurementReview({}: Props) {
         onPressSecondaryBtn={() => {
           setShowIncorrectRatioAlert(false);
           onSubmitInputField({ action: editEnabledFor, forceContinue: true });
+        }}
+      />
+      <AlertModal
+        visible={showInputError}
+        heading={i18next.t('label.tree_inventory_input_error')}
+        message={inputErrorMessage}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => {
+          setShowInputError(false);
         }}
       />
     </SafeAreaView>
