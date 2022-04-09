@@ -45,7 +45,7 @@ echo "password $MAPBOXGL_DOWNLOAD_TOKEN" >> ~/.netrc
 
 # Install dependencies
 echo "Running npm install"
-npm install
+npm install --legacy-peer-deps
 echo "Running pod install"
 cd ios
 pod install
