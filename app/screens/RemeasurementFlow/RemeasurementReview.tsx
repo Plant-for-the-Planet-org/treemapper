@@ -84,6 +84,7 @@ export default function RemeasurementReview({}: Props) {
     dispatch,
   } = useContext(InventoryContext);
 
+  console.log('selectedRemeasurementId', selectedRemeasurementId);
   useEffect(() => {
     // used to check if the user is in non-ISU country
     getUserInformation().then(user => {
@@ -189,14 +190,26 @@ export default function RemeasurementReview({}: Props) {
   // changes the status to [PENDING_DATA_UPLOAD]
   // navigates to [TreeInventory]
   const onPressSave = async () => {
-    const eventDateResult = await updatePlantLocationHistoryEventDate({
-      remeasurementId: selectedRemeasurementId,
-      eventDate: new Date(),
-    });
-    const statusResult = await updatePlantLocationHistoryStatus({
-      remeasurementId: selectedRemeasurementId,
-      status: PENDING_DATA_UPLOAD,
-    });
+    console.log('+++++');
+    let eventDateResult;
+    let statusResult;
+    try {
+      eventDateResult = await updatePlantLocationHistoryEventDate({
+        remeasurementId: selectedRemeasurementId,
+        eventDate: new Date(),
+      });
+    } catch (err) {
+      console.log(err, 'EventDate');
+    }
+    try {
+      statusResult = await updatePlantLocationHistoryStatus({
+        remeasurementId: selectedRemeasurementId,
+        status: PENDING_DATA_UPLOAD,
+      });
+    } catch (err) {
+      console.log(err, 'StatusResult');
+    }
+    console.log(eventDateResult, statusResult, 'statusResult');
     setOldDataStatus(PENDING_DATA_UPLOAD);
     if (eventDateResult && statusResult) {
       navigation.navigate('TreeInventory');

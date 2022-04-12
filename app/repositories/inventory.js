@@ -222,6 +222,40 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
+export const getSampleTreeBySampleTreeId = ({ sampleTreeLocationId }) => {
+  return new Promise(resolve => {
+    Realm.open(getSchema())
+      .then(realm => {
+        let sampleTree = realm
+          .objects('SampleTrees')
+          .filtered('locationId == $0', sampleTreeLocationId);
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Fetched Sample tree with location id: ${sampleTreeLocationId}`,
+        });
+        if (sampleTree) {
+          // by doing stringify and parsing of sampleTree result it removes the
+          // reference of realm type Inventory from the result this helps to
+          // avoid any conflicts when data is modified outside the realm scope
+          resolve(JSON.parse(JSON.stringify(sampleTree)));
+        } else {
+          resolve(sampleTree);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        console.error(`Error while fetching sampleTree with location id: ${sampleTreeLocationId}`);
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while fetching sampleTree with location id: ${sampleTreeLocationId}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+      });
+  });
+};
 export const getInventoryByLocationId = ({ locationId }) => {
   return new Promise(resolve => {
     Realm.open(getSchema())

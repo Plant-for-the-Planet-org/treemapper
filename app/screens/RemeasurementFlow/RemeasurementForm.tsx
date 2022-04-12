@@ -153,21 +153,26 @@ export default function RemeasurementForm({}: Props) {
         deadReason: deadReason,
       };
     }
-
-    await addPlantLocationHistory({
-      inventoryId: state.inventoryID || '',
-      samplePlantLocationIndex: state.samplePlantLocationIndex,
-      historyData: {
-        ...historyData,
-        dataStatus: INCOMPLETE,
-        eventName: 'measurement',
-        // adds locationId to the history data depending on the tree type
-        parentId:
-          state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0
-            ? inventory.sampleTrees[state.samplePlantLocationIndex].locationId
-            : inventory.locationId,
-      },
-    });
+    console.log(state.samplePlantLocationIndex, 'state.samplePlantLocationIndex');
+    try {
+      await addPlantLocationHistory({
+        inventoryId: state.inventoryID || '',
+        samplePlantLocationIndex: state.samplePlantLocationIndex,
+        historyData: {
+          ...historyData,
+          dataStatus: INCOMPLETE,
+          eventName: 'measurement',
+          // adds locationId to the history data depending on the tree type
+          parentId:
+            // state.samplePlantLocationIndex || state.samplePlantLocationIndex === 0
+            //   ? inventory.sampleTrees[state.samplePlantLocationIndex].locationId
+            //   :
+            inventory.locationId,
+        },
+      });
+    } catch (err) {
+      console.log(err, 'addPlantLocationHistory');
+    }
     setRemeasurementId(remeasurementId)(dispatch);
     navigation.navigate('TakePicture');
   };

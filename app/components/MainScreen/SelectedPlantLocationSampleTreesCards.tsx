@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   Dimensions,
   Image,
@@ -13,8 +13,11 @@ import {
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
 import { APIConfig } from '../../actions/Config';
+import { setSamplePlantLocationIndex } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
+import PrimaryButton from '../Common/PrimaryButton';
 const { protocol, cdnUrl } = APIConfig;
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -36,6 +39,7 @@ const SelectedPlantLocationSampleTreesCards = ({
   countryCode,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
+  const { dispatch } = useContext(InventoryContext);
 
   const heightUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_feet')
@@ -51,6 +55,7 @@ const SelectedPlantLocationSampleTreesCards = ({
           carouselRef.current = el;
           setIsCarouselRefVisible(true);
         }}
+        useScrollView={true}
         data={singleSelectedPlantLocation?.sampleTrees}
         itemWidth={itemWidth}
         sliderWidth={width}
@@ -96,7 +101,7 @@ const SelectedPlantLocationSampleTreesCards = ({
 
                     {/* plantation date */}
                     <Text style={styles.text}>
-                      {`${i18next.t('label.plantation_date')} ${i18next.t(
+                      {`${i18next.t('label.plantation_date')}${i18next.t(
                         'label.inventory_overview_date',
                         {
                           date: new Date(item.plantationDate),
@@ -111,6 +116,25 @@ const SelectedPlantLocationSampleTreesCards = ({
                       }${diameterUnit} ${item.tagId ? `• #${item.tagId}` : ''}`}
                     </Text>
                   </View>
+                </View>
+                <View
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    flexDirection: 'row',
+                    top: 18,
+                    left: 5,
+                  }}>
+                  <PrimaryButton
+                    btnText={'Remeasure'}
+                    onPress={() => {
+                      setSamplePlantLocationIndex(index)(dispatch);
+                      navigation.navigate('RemeasurementForm');
+                    }}
+                    halfWidth={true}
+                    disabled={item?.plantLocationHistory?.length > 0}
+                    accessibilityLabel="remeasure-button"
+                  />
                 </View>
               </View>
             </TouchableOpacity>

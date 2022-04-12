@@ -325,6 +325,8 @@ const MainMap = ({
     setInventoryId('')(dispatch);
   };
 
+  // console.log('*******************************', JSON.stringify(singleSelectedPlantLocation), '==');
+
   return (
     <View style={styles.container}>
       <GeoJSONMap

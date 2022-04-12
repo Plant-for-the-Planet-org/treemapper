@@ -199,6 +199,7 @@ const SingleTreeOverview = () => {
     if (plantationDate && status === SYNCED) {
       const isDateInRange = getIsDateInReameasurementRange(plantationDate);
       setShowRemeasurementButton(isDateInRange);
+      // setShowRemeasurementButton(true);
     } else {
       setShowRemeasurementButton(false);
     }
@@ -1086,6 +1087,7 @@ const SingleTreeOverview = () => {
               onPress={() => navigation.navigate('RemeasurementForm')}
               btnText={i18next.t('label.remeasure')}
               disabled={isRemeasurementDisabled}
+              // disabled={false}
             />
             {isRemeasurementDisabled ? (
               <Text>{i18next.t('label.you_are_far_to_remeasure')}</Text>

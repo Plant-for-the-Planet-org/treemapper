@@ -1,6 +1,9 @@
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import { getInventoryByLocationId } from '../../repositories/inventory';
+import {
+  getInventoryByLocationId,
+  getSampleTreeBySampleTreeId,
+} from '../../repositories/inventory';
 import { Colors, Typography } from '../../styles';
 import { setRemeasurementId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
@@ -59,7 +62,15 @@ const RemeasurementItem = ({ item, hideImage = false, containerStyle = {} }: Pro
   // fetches the plant location data and stores the data in [inventory]
   // and also HID which is shown as the title
   const getPlantLocation = async () => {
-    const plantLocation = await getInventoryByLocationId({ locationId: item.parentId });
+    let sampleTree;
+    // if (item.samplePlantLocationIndex) {
+    //   sampleTree = await getSampleTreeBySampleTreeId({ sampleTreeLocationId: item.parentId });
+    // }
+    console.log(item.parentId, 'item.parentId');
+    const plantLocation = await getInventoryByLocationId({
+      locationId: item.parentId,
+    });
+
     if (plantLocation && plantLocation.length > 0) {
       setInventory(plantLocation[0]);
       if (item.samplePlantLocationIndex || item.samplePlantLocationIndex === 0) {
@@ -88,14 +99,14 @@ const RemeasurementItem = ({ item, hideImage = false, containerStyle = {} }: Pro
       ? `${Math.round(item.height * meterToFoot * 1000) / 1000} ${i18next.t(
           'label.select_species_feet',
         )}`
-      : `${Math.round(item.height) / 1000} m`
+      : `${Math.round(item.height * 1000) / 1000} m`
     : '';
 
   // checks if diameter is available and if it is then converts it to feet based on ISU country
   const diameterWithUnit = item.diameter
     ? isNonISUCountry
       ? `${Math.round(item.diameter * cmToInch) / 1000} ${i18next.t('label.select_species_inches')}`
-      : `${Math.round(item.diameter) / 1000} cm`
+      : `${Math.round(item.diameter * 1000) / 1000} cm`
     : '';
 
   return (

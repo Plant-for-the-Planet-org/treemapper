@@ -51,3 +51,6 @@ export const INVENTORY_FETCH_FROM_SERVER = 'INVENTORY_FETCH_FROM_SERVER';
 
 // Used to set the remeasurement id for an inventory
 export const SET_SELECTED_REMEASUREMENT_ID = 'SET_SELECTED_REMEASUREMENT_ID';
+
+// Used to set the index of the remeasurement of sample tree
+export const SET_SAMPLE_PLANT_LOCATION_INDEX = 'SET_SAMPLE_PLANT_LOCATION_INDEX';

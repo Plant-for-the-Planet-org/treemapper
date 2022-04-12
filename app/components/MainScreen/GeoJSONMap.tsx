@@ -195,6 +195,11 @@ const GeoJSONMap = ({
     );
   }, [projectSitesGeoJSON]);
 
+  // console.log(
+  //   '================================================',
+  //   JSON.stringify(singleSelectedGeoJSON),
+  //   'singleSelectedGeoJSON',
+  // );
   return (
     <MapboxGL.MapView
       style={styles.container}
@@ -220,7 +225,9 @@ const GeoJSONMap = ({
             geoJSON={singleSelectedGeoJSON}
             isPointForMultipleTree={false}
             activeSampleCarouselIndex={activeSampleCarouselIndex}
+            setActiveSampleCarouselIndex={setActiveSampleCarouselIndex}
             isCarouselSample
+            sampleCarouselRef={sampleCarouselRef}
           />
           <MapboxGL.ShapeSource
             id={'singleSelectedPolygon'}

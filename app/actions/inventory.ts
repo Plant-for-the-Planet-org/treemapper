@@ -11,6 +11,7 @@ import {
   SET_IS_EXTRA_SAMPLE_TREE,
   INVENTORY_FETCH_FROM_SERVER,
   SET_SELECTED_REMEASUREMENT_ID,
+  SET_SAMPLE_PLANT_LOCATION_INDEX,
 } from './Types';
 import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { LogTypes } from '../utils/constants';
@@ -142,6 +143,20 @@ export const setRemeasurementId = (remeasurementId: string) => (dispatch: React.
     payload: remeasurementId,
   });
 };
+
+/**
+ * This function dispatches type SET_SELECTED_REMEASUREMENT_ID with payload as
+ * remeasurement id which will be used on remeasurement screens
+ * It requires the following param
+ * @param {number} samplePlantLocationIndex - used to for recording data for that remeasurement id
+ */
+export const setSamplePlantLocationIndex =
+  (samplePlantLocationIndex: string) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_SAMPLE_PLANT_LOCATION_INDEX,
+      payload: samplePlantLocationIndex,
+    });
+  };
 
 export const getAllInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',

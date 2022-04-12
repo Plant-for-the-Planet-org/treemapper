@@ -12,6 +12,7 @@ import {
   SET_IS_EXTRA_SAMPLE_TREE,
   INVENTORY_FETCH_FROM_SERVER,
   SET_SELECTED_REMEASUREMENT_ID,
+  SET_SAMPLE_PLANT_LOCATION_INDEX,
 } from '../actions/Types';
 
 export const inventoryFetchConstant = {
@@ -144,6 +145,11 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         selectedRemeasurementId: action.payload,
+      };
+    case SET_SAMPLE_PLANT_LOCATION_INDEX:
+      return {
+        ...state,
+        samplePlantLocationIndex: action.payload,
       };
     default:
       return state;
