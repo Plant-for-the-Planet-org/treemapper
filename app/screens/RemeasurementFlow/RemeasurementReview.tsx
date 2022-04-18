@@ -190,7 +190,6 @@ export default function RemeasurementReview({}: Props) {
   // changes the status to [PENDING_DATA_UPLOAD]
   // navigates to [TreeInventory]
   const onPressSave = async () => {
-    console.log('+++++');
     let eventDateResult;
     let statusResult;
     try {

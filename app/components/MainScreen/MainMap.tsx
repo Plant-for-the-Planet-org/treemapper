@@ -1,5 +1,6 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { useNavigation } from '@react-navigation/core';
+import { useFocusEffect } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -111,6 +112,17 @@ const MainMap = ({
       initializeInventory();
     }
   }, [state.inventoryFetchProgress, userInfo]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (state?.inventoryID) {
+        getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+          setSingleSelectedPlantLocation(inventoryData);
+        });
+      }
+      return () => {};
+    }, [state]),
+  );
 
   useEffect(() => {
     let isCancelled = false;

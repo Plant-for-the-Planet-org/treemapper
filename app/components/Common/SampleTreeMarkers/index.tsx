@@ -52,16 +52,15 @@ const SampleTreeMarkers = ({
     let color = Colors.PRIMARY_DARK;
     let opacity = 1;
 
-    if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {
-      color = Colors.PLANET_RED;
-    }
-
     if (isCarouselSample && activeSampleCarouselIndex !== i - 1) {
       color = Colors.GRAY_LIGHTEST;
       opacity = 0.6;
     }
     if (getIsDateInReameasurementRange(geoJSON.features[i].properties?.app?.plantationDate)) {
       color = Colors.PLANET_CRIMSON;
+    }
+    if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {
+      color = Colors.PLANET_RED;
     }
 
     markers.push(

@@ -195,11 +195,6 @@ const GeoJSONMap = ({
     );
   }, [projectSitesGeoJSON]);
 
-  // console.log(
-  //   '================================================',
-  //   JSON.stringify(singleSelectedGeoJSON),
-  //   'singleSelectedGeoJSON',
-  // );
   return (
     <MapboxGL.MapView
       style={styles.container}

@@ -48,6 +48,7 @@ const SelectedPlantLocationSampleTreesCards = ({
     ? i18next.t('label.select_species_inches')
     : 'cm';
 
+  // console.log(JSON.stringify(singleSelectedPlantLocation), 'singleSelectedPlantLocation');
   return (
     <View style={styles.carousel}>
       <Carousel

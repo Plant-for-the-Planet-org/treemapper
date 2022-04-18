@@ -81,21 +81,20 @@ export const addPlantLocationHistory = ({
     Realm.open(getSchema())
       .then(realm => {
         realm.write(() => {
-          console.log('1');
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
           if (inventory) {
-            console.log(inventory, 'inventory');
-            if (samplePlantLocationIndex && samplePlantLocationIndex > -1) {
-              console.log('3');
+            // console.log(inventory, 'inventory');
+            if (
+              (samplePlantLocationIndex || samplePlantLocationIndex == 0) &&
+              samplePlantLocationIndex > -1
+            ) {
               inventory.sampleTrees[samplePlantLocationIndex].plantLocationHistory.push({
                 ...historyData,
                 samplePlantLocationIndex,
               });
             } else {
-              console.log('4');
               inventory.plantLocationHistory.push(historyData);
             }
-            console.log('2', JSON.stringify(inventory));
           }
 
           // logging the success in to the db
@@ -273,7 +272,7 @@ export const getPlantLocationHistory = (status: string[] = []): Promise<any[]> =
             }
           }
           plantLocationHistory = plantLocationHistory.filtered(query);
-          console.log(JSON.stringify(plantLocationHistory), 'plantLocationHistory');
+          // console.log(JSON.stringify(plantLocationHistory), 'plantLocationHistory');
         }
 
         if (plantLocationHistory) {

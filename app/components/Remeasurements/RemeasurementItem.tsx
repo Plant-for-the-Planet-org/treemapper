@@ -66,7 +66,7 @@ const RemeasurementItem = ({ item, hideImage = false, containerStyle = {} }: Pro
     // if (item.samplePlantLocationIndex) {
     //   sampleTree = await getSampleTreeBySampleTreeId({ sampleTreeLocationId: item.parentId });
     // }
-    console.log(item.parentId, 'item.parentId');
+    // console.log(item.parentId, 'item.parentId');
     const plantLocation = await getInventoryByLocationId({
       locationId: item.parentId,
     });

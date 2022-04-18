@@ -232,11 +232,11 @@ const TreeInventory = () => {
       />
     );
   };
-  console.log(
-    'pendingPlantLocationHistoryUpload :>> ',
-    JSON.stringify(pendingPlantLocationHistoryUpload),
-    '>>',
-  );
+  // console.log(
+  //   'pendingPlantLocationHistoryUpload :>> ',
+  //   JSON.stringify(pendingPlantLocationHistoryUpload),
+  //   '>>',
+  // );
   const allData = [
     {
       title: i18next.t('label.tree_inventory_left_text_uploading'),
@@ -297,7 +297,6 @@ const TreeInventory = () => {
           )}
           renderItem={({ item, index, section }) => {
             if (section.type === 'pending_remeasurement') {
-              console.log('&&&&&&&&', index);
               return <RemeasurementItem item={item} />;
             }
             return (
