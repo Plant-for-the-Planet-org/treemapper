@@ -799,7 +799,7 @@ const SingleTreeOverview = () => {
           });
       } else {
         // TODO:i18n - if this is used, please add translations
-        alert('Species Name  is required');
+        alert('Species Name is required');
       }
     } else {
       navigateBack();

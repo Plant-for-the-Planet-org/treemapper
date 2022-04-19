@@ -46,6 +46,7 @@ export default function RemeasurementForm({}: Props) {
   const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
   const [deadReason, setDeadReason] = useState<string>('');
   const [showReasonOptions, setShowReasonOptions] = useState<boolean>(false);
+  const [showDeadReasonAlert, setShowDeadReasonAlert] = useState<boolean>(false);
 
   const diameterRef = createRef();
 
@@ -104,6 +105,8 @@ export default function RemeasurementForm({}: Props) {
 
   // handles the button press and checks if the values are valid and if so, saves the data
   const onPressMeasurementBtn = () => {
+    console.log('Clicked');
+
     Keyboard.dismiss();
     const validationObject = measurementValidation(height, diameter, isNonISUCountry);
     const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
@@ -111,10 +114,20 @@ export default function RemeasurementForm({}: Props) {
     setDiameterError(diameterErrorMessage);
     setHeightError(heightErrorMessage);
 
-    if (isRatioCorrect) {
-      addMeasurements();
+    if (isTreeAlive) {
+      if (!diameterErrorMessage && !heightErrorMessage) {
+        if (isRatioCorrect) {
+          addMeasurements();
+        } else {
+          setShowIncorrectRatioAlert(true);
+        }
+      }
     } else {
-      setShowIncorrectRatioAlert(true);
+      if (deadReason) {
+        addMeasurements();
+      } else {
+        setShowDeadReasonAlert(true);
+      }
     }
   };
 
@@ -150,7 +163,8 @@ export default function RemeasurementForm({}: Props) {
     } else {
       historyData = {
         ...historyData,
-        deadReason: deadReason,
+        status: 'dead',
+        statusReason: deadReason,
       };
     }
     console.log(state.samplePlantLocationIndex, 'state.samplePlantLocationIndex');
@@ -174,7 +188,11 @@ export default function RemeasurementForm({}: Props) {
       console.log(err, 'addPlantLocationHistory');
     }
     setRemeasurementId(remeasurementId)(dispatch);
-    navigation.navigate('TakePicture');
+    if (isTreeAlive) {
+      navigation.navigate('TakePicture');
+    } else {
+      navigation.navigate('RemeasurementReview');
+    }
   };
 
   const handleIsTreeAliveChange = () => {
@@ -283,6 +301,14 @@ export default function RemeasurementForm({}: Props) {
             setShowIncorrectRatioAlert(false);
             addMeasurements();
           }}
+        />
+        {/* shows the modal if the tree is dead and no reason is selected */}
+        <AlertModal
+          visible={showDeadReasonAlert}
+          heading={i18next.t('label.dead_reason_required')}
+          message={i18next.t('label.dead_reason_required_message')}
+          primaryBtnText={i18next.t('label.ok')}
+          onPressPrimaryBtn={() => setShowDeadReasonAlert(false)}
         />
       </SafeAreaView>
     </View>

@@ -48,5 +48,7 @@
   "remeasure": "Remeasure",
   "remeasurement": "Remeasurement",
   "you_are_far_to_remeasure": "You are far from the tree location to remeasure the tree.",
-  "go_to_inventory": "Go to inventory"
+  "go_to_inventory": "Go to inventory",
+  "dead_reason_required": "Dead reason is required",
+  "dead_reason_required_message": "Please select a dead reason to continue."
 }

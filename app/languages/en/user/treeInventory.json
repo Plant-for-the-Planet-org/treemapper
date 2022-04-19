@@ -44,5 +44,7 @@
   "fire": "Fire",
   "drought": "Drought",
   "other": "Other",
-  "dead_reason": "Dead Reason"
+  "dead_reason": "Dead Reason",
+  "status": "Status",
+  "dead": "Dead"
 }

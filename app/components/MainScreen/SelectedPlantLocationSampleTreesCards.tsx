@@ -140,7 +140,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                       left: 5,
                     }}>
                     <PrimaryButton
-                      btnText={'Remeasure'}
+                      btnText={i18next.t('label.remeasure')}
                       onPress={() => {
                         setSamplePlantLocationIndex(index)(dispatch);
                         navigation.navigate('RemeasurementForm');

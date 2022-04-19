@@ -55,6 +55,8 @@ export default function RemeasurementReview({}: Props) {
   const [isNonISUCountry, setIsNonISUCountry] = useState(false);
   const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [plantLocationHistory, setPlantLocationHistory] = useState({});
+  const [HID, setHID] = useState('');
 
   const [inputErrorMessage, setInputErrorMessage] = useState<string>(
     i18next.t('label.tree_inventory_input_error_message'),
@@ -96,6 +98,9 @@ export default function RemeasurementReview({}: Props) {
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
       getInventoryByLocationId({ locationId: plantLocationHistory?.parentId })
         .then(inventory => {
+          if (plantLocationHistory.samplePlantLocationIndex) {
+            setHID(inventory[0]?.sampleTrees[plantLocationHistory.samplePlantLocationIndex]?.hid);
+          }
           setInventoryId(inventory[0].inventory_id || '')(dispatch);
         })
         .catch(err => {
@@ -112,6 +117,7 @@ export default function RemeasurementReview({}: Props) {
         else if (plantLocationHistory.cdnImageUrl)
           imageSource = `${protocol}://${cdnUrl}/media/cache/coordinate/large/${plantLocationHistory.cdnImageUrl}`;
 
+        setPlantLocationHistory(plantLocationHistory);
         setDiameter(plantLocationHistory.diameter);
         setHeight(plantLocationHistory.height);
         setDataStatus(plantLocationHistory.dataStatus);
@@ -143,7 +149,7 @@ export default function RemeasurementReview({}: Props) {
     let validationObject;
     switch (action) {
       case 'diameter':
-        validationObject = measurementValidation(editableHeight, editableDiameter, isNonISUCountry);
+        validationObject = measurementValidation(height, editableDiameter, isNonISUCountry);
         setInputErrorMessage(validationObject.diameterErrorMessage);
         setShowInputError(!!validationObject.diameterErrorMessage);
         const refactoredSpecieDiameter: number = getConvertedDiameter(editableDiameter);
@@ -163,7 +169,7 @@ export default function RemeasurementReview({}: Props) {
 
         break;
       case 'height':
-        validationObject = measurementValidation(editableHeight, editableDiameter, isNonISUCountry);
+        validationObject = measurementValidation(editableHeight, diameter, isNonISUCountry);
 
         setInputErrorMessage(validationObject.heightErrorMessage);
         setShowInputError(!!validationObject.heightErrorMessage);
@@ -286,10 +292,10 @@ export default function RemeasurementReview({}: Props) {
           editEnabledFor === 'diameter'
             ? editableDiameter
               ? editableDiameter.toString()
-              : '0'
+              : ''
             : editableHeight
             ? editableHeight.toString()
-            : '0'
+            : ''
         }
         inputType={'number'}
         setValue={editEnabledFor === 'diameter' ? setEditableDiameter : setEditableHeight}
@@ -309,6 +315,7 @@ export default function RemeasurementReview({}: Props) {
               closeIcon
               onBackPress={() => onPressSave()}
               headingText={i18next.t('label.tree_review_header')}
+              subHeadingText={`HID:${HID}`}
             />
           </View>
           <View style={styles.scrollViewContainer}>
@@ -316,47 +323,76 @@ export default function RemeasurementReview({}: Props) {
             {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.imgSpecie} /> : []}
 
             {/* shows the height and also shows the edit button if editable */}
-            <View style={{ marginVertical: 5, marginTop: 16 }}>
-              <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
-              <TouchableOpacity
-                disabled={!isEditable}
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-                onPress={() => {
-                  setEditEnabledFor('height');
-                  setEditableHeight(height);
-                }}
-                accessibilityLabel="Height"
-                testID="height_btn"
-                accessible={true}>
-                <FIcon name={'arrow-v'} style={styles.detailText} />
-                <Text style={styles.detailText}>
-                  {getConvertedMeasurementText(height, 'm')}
-                  {isEditable && <MIcon name={'edit'} size={20} />}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {plantLocationHistory?.status !== 'dead' ? (
+              <View style={{ marginVertical: 5, marginTop: 16 }}>
+                <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
+                <TouchableOpacity
+                  disabled={!isEditable}
+                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  onPress={() => {
+                    setEditEnabledFor('height');
+                    setEditableHeight(height);
+                    setIsOpenModal(true);
+                  }}
+                  accessibilityLabel="Height"
+                  testID="height_btn"
+                  accessible={true}>
+                  <FIcon name={'arrow-v'} style={styles.detailText} />
+                  <Text style={styles.detailText}>
+                    {getConvertedMeasurementText(height, 'm')}
+                    {isEditable && <MIcon name={'edit'} size={20} />}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              []
+            )}
 
             {/* shows the diameter and also shows the edit button if editable */}
 
-            <View style={{ marginVertical: 5 }}>
-              <Text style={detailHeaderStyle}>{diameterLabel}</Text>
-              <TouchableOpacity
-                disabled={!isEditable}
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-                onPress={() => {
-                  setEditEnabledFor('diameter');
-                  setEditableDiameter(diameter);
-                }}
-                accessibilityLabel={i18next.t('label.tree_review_diameter')}
-                testID="diameter_btn"
-                accessible={true}>
-                <FIcon name={'arrow-h'} style={styles.detailText} />
-                <Text style={styles.detailText}>
-                  {getConvertedMeasurementText(diameter)}
-                  {isEditable && <MIcon name={'edit'} size={20} />}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {plantLocationHistory?.status !== 'dead' ? (
+              <View style={{ marginVertical: 5 }}>
+                <Text style={detailHeaderStyle}>{diameterLabel}</Text>
+                <TouchableOpacity
+                  disabled={!isEditable}
+                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  onPress={() => {
+                    setEditEnabledFor('diameter');
+                    setEditableDiameter(diameter);
+                    setIsOpenModal(true);
+                  }}
+                  accessibilityLabel={i18next.t('label.tree_review_diameter')}
+                  testID="diameter_btn"
+                  accessible={true}>
+                  <FIcon name={'arrow-h'} style={styles.detailText} />
+                  <Text style={styles.detailText}>
+                    {getConvertedMeasurementText(diameter)}
+                    {isEditable && <MIcon name={'edit'} size={20} />}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              []
+            )}
+
+            {plantLocationHistory?.status === 'dead' ? (
+              <>
+                <View style={{ marginVertical: 5 }}>
+                  <Text style={detailHeaderStyle}>{i18next.t('label.status')}</Text>
+                  <Text style={styles.detailText}>
+                    {i18next.t(`label.${plantLocationHistory?.status}`)}
+                  </Text>
+                </View>
+                <View style={{ marginVertical: 5 }}>
+                  <Text style={detailHeaderStyle}>{i18next.t('label.dead_reason')}</Text>
+                  <Text style={styles.detailText}>
+                    {i18next.t(`label.${plantLocationHistory?.statusReason}`)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              []
+            )}
             <PrimaryButton
               btnText={i18next.t('label.go_to_inventory')}
               onPress={() => redirectToParentInventory()}

@@ -1,10 +1,10 @@
 import React, { createContext, useEffect, useState } from 'react';
 import 'react-native-get-random-values';
 import { addPlantLocationEvent } from '../actions/inventory';
+import { getInventoryByLocationId } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
 import {
   getPlantLocationHistory,
-  getPlantLocationHistoryById,
   updatePlantLocationHistoryStatus,
 } from '../repositories/plantLocationHistory';
 import { IAddPlantLocationEventData } from '../types/inventory';
@@ -45,19 +45,21 @@ export const PlantLocationHistoryContextProvider = ({ children }: { children: JS
     setIsUploading(true);
 
     for (const history of pendingPlantLocationHistoryUpload) {
-      // fetches the latest copy of the plant location history
-      const plantHistory: any = await getPlantLocationHistoryById(history.id);
+      // fetches the latest copy of the plant location
+      const inventory: any = await getInventoryByLocationId({
+        locationId: history.parentId,
+      });
 
       // checks if the plant location history is in [PENDING_DATA_UPLOAD] status
       // only then continues else skips
-      if (!plantHistory) continue;
+      if (!history) continue;
 
-      if (plantHistory?.dataStatus !== PENDING_DATA_UPLOAD) continue;
+      if (history?.dataStatus !== PENDING_DATA_UPLOAD) continue;
 
       // updates the status of the plant location history to [DATA_UPLOAD_START]
       // helps to make sure that the plant location history is not uploaded multiple times
       const isStatusUpdated = await updatePlantLocationHistoryStatus({
-        remeasurementId: plantHistory.id,
+        remeasurementId: history.id,
         status: DATA_UPLOAD_START,
       });
 
@@ -65,28 +67,30 @@ export const PlantLocationHistoryContextProvider = ({ children }: { children: JS
       if (!isStatusUpdated) {
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
-          message: `Error while updating plant location history status to ${DATA_UPLOAD_START} with id: ${plantHistory.id}`,
-          referenceId: plantHistory.id,
+          message: `Error while updating plant location history status to ${DATA_UPLOAD_START} with id: ${history.id}`,
+          referenceId: history.id,
         });
         continue;
       }
-      const locationId = plantHistory.parentId;
+
+      // Sample Tree Location Id
+      const locationId = inventory[0].sampleTrees[history.samplePlantLocationIndex].locationId;
 
       // prepares the data to be sent to the server
       let data: IAddPlantLocationEventData = {
-        type: plantHistory.status ? 'status' : 'measurement',
-        eventDate: plantHistory.eventDate,
+        type: history.status ? 'status' : 'measurement',
+        eventDate: history.eventDate,
       };
 
       // if status is present then sends the [status] and [statusReason]
       // else sends [height] and [width] in measurement
-      if (plantHistory.status) {
-        data.status = plantHistory.status;
-        data.statusReason = plantHistory.statusReason;
+      if (history.status) {
+        data.status = history.status;
+        data.statusReason = history.statusReason;
       } else {
         data.measurements = {
-          height: plantHistory.height,
-          width: plantHistory.diameter,
+          height: history.height,
+          width: history.diameter,
         };
       }
 
@@ -96,15 +100,15 @@ export const PlantLocationHistoryContextProvider = ({ children }: { children: JS
         // if the upload is successful then updates the status of the plant location history to [SYNCED]
         if (result) {
           await updatePlantLocationHistoryStatus({
-            remeasurementId: plantHistory.id,
+            remeasurementId: history.id,
             status: SYNCED,
           });
         }
       } catch (e) {
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
-          message: `Error while uploading plant location history with id: ${plantHistory.id}`,
-          referenceId: plantHistory.id,
+          message: `Error while uploading plant location history with id: ${history.id}`,
+          referenceId: history.id,
           logStack: JSON.stringify(e),
         });
       }

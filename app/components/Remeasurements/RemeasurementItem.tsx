@@ -62,11 +62,6 @@ const RemeasurementItem = ({ item, hideImage = false, containerStyle = {} }: Pro
   // fetches the plant location data and stores the data in [inventory]
   // and also HID which is shown as the title
   const getPlantLocation = async () => {
-    let sampleTree;
-    // if (item.samplePlantLocationIndex) {
-    //   sampleTree = await getSampleTreeBySampleTreeId({ sampleTreeLocationId: item.parentId });
-    // }
-    // console.log(item.parentId, 'item.parentId');
     const plantLocation = await getInventoryByLocationId({
       locationId: item.parentId,
     });
