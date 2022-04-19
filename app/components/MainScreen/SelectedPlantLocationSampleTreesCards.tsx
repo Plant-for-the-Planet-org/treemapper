@@ -17,6 +17,7 @@ import { setSamplePlantLocationIndex } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
+import distanceCalculator from '../../utils/distanceCalculator';
 import PrimaryButton from '../Common/PrimaryButton';
 const { protocol, cdnUrl } = APIConfig;
 
@@ -27,6 +28,7 @@ interface ISelectedPlantLocationSampleTreesCardsProps {
   carouselRef: any;
   setIsCarouselRefVisible: React.Dispatch<React.SetStateAction<boolean>>;
   countryCode: string;
+  location: any;
 }
 
 const { width } = Dimensions.get('window');
@@ -37,6 +39,7 @@ const SelectedPlantLocationSampleTreesCards = ({
   carouselRef,
   setIsCarouselRefVisible,
   countryCode,
+  location,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
   const { dispatch } = useContext(InventoryContext);
@@ -49,6 +52,7 @@ const SelectedPlantLocationSampleTreesCards = ({
     : 'cm';
 
   // console.log(JSON.stringify(singleSelectedPlantLocation), 'singleSelectedPlantLocation');
+
   return (
     <View style={styles.carousel}>
       <Carousel
@@ -118,25 +122,35 @@ const SelectedPlantLocationSampleTreesCards = ({
                     </Text>
                   </View>
                 </View>
-                <View
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    flexDirection: 'row',
-                    top: 18,
-                    left: 5,
-                  }}>
-                  <PrimaryButton
-                    btnText={'Remeasure'}
-                    onPress={() => {
-                      setSamplePlantLocationIndex(index)(dispatch);
-                      navigation.navigate('RemeasurementForm');
-                    }}
-                    halfWidth={true}
-                    disabled={item?.plantLocationHistory?.length > 0}
-                    accessibilityLabel="remeasure-button"
-                  />
-                </View>
+                {distanceCalculator(
+                  [location?.coords.latitude as number, location?.coords.longitude as number],
+                  [item.latitude, item.longitude],
+                  'meters',
+                ) > 100 ? (
+                  <Text style={[styles.text, { fontSize: Typography.FONT_SIZE_12, opacity: 0.4 }]}>
+                    {i18next.t('label.you_are_far_to_remeasure')}
+                  </Text>
+                ) : (
+                  <View
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      flexDirection: 'row',
+                      top: 18,
+                      left: 5,
+                    }}>
+                    <PrimaryButton
+                      btnText={'Remeasure'}
+                      onPress={() => {
+                        setSamplePlantLocationIndex(index)(dispatch);
+                        navigation.navigate('RemeasurementForm');
+                      }}
+                      halfWidth={true}
+                      disabled={item?.plantLocationHistory?.length > 0}
+                      accessibilityLabel="remeasure-button"
+                    />
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           );

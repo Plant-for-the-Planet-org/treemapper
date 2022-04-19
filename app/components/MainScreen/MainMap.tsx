@@ -461,6 +461,7 @@ const MainMap = ({
           carouselRef={sampleCarouselRef}
           setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
           countryCode={countryCode}
+          location={location}
         />
       ) : selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
         <SelectedPlantLocationsCards

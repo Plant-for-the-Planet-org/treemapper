@@ -16,12 +16,13 @@ import RNFS from 'react-native-fs';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { APIConfig } from '../../actions/Config';
-import { setRemeasurementId } from '../../actions/inventory';
+import { setInventoryId, setRemeasurementId } from '../../actions/inventory';
 import AlertModal from '../../components/Common/AlertModal';
 import Header from '../../components/Common/Header';
 import InputModal from '../../components/Common/InputModal';
 import PrimaryButton from '../../components/Common/PrimaryButton';
 import { InventoryContext } from '../../reducers/inventory';
+import { getInventoryByLocationId } from '../../repositories/inventory';
 import {
   getPlantLocationHistoryById,
   updatePlantLocationHistory,
@@ -93,6 +94,14 @@ export default function RemeasurementReview({}: Props) {
 
     // used to get the data for the selected remeasurement
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
+      getInventoryByLocationId({ locationId: plantLocationHistory?.parentId })
+        .then(inventory => {
+          setInventoryId(inventory[0].inventory_id || '')(dispatch);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
       const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
 
       // used to get the image url either from local storage or from the server
@@ -259,6 +268,10 @@ export default function RemeasurementReview({}: Props) {
       });
   };
 
+  const redirectToParentInventory = () => {
+    navigation.navigate('InventoryOverview');
+  };
+
   // changes styles depending on the imagePath
   const detailHeaderStyle = !imageUrl
     ? [styles.detailHeader, styles.defaultFontColor]
@@ -344,6 +357,12 @@ export default function RemeasurementReview({}: Props) {
                 </Text>
               </TouchableOpacity>
             </View>
+            <PrimaryButton
+              btnText={i18next.t('label.go_to_inventory')}
+              onPress={() => redirectToParentInventory()}
+              theme={'white'}
+              style={{ marginVertical: 5 }}
+            />
           </View>
         </ScrollView>
 
