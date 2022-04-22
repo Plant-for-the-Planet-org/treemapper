@@ -113,16 +113,29 @@ const MainMap = ({
     }
   }, [state.inventoryFetchProgress, userInfo]);
 
-  useFocusEffect(
-    React.useCallback(() => {
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
       if (state?.inventoryID) {
         getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
           setSingleSelectedPlantLocation(inventoryData);
         });
       }
-      return () => {};
-    }, [state]),
-  );
+    });
+    return () => {
+      unsubscribeFocus();
+    };
+  }, [state]);
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (state?.inventoryID) {
+  //       getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+  //         setSingleSelectedPlantLocation(inventoryData);
+  //       });
+  //     }
+  //     return () => {};
+  //   }, [state]),
+  // );
 
   useEffect(() => {
     let isCancelled = false;
@@ -316,7 +329,7 @@ const MainMap = ({
       if (item.treeType === SINGLE) {
         navigation.navigate('SingleTreeOverview', { navigateBackToHomeScreen: true });
       } else {
-        navigation.navigate('InventoryOverview', { navigateBackToHomeScreen: true });
+        navigation.navigate('InventoryOverview', { navigateToScreen: 'MainScreen' });
       }
     } else {
       navigation.navigate(item.lastScreen);

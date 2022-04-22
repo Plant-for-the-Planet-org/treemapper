@@ -69,7 +69,7 @@ let scrollAdjust = 0;
 
 type RootStackParamList = {
   InventoryOverview: {
-    navigateBackToHomeScreen: boolean;
+    navigateToScreen: boolean;
   };
 };
 
@@ -580,8 +580,8 @@ const InventoryOverview = ({ navigation }: any) => {
                   headingText={i18next.t('label.inventory_overview_header_text')}
                   subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                   onBackPress={() => {
-                    if (route?.params?.navigateBackToHomeScreen) {
-                      navigation.navigate('MainScreen');
+                    if (route?.params?.navigateToScreen) {
+                      navigation.navigate(route.params.navigateToScreen);
                     } else {
                       navigation.navigate('TreeInventory');
                     }

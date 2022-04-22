@@ -49,6 +49,10 @@ const SampleTreeMarkers = ({
     const markerText = isPointForMultipleTree ? toLetters(1) : `${i}`;
     let oneMarker = onePoint.geometry.coordinates;
 
+    let shouldRemeasure = getIsDateInReameasurementRange(
+      geoJSON.features[i].properties?.app?.plantationDate,
+    );
+
     let color = Colors.PRIMARY_DARK;
     let opacity = 1;
 
@@ -56,7 +60,7 @@ const SampleTreeMarkers = ({
       color = Colors.GRAY_LIGHTEST;
       opacity = 0.6;
     }
-    if (getIsDateInReameasurementRange(geoJSON.features[i].properties?.app?.plantationDate)) {
+    if (shouldRemeasure) {
       color = Colors.PLANET_CRIMSON;
     }
     if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {

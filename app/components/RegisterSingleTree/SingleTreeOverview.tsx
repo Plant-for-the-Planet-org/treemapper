@@ -819,7 +819,7 @@ const SingleTreeOverview = () => {
         setIsExtraSampleTree(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
-            index: 3,
+            index: 2,
             routes: [
               { name: 'MainScreen' },
               { name: 'TreeInventory' },

@@ -275,7 +275,7 @@ export default function RemeasurementReview({}: Props) {
   };
 
   const redirectToParentInventory = () => {
-    navigation.navigate('InventoryOverview');
+    navigation.navigate('InventoryOverview', { navigateToScreen: 'RemeasurementReview' });
   };
 
   // changes styles depending on the imagePath

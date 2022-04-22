@@ -131,16 +131,19 @@ export const addPlantLocationHistory = ({
 interface IAddImageToPlantLocationHistory {
   remeasurementId: string;
   imageUrl: string;
+  lastScreen: string;
 }
 
 export const addImageToPlantLocationHistory = async ({
   remeasurementId,
   imageUrl,
+  lastScreen,
 }: IAddImageToPlantLocationHistory) => {
   return await writeOperationPlantLocationHistory({
     remeasurementId: remeasurementId,
     data: {
       imageUrl,
+      lastScreen,
     },
     successMessage: `Successfully added image in plant location history with id: ${remeasurementId}`,
     errorMessage: `Error while adding image in plant location history with id: ${remeasurementId}`,
@@ -211,6 +214,25 @@ export const updatePlantLocationHistoryStatus = async ({
     },
     successMessage: `Successfully updated status to ${status} of plant location history with id: ${remeasurementId}`,
     errorMessage: `Error while updating  status to ${status} of plant location history with id: ${remeasurementId}`,
+  });
+};
+
+interface IUpdatePlantLocationHistoryLastScreen {
+  remeasurementId: string;
+  lastScreen: string;
+}
+
+export const updatePlantLocationHistoryLastScreen = async ({
+  remeasurementId,
+  lastScreen,
+}: IUpdatePlantLocationHistoryLastScreen) => {
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data: {
+      lastScreen: lastScreen,
+    },
+    successMessage: `Successfully updated lastScreen to ${lastScreen} of plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while updating  lastScreen to ${lastScreen} of plant location history with id: ${remeasurementId}`,
   });
 };
 

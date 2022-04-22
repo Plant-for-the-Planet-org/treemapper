@@ -13,11 +13,12 @@ import {
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
 import { APIConfig } from '../../actions/Config';
-import { setSamplePlantLocationIndex } from '../../actions/inventory';
+import { setRemeasurementId, setSamplePlantLocationIndex } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 import distanceCalculator from '../../utils/distanceCalculator';
+import { PENDING_DATA_UPLOAD } from '../../utils/inventoryConstants';
 import PrimaryButton from '../Common/PrimaryButton';
 const { protocol, cdnUrl } = APIConfig;
 
@@ -53,6 +54,31 @@ const SelectedPlantLocationSampleTreesCards = ({
 
   // console.log(JSON.stringify(singleSelectedPlantLocation), 'singleSelectedPlantLocation');
 
+  const onPressRemeasure = (item: any, index: string) => {
+    let lastScreen;
+    setSamplePlantLocationIndex(index)(dispatch);
+    if (item?.plantLocationHistory?.length > 0) {
+      lastScreen = item?.plantLocationHistory[item?.plantLocationHistory?.length - 1]?.lastScreen;
+    } else {
+      lastScreen = '';
+    }
+
+    if (lastScreen) {
+      setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+        dispatch,
+      );
+      navigation.navigate(lastScreen);
+    } else {
+      navigation.navigate('RemeasurementForm');
+    }
+  };
+
+  const onPressCheckRemeasurement = (item: any) => {
+    setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+      dispatch,
+    );
+    navigation.navigate('RemeasurementReview');
+  };
   return (
     <View style={styles.carousel}>
       <Carousel
@@ -134,21 +160,35 @@ const SelectedPlantLocationSampleTreesCards = ({
                   <View
                     style={{
                       display: 'flex',
-                      justifyContent: 'flex-end',
+                      justifyContent: 'center',
                       flexDirection: 'row',
                       top: 18,
-                      left: 5,
+                      // left: 5,
                     }}>
-                    <PrimaryButton
-                      btnText={i18next.t('label.remeasure')}
-                      onPress={() => {
-                        setSamplePlantLocationIndex(index)(dispatch);
-                        navigation.navigate('RemeasurementForm');
-                      }}
-                      halfWidth={true}
-                      disabled={item?.plantLocationHistory?.length > 0}
-                      accessibilityLabel="remeasure-button"
-                    />
+                    {item?.plantLocationHistory?.length > 0 &&
+                    item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                      ?.dataStatus === PENDING_DATA_UPLOAD ? (
+                      <PrimaryButton
+                        btnText={i18next.t('label.check_remeasurement')}
+                        onPress={() => {
+                          onPressCheckRemeasurement(item);
+                        }}
+                        accessibilityLabel="remeasure-button"
+                      />
+                    ) : (
+                      <PrimaryButton
+                        btnText={i18next.t('label.remeasure')}
+                        onPress={() => {
+                          onPressRemeasure(item, index);
+                        }}
+                        // disabled={
+                        //   item?.plantLocationHistory?.length > 0 &&
+                        //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                        //     ?.dataStatus === PENDING_DATA_UPLOAD
+                        // }
+                        accessibilityLabel="remeasure-button"
+                      />
+                    )}
                   </View>
                 )}
               </View>

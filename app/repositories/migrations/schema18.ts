@@ -84,6 +84,8 @@ const PlantLocationHistory = {
     parentId: 'string?',
     // if the plant location history is for sample tree then add the sample tree index
     samplePlantLocationIndex: 'int?',
+    //last navigation screen
+    lastScreen: 'string?',
   },
 };
 

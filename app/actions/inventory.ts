@@ -145,10 +145,10 @@ export const setRemeasurementId = (remeasurementId: string) => (dispatch: React.
 };
 
 /**
- * This function dispatches type SET_SELECTED_REMEASUREMENT_ID with payload as
- * remeasurement id which will be used on remeasurement screens
+ * This function dispatches type SET_SAMPLE_PLANT_LOCATION_INDEX with payload as
+ * sample plant location index which will be used to know to which sample tree the remeasurement belongs
  * It requires the following param
- * @param {number} samplePlantLocationIndex - used to for recording data for that remeasurement id
+ * @param {number} samplePlantLocationIndex - used for recording data for the sample tree plant location index
  */
 export const setSamplePlantLocationIndex =
   (samplePlantLocationIndex: string) => (dispatch: React.Dispatch<any>) => {

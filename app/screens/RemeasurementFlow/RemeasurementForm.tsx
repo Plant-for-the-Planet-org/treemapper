@@ -150,6 +150,7 @@ export default function RemeasurementForm({}: Props) {
       id: remeasurementId,
       eventDate: new Date(),
       appMetadata: JSON.stringify(appAdditionalDetails),
+      lastScreen: 'TakePicture',
     };
 
     // adds height and diameter to the history data if tree is alive

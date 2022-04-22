@@ -60,6 +60,7 @@ const TakePicture = ({}: Props) => {
         const imageUrl = await copyImageAndGetData(imagePath);
         let data: any = {
           remeasurementId: state.selectedRemeasurementId,
+          lastScreen: 'RemeasurementReview',
           imageUrl,
         };
         await addImageToPlantLocationHistory(data);
@@ -77,9 +78,11 @@ const TakePicture = ({}: Props) => {
       {/* shows the header text */}
       <View style={styles.screenMargin}>
         <Header
-          onBackPress={() => {}}
+          // onBackPress={() => {}}
+          hideBackIcon
           headingText={i18next.t('label.image_capturing_header')}
           subHeadingText={i18next.t('label.image_capturing_sub_header')}
+          style={{ marginTop: 20 }}
         />
       </View>
       <View style={styles.container}>
