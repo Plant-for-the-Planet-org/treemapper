@@ -30,6 +30,7 @@ interface ISelectedPlantLocationSampleTreesCardsProps {
   setIsCarouselRefVisible: React.Dispatch<React.SetStateAction<boolean>>;
   countryCode: string;
   location: any;
+  loadingInventoryData: boolean;
 }
 
 const { width } = Dimensions.get('window');
@@ -41,6 +42,7 @@ const SelectedPlantLocationSampleTreesCards = ({
   setIsCarouselRefVisible,
   countryCode,
   location,
+  loadingInventoryData,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
   const { dispatch } = useContext(InventoryContext);
@@ -156,6 +158,8 @@ const SelectedPlantLocationSampleTreesCards = ({
                   <Text style={[styles.text, { fontSize: Typography.FONT_SIZE_12, opacity: 0.4 }]}>
                     {i18next.t('label.you_are_far_to_remeasure')}
                   </Text>
+                ) : loadingInventoryData ? (
+                  <></>
                 ) : (
                   <View
                     style={{

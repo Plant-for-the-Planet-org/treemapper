@@ -82,6 +82,7 @@ const MainMap = ({
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
   const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
+  const [loadingInventoryData, setLoadingInventoryData] = useState(false);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState(geoJSONInitialState);
@@ -116,8 +117,10 @@ const MainMap = ({
   useEffect(() => {
     const unsubscribeFocus = navigation.addListener('focus', () => {
       if (state?.inventoryID) {
+        setLoadingInventoryData(true);
         getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
           setSingleSelectedPlantLocation(inventoryData);
+          setLoadingInventoryData(false);
         });
       }
     });
@@ -475,6 +478,7 @@ const MainMap = ({
           setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
           countryCode={countryCode}
           location={location}
+          loadingInventoryData={loadingInventoryData}
         />
       ) : selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
         <SelectedPlantLocationsCards
