@@ -43,7 +43,7 @@
     "i18next": "^20.6.1",
     "jail-monkey": "^2.6.0",
     "jwt-decode": "^2.2.0",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "react": "17.0.2",
     "react-native": "0.66.1",
     "react-native-auth0": "^2.10.0",
