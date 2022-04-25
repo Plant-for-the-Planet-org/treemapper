@@ -82,7 +82,7 @@ jobs:
 
     - name: Install npm
       run : |
-        npm install
+        npm install --legacy-peer-deps
 
     - name: Setting Environment Variables
       env:
