@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import { getIsDateInReameasurementRange } from '../../../utils/remeasurement';
+import { getIsDateInRemeasurementRange } from '../../../utils/remeasurement';
 import MarkerSVG from '../../Common/MarkerSVG';
 
 interface Props {
@@ -49,7 +49,7 @@ const SampleTreeMarkers = ({
     const markerText = isPointForMultipleTree ? toLetters(1) : `${i}`;
     let oneMarker = onePoint.geometry.coordinates;
 
-    let shouldRemeasure = getIsDateInReameasurementRange(
+    let shouldRemeasure = getIsDateInRemeasurementRange(
       geoJSON.features[i].properties?.app?.plantationDate,
     );
 

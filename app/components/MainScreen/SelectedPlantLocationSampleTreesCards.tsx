@@ -19,7 +19,7 @@ import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 import distanceCalculator from '../../utils/distanceCalculator';
 import { PENDING_DATA_UPLOAD, SYNCED } from '../../utils/inventoryConstants';
-import { getIsDateInReameasurementRange } from '../../utils/remeasurement';
+import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 import PrimaryButton from '../Common/PrimaryButton';
 const { protocol, cdnUrl } = APIConfig;
 
@@ -82,7 +82,7 @@ const SelectedPlantLocationSampleTreesCards = ({
     navigation.navigate('RemeasurementReview');
   };
   // useEffect(() => {
-  //   const isDateInRange = getIsDateInReameasurementRange(item.plantation_date)
+  //   const isDateInRange = getIsDateInRemeasurementRange(item.plantation_date)
 
   //   return () => {
   //     second
@@ -117,7 +117,7 @@ const SelectedPlantLocationSampleTreesCards = ({
           }
 
           if (item.plantationDate && item.status === SYNCED) {
-            canRemeasurePlantLocation = getIsDateInReameasurementRange(item.plantationDate);
+            canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
 
             isUserDistanceMoreThen100M =
               distanceCalculator(

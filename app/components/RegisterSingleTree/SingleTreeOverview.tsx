@@ -70,7 +70,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import { locationPermission } from '../../utils/permissions';
 import { bugsnag } from '../../utils';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { getIsDateInReameasurementRange } from '../../utils/remeasurement';
+import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -198,7 +198,7 @@ const SingleTreeOverview = () => {
 
   useEffect(() => {
     if (plantationDate && status === SYNCED && plantLocationHistory) {
-      const isDateInRange = getIsDateInReameasurementRange(plantationDate);
+      const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
 
       setShowRemeasurementButton(
         isDateInRange &&
