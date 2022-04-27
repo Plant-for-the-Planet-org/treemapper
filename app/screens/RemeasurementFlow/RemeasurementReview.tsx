@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -24,6 +24,7 @@ import PrimaryButton from '../../components/Common/PrimaryButton';
 import { InventoryContext } from '../../reducers/inventory';
 import { getInventoryByLocationId } from '../../repositories/inventory';
 import {
+  deletePlantLocationHistory,
   getPlantLocationHistoryById,
   updatePlantLocationHistory,
   updatePlantLocationHistoryEventDate,
@@ -38,6 +39,7 @@ import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
   PENDING_DATA_UPLOAD,
+  SYNCED,
 } from '../../utils/inventoryConstants';
 import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 import { measurementValidation } from '../../utils/validations/measurements';
@@ -57,6 +59,7 @@ export default function RemeasurementReview({}: Props) {
   const [imageUrl, setImageUrl] = useState('');
   const [plantLocationHistory, setPlantLocationHistory] = useState({});
   const [HID, setHID] = useState('');
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const [inputErrorMessage, setInputErrorMessage] = useState<string>(
     i18next.t('label.tree_inventory_input_error_message'),
@@ -87,7 +90,6 @@ export default function RemeasurementReview({}: Props) {
     dispatch,
   } = useContext(InventoryContext);
 
-  console.log('selectedRemeasurementId', selectedRemeasurementId);
   useEffect(() => {
     // used to check if the user is in non-ISU country
     getUserInformation().then(user => {
@@ -165,7 +167,7 @@ export default function RemeasurementReview({}: Props) {
           diameter: refactoredSpecieDiameter,
         });
 
-        changeToOldStatus();
+        // changeToOldStatus();
 
         break;
       case 'height':
@@ -188,7 +190,7 @@ export default function RemeasurementReview({}: Props) {
           height: refactoredSpecieHeight,
         });
 
-        changeToOldStatus();
+        // changeToOldStatus();
 
         break;
       default:
@@ -230,6 +232,11 @@ export default function RemeasurementReview({}: Props) {
     }
   };
 
+  const onPressBack = () => {
+    navigation.navigate('TreeInventory');
+    changeToOldStatus();
+  };
+
   // shows diameter label based on height
   // i.e. either Basal diameter orDiameter at Breadth Height
   const updateDiameterLabel = (convertedHeight: number) => {
@@ -261,21 +268,37 @@ export default function RemeasurementReview({}: Props) {
       remeasurementId: selectedRemeasurementId,
       status: EDITING,
     });
+    setDataStatus(EDITING);
   };
 
   // used to change the status to old status if the remeasurement is saved earlier
   // i.e. if user cancels the editing, the status will be changed to old status
   //      -> PENDING_DATA_UPLOAD, etc
   const changeToOldStatus = () => {
-    if (dataStatus && oldDataStatus && dataStatus !== INCOMPLETE)
+    if (dataStatus && oldDataStatus && dataStatus !== INCOMPLETE) {
       updatePlantLocationHistoryStatus({
         remeasurementId: selectedRemeasurementId,
         status: oldDataStatus,
       });
+    }
   };
 
   const redirectToParentInventory = () => {
     navigation.navigate('InventoryOverview', { navigateToScreen: 'RemeasurementReview' });
+  };
+
+  const handleDeleteInventory = () => {
+    deletePlantLocationHistory({ remeasurementId: selectedRemeasurementId })
+      .then(() => {
+        setShowDeleteAlert(!showDeleteAlert);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+          }),
+        );
+      })
+      .catch(err => console.error(err));
   };
 
   // changes styles depending on the imagePath
@@ -306,18 +329,29 @@ export default function RemeasurementReview({}: Props) {
           <View
             style={{
               flexDirection: 'row',
-              justifyContent: 'space-between',
+              // justifyContent: 'space-between',
               paddingVertical: 0,
-              marginBottom: 24,
+              marginBottom: 0,
             }}>
             <Header
               style={{ flex: 1 }}
               closeIcon
-              onBackPress={() => onPressSave()}
+              onBackPress={() => onPressBack()}
               headingText={i18next.t('label.tree_review_header')}
               subHeadingText={`HID:${HID}`}
+              rightText={
+                dataStatus === INCOMPLETE || dataStatus === PENDING_DATA_UPLOAD
+                  ? i18next.t('label.tree_review_delete')
+                  : ''
+              }
+              onPressFunction={() => setShowDeleteAlert(true)}
             />
           </View>
+
+          <TouchableOpacity onPress={() => redirectToParentInventory()}>
+            <Text style={styles.viewButton}>{i18next.t('label.view_plant_location')}</Text>
+          </TouchableOpacity>
+
           <View style={styles.scrollViewContainer}>
             {/* shows the image */}
             {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.imgSpecie} /> : []}
@@ -393,12 +427,6 @@ export default function RemeasurementReview({}: Props) {
             ) : (
               []
             )}
-            <PrimaryButton
-              btnText={i18next.t('label.go_to_inventory')}
-              onPress={() => redirectToParentInventory()}
-              theme={'white'}
-              style={{ marginVertical: 5 }}
-            />
           </View>
         </ScrollView>
 
@@ -443,6 +471,20 @@ export default function RemeasurementReview({}: Props) {
           setShowInputError(false);
         }}
       />
+      <AlertModal
+        visible={showDeleteAlert}
+        heading={i18next.t('label.tree_inventory_alert_header')}
+        message={
+          dataStatus === SYNCED
+            ? i18next.t('label.tree_review_delete_uploaded_registration')
+            : i18next.t('label.tree_review_delete_not_yet_uploaded_registration')
+        }
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
+        onPressPrimaryBtn={handleDeleteInventory}
+        onPressSecondaryBtn={() => setShowDeleteAlert(!showDeleteAlert)}
+        showSecondaryButton={true}
+      />
     </SafeAreaView>
   );
 }
@@ -480,5 +522,11 @@ const styles = StyleSheet.create({
   },
   defaultFontColor: {
     color: Colors.TEXT_COLOR,
+  },
+  viewButton: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    paddingBottom: 30,
+    color: Colors.PRIMARY,
   },
 });

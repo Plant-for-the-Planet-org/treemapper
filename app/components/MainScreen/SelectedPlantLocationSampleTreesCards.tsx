@@ -18,7 +18,8 @@ import { InventoryContext } from '../../reducers/inventory';
 import { Colors, Typography } from '../../styles';
 import { nonISUCountries } from '../../utils/constants';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { PENDING_DATA_UPLOAD } from '../../utils/inventoryConstants';
+import { INCOMPLETE, PENDING_DATA_UPLOAD, SYNCED } from '../../utils/inventoryConstants';
+import { getIsDateInReameasurementRange } from '../../utils/remeasurement';
 import PrimaryButton from '../Common/PrimaryButton';
 const { protocol, cdnUrl } = APIConfig;
 
@@ -81,6 +82,14 @@ const SelectedPlantLocationSampleTreesCards = ({
     );
     navigation.navigate('RemeasurementReview');
   };
+  // useEffect(() => {
+  //   const isDateInRange = getIsDateInReameasurementRange(item.plantation_date)
+
+  //   return () => {
+  //     second
+  //   }
+  // }, [third])
+
   return (
     <View style={styles.carousel}>
       <Carousel
@@ -150,50 +159,57 @@ const SelectedPlantLocationSampleTreesCards = ({
                     </Text>
                   </View>
                 </View>
-                {distanceCalculator(
-                  [location?.coords.latitude as number, location?.coords.longitude as number],
-                  [item.latitude, item.longitude],
-                  'meters',
-                ) > 100 ? (
-                  <Text style={[styles.text, { fontSize: Typography.FONT_SIZE_12, opacity: 0.4 }]}>
-                    {i18next.t('label.you_are_far_to_remeasure')}
-                  </Text>
-                ) : loadingInventoryData ? (
-                  <></>
+                {getIsDateInReameasurementRange(item.plantationDate) ? (
+                  distanceCalculator(
+                    [location?.coords.latitude as number, location?.coords.longitude as number],
+                    [item.latitude, item.longitude],
+                    'meters',
+                  ) > 100 ? (
+                    <Text
+                      style={[styles.text, { fontSize: Typography.FONT_SIZE_12, opacity: 0.4 }]}>
+                      {i18next.t('label.you_are_far_to_remeasure')}
+                    </Text>
+                  ) : loadingInventoryData ? (
+                    <></>
+                  ) : (
+                    <View
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        top: 18,
+                        // left: 5,
+                      }}>
+                      {item?.plantLocationHistory?.length > 0 &&
+                      [PENDING_DATA_UPLOAD, SYNCED].includes(
+                        item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                          ?.dataStatus,
+                      ) ? (
+                        <PrimaryButton
+                          btnText={i18next.t('label.view_remeasurement')}
+                          onPress={() => {
+                            onPressCheckRemeasurement(item);
+                          }}
+                          accessibilityLabel="remeasure-button"
+                        />
+                      ) : (
+                        <PrimaryButton
+                          btnText={i18next.t('label.remeasure')}
+                          onPress={() => {
+                            onPressRemeasure(item, index);
+                          }}
+                          // disabled={
+                          //   item?.plantLocationHistory?.length > 0 &&
+                          //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                          //     ?.dataStatus === PENDING_DATA_UPLOAD
+                          // }
+                          accessibilityLabel="remeasure-button"
+                        />
+                      )}
+                    </View>
+                  )
                 ) : (
-                  <View
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      flexDirection: 'row',
-                      top: 18,
-                      // left: 5,
-                    }}>
-                    {item?.plantLocationHistory?.length > 0 &&
-                    item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
-                      ?.dataStatus === PENDING_DATA_UPLOAD ? (
-                      <PrimaryButton
-                        btnText={i18next.t('label.check_remeasurement')}
-                        onPress={() => {
-                          onPressCheckRemeasurement(item);
-                        }}
-                        accessibilityLabel="remeasure-button"
-                      />
-                    ) : (
-                      <PrimaryButton
-                        btnText={i18next.t('label.remeasure')}
-                        onPress={() => {
-                          onPressRemeasure(item, index);
-                        }}
-                        // disabled={
-                        //   item?.plantLocationHistory?.length > 0 &&
-                        //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
-                        //     ?.dataStatus === PENDING_DATA_UPLOAD
-                        // }
-                        accessibilityLabel="remeasure-button"
-                      />
-                    )}
-                  </View>
+                  <></>
                 )}
               </View>
             </TouchableOpacity>

@@ -121,6 +121,7 @@ const SingleTreeOverview = () => {
   const [inputErrorMessage, setInputErrorMessage] = useState<string>(
     i18next.t('label.tree_inventory_input_error_message'),
   );
+  const [plantLocationHistory, setPlantLocationHistory] = useState([]);
 
   const [isError, setIsError] = useState<boolean>(false);
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
@@ -196,9 +197,16 @@ const SingleTreeOverview = () => {
   }, [location, plantLocationCoordinates]);
 
   useEffect(() => {
-    if (plantationDate && status === SYNCED) {
+    if (plantationDate && status === SYNCED && plantLocationHistory) {
       const isDateInRange = getIsDateInReameasurementRange(plantationDate);
-      setShowRemeasurementButton(isDateInRange);
+
+      setShowRemeasurementButton(
+        isDateInRange &&
+          plantLocationHistory?.length > 0 &&
+          [PENDING_DATA_UPLOAD, SYNCED].includes(
+            plantLocationHistory[plantLocationHistory?.length - 1]?.dataStatus,
+          ),
+      );
       // setShowRemeasurementButton(true);
     } else {
       setShowRemeasurementButton(false);
@@ -292,6 +300,7 @@ const SingleTreeOverview = () => {
           setEditedTagId(currentSampleTree.tagId);
           setTotalSampleTrees(inventoryData.sampleTreesCount);
           setPlantLocationCoordinates([currentSampleTree.latitude, currentSampleTree.longitude]);
+          setPlantLocationHistory(currentSampleTree.plantLocationHistory);
         } else {
           const diameter = nonISUCountries.includes(data.country)
             ? Math.round(inventoryData.specieDiameter * cmToInch * 1000) / 1000

@@ -76,7 +76,7 @@ export default function ProjectList({
 const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId?: string }) => {
   const isProjectSelected = selectedProjectId === item.id;
   let country: any = handleFilter(item.country);
-  if (country) {
+  if (country && country.length > 0) {
     country = country[0].countryName;
   }
   return (

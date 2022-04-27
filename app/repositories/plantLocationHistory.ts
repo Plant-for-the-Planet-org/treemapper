@@ -1,5 +1,7 @@
+import React from 'react';
 import { bugsnag } from '../utils';
 import { LogTypes } from '../utils/constants';
+import { EDITING, INCOMPLETE, PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
 import { getSchema } from './default';
 import dbLog from './logs';
 
@@ -150,6 +152,84 @@ export const addImageToPlantLocationHistory = async ({
   });
 };
 
+interface IDeletePlantLocationHistory {
+  remeasurementId: string;
+  // dispatch: React.Dispatch;
+}
+
+export const deletePlantLocationHistory = ({
+  remeasurementId,
+}: // dispatch,
+IDeletePlantLocationHistory) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        let remeasurement = realm.objectForPrimaryKey('PlantLocationHistory', `${remeasurementId}`);
+        const isPending = remeasurement.dataStatus === PENDING_DATA_UPLOAD;
+        realm.write(() => {
+          realm.delete(remeasurement);
+          // setInventoryId('')(dispatch);
+        });
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Successfully deleted remeasurement with remeasurementId: ${remeasurementId}`,
+        });
+
+        // if (dispatch && isPending) {
+        //   updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
+        // }
+        console.log('Deleted');
+        resolve(true);
+      })
+      .catch(err => {
+        console.log(err, 'Error');
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Error while deleting remeasurement with remeasurementId: ${remeasurementId}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+      });
+  });
+};
+
+export const clearAllIncompletePlantLocationHistory = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          let incompleteRemeasurements = realm
+            .objects('PlantLocationHistory')
+            .filtered(`dataStatus == "${INCOMPLETE}" || dataStatus == "${EDITING}"`);
+
+          realm.delete(incompleteRemeasurements);
+        });
+
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Successfully deleted incomplete and editing remeasurements`,
+        });
+        console.log('Deleted');
+        resolve(true);
+      })
+      .catch(err => {
+        console.log(err, 'Error');
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Error while deleting incomplete and editing remeasurements`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+      });
+  });
+};
 interface IUpdatePlantLocationHistory {
   remeasurementId: string;
   diameter?: number;

@@ -33,6 +33,7 @@ const SmallHeader = ({
   return (
     <View
       style={{
+        display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -42,7 +43,7 @@ const SmallHeader = ({
       <View style={{ flex: 1, marginHorizontal: 8 }}>
         <TouchableOpacity
           onPress={onPressRight ? onPressRight : null}
-          style={{ flexDirection: 'row' }}
+          style={{ flexDirection: 'row', justifyContent: 'flex-end' }}
           accessibilityLabel="Small header"
           accessible={true}
           testID="small_header">

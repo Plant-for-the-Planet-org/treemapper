@@ -20,10 +20,15 @@ import { InventoryContext } from '../../reducers/inventory';
 import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { UserContext } from '../../reducers/user';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
+import {
+  clearAllIncompletePlantLocationHistory,
+  getPlantLocationHistory,
+} from '../../repositories/plantLocationHistory';
 import { getUserDetails } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import {
   DATA_UPLOAD_START,
+  EDITING,
   FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -52,6 +57,7 @@ const TreeInventory = () => {
   const [pendingInventory, setPendingInventory] = useState([]);
   const [uploadingInventory, setUploadingInventory] = useState([]);
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
+  const [editingPlantLocationHistory, setEditingPlantLocationHistory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
@@ -126,9 +132,18 @@ const TreeInventory = () => {
     });
   };
 
+  const onPressClearAllIncompleteRemeasurements = () => {
+    clearAllIncompletePlantLocationHistory().then(() => {
+      setShowDeleteIncompleteAlert(false);
+    });
+  };
+
   const filteredInventories = () => {
     getInventoryByStatus([INCOMPLETE, INCOMPLETE_SAMPLE_TREE]).then(inventoryList => {
       setInCompleteInventory(inventoryList);
+    });
+    getPlantLocationHistory([EDITING]).then(editingPlantLocationHistory => {
+      setEditingPlantLocationHistory(editingPlantLocationHistory);
     });
     getInventoryByStatus([PENDING_DATA_UPLOAD, PENDING_DATA_UPDATE]).then(inventoryList => {
       setPendingInventory(inventoryList);
@@ -259,6 +274,11 @@ const TreeInventory = () => {
       type: 'incomplete',
     },
     {
+      title: i18next.t('label.incomplete_remeasurement'),
+      data: editingPlantLocationHistory,
+      type: 'incomplete_remeasurement',
+    },
+    {
       title: i18next.t('label.missing_data_found_registration'),
       data: fixNeededInventory,
       type: 'fix_needed',
@@ -296,7 +316,10 @@ const TreeInventory = () => {
             </>
           )}
           renderItem={({ item, index, section }) => {
-            if (section.type === 'pending_remeasurement') {
+            if (
+              section.type === 'pending_remeasurement' ||
+              section.type === 'incomplete_remeasurement'
+            ) {
               return <RemeasurementItem item={item} />;
             }
             return (
@@ -368,6 +391,20 @@ const TreeInventory = () => {
                       style={{ marginVertical: 15 }}
                     />
                   );
+
+                case 'incomplete_remeasurement':
+                  return (
+                    <SmallHeader
+                      onPressRight={onPressClearAllIncompleteRemeasurements}
+                      leftText={title}
+                      iconColor={Colors.ALERT}
+                      rightTextStyle={{ color: Colors.ALERT }}
+                      icon={'trash'}
+                      iconType={'FAIcon'}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+
                 case 'fix_needed':
                   return (
                     <SmallHeader
