@@ -102,7 +102,7 @@ const SelectedPlantLocationSampleTreesCards = ({
         sliderWidth={width}
         renderItem={({ item, index }: any) => {
           let imageSource;
-          let canRemeasurePlantLocation = false;
+          // let canRemeasurePlantLocation = false;
           let isUserDistanceMoreThen100M = true;
 
           const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
@@ -117,7 +117,7 @@ const SelectedPlantLocationSampleTreesCards = ({
           }
 
           if (item.plantationDate && item.status === SYNCED) {
-            canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
+            // canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
 
             isUserDistanceMoreThen100M =
               distanceCalculator(
@@ -171,7 +171,8 @@ const SelectedPlantLocationSampleTreesCards = ({
                     </Text>
                   </View>
                 </View>
-                {canRemeasurePlantLocation ? (
+                {
+                  // canRemeasurePlantLocation ? (
                   isUserDistanceMoreThen100M ? (
                     <Text
                       style={[
@@ -192,12 +193,10 @@ const SelectedPlantLocationSampleTreesCards = ({
                         // left: 5,
                       }}>
                       {item?.plantLocationHistory?.length > 0 &&
-                      [PENDING_DATA_UPLOAD, SYNCED].includes(
-                        item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
-                          ?.dataStatus,
-                      ) ? (
+                      item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
+                        'dead' ? (
                         <PrimaryButton
-                          btnText={i18next.t('label.view_remeasurement')}
+                          btnText={i18next.t('label.view_status')}
                           onPress={() => {
                             onPressCheckRemeasurement(item);
                           }}
@@ -219,9 +218,10 @@ const SelectedPlantLocationSampleTreesCards = ({
                       )}
                     </View>
                   )
-                ) : (
-                  []
-                )}
+                  // ) : (
+                  //   []
+                  // )
+                }
               </View>
             </TouchableOpacity>
           );

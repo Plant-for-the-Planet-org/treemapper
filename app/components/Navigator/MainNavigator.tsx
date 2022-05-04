@@ -46,6 +46,7 @@ import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
 import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
 import TakePicture from '../../screens/TakePicture';
 import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
+import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
 
 const Stack = createStackNavigator();
 
@@ -139,6 +140,7 @@ export default function MainNavigator() {
         component={RemeasurementReview}
         options={MyTransition}
       />
+      <Stack.Screen name="ProjectConfig" component={ProjectConfig} options={MyTransition} />
     </Stack.Navigator>
   );
 }

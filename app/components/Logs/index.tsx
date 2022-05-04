@@ -54,7 +54,7 @@ const AllLogs = ({ allData, setAllData }: { allData: any; setAllData: any }) => 
         style={{ flex: 1 }}
         data={allData}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -71,7 +71,7 @@ const ErrorLogs = ({ errorData, setErrorData }: { errorData: any; setErrorData: 
         style={{ flex: 1 }}
         data={errorData}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -118,8 +118,9 @@ export default function Logs() {
 
       Share.open(options)
         .then(() => setCreatingLogsFile(false))
-        .catch((err) => {
-          if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+        .catch(err => {
+          if (err?.error?.code != 'ECANCELLED500') {
+            // iOS cancel button pressed
             setShowAlert(true);
             dbLog.error({
               logType: LogTypes.OTHER,
@@ -164,7 +165,7 @@ export default function Logs() {
               renderScene={renderScene}
               onIndexChange={setRouteIndex}
               initialLayout={initialLayout}
-              renderTabBar={(props) => (
+              renderTabBar={props => (
                 <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
               )}
             />

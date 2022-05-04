@@ -47,6 +47,7 @@
   "missing_data_found_message": "There are some missing data in this registration. Please review the registration again, make sure to check sample trees as well.",
   "remeasure": "Remeasure",
   "view_remeasurement": "View Remeasurement",
+  "view_status": "View Status",
   "view_plant_location": "View Plant Location",
   "remeasurement": "Remeasurement",
   "you_are_far_to_remeasure": "You are far from the tree location to remeasure the tree.",

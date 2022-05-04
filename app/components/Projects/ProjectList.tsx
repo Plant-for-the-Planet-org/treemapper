@@ -61,7 +61,10 @@ export default function ProjectList({
           return (
             <TouchableProjectItem
               item={item}
-              onProjectPress={() => onProjectPress(item.id)}
+              onProjectPress={() => {
+                console.log(item.id);
+                onProjectPress(item.id);
+              }}
               selectedProjectId={selectedProjectId}
             />
           );
