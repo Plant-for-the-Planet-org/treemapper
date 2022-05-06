@@ -14,7 +14,7 @@ const ManageProjects = ({}: ManageProjectsProps) => {
   const onProjectPress = (id: string) => {
     console.log(id, 'id');
 
-    navigation.navigate('ProjectConfig');
+    navigation.navigate('ProjectConfig', { projectId: id });
   };
   return (
     <SafeAreaView style={styles.mainContainer}>

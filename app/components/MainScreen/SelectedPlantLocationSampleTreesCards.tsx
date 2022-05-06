@@ -173,7 +173,8 @@ const SelectedPlantLocationSampleTreesCards = ({
                 </View>
                 {
                   // canRemeasurePlantLocation ? (
-                  isUserDistanceMoreThen100M ? (
+                  // isUserDistanceMoreThen100M
+                  false ? (
                     <Text
                       style={[
                         styles.text,
@@ -192,30 +193,33 @@ const SelectedPlantLocationSampleTreesCards = ({
                         top: 18,
                         // left: 5,
                       }}>
-                      {item?.plantLocationHistory?.length > 0 &&
-                      item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
-                        'dead' ? (
-                        <PrimaryButton
-                          btnText={i18next.t('label.view_status')}
-                          onPress={() => {
-                            onPressCheckRemeasurement(item);
-                          }}
-                          accessibilityLabel="remeasure-button"
-                        />
-                      ) : (
-                        <PrimaryButton
-                          btnText={i18next.t('label.remeasure')}
-                          onPress={() => {
-                            onPressRemeasure(item, index);
-                          }}
-                          // disabled={
-                          //   item?.plantLocationHistory?.length > 0 &&
-                          //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
-                          //     ?.dataStatus === PENDING_DATA_UPLOAD
-                          // }
-                          accessibilityLabel="remeasure-button"
-                        />
-                      )}
+                      {
+                        // item?.plantLocationHistory?.length > 0 &&
+                        // item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
+                        //   'dead'
+                        false ? (
+                          <PrimaryButton
+                            btnText={i18next.t('label.view_status')}
+                            onPress={() => {
+                              onPressCheckRemeasurement(item);
+                            }}
+                            accessibilityLabel="remeasure-button"
+                          />
+                        ) : (
+                          <PrimaryButton
+                            btnText={i18next.t('label.remeasure')}
+                            onPress={() => {
+                              onPressRemeasure(item, index);
+                            }}
+                            // disabled={
+                            //   item?.plantLocationHistory?.length > 0 &&
+                            //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                            //     ?.dataStatus === PENDING_DATA_UPLOAD
+                            // }
+                            accessibilityLabel="remeasure-button"
+                          />
+                        )
+                      }
                     </View>
                   )
                   // ) : (

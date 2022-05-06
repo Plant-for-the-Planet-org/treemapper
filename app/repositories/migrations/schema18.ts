@@ -288,6 +288,8 @@ const Projects = {
     sites: 'ProjectSites[]',
     // stores the geometry of the project
     geometry: 'string',
+    frequency: { type: 'int', default: 10 }, //in number of days
+    intensity: { type: 'int', default: 100 }, //percentage of sample to be remeasured
   },
 };
 

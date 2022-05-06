@@ -11,6 +11,7 @@ export default function Provider({ children }) {
   return (
     <NavigationContextProvider>
       <UserContextProvider>
+        {/* <ProjectContextProvider> */}
         <InventoryContextProvider>
           <PlantLocationHistoryContextProvider>
             <LoadingContextProvider>
@@ -20,6 +21,7 @@ export default function Provider({ children }) {
             </LoadingContextProvider>
           </PlantLocationHistoryContextProvider>
         </InventoryContextProvider>
+        {/* </ProjectContextProvider> */}
       </UserContextProvider>
     </NavigationContextProvider>
   );

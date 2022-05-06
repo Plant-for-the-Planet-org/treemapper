@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useRef, useState } from 'react';
 import {
@@ -13,142 +14,33 @@ import { SceneMap, TabView } from 'react-native-tab-view';
 import { AlertModal, Header, Loader, PrimaryButton } from '../../components/Common';
 import CustomTabBar from '../../components/Common/CustomTabBar';
 import IconSwitcher from '../../components/Common/IconSwitcher';
+import Frequency from '../../components/ProjectConfig/Frequency';
+import Intensity from '../../components/ProjectConfig/Intensity';
 import { Colors, Typography } from '../../styles';
-
-const IntensitySelctor = ({
-  selectedIntensity,
-  setSelectedIntensity,
-}: {
-  selectedIntensity: string;
-  setSelectedIntensity: React.Dispatch<React.SetStateAction<string>>;
-}) => {
-  const [isCustomSelected, setIsCustomSelected] = useState(false);
-  const customInputRef = useRef(null);
-  const allIntensities = ['100', '75', '50', '25'];
-  return (
-    <View style={styles.intensitySelectionContainer}>
-      {/* if sample tree count is present and has length greater than zero then maps the array */}
-      {allIntensities &&
-        allIntensities.length > 0 &&
-        allIntensities.map((treeCount: string, index: number) => {
-          // used to show the selected tree count selected by user
-          const isSelected = treeCount === selectedIntensity;
-          return (
-            <TouchableOpacity
-              onPress={() => {
-                setIsCustomSelected(false);
-                setSelectedIntensity(treeCount);
-              }}
-              key={`tree-number-selection-${index}`}>
-              <View
-                style={[
-                  styles.treeCountSelection,
-                  isSelected ? styles.treeCountSelectionActive : {},
-                  { marginRight: index % 2 == 0 ? '10%' : 0 },
-                ]}>
-                <Text
-                  style={[
-                    styles.treeCountSelectionText,
-                    isSelected ? styles.treeCountSelectionActiveText : {},
-                  ]}>
-                  {treeCount}
-                  {'%'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      <TouchableOpacity
-        onPress={() => {
-          setIsCustomSelected(true);
-          setSelectedIntensity('');
-          if (customInputRef?.current) {
-            customInputRef.current.focus();
-          }
-        }}>
-        <View
-          style={[
-            styles.treeCountInputSelection,
-            isCustomSelected ? styles.treeCountSelectionActive : {},
-          ]}>
-          <TextInput
-            value={selectedIntensity}
-            style={[
-              styles.customTreeCount,
-              { borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR },
-            ]}
-            selectionColor={'white'}
-            keyboardType={'numeric'}
-            onFocus={() => {
-              setIsCustomSelected(true);
-              setSelectedIntensity('');
-            }}
-            textAlign={'center'}
-            ref={customInputRef}
-            onChangeText={text => {
-              setSelectedIntensity(text.replace(/,./g, '').replace(/[^0-9]/g, ''));
-            }}
-          />
-          <Text
-            style={[
-              styles.treeCountSelectionText,
-              isCustomSelected ? styles.treeCountSelectionActiveText : {},
-            ]}>
-            {'%'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <PrimaryButton
-          onPress={() => {
-            console.log('Save');
-          }}
-          btnText={i18next.t('label.save')}
-        />
-      </View>
-      {/* <PrimaryButton
-        btnText={i18next.t('label.save')}
-        onPress={() => {
-          console.log('Save');
-        }}
-        style={{ justifySelf: 'flex-end' }}
-      /> */}
-    </View>
-  );
-};
-const FirstRoute = () => {
-  const [selectedIntensity, setSelectedIntensity] = useState('');
-
-  return (
-    <View style={[styles.scene, styles.defaultSpacing]}>
-      <Text style={[styles.description, styles.descriptionMarginTop]}>
-        {i18next.t('label.select_intensity_for_remeasurement')}
-      </Text>
-      <IntensitySelctor
-        selectedIntensity={selectedIntensity}
-        setSelectedIntensity={setSelectedIntensity}
-      />
-    </View>
-  );
-};
+import { putAuthenticatedRequest } from '../../utils/api';
 
 const SecondRoute = () => <View style={[styles.scene, styles.defaultSpacing]}></View>;
 
-const renderScene = SceneMap({
-  intensity: FirstRoute,
-  frequency: SecondRoute,
-});
-
 const ProjectConfig = ({ navigation }: { navigation: any }) => {
   const layout = useWindowDimensions();
-
+  const ProjectRoute = useRoute();
   const [routeIndex, setRouteIndex] = React.useState(0);
   const [routes] = React.useState([
     { key: 'intensity', title: 'Intensity' },
     { key: 'frequency', title: 'Frequency' },
   ]);
+  console.log(ProjectRoute.params?.projectId, '=======');
 
+  const renderScene = ({ route }) => {
+    switch (route.key) {
+      case 'intensity':
+        return <Intensity projectId={ProjectRoute.params?.projectId} />;
+      case 'frequency':
+        return <Frequency projectId={ProjectRoute.params?.projectId} />;
+      default:
+        return null;
+    }
+  };
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.defaultSpacing}>
@@ -178,6 +70,7 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   defaultSpacing: {
     paddingHorizontal: 25,

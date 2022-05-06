@@ -14,6 +14,10 @@ type Props = {
   zIndex?: number;
   zIndexInverse?: number;
   style?: any;
+  textStyle?: any;
+  iconColor?: any;
+  listItemLabelStyle?: any;
+  dropDownDirection?: string;
 };
 
 const CustomDropDownPicker = ({
@@ -25,6 +29,10 @@ const CustomDropDownPicker = ({
   zIndex = 5000,
   zIndexInverse = 6000,
   style = {},
+  textStyle = {},
+  listItemLabelStyle = {},
+  iconColor = Colors.GRAY_LIGHTEST,
+  dropDownDirection = 'DEFAULT',
 }: Props) => {
   return (
     <DropDownPicker
@@ -35,22 +43,19 @@ const CustomDropDownPicker = ({
       value={value}
       setValue={setValue}
       style={{ ...styles.dropDown, ...style }}
-      textStyle={styles.textStyle}
+      textStyle={{ ...styles.textStyle, ...textStyle }}
       selectedItemContainerStyle={{ backgroundColor: Colors.GRAY_LIGHT }}
       listItemContainerStyle={styles.listItemContainer}
-      listItemLabelStyle={styles.listItemLabel}
+      listItemLabelStyle={{ ...styles.listItemLabel, ...listItemLabelStyle }}
       dropDownContainerStyle={styles.dropDownContainerStyle}
       zIndex={zIndex}
+      dropDownDirection={dropDownDirection}
       zIndexInverse={zIndexInverse}
       showTickIcon={false}
       itemSeparatorStyle={styles.itemSeparator}
       itemSeparator
-      ArrowDownIconComponent={() => (
-        <EntypoIcon name="chevron-down" color={Colors.GRAY_LIGHTEST} size={20} />
-      )}
-      ArrowUpIconComponent={() => (
-        <EntypoIcon name="chevron-up" color={Colors.GRAY_LIGHTEST} size={20} />
-      )}
+      ArrowDownIconComponent={() => <EntypoIcon name="chevron-down" color={iconColor} size={20} />}
+      ArrowUpIconComponent={() => <EntypoIcon name="chevron-up" color={iconColor} size={20} />}
     />
   );
 };
