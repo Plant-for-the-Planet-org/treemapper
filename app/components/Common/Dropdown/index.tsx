@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Menu, { MenuItem } from 'react-native-material-menu';
+import { Menu, MenuItem } from 'react-native-material-menu';
 import { Colors, Typography } from '../../../styles';
 import OutlinedInput from '../OutlinedInput';
 
@@ -67,9 +67,9 @@ const Dropdown = (props: IDropdownProps) => {
       ) : (
         <Menu
           ref={menuRef}
-          onHidden={() => setShowOptions(false)}
+          onRequestClose={hideMenu}
           style={{ maxHeight: 300 }}
-          button={
+          anchor={
             <TouchableOpacity onPress={showMenu}>
               <OutlinedInput
                 {...{
