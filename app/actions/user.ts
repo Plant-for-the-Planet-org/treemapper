@@ -366,8 +366,6 @@ export const getAllProjects = () => {
       .then(async res => {
         const { status, data }: any = res;
         if (status === 200) {
-          console.log(JSON.stringify(data), '===Data===');
-
           await addProjects(data);
           // logging the success in to the db
           dbLog.info({

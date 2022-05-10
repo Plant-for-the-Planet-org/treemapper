@@ -1,33 +1,34 @@
 import i18next from 'i18next';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Colors, Typography } from '../../styles';
 import { putAuthenticatedRequest } from '../../utils/api';
 import { PrimaryButton } from '../Common';
 
-export const IntensitySelctor = ({
+export const IntensitySelector = ({
   selectedIntensity,
   setSelectedIntensity,
 }: {
-  selectedIntensity: string;
-  setSelectedIntensity: React.Dispatch<React.SetStateAction<string>>;
+  selectedIntensity: number;
+  setSelectedIntensity: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [isCustomSelected, setIsCustomSelected] = useState(false);
   const customInputRef = useRef(null);
-  const allIntensities = ['100', '75', '50', '25'];
+  const allIntensities = [100, 75, 50, 25];
   return (
     <View style={styles.intensitySelectionContainer}>
       {/* if sample tree count is present and has length greater than zero then maps the array */}
       {allIntensities &&
         allIntensities.length > 0 &&
-        allIntensities.map((treeCount: string, index: number) => {
+        allIntensities.map((intensity: number, index: number) => {
           // used to show the selected tree count selected by user
-          const isSelected = treeCount === selectedIntensity;
+          const isSelected = intensity === selectedIntensity;
           return (
             <TouchableOpacity
               onPress={() => {
                 setIsCustomSelected(false);
-                setSelectedIntensity(treeCount);
+                setSelectedIntensity(intensity);
               }}
               key={`tree-number-selection-${index}`}>
               <View
@@ -41,7 +42,7 @@ export const IntensitySelctor = ({
                     styles.treeCountSelectionText,
                     isSelected ? styles.treeCountSelectionActiveText : {},
                   ]}>
-                  {treeCount}
+                  {intensity}
                   {'%'}
                 </Text>
               </View>
@@ -51,7 +52,7 @@ export const IntensitySelctor = ({
       <TouchableOpacity
         onPress={() => {
           setIsCustomSelected(true);
-          setSelectedIntensity('');
+          setSelectedIntensity();
           if (customInputRef?.current) {
             customInputRef.current.focus();
           }
@@ -91,9 +92,14 @@ export const IntensitySelctor = ({
     </View>
   );
 };
-const Intensity = ({ projectId }: { projectId: string }) => {
-  const [selectedIntensity, setSelectedIntensity] = useState('');
-  console.log(projectId, 'projectId');
+const Intensity = ({ projectId, project }: { projectId: string; project: object }) => {
+  const [selectedIntensity, setSelectedIntensity] = useState();
+
+  useEffect(() => {
+    if (project?.intensity) {
+      setSelectedIntensity(project.intensity);
+    }
+  }, [project]);
 
   return (
     <View
@@ -102,19 +108,18 @@ const Intensity = ({ projectId }: { projectId: string }) => {
         styles.defaultSpacing,
         // { justifyContent: 'space-between', backgroundColor: Colors.WHITE },
       ]}>
-      <View>
+      <ScrollView style={{ paddingHorizontal: 25 }}>
         <Text style={[styles.description, styles.descriptionMarginTop]}>
           {i18next.t('label.select_intensity_for_remeasurement')}
         </Text>
-        <IntensitySelctor
+        <IntensitySelector
           selectedIntensity={selectedIntensity}
           setSelectedIntensity={setSelectedIntensity}
         />
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      </ScrollView>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 25 }}>
         <PrimaryButton
           onPress={() => {
-            console.log('Save');
             putAuthenticatedRequest(`/app/projects/${projectId}`, { intensity: 50 }).then();
           }}
           btnText={i18next.t('label.save')}
@@ -132,7 +137,7 @@ const styles = StyleSheet.create({
   },
 
   defaultSpacing: {
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
     paddingTop: 10,
   },
   description: {

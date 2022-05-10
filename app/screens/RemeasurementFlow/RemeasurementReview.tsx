@@ -225,7 +225,6 @@ export default function RemeasurementReview({}: Props) {
     } catch (err) {
       console.log(err, 'StatusResult');
     }
-    console.log(eventDateResult, statusResult, 'statusResult');
     setOldDataStatus(PENDING_DATA_UPLOAD);
     if (eventDateResult && statusResult) {
       navigation.navigate('TreeInventory');

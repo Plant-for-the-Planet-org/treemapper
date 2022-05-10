@@ -53,6 +53,15 @@ const AdditionalDetail = {
   },
 };
 
+const remeasurementDates = {
+  name: 'RemeasurementDates',
+  properties: {
+    created: 'date',
+    lastMeasurement: 'date',
+    remeasureBy: 'date[]',
+  },
+};
+
 const PlantLocationHistory = {
   name: 'PlantLocationHistory',
   primaryKey: 'id',
@@ -74,7 +83,7 @@ const PlantLocationHistory = {
     additionalDetails: 'AdditionalDetail[]',
     // stores the app metadata. Needs to be stringified as it might contain nested array/objects
     appMetadata: 'string?',
-    // status of the event or plant locaiton history
+    // status of the event or plant location history
     status: 'string?',
     // reason for the current status
     statusReason: 'string?',
@@ -133,6 +142,8 @@ const SampleTrees = {
     hid: 'string?',
     // stores the plant location version history
     plantLocationHistory: 'PlantLocationHistory[]',
+    //store remeasurement related dates
+    remeasurementDates: 'RemeasurementDates?',
   },
 };
 
@@ -288,7 +299,7 @@ const Projects = {
     sites: 'ProjectSites[]',
     // stores the geometry of the project
     geometry: 'string',
-    frequency: { type: 'int', default: 10 }, //in number of days
+    frequency: { type: 'string', default: 'Default' }, //in number of days
     intensity: { type: 'int', default: 100 }, //percentage of sample to be remeasured
   },
 };
@@ -435,6 +446,7 @@ export default {
     AdditionalDetail,
     ProjectSites,
     PlantLocationHistory,
+    remeasurementDates,
   ],
   schemaVersion,
   migration,

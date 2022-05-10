@@ -85,7 +85,6 @@ export const addPlantLocationHistory = ({
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
           if (inventory) {
-            // console.log(inventory, 'inventory');
             if (
               (samplePlantLocationIndex || samplePlantLocationIndex == 0) &&
               samplePlantLocationIndex > -1
@@ -180,7 +179,6 @@ IDeletePlantLocationHistory) => {
         // if (dispatch && isPending) {
         //   updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
         // }
-        console.log('Deleted');
         resolve(true);
       })
       .catch(err => {
@@ -214,7 +212,6 @@ export const clearAllIncompletePlantLocationHistory = () => {
           logType: LogTypes.REMEASUREMENT,
           message: `Successfully deleted incomplete and editing remeasurements`,
         });
-        console.log('Deleted');
         resolve(true);
       })
       .catch(err => {
@@ -374,7 +371,6 @@ export const getPlantLocationHistory = (status: string[] = []): Promise<any[]> =
             }
           }
           plantLocationHistory = plantLocationHistory.filtered(query);
-          // console.log(JSON.stringify(plantLocationHistory), 'plantLocationHistory');
         }
 
         if (plantLocationHistory) {

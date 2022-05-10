@@ -54,7 +54,6 @@ const SelectedPlantLocationSampleTreesCards = ({
   const diameterUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_inches')
     : 'cm';
-  // console.log(JSON.stringify(singleSelectedPlantLocation), 'singleSelectedPlantLocation');
 
   const onPressRemeasure = (item: any, index: string) => {
     let lastScreen;
@@ -173,8 +172,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                 </View>
                 {
                   // canRemeasurePlantLocation ? (
-                  // isUserDistanceMoreThen100M
-                  false ? (
+                  isUserDistanceMoreThen100M ? (
                     <Text
                       style={[
                         styles.text,

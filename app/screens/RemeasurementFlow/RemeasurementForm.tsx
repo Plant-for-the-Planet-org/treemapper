@@ -105,8 +105,6 @@ export default function RemeasurementForm({}: Props) {
 
   // handles the button press and checks if the values are valid and if so, saves the data
   const onPressMeasurementBtn = () => {
-    console.log('Clicked');
-
     Keyboard.dismiss();
     const validationObject = measurementValidation(height, diameter, isNonISUCountry);
     const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
@@ -168,7 +166,6 @@ export default function RemeasurementForm({}: Props) {
         statusReason: deadReason,
       };
     }
-    console.log(state.samplePlantLocationIndex, 'state.samplePlantLocationIndex');
     try {
       await addPlantLocationHistory({
         inventoryId: state.inventoryID || '',

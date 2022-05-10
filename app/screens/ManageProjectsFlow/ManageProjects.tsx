@@ -12,8 +12,6 @@ const ManageProjects = ({}: ManageProjectsProps) => {
   const navigation = useNavigation();
 
   const onProjectPress = (id: string) => {
-    console.log(id, 'id');
-
     navigation.navigate('ProjectConfig', { projectId: id });
   };
   return (

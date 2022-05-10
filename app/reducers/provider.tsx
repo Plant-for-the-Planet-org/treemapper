@@ -6,22 +6,23 @@ import { UserContextProvider } from './user';
 import { NavigationContextProvider } from './navigation';
 import { AdditionalDataContextProvider } from './additionalData';
 import { PlantLocationHistoryContextProvider } from './plantLocationHistory';
+import { ProjectContextProvider } from './project';
 
 export default function Provider({ children }) {
   return (
     <NavigationContextProvider>
       <UserContextProvider>
-        {/* <ProjectContextProvider> */}
-        <InventoryContextProvider>
-          <PlantLocationHistoryContextProvider>
-            <LoadingContextProvider>
-              <SpeciesContextProvider>
-                <AdditionalDataContextProvider>{children}</AdditionalDataContextProvider>
-              </SpeciesContextProvider>
-            </LoadingContextProvider>
-          </PlantLocationHistoryContextProvider>
-        </InventoryContextProvider>
-        {/* </ProjectContextProvider> */}
+        <ProjectContextProvider>
+          <InventoryContextProvider>
+            <PlantLocationHistoryContextProvider>
+              <LoadingContextProvider>
+                <SpeciesContextProvider>
+                  <AdditionalDataContextProvider>{children}</AdditionalDataContextProvider>
+                </SpeciesContextProvider>
+              </LoadingContextProvider>
+            </PlantLocationHistoryContextProvider>
+          </InventoryContextProvider>
+        </ProjectContextProvider>
       </UserContextProvider>
     </NavigationContextProvider>
   );

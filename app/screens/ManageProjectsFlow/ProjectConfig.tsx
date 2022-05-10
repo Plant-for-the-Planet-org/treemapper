@@ -1,6 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -16,27 +16,38 @@ import CustomTabBar from '../../components/Common/CustomTabBar';
 import IconSwitcher from '../../components/Common/IconSwitcher';
 import Frequency from '../../components/ProjectConfig/Frequency';
 import Intensity from '../../components/ProjectConfig/Intensity';
+import { getProjectById } from '../../repositories/projects';
 import { Colors, Typography } from '../../styles';
 import { putAuthenticatedRequest } from '../../utils/api';
-
-const SecondRoute = () => <View style={[styles.scene, styles.defaultSpacing]}></View>;
 
 const ProjectConfig = ({ navigation }: { navigation: any }) => {
   const layout = useWindowDimensions();
   const ProjectRoute = useRoute();
   const [routeIndex, setRouteIndex] = React.useState(0);
+  const [project, setProject] = useState({});
   const [routes] = React.useState([
     { key: 'intensity', title: 'Intensity' },
     { key: 'frequency', title: 'Frequency' },
   ]);
-  console.log(ProjectRoute.params?.projectId, '=======');
+
+  useEffect(() => {
+    if (ProjectRoute.params?.projectId) {
+      getProjectById(ProjectRoute.params?.projectId)
+        .then(data => {
+          setProject(data);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
+  }, []);
 
   const renderScene = ({ route }) => {
     switch (route.key) {
       case 'intensity':
-        return <Intensity projectId={ProjectRoute.params?.projectId} />;
+        return <Intensity projectId={ProjectRoute.params?.projectId} project={project} />;
       case 'frequency':
-        return <Frequency projectId={ProjectRoute.params?.projectId} />;
+        return <Frequency projectId={ProjectRoute.params?.projectId} project={project} />;
       default:
         return null;
     }

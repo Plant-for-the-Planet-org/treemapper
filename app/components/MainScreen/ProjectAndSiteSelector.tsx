@@ -1,7 +1,9 @@
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { setProject, setProjectSite } from '../../actions/projects';
+import { ProjectContext } from '../../reducers/project';
 import { Colors, Typography } from '../../styles';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
@@ -31,6 +33,7 @@ const ProjectAndSiteSelector = ({
   IS_ANDROID,
 }: Props) => {
   const [projectOptions, setProjectOptions] = React.useState([]);
+  const { dispatch: projectDispatch, state: projectState } = useContext(ProjectContext);
 
   // used to set the selected project
   const [selectedProjectId, setSelectedProjectId] = React.useState(null);
@@ -44,18 +47,27 @@ const ProjectAndSiteSelector = ({
       sites: project.sites,
       geometry: project.geometry,
     }));
-
-    if (options.length > 0) {
+    if (projectState.selectedProject) {
+      setSelectedProjectId(projectState.selectedProject.id);
+      setProjectSitesUsingProject(projectState.selectedProject);
+      if (projectState.selectedProjectSite) {
+        setSelectedProjectSiteId(projectState.selectedProjectSite);
+      }
+    } else if (options.length > 0) {
       setSelectedProjectId(options[0].value);
       setProjectSitesUsingProject(options[0]);
+      setProject(projects[0])(projectDispatch);
     }
     setProjectOptions(options);
   }, [projects]);
+  console.log(projectState, 'projectState');
 
   useEffect(() => {
     if (selectedProjectId) {
       const project = projects.find(project => project.id === selectedProjectId);
+      console.log('project', project);
       if (project) {
+        setProject(project)(projectDispatch);
         const sites = project.sites.map(site => ({
           label: site.name,
           value: site.id,
@@ -81,6 +93,7 @@ const ProjectAndSiteSelector = ({
     setProjectSites(sites);
     if (sites && sites.length > 0) {
       setSelectedProjectSiteId(sites[0].value);
+      setProjectSite(sites[0].value);
       setSiteCenterCoordinate([]);
       setSiteBounds(bbox(sites[0].geometry));
     } else {
@@ -112,6 +125,7 @@ const ProjectAndSiteSelector = ({
         style={{ marginBottom: 8 }}
         zIndex={3000}
         zIndexInverse={1000}
+        // setProject={setProject}
       />
       {projectSites && projectSites.length > 0 && (
         <CustomDropDownPicker
@@ -120,6 +134,7 @@ const ProjectAndSiteSelector = ({
           setOpen={setShowProjectSiteOptions}
           value={selectedProjectSiteId}
           setValue={setSelectedProjectSiteId}
+          // setProjectSite={setProjectSite}
         />
       )}
     </View>
