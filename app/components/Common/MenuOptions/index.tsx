@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React, { useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Menu, { MenuItem } from 'react-native-material-menu';
+import { Menu, MenuItem } from 'react-native-material-menu';
 import { Colors, Typography } from '../../../styles';
 import IconSwitcher from '../IconSwitcher';
 
@@ -39,7 +39,7 @@ const MenuOptions = ({ options, containerStyle, onOptionPress }: IMenuOptionsPro
     <View style={[containerStyle]}>
       <Menu
         ref={menuRef}
-        button={
+        anchor={
           <TouchableOpacity onPress={showMenu} style={{ padding: 10 }}>
             <IconSwitcher
               iconType={'MCIcon'}
