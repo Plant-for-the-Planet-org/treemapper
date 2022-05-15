@@ -5,9 +5,9 @@ import dbLog from './logs';
 import { getSchema } from './default';
 
 export const getAllProjects = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const projects = realm.objects('Projects');
 
         // logging the error in to the db
@@ -17,7 +17,9 @@ export const getAllProjects = () => {
         });
         resolve(projects);
       })
-      .catch((err) => {
+      .catch(err => {
+        console.error(err, 'Error');
+
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.PROJECTS,
@@ -31,9 +33,9 @@ export const getAllProjects = () => {
 };
 
 export const getProjectById = (projectId: string) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const project = realm.objectForPrimaryKey('Projects', projectId);
         // logging the error in to the db
         dbLog.info({
@@ -42,7 +44,7 @@ export const getProjectById = (projectId: string) => {
         });
         resolve(project);
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.PROJECTS,
@@ -56,9 +58,9 @@ export const getProjectById = (projectId: string) => {
 };
 
 export const deleteAllProjects = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const projects = realm.objects('Projects');
         realm.write(() => {
           realm.delete(projects);
@@ -70,7 +72,7 @@ export const deleteAllProjects = () => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.PROJECTS,
@@ -84,9 +86,9 @@ export const deleteAllProjects = () => {
 };
 
 export const addProjects = (projects: any) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           projects.forEach((project: any, index: number) => {
             const { properties } = project;
@@ -104,14 +106,16 @@ export const addProjects = (projects: any) => {
               slug: properties.slug,
               treeCost: properties.treeCost,
               sites: [],
-              geometry: JSON.stringify(project.geometry)
+              intensity: properties?.intensity ? properties.intensity : 100,
+              frequency: properties?.frequency ? properties.frequency : 'Default',
+              geometry: JSON.stringify(project.geometry),
             };
 
             for (const site of properties.sites) {
               sites.push({
                 ...site,
                 geometry: JSON.stringify(site.geometry),
-              })
+              });
             }
 
             projectData.sites = sites;
@@ -129,7 +133,7 @@ export const addProjects = (projects: any) => {
           });
         });
       })
-      .catch((err) => {
+      .catch(err => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.PROJECTS,

@@ -368,6 +368,7 @@ export const getAllProjects = () => {
         if (status === 200) {
           await addProjects(data);
           // logging the success in to the db
+
           dbLog.info({
             logType: LogTypes.USER,
             message: 'Successfully Fetched all projects: GET - /app/profile/projects',

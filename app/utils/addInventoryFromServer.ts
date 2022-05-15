@@ -53,7 +53,9 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
           updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
         }
       })
-      .catch((err: any) => {});
+      .catch((err: any) => {
+        console.error(err);
+      });
   } else {
     updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
   }

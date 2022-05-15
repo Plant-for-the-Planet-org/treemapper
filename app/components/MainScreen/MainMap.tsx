@@ -21,6 +21,7 @@ import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { bugsnag } from '../../utils';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import { getRemeasurementPolygons } from '../../utils/getRemeasurementPolygons';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -98,6 +99,7 @@ const MainMap = ({
   // stores the plant locations details of the selected geoJSON
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
+  const [remeasurePolygons, setRemeasurePolygons] = useState([]);
 
   const { state, dispatch } = useContext(InventoryContext);
 
@@ -241,6 +243,10 @@ const MainMap = ({
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
       const pointGeoJSONFeatures = [];
+      const remeasurePolygons = getRemeasurementPolygons(
+        JSON.parse(JSON.stringify(syncedInventory)),
+      );
+      setRemeasurePolygons(remeasurePolygons);
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
       for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
@@ -298,7 +304,9 @@ const MainMap = ({
           resolve(position);
         },
         err => {
-          if (showAlert) setIsLocationAlertShow(true);
+          if (showAlert) {
+            setIsLocationAlertShow(true);
+          }
         },
         {
           enableHighAccuracy: true,
@@ -377,6 +385,7 @@ const MainMap = ({
         siteCenterCoordinate={siteCenterCoordinate}
         siteBounds={siteBounds}
         projectSites={projectSites}
+        remeasurePolygons={remeasurePolygons}
       />
 
       {/* shows alert if location permission is not provided */}

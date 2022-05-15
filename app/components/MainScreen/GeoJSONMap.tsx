@@ -33,6 +33,7 @@ interface IGeoJSONMapProps {
   siteCenterCoordinate: any;
   siteBounds: any;
   projectSites: any;
+  remeasurePolygons: string[];
 }
 
 const GeoJSONMap = ({
@@ -57,6 +58,7 @@ const GeoJSONMap = ({
   siteCenterCoordinate,
   siteBounds,
   projectSites,
+  remeasurePolygons,
 }: IGeoJSONMapProps) => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
@@ -279,18 +281,37 @@ const GeoJSONMap = ({
             }}>
             <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
           </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'polygon'}
-            shape={geoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-          </MapboxGL.ShapeSource>
+          {geoJSON.features.map((polygon: any, index: number) => {
+            const showRed =
+              remeasurePolygons.length > 0 &&
+              remeasurePolygons.includes(geoJSON.features[index]?.properties?.inventoryId);
+            return (
+              <MapboxGL.ShapeSource
+                // id={'polygon'}
+                shape={polygon}
+                key={`singlePolygon-${index}`}
+                id={`singlePolygon-${index}`}
+                // features={(data: any) => {
+                //   console.log(data);
+                // }}
+                // cluster={true}
+                onPress={e => {
+                  if (e?.features.length > 0) {
+                    getSelectedPlantLocations(e.features);
+                  }
+                }}>
+                <MapboxGL.FillLayer
+                  id={`polyFill-${index}`}
+                  style={showRed ? remeasureFillStyle : fillStyle}
+                />
+                <MapboxGL.LineLayer
+                  id={`polyline-${index}`}
+                  style={showRed ? remeasurePolyline : polyline}
+                />
+                {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
+              </MapboxGL.ShapeSource>
+            );
+          })}
           <SitePolygon />
         </>
       )}
@@ -323,7 +344,23 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 };
 
+const remeasurePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.PLANET_RED,
+  lineOpacity: 0.5,
+  lineJoin: 'bevel',
+};
+
+const remeasureElapsePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.PLANET_RED,
+  lineOpacity: 0.5,
+  lineJoin: 'bevel',
+};
+
 const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
+const remeasureFillStyle = { fillColor: Colors.PLANET_RED, fillOpacity: 0.3 };
+const remeasureElapseFillStyle = { fillColor: Colors.PLANET_BLUE, fillOpacity: 0.3 };
 const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
 
 const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };

@@ -1,5 +1,11 @@
 import React, { createContext, useReducer } from 'react';
-import { SET_PROJECT, CLEAR_PROJECT, SET_PROJECT_SITE, CLEAR_PROJECT_SITE } from '../actions/Types';
+import {
+  SET_PROJECT,
+  CLEAR_PROJECT,
+  SET_PROJECT_SITE,
+  CLEAR_PROJECT_SITE,
+  CLEAR_PROJECT_AND_PROJECT_SITE,
+} from '../actions/Types';
 
 // stores the initial properties of the project state
 const initialState = {
@@ -13,7 +19,6 @@ const projectReducer = (state = initialState, action) => {
   switch (action.type) {
     // updates the selected project
     case SET_PROJECT:
-      console.log('SET_PROJECT', SET_PROJECT, action.payload);
       return {
         ...state,
         selectedProject: action.payload,

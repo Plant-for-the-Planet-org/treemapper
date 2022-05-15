@@ -56,9 +56,10 @@ const AdditionalDetail = {
 const remeasurementDates = {
   name: 'RemeasurementDates',
   properties: {
+    sampleTreeId: 'string',
     created: 'date',
-    lastMeasurement: 'date',
-    remeasureBy: 'date[]',
+    lastMeasurement: 'date?',
+    remeasureBy: 'date',
   },
 };
 

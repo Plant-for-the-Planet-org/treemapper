@@ -148,6 +148,7 @@ export const getInventoryByStatus = status => {
           }`,
           logStack: JSON.stringify(err),
         });
+        console.error(err, 'Error getInventoryByStatus');
         bugsnag.notify(err);
       });
   });
@@ -1171,6 +1172,7 @@ export const addInventoryToDB = inventoryFromServer => {
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
+        console.log(err, 'Error==');
         resolve(false);
       });
   });
@@ -1181,6 +1183,7 @@ const getFormattedSampleData = sample => {
   if (sample?.metadata?.app) {
     appMetadata = JSON.stringify(sample.metadata.app);
   }
+  const plantationDate = new Date(sample.plantDate.split(' ')[0]);
 
   const sampleTreeData = {
     latitude: sample.geometry.coordinates[1],
@@ -1194,8 +1197,20 @@ const getFormattedSampleData = sample => {
     specieHeight: sample.measurements.height,
     hid: sample.hid,
     tagId: sample.tag,
+    remeasurementDates: {
+      created: plantationDate,
+      lastMeasurement: null,
+      sampleTreeId: sample.id,
+      remeasureBy: sample?.remeasureBy
+        ? sample.remeasureBy
+        : new Date(
+            plantationDate.getFullYear() + 1,
+            plantationDate.getMonth(),
+            plantationDate.getDay(),
+          ),
+    },
     status: SYNCED,
-    plantationDate: new Date(sample.plantDate.split(' ')[0]),
+    plantationDate: plantationDate,
     locationId: sample.id,
     treeType: SAMPLE,
     additionalDetails: getFormattedAdditionalDetails(sample.metadata),

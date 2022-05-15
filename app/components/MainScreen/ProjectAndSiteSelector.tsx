@@ -60,12 +60,10 @@ const ProjectAndSiteSelector = ({
     }
     setProjectOptions(options);
   }, [projects]);
-  console.log(projectState, 'projectState');
 
   useEffect(() => {
     if (selectedProjectId) {
       const project = projects.find(project => project.id === selectedProjectId);
-      console.log('project', project);
       if (project) {
         setProject(project)(projectDispatch);
         const sites = project.sites.map(site => ({
