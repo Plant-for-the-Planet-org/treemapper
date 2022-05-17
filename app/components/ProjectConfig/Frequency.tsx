@@ -106,13 +106,14 @@ const Frequency = ({ projectId, project }: { projectId: string; project: object 
         </View>
         {/* </KeyboardAvoidingView> */}
       </ScrollView>
-      <View
-        style={{ marginHorizontal: 25, display: 'flex', justifyContent: 'flex-end', zIndex: 500 }}>
+      <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
+        <Text>{i18next.t('label.cant_change_frequency')}</Text>
         <PrimaryButton
           onPress={() => {
             putAuthenticatedRequest(`/app/projects/${projectId}`, { frequency: 50 }).then();
           }}
           btnText={i18next.t('label.save')}
+          disabled={true}
         />
       </View>
     </View>

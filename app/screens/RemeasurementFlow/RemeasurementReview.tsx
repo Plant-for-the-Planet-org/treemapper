@@ -100,7 +100,10 @@ export default function RemeasurementReview({}: Props) {
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
       getInventoryByLocationId({ locationId: plantLocationHistory?.parentId })
         .then(inventory => {
-          if (plantLocationHistory.samplePlantLocationIndex) {
+          if (
+            plantLocationHistory.samplePlantLocationIndex ||
+            plantLocationHistory.samplePlantLocationIndex == 0
+          ) {
             setHID(inventory[0]?.sampleTrees[plantLocationHistory.samplePlantLocationIndex]?.hid);
           }
           setInventoryId(inventory[0].inventory_id || '')(dispatch);

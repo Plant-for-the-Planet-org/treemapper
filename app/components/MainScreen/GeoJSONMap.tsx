@@ -34,6 +34,7 @@ interface IGeoJSONMapProps {
   siteBounds: any;
   projectSites: any;
   remeasurePolygons: string[];
+  remeasureDuePolygons: string[];
 }
 
 const GeoJSONMap = ({
@@ -59,7 +60,10 @@ const GeoJSONMap = ({
   siteBounds,
   projectSites,
   remeasurePolygons,
+  remeasureDuePolygons,
 }: IGeoJSONMapProps) => {
+  // console.log('\n\n\n\n\n\n', JSON.stringify(geoJSON), 'geoJSON========');
+
   const geoJSONInitialState = {
     type: 'FeatureCollection',
     features: [
@@ -239,6 +243,40 @@ const GeoJSONMap = ({
         </>
       ) : showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
         clickedGeoJSON.map((singleGeoJson, index) => {
+          const styles = {
+            remeasurePolygonStyle: {
+              fill: remeasureFillStyle,
+              line: remeasurePolyline,
+              circle: remeasureCircleStyle,
+            },
+            remeasureDuePolygonStyle: {
+              fill: remeasureElapseFillStyle,
+              line: remeasureElapsePolyline,
+              circle: remeasureElapseCircleStyle,
+            },
+            selectedDefaultStyle: {
+              fill: fillStyle,
+              line: polyline,
+              circle: circleStyle,
+            },
+            notSelectedDefaultStyle: {
+              fill: inactiveFillStyle,
+              line: inactivePolyline,
+              circle: inactiveCircleStyle,
+            },
+          };
+
+          const inventoryId = singleGeoJson?.features[0]?.properties?.inventoryId;
+
+          const isSelected = activeCarouselIndex == index;
+          const polygonStyleKey = remeasurePolygons.includes(inventoryId)
+            ? 'remeasurePolygonStyle'
+            : remeasureDuePolygons.includes(inventoryId)
+            ? 'remeasureDuePolygonStyle'
+            : isSelected
+            ? 'selectedDefaultStyle'
+            : 'notSelectedDefaultStyle';
+
           return (
             <MapboxGL.ShapeSource
               key={`polygonClicked-${index}`}
@@ -255,16 +293,22 @@ const GeoJSONMap = ({
               style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
               <MapboxGL.FillLayer
                 id={`polyFillClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveFillStyle : fillStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].fill,
+                  fillOpacity: isSelected ? 0.3 : 0.1,
+                }}
               />
               <MapboxGL.LineLayer
                 id={`polylineClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactivePolyline : polyline}
+                style={{ ...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5 }}
               />
 
               <MapboxGL.CircleLayer
                 id={`circleClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveCircleStyle : circleStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].circle,
+                  circleOpacity: isSelected ? 1 : 0.2,
+                }}
               />
             </MapboxGL.ShapeSource>
           );
@@ -281,37 +325,31 @@ const GeoJSONMap = ({
             }}>
             <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
           </MapboxGL.ShapeSource>
-          {geoJSON.features.map((polygon: any, index: number) => {
-            const showRed =
-              remeasurePolygons.length > 0 &&
-              remeasurePolygons.includes(geoJSON.features[index]?.properties?.inventoryId);
-            return (
-              <MapboxGL.ShapeSource
-                // id={'polygon'}
-                shape={polygon}
-                key={`singlePolygon-${index}`}
-                id={`singlePolygon-${index}`}
-                // features={(data: any) => {
-                //   console.log(data);
-                // }}
-                // cluster={true}
-                onPress={e => {
-                  if (e?.features.length > 0) {
-                    getSelectedPlantLocations(e.features);
-                  }
-                }}>
-                <MapboxGL.FillLayer
-                  id={`polyFill-${index}`}
-                  style={showRed ? remeasureFillStyle : fillStyle}
-                />
-                <MapboxGL.LineLayer
-                  id={`polyline-${index}`}
-                  style={showRed ? remeasurePolyline : polyline}
-                />
-                {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-              </MapboxGL.ShapeSource>
-            );
-          })}
+          <MapboxGL.ShapeSource
+            id={'polygon'}
+            shape={geoJSON}
+            onPress={e => {
+              if (e?.features.length > 0) {
+                getSelectedPlantLocations(e.features);
+              }
+            }}>
+            <MapboxGL.FillLayer
+              id={'polyFill'}
+              style={{
+                fillColor: ['get', 'color'],
+                fillOpacity: 0.3,
+              }}
+            />
+            <MapboxGL.LineLayer
+              id={'polyline'}
+              style={{
+                lineWidth: 2,
+                lineColor: ['get', 'color'],
+                lineOpacity: 0.5,
+                lineJoin: 'bevel',
+              }}
+            />
+          </MapboxGL.ShapeSource>
           <SitePolygon />
         </>
       )}
@@ -346,23 +384,25 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
 
 const remeasurePolyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineColor: Colors.PLANET_RED,
-  lineOpacity: 0.5,
+  lineColor: Colors.WARNING,
+  lineOpacity: 1,
   lineJoin: 'bevel',
 };
 
 const remeasureElapsePolyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineColor: Colors.PLANET_RED,
-  lineOpacity: 0.5,
+  lineColor: Colors.PLANET_CRIMSON,
+  lineOpacity: 1,
   lineJoin: 'bevel',
 };
 
 const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
-const remeasureFillStyle = { fillColor: Colors.PLANET_RED, fillOpacity: 0.3 };
-const remeasureElapseFillStyle = { fillColor: Colors.PLANET_BLUE, fillOpacity: 0.3 };
 const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
+const remeasureFillStyle = { fillColor: Colors.WARNING, fillOpacity: 0.3 };
+const remeasureElapseFillStyle = { fillColor: Colors.PLANET_CRIMSON, fillOpacity: 0.3 };
 
 const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
 const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };
+const remeasureCircleStyle = { circleColor: Colors.WARNING, circleOpacity: 0.2 };
+const remeasureElapseCircleStyle = { circleColor: Colors.PLANET_CRIMSON, circleOpacity: 0.2 };

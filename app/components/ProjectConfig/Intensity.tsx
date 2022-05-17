@@ -117,11 +117,13 @@ const Intensity = ({ projectId, project }: { projectId: string; project: object 
           setSelectedIntensity={setSelectedIntensity}
         />
       </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 25 }}>
+      <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
+        <Text>{i18next.t('label.cant_change_intensity')}</Text>
         <PrimaryButton
           onPress={() => {
             putAuthenticatedRequest(`/app/projects/${projectId}`, { intensity: 50 }).then();
           }}
+          disabled={true}
           btnText={i18next.t('label.save')}
         />
       </View>

@@ -100,6 +100,7 @@ const MainMap = ({
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
   const [remeasurePolygons, setRemeasurePolygons] = useState([]);
+  const [remeasureDuePolygons, setRemeasureDuePolygons] = useState([]);
 
   const { state, dispatch } = useContext(InventoryContext);
 
@@ -243,16 +244,19 @@ const MainMap = ({
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
       const pointGeoJSONFeatures = [];
-      const remeasurePolygons = getRemeasurementPolygons(
+      const remeasurePolygons = await getRemeasurementPolygons(
         JSON.parse(JSON.stringify(syncedInventory)),
       );
-      setRemeasurePolygons(remeasurePolygons);
+      setRemeasurePolygons(remeasurePolygons.remeasurementNeededPolygons);
+      setRemeasureDuePolygons(remeasurePolygons.remeasurementDuePolygons);
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
       for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
           inventoryData,
           includeInventoryId: true,
           ignoreSampleTrees: true,
+          remeasureNeededPolygons: remeasurePolygons.remeasurementNeededPolygons,
+          remeasureDuePolygons: remeasurePolygons.remeasurementDuePolygons,
         });
         if (inventoryData.treeType === SINGLE) {
           pointGeoJSONFeatures.push(...data.features);
@@ -386,6 +390,7 @@ const MainMap = ({
         siteBounds={siteBounds}
         projectSites={projectSites}
         remeasurePolygons={remeasurePolygons}
+        remeasureDuePolygons={remeasureDuePolygons}
       />
 
       {/* shows alert if location permission is not provided */}

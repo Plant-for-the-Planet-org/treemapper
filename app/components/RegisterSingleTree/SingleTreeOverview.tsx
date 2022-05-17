@@ -198,7 +198,7 @@ const SingleTreeOverview = () => {
 
   useEffect(() => {
     if (plantationDate && status === SYNCED && plantLocationHistory) {
-      const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
+      // const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
 
       setShowRemeasurementButton(
         isDateInRange &&

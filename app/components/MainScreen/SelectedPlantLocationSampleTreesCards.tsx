@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
 import { APIConfig } from '../../actions/Config';
@@ -118,12 +119,16 @@ const SelectedPlantLocationSampleTreesCards = ({
           if (item.plantationDate && item.status === SYNCED) {
             // canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
 
-            isUserDistanceMoreThen100M =
-              distanceCalculator(
-                [location?.coords.latitude as number, location?.coords.longitude as number],
-                [item.latitude, item.longitude],
-                'meters',
-              ) > 100;
+            if (Config.IS_TEST_MODE == 'true') {
+              isUserDistanceMoreThen100M = false;
+            } else {
+              isUserDistanceMoreThen100M =
+                distanceCalculator(
+                  [location?.coords.latitude as number, location?.coords.longitude as number],
+                  [item.latitude, item.longitude],
+                  'meters',
+                ) > 100;
+            }
           }
 
           return (
@@ -164,8 +169,19 @@ const SelectedPlantLocationSampleTreesCards = ({
 
                     {/* dimensions and tree tag */}
                     <Text style={styles.text}>
-                      {`${Math.round(item.specieHeight * 100) / 100}${heightUnit} • ${
-                        Math.round(item.specieDiameter * 100) / 100
+                      {`${
+                        Math.round(
+                          (item.plantLocationHistory.length > 0
+                            ? item.plantLocationHistory[item.plantLocationHistory.length - 1].height
+                            : item.specieHeight) * 100,
+                        ) / 100
+                      }${heightUnit} • ${
+                        Math.round(
+                          (item.plantLocationHistory.length > 0
+                            ? item.plantLocationHistory[item.plantLocationHistory.length - 1]
+                                .diameter
+                            : item.specieDiameter) * 100,
+                        ) / 100
                       }${diameterUnit} ${item.tagId ? `• #${item.tagId}` : ''}`}
                     </Text>
                   </View>
@@ -191,33 +207,30 @@ const SelectedPlantLocationSampleTreesCards = ({
                         top: 18,
                         // left: 5,
                       }}>
-                      {
-                        // item?.plantLocationHistory?.length > 0 &&
-                        // item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
-                        //   'dead'
-                        false ? (
-                          <PrimaryButton
-                            btnText={i18next.t('label.view_status')}
-                            onPress={() => {
-                              onPressCheckRemeasurement(item);
-                            }}
-                            accessibilityLabel="remeasure-button"
-                          />
-                        ) : (
-                          <PrimaryButton
-                            btnText={i18next.t('label.remeasure')}
-                            onPress={() => {
-                              onPressRemeasure(item, index);
-                            }}
-                            // disabled={
-                            //   item?.plantLocationHistory?.length > 0 &&
-                            //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
-                            //     ?.dataStatus === PENDING_DATA_UPLOAD
-                            // }
-                            accessibilityLabel="remeasure-button"
-                          />
-                        )
-                      }
+                      {item?.plantLocationHistory?.length > 0 &&
+                      item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
+                        'dead' ? (
+                        <PrimaryButton
+                          btnText={i18next.t('label.view_status')}
+                          onPress={() => {
+                            onPressCheckRemeasurement(item);
+                          }}
+                          accessibilityLabel="remeasure-button"
+                        />
+                      ) : (
+                        <PrimaryButton
+                          btnText={i18next.t('label.remeasure')}
+                          onPress={() => {
+                            onPressRemeasure(item, index);
+                          }}
+                          // disabled={
+                          //   item?.plantLocationHistory?.length > 0 &&
+                          //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                          //     ?.dataStatus === PENDING_DATA_UPLOAD
+                          // }
+                          accessibilityLabel="remeasure-button"
+                        />
+                      )}
                     </View>
                   )
                   // ) : (

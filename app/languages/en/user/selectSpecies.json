@@ -64,5 +64,7 @@
   "zero_tree_count_species_delete_sample_tree_warning": "This species will be deleted if tree count is set to 0 and the sample tree(s) related to this species will also get deleted. Are you sure, that you want to set tree count to zero?",
   "tree_is_still_alive": "Tree is still alive",
   "select_intensity_for_remeasurement": "Select the percentage of Trees you will re-measure from the total number of planted Sample Trees",
-  "select_frequency_for_remeasurement": "Select frequency after which you will re-measure the Sample Trees."
+  "select_frequency_for_remeasurement": "Select frequency after which you will re-measure the Sample Trees.",
+  "cant_change_frequency": "You can't change frequency for now.",
+  "cant_change_intensity": "You can't change intensity for now."
 }
