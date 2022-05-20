@@ -119,7 +119,7 @@ const SelectedPlantLocationSampleTreesCards = ({
           if (item.plantationDate && item.status === SYNCED) {
             // canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
 
-            if (Config.IS_TEST_MODE == 'true') {
+            if (Config.IS_TEST_VERSION == 'true') {
               isUserDistanceMoreThen100M = false;
             } else {
               isUserDistanceMoreThen100M =
