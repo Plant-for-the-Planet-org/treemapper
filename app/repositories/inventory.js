@@ -1204,10 +1204,10 @@ const getFormattedSampleData = sample => {
       remeasureBy: sample?.remeasureBy
         ? sample.remeasureBy
         : new Date(
-            plantationDate.getFullYear() + 1,
-            plantationDate.getMonth(),
-            plantationDate.getDay(),
-          ),
+          plantationDate.getFullYear() + 1,
+          plantationDate.getMonth(),
+          plantationDate.getDay(),
+        ),
     },
     status: SYNCED,
     plantationDate: plantationDate,
