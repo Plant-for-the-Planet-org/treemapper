@@ -201,8 +201,8 @@ const SingleTreeOverview = () => {
       // const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
 
       setShowRemeasurementButton(
-        isDateInRange &&
-          plantLocationHistory?.length > 0 &&
+        // isDateInRange &&
+        plantLocationHistory?.length > 0 &&
           [PENDING_DATA_UPLOAD, SYNCED].includes(
             plantLocationHistory[plantLocationHistory?.length - 1]?.dataStatus,
           ),
