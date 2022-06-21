@@ -22,7 +22,7 @@
     "@react-native-community/checkbox": "^0.5.9",
     "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/masked-view": "^0.1.11",
-    "@react-native-community/netinfo": "^8.3.0",
+    "@react-native-community/netinfo": "^8.3.1",
     "@react-native-community/toolbar-android": "^0.2.1",
     "@react-native-mapbox-gl/maps": "^8.5.0",
     "@react-navigation/drawer": "^5.12.9",
