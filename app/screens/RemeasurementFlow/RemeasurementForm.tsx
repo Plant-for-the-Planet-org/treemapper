@@ -1,7 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import { nanoid } from 'nanoid';
-import React, { createRef, useContext, useEffect, useState } from 'react';
+import {nanoid} from 'nanoid';
+import React, {createRef, useContext, useEffect, useState} from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -19,18 +19,18 @@ import {
   getSystemName,
   getSystemVersion,
 } from 'react-native-device-info';
-import { setRemeasurementId } from '../../actions/inventory';
-import { InventoryContext } from '../../reducers/inventory';
-import { getInventory } from '../../repositories/inventory';
-import { addPlantLocationHistory } from '../../repositories/plantLocationHistory';
-import { getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { nonISUCountries } from '../../utils/constants';
-import { measurementValidation } from '../../utils/validations/measurements';
-import { AlertModal, Header, PrimaryButton } from '../../components/Common';
+import {setRemeasurementId} from '../../actions/inventory';
+import {InventoryContext} from '../../reducers/inventory';
+import {getInventory, updateSampleTreeMeasurements} from '../../repositories/inventory';
+import {addPlantLocationHistory} from '../../repositories/plantLocationHistory';
+import {getUserInformation} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
+import {nonISUCountries} from '../../utils/constants';
+import {measurementValidation} from '../../utils/validations/measurements';
+import {AlertModal, Header, PrimaryButton} from '../../components/Common';
 import CustomDropDownPicker from '../../components/Common/Dropdown/CustomDropDownPicker';
 import MeasurementInputs from '../../components/Common/MeasurementInputs';
-import { INCOMPLETE } from '../../utils/inventoryConstants';
+import {INCOMPLETE} from '../../utils/inventoryConstants';
 
 type Props = {};
 
@@ -52,7 +52,7 @@ export default function RemeasurementForm({}: Props) {
 
   const navigation = useNavigation();
 
-  const { state, dispatch } = useContext(InventoryContext);
+  const {state, dispatch} = useContext(InventoryContext);
 
   // reasons to show if the tree is dead
   const deadReasonOptions = [
@@ -81,7 +81,7 @@ export default function RemeasurementForm({}: Props) {
 
   const fetchInventory = () => {
     if (state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+      getInventory({inventoryID: state.inventoryID}).then(inventoryData => {
         setInventory(inventoryData);
       });
     }
@@ -107,7 +107,7 @@ export default function RemeasurementForm({}: Props) {
   const onPressMeasurementBtn = () => {
     Keyboard.dismiss();
     const validationObject = measurementValidation(height, diameter, isNonISUCountry);
-    const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+    const {diameterErrorMessage, heightErrorMessage, isRatioCorrect} = validationObject;
 
     setDiameterError(diameterErrorMessage);
     setHeightError(heightErrorMessage);
@@ -185,11 +185,27 @@ export default function RemeasurementForm({}: Props) {
     } catch (err) {
       console.log(err, 'addPlantLocationHistory');
     }
-    setRemeasurementId(remeasurementId)(dispatch);
     if (isTreeAlive) {
-      navigation.navigate('TakePicture');
+      try {
+        await updateSampleTreeMeasurements({
+          inventoryId: state.inventoryID || '',
+          height: Number(height),
+          diameter: Number(diameter),
+          sampleTreeIndex: state.samplePlantLocationIndex,
+        });
+      } catch (err) {
+        console.log(err, 'updateSampleTreeMeasurements');
+      }
+    }
+    setRemeasurementId(remeasurementId)(dispatch);
+    navigation.navigate('AdditionalDataForm', {
+      isRemeasurement: true,
+      isTreeAlive,
+    });
+    if (isTreeAlive) {
+      // navigation.navigate('TakePicture');
     } else {
-      navigation.navigate('RemeasurementReview');
+      // navigation.navigate('RemeasurementReview');
     }
   };
 
@@ -201,10 +217,10 @@ export default function RemeasurementForm({}: Props) {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24 }}>
+          <View style={{flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24}}>
             {/* header shows the HID and Species */}
             <Header
               headingText={i18next.t('label.remeasurement')}
@@ -225,7 +241,7 @@ export default function RemeasurementForm({}: Props) {
           {/* shows the form layout */}
           <KeyboardAvoidingView
             behavior={Platform.OS == 'ios' ? 'padding' : undefined}
-            style={{ flex: 1 }}>
+            style={{flex: 1}}>
             <View
               style={{
                 flex: 1,
@@ -235,10 +251,10 @@ export default function RemeasurementForm({}: Props) {
               <View>
                 {/* Toggle - used to decide whether the tree is alive or not */}
                 {/* and toggles the form field based on same */}
-                <View style={[styles.switchContainer, { marginBottom: 24 }]}>
+                <View style={[styles.switchContainer, {marginBottom: 24}]}>
                   <Text style={styles.switchText}>{i18next.t('label.tree_is_still_alive')}</Text>
                   <Switch
-                    trackColor={{ false: '#767577', true: '#d4e7b1' }}
+                    trackColor={{false: '#767577', true: '#d4e7b1'}}
                     thumbColor={isTreeAlive ? Colors.PRIMARY : '#f4f3f4'}
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={() => handleIsTreeAliveChange()}
@@ -261,7 +277,7 @@ export default function RemeasurementForm({}: Props) {
                   />
                 ) : (
                   <View style={styles.inputBox}>
-                    <Text style={styles.reasonText}>{i18next.t('label.dead_reason')}</Text>
+                    <Text style={styles.reasonText}>{i18next.t('label.cause_of_mortality')}</Text>
                     <CustomDropDownPicker
                       items={deadReasonOptions}
                       open={showReasonOptions}

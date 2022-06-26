@@ -45,7 +45,7 @@
   "fire": "Fire",
   "drought": "Drought",
   "other": "Other",
-  "dead_reason": "Dead Reason",
+  "cause_of_mortality": "Likely cause of Mortality",
   "status": "Status",
   "dead": "Dead"
 }

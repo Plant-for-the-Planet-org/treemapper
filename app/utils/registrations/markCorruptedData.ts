@@ -1,4 +1,4 @@
-import { FIX_NEEDED, getIncompleteStatus, MULTI, SINGLE } from '../inventoryConstants';
+import {FIX_NEEDED, getIncompleteStatus, MULTI, SINGLE} from '../inventoryConstants';
 
 interface Params {
   oldRealm: Realm;
@@ -17,6 +17,8 @@ export const checkAndMarkMissingData = ({
   schemaVersion,
   isMigration = false,
 }: Params) => {
+  console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
   if (!(schemaVersion && oldRealm.schemaVersion < schemaVersion) && isMigration) {
     return;
   }
@@ -47,6 +49,8 @@ export const updateSingleInventoryMissingStatus = (
   }: any = oldInventory;
   let isFixNeeded = false;
 
+  console.log(status, 'Status');
+
   // checks for missing data if status is not incomplete
   if (!getIncompleteStatus().includes(status)) {
     // checks for single tree and if there's any data missing then marks
@@ -60,18 +64,22 @@ export const updateSingleInventoryMissingStatus = (
         isNull(plantation_date))
     ) {
       newInventory.status = FIX_NEEDED;
+      console.log('+');
+
       isFixNeeded = true;
     }
     // checks missing data for multiple trees
     else if (treeType === MULTI) {
       // checks if plantataion_date is missing then marks as FIX_NEEDED
       if (isNull(plantation_date)) {
+        console.log('++');
         isFixNeeded = true;
       } else {
         // loops through species array and check if aliases or treeCount is missing
         // and marks as FIX_NEEDED if anyone of them is absent
         for (const singleSpecies of species) {
           if (isNull(singleSpecies.aliases) || singleSpecies.treeCount < 1) {
+            console.log('+++');
             isFixNeeded = true;
             break;
           }
@@ -94,6 +102,7 @@ export const updateSingleInventoryMissingStatus = (
 
         if (areCoordinatesNull || isSpeciesNull || areMeasurementNull || isPlantationDateNull) {
           newInventory.sampleTrees[sampleTreeIndex].status = FIX_NEEDED;
+          console.log('++++');
           isFixNeeded = true;
         }
       }
@@ -107,7 +116,7 @@ export const updateSingleInventoryMissingStatus = (
       newInventory.registrationDate = new Date();
     }
   }
-  return { isFixNeeded };
+  return {isFixNeeded};
 };
 
 const isNull = (value: any) => {

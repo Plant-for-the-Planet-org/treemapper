@@ -1,11 +1,11 @@
 import Realm from 'realm';
-import { setInventoryId, updateCount, updateProgressCount } from '../actions/inventory';
-import { bugsnag } from '../utils';
+import {setInventoryId, updateCount, updateProgressCount} from '../actions/inventory';
+import {bugsnag} from '../utils';
 import {
   appAdditionalDataForAPI,
   getFormattedAdditionalDetails,
 } from '../utils/additionalData/functions';
-import { LogTypes } from '../utils/constants';
+import {LogTypes} from '../utils/constants';
 import {
   DATA_UPLOAD_START,
   INCOMPLETE,
@@ -27,10 +27,10 @@ import {
   checkAndMarkMissingData,
   updateSingleInventoryMissingStatus,
 } from '../utils/registrations/markCorruptedData';
-import { getSchema } from './default';
+import {getSchema} from './default';
 import dbLog from './logs';
 
-export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
+export const updateSpecieDiameter = ({inventory_id, speciesDiameter}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -58,7 +58,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
   });
 };
 
-export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
+export const updateSpecieHeight = ({inventory_id, speciesHeight}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -86,7 +86,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
   });
 };
 
-export const updateTreeTag = ({ inventoryId, tagId }) => {
+export const updateTreeTag = ({inventoryId, tagId}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -154,7 +154,7 @@ export const getInventoryByStatus = status => {
   });
 };
 
-export const initiateInventory = ({ treeType }, dispatch) => {
+export const initiateInventory = ({treeType}, dispatch) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -191,7 +191,7 @@ export const initiateInventory = ({ treeType }, dispatch) => {
   });
 };
 
-export const getInventory = ({ inventoryID }) => {
+export const getInventory = ({inventoryID}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -223,7 +223,7 @@ export const getInventory = ({ inventoryID }) => {
   });
 };
 
-export const getSampleTreeBySampleTreeId = ({ sampleTreeLocationId }) => {
+export const getSampleTreeBySampleTreeId = ({sampleTreeLocationId}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -257,7 +257,7 @@ export const getSampleTreeBySampleTreeId = ({ sampleTreeLocationId }) => {
       });
   });
 };
-export const getInventoryByLocationId = ({ locationId }) => {
+export const getInventoryByLocationId = ({locationId}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -291,7 +291,7 @@ export const getInventoryByLocationId = ({ locationId }) => {
 };
 
 export const changeInventoryStatusAndLocationId = (
-  { inventory_id, status, locationId, hid, originalGeometry },
+  {inventory_id, status, locationId, hid, originalGeometry},
   dispatch,
 ) => {
   return new Promise(resolve => {
@@ -317,11 +317,11 @@ export const changeInventoryStatusAndLocationId = (
           });
 
           if (status === SYNCED) {
-            updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
-            updateCount({ type: 'upload', count: 'decrement' })(dispatch);
-            updateProgressCount({ count: 'decrement' })(dispatch);
+            updateCount({type: PENDING_DATA_UPLOAD, count: 'decrement'})(dispatch);
+            updateCount({type: 'upload', count: 'decrement'})(dispatch);
+            updateProgressCount({count: 'decrement'})(dispatch);
           } else if (status === PENDING_DATA_UPLOAD) {
-            updateCount({ type: PENDING_DATA_UPLOAD, count: 'increment' })(dispatch);
+            updateCount({type: PENDING_DATA_UPLOAD, count: 'increment'})(dispatch);
           }
           resolve(true);
         });
@@ -339,7 +339,7 @@ export const changeInventoryStatusAndLocationId = (
   });
 };
 
-export const changeInventoryStatus = ({ inventory_id, status, count }, dispatch) => {
+export const changeInventoryStatus = ({inventory_id, status, count}, dispatch) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -361,17 +361,17 @@ export const changeInventoryStatus = ({ inventory_id, status, count }, dispatch)
           });
 
           if (status === SYNCED) {
-            updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
-            updateCount({ type: 'upload', count: 'decrement' })(dispatch);
-            updateProgressCount({ count: 'decrement' })(dispatch);
+            updateCount({type: PENDING_DATA_UPLOAD, count: 'decrement'})(dispatch);
+            updateCount({type: 'upload', count: 'decrement'})(dispatch);
+            updateProgressCount({count: 'decrement'})(dispatch);
           } else if (status === PENDING_DATA_UPLOAD) {
             if (count) {
-              updateProgressCount({ count: count })(dispatch);
+              updateProgressCount({count: count})(dispatch);
             } else {
-              updateCount({ type: PENDING_DATA_UPLOAD, count: 'increment' })(dispatch);
+              updateCount({type: PENDING_DATA_UPLOAD, count: 'increment'})(dispatch);
             }
           } else if (status === DATA_UPLOAD_START) {
-            updateProgressCount({ count: count })(dispatch);
+            updateProgressCount({count: count})(dispatch);
           }
           resolve();
         });
@@ -389,7 +389,7 @@ export const changeInventoryStatus = ({ inventory_id, status, count }, dispatch)
   });
 };
 
-export const updateSingleTreeSpecie = ({ inventory_id, species }) => {
+export const updateSingleTreeSpecie = ({inventory_id, species}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -418,7 +418,7 @@ export const updateSingleTreeSpecie = ({ inventory_id, species }) => {
   });
 };
 
-export const deleteInventory = ({ inventory_id }, dispatch) => {
+export const deleteInventory = ({inventory_id}, dispatch) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -436,7 +436,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
         });
 
         if (dispatch && isPending) {
-          updateCount({ type: PENDING_DATA_UPLOAD, count: 'decrement' })(dispatch);
+          updateCount({type: PENDING_DATA_UPLOAD, count: 'decrement'})(dispatch);
         }
         resolve(true);
       })
@@ -453,7 +453,7 @@ export const deleteInventory = ({ inventory_id }, dispatch) => {
   });
 };
 
-export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
+export const updatePlantingDate = ({inventory_id, plantation_date}) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -489,7 +489,7 @@ export const updatePlantingDate = ({ inventory_id, plantation_date }) => {
   });
 };
 
-export const updateLastScreen = ({ lastScreen, inventory_id }) => {
+export const updateLastScreen = ({lastScreen, inventory_id}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -560,6 +560,7 @@ export const clearAllUploadedInventory = () => {
       .then(realm => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "SYNCED"');
+          console.log(allInventory.length, 'allInventory.length');
           realm.delete(allInventory);
 
           // logging the success in to the db
@@ -584,7 +585,7 @@ export const clearAllUploadedInventory = () => {
   });
 };
 
-export const updateSpecieAndMeasurements = ({ inventoryId, species, diameter, height, tagId }) => {
+export const updateSpecieAndMeasurements = ({inventoryId, species, diameter, height, tagId}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -615,7 +616,36 @@ export const updateSpecieAndMeasurements = ({ inventoryId, species, diameter, he
   });
 };
 
-export const removeLastCoord = ({ inventory_id }) => {
+export const updateSampleTreeMeasurements = ({inventoryId, diameter, height, sampleTreeIndex}) => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          let inventory = realm.objectForPrimaryKey('Inventory', `${inventoryId}`);
+          inventory.sampleTrees[sampleTreeIndex].specieDiameter = Number(diameter);
+          inventory.sampleTrees[sampleTreeIndex].specieHeight = Number(height);
+        });
+        // logging the success in to the db
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully updated height and diameter of sample tree ${sampleTreeIndex} of inventory_id: ${inventoryId}. `,
+        });
+        resolve();
+      })
+      .catch(err => {
+        // logging the error in to the db
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while updating height and diameter of sample tree ${sampleTreeIndex} of inventory_id: ${inventoryId}.`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        reject(err);
+      });
+  });
+};
+
+export const removeLastCoord = ({inventory_id}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -647,7 +677,7 @@ export const removeLastCoord = ({ inventory_id }) => {
   });
 };
 
-export const getCoordByIndex = ({ inventory_id, index }) => {
+export const getCoordByIndex = ({inventory_id, index}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -660,7 +690,7 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
           logType: LogTypes.INVENTORY,
           message: `Successfully fetched coordinate for inventory_id: ${inventory_id} with coordinate index: ${index}`,
         });
-        resolve({ coordsLength, coord: coords[index] });
+        resolve({coordsLength, coord: coords[index]});
       })
       .catch(err => {
         // logging the error in to the db
@@ -674,7 +704,7 @@ export const getCoordByIndex = ({ inventory_id, index }) => {
   });
 };
 
-export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) => {
+export const insertImageAtIndexCoordinate = ({inventory_id, imageUrl, index}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -686,7 +716,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
           polygonsTemp = polygons.map(onePolygon => {
             let coords = onePolygon.coordinates;
             coords[index].imageUrl = imageUrl;
-            return { isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords };
+            return {isPolygonComplete: onePolygon.isPolygonComplete, coordinates: coords};
           });
           inventory.polygons = polygonsTemp;
           // logging the success in to the db
@@ -709,7 +739,7 @@ export const insertImageAtIndexCoordinate = ({ inventory_id, imageUrl, index }) 
   });
 };
 
-export const addCoordinates = ({ inventory_id, geoJSON, currentCoords }) => {
+export const addCoordinates = ({inventory_id, geoJSON, currentCoords}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -820,7 +850,7 @@ export const addCoordinateSingleRegisterTree = ({
   });
 };
 
-export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
+export const insertImageSingleRegisterTree = ({inventory_id, imageUrl}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -848,7 +878,7 @@ export const insertImageSingleRegisterTree = ({ inventory_id, imageUrl }) => {
   });
 };
 
-export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => {
+export const addSpeciesAction = ({inventory_id, species, plantation_date}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -883,7 +913,7 @@ export const addSpeciesAction = ({ inventory_id, species, plantation_date }) => 
   });
 };
 
-export const addLocateTree = ({ locateTree, inventory_id }) => {
+export const addLocateTree = ({locateTree, inventory_id}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -916,7 +946,7 @@ export const addLocateTree = ({ locateTree, inventory_id }) => {
   });
 };
 
-export const polygonUpdate = ({ inventory_id }) => {
+export const polygonUpdate = ({inventory_id}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -944,7 +974,7 @@ export const polygonUpdate = ({ inventory_id }) => {
   });
 };
 
-export const completePolygon = ({ inventory_id, locateTree }) => {
+export const completePolygon = ({inventory_id, locateTree}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -981,7 +1011,7 @@ export const completePolygon = ({ inventory_id, locateTree }) => {
  * @param {object} - takes [inventory_id] and [inventoryData] as properties
  *                   to update the inventory
  */
-export const updateInventory = ({ inventory_id, inventoryData }) => {
+export const updateInventory = ({inventory_id, inventoryData}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -1033,9 +1063,9 @@ export const addInventoryToDB = inventoryFromServer => {
               let aliases = specie.aliases || specie.scientificName;
               let treeCount = parseInt(1);
               let id = inventoryFromServer.scientificSpecies;
-              species.push({ aliases, treeCount, id });
+              species.push({aliases, treeCount, id});
             } else {
-              species.push({ aliases: 'Unknown', treeCount: parseInt(1), id: 'unknown' });
+              species.push({aliases: 'Unknown', treeCount: parseInt(1), id: 'unknown'});
             }
           }
           //for multiple trees
@@ -1053,7 +1083,7 @@ export const addInventoryToDB = inventoryFromServer => {
                 id = 'unknown';
                 aliases = 'Unknown';
               }
-              species.push({ aliases, treeCount, id });
+              species.push({aliases, treeCount, id});
             }
 
             for (const sample of inventoryFromServer.samplePlantLocations) {
@@ -1133,7 +1163,7 @@ export const addInventoryToDB = inventoryFromServer => {
             lastScreen:
               inventoryFromServer.type === SINGLE ? 'SingleTreeOverview' : 'InventoryOverview',
             species: species,
-            polygons: [{ isPolygonComplete: true, coordinates }],
+            polygons: [{isPolygonComplete: true, coordinates}],
             specieDiameter:
               inventoryFromServer.type === SINGLE || inventoryFromServer.type === SAMPLE
                 ? inventoryFromServer.measurements.height
@@ -1204,10 +1234,10 @@ const getFormattedSampleData = sample => {
       remeasureBy: sample?.remeasureBy
         ? sample.remeasureBy
         : new Date(
-          plantationDate.getFullYear() + 1,
-          plantationDate.getMonth(),
-          plantationDate.getDay(),
-        ),
+            plantationDate.getFullYear() + 1,
+            plantationDate.getMonth(),
+            plantationDate.getDay(),
+          ),
     },
     status: SYNCED,
     plantationDate: plantationDate,
@@ -1250,7 +1280,7 @@ export const addCdnUrl = ({
   });
 };
 
-export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sampleTreeIndex }) => {
+export const removeImageUrl = ({inventoryId, coordinateIndex, sampleTreeId, sampleTreeIndex}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema()).then(realm => {
       realm.write(async () => {
@@ -1266,7 +1296,7 @@ export const removeImageUrl = ({ inventoryId, coordinateIndex, sampleTreeId, sam
   });
 };
 
-export const addAppMetadata = ({ inventory_id }) => {
+export const addAppMetadata = ({inventory_id}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(realm => {
@@ -1399,7 +1429,7 @@ export const updateMissingDataStatus = () => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema()).then(realm => {
       realm.write(async () => {
-        checkAndMarkMissingData({ oldRealm: realm });
+        checkAndMarkMissingData({oldRealm: realm});
         resolve();
       });
     });

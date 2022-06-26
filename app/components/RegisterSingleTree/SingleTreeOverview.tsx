@@ -1,6 +1,6 @@
-import { CommonActions, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {CommonActions, RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   BackHandler,
   Dimensions,
@@ -17,13 +17,13 @@ import RNFS from 'react-native-fs';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { APIConfig } from '../../actions/Config';
+import {APIConfig} from '../../actions/Config';
 import {
   deleteInventoryId,
   setIsExtraSampleTree,
   setSkipToInventoryOverview,
 } from '../../actions/inventory';
-import { InventoryContext } from '../../reducers/inventory';
+import {InventoryContext} from '../../reducers/inventory';
 import {
   addAppMetadata,
   changeInventoryStatus,
@@ -36,9 +36,9 @@ import {
   updateSpecieHeight,
   updateTreeTag,
 } from '../../repositories/inventory';
-import { getProjectById } from '../../repositories/projects';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
+import {getProjectById} from '../../repositories/projects';
+import {getUserDetails, getUserInformation} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
 import {
   cmToInch,
   DBHInMeter,
@@ -57,9 +57,9 @@ import {
   SINGLE,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { updateSampleTree } from '../../utils/updateSampleTree';
-import { measurementValidation } from '../../utils/validations/measurements';
-import { Header, InputModal, Label, PrimaryButton } from '../Common';
+import {updateSampleTree} from '../../utils/updateSampleTree';
+import {measurementValidation} from '../../utils/validations/measurements';
+import {Header, InputModal, Label, PrimaryButton} from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
@@ -67,11 +67,12 @@ import ManageSpecies from '../ManageSpecies';
 import SpecieSampleTree from '../SpecieSampleTree';
 import Geolocation from 'react-native-geolocation-service';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { locationPermission } from '../../utils/permissions';
-import { bugsnag } from '../../utils';
+import {locationPermission} from '../../utils/permissions';
+import {bugsnag} from '../../utils';
 import distanceCalculator from '../../utils/distanceCalculator';
-import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
-const { protocol, cdnUrl } = APIConfig;
+import {getIsDateInRemeasurementRange} from '../../utils/remeasurement';
+import Config from 'react-native-config';
+const {protocol, cdnUrl} = APIConfig;
 
 type RootStackParamList = {
   SingleTreeOverview: {
@@ -85,7 +86,7 @@ type RootStackParamList = {
 type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTreeOverview'>;
 
 const SingleTreeOverview = () => {
-  const { state: inventoryState, dispatch } = useContext(InventoryContext);
+  const {state: inventoryState, dispatch} = useContext(InventoryContext);
 
   const [inventory, setInventory] = useState<any>();
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
@@ -148,7 +149,7 @@ const SingleTreeOverview = () => {
 
   useEffect(() => {
     if (!route?.params?.isSampleTree) {
-      let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
+      let data = {inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview'};
       updateLastScreen(data);
     }
     getUserDetails().then(userDetails => {
@@ -192,22 +193,25 @@ const SingleTreeOverview = () => {
       plantLocationCoordinates,
       'meters',
     );
-
-    setIsRemeasurementDisabled(distanceInMeters > 100);
+    if (distanceInMeters > 100 && Config.IS_TEST_VERSION != 'true') {
+      setIsRemeasurementDisabled(true);
+    } else {
+      setIsRemeasurementDisabled(false);
+    }
   }, [location, plantLocationCoordinates]);
 
   useEffect(() => {
     if (plantationDate && status === SYNCED && plantLocationHistory) {
       // const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
 
-      setShowRemeasurementButton(
-        isDateInRange &&
-          plantLocationHistory?.length > 0 &&
-          [PENDING_DATA_UPLOAD, SYNCED].includes(
-            plantLocationHistory[plantLocationHistory?.length - 1]?.dataStatus,
-          ),
-      );
-      // setShowRemeasurementButton(true);
+      // setShowRemeasurementButton(
+      //   // isDateInRange &&
+      //   plantLocationHistory?.length > 0 &&
+      //     [PENDING_DATA_UPLOAD, SYNCED].includes(
+      //       plantLocationHistory[plantLocationHistory?.length - 1]?.dataStatus,
+      //     ),
+      // );
+      setShowRemeasurementButton(true);
     } else {
       setShowRemeasurementButton(false);
     }
@@ -254,7 +258,7 @@ const SingleTreeOverview = () => {
   };
 
   const fetchAndUpdateInventoryDetails = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
+    getInventory({inventoryID: inventoryState.inventoryID}).then(inventoryData => {
       setInventory(inventoryData);
       setStatus(inventoryData.status);
       setLocateTree(inventoryData.locateTree);
@@ -284,6 +288,8 @@ const SingleTreeOverview = () => {
           const height = nonISUCountries.includes(data.country)
             ? Math.round(currentSampleTree.specieHeight * meterToFoot * 1000) / 1000
             : currentSampleTree.specieHeight;
+
+          console.log(currentSampleTree.specieHeight, 'currentSampleTree.specieHeight');
 
           updateDiameterLabel(currentSampleTree.specieHeight);
 
@@ -465,7 +471,7 @@ const SingleTreeOverview = () => {
     if (action === 'species') {
       setIsShowManageSpecies(true);
     } else if (action === 'project') {
-      navigation.navigate('SelectProject', { selectedProjectId });
+      navigation.navigate('SelectProject', {selectedProjectId});
     } else {
       setEditEnable(action);
       if (action === 'diameter') {
@@ -598,7 +604,7 @@ const SingleTreeOverview = () => {
     }
   }
 
-  const renderDetails = ({ polygons, hid }: any) => {
+  const renderDetails = ({polygons, hid}: any) => {
     let coords;
     if (polygons[0]) {
       coords = polygons[0].coordinates[0];
@@ -647,7 +653,7 @@ const SingleTreeOverview = () => {
     return (
       <View style={detailContainerStyle}>
         {hid ? (
-          <View style={{ marginVertical: 5 }}>
+          <View style={{marginVertical: 5}}>
             <Text style={detailHeaderStyle}>HID</Text>
 
             <Text style={styles.detailText}>{hid}</Text>
@@ -655,7 +661,7 @@ const SingleTreeOverview = () => {
         ) : (
           []
         )}
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_specie')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
@@ -663,20 +669,20 @@ const SingleTreeOverview = () => {
             accessible={true}
             accessibilityLabel={i18next.t('label.tree_review_specie')}
             testID="species_btn">
-            <Text style={[styles.detailText, { fontStyle: 'italic' }]}>
+            <Text style={[styles.detailText, {fontStyle: 'italic'}]}>
               {specieText
-                ? i18next.t('label.tree_review_specie_text', { specieText })
+                ? i18next.t('label.tree_review_specie_text', {specieText})
                 : i18next.t('label.tree_review_unable')}{' '}
               {shouldEdit && <MIcon name={'edit'} size={20} />}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            style={{flexDirection: 'row', alignItems: 'center'}}
             onPress={() => onPressEditSpecies('height')}
             accessibilityLabel="Height"
             testID="height_btn"
@@ -688,11 +694,11 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{diameterLabel}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            style={{flexDirection: 'row', alignItems: 'center'}}
             onPress={() => onPressEditSpecies('diameter')}
             accessibilityLabel={i18next.t('label.tree_review_diameter')}
             testID="diameter_btn"
@@ -704,7 +710,7 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_plantation_date')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
@@ -721,7 +727,7 @@ const SingleTreeOverview = () => {
           </TouchableOpacity>
         </View>
         {status !== INCOMPLETE_SAMPLE_TREE && !route?.params?.isSampleTree && showProject ? (
-          <View style={{ marginVertical: 5 }}>
+          <View style={{marginVertical: 5}}>
             <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_project')}</Text>
             <TouchableOpacity
               disabled={!shouldEdit}
@@ -738,11 +744,11 @@ const SingleTreeOverview = () => {
         ) : (
           []
         )}
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_tree_tag_header')}</Text>
           <TouchableOpacity
             disabled={!shouldEdit}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            style={{flexDirection: 'row', alignItems: 'center'}}
             onPress={() => onPressEditSpecies('tagId')}
             accessibilityLabel={i18next.t('label.tree_review_tree_tag_header')}
             testID="tree-tag-btn"
@@ -753,7 +759,7 @@ const SingleTreeOverview = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginVertical: 5 }}>
+        <View style={{marginVertical: 5}}>
           <Text style={detailHeaderStyle}>{i18next.t('label.tree_review_location')}</Text>
           <Text style={styles.detailText}>
             {`${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`}{' '}
@@ -779,7 +785,7 @@ const SingleTreeOverview = () => {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+          routes: [{name: 'MainScreen'}, {name: 'TreeInventory'}],
         }),
       );
     } else {
@@ -796,9 +802,9 @@ const SingleTreeOverview = () => {
         setShowNoProjectWarning(true);
       } else if (specieText) {
         setShowNoProjectWarning(false);
-        addAppMetadata({ inventory_id: inventoryState.inventoryID })
+        addAppMetadata({inventory_id: inventoryState.inventoryID})
           .then(() => {
-            let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+            let data = {inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD};
             changeInventoryStatus(data, dispatch).then(() => {
               navigateBack();
             });
@@ -830,8 +836,8 @@ const SingleTreeOverview = () => {
           CommonActions.reset({
             index: 2,
             routes: [
-              { name: 'MainScreen' },
-              { name: 'TreeInventory' },
+              {name: 'MainScreen'},
+              {name: 'TreeInventory'},
               {
                 name: inventoryState.skipToInventoryOverview
                   ? 'InventoryOverview'
@@ -853,9 +859,9 @@ const SingleTreeOverview = () => {
         setNavigationType('save');
         setShowNoProjectWarning(false);
 
-        addAppMetadata({ inventory_id: inventoryState.inventoryID })
+        addAppMetadata({inventory_id: inventoryState.inventoryID})
           .then(() => {
-            let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
+            let data = {inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD};
             changeInventoryStatus(data, dispatch).then(() => {
               deleteInventoryId()(dispatch);
 
@@ -863,9 +869,9 @@ const SingleTreeOverview = () => {
                 CommonActions.reset({
                   index: 2,
                   routes: [
-                    { name: 'MainScreen' },
-                    { name: 'TreeInventory' },
-                    { name: 'RegisterSingleTree' },
+                    {name: 'MainScreen'},
+                    {name: 'TreeInventory'},
+                    {name: 'RegisterSingleTree'},
                   ],
                 }),
               );
@@ -889,11 +895,7 @@ const SingleTreeOverview = () => {
           navigation.dispatch(
             CommonActions.reset({
               index: 2,
-              routes: [
-                { name: 'MainScreen' },
-                { name: 'TreeInventory' },
-                { name: 'RecordSampleTrees' },
-              ],
+              routes: [{name: 'MainScreen'}, {name: 'TreeInventory'}, {name: 'RecordSampleTrees'}],
             }),
           );
         })
@@ -923,9 +925,9 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'RecordSampleTrees' },
+                  {name: 'MainScreen'},
+                  {name: 'TreeInventory'},
+                  {name: 'RecordSampleTrees'},
                 ],
               }),
             );
@@ -940,9 +942,9 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'InventoryOverview' },
+                  {name: 'MainScreen'},
+                  {name: 'TreeInventory'},
+                  {name: 'InventoryOverview'},
                 ],
               }),
             );
@@ -950,13 +952,13 @@ const SingleTreeOverview = () => {
         })
         .catch(err => console.error(err));
     } else {
-      deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
+      deleteInventory({inventory_id: inventory.inventory_id}, dispatch)
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
           navigation.dispatch(
             CommonActions.reset({
               index: 1,
-              routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+              routes: [{name: 'MainScreen'}, {name: 'TreeInventory'}],
             }),
           );
         })
@@ -1006,7 +1008,7 @@ const SingleTreeOverview = () => {
             ? setSpecieEditHeight
             : setEditedTagId
         }
-        onSubmitInputField={() => onSubmitInputField({ action: editEnable })}
+        onSubmitInputField={() => onSubmitInputField({action: editEnable})}
       />
       {renderDateModal()}
       <View style={styles.container}>
@@ -1019,7 +1021,7 @@ const SingleTreeOverview = () => {
               marginBottom: 24,
             }}>
             <Header
-              style={{ flex: 1 }}
+              style={{flex: 1}}
               closeIcon
               onBackPress={() => onPressSave()}
               headingText={
@@ -1057,7 +1059,7 @@ const SingleTreeOverview = () => {
           )}
         </ScrollView>
         {inventory?.treeType === SINGLE && status === INCOMPLETE ? (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <PrimaryButton
               onPress={() => onPressSave()}
               btnText={i18next.t('label.tree_review_Save')}
@@ -1165,7 +1167,7 @@ const SingleTreeOverview = () => {
         secondaryBtnText={i18next.t('label.continue')}
         onPressSecondaryBtn={() => {
           setShowIncorrectRatioAlert(false);
-          onSubmitInputField({ action: editEnable, forceContinue: true });
+          onSubmitInputField({action: editEnable, forceContinue: true});
         }}
       />
     </SafeAreaView>

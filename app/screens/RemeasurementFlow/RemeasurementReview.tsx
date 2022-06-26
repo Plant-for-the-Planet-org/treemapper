@@ -1,6 +1,6 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   Dimensions,
   Image,
@@ -15,14 +15,14 @@ import {
 import RNFS from 'react-native-fs';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { APIConfig } from '../../actions/Config';
-import { setInventoryId, setRemeasurementId } from '../../actions/inventory';
+import {APIConfig} from '../../actions/Config';
+import {setInventoryId, setRemeasurementId} from '../../actions/inventory';
 import AlertModal from '../../components/Common/AlertModal';
 import Header from '../../components/Common/Header';
 import InputModal from '../../components/Common/InputModal';
 import PrimaryButton from '../../components/Common/PrimaryButton';
-import { InventoryContext } from '../../reducers/inventory';
-import { getInventoryByLocationId } from '../../repositories/inventory';
+import {InventoryContext} from '../../reducers/inventory';
+import {getInventoryByLocationId} from '../../repositories/inventory';
 import {
   deletePlantLocationHistory,
   getPlantLocationHistoryById,
@@ -30,9 +30,9 @@ import {
   updatePlantLocationHistoryEventDate,
   updatePlantLocationHistoryStatus,
 } from '../../repositories/plantLocationHistory';
-import { getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { DBHInMeter, nonISUCountries } from '../../utils/constants';
+import {getUserInformation} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
+import {DBHInMeter, nonISUCountries} from '../../utils/constants';
 import {
   EDITING,
   FIX_NEEDED,
@@ -41,9 +41,9 @@ import {
   PENDING_DATA_UPLOAD,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
-import { measurementValidation } from '../../utils/validations/measurements';
-const { protocol, cdnUrl } = APIConfig;
+import {getConvertedDiameter, getConvertedHeight} from '../../utils/measurements';
+import {measurementValidation} from '../../utils/validations/measurements';
+const {protocol, cdnUrl} = APIConfig;
 
 type Props = {};
 
@@ -86,7 +86,7 @@ export default function RemeasurementReview({}: Props) {
   const navigation = useNavigation();
 
   const {
-    state: { selectedRemeasurementId },
+    state: {selectedRemeasurementId},
     dispatch,
   } = useContext(InventoryContext);
 
@@ -96,10 +96,14 @@ export default function RemeasurementReview({}: Props) {
       setIsNonISUCountry(nonISUCountries.includes(user?.country || ''));
     });
 
+    console.log(selectedRemeasurementId, 'selectedRemeasurementId');
+
     // used to get the data for the selected remeasurement
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
-      getInventoryByLocationId({ locationId: plantLocationHistory?.parentId })
+      getInventoryByLocationId({locationId: plantLocationHistory?.parentId})
         .then(inventory => {
+          console.log(plantLocationHistory, ' plantLocationHistory.samplePlantLocationIndex');
+
           if (
             plantLocationHistory.samplePlantLocationIndex ||
             plantLocationHistory.samplePlantLocationIndex == 0
@@ -116,6 +120,8 @@ export default function RemeasurementReview({}: Props) {
 
       // used to get the image url either from local storage or from the server
       if (plantLocationHistory) {
+        console.log(JSON.stringify(plantLocationHistory), 'plantLocationHistory');
+
         let imageSource = '';
         if (plantLocationHistory.imageUrl)
           imageSource = `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${plantLocationHistory.imageUrl}`;
@@ -286,17 +292,17 @@ export default function RemeasurementReview({}: Props) {
   };
 
   const redirectToParentInventory = () => {
-    navigation.navigate('InventoryOverview', { navigateToScreen: 'RemeasurementReview' });
+    navigation.navigate('InventoryOverview', {navigateToScreen: 'RemeasurementReview'});
   };
 
   const handleDeleteInventory = () => {
-    deletePlantLocationHistory({ remeasurementId: selectedRemeasurementId })
+    deletePlantLocationHistory({remeasurementId: selectedRemeasurementId})
       .then(() => {
         setShowDeleteAlert(!showDeleteAlert);
         navigation.dispatch(
           CommonActions.reset({
             index: 1,
-            routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+            routes: [{name: 'MainScreen'}, {name: 'TreeInventory'}],
           }),
         );
       })
@@ -324,7 +330,7 @@ export default function RemeasurementReview({}: Props) {
         }
         inputType={'number'}
         setValue={editEnabledFor === 'diameter' ? setEditableDiameter : setEditableHeight}
-        onSubmitInputField={() => onSubmitInputField({ action: editEnabledFor })}
+        onSubmitInputField={() => onSubmitInputField({action: editEnabledFor})}
       />
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -336,7 +342,7 @@ export default function RemeasurementReview({}: Props) {
               marginBottom: 0,
             }}>
             <Header
-              style={{ flex: 1 }}
+              style={{flex: 1}}
               closeIcon
               onBackPress={() => onPressBack()}
               headingText={i18next.t('label.tree_review_header')}
@@ -356,15 +362,15 @@ export default function RemeasurementReview({}: Props) {
 
           <View style={styles.scrollViewContainer}>
             {/* shows the image */}
-            {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.imgSpecie} /> : []}
+            {imageUrl ? <Image source={{uri: imageUrl}} style={styles.imgSpecie} /> : []}
 
             {/* shows the height and also shows the edit button if editable */}
             {plantLocationHistory?.status !== 'dead' ? (
-              <View style={{ marginVertical: 5, marginTop: 16 }}>
+              <View style={{marginVertical: 5, marginTop: 16}}>
                 <Text style={detailHeaderStyle}>{i18next.t('label.select_species_height')}</Text>
                 <TouchableOpacity
                   disabled={!isEditable}
-                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  style={{flexDirection: 'row', alignItems: 'center'}}
                   onPress={() => {
                     setEditEnabledFor('height');
                     setEditableHeight(height);
@@ -387,11 +393,11 @@ export default function RemeasurementReview({}: Props) {
             {/* shows the diameter and also shows the edit button if editable */}
 
             {plantLocationHistory?.status !== 'dead' ? (
-              <View style={{ marginVertical: 5 }}>
+              <View style={{marginVertical: 5}}>
                 <Text style={detailHeaderStyle}>{diameterLabel}</Text>
                 <TouchableOpacity
                   disabled={!isEditable}
-                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  style={{flexDirection: 'row', alignItems: 'center'}}
                   onPress={() => {
                     setEditEnabledFor('diameter');
                     setEditableDiameter(diameter);
@@ -413,14 +419,14 @@ export default function RemeasurementReview({}: Props) {
 
             {plantLocationHistory?.status === 'dead' ? (
               <>
-                <View style={{ marginVertical: 5 }}>
+                <View style={{marginVertical: 5}}>
                   <Text style={detailHeaderStyle}>{i18next.t('label.status')}</Text>
                   <Text style={styles.detailText}>
                     {i18next.t(`label.${plantLocationHistory?.status}`)}
                   </Text>
                 </View>
-                <View style={{ marginVertical: 5 }}>
-                  <Text style={detailHeaderStyle}>{i18next.t('label.dead_reason')}</Text>
+                <View style={{marginVertical: 5}}>
+                  <Text style={detailHeaderStyle}>{i18next.t('label.cause_of_mortality')}</Text>
                   <Text style={styles.detailText}>
                     {i18next.t(`label.${plantLocationHistory?.statusReason}`)}
                   </Text>
@@ -434,7 +440,7 @@ export default function RemeasurementReview({}: Props) {
 
         {/* shows button only if properties are editable and can be saved */}
         {isEditable ? (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <PrimaryButton
               onPress={() => onPressSave()}
               btnText={i18next.t('label.tree_review_Save')}
@@ -461,7 +467,7 @@ export default function RemeasurementReview({}: Props) {
         secondaryBtnText={i18next.t('label.continue')}
         onPressSecondaryBtn={() => {
           setShowIncorrectRatioAlert(false);
-          onSubmitInputField({ action: editEnabledFor, forceContinue: true });
+          onSubmitInputField({action: editEnabledFor, forceContinue: true});
         }}
       />
       <AlertModal

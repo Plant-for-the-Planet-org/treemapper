@@ -1,8 +1,8 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/core';
-import { useFocusEffect } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   BackHandler,
   Linking,
@@ -14,14 +14,14 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { setInventoryId } from '../../actions/inventory';
-import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { bugsnag } from '../../utils';
+import {setInventoryId} from '../../actions/inventory';
+import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
+import {getInventory, getInventoryByStatus} from '../../repositories/inventory';
+import {getUserInformation} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
+import {bugsnag} from '../../utils';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { getRemeasurementPolygons } from '../../utils/getRemeasurementPolygons';
+import {getRemeasurementPolygons} from '../../utils/getRemeasurementPolygons';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -29,8 +29,8 @@ import {
   SINGLE,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { locationPermission } from '../../utils/permissions';
-import { AlertModal } from '../Common';
+import {locationPermission} from '../../utils/permissions';
+import {AlertModal} from '../Common';
 import BackButton from '../Common/BackButton';
 import {
   PermissionBlockedAlert,
@@ -102,7 +102,7 @@ const MainMap = ({
   const [remeasurePolygons, setRemeasurePolygons] = useState([]);
   const [remeasureDuePolygons, setRemeasureDuePolygons] = useState([]);
 
-  const { state, dispatch } = useContext(InventoryContext);
+  const {state, dispatch} = useContext(InventoryContext);
 
   const camera = useRef<MapboxGL.Camera | null>(null);
 
@@ -121,7 +121,7 @@ const MainMap = ({
     const unsubscribeFocus = navigation.addListener('focus', () => {
       if (state?.inventoryID) {
         setLoadingInventoryData(true);
-        getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+        getInventory({inventoryID: state.inventoryID}).then(inventoryData => {
           setSingleSelectedPlantLocation(inventoryData);
           setLoadingInventoryData(false);
         });
@@ -204,7 +204,7 @@ const MainMap = ({
         feature?.properties?.inventoryId &&
         !alreadyAddedInventoryId.includes(feature?.properties?.inventoryId)
       ) {
-        const inventory = await getInventory({ inventoryID: feature.properties.inventoryId });
+        const inventory = await getInventory({inventoryID: feature.properties.inventoryId});
 
         if (inventory) {
           const newGeoJson = await getGeoJsonData({
@@ -258,6 +258,8 @@ const MainMap = ({
           remeasureNeededPolygons: remeasurePolygons.remeasurementNeededPolygons,
           remeasureDuePolygons: remeasurePolygons.remeasurementDuePolygons,
         });
+        // console.log(JSON.stringify(data), 'data');
+
         if (inventoryData.treeType === SINGLE) {
           pointGeoJSONFeatures.push(...data.features);
         } else {
@@ -342,9 +344,9 @@ const MainMap = ({
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.treeType === SINGLE) {
-        navigation.navigate('SingleTreeOverview', { navigateBackToHomeScreen: true });
+        navigation.navigate('SingleTreeOverview', {navigateBackToHomeScreen: true});
       } else {
-        navigation.navigate('InventoryOverview', { navigateToScreen: 'MainScreen' });
+        navigation.navigate('InventoryOverview', {navigateToScreen: 'MainScreen'});
       }
     } else {
       navigation.navigate(item.lastScreen);
@@ -470,7 +472,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 56 }]}
+              style={[styles.myLocationIcon, IS_ANDROID ? {bottom: 72} : {bottom: 56}]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">

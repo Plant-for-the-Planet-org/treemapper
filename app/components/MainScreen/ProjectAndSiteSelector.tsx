@@ -1,10 +1,10 @@
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useContext, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { setProject, setProjectSite } from '../../actions/projects';
-import { ProjectContext } from '../../reducers/project';
-import { Colors, Typography } from '../../styles';
+import React, {useContext, useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {setProject, setProjectSite} from '../../actions/projects';
+import {ProjectContext} from '../../reducers/project';
+import {Colors, Typography} from '../../styles';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
 interface Props {
@@ -33,7 +33,7 @@ const ProjectAndSiteSelector = ({
   IS_ANDROID,
 }: Props) => {
   const [projectOptions, setProjectOptions] = React.useState([]);
-  const { dispatch: projectDispatch, state: projectState } = useContext(ProjectContext);
+  const {dispatch: projectDispatch, state: projectState} = useContext(ProjectContext);
 
   // used to set the selected project
   const [selectedProjectId, setSelectedProjectId] = React.useState(null);
@@ -47,7 +47,7 @@ const ProjectAndSiteSelector = ({
       sites: project.sites,
       geometry: project.geometry,
     }));
-    if (projectState.selectedProject) {
+    if (projectState?.selectedProject && projectState?.selectedProject?.id) {
       setSelectedProjectId(projectState.selectedProject.id);
       setProjectSitesUsingProject(projectState.selectedProject);
       if (projectState.selectedProjectSite) {
@@ -113,15 +113,15 @@ const ProjectAndSiteSelector = ({
   };
 
   return (
-    <View style={[{ display: 'flex', flex: 1, maxWidth: '50%' }, !IS_ANDROID ? { zIndex: 2 } : {}]}>
+    <View style={[{display: 'flex', flex: 1, maxWidth: '50%'}, !IS_ANDROID ? {zIndex: 2} : {}]}>
       <CustomDropDownPicker
         items={projectOptions}
         open={showProjectOptions}
         setOpen={setShowProjectOptions}
         value={selectedProjectId}
         setValue={setSelectedProjectId}
-        style={{ marginBottom: 8 }}
-        zIndex={3000}
+        style={{marginBottom: 8}}
+        zIndex={6000}
         zIndexInverse={1000}
         // setProject={setProject}
       />

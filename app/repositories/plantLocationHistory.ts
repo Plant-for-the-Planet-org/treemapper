@@ -1,8 +1,8 @@
 import React from 'react';
-import { bugsnag } from '../utils';
-import { LogTypes } from '../utils/constants';
-import { EDITING, INCOMPLETE, PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
-import { getSchema } from './default';
+import {bugsnag} from '../utils';
+import {LogTypes} from '../utils/constants';
+import {EDITING, INCOMPLETE, PENDING_DATA_UPLOAD} from '../utils/inventoryConstants';
+import {getSchema} from './default';
 import dbLog from './logs';
 
 interface IWriteOperationPlantLocationHistory {
@@ -151,6 +151,29 @@ export const addImageToPlantLocationHistory = async ({
   });
 };
 
+interface IAddAdditionDataToPlantLocationHistory {
+  remeasurementId: string;
+  additionalData: object;
+  lastScreen?: string;
+}
+
+export const addAdditionDataToPlantLocationHistory = async ({
+  remeasurementId,
+  additionalData,
+  lastScreen,
+}: IAddAdditionDataToPlantLocationHistory) => {
+  console.log(additionalData, 'additionalData');
+
+  return await writeOperationPlantLocationHistory({
+    remeasurementId: remeasurementId,
+    data: {
+      additionalDetails: additionalData,
+      lastScreen,
+    },
+    successMessage: `Successfully added additionalDetails in plant location history with id: ${remeasurementId}`,
+    errorMessage: `Error while adding additionalDetails in plant location history with id: ${remeasurementId}`,
+  });
+};
 interface IDeletePlantLocationHistory {
   remeasurementId: string;
   // dispatch: React.Dispatch;

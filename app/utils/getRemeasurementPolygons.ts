@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { getProjectById } from '../repositories/projects';
+import {getProjectById} from '../repositories/projects';
 
 const getRemeasurementPolygons = async (allInventory: any) => {
   const remeasurementNeededPolygons = [];
@@ -18,35 +18,35 @@ const getRemeasurementPolygons = async (allInventory: any) => {
     let sampleTreesDueRemeasured = 0;
     if (Array.isArray(singleInventory.sampleTrees)) {
       for (let sampleTree of singleInventory.sampleTrees) {
-        let startDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(60, 'days');
-        let endDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(45, 'days');
+        // console.log(sampleTree.remeasurementDates, '==sampleTree.remeasurementDates==', sampleTree);
 
-        if (moment(new Date()).isBetween(startDate, endDate)) {
-          sampleTreesToBeRemeasured++;
-          if (
-            sampleTreesToBeRemeasured ==
-            Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
-          ) {
-            remeasurementNeededPolygons.push(singleInventory.inventory_id);
-          }
-        } else if (moment(new Date()) > endDate) {
-          sampleTreesDueRemeasured++;
-          if (
-            sampleTreesDueRemeasured ==
-            Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
-          ) {
-            remeasurementDuePolygons.push(singleInventory.inventory_id);
+        if (sampleTree?.remeasurementDates?.remeasureBy) {
+          let startDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(60, 'days');
+          let endDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(45, 'days');
+
+          if (moment(new Date()).isBetween(startDate, endDate)) {
+            sampleTreesToBeRemeasured++;
+            if (
+              sampleTreesToBeRemeasured ==
+              Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
+            ) {
+              remeasurementNeededPolygons.push(singleInventory.inventory_id);
+            }
+          } else if (moment(new Date()) > endDate) {
+            sampleTreesDueRemeasured++;
+            if (
+              sampleTreesDueRemeasured ==
+              Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
+            ) {
+              remeasurementDuePolygons.push(singleInventory.inventory_id);
+            }
           }
         }
       }
     }
   }
-  console.log(
-    remeasurementNeededPolygons.length,
-    remeasurementDuePolygons.length,
-    'remeasurementNeededPolygons Length',
-  );
-  return { remeasurementNeededPolygons, remeasurementDuePolygons };
+
+  return {remeasurementNeededPolygons, remeasurementDuePolygons};
 };
 
-export { getRemeasurementPolygons };
+export {getRemeasurementPolygons};

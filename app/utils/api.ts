@@ -1,24 +1,25 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
-import { nanoid } from 'nanoid';
-import { Platform } from 'react-native';
+import {nanoid} from 'nanoid';
+import {Platform} from 'react-native';
 import 'react-native-get-random-values';
-import { name as packageName, version } from '../../package.json';
-import { APIConfig } from '../actions/Config';
-import { checkErrorCode, getNewAccessToken } from '../actions/user';
+import {name as packageName, version} from '../../package.json';
+import {APIConfig} from '../actions/Config';
+import {checkErrorCode, getNewAccessToken} from '../actions/user';
 import dbLog from '../repositories/logs';
-import { getUserDetails } from '../repositories/user';
-import { isInternetConnected } from './checkInternet';
-import { LogTypes } from './constants';
-import { bugsnag } from './index';
+import {getUserDetails} from '../repositories/user';
+import {isInternetConnected} from './checkInternet';
+import {LogTypes} from './constants';
+import {bugsnag} from './index';
 
-const { protocol, url: baseURL } = APIConfig;
+const {protocol, url: baseURL} = APIConfig;
 
 // creates and axios instance with base url
 const axiosInstance = axios.create({
   baseURL: `${protocol}://${baseURL}`,
 });
+console.log(baseURL, 'baseURL');
 
 // Add a request interceptor which adds the configuration in all the requests
 axiosInstance.interceptors.request.use(
@@ -160,37 +161,37 @@ export const getCurrentUnixTimestamp = () => Math.floor(Date.now() / 1000);
 export const getExpirationTimeStamp = (token: string) => {
   const decodedToken = jwtDecode(token);
 
-  const { exp } = decodedToken;
+  const {exp} = decodedToken;
   return exp;
 };
 
 // calls the [request] function with [url]
-export const getRequest = (url: string, header: object = {}) => request({ url, header });
+export const getRequest = (url: string, header: object = {}) => request({url, header});
 
 // calls the [request] function with [url] and [isAuthenticated = true]
 export const getAuthenticatedRequest = (url: string, header: object = {}) =>
-  request({ url, isAuthenticated: true, header });
+  request({url, isAuthenticated: true, header});
 
 // calls the [request] function with [url], [data], [method = 'POST'] and [isAuthenticated = false]
 export const postRequest = (url: string, data: any, header: object = {}) =>
-  request({ url, method: 'POST', isAuthenticated: false, data, header });
+  request({url, method: 'POST', isAuthenticated: false, data, header});
 
 // calls the [request] function with [url], [data], [method = 'POST'] and [isAuthenticated = true]
 export const postAuthenticatedRequest = (url: string, data: any, header: object = {}) =>
-  request({ url, method: 'POST', isAuthenticated: true, data, header });
+  request({url, method: 'POST', isAuthenticated: true, data, header});
 
 // calls the [request] function with [url], [data], [method = 'PUT'] and [isAuthenticated = false]
 export const putRequest = (url: string, data: any, header: object = {}) =>
-  request({ url, method: 'PUT', isAuthenticated: false, data, header });
+  request({url, method: 'PUT', isAuthenticated: false, data, header});
 
 // calls the [request] function with [url], [data], [method = 'PUT'] and [isAuthenticated = true]
 export const putAuthenticatedRequest = (url: string, data: any, header: object = {}) =>
-  request({ url, method: 'PUT', isAuthenticated: true, data, header });
+  request({url, method: 'PUT', isAuthenticated: true, data, header});
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = false]
 export const deleteRequest = (url: string, data = null, header: object = {}) =>
-  request({ url, method: 'DELETE', isAuthenticated: false, data, header });
+  request({url, method: 'DELETE', isAuthenticated: false, data, header});
 
 // calls the [request] function with [url], [data], [method = 'DELETE'] and [isAuthenticated = true]
 export const deleteAuthenticatedRequest = (url: string, data = null, header: object = {}) =>
-  request({ url, method: 'DELETE', isAuthenticated: true, data, header });
+  request({url, method: 'DELETE', isAuthenticated: true, data, header});

@@ -6,8 +6,8 @@ import {
   getSystemVersion,
 } from 'react-native-device-info';
 import RNFS from 'react-native-fs';
-import { version } from '../../../package.json';
-import { APIConfig } from '../../actions/Config';
+import {version} from '../../../package.json';
+import {APIConfig} from '../../actions/Config';
 import {
   deleteAllAdditionalData,
   getSchemaNameFromType,
@@ -15,7 +15,7 @@ import {
   importMetadata,
 } from '../../repositories/additionalData';
 import dbLog from '../../repositories/logs';
-import { LogTypes } from '../constants';
+import {LogTypes} from '../constants';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -25,9 +25,9 @@ import {
   SAMPLE,
   SINGLE,
 } from '../inventoryConstants';
-import { accessTypes, elementsType } from './constants';
-import { IAdditionalDataImport, IFormData } from './interfaces';
-const { protocol, cdnUrl } = APIConfig;
+import {accessTypes, elementsType} from './constants';
+import {IAdditionalDataImport, IFormData} from './interfaces';
+const {protocol, cdnUrl} = APIConfig;
 
 export const sortByField = (fieldName: string, arrayData: any) => {
   return arrayData.sort((a: any, b: any) => {
@@ -40,11 +40,15 @@ export const filterFormByTreeAndRegistrationType = (
   treeType: string,
   registrationType: string,
   isSampleTree: boolean = false,
+  isRemeasurement: boolean = false,
 ) => {
   if (treeType && treeType.toLowerCase() !== 'all') {
     if (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI) {
       treeType = SAMPLE;
     }
+    // if (isRemeasurement) {
+    //   treeType = 'REMEASUREMENT';
+    // }
     for (let i in formData) {
       let elements: any = formData[i].elements;
       elements = elements.filter((element: any) => element.treeType.includes(treeType));
@@ -54,7 +58,9 @@ export const filterFormByTreeAndRegistrationType = (
   if (
     registrationType &&
     registrationType.toLowerCase() !== 'all' &&
-    (!isSampleTree || (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI))
+    (!isSampleTree ||
+      (isSampleTree === true && registrationType === ON_SITE && treeType === MULTI) ||
+      (isRemeasurement && registrationType == 'REMEASUREMENT'))
   ) {
     for (let i in formData) {
       let elements: any = formData[i].elements;
@@ -68,7 +74,7 @@ export const filterFormByTreeAndRegistrationType = (
 };
 
 export const getFormattedMetadata = (additionalDetails: any) => {
-  let formattedDetails: any = { public: {}, private: {}, app: {} };
+  let formattedDetails: any = {public: {}, private: {}, app: {}};
 
   if ((additionalDetails || Array.isArray(additionalDetails)) && additionalDetails.length > 0) {
     for (let detail of additionalDetails) {
@@ -243,10 +249,7 @@ interface IGetAppMetadata {
 }
 
 // used to support schema 11 migration
-export const appAdditionalDataForAPISchema11 = ({
-  data,
-  isSampleTree = false,
-}: IGetAppMetadata) => {
+export const appAdditionalDataForAPISchema11 = ({data, isSampleTree = false}: IGetAppMetadata) => {
   const appAdditionalDetails: any = {};
 
   if (data.treeType === SINGLE || isSampleTree) {
@@ -294,8 +297,8 @@ export const appAdditionalDataForAPISchema11 = ({
   return appAdditionalDetails;
 };
 
-export const appAdditionalDataForAPI = async ({ data, isSampleTree = false }: IGetAppMetadata) => {
-  let appAdditionalDetails: any = basicAppAdditionalDataForAPI({ data, isSampleTree });
+export const appAdditionalDataForAPI = async ({data, isSampleTree = false}: IGetAppMetadata) => {
+  let appAdditionalDetails: any = basicAppAdditionalDataForAPI({data, isSampleTree});
 
   appAdditionalDetails = {
     ...appAdditionalDetails,
@@ -305,7 +308,7 @@ export const appAdditionalDataForAPI = async ({ data, isSampleTree = false }: IG
   return appAdditionalDetails;
 };
 
-export const basicAppAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
+export const basicAppAdditionalDataForAPI = ({data, isSampleTree = false}: IGetAppMetadata) => {
   let appAdditionalDetails: any = {};
 
   // adding dates to additional details
@@ -470,7 +473,7 @@ export const appAdditionalDataForGeoJSON = async ({
   return appAdditionalDetails;
 };
 
-export const additionalDataForUI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
+export const additionalDataForUI = ({data, isSampleTree = false}: IGetAppMetadata) => {
   const appAdditionalDetails: any[] = [];
 
   if (!isSampleTree) {

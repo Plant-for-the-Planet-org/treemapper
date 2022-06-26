@@ -1,18 +1,19 @@
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from 'react-native';
-import { TabView } from 'react-native-tab-view';
+import React, {useContext, useEffect, useState} from 'react';
+import {SafeAreaView, StyleSheet, TouchableOpacity, useWindowDimensions, View} from 'react-native';
+import {TabView} from 'react-native-tab-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { AdditionalDataContext } from '../../reducers/additionalData';
-import { Colors, Typography } from '../../styles';
-import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
+import {AdditionalDataContext} from '../../reducers/additionalData';
+import {Colors, Typography} from '../../styles';
+import {
+  MULTI,
+  OFF_SITE,
+  ON_SITE,
+  REMEASUREMENT,
+  SAMPLE,
+  SINGLE,
+} from '../../utils/inventoryConstants';
 import CustomTabBar from '../Common/CustomTabBar';
 import Header from '../Common/Header';
 import Form from './Form';
@@ -27,17 +28,17 @@ interface IRenderSceneProps {
 
 export default function AdditionalData() {
   const initialTreeTypeOptions = [
-    { key: 'all', disabled: false, value: i18next.t('label.all') },
-    { key: SINGLE, disabled: false, value: i18next.t('label.single') },
-    { key: MULTI, disabled: false, value: i18next.t('label.multiple') },
-    { key: SAMPLE, disabled: false, value: i18next.t('label.sample') },
+    {key: 'all', disabled: false, value: i18next.t('label.all')},
+    {key: SINGLE, disabled: false, value: i18next.t('label.single')},
+    {key: MULTI, disabled: false, value: i18next.t('label.multiple')},
+    {key: SAMPLE, disabled: false, value: i18next.t('label.sample')},
   ];
 
   const initialRegistrationTypeOptions = [
-    { key: 'all', disabled: false, value: i18next.t('label.all') },
-    { key: ON_SITE, disabled: false, value: i18next.t('label.on_site') },
-    { key: OFF_SITE, disabled: false, value: i18next.t('label.off_site') },
-    // { type: 'REVIEW', disabled:false,value: i18next.t('label.review') },
+    {key: 'all', disabled: false, value: i18next.t('label.all')},
+    {key: ON_SITE, disabled: false, value: i18next.t('label.on_site')},
+    {key: OFF_SITE, disabled: false, value: i18next.t('label.off_site')},
+    {type: REMEASUREMENT, disabled: false, value: i18next.t('label.remeasurement')},
   ];
 
   const [routeIndex, setRouteIndex] = useState(0);
@@ -61,8 +62,8 @@ export default function AdditionalData() {
   } = useContext(AdditionalDataContext);
 
   const [tabRoutes] = useState([
-    { key: 'form', title: i18next.t('label.additional_data_form') },
-    { key: 'metadata', title: i18next.t('label.additional_data_metadata') },
+    {key: 'form', title: i18next.t('label.additional_data_form')},
+    {key: 'metadata', title: i18next.t('label.additional_data_metadata')},
   ]);
   const layout = useWindowDimensions();
   const navigation = useNavigation();
@@ -87,7 +88,7 @@ export default function AdditionalData() {
     if (registrationType === OFF_SITE) {
       let treeOptions = initialTreeTypeOptions;
       const lastIndex = treeOptions.length - 1;
-      treeOptions[lastIndex] = { ...treeOptions[lastIndex], disabled: true };
+      treeOptions[lastIndex] = {...treeOptions[lastIndex], disabled: true};
       setTreeTypeOptions(treeOptions);
       if (treeType === SAMPLE) {
         setSelectedTreeOption(treeOptions[0]);
@@ -100,7 +101,7 @@ export default function AdditionalData() {
     setFormLoading(false);
   }, [treeType, registrationType]);
 
-  const renderScene = ({ route }: IRenderSceneProps) => {
+  const renderScene = ({route}: IRenderSceneProps) => {
     switch (route.key) {
       case 'form':
         return (
@@ -119,7 +120,7 @@ export default function AdditionalData() {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
         <View style={styles.defaultSpacing}>
           <Header
             closeIcon
@@ -128,7 +129,7 @@ export default function AdditionalData() {
             TitleRightComponent={() => (
               <TouchableOpacity
                 onPress={() => navigation.navigate('AdditionalDataSettings')}
-                style={{ padding: 6 }}>
+                style={{padding: 6}}>
                 <Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} />
               </TouchableOpacity>
             )}
@@ -136,11 +137,11 @@ export default function AdditionalData() {
         </View>
         <TabView
           lazy
-          navigationState={{ index: routeIndex, routes: tabRoutes }}
+          navigationState={{index: routeIndex, routes: tabRoutes}}
           renderScene={renderScene}
           onIndexChange={setRouteIndex}
-          initialLayout={{ width: layout.width }}
-          renderTabBar={(props) => (
+          initialLayout={{width: layout.width}}
+          renderTabBar={props => (
             <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
           )}
           swipeEnabled={false}

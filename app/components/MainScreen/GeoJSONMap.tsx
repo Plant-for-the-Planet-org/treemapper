@@ -1,10 +1,10 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
+import MapboxGL, {LineLayerStyle} from '@react-native-mapbox-gl/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleProp, StyleSheet } from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Platform, StyleProp, StyleSheet} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { Colors } from '../../styles';
+import {Colors} from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -62,8 +62,6 @@ const GeoJSONMap = ({
   remeasurePolygons,
   remeasureDuePolygons,
 }: IGeoJSONMapProps) => {
-  // console.log('\n\n\n\n\n\n', JSON.stringify(geoJSON), 'geoJSON========');
-
   const geoJSONInitialState = {
     type: 'FeatureCollection',
     features: [
@@ -76,6 +74,8 @@ const GeoJSONMap = ({
       },
     ],
   };
+
+  // console.log(JSON.stringify(geoJSON), '==geoJSON==');
 
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
@@ -195,7 +195,7 @@ const GeoJSONMap = ({
       <MapboxGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
         <MapboxGL.LineLayer
           id={'projectSitesPolyline'}
-          style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
+          style={{...polyline, lineColor: Colors.PLANET_BLACK}}
         />
       </MapboxGL.ShapeSource>
     );
@@ -290,7 +290,7 @@ const GeoJSONMap = ({
                   setActiveCarouselIndex(index);
                 }
               }}
-              style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
+              style={activeCarouselIndex === index ? {zIndex: 1000} : {zIndex: 999}}>
               <MapboxGL.FillLayer
                 id={`polyFillClicked-${index}`}
                 style={{
@@ -300,7 +300,7 @@ const GeoJSONMap = ({
               />
               <MapboxGL.LineLayer
                 id={`polylineClicked-${index}`}
-                style={{ ...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5 }}
+                style={{...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5}}
               />
 
               <MapboxGL.CircleLayer
@@ -396,13 +396,13 @@ const remeasureElapsePolyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 };
 
-const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
-const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
-const remeasureFillStyle = { fillColor: Colors.WARNING, fillOpacity: 0.3 };
-const remeasureElapseFillStyle = { fillColor: Colors.PLANET_CRIMSON, fillOpacity: 0.3 };
+const fillStyle = {fillColor: Colors.PRIMARY, fillOpacity: 0.3};
+const inactiveFillStyle = {fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2};
+const remeasureFillStyle = {fillColor: Colors.WARNING, fillOpacity: 0.3};
+const remeasureElapseFillStyle = {fillColor: Colors.PLANET_CRIMSON, fillOpacity: 0.3};
 
-const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
-const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };
-const remeasureCircleStyle = { circleColor: Colors.WARNING, circleOpacity: 0.2 };
-const remeasureElapseCircleStyle = { circleColor: Colors.PLANET_CRIMSON, circleOpacity: 0.2 };
+const bigCircleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12};
+const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8};
+const inactiveCircleStyle = {circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2};
+const remeasureCircleStyle = {circleColor: Colors.WARNING, circleOpacity: 0.2};
+const remeasureElapseCircleStyle = {circleColor: Colors.PLANET_CRIMSON, circleOpacity: 0.2};

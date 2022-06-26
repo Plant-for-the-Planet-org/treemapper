@@ -1,10 +1,11 @@
-import { updateInventoryFetchFromServer } from '../actions/inventory';
-import { getAllProjects, getUserDetailsFromServer } from '../actions/user';
-import { inventoryFetchConstant } from '../reducers/inventory';
-import { getUserDetails } from '../repositories/user';
-import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { bugsnag } from './';
-import { addInventoryFromServer } from './addInventoryFromServer';
+import {updateInventoryFetchFromServer} from '../actions/inventory';
+import {getAllProjects, getUserDetailsFromServer} from '../actions/user';
+import {inventoryFetchConstant} from '../reducers/inventory';
+import {getUserDetails} from '../repositories/user';
+import {checkAndAddUserSpecies} from '../utils/addUserSpecies';
+import {bugsnag} from './';
+import {addInventoryFromServer, addNecessaryInventoryFromServer} from './addInventoryFromServer';
+import {getRemeasurementDates} from './getRemeasuremDates';
 
 export const checkLoginAndSync = async ({
   sync,
@@ -21,10 +22,12 @@ export const checkLoginAndSync = async ({
         getAllProjects();
 
         checkAndAddUserSpecies().then(() => {
-          updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(dispatch)
-          addInventoryFromServer('', dispatch)
+          updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(dispatch);
+          addInventoryFromServer('', dispatch);
+          // addNecessaryInventoryFromServer('', dispatch);
+          // getRemeasurementDates();
         });
       })
-      .catch((err) => bugsnag.notify(err));
+      .catch(err => bugsnag.notify(err));
   }
 };

@@ -1,28 +1,28 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import { useNavigation } from '@react-navigation/core';
+import {useNetInfo} from '@react-native-community/netinfo';
+import {useNavigation} from '@react-navigation/core';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, {useContext, useEffect, useState} from 'react';
+import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { updateCount } from '../../actions/inventory';
-import { startLoading, stopLoading } from '../../actions/loader';
-import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { LoadingContext } from '../../reducers/loader';
-import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
-import { UserContext } from '../../reducers/user';
-import { getSchema } from '../../repositories/default';
+import {updateCount} from '../../actions/inventory';
+import {startLoading, stopLoading} from '../../actions/loader';
+import {auth0Login, auth0Logout, clearUserDetails, setUserDetails} from '../../actions/user';
+import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
+import {LoadingContext} from '../../reducers/loader';
+import {PlantLocationHistoryContext} from '../../reducers/plantLocationHistory';
+import {UserContext} from '../../reducers/user';
+import {getSchema} from '../../repositories/default';
 import {
   clearAllUploadedInventory,
   getInventoryCount,
   updateMissingDataStatus,
 } from '../../repositories/inventory';
-import { getAllProjects } from '../../repositories/projects';
-import { shouldSpeciesUpdate } from '../../repositories/species';
-import { getUserDetails } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
-import { AlertModal, Sync } from '../Common';
+import {getAllProjects} from '../../repositories/projects';
+import {shouldSpeciesUpdate} from '../../repositories/species';
+import {getUserDetails} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
+import {PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT} from '../../utils/inventoryConstants';
+import {AlertModal, Sync} from '../Common';
 import RotatingView from '../Common/RotatingView';
 import ProfileModal from '../ProfileModal';
 import BottomBar from './BottomBar';
@@ -56,10 +56,10 @@ export default function MainScreen() {
   // used to store and focus on the center of the bounding box of the selected site
   const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
-  const { state, dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
-  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
+  const {state, dispatch} = useContext(InventoryContext);
+  const {dispatch: userDispatch} = useContext(UserContext);
+  const {state: loadingState, dispatch: loadingDispatch} = useContext(LoadingContext);
+  const {getPendingPlantLocationHistory} = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -119,6 +119,8 @@ export default function MainScreen() {
     } else {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
+      console.log('11');
+
       setUserInfo(stringifiedUserDetails);
       setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
@@ -127,6 +129,7 @@ export default function MainScreen() {
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
+      console.log('22');
       setUserInfo({});
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
@@ -204,6 +207,7 @@ export default function MainScreen() {
         if (userDetails) {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
+            console.log('33');
             setUserInfo(stringifiedUserDetails);
             setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
@@ -214,7 +218,7 @@ export default function MainScreen() {
 
   const fetchInventoryCount = () => {
     getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
-      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
+      updateCount({type: PENDING_DATA_UPLOAD, count})(dispatch);
     });
     getInventoryCount().then(count => {
       setNumberOfInventory(count);
@@ -257,6 +261,7 @@ export default function MainScreen() {
           } else {
             auth0Logout(userDispatch).then(result => {
               if (result) {
+                console.log('55');
                 setUserInfo({});
               }
             });
@@ -269,6 +274,8 @@ export default function MainScreen() {
   };
 
   const topValue = Platform.OS === 'ios' ? 50 : 25;
+
+  // console.log(isUserLogin, userInfo, 'userInfo?.type');
 
   return (
     <>
@@ -283,7 +290,7 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={{ position: 'absolute', top: topValue, left: 25, right: 25 }}>
+          <View style={{position: 'absolute', top: topValue, left: 25, right: 25}}>
             <View
               style={{
                 flexDirection: 'row',
@@ -299,7 +306,8 @@ export default function MainScreen() {
               />
 
               {isUserLogin ? (
-                userInfo?.type === 'tpo' && (
+                userInfo?.type === 'tpo' &&
+                projects.length > 0 && (
                   <ProjectAndSiteSelector
                     projects={projects}
                     showProjectOptions={showProjectOptions}
@@ -318,13 +326,13 @@ export default function MainScreen() {
               )}
             </View>
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
-              <View style={[styles.fetchPlantLocationContainer, { zIndex: IS_ANDROID ? 0 : -1 }]}>
-                <View style={{ marginRight: 16 }}>
+              <View style={[styles.fetchPlantLocationContainer, {zIndex: IS_ANDROID ? 0 : -1}]}>
+                <View style={{marginRight: 16}}>
                   <RotatingView isClockwise={true}>
                     <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
                   </RotatingView>
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={{flex: 1}}>
                   <Text style={styles.text}>
                     {i18next.t('label.plant_location_fetch_in_progress')}
                   </Text>

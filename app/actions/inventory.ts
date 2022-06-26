@@ -1,4 +1,4 @@
-import { getAuthenticatedRequest, postAuthenticatedRequest } from '../utils/api';
+import {getAuthenticatedRequest, postAuthenticatedRequest} from '../utils/api';
 import {
   DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
@@ -13,11 +13,11 @@ import {
   SET_SELECTED_REMEASUREMENT_ID,
   SET_SAMPLE_PLANT_LOCATION_INDEX,
 } from './Types';
-import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
-import { LogTypes } from '../utils/constants';
+import {PENDING_DATA_UPLOAD} from '../utils/inventoryConstants';
+import {LogTypes} from '../utils/constants';
 import dbLog from '../repositories/logs';
 import React from 'react';
-import { IAddPlantLocationEventData } from '../types/inventory';
+import {IAddPlantLocationEventData} from '../types/inventory';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -162,7 +162,23 @@ export const getAllInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',
 ): Promise<any> => {
   try {
-    let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
+    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.0.3'});
+
+    console.log(
+      data.data?.items,
+      // data?.data?.items.length,
+      '=====Data=====',
+      // Object.keys(data),
+      // data.data.total,
+      // data.data.count,
+      // data.data._links,
+      // data.data._filters,
+      // '===',
+      // Object.keys(data.data),
+      // '++',
+      // Object.keys(data.data._links),
+      // Object.keys(data?.data?.items),
+    );
 
     dbLog.info({
       logType: LogTypes.DATA_SYNC,
@@ -170,9 +186,9 @@ export const getAllInventoryFromServer = async (
     });
 
     if (data.data._links.next) {
-      return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
+      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
     } else {
-      return { data: data?.data?.items ?? [], nextRouteLink: null };
+      return {data: data?.data?.items ?? [], nextRouteLink: null};
     }
   } catch (err) {
     dbLog.error({
@@ -181,7 +197,50 @@ export const getAllInventoryFromServer = async (
       statusCode: err?.response?.status,
       logStack: JSON.stringify(err?.response),
     });
-    return { data: [], nextRouteLink: null };
+    return {data: [], nextRouteLink: null};
+  }
+};
+
+export const getNecessaryInventoryFromServer = async (
+  requestRoute = '/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended',
+): Promise<any> => {
+  try {
+    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.1'});
+
+    // console.log(
+    //   data?.data?.items.length,
+    //   '=====Data=====',
+    //   Object.keys(data),
+    //   data.data.total,
+    //   data.data.count,
+    //   data.data._links,
+    //   data.data._filters,
+    //   '===',
+    //   Object.keys(data.data),
+    //   '++',
+    //   Object.keys(data.data._links),
+    // );
+
+    dbLog.info({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Successfully fetched necessary Inventories From server',
+    });
+
+    if (data.data._links.next) {
+      // console.log(JSON.stringify(data?.data?.items), 'data?.data?.items');
+
+      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
+    } else {
+      return {data: data?.data?.items ?? [], nextRouteLink: null};
+    }
+  } catch (err) {
+    dbLog.error({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Failed fetch Inventories From server',
+      statusCode: err?.response?.status,
+      logStack: JSON.stringify(err?.response),
+    });
+    return {data: [], nextRouteLink: null};
   }
 };
 
@@ -199,7 +258,7 @@ export const addPlantLocationEvent = (locationId: string, data: IAddPlantLocatio
     // makes an authorized POST request on /species to add a specie of user.
     postAuthenticatedRequest(`/treemapper/plantLocations/${locationId}/event`, data)
       .then(res => {
-        const { data, status } = res;
+        const {data, status} = res;
 
         // checks if the status code is 200 the resolves the promise with the fetched data
         if (status === 200) {
