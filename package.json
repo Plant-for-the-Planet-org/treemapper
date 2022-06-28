@@ -45,7 +45,7 @@
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.2",
     "react": "17.0.2",
-    "react-native": "0.68.2",
+    "react-native": "0.69.0",
     "react-native-auth0": "^2.10.0",
     "react-native-camera": "^3.43.9",
     "react-native-config": "1.4.5",
