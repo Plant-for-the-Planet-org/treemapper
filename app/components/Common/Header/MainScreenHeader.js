@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Typography } from '_styles';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Colors, Typography} from '_styles';
 import i18next from '../../../languages/languages';
 
-const MainScreenHeader = ({ onPressLogin, isUserLogin, accessibilityLabel, testID }) => {
+const MainScreenHeader = ({onPressLogin, isUserLogin, accessibilityLabel, testID}) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
