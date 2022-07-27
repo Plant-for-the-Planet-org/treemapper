@@ -14,3 +14,8 @@ export interface IAddPlantLocationEventData {
     app?: any;
   };
 }
+
+export enum InventoryType {
+  AllItems = 0,
+  NecessaryItems = 1,
+}

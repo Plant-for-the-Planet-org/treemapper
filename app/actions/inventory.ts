@@ -12,12 +12,13 @@ import {
   INVENTORY_FETCH_FROM_SERVER,
   SET_SELECTED_REMEASUREMENT_ID,
   SET_SAMPLE_PLANT_LOCATION_INDEX,
+  SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
 } from './Types';
 import {PENDING_DATA_UPLOAD} from '../utils/inventoryConstants';
 import {LogTypes} from '../utils/constants';
 import dbLog from '../repositories/logs';
 import React from 'react';
-import {IAddPlantLocationEventData} from '../types/inventory';
+import {IAddPlantLocationEventData, InventoryType} from '../types/inventory';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -106,6 +107,19 @@ export const setSkipToInventoryOverview =
   };
 
 /**
+ * This function dispatches type SWITCH_FETCH_NECESSARY_INVENTORY_FLAG with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {boolean} fetchNecessaryInventoryFlag - used to update the fetchNecessaryInventoryFlag in inventory state
+ */
+export const setFetchNecessaryInventoryFlag =
+  (fetchNecessaryInventoryFlag: InventoryType) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
+      payload: fetchNecessaryInventoryFlag,
+    });
+  };
+
+/**
  * This function dispatches type SET_IS_EXTRA_SAMPLE_TREE with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
@@ -164,21 +178,21 @@ export const getAllInventoryFromServer = async (
   try {
     let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.0.3'});
 
-    console.log(
-      data.data?.items,
-      // data?.data?.items.length,
-      '=====Data=====',
-      // Object.keys(data),
-      // data.data.total,
-      // data.data.count,
-      // data.data._links,
-      // data.data._filters,
-      // '===',
-      // Object.keys(data.data),
-      // '++',
-      // Object.keys(data.data._links),
-      // Object.keys(data?.data?.items),
-    );
+    // console.log(
+    //   data.data?.items,
+    //   // data?.data?.items.length,
+    //   // '=====Data=====',
+    //   // Object.keys(data),
+    //   // data.data.total,
+    //   // data.data.count,
+    //   // data.data._links,
+    //   // data.data._filters,
+    //   // '===',
+    //   // Object.keys(data.data),
+    //   // '++',
+    //   // Object.keys(data.data._links),
+    //   // Object.keys(data?.data?.items),
+    // );
 
     dbLog.info({
       logType: LogTypes.DATA_SYNC,

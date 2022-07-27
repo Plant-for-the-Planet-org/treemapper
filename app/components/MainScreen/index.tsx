@@ -29,6 +29,7 @@ import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import MainMap from './MainMap';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+import {InventoryTypeSelector} from './InventoryTypeSelector';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -325,6 +326,18 @@ export default function MainScreen() {
                 <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
               )}
             </View>
+            {isUserLogin ? (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 75,
+                  left: 0,
+                  right: 25,
+                  width: '45%',
+                }}>
+                <InventoryTypeSelector />
+              </View>
+            ) : null}
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
               <View style={[styles.fetchPlantLocationContainer, {zIndex: IS_ANDROID ? 0 : -1}]}>
                 <View style={{marginRight: 16}}>

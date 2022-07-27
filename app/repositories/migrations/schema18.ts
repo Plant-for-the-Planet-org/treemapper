@@ -1,3 +1,5 @@
+import {InventoryType} from '../../types/inventory';
+
 // schema version
 const schemaVersion = 18;
 
@@ -128,13 +130,13 @@ const SampleTrees = {
     // tag id of the tree if the tree has one
     tagId: 'string?',
     // current status of the tree. Refer to inventoryConstants for different status
-    status: { type: 'string', default: 'INCOMPLETE' },
+    status: {type: 'string', default: 'INCOMPLETE'},
     // stores the date when the tree was planted
     plantationDate: 'date?',
     // stores the location id when the data upload is successful
     locationId: 'string?',
     // stores the tree type which is always sample tree
-    treeType: { type: 'string', default: 'sample' },
+    treeType: {type: 'string', default: 'sample'},
     // stores the additional details for the registration
     additionalDetails: 'AdditionalDetail[]',
     // stores the app metadata. Needs to be stringified as it might contain nested array/objects
@@ -218,6 +220,7 @@ const User = {
     displayName: 'string?',
     // stores the expiry time of token in seconds
     expirationTime: 'int?',
+    fetchNecessaryInventoryFlag: {type: 'int', default: InventoryType.AllItems},
   },
 };
 
@@ -255,18 +258,18 @@ const ScientificSpecies = {
     // stores the guid of scientific specie
     guid: 'string',
     // stores the name of scientific specie and indexed for better search
-    scientificName: { type: 'string', indexed: true },
+    scientificName: {type: 'string', indexed: true},
     // used to check if this specie is preferred by user or not. Default to [false]
-    isUserSpecies: { type: 'bool', default: false },
+    isUserSpecies: {type: 'bool', default: false},
     // used to check whether this specie is synced to server or not. Defaults to [false]
     // This property is used with [isUserSpecies]
-    isUploaded: { type: 'bool', default: false },
+    isUploaded: {type: 'bool', default: false},
     // stores the specieId which is uploaded on server
     specieId: 'string?',
-    aliases: { type: 'string', default: '' },
-    image: { type: 'string', default: '' },
-    description: { type: 'string', default: '' },
-    isUpdated: { type: 'bool', default: true },
+    aliases: {type: 'string', default: ''},
+    image: {type: 'string', default: ''},
+    description: {type: 'string', default: ''},
+    isUpdated: {type: 'bool', default: true},
   },
 };
 
@@ -300,8 +303,8 @@ const Projects = {
     sites: 'ProjectSites[]',
     // stores the geometry of the project
     geometry: 'string',
-    frequency: { type: 'string', default: 'Default' }, //in number of days
-    intensity: { type: 'int', default: 100 }, //percentage of sample to be remeasured
+    frequency: {type: 'string', default: 'Default'}, //in number of days
+    intensity: {type: 'int', default: 100}, //percentage of sample to be remeasured
   },
 };
 
@@ -387,7 +390,7 @@ const Element = {
     treeType: 'string[]',
     registrationType: 'string[]',
     // refer [dataTypes] from [additionalDataConstants]
-    accessType: { type: 'string', default: 'private' },
+    accessType: {type: 'string', default: 'private'},
   },
 };
 
@@ -415,7 +418,7 @@ const Metadata = {
     value: 'string',
     order: 'int',
     // refer [dataTypes] from [additionalDataConstants]
-    accessType: { type: 'string', default: 'private' },
+    accessType: {type: 'string', default: 'private'},
   },
 };
 

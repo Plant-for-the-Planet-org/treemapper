@@ -69,3 +69,6 @@ export const CLEAR_PROJECT_SITE = 'CLEAR_PROJECT_SITE';
 
 //Used to delete the selected project from project context
 export const CLEAR_PROJECT_AND_PROJECT_SITE = 'CLEAR_PROJECT_AND_PROJECT_SITE';
+
+//Fetch necessary inventory
+export const SWITCH_FETCH_NECESSARY_INVENTORY_FLAG = 'SWITCH_FETCH_NECESSARY_INVENTORY_FLAG';
