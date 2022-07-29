@@ -13,18 +13,22 @@ export const InventoryTypeSelector = () => {
 
   const setInventoryType = async () => {
     const user = await getUserDetails();
-    console.log(user);
     if (user) {
       setSelectedInvType(user.fetchNecessaryInventoryFlag);
-    } else setSelectedInvType(InventoryType.NecessaryItems);
+    }
   };
 
   const switchInventoryFetchTypeFlag = async () => {
-    const _fetchNecessaryInventoryFlag = selectedInvType
-      ? InventoryType.NecessaryItems
-      : InventoryType.AllItems;
-    setFetchNecessaryInventoryFlag(_fetchNecessaryInventoryFlag)(dispatch);
-    await modifyUserDetails({fetchNecessaryInventoryFlag: _fetchNecessaryInventoryFlag});
+    if (selectedInvType !== null) {
+      const _fetchNecessaryInventoryFlag = selectedInvType
+        ? InventoryType.NecessaryItems
+        : InventoryType.AllItems;
+      setFetchNecessaryInventoryFlag(_fetchNecessaryInventoryFlag)(dispatch);
+      const modifiedUser = await modifyUserDetails({
+        fetchNecessaryInventoryFlag: _fetchNecessaryInventoryFlag,
+      });
+      const user = await getUserDetails();
+    }
   };
 
   useEffect(() => {
@@ -33,10 +37,6 @@ export const InventoryTypeSelector = () => {
 
   useEffect(() => {
     switchInventoryFetchTypeFlag();
-  }, [selectedInvType]);
-
-  useEffect(() => {
-    console.log('selectedInvType', selectedInvType);
   }, [selectedInvType]);
 
   const inventoryTypeOption = [
