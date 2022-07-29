@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import {useInventory} from '../../reducers/inventory';
 import {setFetchNecessaryInventoryFlag} from '../../actions/inventory';
@@ -6,7 +6,7 @@ import {InventoryType} from '../../types/inventory';
 import {getUserDetails, modifyUserDetails} from '../../repositories/user';
 
 export const InventoryTypeSelector = () => {
-  const {state, dispatch} = useInventory();
+  const {dispatch} = useInventory();
 
   const [showInventoryTypeDropdown, setShowInventoryTypeDropdown] = useState<boolean>(false);
   const [selectedInvType, setSelectedInvType] = useState<InventoryType | null>(null);
@@ -24,10 +24,9 @@ export const InventoryTypeSelector = () => {
         ? InventoryType.NecessaryItems
         : InventoryType.AllItems;
       setFetchNecessaryInventoryFlag(_fetchNecessaryInventoryFlag)(dispatch);
-      const modifiedUser = await modifyUserDetails({
+      await modifyUserDetails({
         fetchNecessaryInventoryFlag: _fetchNecessaryInventoryFlag,
       });
-      const user = await getUserDetails();
     }
   };
 
