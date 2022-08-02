@@ -9,6 +9,7 @@ import {getRemeasurementDates} from './getRemeasuremDates';
 
 export const checkLoginAndSync = async ({
   sync,
+  inventoryState,
   dispatch,
   userDispatch,
   connected,
@@ -23,7 +24,12 @@ export const checkLoginAndSync = async ({
 
         checkAndAddUserSpecies().then(() => {
           updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(dispatch);
-          addInventoryFromServer('', dispatch);
+          if (inventoryState.fetchNecessaryInventoryFlag !== null) {
+            inventoryState.fetchNecessaryInventoryFlag
+              ? addNecessaryInventoryFromServer('', dispatch)
+              : addInventoryFromServer('', dispatch);
+          }
+
           // addNecessaryInventoryFromServer('', dispatch);
           // getRemeasurementDates();
         });

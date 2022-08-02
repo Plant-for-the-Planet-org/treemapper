@@ -6,7 +6,10 @@ import {addProjects, deleteAllProjects} from '../repositories/projects';
 import {resetAllSpecies} from '../repositories/species';
 import {createOrModifyUserToken, deleteUser, modifyUserDetails} from '../repositories/user';
 import {bugsnag} from '../utils';
-import {addInventoryFromServer} from '../utils/addInventoryFromServer';
+import {
+  addInventoryFromServer,
+  addNecessaryInventoryFromServer,
+} from '../utils/addInventoryFromServer';
 import {checkAndAddUserSpecies} from '../utils/addUserSpecies';
 import {getAuthenticatedRequest, getExpirationTimeStamp, postRequest} from '../utils/api';
 import {isInternetConnected} from '../utils/checkInternet';
@@ -83,11 +86,11 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               userId,
             })(dispatch);
 
-            getAllProjects();
-            checkAndAddUserSpecies().then(() => {
-              updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
-              addInventoryFromServer('', inventoryDispatch);
-            });
+            // getAllProjects();
+            // checkAndAddUserSpecies().then(() => {
+            //   updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
+            //   addInventoryFromServer('', inventoryDispatch);
+            // });
             resolve(true);
           })
           .catch(err => {

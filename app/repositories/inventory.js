@@ -1040,6 +1040,8 @@ export const updateInventory = ({inventory_id, inventoryData}) => {
 };
 
 export const addInventoryToDB = inventoryFromServer => {
+  console.log('inventoryFromServer', JSON.stringify(inventoryFromServer));
+
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
@@ -1203,6 +1205,34 @@ export const addInventoryToDB = inventoryFromServer => {
         });
         bugsnag.notify(err);
         console.log(err, 'Error==');
+        resolve(false);
+      });
+  });
+};
+
+export const addNecessaryInventoryToDB = inventoryFromServer => {
+  return new Promise(resolve => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          const existingInventory = realm.objectForPrimaryKey('Inventory', inventoryFromServer.id);
+          // if inventory is present then update inventory in Local DB else add it to local DB
+          if (existingInventory) {
+            updateInventory(inventoryFromServer.id, inventoryFromServer);
+          } else {
+            addInventoryToDB(inventoryFromServer);
+          }
+        });
+        resolve(true);
+      })
+      .catch(err => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding necessary inventory with location id: ${inventoryFromServer.id}`,
+          logStack: JSON.stringify(err),
+        });
+        bugsnag.notify(err);
+        console.log(err, 'Error while adding Necessary Inventory to DB');
         resolve(false);
       });
   });

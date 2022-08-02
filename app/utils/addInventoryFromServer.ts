@@ -5,7 +5,11 @@ import {
 } from '../actions/inventory';
 import {getRemeasurementDatesFromServer} from '../actions/remeasurement';
 import {inventoryFetchConstant} from '../reducers/inventory';
-import {addInventoryToDB, getInventoryByStatus} from '../repositories/inventory';
+import {
+  addInventoryToDB,
+  getInventoryByStatus,
+  addNecessaryInventoryToDB,
+} from '../repositories/inventory';
 import {getRemeasurementDates} from './getRemeasuremDates';
 import {
   DATA_UPLOAD_START,
@@ -19,8 +23,6 @@ import {
 import {updateRemeasurementDataInInventory} from './updateRemeasurementDataInInventory';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
-  console.log('$$$$');
-
   let allRegistrationsDetails: any;
   if (nextRouteLink) {
     allRegistrationsDetails = await getAllInventoryFromServer(`${nextRouteLink}&_scope=extended`);
@@ -71,8 +73,6 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
 };
 
 export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
-  console.log('**');
-
   let necessaryRegistrationsFromServer: any;
   if (nextRouteLink) {
     necessaryRegistrationsFromServer = await getNecessaryInventoryFromServer(
@@ -105,13 +105,13 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
         if (allLocalRegistrations.length === 0) {
           for (const ServerRegistration of necessaryRegistrationsFromServer.data) {
             if (ServerRegistration.captureStatus === 'complete')
-              addInventoryToDB(ServerRegistration);
+              addNecessaryInventoryToDB(ServerRegistration);
           }
         } else {
           for (const ServerRegistration of necessaryRegistrationsFromServer.data) {
             const isInventoryPresentInDB = isLocalInventoryPresent(ServerRegistration.id);
             if (ServerRegistration.captureStatus === 'complete' && !isInventoryPresentInDB) {
-              addInventoryToDB(ServerRegistration);
+              addNecessaryInventoryToDB(ServerRegistration);
             } else if (ServerRegistration.captureStatus === 'complete' && isInventoryPresentInDB) {
               updateRemeasurementDataInInventory(ServerRegistration);
             }

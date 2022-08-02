@@ -38,7 +38,7 @@ const initialState = {
   inventoryFetchProgress: inventoryFetchConstant.PENDING,
   samplePlantLocationIndex: null,
   selectedRemeasurementId: '',
-  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+  fetchNecessaryInventoryFlag: null,
 };
 
 // Inventory reducer function which takes the state and action param
