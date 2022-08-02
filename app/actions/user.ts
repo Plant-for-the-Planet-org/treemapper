@@ -6,17 +6,10 @@ import {addProjects, deleteAllProjects} from '../repositories/projects';
 import {resetAllSpecies} from '../repositories/species';
 import {createOrModifyUserToken, deleteUser, modifyUserDetails} from '../repositories/user';
 import {bugsnag} from '../utils';
-import {
-  addInventoryFromServer,
-  addNecessaryInventoryFromServer,
-} from '../utils/addInventoryFromServer';
-import {checkAndAddUserSpecies} from '../utils/addUserSpecies';
 import {getAuthenticatedRequest, getExpirationTimeStamp, postRequest} from '../utils/api';
 import {isInternetConnected} from '../utils/checkInternet';
 import {LogTypes} from '../utils/constants';
 import {CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS} from './Types';
-import {updateInventoryFetchFromServer} from './inventory';
-import {inventoryFetchConstant} from '../reducers/inventory';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID});
@@ -86,11 +79,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               userId,
             })(dispatch);
 
-            // getAllProjects();
-            // checkAndAddUserSpecies().then(() => {
-            //   updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
-            //   addInventoryFromServer('', inventoryDispatch);
-            // });
             resolve(true);
           })
           .catch(err => {
