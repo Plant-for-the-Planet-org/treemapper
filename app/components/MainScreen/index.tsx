@@ -298,13 +298,17 @@ export default function MainScreen() {
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
-              <Sync
-                uploadCount={state.uploadCount}
-                pendingCount={state.pendingCount}
-                isUploading={state.isUploading}
-                isUserLogin={isUserLogin}
-                setEmailAlert={setEmailAlert}
-              />
+              <View style={{display: 'flex', width: '45%'}}>
+                <Sync
+                  uploadCount={state.uploadCount}
+                  pendingCount={state.pendingCount}
+                  isUploading={state.isUploading}
+                  isUserLogin={isUserLogin}
+                  setEmailAlert={setEmailAlert}
+                />
+
+                {isUserLogin && <InventoryTypeSelector />}
+              </View>
 
               {isUserLogin ? (
                 userInfo?.type === 'tpo' &&
@@ -326,18 +330,6 @@ export default function MainScreen() {
                 <LoginButton onPressLogin={onPressLogin} isUserLogin={isUserLogin} />
               )}
             </View>
-            {isUserLogin ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 75,
-                  left: 0,
-                  right: 25,
-                  width: '45%',
-                }}>
-                <InventoryTypeSelector />
-              </View>
-            ) : null}
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
               <View style={[styles.fetchPlantLocationContainer, {zIndex: IS_ANDROID ? 0 : -1}]}>
                 <View style={{marginRight: 16}}>

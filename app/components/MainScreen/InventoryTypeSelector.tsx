@@ -50,6 +50,7 @@ export const InventoryTypeSelector = () => {
       setOpen={setShowInventoryTypeDropdown}
       value={selectedInvType}
       setValue={setSelectedInvType}
+      style={{marginBottom: 8}}
     />
   );
 };
