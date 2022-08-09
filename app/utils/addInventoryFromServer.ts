@@ -6,23 +6,24 @@ import {
 import {getRemeasurementDatesFromServer} from '../actions/remeasurement';
 import {inventoryFetchConstant} from '../reducers/inventory';
 import {
-  addInventoryToDB,
+  addOrUpdateInventory,
   getInventoryByStatus,
-  addNecessaryInventoryToDB,
+  updateInventory,
 } from '../repositories/inventory';
 import {getRemeasurementDates} from './getRemeasuremDates';
 import {
   DATA_UPLOAD_START,
   FIX_NEEDED,
+  InventoryAction,
   PENDING_DATA_UPDATE,
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
   PENDING_SAMPLE_TREES_UPLOAD,
   SYNCED,
 } from './inventoryConstants';
-import {updateRemeasurementDataInInventory} from './updateRemeasurementDataInInventory';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
+  console.log('\n\naddInventoryFromServer\n\n');
   let allRegistrationsDetails: any;
   if (nextRouteLink) {
     allRegistrationsDetails = await getAllInventoryFromServer(`${nextRouteLink}&_scope=extended`);
@@ -43,7 +44,8 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
       .then((allRegistrations: any) => {
         if (allRegistrations.length === 0) {
           for (const registration of allRegistrationsDetails.data) {
-            if (registration.captureStatus === 'complete') addInventoryToDB(registration);
+            if (registration.captureStatus === 'complete')
+              addOrUpdateInventory(registration, InventoryAction.ADD);
           }
         } else {
           const notAddedRegistrations = allRegistrationsDetails.data.filter(
@@ -54,7 +56,8 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
           );
 
           for (const registration of notAddedRegistrations) {
-            if (registration.captureStatus === 'complete') addInventoryToDB(registration);
+            if (registration.captureStatus === 'complete')
+              addOrUpdateInventory(registration, InventoryAction.ADD);
           }
         }
 
@@ -73,6 +76,7 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
 };
 
 export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
+  console.log('\n\naddNecessaryInventoryFromServer\n\n');
   let necessaryRegistrationsFromServer: any;
   if (nextRouteLink) {
     necessaryRegistrationsFromServer = await getNecessaryInventoryFromServer(
@@ -105,15 +109,22 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
         if (allLocalRegistrations.length === 0) {
           for (const ServerRegistration of necessaryRegistrationsFromServer.data) {
             if (ServerRegistration.captureStatus === 'complete')
-              addNecessaryInventoryToDB(ServerRegistration);
+              addOrUpdateInventory(ServerRegistration, InventoryAction.ADD);
           }
         } else {
           for (const ServerRegistration of necessaryRegistrationsFromServer.data) {
             const isInventoryPresentInDB = isLocalInventoryPresent(ServerRegistration.id);
             if (ServerRegistration.captureStatus === 'complete' && !isInventoryPresentInDB) {
-              addNecessaryInventoryToDB(ServerRegistration);
+              addOrUpdateInventory(ServerRegistration, InventoryAction.ADD);
             } else if (ServerRegistration.captureStatus === 'complete' && isInventoryPresentInDB) {
-              updateRemeasurementDataInInventory(ServerRegistration);
+              const localRegistration = allLocalRegistrations.find(({locationId}: any) => {
+                return locationId === ServerRegistration.id;
+              });
+              console.log('\n\n-------UPDATE------\n\n');
+              addOrUpdateInventory(
+                {...ServerRegistration, inventory_id: localRegistration.inventory_id},
+                InventoryAction.UPDATE,
+              );
             }
           }
         }

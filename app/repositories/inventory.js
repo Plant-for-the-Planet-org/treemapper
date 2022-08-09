@@ -22,6 +22,7 @@ import {
   TOTAL_COUNT,
   PENDING_UPLOAD_COUNT,
   INCOMPLETE_COUNT,
+  InventoryAction,
 } from '../utils/inventoryConstants';
 import {
   checkAndMarkMissingData,
@@ -1039,32 +1040,32 @@ export const updateInventory = ({inventory_id, inventoryData}) => {
   });
 };
 
-export const addInventoryToDB = inventoryFromServer => {
-  console.log('inventoryFromServer', JSON.stringify(inventoryFromServer));
-
+export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
   return new Promise(resolve => {
     Realm.open(getSchema())
       .then(realm => {
         realm.write(() => {
-          let species = [];
-          let coordinates = [];
-          const samplePlantLocations = [];
-
           if (!inventoryFromServer.id) {
             resolve(false);
             return;
           }
 
+          let species = [];
+          let coordinates = [];
+          const samplePlantLocations = [];
+
           //for single tree
           if (inventoryFromServer.type === 'single') {
             if (inventoryFromServer.scientificSpecies) {
-              let specie = realm.objectForPrimaryKey(
-                'ScientificSpecies',
-                `${inventoryFromServer.scientificSpecies}`,
-              );
-              let aliases = specie.aliases || specie.scientificName;
-              let treeCount = parseInt(1);
-              let id = inventoryFromServer.scientificSpecies;
+              let aliases;
+              const treeCount = parseInt(1);
+              const id = inventoryFromServer.scientificSpecies;
+              const specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
+              if (specie) {
+                aliases = specie.aliases || specie.scientificName;
+              } else {
+                aliases = 'Unknown';
+              }
               species.push({aliases, treeCount, id});
             } else {
               species.push({aliases: 'Unknown', treeCount: parseInt(1), id: 'unknown'});
@@ -1080,7 +1081,11 @@ export const addInventoryToDB = inventoryFromServer => {
               if (plantedSpecie.scientificSpecies && !plantedSpecie.otherSpecies) {
                 id = plantedSpecie.scientificSpecies;
                 specie = realm.objectForPrimaryKey('ScientificSpecies', `${id}`);
-                aliases = specie.aliases || specie.scientificName;
+                if (specie) {
+                  aliases = specie.aliases || specie.scientificName;
+                } else {
+                  aliases = 'Unknown';
+                }
               } else {
                 id = 'unknown';
                 aliases = 'Unknown';
@@ -1156,7 +1161,7 @@ export const addInventoryToDB = inventoryFromServer => {
 
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
-            inventory_id: inventoryID,
+            ...(inventoryAction === InventoryAction.ADD ? {inventory_id: inventoryID} : {}),
             plantation_date: new Date(inventoryFromServer.plantDate.split(' ')[0]),
             treeType: inventoryFromServer.type,
             status: SYNCED,
@@ -1186,13 +1191,33 @@ export const addInventoryToDB = inventoryFromServer => {
             hid: inventoryFromServer.hid,
             originalGeometry,
           };
-          realm.create('Inventory', inventoryData);
 
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Inventory added with location id: ${inventoryFromServer.id}`,
-          });
+          if (inventoryAction === InventoryAction.ADD) {
+            console.log('\n\n-------ADD------\n\n');
+            realm.create('Inventory', inventoryData);
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Inventory added with location id: ${inventoryFromServer.id}`,
+            });
+          } else if (inventoryAction === InventoryAction.UPDATE) {
+            console.log('\n\n-------UPDATE from AddOrUpdate------\n\n');
+            let inventory = realm.objectForPrimaryKey(
+              'Inventory',
+              `${inventoryFromServer.inventory_id}`,
+            );
+            let newInventory = {
+              ...JSON.parse(JSON.stringify(inventory)),
+              ...inventoryData,
+            };
+            realm.create('Inventory', newInventory, 'modified');
+            // logging the success in to the db
+            dbLog.info({
+              logType: LogTypes.INVENTORY,
+              message: `Inventory updated with location id: ${inventoryFromServer.id}`,
+            });
+          }
+
           resolve(inventoryData);
         });
       })
@@ -1205,34 +1230,6 @@ export const addInventoryToDB = inventoryFromServer => {
         });
         bugsnag.notify(err);
         console.log(err, 'Error==');
-        resolve(false);
-      });
-  });
-};
-
-export const addNecessaryInventoryToDB = inventoryFromServer => {
-  return new Promise(resolve => {
-    Realm.open(getSchema())
-      .then(realm => {
-        realm.write(() => {
-          const existingInventory = realm.objectForPrimaryKey('Inventory', inventoryFromServer.id);
-          // if inventory is present then update inventory in Local DB else add it to local DB
-          if (existingInventory) {
-            updateInventory(inventoryFromServer.id, inventoryFromServer);
-          } else {
-            addInventoryToDB(inventoryFromServer);
-          }
-        });
-        resolve(true);
-      })
-      .catch(err => {
-        dbLog.error({
-          logType: LogTypes.INVENTORY,
-          message: `Error while adding necessary inventory with location id: ${inventoryFromServer.id}`,
-          logStack: JSON.stringify(err),
-        });
-        bugsnag.notify(err);
-        console.log(err, 'Error while adding Necessary Inventory to DB');
         resolve(false);
       });
   });

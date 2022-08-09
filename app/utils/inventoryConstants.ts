@@ -117,3 +117,8 @@ export type geoJSONType = {
     };
   }[];
 };
+
+export const InventoryAction = {
+  ADD: 'ADD',
+  UPDATE: 'UPDATE',
+};

@@ -19,7 +19,7 @@ export default function AppNavigator() {
   const {showInitialStack} = React.useContext(NavigationContext);
   const netInfo = useNetInfo();
   const {state: inventoryState, dispatch} = useContext(InventoryContext);
-  const {dispatch: userDispatch} = useContext(UserContext);
+  const {state: userState, dispatch: userDispatch} = useContext(UserContext);
 
   const autoSync = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -46,13 +46,13 @@ export default function AppNavigator() {
       });
       dailyLogUpdateCheck();
     }
-  }, [showInitialStack, inventoryState.fetchNecessaryInventoryFlag]);
+  }, [showInitialStack, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
   useEffect(() => {
     if (!showInitialStack) {
       autoSync();
     }
-  }, [netInfo, inventoryState.fetchNecessaryInventoryFlag]);
+  }, [netInfo, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
   return (
     <NavigationContainer>
