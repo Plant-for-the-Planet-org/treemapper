@@ -6,40 +6,19 @@ const getRemeasurementPolygons = async (allInventory: any) => {
   const remeasurementDuePolygons = [];
 
   for (let singleInventory of allInventory) {
-    let project = {};
-
-    if (singleInventory.projectId) {
-      project = await getProjectById(singleInventory.projectId);
-    }
-    let intensity = project?.intensity || 100;
-    let frequency = project?.frequency || 'Default';
-
-    let sampleTreesToBeRemeasured = 0;
-    let sampleTreesDueRemeasured = 0;
     if (Array.isArray(singleInventory.sampleTrees)) {
       for (let sampleTree of singleInventory.sampleTrees) {
-        // console.log(sampleTree.remeasurementDates, '==sampleTree.remeasurementDates==', sampleTree);
+        if (sampleTree.remeasurementDates?.nextMeasurement) {
+          const nextMeasurement = moment(sampleTree.remeasurementDates?.nextMeasurement);
+          const remeasurementDeadline = moment(new Date()).add(3, 'months');
+          const today = moment(new Date());
 
-        if (sampleTree?.remeasurementDates?.remeasureBy) {
-          let startDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(60, 'days');
-          let endDate = moment(sampleTree.remeasurementDates.remeasureBy).subtract(45, 'days');
+          if (moment(nextMeasurement).isBetween(today, remeasurementDeadline)) {
+            remeasurementNeededPolygons.push(singleInventory.inventory_id);
+          }
 
-          if (moment(new Date()).isBetween(startDate, endDate)) {
-            sampleTreesToBeRemeasured++;
-            if (
-              sampleTreesToBeRemeasured ==
-              Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
-            ) {
-              remeasurementNeededPolygons.push(singleInventory.inventory_id);
-            }
-          } else if (moment(new Date()) > endDate) {
-            sampleTreesDueRemeasured++;
-            if (
-              sampleTreesDueRemeasured ==
-              Math.ceil(singleInventory.sampleTrees.length * intensity) / 100
-            ) {
-              remeasurementDuePolygons.push(singleInventory.inventory_id);
-            }
+          if (moment(nextMeasurement).isBefore(today)) {
+            remeasurementDuePolygons.push(singleInventory.inventory_id);
           }
         }
       }

@@ -62,6 +62,7 @@ const remeasurementDates = {
     created: 'date',
     lastMeasurement: 'date?',
     remeasureBy: 'date',
+    nextMeasurement: 'date?',
   },
 };
 

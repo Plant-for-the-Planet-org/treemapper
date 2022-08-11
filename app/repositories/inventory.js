@@ -1256,7 +1256,9 @@ const getFormattedSampleData = sample => {
     tagId: sample.tag,
     remeasurementDates: {
       created: plantationDate,
-      lastMeasurement: null,
+      lastMeasurement: sample.lastMeasurementDate
+        ? sample.lastMeasurementDate?.date.split(' ').join('T')
+        : null,
       sampleTreeId: sample.id,
       remeasureBy: sample?.remeasureBy
         ? sample.remeasureBy
@@ -1265,6 +1267,9 @@ const getFormattedSampleData = sample => {
             plantationDate.getMonth(),
             plantationDate.getDay(),
           ),
+      nextMeasurement: sample.nextMeasurementDate
+        ? sample.nextMeasurementDate?.date.split(' ').join('T')
+        : null,
     },
     status: SYNCED,
     plantationDate: plantationDate,
