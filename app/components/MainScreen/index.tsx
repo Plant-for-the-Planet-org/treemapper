@@ -4,7 +4,7 @@ import i18next from 'i18next';
 import React, {useContext, useEffect, useState} from 'react';
 import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import {updateCount} from '../../actions/inventory';
+import {setFetchNecessaryInventoryFlag, updateCount} from '../../actions/inventory';
 import {startLoading, stopLoading} from '../../actions/loader';
 import {auth0Login, auth0Logout, clearUserDetails, setUserDetails} from '../../actions/user';
 import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
@@ -19,7 +19,7 @@ import {
 } from '../../repositories/inventory';
 import {getAllProjects} from '../../repositories/projects';
 import {shouldSpeciesUpdate} from '../../repositories/species';
-import {getUserDetails} from '../../repositories/user';
+import {getUserDetails, modifyUserDetails} from '../../repositories/user';
 import {Colors, Typography} from '../../styles';
 import {PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT} from '../../utils/inventoryConstants';
 import {AlertModal, Sync} from '../Common';
@@ -30,6 +30,7 @@ import LoginButton from './LoginButton';
 import MainMap from './MainMap';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
 import {InventoryTypeSelector} from './InventoryTypeSelector';
+import {InventoryType} from '../../types/inventory';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -260,10 +261,14 @@ export default function MainScreen() {
           if (isSyncRequired) {
             navigation.navigate('LogoutWarning');
           } else {
-            auth0Logout(userDispatch).then(result => {
+            auth0Logout(userDispatch).then(async result => {
               if (result) {
                 console.log('55');
                 setUserInfo({});
+                await modifyUserDetails({
+                  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+                });
+                setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
               }
             });
           }
