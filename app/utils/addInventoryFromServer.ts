@@ -23,7 +23,6 @@ import {
 } from './inventoryConstants';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
-  console.log('\n\naddInventoryFromServer\n\n');
   let allRegistrationsDetails: any;
   if (nextRouteLink) {
     allRegistrationsDetails = await getAllInventoryFromServer(`${nextRouteLink}&_scope=extended`);
@@ -76,7 +75,6 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
 };
 
 export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
-  console.log('\n\naddNecessaryInventoryFromServer\n\n');
   let necessaryRegistrationsFromServer: any;
   if (nextRouteLink) {
     necessaryRegistrationsFromServer = await getNecessaryInventoryFromServer(
@@ -120,7 +118,6 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
               const localRegistration = allLocalRegistrations.find(({locationId}: any) => {
                 return locationId === ServerRegistration.id;
               });
-              console.log('\n\n-------UPDATE------\n\n');
               addOrUpdateInventory(
                 {...ServerRegistration, inventory_id: localRegistration.inventory_id},
                 InventoryAction.UPDATE,

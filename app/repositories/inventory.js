@@ -1193,7 +1193,6 @@ export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
           };
 
           if (inventoryAction === InventoryAction.ADD) {
-            console.log('\n\n-------ADD------\n\n');
             realm.create('Inventory', inventoryData);
             // logging the success in to the db
             dbLog.info({
@@ -1201,7 +1200,6 @@ export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
               message: `Inventory added with location id: ${inventoryFromServer.id}`,
             });
           } else if (inventoryAction === InventoryAction.UPDATE) {
-            console.log('\n\n-------UPDATE from AddOrUpdate------\n\n');
             let inventory = realm.objectForPrimaryKey(
               'Inventory',
               `${inventoryFromServer.inventory_id}`,
