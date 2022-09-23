@@ -21,6 +21,8 @@ import {APIConfig} from '../../actions/Config';
 import {
   deleteInventoryId,
   setIsExtraSampleTree,
+  setRemeasurementId,
+  setSamplePlantLocationIndex,
   setSkipToInventoryOverview,
 } from '../../actions/inventory';
 import {InventoryContext} from '../../reducers/inventory';
@@ -79,6 +81,7 @@ type RootStackParamList = {
     isSampleTree: boolean;
     sampleTreeIndex: number;
     totalSampleTrees: number;
+    item: any;
     navigateBackToHomeScreen: boolean;
   };
 };
@@ -793,6 +796,25 @@ const SingleTreeOverview = () => {
     }
   };
 
+  const onPressRemeasure = (item: any, index: string) => {
+    let lastScreen;
+    setSamplePlantLocationIndex(index)(dispatch);
+    if (item?.plantLocationHistory?.length > 0) {
+      lastScreen = item?.plantLocationHistory[item?.plantLocationHistory?.length - 1]?.lastScreen;
+    } else {
+      lastScreen = '';
+    }
+
+    if (lastScreen) {
+      setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+        dispatch,
+      );
+      navigation.navigate(lastScreen);
+    } else {
+      navigation.navigate('RemeasurementForm');
+    }
+  };
+
   const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
@@ -1095,7 +1117,9 @@ const SingleTreeOverview = () => {
         ) : showRemeasurementButton ? (
           <View style={styles.bottomBtnsContainer}>
             <PrimaryButton
-              onPress={() => navigation.navigate('RemeasurementForm')}
+              onPress={() => {
+                onPressRemeasure(route.params.item, `${route.params.sampleTreeIndex}`);
+              }}
               btnText={i18next.t('label.remeasure')}
               disabled={isRemeasurementDisabled}
               // disabled={false}

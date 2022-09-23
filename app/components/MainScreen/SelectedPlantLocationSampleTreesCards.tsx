@@ -130,6 +130,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                   isSampleTree: true,
                   sampleTreeIndex: index,
                   totalSampleTrees: singleSelectedPlantLocation?.totalSampleTrees,
+                  item: item,
                 });
               }}>
               <View style={styles.cardContainer} key={item.locationId}>
