@@ -201,6 +201,50 @@ const GeoJSONMap = ({
     );
   }, [projectSitesGeoJSON]);
 
+  const RemeasurePolygon = () => {
+    return (
+      <>
+        <MapboxGL.ShapeSource
+          id={'point'}
+          shape={pointGeoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
+        </MapboxGL.ShapeSource>
+        <MapboxGL.ShapeSource
+          id={'polygon'}
+          shape={geoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features ssss', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapboxGL.FillLayer
+            id={'polyFill'}
+            style={{
+              fillColor: ['get', 'color'],
+              fillOpacity: 0.3,
+            }}
+          />
+          <MapboxGL.LineLayer
+            id={'polyline'}
+            style={{
+              lineWidth: 2,
+              lineColor: ['get', 'color'],
+              lineOpacity: 0.5,
+              lineJoin: 'bevel',
+            }}
+          />
+        </MapboxGL.ShapeSource>
+      </>
+    );
+  };
+
   return (
     <MapboxGL.MapView
       style={styles.container}
@@ -315,41 +359,7 @@ const GeoJSONMap = ({
         })
       ) : (
         <>
-          <MapboxGL.ShapeSource
-            id={'point'}
-            shape={pointGeoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
-          </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'polygon'}
-            shape={geoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.FillLayer
-              id={'polyFill'}
-              style={{
-                fillColor: ['get', 'color'],
-                fillOpacity: 0.3,
-              }}
-            />
-            <MapboxGL.LineLayer
-              id={'polyline'}
-              style={{
-                lineWidth: 2,
-                lineColor: ['get', 'color'],
-                lineOpacity: 0.5,
-                lineJoin: 'bevel',
-              }}
-            />
-          </MapboxGL.ShapeSource>
+          <RemeasurePolygon />
           <SitePolygon />
         </>
       )}
