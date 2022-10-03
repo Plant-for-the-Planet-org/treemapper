@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import 'react-native-get-random-values';
 import { addPlantLocationEvent } from '../actions/inventory';
+import { getPlantLocationDetails, uploadImage } from '../actions/uploadInventory';
 import { getInventoryByLocationId } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
 import {
@@ -14,8 +15,8 @@ import { DATA_UPLOAD_START, PENDING_DATA_UPLOAD, SYNCED } from '../utils/invento
 // Creates the context object for PlantLocationHistory. Used by component to get the state and functions
 export const PlantLocationHistoryContext = createContext<any>({
   pendingPlantLocationHistoryUpload: [],
-  getPendingPlantLocationHistory: () => {},
-  uploadRemeasurements: () => {},
+  getPendingPlantLocationHistory: () => { },
+  uploadRemeasurements: () => { },
   pendingPlantLocationHistoryUploadCount: 0,
   isUploading: false,
 });
@@ -75,6 +76,27 @@ export const PlantLocationHistoryContextProvider = ({ children }: { children: JS
 
       // Sample Tree Location Id
       const locationId = inventory[0].sampleTrees[history.samplePlantLocationIndex].locationId;
+      let sampleTree;
+      try {
+        sampleTree = await getPlantLocationDetails(locationId);
+      } catch (err) {
+        dbLog.error({
+          logType: LogTypes.DATA_SYNC,
+          message: `Error while getting plant location details with Sample Tree Location Id:${locationId}`,
+          logStack: JSON.stringify(err?.response || err),
+        });
+      }
+
+      if (sampleTree) {
+        const sampleTreeCoordinateID = sampleTree!.coordinates[0].id;
+        await uploadImage(
+          history.imageUrl,
+          locationId,
+          sampleTreeCoordinateID,
+          inventory[0].inventory_id,
+          true,
+        );
+      }
 
       // prepares the data to be sent to the server
       let data: IAddPlantLocationEventData = {
