@@ -1,4 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/routers';
 import turfArea from '@turf/area';

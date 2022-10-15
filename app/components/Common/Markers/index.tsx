@@ -1,4 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';

@@ -68,7 +68,7 @@ import ExportGeoJSON from '../Common/ExportGeoJSON';
 import ManageSpecies from '../ManageSpecies';
 import SpecieSampleTree from '../SpecieSampleTree';
 import Geolocation from 'react-native-geolocation-service';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import {locationPermission} from '../../utils/permissions';
 import {bugsnag} from '../../utils';
 import distanceCalculator from '../../utils/distanceCalculator';

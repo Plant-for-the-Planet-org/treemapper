@@ -1,5 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import Logger from '@react-native-mapbox-gl/maps/javascript/utils/Logger';
+import MapboxGL from '@rnmapbox/maps';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Config from 'react-native-config';
@@ -10,18 +9,6 @@ import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 import Markers from '../Markers';
 import SampleTreeMarkers from '../SampleTreeMarkers';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
-
-Logger.setLogCallback((log) => {
-  const { message } = log;
-  // expected warnings - see https://github.com/mapbox/mapbox-gl-native/issues/15341#issuecomment-522889062
-  if (
-    message.match('Request failed due to a permanent error: Canceled') ||
-    message.match('Request failed due to a permanent error: Socket Closed')
-  ) {
-    return true;
-  }
-  return false;
-});
 
 interface IMapProps {
   geoJSON?: any;

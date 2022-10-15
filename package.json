@@ -24,10 +24,10 @@
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/netinfo": "^8.3.0",
     "@react-native-community/toolbar-android": "^0.2.1",
-    "@react-native-mapbox-gl/maps": "^8.5.0",
     "@react-navigation/drawer": "^5.12.9",
     "@react-navigation/native": "^5.9.8",
     "@react-navigation/stack": "^5.14.5",
+    "@rnmapbox/maps": "^10.0.0-beta.46",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",
@@ -74,7 +74,7 @@
     "react-native-tab-view": "^2.15.2",
     "react-native-vector-icons": "^6.7.0",
     "react-native-zip-archive": "^5.0.6",
-    "realm": "10.2.0"
+    "realm": "11.0.0-rc.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",

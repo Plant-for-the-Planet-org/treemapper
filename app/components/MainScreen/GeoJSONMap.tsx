@@ -1,4 +1,4 @@
-import MapboxGL, {LineLayerStyle} from '@react-native-mapbox-gl/maps';
+import MapboxGL, {LineLayerStyle} from '@rnmapbox/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import React, {useCallback, useEffect, useRef, useState} from 'react';

@@ -1,4 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import React from 'react';
 import Config from 'react-native-config';
 import 'react-native-gesture-handler';

@@ -1,5 +1,5 @@
 import { useNetInfo } from '@react-native-community/netinfo';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import i18next from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import {

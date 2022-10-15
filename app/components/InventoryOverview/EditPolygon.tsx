@@ -2,7 +2,7 @@ import MapboxGL, {
   CircleLayerStyle,
   FillLayerStyle,
   LineLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+} from '@rnmapbox/maps';
 import { useNavigation } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import i18next from 'i18next';
@@ -339,7 +339,7 @@ const EditPolygon = () => {
         isPointJSON={isPointJSON}
       />
 
-      {/* shows alert if edited marker coordinate is more than 100m away from 
+      {/* shows alert if edited marker coordinate is more than 100m away from
       original coordinate */}
       <AlertModal
         visible={showInvalidCoordinateAlert}

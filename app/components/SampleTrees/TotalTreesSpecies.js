@@ -1,4 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
