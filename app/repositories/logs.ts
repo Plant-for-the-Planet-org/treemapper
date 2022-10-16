@@ -132,8 +132,8 @@ export const deleteOldLogs = () => {
           // sets the date hours, mins, seconds and nanoseconds to zero
           oldDate.setUTCHours(0, 0, 0, 0);
 
-          // converts to ISO string and removes the Z characters from last
-          oldDate = oldDate.toISOString().slice(0, -1);
+          // converts to ISO string and removes the '.000.Z' characters from last
+          oldDate = oldDate.toISOString().slice(0, -5);
 
           // filters and stores all the logs before 14 days
           let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);

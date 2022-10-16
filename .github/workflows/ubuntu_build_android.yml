@@ -86,10 +86,12 @@ jobs:
     - name: Preparing Android build
       env:
         android_release_password: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
+        download_token: ${{ secrets.MAPBOXGL_DOWNLOAD_TOKEN }}
       run: |
         # prepare local.properties
         echo "MYAPP_RELEASE_STORE_PASSWORD=$android_release_password" > android/local.properties
         echo "MYAPP_RELEASE_KEY_PASSWORD=$android_release_password" >> android/local.properties
+        echo "MAPBOX_DOWNLOADS_TOKEN=$download_token" >> android/local.properties
 
     - name: Fixes for Android Build
       run: |
@@ -97,13 +99,6 @@ jobs:
         search="classpath += files(project.getConfigurations().getByName('compile').asList())"
         replace="project.getConfigurations().getByName('implementation').setCanBeResolved(true); classpath += files(project.getConfigurations().getByName('implementation').asList())"
         sed -i "s|${search}|${replace}|g" node_modules/react-native-reanimated/android/build.gradle
-        # realm has an incompatible analytics.gradle file
-        search="String applicationId = 'UNKNOWN'"
-        replace="@Input String applicationId = 'UNKNOWN'"
-        sed -i "s|${search}|${replace}|g" node_modules/realm/android/analytics.gradle
-        search="String version = 'UNKNOWN'"
-        replace="@Input String version = 'UNKNOWN'"
-        sed -i "s|${search}|${replace}|g" node_modules/realm/android/analytics.gradle
         # react-native-mapbox-gl has a problem with a null object
         search="telemetry.setUserTelemetryRequestState(telemetryEnabled);"
         replace="if (telemetry != null) telemetry.setUserTelemetryRequestState(telemetryEnabled);"
