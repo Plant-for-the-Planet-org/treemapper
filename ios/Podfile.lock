@@ -427,8 +427,8 @@ PODS:
     - React-Core
   - RNSVG (12.3.0):
     - React-Core
-  - RNVectorIcons (6.7.0):
-    - React
+  - RNVectorIcons (9.2.0):
+    - React-Core
   - RNZipArchive (5.0.6):
     - React
     - RNZipArchive/Core (= 5.0.6)
@@ -749,7 +749,7 @@ SPEC CHECKSUMS:
   RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
   RNSnackbar: be3333a21a453ccc272f41a8add5a71f7d44dfcd
   RNSVG: 302bfc9905bd8122f08966dc2ce2d07b7b52b9f8
-  RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
+  RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8
   RNZipArchive: 9dfdaa1d1ad49a423e83df505f292e0ae8126a5d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
