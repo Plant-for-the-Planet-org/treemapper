@@ -86,10 +86,12 @@ jobs:
     - name: Preparing Android build
       env:
         android_release_password: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
+        download_token: ${{ secrets.MAPBOXGL_DOWNLOAD_TOKEN }}
       run: |
         # prepare local.properties
         echo "MYAPP_RELEASE_STORE_PASSWORD=$android_release_password" > android/local.properties
         echo "MYAPP_RELEASE_KEY_PASSWORD=$android_release_password" >> android/local.properties
+        echo "MAPBOX_DOWNLOADS_TOKEN=$download_token" >> android/local.properties
 
     - name: Fixes for Android Build
       run: |
