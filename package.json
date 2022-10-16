@@ -63,7 +63,7 @@
     "react-native-material-menu": "^2.0.0",
     "react-native-modal-datetime-picker": "^8.9.3",
     "react-native-reanimated": "^1.13.2",
-    "react-native-redash": "^16.2.2",
+    "react-native-redash": "^16.3.0",
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^2.18.1",
     "react-native-share": "^5.3.0",
