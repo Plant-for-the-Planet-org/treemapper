@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macos-latest
     timeout-minutes: 75
     steps:
     - name: Checkout branch
@@ -20,7 +20,7 @@ jobs:
     - name: Select Xcode
       run: |
         echo "Default version:" `xcode-select -p`
-        sudo xcode-select -s /Applications/Xcode_13.1.app
+        sudo xcode-select -s /Applications/Xcode_13.2.1.app
         echo "Selected version:" `xcode-select -p`
 
     - name: Upgrade npm to latest version

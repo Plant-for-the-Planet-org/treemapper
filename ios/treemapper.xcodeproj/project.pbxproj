@@ -304,7 +304,6 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = UYRJ8SA699;
 						LastSwiftMigration = 1300;
 					};
 				};
