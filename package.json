@@ -1,13 +1,13 @@
 {
   "name": "treemapper",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": true,
   "scripts": {
     "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
     "ios": "ENVFILE=.env.develop react-native run-ios --scheme 'treemapper(.env.develop)'",
     "android:staging": "ENVFILE=.env.staging react-native run-android --variant 'stagingDebug'",
     "ios:staging": "ENVFILE=.env.staging react-native run-ios --scheme 'treemapper(.env.staging)'",
-    "android:production": "ENVFILE=.env.production react-native run-android --variant 'productionebug'",
+    "android:production": "ENVFILE=.env.production react-native run-android --variant 'productionDebug'",
     "ios:production": "ENVFILE=.env.production react-native run-ios --scheme 'treemapper(.env.production)'",
     "start": "react-native start",
     "test": "jest",
