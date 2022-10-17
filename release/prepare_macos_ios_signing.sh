@@ -5,8 +5,9 @@ echo "Preparing iOS build"
 # Decrypt the files
 # --batch to prevent interactive command --yes to assume "yes" for questions
 gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/AppStoreCertificates.p12 release/AppStoreCertificates.p12.gpg
-gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/7fbeadc4-4211-4484-b170-57dd9d639bba.mobileprovision release/7fbeadc4-4211-4484-b170-57dd9d639bba.mobileprovision.gpg
-gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/f0e5e2b4-25cd-4208-a705-bc1f9f81a4de.mobileprovision release/f0e5e2b4-25cd-4208-a705-bc1f9f81a4de.mobileprovision.gpg
+gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/0a295d53-a21d-4c2d-bea4-fe5ca6f36dbe.mobileprovision release/0a295d53-a21d-4c2d-bea4-fe5ca6f36dbe.mobileprovision.gpg
+gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/84bc6e56-62bb-4785-b50c-55d4681f27b2.mobileprovision release/84bc6e56-62bb-4785-b50c-55d4681f27b2.mobileprovision.gpg
+gpg --quiet --batch --yes --decrypt --passphrase="$PROVISIONING_PASSWORD" --output release/99be43a1-fdc5-43e9-93b4-1898d8d4a296.mobileprovision release/99be43a1-fdc5-43e9-93b4-1898d8d4a296.mobileprovision.gpg
 
 echo "Release folder:"
 ls -l release/*

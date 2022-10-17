@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {
   Animated,
   Easing,
@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { Colors, Typography } from '../../../styles';
+import {Colors, Typography} from '../../../styles';
 import IconSwitcher from '../IconSwitcher';
 
 type secureTextEntryType = true | false;
@@ -139,8 +139,9 @@ const OutlinedInput = React.forwardRef(
       new Animated.Value(value ? labelPositionFillValue : labelPositionEmptyValue),
     ).current;
     const fontSizeRef = useRef(new Animated.Value(value ? fontSize - 2 : fontSize)).current;
-    const lineHeightRef = useRef(new Animated.Value(value ? lineHeightValue - 2 : lineHeightValue))
-      .current;
+    const lineHeightRef = useRef(
+      new Animated.Value(value ? lineHeightValue - 2 : lineHeightValue),
+    ).current;
     const zIndexRef = useRef(new Animated.Value(value ? 2 : -1)).current;
 
     const commonAnimatedProps: CommonAnimatedPropsTypes = {
@@ -247,7 +248,7 @@ const OutlinedInput = React.forwardRef(
           errorColor,
           backgroundLabelColor,
         }),
-        { fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily },
+        {fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily},
       ],
       numberOfLines: 1,
       ellipsizeMode: 'tail',
@@ -255,9 +256,9 @@ const OutlinedInput = React.forwardRef(
 
     if (!isInitial) {
       if (!isFocused && !value) {
-        animatedViewProps.style = { ...animatedViewInitialStyle, right: rightContainerWidth + 10 };
+        animatedViewProps.style = {...animatedViewInitialStyle, right: rightContainerWidth + 10};
       } else if (labelWidth + 20 >= inputWidth) {
-        animatedViewProps.style = { ...animatedViewInitialStyle, right: 10 };
+        animatedViewProps.style = {...animatedViewInitialStyle, right: 10};
       } else {
         animatedViewProps.style = animatedViewInitialStyle;
       }
@@ -283,7 +284,7 @@ const OutlinedInput = React.forwardRef(
       editable,
       autoFocus,
       style: [
-        { fontFamily, flex: 1 },
+        {fontFamily, flex: 1},
         InputStyle({
           padding,
           height,
@@ -301,7 +302,7 @@ const OutlinedInput = React.forwardRef(
       <View
         style={style}
         onLayout={(event: LayoutChangeEvent) => setInputWidth(event.nativeEvent.layout.width)}>
-        <View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
+        <View style={[styles.container, {backgroundColor: containerBackgroundColor}]}>
           <Animated.View {...animatedViewProps}>
             <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
           </Animated.View>
@@ -340,7 +341,7 @@ const OutlinedInput = React.forwardRef(
                 setRightContainerWidth(event.nativeEvent.layout.width);
               }}>
               {isDropdown ? (
-                <View style={{ paddingHorizontal: 16 }}>
+                <View style={{paddingHorizontal: 16}}>
                   <FA5Icon
                     name={showOptions ? 'caret-up' : 'caret-down'}
                     color={Colors.TEXT_COLOR}
@@ -371,7 +372,7 @@ const OutlinedInput = React.forwardRef(
                     iconType={'MCIcon'}
                   />
                   {showInfoIconText ? (
-                    <View style={[styles.infoTextContainer, { maxWidth: inputWidth - 16 }]}>
+                    <View style={[styles.infoTextContainer, {maxWidth: inputWidth - 16}]}>
                       <Text style={styles.infoText}>{infoText}</Text>
                     </View>
                   ) : (
