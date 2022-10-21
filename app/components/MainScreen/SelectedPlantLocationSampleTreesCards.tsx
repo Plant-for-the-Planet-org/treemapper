@@ -181,7 +181,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                 </View>
                 {
                   // canRemeasurePlantLocation ? (
-                  isUserDistanceMoreThen100M ? (
+                  !isUserDistanceMoreThen100M ? (
                     <Text
                       style={[
                         styles.text,

@@ -219,29 +219,30 @@ export default function RemeasurementForm({}: Props) {
   return (
     <View style={{flex: 1}}>
       <SafeAreaView style={styles.mainContainer}>
-        <View style={styles.container}>
-          <View style={{flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24}}>
-            {/* header shows the HID and Species */}
-            <Header
-              headingText={i18next.t('label.remeasurement')}
-              onBackPress={() => {
-                navigation.goBack();
-              }}
-              subHeadingText={`HID: ${inventory?.hid}`}
-            />
-            {inventory?.species.length > 0 ? (
-              <Text style={styles.subHeadingText}>
-                {i18next.t('label.tree_review_specie')}: {inventory.species[0].aliases}
-              </Text>
-            ) : (
-              []
-            )}
-          </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == 'ios' ? 'padding' : undefined}
+          style={{flex: 1}}>
+          <View style={styles.container}>
+            <View style={{flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24}}>
+              {/* header shows the HID and Species */}
+              <Header
+                headingText={i18next.t('label.remeasurement')}
+                onBackPress={() => {
+                  navigation.goBack();
+                }}
+                subHeadingText={`HID: ${inventory?.hid}`}
+              />
+              {inventory?.species.length > 0 ? (
+                <Text style={styles.subHeadingText}>
+                  {i18next.t('label.tree_review_specie')}: {inventory.species[0].aliases}
+                </Text>
+              ) : (
+                []
+              )}
+            </View>
 
-          {/* shows the form layout */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS == 'ios' ? 'padding' : undefined}
-            style={{flex: 1}}>
+            {/* shows the form layout */}
+
             <View
               style={{
                 flex: 1,
@@ -299,8 +300,8 @@ export default function RemeasurementForm({}: Props) {
                 />
               </View>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
 
         {/* shows the modal if the ratio between height and diameter is not optimal */}
         <AlertModal
