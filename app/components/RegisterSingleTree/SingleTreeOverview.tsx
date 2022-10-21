@@ -1121,7 +1121,7 @@ const SingleTreeOverview = () => {
                 onPressRemeasure(route.params.item, `${route.params.sampleTreeIndex}`);
               }}
               btnText={i18next.t('label.remeasure')}
-              disabled={!isRemeasurementDisabled}
+              disabled={isRemeasurementDisabled}
               // disabled={false}
             />
             {isRemeasurementDisabled ? (
