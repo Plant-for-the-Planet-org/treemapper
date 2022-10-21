@@ -1261,10 +1261,10 @@ const getFormattedSampleData = sample => {
       remeasureBy: sample?.remeasureBy
         ? sample.remeasureBy
         : new Date(
-            plantationDate.getFullYear() + 1,
-            plantationDate.getMonth(),
-            plantationDate.getDay(),
-          ),
+          plantationDate.getFullYear() + 1,
+          plantationDate.getMonth(),
+          plantationDate.getDay(),
+        ),
       nextMeasurement: sample.nextMeasurementDate
         ? sample.nextMeasurementDate?.date.split(' ').join('T')
         : null,

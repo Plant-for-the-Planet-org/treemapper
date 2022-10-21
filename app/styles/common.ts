@@ -1,5 +1,6 @@
-import { TextStyle, ViewStyle } from 'react-native';
-import { Colors, Typography } from '.';
+import {TextStyle, ViewStyle} from 'react-native';
+import * as Colors from './colors';
+import * as Typography from './typography';
 
 // Font styles used in PFP
 

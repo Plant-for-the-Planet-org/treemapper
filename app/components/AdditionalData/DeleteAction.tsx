@@ -4,7 +4,7 @@ import Animated, {
   add,
   cond,
   divide,
-  interpolate,
+  interpolateNode,
   lessThan,
   multiply,
   sub,
@@ -29,7 +29,7 @@ const DeleteAction = ({ x, deleteOpacity, height }: IActionProps) => {
   const size = cond(lessThan(x, height), x, add(x, sub(x, height)));
   const translateX = cond(lessThan(x, height), 0, divide(sub(x, height), 2));
 
-  const textOpacity = interpolate(size, {
+  const textOpacity = interpolateNode(size, {
     inputRange: [Number(height) - 10, Number(height) + 10],
     outputRange: [0, 1],
   });
