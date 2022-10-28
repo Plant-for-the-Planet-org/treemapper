@@ -11,6 +11,7 @@ import {
   Switch,
   Text,
   View,
+  ScrollView,
 } from 'react-native';
 import {
   getBrand,
@@ -220,6 +221,7 @@ export default function RemeasurementForm({}: Props) {
     <View style={{flex: 1}}>
       <SafeAreaView style={styles.mainContainer}>
         <KeyboardAvoidingView
+          enabled
           behavior={Platform.OS == 'ios' ? 'padding' : undefined}
           style={{flex: 1}}>
           <View style={styles.container}>
@@ -249,56 +251,58 @@ export default function RemeasurementForm({}: Props) {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
               }}>
-              <View>
-                {/* Toggle - used to decide whether the tree is alive or not */}
-                {/* and toggles the form field based on same */}
-                <View style={[styles.switchContainer, {marginBottom: 24}]}>
-                  <Text style={styles.switchText}>{i18next.t('label.tree_is_still_alive')}</Text>
-                  <Switch
-                    trackColor={{false: '#767577', true: '#d4e7b1'}}
-                    thumbColor={isTreeAlive ? Colors.PRIMARY : '#f4f3f4'}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => handleIsTreeAliveChange()}
-                    value={isTreeAlive}
-                  />
-                </View>
-
-                {/* If the tree is alive then shows height and diameter input fields */}
-                {/* Else shows the dead reason dropdown */}
-                {isTreeAlive ? (
-                  <MeasurementInputs
-                    height={height}
-                    heightError={heightError}
-                    handleHeightChange={handleHeightChange}
-                    diameter={diameter}
-                    diameterError={diameterError}
-                    handleDiameterChange={handleDiameterChange}
-                    diameterRef={diameterRef}
-                    isNonISUCountry={isNonISUCountry}
-                  />
-                ) : (
-                  <View style={styles.inputBox}>
-                    <Text style={styles.reasonText}>{i18next.t('label.cause_of_mortality')}</Text>
-                    <CustomDropDownPicker
-                      items={deadReasonOptions}
-                      open={showReasonOptions}
-                      setOpen={setShowReasonOptions}
-                      value={deadReason}
-                      setValue={setDeadReason}
-                      zIndex={3000}
-                      zIndexInverse={1000}
+              <ScrollView>
+                <View>
+                  {/* Toggle - used to decide whether the tree is alive or not */}
+                  {/* and toggles the form field based on same */}
+                  <View style={[styles.switchContainer, {marginBottom: 24}]}>
+                    <Text style={styles.switchText}>{i18next.t('label.tree_is_still_alive')}</Text>
+                    <Switch
+                      trackColor={{false: '#767577', true: '#d4e7b1'}}
+                      thumbColor={isTreeAlive ? Colors.PRIMARY : '#f4f3f4'}
+                      ios_backgroundColor="#3e3e3e"
+                      onValueChange={() => handleIsTreeAliveChange()}
+                      value={isTreeAlive}
                     />
                   </View>
-                )}
-              </View>
 
-              {/* shows the button to save the data */}
-              <View>
-                <PrimaryButton
-                  onPress={onPressMeasurementBtn}
-                  btnText={i18next.t('label.select_species_continue')}
-                />
-              </View>
+                  {/* If the tree is alive then shows height and diameter input fields */}
+                  {/* Else shows the dead reason dropdown */}
+                  {isTreeAlive ? (
+                    <MeasurementInputs
+                      height={height}
+                      heightError={heightError}
+                      handleHeightChange={handleHeightChange}
+                      diameter={diameter}
+                      diameterError={diameterError}
+                      handleDiameterChange={handleDiameterChange}
+                      diameterRef={diameterRef}
+                      isNonISUCountry={isNonISUCountry}
+                    />
+                  ) : (
+                    <View style={styles.inputBox}>
+                      <Text style={styles.reasonText}>{i18next.t('label.cause_of_mortality')}</Text>
+                      <CustomDropDownPicker
+                        items={deadReasonOptions}
+                        open={showReasonOptions}
+                        setOpen={setShowReasonOptions}
+                        value={deadReason}
+                        setValue={setDeadReason}
+                        zIndex={3000}
+                        zIndexInverse={1000}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* shows the button to save the data */}
+                <View>
+                  <PrimaryButton
+                    onPress={onPressMeasurementBtn}
+                    btnText={i18next.t('label.select_species_continue')}
+                  />
+                </View>
+              </ScrollView>
             </View>
           </View>
         </KeyboardAvoidingView>
