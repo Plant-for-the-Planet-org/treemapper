@@ -22,5 +22,6 @@
         "treemapper",
         "update"
     ],
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "java.configuration.updateBuildConfiguration": "disabled"
 }
