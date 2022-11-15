@@ -17,6 +17,7 @@ import FIcon from 'react-native-vector-icons/Fontisto';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import {APIConfig} from '../../actions/Config';
 import {setInventoryId, setRemeasurementId} from '../../actions/inventory';
+import {Loader} from '../../components/Common';
 import AlertModal from '../../components/Common/AlertModal';
 import Header from '../../components/Common/Header';
 import InputModal from '../../components/Common/InputModal';
@@ -314,7 +315,9 @@ export default function RemeasurementReview({}: Props) {
     ? [styles.detailHeader, styles.defaultFontColor]
     : [styles.detailHeader];
 
-  return (
+  return !HID ? (
+    <Loader isLoaderShow={true} />
+  ) : (
     <SafeAreaView style={styles.mainContainer}>
       <InputModal
         isOpenModal={isOpenModal}
