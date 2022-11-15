@@ -177,23 +177,7 @@ export const getAllInventoryFromServer = async (
 ): Promise<any> => {
   try {
     let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.0.3'});
-
-    // console.log(
-    //   data.data?.items,
-    //   // data?.data?.items.length,
-    //   // '=====Data=====',
-    //   // Object.keys(data),
-    //   // data.data.total,
-    //   // data.data.count,
-    //   // data.data._links,
-    //   // data.data._filters,
-    //   // '===',
-    //   // Object.keys(data.data),
-    //   // '++',
-    //   // Object.keys(data.data._links),
-    //   // Object.keys(data?.data?.items),
-    // );
-
+    
     dbLog.info({
       logType: LogTypes.DATA_SYNC,
       message: 'Successfully fetched all Inventories From server',

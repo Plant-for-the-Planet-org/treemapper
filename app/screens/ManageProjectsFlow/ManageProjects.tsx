@@ -11,15 +11,16 @@ interface ManageProjectsProps {}
 const ManageProjects = ({}: ManageProjectsProps) => {
   const navigation = useNavigation();
 
-  const onProjectPress = (id: string) => {
-    // navigation.navigate('ProjectConfig', { projectId: id });
-  };
+  // const onProjectPress = (id: string) => {
+  //   // navigation.navigate('ProjectConfig', { projectId: id });
+  // };
+  
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
         <Header headingText={i18next.t('label.manage_projects')} />
 
-        <ProjectList isSelectable={true} onProjectPress={onProjectPress} />
+        <ProjectList isSelectable={true} />
       </View>
     </SafeAreaView>
   );
