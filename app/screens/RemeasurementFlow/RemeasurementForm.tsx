@@ -260,7 +260,6 @@ export default function RemeasurementForm({}: Props) {
                     }
                   : {}
               }>
-              {/* <ScrollView> */}
               <View>
                 {/* Toggle - used to decide whether the tree is alive or not */}
                 {/* and toggles the form field based on same */}
@@ -314,14 +313,12 @@ export default function RemeasurementForm({}: Props) {
                 )}
               </View>
 
-              {/* shows the button to save the data */}
               {!isTreeAlive && (
                 <PrimaryButton
                   onPress={onPressMeasurementBtn}
                   btnText={i18next.t('label.select_species_continue')}
                 />
               )}
-              {/* </ScrollView> */}
             </View>
           </View>
         </KeyboardAvoidingView>
