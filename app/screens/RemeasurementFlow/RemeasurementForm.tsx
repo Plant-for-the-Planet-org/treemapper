@@ -250,13 +250,17 @@ export default function RemeasurementForm({}: Props) {
 
             {/* shows the form layout */}
 
-            <ScrollView
-              contentContainerStyle={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}>
-              {/* <View> */}
+            <View
+              style={
+                !isTreeAlive
+                  ? {
+                      flex: 1,
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }
+                  : {}
+              }>
+              {/* <ScrollView> */}
               <View>
                 {/* Toggle - used to decide whether the tree is alive or not */}
                 {/* and toggles the form field based on same */}
@@ -273,42 +277,52 @@ export default function RemeasurementForm({}: Props) {
                 {/* If the tree is alive then shows height and diameter input fields */}
                 {/* Else shows the dead reason dropdown */}
                 {isTreeAlive ? (
-                  <MeasurementInputs
-                    height={height}
-                    heightError={heightError}
-                    handleHeightChange={handleHeightChange}
-                    diameter={diameter}
-                    diameterError={diameterError}
-                    handleDiameterChange={handleDiameterChange}
-                    diameterRef={diameterRef}
-                    isNonISUCountry={isNonISUCountry}
-                  />
-                ) : (
-                  <View style={styles.inputBox}>
-                    <Text style={styles.reasonText}>{i18next.t('label.cause_of_mortality')}</Text>
-
-                    <CustomDropDownPicker
-                      items={deadReasonOptions}
-                      open={showReasonOptions}
-                      setOpen={setShowReasonOptions}
-                      value={deadReason}
-                      setValue={setDeadReason}
-                      zIndex={3000}
-                      zIndexInverse={1000}
+                  <ScrollView>
+                    <MeasurementInputs
+                      height={height}
+                      heightError={heightError}
+                      handleHeightChange={handleHeightChange}
+                      diameter={diameter}
+                      diameterError={diameterError}
+                      handleDiameterChange={handleDiameterChange}
+                      diameterRef={diameterRef}
+                      isNonISUCountry={isNonISUCountry}
                     />
+                    <View style={{marginTop: 24}}>
+                      <PrimaryButton
+                        onPress={onPressMeasurementBtn}
+                        btnText={i18next.t('label.select_species_continue')}
+                      />
+                    </View>
+                  </ScrollView>
+                ) : (
+                  <View>
+                    <View style={styles.inputBox}>
+                      <Text style={styles.reasonText}>{i18next.t('label.cause_of_mortality')}</Text>
+
+                      <CustomDropDownPicker
+                        items={deadReasonOptions}
+                        open={showReasonOptions}
+                        setOpen={setShowReasonOptions}
+                        value={deadReason}
+                        setValue={setDeadReason}
+                        zIndex={3000}
+                        zIndexInverse={1000}
+                      />
+                    </View>
                   </View>
                 )}
               </View>
 
               {/* shows the button to save the data */}
-              <View>
+              {!isTreeAlive && (
                 <PrimaryButton
                   onPress={onPressMeasurementBtn}
                   btnText={i18next.t('label.select_species_continue')}
                 />
-              </View>
-              {/* </View> */}
-            </ScrollView>
+              )}
+              {/* </ScrollView> */}
+            </View>
           </View>
         </KeyboardAvoidingView>
 
