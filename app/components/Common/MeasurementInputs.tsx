@@ -1,9 +1,9 @@
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
-import { Typography, Colors } from '../../styles';
-import { DBHInMeter, meterToFoot } from '../../utils/constants';
-import { getConvertedHeight } from '../../utils/measurements';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Switch, Text, View, Keyboard} from 'react-native';
+import {Typography, Colors} from '../../styles';
+import {DBHInMeter, meterToFoot} from '../../utils/constants';
+import {getConvertedHeight} from '../../utils/measurements';
 import OutlinedInput from './OutlinedInput';
 
 type Props = {
@@ -80,7 +80,7 @@ const MeasurementInputs = ({
         </View>
       </View>
 
-      <View style={[styles.inputBox, { zIndex: 1 }]}>
+      <View style={[styles.inputBox, {zIndex: 1}]}>
         <View>
           <OutlinedInput
             value={diameter}
@@ -90,8 +90,8 @@ const MeasurementInputs = ({
             rightText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
             error={diameterError}
             ref={diameterRef}
-            returnKeyType={'default'}
-            onSubmitEditing={() => {}}
+            returnKeyType={'done'}
+            onSubmitEditing={Keyboard.dismiss}
             showInfo={true}
             infoText={i18next.t('label.measurement_diameter_info', {
               height: isNonISUCountry
@@ -110,7 +110,7 @@ const MeasurementInputs = ({
               {i18next.t('label.select_species_tagged_for_identification')}
             </Text>
             <Switch
-              trackColor={{ false: '#767577', true: '#d4e7b1' }}
+              trackColor={{false: '#767577', true: '#d4e7b1'}}
               thumbColor={isTagIdPresent ? Colors.PRIMARY : '#f4f3f4'}
               ios_backgroundColor="#3e3e3e"
               onValueChange={() => setIsTagIdPresent(!isTagIdPresent)}
