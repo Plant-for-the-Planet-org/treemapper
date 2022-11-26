@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import i18next from 'i18next';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import {useInventory} from '../../reducers/inventory';
 import {setFetchNecessaryInventoryFlag} from '../../actions/inventory';
@@ -39,8 +40,8 @@ export const InventoryTypeSelector = () => {
   }, [selectedInvType]);
 
   const inventoryTypeOption = [
-    {label: 'Fetch all Items', value: InventoryType.AllItems},
-    {label: 'Fetch Necessary Items', value: InventoryType.NecessaryItems},
+    {label: i18next.t('label.fetch_all_items'), value: InventoryType.AllItems},
+    {label: i18next.t('label.fetch_necessary_items'), value: InventoryType.NecessaryItems},
   ];
 
   return (

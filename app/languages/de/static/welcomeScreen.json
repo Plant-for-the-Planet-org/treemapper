@@ -1,5 +1,7 @@
 {
   "login": "Anmelden / Registrieren",
+  "fetch_all_items": "Lade alle Einträge",
+  "fetch_necessary_items": "Lade notwendige Einträge",
   "tree_mapper": "TreeMapper",
   "tree_inventory": "Baumbestand",
   "tree_inventory_sub_header": "von Entwürfen und offenen Registrierungen",
