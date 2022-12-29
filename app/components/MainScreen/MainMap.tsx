@@ -325,6 +325,25 @@ const MainMap = ({
     setInventoryId('')(dispatch);
   };
 
+  const onPressLocationAlertPrimaryBtn = () => {
+    setIsLocationAlertShow(false);
+    if (IS_ANDROID) {
+      updateCurrentPosition();
+    } else {
+      Linking.openURL('app-settings:');
+    }
+  };
+
+  const onPressLocationAlertSecondaryBtn = () => setIsLocationAlertShow(false);
+
+  const onPressPerBlockedAlertPrimaryBtn = () => {};
+  const onPressPerBlockedAlertSecondaryBtn = () => {
+    BackHandler.exitApp();
+  };
+
+  const onPressPerDeniedAlertPrimaryBtn = () => checkPermission();
+  const onPressPerDeniedAlertSecondaryBtn = () => checkPermission();
+
   return (
     <View style={styles.container}>
       <GeoJSONMap
@@ -358,32 +377,23 @@ const MainMap = ({
         message={i18next.t('label.location_service_message')}
         primaryBtnText={IS_ANDROID ? i18next.t('label.ok') : i18next.t('label.open_settings')}
         secondaryBtnText={i18next.t('label.back')}
-        onPressPrimaryBtn={() => {
-          setIsLocationAlertShow(false);
-          if (IS_ANDROID) {
-            updateCurrentPosition();
-          } else {
-            Linking.openURL('app-settings:');
-          }
-        }}
-        onPressSecondaryBtn={() => setIsLocationAlertShow(false)}
+        onPressPrimaryBtn={onPressLocationAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressLocationAlertSecondaryBtn}
         showSecondaryButton={true}
       />
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlocked}
         setIsPermissionBlockedAlertShow={setIsPermissionBlocked}
         message={i18next.t('label.need_location_permission_to_continue')}
-        onPressPrimaryBtn={() => {}}
-        onPressSecondaryBtn={() => {
-          BackHandler.exitApp();
-        }}
+        onPressPrimaryBtn={onPressPerBlockedAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressPerBlockedAlertSecondaryBtn}
       />
       <PermissionDeniedAlert
         isPermissionDeniedAlertShow={isPermissionDenied}
         setIsPermissionDeniedAlertShow={setIsPermissionDenied}
         message={i18next.t('label.need_location_permission_to_continue')}
-        onPressPrimaryBtn={() => checkPermission()}
-        onPressSecondaryBtn={() => checkPermission()}
+        onPressPrimaryBtn={onPressPerDeniedAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressPerDeniedAlertSecondaryBtn}
       />
 
       {/* shows the back button when plant location is selected */}

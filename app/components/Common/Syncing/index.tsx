@@ -151,8 +151,4 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
-  progressText: {
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
 });

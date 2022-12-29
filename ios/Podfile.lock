@@ -769,7 +769,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNInAppBrowser: 3ff3a3b8f458aaf25aaee879d057352862edf357
   RNLocalize: 7c7aeda16c01db7a0918981c14875c0a53be9b79
-  RNReanimated: 007daf4d5afbe8db38df833e397dc5a2126c8ab5
+  RNReanimated: 249d847e8afee85e6dde0c49221bc284c235cfb9
   RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
   RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
   RNSnackbar: be3333a21a453ccc272f41a8add5a71f7d44dfcd

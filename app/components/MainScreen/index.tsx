@@ -1,27 +1,27 @@
-import {useNetInfo} from '@react-native-community/netinfo';
-import {useNavigation} from '@react-navigation/core';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
-import React, {useContext, useEffect, useState} from 'react';
-import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import {updateCount} from '../../actions/inventory';
-import {startLoading, stopLoading} from '../../actions/loader';
-import {auth0Login, auth0Logout, clearUserDetails, setUserDetails} from '../../actions/user';
-import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
-import {LoadingContext} from '../../reducers/loader';
-import {UserContext} from '../../reducers/user';
-import {getSchema} from '../../repositories/default';
+import { updateCount } from '../../actions/inventory';
+import { startLoading, stopLoading } from '../../actions/loader';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
+import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { LoadingContext } from '../../reducers/loader';
+import { UserContext } from '../../reducers/user';
+import { getSchema } from '../../repositories/default';
 import {
   clearAllUploadedInventory,
   getInventoryCount,
   updateMissingDataStatus,
 } from '../../repositories/inventory';
-import {getAllProjects} from '../../repositories/projects';
-import {shouldSpeciesUpdate} from '../../repositories/species';
-import {getUserDetails} from '../../repositories/user';
-import {Colors, Typography} from '../../styles';
-import {PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT} from '../../utils/inventoryConstants';
-import {AlertModal, Sync} from '../Common';
+import { getAllProjects } from '../../repositories/projects';
+import { shouldSpeciesUpdate } from '../../repositories/species';
+import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
+import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
+import { AlertModal, Sync } from '../Common';
 import RotatingView from '../Common/RotatingView';
 import ProfileModal from '../ProfileModal';
 import BottomBar from './BottomBar';
@@ -30,6 +30,7 @@ import MainMap from './MainMap';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
 
 const IS_ANDROID = Platform.OS === 'android';
+const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -55,9 +56,9 @@ export default function MainScreen() {
   // used to store and focus on the center of the bounding box of the selected site
   const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
-  const {state, dispatch} = useContext(InventoryContext);
-  const {dispatch: userDispatch} = useContext(UserContext);
-  const {state: loadingState, dispatch: loadingDispatch} = useContext(LoadingContext);
+  const { state, dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -198,7 +199,7 @@ export default function MainScreen() {
 
   const fetchInventoryCount = () => {
     getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
-      updateCount({type: PENDING_DATA_UPLOAD, count})(dispatch);
+      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
     });
     getInventoryCount().then(count => {
       setNumberOfInventory(count);
@@ -255,6 +256,14 @@ export default function MainScreen() {
     }
   };
 
+  const onBottomBarMenuPress = () => setIsProfileModalVisible(true);
+  const onTreeInventoryPress = () => navigation.navigate('TreeInventory');
+  const onPressCloseProfileModal = () => closeProfileModal();
+  const onPressPrimaryBtn = () => {
+    setOfflineModal(false);
+    closeProfileModal();
+  };
+
   const topValue = Platform.OS === 'ios' ? 50 : 25;
 
   return (
@@ -270,13 +279,8 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={{position: 'absolute', top: topValue, left: 25, right: 25}}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-              }}>
+          <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
+            <View style={styles.mainMapHeader}>
               <Sync
                 uploadCount={state.uploadCount}
                 pendingCount={state.pendingCount}
@@ -305,13 +309,13 @@ export default function MainScreen() {
               )}
             </View>
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
-              <View style={[styles.fetchPlantLocationContainer, {zIndex: IS_ANDROID ? 0 : -1}]}>
-                <View style={{marginRight: 16}}>
+              <View style={[styles.fetchPlantLocationContainer, FETCH_PLANT_LOCATION_ZINDEX]}>
+                <View style={styles.syncIconContainer}>
                   <RotatingView isClockwise={true}>
                     <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
                   </RotatingView>
                 </View>
-                <View style={{flex: 1}}>
+                <View style={styles.syncTextContainer}>
                   <Text style={styles.text}>
                     {i18next.t('label.plant_location_fetch_in_progress')}
                   </Text>
@@ -323,8 +327,8 @@ export default function MainScreen() {
           </View>
           <SafeAreaView>
             <BottomBar
-              onMenuPress={() => setIsProfileModalVisible(true)}
-              onTreeInventoryPress={() => navigation.navigate('TreeInventory')}
+              onMenuPress={onBottomBarMenuPress}
+              onTreeInventoryPress={onTreeInventoryPress}
               numberOfInventory={numberOfInventory}
             />
           </SafeAreaView>
@@ -335,7 +339,7 @@ export default function MainScreen() {
 
       <ProfileModal
         isProfileModalVisible={isProfileModalVisible}
-        onPressCloseProfileModal={() => closeProfileModal()}
+        onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
       />
@@ -344,10 +348,7 @@ export default function MainScreen() {
         heading={i18next.t('label.network_error')}
         message={i18next.t('label.network_error_message')}
         primaryBtnText={i18next.t('label.ok')}
-        onPressPrimaryBtn={() => {
-          setOfflineModal(false);
-          closeProfileModal();
-        }}
+        onPressPrimaryBtn={onPressPrimaryBtn}
       />
     </>
   );
@@ -369,5 +370,21 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
+  },
+  mainMapHeaderContainer: {
+    position: 'absolute',
+    left: 25,
+    right: 25,
+  },
+  mainMapHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  syncIconContainer: {
+    marginRight: 16,
+  },
+  syncTextContainer: {
+    flex: 1,
   },
 });
