@@ -15,6 +15,7 @@ import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 
 const Stack = createStackNavigator();
 const isAndroid = Platform.OS === 'android';
+const screenOptions = { headerShown: false };
 
 export default function AppNavigator() {
   const { showInitialStack } = useContext(NavigationContext);
@@ -59,7 +60,7 @@ export default function AppNavigator() {
         backgroundColor={Colors.PRIMARY}
         barStyle={isAndroid ? 'light-content' : 'dark-content'}
       />
-      <Stack.Navigator headerMode="none">
+      <Stack.Navigator screenOptions={screenOptions}>
         {showInitialStack ? (
           <Stack.Screen name="InitialLoading" component={InitialLoadingNavigator} />
         ) : (
