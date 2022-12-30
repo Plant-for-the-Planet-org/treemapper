@@ -1,14 +1,16 @@
-import RNFS, { DocumentDirectoryPath } from 'react-native-fs';
-import { updateAndSyncLocalSpecies as updateAndSyncLocalSpeciesRepo } from '../repositories/species';
 import { unzip } from 'react-native-zip-archive';
-import { APIConfig } from '../actions/Config';
-import AsyncStorage from '@react-native-community/async-storage';
-import dbLog from '../repositories/logs';
-import { LogTypes } from './constants';
+import RNFS, { DocumentDirectoryPath } from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { bugsnag } from '../utils';
+import { LogTypes } from './constants';
+import dbLog from '../repositories/logs';
+import { APIConfig } from '../actions/Config';
 import shouldUpdateSpeciesSync, {
   setSpeciesSyncUpdateDate,
 } from './ScientificSpecies/shouldUpdateSpeciesSync';
+import { updateAndSyncLocalSpecies as updateAndSyncLocalSpeciesRepo } from '../repositories/species';
+
 const { protocol, url } = APIConfig;
 
 /**
@@ -44,7 +46,7 @@ const updateSpeciesFromFile = (
             }
             resolve(true);
           })
-          .catch((err) => {
+          .catch(err => {
             console.error(
               'Error at /utils/updateSpeciesFromFile/updateAndSyncLocalSpeciesRepo while updating local species',
               err,
@@ -52,7 +54,7 @@ const updateSpeciesFromFile = (
             reject(err);
           });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(
           `Error at /utils/updateSpeciesFromFile while reading file at path ${jsonFilePath}`,
           err,
@@ -68,7 +70,7 @@ const updateSpeciesFromFile = (
               });
             })
             // `unlink` will throw an error, if the item to unlink does not exist
-            .catch((err) => {
+            .catch(err => {
               console.error(
                 `Error at /utils/updateSpeciesFromFile while deleting file at path ${jsonFilePath}`,
                 err,
@@ -155,7 +157,7 @@ export default async function updateAndSyncLocalSpecies(
             .then(() => {
               resolve(true);
             })
-            .catch((error) => {
+            .catch(error => {
               console.error(
                 'Error at /utils/updateAndSyncLocalSpecies - updateSpeciesFromFile',
                 error.message,
@@ -270,7 +272,7 @@ const unzipAndAddSpeciesData = (
           .then(resolve)
           .catch(reject);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error at /utils/unzipAndAddSpeciesData', err.message);
 
         // if there's error while unzipping the file
@@ -284,7 +286,7 @@ const unzipAndAddSpeciesData = (
               });
             })
             // `unlink` will throw an error, if the item to unlink does not exist
-            .catch((err) => {
+            .catch(err => {
               console.error(
                 `Error at /utils/unzipAndAddSpeciesData while deleting file at path ${zipFilePath}`,
                 err,
@@ -336,7 +338,7 @@ const downloadAndUpdateSpecies = (
         }
       },
     })
-      .promise.then(async (response) => {
+      .promise.then(async response => {
         // if response is 200 then unzips the file and adds the species in local DB
         if (response.statusCode === 200) {
           dbLog.info({
@@ -366,7 +368,7 @@ const downloadAndUpdateSpecies = (
           reject(new Error('Error while downloading scientific species zip'));
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error while downloading a file
         console.error('Error at /utils/updateAndSyncLocalSpecies - downloadFile', err);
         dbLog.error({

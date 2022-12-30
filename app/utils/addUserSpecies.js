@@ -1,18 +1,19 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   addUserSpecie,
   getSpeciesList,
   deleteUserSpecie,
   updateUserSpecie,
 } from '../actions/species';
-import { bugsnag } from './index';
-import dbLog from '../repositories/logs';
 import {
-  updateAndGetUserSpeciesToSync,
-  addSpecieIdFromSyncedSpecie,
   removeSpecieId,
+  addSpecieIdFromSyncedSpecie,
+  updateAndGetUserSpeciesToSync,
 } from '../repositories/species';
+import { bugsnag } from './index';
 import { LogTypes } from './constants';
-import AsyncStorage from '@react-native-community/async-storage';
+import dbLog from '../repositories/logs';
 /**
  * This function first checks if the scientific species are updated in local DB then only checks
  * for already uploaded species of user from server and updates the status of same in local DB.
@@ -35,12 +36,12 @@ export const checkAndAddUserSpecies = async () => {
       if (isSpeciesLoaded === 'true') {
         // gets all the user species synced on the server
         getSpeciesList()
-          .then(async (alreadySyncedSpecies) => {
+          .then(async alreadySyncedSpecies => {
             // passes already synced species fetched from server to update the local species and gets the
             // local species which are not uploaded to server
 
             updateAndGetUserSpeciesToSync(isFirstUpdate ? alreadySyncedSpecies : null)
-              .then((speciesToSync) => {
+              .then(speciesToSync => {
                 // checks if [speciesToSync] is present and has data to iterate
                 if (speciesToSync) {
                   // adds or deletes the species
@@ -60,7 +61,7 @@ export const checkAndAddUserSpecies = async () => {
                   });
                 }
               })
-              .catch((err) => {
+              .catch(err => {
                 console.error(
                   `Error at /utils/addUserSpecies/checkAndAddUserSpecies - getSpeciesList/updateAndGetUserSpeciesToSync, ${JSON.stringify(
                     err,
@@ -69,7 +70,7 @@ export const checkAndAddUserSpecies = async () => {
                 reject(err);
               });
           })
-          .catch((err) => {
+          .catch(err => {
             console.error(
               `Error at /utils/addUserSpecies/checkAndAddUserSpecies - getSpeciesList, ${JSON.stringify(
                 err,
@@ -131,12 +132,12 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
   let areSpeciesDeleted = false;
   let areSpeciesUpdated = false;
 
-  const areAllSpeciesUpdated = (resolve) => {
+  const areAllSpeciesUpdated = resolve => {
     if (areSpeciesAdded && areSpeciesDeleted && areSpeciesUpdated) {
       resolve(true);
     }
   };
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // iterates through the list of [speciesToSync] to add the specie on server and if result is success
     // then updates the [isUploaded] property in local DB to [true] else logs the error
     if (speciesToSync) {
@@ -154,7 +155,7 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
               areAllSpeciesUpdated(resolve);
             }
           })
-          .catch((err) => console.error(err));
+          .catch(err => console.error(err));
       });
       speciesToSync.speciesToDelete.forEach(async (specie, index) => {
         deleteUserSpecieFromServer(specie)
@@ -164,7 +165,7 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
               areAllSpeciesUpdated(resolve);
             }
           })
-          .catch((err) => console.error(err));
+          .catch(err => console.error(err));
       });
       speciesToSync.speciesToUpdate.forEach(async (specie, index) => {
         if (specie.specieId) {
@@ -181,7 +182,7 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
                 areAllSpeciesUpdated(resolve);
               }
             })
-            .catch((err) => {
+            .catch(err => {
               console.error('Failed to update specie with id', specie.specieId);
             });
         }
@@ -213,13 +214,13 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
     }
     // calls the api function with user token and specie to add specie on the server
     addUserSpecie(specieData)
-      .then((result) => {
+      .then(result => {
         if (result) {
           addSpecieIdFromSyncedSpecie(specie.guid, result)
-            .then((val) => {
+            .then(val => {
               resolve(true);
             })
-            .catch((err) => {
+            .catch(err => {
               console.error(
                 `Error at /utils/addUserSpecies/addUserSpecieToServer, ${JSON.stringify(err)}`,
               );
@@ -234,7 +235,7 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
           });
         }
       })
-      .catch((err) => {
+      .catch(err => {
         if (
           err?.response?.status === 400 &&
           err.response.data?.errors &&
@@ -269,15 +270,15 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
  *
  * @param {object} specie - user specie which is to be deleted from the server
  */
-export const deleteUserSpecieFromServer = (specie) => {
+export const deleteUserSpecieFromServer = specie => {
   return new Promise((resolve, reject) => {
     // calls the api function with user token and specie to delete the specie from the server
     deleteUserSpecie(specie.specieId)
-      .then((result) => {
+      .then(result => {
         if (result) {
           removeSpecieId(specie.guid)
             .then(resolve)
-            .catch((err) => {
+            .catch(err => {
               console.error('Error at /utils/addUserSpecies/deleteUserSpecieFromServer,', err);
               reject(err);
             });
@@ -290,7 +291,7 @@ export const deleteUserSpecieFromServer = (specie) => {
           resolve();
         }
       })
-      .catch((err) => {
+      .catch(err => {
         if (err?.response?.status === 404) {
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
@@ -298,7 +299,7 @@ export const deleteUserSpecieFromServer = (specie) => {
           });
           removeSpecieId(specie.guid)
             .then(resolve)
-            .catch((err) => {
+            .catch(err => {
               console.error('Error at /utils/addUserSpecies/deleteUserSpecieFromServer,', err);
               reject(err);
             });

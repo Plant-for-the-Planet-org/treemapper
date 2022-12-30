@@ -1,35 +1,37 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
+import { useNavigation } from '@react-navigation/core';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { useNetInfo } from '@react-native-community/netinfo';
 import React, { useContext, useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { updateCount } from '../../actions/inventory';
-import { startLoading, stopLoading } from '../../actions/loader';
-import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { LoadingContext } from '../../reducers/loader';
-import { UserContext } from '../../reducers/user';
-import { getSchema } from '../../repositories/default';
+
 import {
-  clearAllUploadedInventory,
   getInventoryCount,
   updateMissingDataStatus,
+  clearAllUploadedInventory,
 } from '../../repositories/inventory';
-import { getAllProjects } from '../../repositories/projects';
-import { shouldSpeciesUpdate } from '../../repositories/species';
-import { getUserDetails } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
-import { AlertModal, Sync } from '../Common';
-import RotatingView from '../Common/RotatingView';
-import ProfileModal from '../ProfileModal';
+import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
-import MainMap from './MainMap';
+import ProfileModal from '../ProfileModal';
+import { AlertModal, Sync } from '../Common';
+import { UserContext } from '../../reducers/user';
+import RotatingView from '../Common/RotatingView';
+import { Colors, Typography } from '../../styles';
+import { updateCount } from '../../actions/inventory';
+import { LoadingContext } from '../../reducers/loader';
+import { getSchema } from '../../repositories/default';
+import { getUserDetails } from '../../repositories/user';
+import { getAllProjects } from '../../repositories/projects';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+import { startLoading, stopLoading } from '../../actions/loader';
+import { shouldSpeciesUpdate } from '../../repositories/species';
+import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 
 const IS_ANDROID = Platform.OS === 'android';
+const topValue = Platform.OS === 'ios' ? 50 : 25;
 const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 
 export default function MainScreen() {
@@ -263,8 +265,6 @@ export default function MainScreen() {
     setOfflineModal(false);
     closeProfileModal();
   };
-
-  const topValue = Platform.OS === 'ios' ? 50 : 25;
 
   return (
     <>

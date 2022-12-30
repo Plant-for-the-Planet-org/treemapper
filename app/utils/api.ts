@@ -1,17 +1,18 @@
-import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
+import { v4 as uuidv4 } from 'uuid';
 import { Platform } from 'react-native';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
-import { name as packageName, version } from '../../package.json';
-import { APIConfig } from '../actions/Config';
-import { checkErrorCode, getNewAccessToken } from '../actions/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { bugsnag } from './index';
+import { LogTypes } from './constants';
 import dbLog from '../repositories/logs';
+import { APIConfig } from '../actions/Config';
 import { getUserDetails } from '../repositories/user';
 import { isInternetConnected } from './checkInternet';
-import { LogTypes } from './constants';
-import { bugsnag } from './index';
+import { name as packageName, version } from '../../package.json';
+import { checkErrorCode, getNewAccessToken } from '../actions/user';
 
 const { protocol, url: baseURL } = APIConfig;
 
@@ -22,7 +23,7 @@ const axiosInstance = axios.create({
 
 // Add a request interceptor which adds the configuration in all the requests
 axiosInstance.interceptors.request.use(
-  async (config) => {
+  async config => {
     // stores the session id present in AsyncStorage
     let sessionId: any = await AsyncStorage.getItem('session-id');
 
@@ -41,13 +42,13 @@ axiosInstance.interceptors.request.use(
     config.headers['User-Agent'] = packageName + '/' + Platform.OS + '/' + version;
     return config;
   },
-  (error) => {
+  error => {
     console.error('Error while setting up axios request interceptor,', error);
   },
 );
 
 // Add a response interceptor which checks for error code for all the requests
-axiosInstance.interceptors.response.use(undefined, async (err) => {
+axiosInstance.interceptors.response.use(undefined, async err => {
   // stores the original request (later used to retry the request)
   let originalRequest = err.config;
   const networkConnection = await isInternetConnected();
@@ -106,7 +107,7 @@ const request = async ({
     // if request needs to be authenticated the Authorization is added in headers.
     // if access token is not present then throws error for the same
     if (isAuthenticated) {
-      getUserDetails().then(async (userDetails) => {
+      getUserDetails().then(async userDetails => {
         if (!userDetails) {
           return new Error('User details are not available.');
         }
@@ -135,7 +136,7 @@ const request = async ({
       // returns a promise with axios instance
       axiosInstance(options).then(resolve).catch(reject);
     }
-  }).catch((err) => {
+  }).catch(err => {
     console.error(`Error while making ${method} request,`, {
       url,
       isAuthenticated,

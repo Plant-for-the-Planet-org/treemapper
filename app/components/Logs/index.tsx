@@ -1,27 +1,28 @@
-import { useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
+import i18next from 'i18next';
 import Share from 'react-native-share';
 import { TabView } from 'react-native-tab-view';
-import { version } from '../../../package.json';
-import dbLog, { getLogs } from '../../repositories/logs';
-import { Colors, Typography } from '../../styles';
-import { toBase64 } from '../../utils/base64';
-import { LogTypes } from '../../utils/constants';
-import { askExternalStoragePermission } from '../../utils/permissions';
-import { AlertModal, Loader } from '../Common';
-import CustomTabBar from '../Common/CustomTabBar';
+import React, { useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+
 import Header from '../Common/Header';
+import { toBase64 } from '../../utils/base64';
+import { AlertModal, Loader } from '../Common';
+import { version } from '../../../package.json';
+import { LogTypes } from '../../utils/constants';
 import IconSwitcher from '../Common/IconSwitcher';
+import { Colors, Typography } from '../../styles';
+import CustomTabBar from '../Common/CustomTabBar';
+import dbLog, { getLogs } from '../../repositories/logs';
+import { askExternalStoragePermission } from '../../utils/permissions';
 
 interface IRenderSceneProps {
   route: {
@@ -51,10 +52,10 @@ const AllLogs = ({ allData, setAllData }: { allData: any; setAllData: any }) => 
   return (
     <View style={[styles.scene, styles.defaultSpacing]}>
       <FlatList
-        style={{ flex: 1 }}
         data={allData}
+        style={styles.scene}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -68,10 +69,10 @@ const ErrorLogs = ({ errorData, setErrorData }: { errorData: any; setErrorData: 
   return (
     <View style={[styles.scene, styles.defaultSpacing]}>
       <FlatList
-        style={{ flex: 1 }}
         data={errorData}
+        style={styles.scene}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -118,8 +119,9 @@ export default function Logs() {
 
       Share.open(options)
         .then(() => setCreatingLogsFile(false))
-        .catch((err) => {
-          if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+        .catch(err => {
+          if (err?.error?.code != 'ECANCELLED500') {
+            // iOS cancel button pressed
             setShowAlert(true);
             dbLog.error({
               logType: LogTypes.OTHER,
@@ -131,6 +133,24 @@ export default function Logs() {
         });
     }
   };
+
+  const titleRightComponent = () => (
+    <TouchableOpacity onPress={handleSharePress} style={styles.titleRightComponent}>
+      <IconSwitcher
+        size={24}
+        iconType={'MCIcon'}
+        name={'share-variant'}
+        color={Colors.TEXT_COLOR}
+      />
+    </TouchableOpacity>
+  );
+
+  const renderTabBar = (props: any) => (
+    <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
+  );
+
+  const handleBackPress = () => navigation.goBack();
+  const handlePressPrimaryBtn = () => setShowAlert(false);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -145,28 +165,17 @@ export default function Logs() {
             <Header
               closeIcon
               headingText={i18next.t('label.activity_logs')}
-              onBackPress={() => navigation.goBack()}
-              TitleRightComponent={() => (
-                <TouchableOpacity onPress={handleSharePress} style={{ padding: 8 }}>
-                  <IconSwitcher
-                    name={'share-variant'}
-                    size={24}
-                    color={Colors.TEXT_COLOR}
-                    iconType={'MCIcon'}
-                  />
-                </TouchableOpacity>
-              )}
+              onBackPress={handleBackPress}
+              TitleRightComponent={titleRightComponent}
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={styles.scene}>
             <TabView
               navigationState={{ index: routeIndex, routes: tabRoutes }}
               renderScene={renderScene}
               onIndexChange={setRouteIndex}
               initialLayout={initialLayout}
-              renderTabBar={(props) => (
-                <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
-              )}
+              renderTabBar={renderTabBar}
             />
           </View>
           <AlertModal
@@ -174,7 +183,7 @@ export default function Logs() {
             heading={i18next.t('label.something_went_wrong')}
             message={i18next.t('label.share_additional_data_error')}
             primaryBtnText={i18next.t('label.ok')}
-            onPressPrimaryBtn={() => setShowAlert(false)}
+            onPressPrimaryBtn={handlePressPrimaryBtn}
           />
         </>
       )}
@@ -199,5 +208,8 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_20,
     color: Colors.TEXT_COLOR,
     paddingVertical: 5,
+  },
+  titleRightComponent: {
+    padding: 8,
   },
 });
