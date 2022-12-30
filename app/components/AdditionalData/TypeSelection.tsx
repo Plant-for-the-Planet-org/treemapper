@@ -1,7 +1,8 @@
-import CheckBox from '@react-native-community/checkbox';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import CheckBox from '@react-native-community/checkbox';
+
 import { Colors, Typography } from '../../styles';
 import { MULTI, OFF_SITE, ON_SITE, REVIEW, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
 
@@ -224,7 +225,7 @@ const CheckBoxGroup = ({ title, checkBoxes, toggleCheckBox }: ICheckBoxGroupProp
               }}
               disabled={checkBox.isDisabled}
               value={checkBox.isSelected}
-              onValueChange={(newValue) => toggleCheckBox(checkBox.type, newValue)}
+              onValueChange={newValue => toggleCheckBox(checkBox.type, newValue)}
             />
             <Text style={styles.checkboxText}>{checkBox.name}</Text>
           </View>
