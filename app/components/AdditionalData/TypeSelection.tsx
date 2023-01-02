@@ -3,8 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 
+import {
+  MULTI,
+  SAMPLE,
+  SINGLE,
+  ON_SITE,
+  OFF_SITE,
+  REMEASUREMENT,
+} from '../../utils/inventoryConstants';
 import { Colors, Typography } from '../../styles';
-import { MULTI, OFF_SITE, ON_SITE, REVIEW, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
 
 interface ITypeSelectionProps {
   selectedTreeType: any;
@@ -36,7 +43,12 @@ export default function TypeSelection({
   const registrationTypesInitialState = [
     { type: ON_SITE, isSelected: false, isDisabled: false, name: i18next.t('label.on_site') },
     { type: OFF_SITE, isSelected: false, isDisabled: false, name: i18next.t('label.off_site') },
-    // { type: 'REVIEW', isSelected: false, isDisabled: false, name: i18next.t('label.review') },
+    {
+      type: REMEASUREMENT,
+      isSelected: false,
+      isDisabled: false,
+      name: i18next.t('label.remeasurement'),
+    },
   ];
 
   const [registrationTypeCheckBoxes, setRegistrationTypeCheckBoxes] = useState<any>(
@@ -131,11 +143,13 @@ export default function TypeSelection({
       for (const i in updatedTreeBoxes) {
         switch (updatedTreeBoxes[i].type) {
           case SAMPLE:
-            updatedTreeBoxes[i].isSelected = registrationTypes.includes(ON_SITE)
-              ? treeCheckBoxes[i].isSelected
-              : false;
+            updatedTreeBoxes[i].isSelected =
+              registrationTypes.includes(ON_SITE) || registrationTypes.includes(REMEASUREMENT)
+                ? treeCheckBoxes[i].isSelected
+                : false;
 
-            updatedTreeBoxes[i].isDisabled = !registrationTypes.includes(ON_SITE);
+            updatedTreeBoxes[i].isDisabled =
+              !registrationTypes.includes(ON_SITE) && !registrationTypes.includes(REMEASUREMENT);
             break;
           case MULTI:
             updatedTreeBoxes[i].isSelected =
@@ -146,20 +160,12 @@ export default function TypeSelection({
             updatedTreeBoxes[i].isDisabled =
               !registrationTypes.includes(ON_SITE) &&
               !registrationTypes.includes(OFF_SITE) &&
-              registrationTypes.includes(REVIEW);
+              registrationTypes.includes(REMEASUREMENT);
             break;
           case SINGLE:
-            updatedTreeBoxes[i].isSelected =
-              !registrationTypes.includes(ON_SITE) &&
-              !registrationTypes.includes(OFF_SITE) &&
-              registrationTypes.includes(REVIEW)
-                ? true
-                : treeCheckBoxes[i].isSelected;
+            updatedTreeBoxes[i].isSelected = treeCheckBoxes[i].isSelected;
 
-            updatedTreeBoxes[i].isDisabled =
-              !registrationTypes.includes(ON_SITE) &&
-              !registrationTypes.includes(OFF_SITE) &&
-              registrationTypes.includes(REVIEW);
+            updatedTreeBoxes[i].isDisabled = false;
             break;
         }
 
@@ -218,7 +224,9 @@ const CheckBoxGroup = ({ title, checkBoxes, toggleCheckBox }: ICheckBoxGroupProp
       <Text style={styles.selectionTypeText}>{i18next.t(`label.${title}`)}</Text>
       <View style={styles.checkBoxParent}>
         {checkBoxes.map((checkBox: any, index: number) => (
-          <View style={styles.checkBoxContainer} key={`${checkBox.type}-${index}`}>
+          <View
+            style={[styles.checkBoxContainer, checkBox.isDisabled ? { opacity: 0.5 } : []]}
+            key={`${checkBox.type}-${index}`}>
             <CheckBox
               tintColors={{
                 true: Colors.PRIMARY,

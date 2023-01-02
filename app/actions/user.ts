@@ -7,10 +7,6 @@ import dbLog from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { resetAllSpecies } from '../repositories/species';
 import { isInternetConnected } from '../utils/checkInternet';
-import { updateInventoryFetchFromServer } from './inventory';
-import { inventoryFetchConstant } from '../reducers/inventory';
-import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { addInventoryFromServer } from '../utils/addInventoryFromServer';
 import { addProjects, deleteAllProjects } from '../repositories/projects';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '../utils/api';
@@ -74,16 +70,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               id: userId,
             }: any = userDetails;
 
-            console.log(
-              '\n\n==> getUserDetailsFromServer',
-              email,
-              firstName,
-              lastName,
-              image,
-              country,
-              userId,
-            );
-
             // dispatch function sets the passed user details into the user state
             setUserDetails({
               email,
@@ -94,11 +80,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               userId,
             })(dispatch);
 
-            getAllProjects();
-            checkAndAddUserSpecies().then(() => {
-              updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
-              addInventoryFromServer('', inventoryDispatch);
-            });
             resolve(true);
           })
           .catch(err => {
@@ -106,7 +87,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           });
       })
       .catch(err => {
-        console.log('\n\n==> err from auth0', err);
         if (err?.error !== 'a0.session.user_cancelled') {
           dbLog.error({
             logType: LogTypes.USER,
@@ -380,12 +360,13 @@ export const getAllProjects = () => {
         if (status === 200) {
           await addProjects(data);
           // logging the success in to the db
+
           dbLog.info({
             logType: LogTypes.USER,
             message: 'Successfully Fetched all projects: GET - /app/profile/projects',
             statusCode: status,
           });
-          resolve(true);
+          resolve(data);
         }
       })
       .catch(err => {

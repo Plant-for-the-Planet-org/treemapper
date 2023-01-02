@@ -15,6 +15,8 @@ interface ILogTypes {
   OTHER: 'OTHER';
   // log type used for additional data feature
   ADDITIONAL_DATA: 'ADDITIONAL_DATA';
+  // log type used for remeasurement feature
+  REMEASUREMENT: 'REMEASUREMENT';
 }
 
 export type TLogTypes =
@@ -25,7 +27,8 @@ export type TLogTypes =
   | 'USER'
   | 'PROJECTS'
   | 'OTHER'
-  | 'ADDITIONAL_DATA';
+  | 'ADDITIONAL_DATA'
+  | 'REMEASUREMENT';
 
 // defines the types of logs supported by the application
 export const LogTypes: ILogTypes = {
@@ -37,6 +40,7 @@ export const LogTypes: ILogTypes = {
   PROJECTS: 'PROJECTS',
   OTHER: 'OTHER',
   ADDITIONAL_DATA: 'ADDITIONAL_DATA',
+  REMEASUREMENT: 'REMEASUREMENT',
 };
 
 // defines the log levels

@@ -61,10 +61,11 @@ const InventoryCard = ({
     ? `${Math.round(data.height * meterToFoot * 1000) / 1000} ${i18next.t(
         'label.select_species_feet',
       )}`
-    : `${Math.round(data.height) / 1000} m`;
+    : `${Math.round(data.height * 1000) / 1000} m`;
+
   const diameterWithUnit = nonISUCountries.includes(data.countryCode)
     ? `${Math.round(data.diameter * cmToInch) / 1000} ${i18next.t('label.select_species_inches')}`
-    : `${Math.round(data.diameter) / 1000} cm`;
+    : `${Math.round(data.diameter * 1000) / 1000} cm`;
 
   return (
     <View style={[styles.container, containerStyle]}>

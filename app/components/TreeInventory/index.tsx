@@ -8,22 +8,27 @@ import {
   Linking,
   Platform,
   SafeAreaView,
-  ScrollView,
   SectionList,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Colors, Typography } from '../../styles';
+import { setInventoryId } from '../../actions/inventory';
 import { empty_inventory_banner } from '../../assets';
 import { InventoryContext } from '../../reducers/inventory';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { UserContext } from '../../reducers/user';
 import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
+import {
+  clearAllIncompletePlantLocationHistory,
+  getPlantLocationHistory,
+} from '../../repositories/plantLocationHistory';
 import { getUserDetails } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
 import {
   DATA_UPLOAD_START,
+  EDITING,
   FIX_NEEDED,
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -36,17 +41,9 @@ import {
   SYNCED,
 } from '../../utils/inventoryConstants';
 import { uploadInventoryData } from '../../utils/uploadInventory';
-import {
-  AlertModal,
-  Header,
-  InventoryCard,
-  InventoryList,
-  PrimaryButton,
-  SmallHeader,
-  Sync,
-} from '../Common';
+import { AlertModal, Header, InventoryCard, PrimaryButton, SmallHeader, Sync } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
-import { setInventoryId } from '../../actions/inventory';
+import RemeasurementItem from '../Remeasurements/RemeasurementItem';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -60,11 +57,19 @@ const TreeInventory = () => {
   const [pendingInventory, setPendingInventory] = useState([]);
   const [uploadingInventory, setUploadingInventory] = useState([]);
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
+  const [editingPlantLocationHistory, setEditingPlantLocationHistory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
   const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
+
+  const {
+    pendingPlantLocationHistoryUpload,
+    uploadRemeasurements,
+    pendingPlantLocationHistoryUploadCount,
+    isUploading: isRemeasurementUploading,
+  } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -127,9 +132,18 @@ const TreeInventory = () => {
     });
   };
 
+  const onPressClearAllIncompleteRemeasurements = () => {
+    clearAllIncompletePlantLocationHistory().then(() => {
+      setShowDeleteIncompleteAlert(false);
+    });
+  };
+
   const filteredInventories = () => {
     getInventoryByStatus([INCOMPLETE, INCOMPLETE_SAMPLE_TREE]).then(inventoryList => {
       setInCompleteInventory(inventoryList);
+    });
+    getPlantLocationHistory([EDITING]).then(editingPlantLocationHistory => {
+      setEditingPlantLocationHistory(editingPlantLocationHistory);
     });
     getInventoryByStatus([PENDING_DATA_UPLOAD, PENDING_DATA_UPDATE]).then(inventoryList => {
       setPendingInventory(inventoryList);
@@ -170,6 +184,14 @@ const TreeInventory = () => {
     }
   };
 
+  const onPressUploadRemeasurement = () => {
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadRemeasurements();
+    } else {
+      setOfflineModal(true);
+    }
+  };
+
   const renderLoadingInventoryList = () => {
     return (
       <View style={styles.cont}>
@@ -205,7 +227,7 @@ const TreeInventory = () => {
             />
           )}
           <PrimaryButton
-            onPress={() => navigation.navigate('RegisterTree')}
+            onPress={() => navigation.navigate('TreeTypeSelection')}
             btnText={i18next.t('label.register_tree')}
             style={{ marginTop: 10 }}
           />
@@ -225,18 +247,36 @@ const TreeInventory = () => {
       />
     );
   };
-
+  // console.log(
+  //   'pendingPlantLocationHistoryUpload :>> ',
+  //   JSON.stringify(pendingPlantLocationHistoryUpload),
+  //   '>>',
+  // );
   const allData = [
     {
       title: i18next.t('label.tree_inventory_left_text_uploading'),
       data: uploadingInventory,
       type: 'uploading',
     },
-    { title: i18next.t('label.tree_inventory_left_text'), data: pendingInventory, type: 'pending' },
+    {
+      title: i18next.t('label.tree_inventory_left_text'),
+      data: pendingInventory,
+      type: 'pending',
+    },
+    {
+      title: i18next.t('label.pending_remeasurement_upload'),
+      data: pendingPlantLocationHistoryUpload,
+      type: 'pending_remeasurement',
+    },
     {
       title: i18next.t('label.tree_inventory_incomplete_registrations'),
       data: inCompleteInventory,
       type: 'incomplete',
+    },
+    {
+      title: i18next.t('label.incomplete_remeasurement'),
+      data: editingPlantLocationHistory,
+      type: 'incomplete_remeasurement',
     },
     {
       title: i18next.t('label.missing_data_found_registration'),
@@ -251,7 +291,8 @@ const TreeInventory = () => {
       inCompleteInventory.length > 0 ||
       uploadedInventory.length > 0 ||
       fixNeededInventory.length > 0 ||
-      uploadingInventory.length > 0 ? (
+      uploadingInventory.length > 0 ||
+      pendingPlantLocationHistoryUpload.length > 0 ? (
         <SectionList
           sections={allData}
           style={{ paddingHorizontal: 25 }}
@@ -275,6 +316,12 @@ const TreeInventory = () => {
             </>
           )}
           renderItem={({ item, index, section }) => {
+            if (
+              section.type === 'pending_remeasurement' ||
+              section.type === 'incomplete_remeasurement'
+            ) {
+              return <RemeasurementItem item={item} />;
+            }
             return (
               <Item
                 item={item}
@@ -317,17 +364,47 @@ const TreeInventory = () => {
                       style={{ marginVertical: 15 }}
                     />
                   );
+                case 'pending_remeasurement':
+                  return (
+                    <SmallHeader
+                      rightText={i18next.t('label.upload_pending', {
+                        count: pendingPlantLocationHistoryUploadCount,
+                      })}
+                      icon={'cloud-upload'}
+                      iconType={'MCIcon'}
+                      sync={isRemeasurementUploading}
+                      iconColor={Colors.PRIMARY}
+                      onPressRight={onPressUploadRemeasurement}
+                      leftText={title}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
                 case 'incomplete':
                   return (
                     <SmallHeader
                       onPressRight={onPressClearAll}
                       leftText={title}
-                      rightTheme={'red'}
+                      iconColor={Colors.ALERT}
+                      rightTextStyle={{ color: Colors.ALERT }}
                       icon={'trash'}
                       iconType={'FAIcon'}
                       style={{ marginVertical: 15 }}
                     />
                   );
+
+                case 'incomplete_remeasurement':
+                  return (
+                    <SmallHeader
+                      onPressRight={onPressClearAllIncompleteRemeasurements}
+                      leftText={title}
+                      iconColor={Colors.ALERT}
+                      rightTextStyle={{ color: Colors.ALERT }}
+                      icon={'trash'}
+                      iconType={'FAIcon'}
+                      style={{ marginVertical: 15 }}
+                    />
+                  );
+
                 case 'fix_needed':
                   return (
                     <SmallHeader
@@ -363,7 +440,7 @@ const TreeInventory = () => {
       )}
       <View style={styles.primaryBtnCont}>
         <PrimaryButton
-          onPress={() => navigation.navigate('RegisterTree')}
+          onPress={() => navigation.navigate('TreeTypeSelection')}
           btnText={i18next.t('label.register_tree')}
           style={{ marginTop: 10 }}
         />

@@ -1,6 +1,7 @@
 import { useRoute } from '@react-navigation/core';
 import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
+import { nanoid } from 'nanoid';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -12,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
 import { AdditionalDataContext } from '../../reducers/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24, marginTop30 } from '../../styles/design';
@@ -226,11 +226,11 @@ export default function AddEditElement() {
 
   const getElementData = () => {
     if (areElementPropsValid()) {
-      const id = elementId || uuidv4();
+      const id = elementId || nanoid();
       let typeProperties: any = {
         defaultValue,
         isRequired,
-        id: isModification ? subElementId : uuidv4(),
+        id: isModification ? subElementId : nanoid(),
         parentId: id,
       };
 

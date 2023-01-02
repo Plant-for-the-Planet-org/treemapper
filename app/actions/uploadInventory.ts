@@ -655,7 +655,7 @@ const checkAndUploadImage = async (oneInventory: any, response: any) => {
   }
 };
 
-const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSampleTree) => {
+export const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSampleTree) => {
   try {
     // fetches the image from device file system and stores it in base64 format which is used for uploading
     const base64Image = await RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${imageUrl}`, 'base64');
@@ -724,7 +724,7 @@ const uploadImage = async (imageUrl, locationId, coordinateId, inventoryId, isSa
   }
 };
 
-const getPlantLocationDetails = locationId => {
+export const getPlantLocationDetails = locationId => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest(`/treemapper/plantLocations/${locationId}`)
       .then(res => {

@@ -5,9 +5,9 @@ import { getSchema } from './default';
 import Realm from 'realm';
 
 export const getUserToken = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         // Gets the user data from the DB
         const User = realm.objectForPrimaryKey('User', 'id0001');
         if (User) {
@@ -30,7 +30,7 @@ export const getUserToken = () => {
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Error: /repositories/getUserToken -> ${JSON.stringify(err)}`);
         dbLog.error({
           logType: LogTypes.USER,
@@ -44,9 +44,9 @@ export const getUserToken = () => {
 };
 
 export const isLogin = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         if (User) {
           resolve(true);
@@ -54,7 +54,7 @@ export const isLogin = () => {
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Error at /repositories/user/isLogin, ${JSON.stringify(err)}`);
         dbLog.error({
           logType: LogTypes.USER,
@@ -66,9 +66,9 @@ export const isLogin = () => {
 };
 
 export const getUserDetails = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         // logging the success in to the db
         dbLog.info({
@@ -77,7 +77,7 @@ export const getUserDetails = () => {
         });
         resolve(User);
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while retrieving User details',
@@ -94,9 +94,9 @@ export const getUserDetails = () => {
  * @returns {boolean} - can be used to check if the operation was successful or not
  */
 export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken, expirationTime }) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           realm.create(
             'User',
@@ -117,7 +117,7 @@ export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken, ex
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(
           `Error at /repositories/user/createOrModifyUserToken, ${JSON.stringify(err)}`,
         );
@@ -138,9 +138,9 @@ export const createOrModifyUserToken = ({ accessToken, idToken, refreshToken, ex
  * @returns {boolean} - can be used to check if the operation was successful or not
  */
 export const deleteUser = () => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           const user = realm.objectForPrimaryKey('User', 'id0001');
           if (user) {
@@ -154,7 +154,7 @@ export const deleteUser = () => {
           resolve(true);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Error at /repositories/user/deleteUser, ${JSON.stringify(err)}`);
 
         dbLog.error({
@@ -173,10 +173,10 @@ export const deleteUser = () => {
  * @param {object} userDetails - should only have User schema data to update user's data
  * @returns {boolean} - can be used to check if the operation was successful or not
  */
-export const modifyUserDetails = (userDetails) => {
-  return new Promise((resolve) => {
+export const modifyUserDetails = userDetails => {
+  return new Promise(resolve => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         realm.write(() => {
           realm.create(
             'User',
@@ -194,7 +194,7 @@ export const modifyUserDetails = (userDetails) => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Error at /repositories/user/modifyUserDetails, ${JSON.stringify(err)}`);
 
         dbLog.error({
@@ -211,7 +211,7 @@ export const modifyUserDetails = (userDetails) => {
 export const getUserInformation = () => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         const User = realm.objectForPrimaryKey('User', 'id0001');
         if (User) {
           // logging the success in to the db
@@ -230,7 +230,7 @@ export const getUserInformation = () => {
           resolve({ email: '', firstName: '', lastName: '' });
         }
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while retrieving user details',
@@ -240,10 +240,10 @@ export const getUserInformation = () => {
   });
 };
 
-export const setActivityLog = (bool) => {
+export const setActivityLog = bool => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
-      .then((realm) => {
+      .then(realm => {
         // const User = realm.objectForPrimaryKey('User', 'id0001');
         realm.write(() => {
           realm.create('User', { id: 'id0001', idLogEnabled: bool }, 'modified');
@@ -255,7 +255,7 @@ export const setActivityLog = (bool) => {
         });
         resolve();
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.USER,
           message: 'Error while changing isLogEnabled value',

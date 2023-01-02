@@ -1,7 +1,8 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/core';
+import {useNavigation} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   BackHandler,
   Linking,
@@ -13,13 +14,14 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { setInventoryId } from '../../actions/inventory';
-import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
-import { getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { bugsnag } from '../../utils';
+import {setInventoryId} from '../../actions/inventory';
+import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
+import {getInventory, getInventoryByStatus} from '../../repositories/inventory';
+import {getUserInformation} from '../../repositories/user';
+import {Colors, Typography} from '../../styles';
+import {bugsnag} from '../../utils';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import {getRemeasurementPolygons} from '../../utils/getRemeasurementPolygons';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -27,8 +29,8 @@ import {
   SINGLE,
   SYNCED,
 } from '../../utils/inventoryConstants';
-import { locationPermission } from '../../utils/permissions';
-import { AlertModal } from '../Common';
+import {locationPermission} from '../../utils/permissions';
+import {AlertModal} from '../Common';
 import BackButton from '../Common/BackButton';
 import {
   PermissionBlockedAlert,
@@ -81,6 +83,7 @@ const MainMap = ({
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
   const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
+  const [loadingInventoryData, setLoadingInventoryData] = useState(false);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState(geoJSONInitialState);
@@ -96,8 +99,10 @@ const MainMap = ({
   // stores the plant locations details of the selected geoJSON
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
+  const [remeasurePolygons, setRemeasurePolygons] = useState([]);
+  const [remeasureDuePolygons, setRemeasureDuePolygons] = useState([]);
 
-  const { state, dispatch } = useContext(InventoryContext);
+  const {state, dispatch} = useContext(InventoryContext);
 
   const camera = useRef<MapboxGL.Camera | null>(null);
 
@@ -111,6 +116,32 @@ const MainMap = ({
       initializeInventory();
     }
   }, [state.inventoryFetchProgress, userInfo]);
+
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (state?.inventoryID) {
+        setLoadingInventoryData(true);
+        getInventory({inventoryID: state.inventoryID}).then(inventoryData => {
+          setSingleSelectedPlantLocation(inventoryData);
+          setLoadingInventoryData(false);
+        });
+      }
+    });
+    return () => {
+      unsubscribeFocus();
+    };
+  }, [state]);
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (state?.inventoryID) {
+  //       getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+  //         setSingleSelectedPlantLocation(inventoryData);
+  //       });
+  //     }
+  //     return () => {};
+  //   }, [state]),
+  // );
 
   useEffect(() => {
     let isCancelled = false;
@@ -173,7 +204,7 @@ const MainMap = ({
         feature?.properties?.inventoryId &&
         !alreadyAddedInventoryId.includes(feature?.properties?.inventoryId)
       ) {
-        const inventory = await getInventory({ inventoryID: feature.properties.inventoryId });
+        const inventory = await getInventory({inventoryID: feature.properties.inventoryId});
 
         if (inventory) {
           const newGeoJson = await getGeoJsonData({
@@ -213,13 +244,22 @@ const MainMap = ({
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
       const pointGeoJSONFeatures = [];
+      const remeasurePolygons = await getRemeasurementPolygons(
+        JSON.parse(JSON.stringify(syncedInventory)),
+      );
+      setRemeasurePolygons(remeasurePolygons.remeasurementNeededPolygons);
+      setRemeasureDuePolygons(remeasurePolygons.remeasurementDuePolygons);
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
       for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
           inventoryData,
           includeInventoryId: true,
           ignoreSampleTrees: true,
+          remeasureNeededPolygons: remeasurePolygons.remeasurementNeededPolygons,
+          remeasureDuePolygons: remeasurePolygons.remeasurementDuePolygons,
         });
+        // console.log(JSON.stringify(data), 'data');
+
         if (inventoryData.treeType === SINGLE) {
           pointGeoJSONFeatures.push(...data.features);
         } else {
@@ -270,7 +310,9 @@ const MainMap = ({
           resolve(position);
         },
         err => {
-          if (showAlert) setIsLocationAlertShow(true);
+          if (showAlert) {
+            setIsLocationAlertShow(true);
+          }
         },
         {
           enableHighAccuracy: true,
@@ -302,9 +344,9 @@ const MainMap = ({
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.treeType === SINGLE) {
-        navigation.navigate('SingleTreeOverview', { navigateBackToHomeScreen: true });
+        navigation.navigate('SingleTreeOverview', {navigateBackToHomeScreen: true});
       } else {
-        navigation.navigate('InventoryOverview', { navigateBackToHomeScreen: true });
+        navigation.navigate('InventoryOverview', {navigateToScreen: 'MainScreen'});
       }
     } else {
       navigation.navigate(item.lastScreen);
@@ -368,6 +410,8 @@ const MainMap = ({
         siteCenterCoordinate={siteCenterCoordinate}
         siteBounds={siteBounds}
         projectSites={projectSites}
+        remeasurePolygons={remeasurePolygons}
+        remeasureDuePolygons={remeasureDuePolygons}
       />
 
       {/* shows alert if location permission is not provided */}
@@ -438,7 +482,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 56 }]}
+              style={[styles.myLocationIcon, IS_ANDROID ? {bottom: 72} : {bottom: 56}]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">
@@ -457,6 +501,8 @@ const MainMap = ({
           carouselRef={sampleCarouselRef}
           setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
           countryCode={countryCode}
+          location={location}
+          loadingInventoryData={loadingInventoryData}
         />
       ) : selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
         <SelectedPlantLocationsCards

@@ -1,9 +1,9 @@
 import i18next from 'i18next';
 import { useNavigation } from '@react-navigation/core';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { useNetInfo } from '@react-native-community/netinfo';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import React, { useContext, useEffect, useState } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Platform, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 
 import {
   getInventoryCount,
@@ -16,17 +16,20 @@ import LoginButton from './LoginButton';
 import ProfileModal from '../ProfileModal';
 import { AlertModal, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
-import RotatingView from '../Common/RotatingView';
 import { Colors, Typography } from '../../styles';
-import { updateCount } from '../../actions/inventory';
-import { LoadingContext } from '../../reducers/loader';
+import RotatingView from '../Common/RotatingView';
+import { InventoryType } from '../../types/inventory';
 import { getSchema } from '../../repositories/default';
-import { getUserDetails } from '../../repositories/user';
+import { LoadingContext } from '../../reducers/loader';
 import { getAllProjects } from '../../repositories/projects';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+import { InventoryTypeSelector } from './InventoryTypeSelector';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { shouldSpeciesUpdate } from '../../repositories/species';
+import { getUserDetails, modifyUserDetails } from '../../repositories/user';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 
@@ -61,6 +64,7 @@ export default function MainScreen() {
   const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+  const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -120,6 +124,8 @@ export default function MainScreen() {
     } else {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
+      console.log('11');
+
       setUserInfo(stringifiedUserDetails);
       setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
@@ -128,6 +134,7 @@ export default function MainScreen() {
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
+      console.log('22');
       setUserInfo({});
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
@@ -165,6 +172,19 @@ export default function MainScreen() {
     }
   }
 
+  function plantLocationHistoryListener(
+    _: Realm.Collection<any>,
+    changes: Realm.CollectionChangeSet,
+  ) {
+    if (
+      changes.deletions.length > 0 ||
+      changes.insertions.length > 0 ||
+      changes.newModifications.length > 0
+    ) {
+      getPendingPlantLocationHistory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm: Realm) => {
@@ -173,10 +193,12 @@ export default function MainScreen() {
       const userObject = realm.objects('User');
       const plantLocationObject = realm.objects('Inventory');
       const projectsObject = realm.objects('Projects');
+      const plantLocationHistoryObject = realm.objects('PlantLocationHistory');
       // Observe collection notifications.
       userObject.addListener(listener);
       plantLocationObject.addListener(inventoryListener);
       projectsObject.addListener(projectListener);
+      plantLocationHistoryObject.addListener(plantLocationHistoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -189,8 +211,8 @@ export default function MainScreen() {
       getUserDetails().then(userDetails => {
         if (userDetails) {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          console.log('\n\n==> stringifiedUserDetails', stringifiedUserDetails);
           if (stringifiedUserDetails) {
+            console.log('33');
             setUserInfo(stringifiedUserDetails);
             setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
@@ -209,20 +231,17 @@ export default function MainScreen() {
   };
 
   const onPressLogin = async () => {
-    console.log('\n\n==> isUserLogin', isUserLogin);
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
       auth0Login(userDispatch, dispatch)
         .then(() => {
-          console.log('\n\n==> login success');
           stopLoading()(loadingDispatch);
           fetchUserDetails();
           fetchInventoryCount();
         })
         .catch(err => {
-          console.log('\n\n==> err', err);
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (
@@ -245,9 +264,14 @@ export default function MainScreen() {
           if (isSyncRequired) {
             navigation.navigate('LogoutWarning');
           } else {
-            auth0Logout(userDispatch).then(result => {
+            auth0Logout(userDispatch).then(async result => {
               if (result) {
+                console.log('55');
                 setUserInfo({});
+                await modifyUserDetails({
+                  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+                });
+                setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
               }
             });
           }
@@ -266,6 +290,8 @@ export default function MainScreen() {
     closeProfileModal();
   };
 
+  // console.log(isUserLogin, userInfo, 'userInfo?.type');
+
   return (
     <>
       <MainMap
@@ -281,16 +307,20 @@ export default function MainScreen() {
         <>
           <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
             <View style={styles.mainMapHeader}>
-              <Sync
-                uploadCount={state.uploadCount}
-                pendingCount={state.pendingCount}
-                isUploading={state.isUploading}
-                isUserLogin={isUserLogin}
-                setEmailAlert={setEmailAlert}
-              />
+              <View style={{ display: 'flex', width: '45%' }}>
+                <Sync
+                  uploadCount={state.uploadCount}
+                  pendingCount={state.pendingCount}
+                  isUploading={state.isUploading}
+                  isUserLogin={isUserLogin}
+                  setEmailAlert={setEmailAlert}
+                />
+                {isUserLogin && <InventoryTypeSelector />}
+              </View>
 
               {isUserLogin ? (
-                userInfo?.type === 'tpo' && (
+                userInfo?.type === 'tpo' &&
+                projects.length > 0 && (
                   <ProjectAndSiteSelector
                     projects={projects}
                     showProjectOptions={showProjectOptions}

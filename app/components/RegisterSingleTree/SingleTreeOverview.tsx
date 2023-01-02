@@ -21,6 +21,8 @@ import { APIConfig } from '../../actions/Config';
 import {
   deleteInventoryId,
   setIsExtraSampleTree,
+  setRemeasurementId,
+  setSamplePlantLocationIndex,
   setSkipToInventoryOverview,
 } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
@@ -39,19 +41,10 @@ import {
 import { getProjectById } from '../../repositories/projects';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
-import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
 import {
   cmToInch,
   DBHInMeter,
-  diameterMaxCm,
-  diameterMaxInch,
-  diameterMinCm,
-  diameterMinInch,
   footToMeter,
-  heightMaxFoot,
-  heightMaxM,
-  heightMinFoot,
-  heightMinM,
   inchToCm,
   meterToFoot,
   nonISUCountries,
@@ -67,12 +60,20 @@ import {
   SYNCED,
 } from '../../utils/inventoryConstants';
 import { updateSampleTree } from '../../utils/updateSampleTree';
+import { measurementValidation } from '../../utils/validations/measurements';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import AlertModal from '../Common/AlertModal';
 import ExportGeoJSON from '../Common/ExportGeoJSON';
 import ManageSpecies from '../ManageSpecies';
 import SpecieSampleTree from '../SpecieSampleTree';
+import Geolocation from 'react-native-geolocation-service';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { locationPermission } from '../../utils/permissions';
+import { bugsnag } from '../../utils';
+import distanceCalculator from '../../utils/distanceCalculator';
+import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
+import Config from 'react-native-config';
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -80,6 +81,7 @@ type RootStackParamList = {
     isSampleTree: boolean;
     sampleTreeIndex: number;
     totalSampleTrees: number;
+    item: any;
     navigateBackToHomeScreen: boolean;
   };
 };
@@ -123,10 +125,17 @@ const SingleTreeOverview = () => {
   const [inputErrorMessage, setInputErrorMessage] = useState<string>(
     i18next.t('label.tree_inventory_input_error_message'),
   );
+  const [plantLocationHistory, setPlantLocationHistory] = useState([]);
 
   const [isError, setIsError] = useState<boolean>(false);
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [navigationType, setNavigationType] = useState<string>('save');
+  const [location, setLocation] = useState<MapboxGL.Location | Geolocation.GeoPosition>();
+  const [isRemeasurementDisabled, setIsRemeasurementDisabled] = useState<boolean>(false);
+  const [showRemeasurementButton, setShowRemeasurementButton] = useState<boolean>(false);
+  const [plantLocationCoordinates, setPlantLocationCoordinates] = useState<[number, number]>([
+    0, 0,
+  ]);
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -167,8 +176,89 @@ const SingleTreeOverview = () => {
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onPressSave);
-    return BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+
+    let isCancelled = false;
+
+    if (!isCancelled) {
+      checkPermission();
+    }
+
+    return () => {
+      isCancelled = true;
+
+      BackHandler.removeEventListener('hardwareBackPress', onPressSave);
+    };
   }, []);
+
+  useEffect(() => {
+    const distanceInMeters = distanceCalculator(
+      [location?.coords.latitude as number, location?.coords.longitude as number],
+      plantLocationCoordinates,
+      'meters',
+    );
+    if (distanceInMeters > 100 && Config.IS_TEST_VERSION != 'true') {
+      setIsRemeasurementDisabled(true);
+    } else {
+      setIsRemeasurementDisabled(false);
+    }
+  }, [location, plantLocationCoordinates]);
+
+  useEffect(() => {
+    if (plantationDate && status === SYNCED && plantLocationHistory) {
+      // const isDateInRange = getIsDateInRemeasurementRange(plantationDate);
+
+      // setShowRemeasurementButton(
+      //   // isDateInRange &&
+      //   plantLocationHistory?.length > 0 &&
+      //     [PENDING_DATA_UPLOAD, SYNCED].includes(
+      //       plantLocationHistory[plantLocationHistory?.length - 1]?.dataStatus,
+      //     ),
+      // );
+      setShowRemeasurementButton(true);
+    } else {
+      setShowRemeasurementButton(false);
+    }
+  }, [plantationDate, status]);
+
+  const checkPermission = async (showAlert = true) => {
+    try {
+      await locationPermission();
+      MapboxGL.setTelemetryEnabled(false);
+
+      updateCurrentPosition(showAlert);
+      return true;
+    } catch (err: any) {
+      if (err?.message == 'blocked') {
+        // TODO: add permission blocked modal
+      } else if (err?.message == 'denied') {
+        // TODO: add permission denied modal
+      } else {
+        bugsnag.notify(err);
+      }
+      return false;
+    }
+  };
+
+  //getting current position of the user with high accuracy
+  const updateCurrentPosition = async () => {
+    return new Promise(resolve => {
+      Geolocation.getCurrentPosition(
+        position => {
+          setLocation(position);
+          resolve(position);
+        },
+        err => {},
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          accuracy: {
+            android: 'high',
+            ios: 'bestForNavigation',
+          },
+        },
+      );
+    });
+  };
 
   const fetchAndUpdateInventoryDetails = () => {
     getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
@@ -202,6 +292,8 @@ const SingleTreeOverview = () => {
             ? Math.round(currentSampleTree.specieHeight * meterToFoot * 1000) / 1000
             : currentSampleTree.specieHeight;
 
+          console.log(currentSampleTree.specieHeight, 'currentSampleTree.specieHeight');
+
           updateDiameterLabel(currentSampleTree.specieHeight);
 
           setSampleTreeIndex(index);
@@ -216,6 +308,8 @@ const SingleTreeOverview = () => {
           setTagId(currentSampleTree.tagId);
           setEditedTagId(currentSampleTree.tagId);
           setTotalSampleTrees(inventoryData.sampleTreesCount);
+          setPlantLocationCoordinates([currentSampleTree.latitude, currentSampleTree.longitude]);
+          setPlantLocationHistory(currentSampleTree.plantLocationHistory);
         } else {
           const diameter = nonISUCountries.includes(data.country)
             ? Math.round(inventoryData.specieDiameter * cmToInch * 1000) / 1000
@@ -245,6 +339,10 @@ const SingleTreeOverview = () => {
           setPlantationDate(inventoryData.plantation_date);
           setTagId(inventoryData.tagId);
           setEditedTagId(inventoryData.tagId);
+          setPlantLocationCoordinates([
+            inventoryData.polygons[0]?.coordinates[0].latitude,
+            inventoryData.polygons[0]?.coordinates[0].longitude,
+          ]);
         }
       });
     });
@@ -277,111 +375,73 @@ const SingleTreeOverview = () => {
     action: string;
     forceContinue?: boolean;
   }) => {
-    const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
-
-    const diameterMinValue = nonISUCountries.includes(countryCode)
-      ? diameterMinInch
-      : diameterMinCm;
-    const diameterMaxValue = nonISUCountries.includes(countryCode)
-      ? diameterMaxInch
-      : diameterMaxCm;
-
-    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
-    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
-
+    const isNonISUCountry = nonISUCountries.includes(countryCode);
+    let validationObject;
     switch (action) {
       case 'diameter':
-        if (
-          !specieEditDiameter ||
-          Number(specieEditDiameter) < diameterMinValue ||
-          Number(specieEditDiameter) > diameterMaxValue
-        ) {
-          setInputErrorMessage(
-            i18next.t('label.select_species_diameter_more_than_error', {
-              minValue: diameterMinValue,
-              maxValue: diameterMaxValue,
-            }),
-          );
-          setShowInputError(true);
-        } else if (!dimensionRegex.test(specieEditDiameter)) {
-          setInputErrorMessage(i18next.t('label.select_species_diameter_invalid'));
-          setShowInputError(true);
-        } else {
-          const refactoredSpecieDiameter: number = getConvertedDiameter();
+        validationObject = measurementValidation(
+          specieEditHeight,
+          specieEditDiameter,
+          isNonISUCountry,
+        );
+        setInputErrorMessage(validationObject.diameterErrorMessage);
+        setShowInputError(!!validationObject.diameterErrorMessage);
+        const refactoredSpecieDiameter: number = getConvertedDiameter();
 
-          const isRatioCorrect = getIsMeasurementRatioCorrect({
-            height: getConvertedHeight(),
-            diameter: refactoredSpecieDiameter,
+        if (!validationObject.isRatioCorrect && !forceContinue) {
+          setShowIncorrectRatioAlert(true);
+          return;
+        }
+        setSpecieDiameter(specieEditDiameter);
+
+        if (!isSampleTree && !route?.params?.isSampleTree) {
+          updateSpecieDiameter({
+            inventory_id: inventory.inventory_id,
+            speciesDiameter: refactoredSpecieDiameter,
           });
-
-          if (!isRatioCorrect && !forceContinue) {
-            setShowIncorrectRatioAlert(true);
-            return;
-          }
-          setSpecieDiameter(specieEditDiameter);
-
-          if (!isSampleTree && !route?.params?.isSampleTree) {
-            updateSpecieDiameter({
-              inventory_id: inventory.inventory_id,
-              speciesDiameter: refactoredSpecieDiameter,
-            });
-          } else {
-            updateSampleTree({
-              toUpdate: action,
-              value: refactoredSpecieDiameter,
-              inventory,
-              sampleTreeIndex,
-              setInventory,
-            });
-          }
+        } else {
+          updateSampleTree({
+            toUpdate: action,
+            value: refactoredSpecieDiameter,
+            inventory,
+            sampleTreeIndex,
+            setInventory,
+          });
         }
         break;
       case 'height':
-        if (
-          !specieEditHeight ||
-          Number(specieEditHeight) < heightMinValue ||
-          Number(specieEditHeight) > heightMaxValue
-        ) {
-          setInputErrorMessage(
-            i18next.t('label.select_species_height_more_than_error', {
-              minValue: heightMinValue,
-              maxValue: heightMaxValue,
-            }),
-          );
-          setShowInputError(true);
-        } else if (!dimensionRegex.test(specieEditHeight)) {
-          setInputErrorMessage(i18next.t('label.select_species_height_invalid'));
-          setShowInputError(true);
-        } else {
-          const refactoredSpecieHeight = getConvertedHeight();
+        validationObject = measurementValidation(
+          specieEditHeight,
+          specieEditDiameter,
+          isNonISUCountry,
+        );
 
-          const isRatioCorrect = getIsMeasurementRatioCorrect({
-            height: refactoredSpecieHeight,
-            diameter: getConvertedDiameter(),
+        setInputErrorMessage(validationObject.heightErrorMessage);
+        setShowInputError(!!validationObject.heightErrorMessage);
+
+        const refactoredSpecieHeight = getConvertedHeight();
+
+        if (!validationObject.isRatioCorrect && !forceContinue) {
+          setShowIncorrectRatioAlert(true);
+          return;
+        }
+        setSpecieHeight(specieEditHeight);
+
+        updateDiameterLabel(refactoredSpecieHeight);
+
+        if (!isSampleTree && !route?.params?.isSampleTree) {
+          updateSpecieHeight({
+            inventory_id: inventory.inventory_id,
+            speciesHeight: refactoredSpecieHeight,
           });
-
-          if (!isRatioCorrect && !forceContinue) {
-            setShowIncorrectRatioAlert(true);
-            return;
-          }
-          setSpecieHeight(specieEditHeight);
-
-          updateDiameterLabel(refactoredSpecieHeight);
-
-          if (!isSampleTree && !route?.params?.isSampleTree) {
-            updateSpecieHeight({
-              inventory_id: inventory.inventory_id,
-              speciesHeight: refactoredSpecieHeight,
-            });
-          } else {
-            updateSampleTree({
-              toUpdate: action,
-              value: refactoredSpecieHeight,
-              inventory,
-              sampleTreeIndex,
-              setInventory,
-            });
-          }
+        } else {
+          updateSampleTree({
+            toUpdate: action,
+            value: refactoredSpecieHeight,
+            inventory,
+            sampleTreeIndex,
+            setInventory,
+          });
         }
         break;
       case 'tagId':
@@ -736,10 +796,29 @@ const SingleTreeOverview = () => {
     }
   };
 
+  const onPressRemeasure = (item: any, index: string) => {
+    let lastScreen;
+    setSamplePlantLocationIndex(index)(dispatch);
+    if (item?.plantLocationHistory?.length > 0) {
+      lastScreen = item?.plantLocationHistory[item?.plantLocationHistory?.length - 1]?.lastScreen;
+    } else {
+      lastScreen = '';
+    }
+
+    if (lastScreen) {
+      setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+        dispatch,
+      );
+      navigation.navigate(lastScreen);
+    } else {
+      navigation.navigate('RemeasurementForm');
+    }
+  };
+
   const onPressSave = (forceContinue: boolean = false) => {
     if (route?.params?.isSampleTree) {
       navigation.goBack();
-    } else if (inventory.status === INCOMPLETE) {
+    } else if (inventory?.status === INCOMPLETE) {
       setNavigationType('save');
       if (showProject && !selectedProjectName && !forceContinue) {
         setShowNoProjectWarning(true);
@@ -757,7 +836,7 @@ const SingleTreeOverview = () => {
           });
       } else {
         // TODO:i18n - if this is used, please add translations
-        alert('Species Name  is required');
+        alert('Species Name is required');
       }
     } else {
       navigateBack();
@@ -777,7 +856,7 @@ const SingleTreeOverview = () => {
         setIsExtraSampleTree(false)(dispatch);
         navigation.dispatch(
           CommonActions.reset({
-            index: 3,
+            index: 2,
             routes: [
               { name: 'MainScreen' },
               { name: 'TreeInventory' },
@@ -912,6 +991,7 @@ const SingleTreeOverview = () => {
         .catch(err => console.error(err));
     }
   };
+  console.log('route==>', route);
 
   return isShowManageSpecies ? (
     isSampleTree ? (
@@ -1039,6 +1119,22 @@ const SingleTreeOverview = () => {
               btnText={i18next.t('label.tree_review_next_btn')}
             />
           </View>
+        ) : showRemeasurementButton ? (
+          <View style={[styles.bottomBtnsContainer, { flexDirection: 'column' }]}>
+            <PrimaryButton
+              onPress={() => {
+                onPressRemeasure(route.params.item, `${route.params.sampleTreeIndex}`);
+              }}
+              btnText={i18next.t('label.remeasure')}
+              disabled={isRemeasurementDisabled}
+              // disabled={false}
+            />
+            {isRemeasurementDisabled ? (
+              <Text>{i18next.t('label.you_are_far_to_remeasure')}</Text>
+            ) : (
+              []
+            )}
+          </View>
         ) : (
           []
         )}
@@ -1148,8 +1244,8 @@ const styles = StyleSheet.create({
   },
   bottomBtnsContainer: {
     flexDirection: 'row',
+    marginVertical: 10,
     justifyContent: 'space-between',
-    marginTop: 10,
   },
   detailContainer: {
     marginTop: 24,

@@ -35,14 +35,19 @@ import {
   SingleTreeOverview,
 } from '../';
 import AdditionalData from '../AdditionalData';
+import TakePicture from '../../screens/TakePicture';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AddMetadata from '../AdditionalData/AddMetadata';
 import EditPolygon from '../InventoryOverview/EditPolygon';
 import SelectElement from '../AdditionalData/SelectElement';
 import AddEditElement from '../AdditionalData/AddEditElement';
 import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
+import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
 import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
+import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
+import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
+import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
 
 const Stack = createStackNavigator();
 const screenOptions = { headerShown: false };
@@ -129,6 +134,15 @@ export default function MainNavigator() {
       <Stack.Screen name="SpecieSampleTree" component={SpecieSampleTree} options={MyTransition} />
       <Stack.Screen name="AddMeasurements" component={AddMeasurements} options={MyTransition} />
       <Stack.Screen name="EditPolygon" component={EditPolygon} options={MyTransition} />
+      <Stack.Screen name="TreeTypeSelection" component={TreeTypeSelection} options={MyTransition} />
+      <Stack.Screen name="RemeasurementForm" component={RemeasurementForm} options={MyTransition} />
+      <Stack.Screen name="TakePicture" component={TakePicture} options={MyTransition} />
+      <Stack.Screen
+        name="RemeasurementReview"
+        component={RemeasurementReview}
+        options={MyTransition}
+      />
+      <Stack.Screen name="ProjectConfig" component={ProjectConfig} options={MyTransition} />
     </Stack.Navigator>
   );
 }

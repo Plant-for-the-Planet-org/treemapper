@@ -125,7 +125,7 @@ export default function Logs() {
             setShowAlert(true);
             dbLog.error({
               logType: LogTypes.OTHER,
-              message: `Error while sharing logs`,
+              message: 'Error while sharing logs',
               logStack: JSON.stringify(err),
             });
           }

@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { Typography, Colors } from '../../../styles';
-import RotatingView from '../RotatingView';
-import { uploadInventoryData } from '../../../utils/uploadInventory';
-import { InventoryContext } from '../../../reducers/inventory';
+import {useNetInfo} from '@react-native-community/netinfo';
+import {useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import { UserContext } from '../../../reducers/user';
-import { useNavigation } from '@react-navigation/native';
+import React, {useContext, useEffect, useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import {InventoryContext} from '../../../reducers/inventory';
+import {UserContext} from '../../../reducers/user';
 import dbLog from '../../../repositories/logs';
-import { LogTypes } from '../../../utils/constants';
-import { useNetInfo } from '@react-native-community/netinfo';
+import {Colors, Typography} from '../../../styles';
+import {LogTypes} from '../../../utils/constants';
+import {uploadInventoryData} from '../../../utils/uploadInventory';
 import AlertModal from '../AlertModal';
+import RotatingView from '../RotatingView';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -31,14 +31,13 @@ export default function Syncing({
   borderLess = false,
 }: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
-  const [maxWidth, setMaxWidth] = useState('100%');
   const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
   const netInfo = useNetInfo();
 
-  const { dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
+  const {dispatch} = useContext(InventoryContext);
+  const {dispatch: userDispatch} = useContext(UserContext);
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {
@@ -48,9 +47,7 @@ export default function Syncing({
           count: pendingCount,
         }),
       );
-      setMaxWidth('100%');
     } else {
-      setMaxWidth('50%');
       setSyncText(i18next.t('label.all_backed_up'));
     }
   };
@@ -99,12 +96,12 @@ export default function Syncing({
     );
   };
   const SyncIcon = () => {
-    return <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} style={{ marginRight: 6 }} />;
+    return <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} style={{marginRight: 6}} />;
   };
   const SyncContainer = () => {
     return (
-      <View style={{ maxWidth }}>
-        <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
+      <View>
+        <View style={[styles.syncContainer, borderLess ? {} : {borderWidth: 1, marginRight: 10}]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>
               <SyncIcon />
@@ -144,6 +141,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: Colors.WHITE,
+    marginBottom: 8,
   },
   syncText: {
     paddingLeft: 6,

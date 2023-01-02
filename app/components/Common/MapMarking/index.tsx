@@ -1,11 +1,11 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import bbox from '@turf/bbox';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import turfCenter from '@turf/center';
-import { Coord } from '@turf/helpers';
+import {Coord} from '@turf/helpers';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   Linking,
   Modal,
@@ -17,10 +17,10 @@ import {
   View,
 } from 'react-native';
 import Config from 'react-native-config';
-import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
-import { AlertModal, Header } from '../';
-import { initiateInventoryState } from '../../../actions/inventory';
-import { InventoryContext } from '../../../reducers/inventory';
+import Geolocation, {GeoPosition} from 'react-native-geolocation-service';
+import {AlertModal, Header} from '../';
+import {initiateInventoryState} from '../../../actions/inventory';
+import {InventoryContext} from '../../../reducers/inventory';
 import {
   addCoordinates,
   addCoordinateSingleRegisterTree,
@@ -31,14 +31,14 @@ import {
   updateLastScreen,
 } from '../../../repositories/inventory';
 import dbLog from '../../../repositories/logs';
-import { Colors, Typography } from '../../../styles';
-import { bugsnag } from '../../../utils';
-import { LogTypes } from '../../../utils/constants';
+import {Colors, Typography} from '../../../styles';
+import {bugsnag} from '../../../utils';
+import {LogTypes} from '../../../utils/constants';
 import distanceCalculator from '../../../utils/distanceCalculator';
-import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import { locationPermission } from '../../../utils/permissions';
-import { PermissionBlockedAlert, PermissionDeniedAlert } from './LocationPermissionAlerts';
+import {MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE} from '../../../utils/inventoryConstants';
+import {toLetters} from '../../../utils/mapMarkingCoordinate';
+import {locationPermission} from '../../../utils/permissions';
+import {PermissionBlockedAlert, PermissionDeniedAlert} from './LocationPermissionAlerts';
 import Map from './Map';
 import MapAlrightyModal from './MapAlrightyModal';
 import MapButtons from './MapButtons';
@@ -96,7 +96,7 @@ export default function MapMarking({
   const map = useRef(null);
   const navigation = useNavigation();
 
-  const { state: inventoryState, dispatch } = useContext(InventoryContext);
+  const {state: inventoryState, dispatch} = useContext(InventoryContext);
 
   const [alertHeading, setAlertHeading] = useState('');
   const [alertSubHeading, setAlertSubHeading] = useState('');
@@ -128,7 +128,7 @@ export default function MapMarking({
   useEffect(() => {
     const captureMode = multipleLocateTree || ON_SITE;
     setLocateTree(captureMode);
-    checkPermission({ showAlert: captureMode !== OFF_SITE });
+    checkPermission({showAlert: captureMode !== OFF_SITE});
   }, [multipleLocateTree]);
 
   useEffect(() => {
@@ -207,14 +207,14 @@ export default function MapMarking({
       !showAlrightyModal &&
       !isCompletePolygon
     ) {
-      const newGeoJSON = { ...geoJSON };
+      const newGeoJSON = {...geoJSON};
       newGeoJSON.features[activePolygonIndex].geometry.coordinates.pop();
 
       setGeoJSON(newGeoJSON);
     }
   }, [showAlrightyModal, isCompletePolygon]);
 
-  const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
+  const checkPermission = async ({showAlert = false, isOffsite = false}) => {
     try {
       await locationPermission();
       MapboxGL.setTelemetryEnabled(false);
@@ -243,7 +243,7 @@ export default function MapMarking({
 
   // initializes the state by updating state
   const initializeState = () => {
-    getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
+    getInventory({inventoryID: inventoryState.inventoryID}).then(inventoryData => {
       setInventory(inventoryData);
       setLocateTree(inventoryData.locateTree);
       if (inventoryData.polygons.length > 0) {
@@ -390,7 +390,7 @@ export default function MapMarking({
     } else if (locateTree === OFF_SITE) {
       pushMaker();
     } else {
-      const isGranted = await checkPermission({ showAlert: true });
+      const isGranted = await checkPermission({showAlert: true});
       if (isGranted) {
         if (location && location.coords) {
           let currentCoords = [location.coords.latitude, location.coords.longitude];
@@ -444,14 +444,14 @@ export default function MapMarking({
 
     let result;
     if (!inventoryState.inventoryID) {
-      result = await initiateInventory({ treeType: MULTI }, dispatch);
+      result = await initiateInventory({treeType: MULTI}, dispatch);
       if (result) {
         initiateInventoryState(result)(dispatch);
-        addLocateTree({ inventory_id: result.inventory_id, locateTree });
-        getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
+        addLocateTree({inventory_id: result.inventory_id, locateTree});
+        getInventory({inventoryID: result.inventory_id}).then(inventoryData => {
           setInventory(inventoryData);
         });
-        let data = { inventory_id: result.inventory_id, lastScreen: 'CreatePolygon' };
+        let data = {inventory_id: result.inventory_id, lastScreen: 'CreatePolygon'};
         updateLastScreen(data);
       }
     }
@@ -598,6 +598,18 @@ export default function MapMarking({
         plantationDate: new Date(),
         specieId,
         specieName,
+        // remeasurementDates: {
+        //   created: new Date(),
+        //   lastMeasurement: null,
+        //   sampleTreeId: sample.id,
+        //   remeasureBy: sample?.remeasureBy
+        //     ? sample.remeasureBy
+        //     : new Date(
+        //       plantationDate.getFullYear() + 1,
+        //       plantationDate.getMonth(),
+        //       plantationDate.getDay(),
+        //     ),
+        // }
       };
 
       if (sampleTrees[inventory.completedSampleTreesCount]) {
@@ -630,7 +642,7 @@ export default function MapMarking({
               lastScreen: 'RecordSampleTrees',
             };
             updateLastScreen(data);
-            getInventory({ inventoryID: inventoryID }).then(inventoryData => {
+            getInventory({inventoryID: inventoryID}).then(inventoryData => {
               setInventory(inventoryData);
             });
             dbLog.info({
@@ -666,12 +678,12 @@ export default function MapMarking({
       let result;
       if (!inventoryID) {
         result = await initiateInventory(
-          { treeType: isPointForMultipleTree ? MULTI : SINGLE },
+          {treeType: isPointForMultipleTree ? MULTI : SINGLE},
           dispatch,
         );
         if (result) {
           initiateInventoryState(result)(dispatch);
-          getInventory({ inventoryID: result.inventory_id }).then(inventoryData => {
+          getInventory({inventoryID: result.inventory_id}).then(inventoryData => {
             setInventory(inventoryData);
           });
         }
@@ -682,8 +694,8 @@ export default function MapMarking({
           markedCoords: centerCoordinates,
           locateTree: isPointForMultipleTree ? OFF_SITE : locateTreeVariable,
           currentCoords: isPointForMultipleTree
-            ? { latitude: 0, longitude: 0 }
-            : { latitude: currentCoords[0], longitude: currentCoords[1] },
+            ? {latitude: 0, longitude: 0}
+            : {latitude: currentCoords[0], longitude: currentCoords[1]},
         }).then(() => {
           if (isPointForMultipleTree) {
             // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
@@ -691,9 +703,9 @@ export default function MapMarking({
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'TotalTreesSpecies' },
+                  {name: 'MainScreen'},
+                  {name: 'TreeInventory'},
+                  {name: 'TotalTreesSpecies'},
                 ],
               }),
             );
@@ -720,23 +732,23 @@ export default function MapMarking({
               }}>
               {i18next.t('label.gps_accuracy')}
             </Text>
-            <Text style={[styles.accuracyModalText, { marginBottom: 16 }]}>
+            <Text style={[styles.accuracyModalText, {marginBottom: 16}]}>
               {i18next.t('label.accuracy_info')}
             </Text>
             <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+              <Text style={{color: '#87B738', fontFamily: Typography.FONT_FAMILY_BOLD}}>
                 {i18next.t('label.green')}
               </Text>{' '}
               {i18next.t('label.green_info')}
             </Text>
             <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+              <Text style={{color: '#CBBB03', fontFamily: Typography.FONT_FAMILY_BOLD}}>
                 {i18next.t('label.yellow')}
               </Text>{' '}
               {i18next.t('label.yellow_info')}
             </Text>
             <Text style={styles.accuracyModalText}>
-              <Text style={{ color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD }}>
+              <Text style={{color: '#FF0000', fontFamily: Typography.FONT_FAMILY_BOLD}}>
                 {i18next.t('label.red')}
               </Text>{' '}
               {i18next.t('label.red_info')}
@@ -784,7 +796,7 @@ export default function MapMarking({
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'MainScreen' },
+          {name: 'MainScreen'},
           {
             name: 'TreeInventory',
           },
@@ -836,10 +848,10 @@ export default function MapMarking({
         style={[
           styles.gpsContainer,
           accuracyInMeters < 10 && accuracyInMeters > 0
-            ? { backgroundColor: '#1CE003' }
+            ? {backgroundColor: '#1CE003'}
             : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
+            ? {backgroundColor: '#FFC400'}
+            : {backgroundColor: '#FF0000'},
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -848,7 +860,7 @@ export default function MapMarking({
   };
 
   return (
-    <View style={styles.container} fourceInset={{ top: 'always' }}>
+    <View style={styles.container} fourceInset={{top: 'always'}}>
       <Map
         geoJSON={geoJSON}
         treeType={treeType}
@@ -867,7 +879,7 @@ export default function MapMarking({
         location={location}
         onPressMyLocationIcon={onPressMyLocationIcon}
         setIsLocationAlertShow={() =>
-          checkPermission({ showAlert: true, isOffsite: locateTree === OFF_SITE })
+          checkPermission({showAlert: true, isOffsite: locateTree === OFF_SITE})
         }
         addMarker={
           treeType === MULTI && !isPointForMultipleTree
@@ -1065,4 +1077,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const polyline = { lineWidth: 2, lineColor: Colors.BLACK };
+const polyline = {lineWidth: 2, lineColor: Colors.BLACK};

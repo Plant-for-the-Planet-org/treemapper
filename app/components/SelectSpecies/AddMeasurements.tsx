@@ -1,45 +1,29 @@
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  View,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Switch,
-  Text,
-  StyleSheet,
-  Platform,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  View,
 } from 'react-native';
-import {
-  DBHInMeter,
-  diameterMaxCm,
-  diameterMaxInch,
-  diameterMinCm,
-  diameterMinInch,
-  footToMeter,
-  heightMaxFoot,
-  heightMaxM,
-  heightMinFoot,
-  heightMinM,
-  inchToCm,
-  LogTypes,
-  meterToFoot,
-  nonISUCountries,
-} from '../../utils/constants';
-import i18next from 'i18next';
-import { Colors, Typography } from '../../styles';
-import { AlertModal, Header, PrimaryButton } from '../Common';
-import OutlinedInput from '../Common/OutlinedInput';
-import { CommonActions, useNavigation } from '@react-navigation/native';
 import { InventoryContext } from '../../reducers/inventory';
-import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
 import {
   getInventory,
   updateInventory,
   updateSpecieAndMeasurements,
 } from '../../repositories/inventory';
-import { getUserInformation } from '../../repositories/user';
 import dbLog from '../../repositories/logs';
-import getIsMeasurementRatioCorrect from '../../utils/calculateHeighDiameterRatio';
+import { getUserInformation } from '../../repositories/user';
+import { Colors, Typography } from '../../styles';
+import { LogTypes, nonISUCountries } from '../../utils/constants';
+import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
+import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
+import { measurementValidation } from '../../utils/validations/measurements';
+import { AlertModal, Header, PrimaryButton } from '../Common';
+import MeasurementInputs from '../Common/MeasurementInputs';
 
 export const AddMeasurements = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState('');
@@ -49,25 +33,17 @@ export const AddMeasurements = () => {
   const [heightError, setHeightError] = useState('');
   const [tagId, setTagId] = useState('');
   const [inventory, setInventory] = useState<any>();
-  const [countryCode, setCountryCode] = useState('');
+  const [isNonISUCountry, setIsNonISUCountry] = useState(false);
   const [isTagIdPresent, setIsTagIdPresent] = useState(true);
   const [tagIdError, setTagIdError] = useState('');
   const [isSampleTree, setIsSampleTree] = useState(false);
-  const [diameterLabel, setDiameterLabel] = useState<string>(
-    i18next.t('label.measurement_basal_diameter'),
-  );
+
   const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
 
   const { state } = useContext(InventoryContext);
   const navigation = useNavigation();
   const diameterRef = React.createRef();
   const tagIdRef = React.createRef();
-
-  useEffect(() => {
-    if (!isTagIdPresent) {
-      setTagId('');
-    }
-  }, [isTagIdPresent]);
 
   useEffect(() => {
     setIsSampleTree(inventory?.status === INCOMPLETE_SAMPLE_TREE);
@@ -92,56 +68,18 @@ export const AddMeasurements = () => {
 
   const setCountry = () => {
     getUserInformation().then(data => {
-      setCountryCode(data.country);
+      setIsNonISUCountry(nonISUCountries.includes(data.country));
     });
   };
-  const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
 
   const onPressMeasurementBtn = () => {
     Keyboard.dismiss();
-    let isDiameterValid = false;
-    let isHeightValid = false;
+    const validationObject = measurementValidation(height, diameter, isNonISUCountry);
+    const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+
+    setDiameterError(diameterErrorMessage);
+    setHeightError(heightErrorMessage);
     let isTagIdValid = false;
-
-    const diameterMinValue = nonISUCountries.includes(countryCode)
-      ? diameterMinInch
-      : diameterMinCm;
-    const diameterMaxValue = nonISUCountries.includes(countryCode)
-      ? diameterMaxInch
-      : diameterMaxCm;
-
-    const heightMinValue = nonISUCountries.includes(countryCode) ? heightMinFoot : heightMinM;
-    const heightMaxValue = nonISUCountries.includes(countryCode) ? heightMaxFoot : heightMaxM;
-
-    // sets diameter error if diameter is not in between the minimum and maximum values or is invalid input
-    if (!diameter || Number(diameter) < diameterMinValue || Number(diameter) > diameterMaxValue) {
-      setDiameterError(
-        i18next.t('label.select_species_diameter_more_than_error', {
-          minValue: diameterMinValue,
-          maxValue: diameterMaxValue,
-        }),
-      );
-    } else if (!dimensionRegex.test(diameter)) {
-      setDiameterError(i18next.t('label.select_species_diameter_invalid'));
-    } else {
-      setDiameterError('');
-      isDiameterValid = true;
-    }
-
-    // sets height error if height is not in between the minimum and maximum values or is invalid input
-    if (!height || Number(height) < heightMinValue || Number(height) > heightMaxValue) {
-      setHeightError(
-        i18next.t('label.select_species_height_more_than_error', {
-          minValue: heightMinValue,
-          maxValue: heightMaxValue,
-        }),
-      );
-    } else if (!dimensionRegex.test(height)) {
-      setHeightError(i18next.t('label.select_species_height_invalid'));
-    } else {
-      setHeightError('');
-      isHeightValid = true;
-    }
 
     // checks if tag id is present and sets error accordingly
     if (isTagIdPresent && !tagId) {
@@ -152,12 +90,7 @@ export const AddMeasurements = () => {
     }
 
     // if all fields are valid then updates the specie data in DB
-    if (isDiameterValid && isHeightValid && isTagIdValid) {
-      const isRatioCorrect = getIsMeasurementRatioCorrect({
-        height: getConvertedHeight(),
-        diameter: getConvertedDiameter(),
-      });
-
+    if (!diameterErrorMessage && !heightErrorMessage && isTagIdValid) {
       if (isRatioCorrect) {
         addMeasurements();
       } else {
@@ -166,28 +99,14 @@ export const AddMeasurements = () => {
     }
   };
 
-  // returns the converted diameter by checking the user's country metric
-  const getConvertedDiameter = (treeDiameter: string = diameter) => {
-    return nonISUCountries.includes(countryCode)
-      ? Number(treeDiameter) * inchToCm
-      : Number(treeDiameter);
-  };
-
-  // returns the converted height by checking the user's country metric
-  const getConvertedHeight = (treeHeight: string = height) => {
-    return nonISUCountries.includes(countryCode)
-      ? Number(treeHeight) * footToMeter
-      : Number(treeHeight);
-  };
-
   // adds height, diameter and tag in DB by checking the tree type
   const addMeasurements = () => {
     if (!isSampleTree) {
       updateSpecieAndMeasurements({
         inventoryId: inventory.inventory_id,
         species: [singleTreeSpecie],
-        diameter: getConvertedDiameter(),
-        height: getConvertedHeight(),
+        diameter: getConvertedDiameter(diameter, isNonISUCountry),
+        height: getConvertedHeight(height, isNonISUCountry),
         tagId,
       })
         .then(() => {
@@ -198,9 +117,14 @@ export const AddMeasurements = () => {
         });
     } else {
       let updatedSampleTrees = [...inventory.sampleTrees];
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter =
-        getConvertedDiameter();
-      updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = getConvertedHeight();
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieDiameter = getConvertedDiameter(
+        diameter,
+        isNonISUCountry,
+      );
+      updatedSampleTrees[inventory.completedSampleTreesCount].specieHeight = getConvertedHeight(
+        height,
+        isNonISUCountry,
+      );
       if (tagId) {
         updatedSampleTrees[inventory.completedSampleTreesCount].tagId = tagId;
       }
@@ -260,19 +184,18 @@ export const AddMeasurements = () => {
   };
 
   const handleHeightChange = (text: string) => {
-    const convertedHeight = text ? getConvertedHeight(text) : 0;
-
     setHeightError('');
     setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-
-    if (convertedHeight < DBHInMeter) {
-      setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
-    } else {
-      setDiameterLabel(i18next.t('label.measurement_DBH'));
-    }
   };
 
-  const isNonISUCountry = nonISUCountries.includes(countryCode);
+  const handleDiameterChange = (text: string) => {
+    setDiameterError('');
+    setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+  };
+  const handleTagIdChange = (text: string) => {
+    setTagIdError('');
+    setTagId(text);
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -295,91 +218,23 @@ export const AddMeasurements = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
               }}>
-              <View>
-                <View style={styles.inputBox}>
-                  <View>
-                    <OutlinedInput
-                      value={height}
-                      onChangeText={(text: string) => handleHeightChange(text)}
-                      label={i18next.t('label.select_species_height')}
-                      keyboardType={'decimal-pad'}
-                      rightText={
-                        nonISUCountries.includes(countryCode)
-                          ? i18next.t('label.select_species_feet')
-                          : 'm'
-                      }
-                      error={heightError}
-                      autoFocus
-                      returnKeyType={'next'}
-                      onSubmitEditing={() => diameterRef.current.focus()}
-                    />
-                  </View>
-                </View>
-
-                <View style={[styles.inputBox, { zIndex: 1 }]}>
-                  <View>
-                    <OutlinedInput
-                      value={diameter}
-                      onChangeText={(text: string) => {
-                        setDiameterError('');
-                        setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-                      }}
-                      label={diameterLabel}
-                      keyboardType={'decimal-pad'}
-                      rightText={
-                        nonISUCountries.includes(countryCode)
-                          ? i18next.t('label.select_species_inches')
-                          : 'cm'
-                      }
-                      error={diameterError}
-                      ref={diameterRef}
-                      returnKeyType={isTagIdPresent ? 'next' : 'default'}
-                      onSubmitEditing={isTagIdPresent ? () => tagIdRef.current.focus() : () => {}}
-                      showInfo={true}
-                      infoText={i18next.t('label.measurement_diameter_info', {
-                        height: isNonISUCountry
-                          ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
-                          : DBHInMeter,
-                        unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
-                      })}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.switchContainer}>
-                  <Text style={styles.switchText}>
-                    {i18next.t('label.select_species_tagged_for_identification')}
-                  </Text>
-                  <Switch
-                    trackColor={{ false: '#767577', true: '#d4e7b1' }}
-                    thumbColor={isTagIdPresent ? Colors.PRIMARY : '#f4f3f4'}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => setIsTagIdPresent(!isTagIdPresent)}
-                    value={isTagIdPresent}
-                  />
-                </View>
-
-                {isTagIdPresent ? (
-                  <>
-                    <View style={styles.inputBox}>
-                      <View>
-                        <OutlinedInput
-                          value={tagId}
-                          label={i18next.t('label.select_species_tree_tag')}
-                          onChangeText={(text: string) => {
-                            setTagIdError('');
-                            setTagId(text);
-                          }}
-                          error={tagIdError}
-                          ref={tagIdRef}
-                        />
-                      </View>
-                    </View>
-                  </>
-                ) : (
-                  []
-                )}
-              </View>
+              <MeasurementInputs
+                height={height}
+                heightError={heightError}
+                handleHeightChange={handleHeightChange}
+                diameter={diameter}
+                diameterError={diameterError}
+                handleDiameterChange={handleDiameterChange}
+                diameterRef={diameterRef}
+                isNonISUCountry={isNonISUCountry}
+                showTagIdInput
+                tagId={tagId}
+                tagIdError={tagIdError}
+                handleTagIdChange={handleTagIdChange}
+                tagIdRef={tagIdRef}
+                isTagIdPresent={isTagIdPresent}
+                setIsTagIdPresent={setIsTagIdPresent}
+              />
 
               <View>
                 <PrimaryButton

@@ -21,13 +21,14 @@ const barStyle = isAndroid ? 'light-content' : 'dark-content';
 export default function AppNavigator() {
   const { showInitialStack } = useContext(NavigationContext);
   const netInfo = useNetInfo();
-  const { dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: inventoryState, dispatch } = useContext(InventoryContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const autoSync = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       checkLoginAndSync({
         sync: true,
+        inventoryState,
         dispatch: dispatch,
         userDispatch: userDispatch,
         connected: netInfo.isConnected,
@@ -40,6 +41,7 @@ export default function AppNavigator() {
     if (!showInitialStack) {
       checkLoginAndSync({
         sync: false,
+        inventoryState,
         dispatch: dispatch,
         userDispatch: userDispatch,
         connected: netInfo.isConnected,
@@ -47,13 +49,13 @@ export default function AppNavigator() {
       });
       dailyLogUpdateCheck();
     }
-  }, [showInitialStack]);
+  }, [showInitialStack, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
   useEffect(() => {
     if (!showInitialStack) {
       autoSync();
     }
-  }, [netInfo]);
+  }, [netInfo, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
   return (
     <NavigationContainer>

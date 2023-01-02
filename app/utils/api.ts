@@ -1,11 +1,11 @@
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
-import { v4 as uuidv4 } from 'uuid';
 import { Platform } from 'react-native';
 import 'react-native-get-random-values';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { bugsnag } from './index';
+import { nanoid } from 'nanoid';
 import { LogTypes } from './constants';
 import dbLog from '../repositories/logs';
 import { APIConfig } from '../actions/Config';
@@ -20,6 +20,7 @@ const { protocol, url: baseURL } = APIConfig;
 const axiosInstance = axios.create({
   baseURL: `${protocol}://${baseURL}`,
 });
+console.log(baseURL, 'baseURL');
 
 // Add a request interceptor which adds the configuration in all the requests
 axiosInstance.interceptors.request.use(
@@ -29,7 +30,7 @@ axiosInstance.interceptors.request.use(
 
     // if session ID is empty in AsyncStorage then creates a new unique session ID and and sores in AsyncStorage
     if (!sessionId) {
-      sessionId = uuidv4();
+      sessionId = nanoid();
       await AsyncStorage.setItem('session-id', sessionId);
     }
 

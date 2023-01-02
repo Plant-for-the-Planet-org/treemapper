@@ -1,10 +1,10 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
+import MapboxGL, {LineLayerStyle} from '@react-native-mapbox-gl/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleProp, StyleSheet } from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Platform, StyleProp, StyleSheet} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { Colors } from '../../styles';
+import {Colors} from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -33,6 +33,8 @@ interface IGeoJSONMapProps {
   siteCenterCoordinate: any;
   siteBounds: any;
   projectSites: any;
+  remeasurePolygons: string[];
+  remeasureDuePolygons: string[];
 }
 
 const GeoJSONMap = ({
@@ -57,6 +59,8 @@ const GeoJSONMap = ({
   siteCenterCoordinate,
   siteBounds,
   projectSites,
+  remeasurePolygons,
+  remeasureDuePolygons,
 }: IGeoJSONMapProps) => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
@@ -70,6 +74,8 @@ const GeoJSONMap = ({
       },
     ],
   };
+
+  // console.log(JSON.stringify(geoJSON), '==geoJSON==');
 
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
@@ -189,11 +195,55 @@ const GeoJSONMap = ({
       <MapboxGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
         <MapboxGL.LineLayer
           id={'projectSitesPolyline'}
-          style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
+          style={{...polyline, lineColor: Colors.PLANET_BLACK}}
         />
       </MapboxGL.ShapeSource>
     );
   }, [projectSitesGeoJSON]);
+
+  const RemeasurePolygon = () => {
+    return (
+      <>
+        <MapboxGL.ShapeSource
+          id={'point'}
+          shape={pointGeoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
+        </MapboxGL.ShapeSource>
+        <MapboxGL.ShapeSource
+          id={'polygon'}
+          shape={geoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features ssss', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapboxGL.FillLayer
+            id={'polyFill'}
+            style={{
+              fillColor: ['get', 'color'],
+              fillOpacity: 0.3,
+            }}
+          />
+          <MapboxGL.LineLayer
+            id={'polyline'}
+            style={{
+              lineWidth: 2,
+              lineColor: ['get', 'color'],
+              lineOpacity: 0.5,
+              lineJoin: 'bevel',
+            }}
+          />
+        </MapboxGL.ShapeSource>
+      </>
+    );
+  };
 
   return (
     <MapboxGL.MapView
@@ -220,7 +270,9 @@ const GeoJSONMap = ({
             geoJSON={singleSelectedGeoJSON}
             isPointForMultipleTree={false}
             activeSampleCarouselIndex={activeSampleCarouselIndex}
+            setActiveSampleCarouselIndex={setActiveSampleCarouselIndex}
             isCarouselSample
+            sampleCarouselRef={sampleCarouselRef}
           />
           <MapboxGL.ShapeSource
             id={'singleSelectedPolygon'}
@@ -235,6 +287,40 @@ const GeoJSONMap = ({
         </>
       ) : showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
         clickedGeoJSON.map((singleGeoJson, index) => {
+          const styles = {
+            remeasurePolygonStyle: {
+              fill: remeasureFillStyle,
+              line: remeasurePolyline,
+              circle: remeasureCircleStyle,
+            },
+            remeasureDuePolygonStyle: {
+              fill: remeasureElapseFillStyle,
+              line: remeasureElapsePolyline,
+              circle: remeasureElapseCircleStyle,
+            },
+            selectedDefaultStyle: {
+              fill: fillStyle,
+              line: polyline,
+              circle: circleStyle,
+            },
+            notSelectedDefaultStyle: {
+              fill: inactiveFillStyle,
+              line: inactivePolyline,
+              circle: inactiveCircleStyle,
+            },
+          };
+
+          const inventoryId = singleGeoJson?.features[0]?.properties?.inventoryId;
+
+          const isSelected = activeCarouselIndex == index;
+          const polygonStyleKey = remeasurePolygons.includes(inventoryId)
+            ? 'remeasurePolygonStyle'
+            : remeasureDuePolygons.includes(inventoryId)
+            ? 'remeasureDuePolygonStyle'
+            : isSelected
+            ? 'selectedDefaultStyle'
+            : 'notSelectedDefaultStyle';
+
           return (
             <MapboxGL.ShapeSource
               key={`polygonClicked-${index}`}
@@ -248,47 +334,32 @@ const GeoJSONMap = ({
                   setActiveCarouselIndex(index);
                 }
               }}
-              style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
+              style={activeCarouselIndex === index ? {zIndex: 1000} : {zIndex: 999}}>
               <MapboxGL.FillLayer
                 id={`polyFillClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveFillStyle : fillStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].fill,
+                  fillOpacity: isSelected ? 0.3 : 0.1,
+                }}
               />
               <MapboxGL.LineLayer
                 id={`polylineClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactivePolyline : polyline}
+                style={{...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5}}
               />
 
               <MapboxGL.CircleLayer
                 id={`circleClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveCircleStyle : circleStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].circle,
+                  circleOpacity: isSelected ? 1 : 0.2,
+                }}
               />
             </MapboxGL.ShapeSource>
           );
         })
       ) : (
         <>
-          <MapboxGL.ShapeSource
-            id={'point'}
-            shape={pointGeoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
-          </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'polygon'}
-            shape={geoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-          </MapboxGL.ShapeSource>
+          <RemeasurePolygon />
           <SitePolygon />
         </>
       )}
@@ -321,9 +392,27 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 };
 
-const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
-const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
+const remeasurePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.WARNING,
+  lineOpacity: 1,
+  lineJoin: 'bevel',
+};
 
-const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
-const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };
+const remeasureElapsePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.PLANET_CRIMSON,
+  lineOpacity: 1,
+  lineJoin: 'bevel',
+};
+
+const fillStyle = {fillColor: Colors.PRIMARY, fillOpacity: 0.3};
+const inactiveFillStyle = {fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2};
+const remeasureFillStyle = {fillColor: Colors.WARNING, fillOpacity: 0.3};
+const remeasureElapseFillStyle = {fillColor: Colors.PLANET_CRIMSON, fillOpacity: 0.3};
+
+const bigCircleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12};
+const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8};
+const inactiveCircleStyle = {circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2};
+const remeasureCircleStyle = {circleColor: Colors.WARNING, circleOpacity: 0.2};
+const remeasureElapseCircleStyle = {circleColor: Colors.PLANET_CRIMSON, circleOpacity: 0.2};
