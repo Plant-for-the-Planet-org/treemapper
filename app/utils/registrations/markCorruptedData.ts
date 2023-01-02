@@ -17,8 +17,6 @@ export const checkAndMarkMissingData = ({
   schemaVersion,
   isMigration = false,
 }: Params) => {
-  console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
   if (!(schemaVersion && oldRealm.schemaVersion < schemaVersion) && isMigration) {
     return;
   }

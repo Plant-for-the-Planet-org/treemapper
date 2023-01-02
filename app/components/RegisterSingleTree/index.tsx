@@ -1,21 +1,22 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import React, { useContext, useEffect, useState } from 'react';
-import { BackHandler, Platform, StyleSheet, View } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { InventoryContext } from '../../reducers/inventory';
-import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
+import { BackHandler, StyleSheet, View } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+
+import { Loader } from '../Common';
 import { Colors } from '../../styles';
 import { bugsnag } from '../../utils';
-import distanceCalculator from '../../utils/distanceCalculator';
-import { INCOMPLETE, OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryConstants';
-import { locationPermission } from '../../utils/permissions';
-import { Loader } from '../Common';
-import ImageCapturing from '../Common/ImageCapturing';
 import MapMarking from '../Common/MapMarking';
+import ImageCapturing from '../Common/ImageCapturing';
 import {
   PermissionBlockedAlert,
   PermissionDeniedAlert,
 } from '../Common/MapMarking/LocationPermissionAlerts';
+import { InventoryContext } from '../../reducers/inventory';
+import { locationPermission } from '../../utils/permissions';
+import distanceCalculator from '../../utils/distanceCalculator';
+import { INCOMPLETE, OFF_SITE, ON_SITE, SINGLE } from '../../utils/inventoryConstants';
+import { addLocateTree, getInventory, updateLastScreen } from '../../repositories/inventory';
 
 const RegisterSingleTree = () => {
   const { state: inventoryState } = useContext(InventoryContext);
@@ -31,7 +32,7 @@ const RegisterSingleTree = () => {
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       setScreenState('');
       if (inventoryState.inventoryID) {
-        getInventory({ inventoryID: inventoryState.inventoryID }).then((InventoryData) => {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then(InventoryData => {
           if (InventoryData.status === INCOMPLETE) {
             let data = {
               inventory_id: inventoryState.inventoryID,
@@ -40,11 +41,11 @@ const RegisterSingleTree = () => {
             updateLastScreen(data);
 
             locationPermission()
-              .then((granted) => {
+              .then(granted => {
                 setIsGranted(true);
                 if (granted && InventoryData.polygons[0]) {
                   Geolocation.getCurrentPosition(
-                    (position) => {
+                    position => {
                       const distanceInMeters = distanceCalculator(
                         [position.coords.latitude, position.coords.longitude],
                         [
@@ -87,7 +88,7 @@ const RegisterSingleTree = () => {
                   setScreenState('MapMarking');
                 }
               })
-              .catch((err) => {
+              .catch(err => {
                 checkPermissionAlert(err);
               });
           }
@@ -98,7 +99,7 @@ const RegisterSingleTree = () => {
             setIsGranted(true);
             setScreenState('MapMarking');
           })
-          .catch((err) => {
+          .catch(err => {
             checkPermissionAlert(err);
           });
       }
