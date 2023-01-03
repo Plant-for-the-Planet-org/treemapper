@@ -1,6 +1,10 @@
 PODS:
-  - A0Auth0 (2.13.1):
-    - React
+  - A0Auth0 (2.16.0):
+    - Auth0 (~> 2.3)
+    - React-Core
+  - Auth0 (2.3.2):
+    - JWTDecode (~> 3.0)
+    - SimpleKeychain (~> 1.0)
   - BEMCheckBox (1.4.1)
   - boost (1.76.0)
   - BugsnagReactNative (2.23.10):
@@ -8,8 +12,8 @@ PODS:
     - React
   - BugsnagReactNative/Core (2.23.10):
     - React
-  - BVLinearGradient (2.5.6):
-    - React
+  - BVLinearGradient (2.6.2):
+    - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.68.2)
@@ -85,6 +89,7 @@ PODS:
   - glog (0.3.5)
   - jail-monkey (2.6.0):
     - React-Core
+  - JWTDecode (3.0.0)
   - libevent (2.1.12)
   - Mapbox-iOS-SDK (6.4.1):
     - MapboxMobileEvents (~> 0.10.12)
@@ -305,13 +310,13 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-config (1.4.5):
-    - react-native-config/App (= 1.4.5)
-  - react-native-config/App (1.4.5):
+  - react-native-config (1.4.11):
+    - react-native-config/App (= 1.4.11)
+  - react-native-config/App (1.4.11):
     - React-Core
   - react-native-document-picker (5.2.0):
     - React-Core
-  - react-native-geolocation-service (5.2.0):
+  - react-native-geolocation-service (5.3.1):
     - React
   - react-native-get-random-values (1.8.0):
     - React-Core
@@ -333,8 +338,12 @@ PODS:
     - React-Core
   - react-native-pager-view (6.1.2):
     - React-Core
-  - react-native-safe-area-context (3.4.1):
+  - react-native-safe-area-context (4.4.1):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - ReactCommon/turbomodule/core
   - React-perflogger (0.68.2)
   - React-RCTActionSheet (0.68.2):
     - React-Core/RCTActionSheetHeaders (= 0.68.2)
@@ -411,13 +420,13 @@ PODS:
     - React-Core
   - RNDateTimePicker (6.7.1):
     - React-Core
-  - RNDeviceInfo (8.7.1):
+  - RNDeviceInfo (10.3.0):
     - React-Core
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (1.10.3):
+  - RNGestureHandler (2.8.0):
     - React-Core
-  - RNInAppBrowser (3.6.3):
+  - RNInAppBrowser (3.7.0):
     - React-Core
   - RNLocalize (1.4.3):
     - React-Core
@@ -448,13 +457,14 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (2.18.1):
+  - RNScreens (3.18.2):
     - React-Core
-  - RNShare (5.3.0):
+    - React-RCTImage
+  - RNShare (8.0.1):
     - React-Core
   - RNSnackbar (2.4.0):
     - React-Core
-  - RNSVG (12.3.0):
+  - RNSVG (13.6.0):
     - React-Core
   - RNVectorIcons (9.2.0):
     - React-Core
@@ -465,6 +475,7 @@ PODS:
   - RNZipArchive/Core (5.0.6):
     - React
     - SSZipArchive (= 2.2.2)
+  - SimpleKeychain (1.0.1)
   - SocketRocket (0.6.0)
   - SSZipArchive (2.2.2)
   - toolbar-android (0.2.1):
@@ -474,7 +485,7 @@ PODS:
     - Yoga (~> 1.14)
 
 DEPENDENCIES:
-  - A0Auth0 (from `../node_modules/react-native-auth0/ios`)
+  - A0Auth0 (from `../node_modules/react-native-auth0`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BugsnagReactNative (from `../node_modules/bugsnag-react-native`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
@@ -563,6 +574,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - Auth0
     - BEMCheckBox
     - CocoaAsyncSocket
     - Flipper
@@ -575,17 +587,19 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - fmt
+    - JWTDecode
     - libevent
     - Mapbox-iOS-SDK
     - MapboxMobileEvents
     - OpenSSL-Universal
+    - SimpleKeychain
     - SocketRocket
     - SSZipArchive
     - YogaKit
 
 EXTERNAL SOURCES:
   A0Auth0:
-    :path: "../node_modules/react-native-auth0/ios"
+    :path: "../node_modules/react-native-auth0"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   BugsnagReactNative:
@@ -710,11 +724,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  A0Auth0: 650e33fc16ba6412322bdb7c500f1e9119c2eb04
+  A0Auth0: f583922e3947971088781268a1b371bd65403c19
+  Auth0: 64da28fdc5cd499aa516dc4bfd0ace8efae2c1da
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
-  BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
+  BVLinearGradient: 34a999fda29036898a09c6a6b728b0b4189e1a44
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: a7a655862f6b09625d11c772296b01cd5164b648
@@ -731,6 +746,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 476ee3e89abb49e07f822b48323c51c57124b572
   jail-monkey: 07b83767601a373db876e939b8dbf3f5eb15f073
+  JWTDecode: 82480a7173f8a811954e7e14a2b59f688ca4222a
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   Mapbox-iOS-SDK: f870f83cbdc7aa4a74afcee143aafb0dae390c82
   MapboxMobileEvents: e78db24b348f48e41e5895be7dc16e5b1bb43562
@@ -749,14 +765,14 @@ SPEC CHECKSUMS:
   React-jsinspector: c5989c77cb89ae6a69561095a61cce56a44ae8e8
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
+  react-native-config: bcafda5b4c51491ee1b0e1d0c4e3905bc7b56c1b
   react-native-document-picker: f1b5398801b332c77bc62ae0eae2116f49bdff26
-  react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
+  react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-mapbox-gl: 70b58464609b34d1480381bc46e208453264f91e
   react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-pager-view: 54bed894cecebe28cede54c01038d9d1e122de43
-  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
+  react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   React-perflogger: a18b4f0bd933b8b24ecf9f3c54f9bf65180f3fe6
   React-RCTActionSheet: 547fe42fdb4b6089598d79f8e1d855d7c23e2162
   React-RCTAnimation: bc9440a1c37b06ae9ebbb532d244f607805c6034
@@ -774,24 +790,25 @@ SPEC CHECKSUMS:
   RNCCheckbox: 38989bbd3d7d536adf24ba26c6b3e6cefe0bea6f
   RNCMaskedView: bc0170f389056201c82a55e242e5d90070e18e5a
   RNDateTimePicker: 0530a73a6f3a1a85814cbde0802736993b9e675e
-  RNDeviceInfo: aad3c663b25752a52bf8fce93f2354001dd185aa
+  RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNInAppBrowser: 3ff3a3b8f458aaf25aaee879d057352862edf357
+  RNGestureHandler: 62232ba8f562f7dea5ba1b3383494eb5bf97a4d3
+  RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNLocalize: 7c7aeda16c01db7a0918981c14875c0a53be9b79
   RNReanimated: 249d847e8afee85e6dde0c49221bc284c235cfb9
-  RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
-  RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
+  RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
+  RNShare: d93e00e906e6174657f6370b480437e4702bc86e
   RNSnackbar: be3333a21a453ccc272f41a8add5a71f7d44dfcd
-  RNSVG: 302bfc9905bd8122f08966dc2ce2d07b7b52b9f8
+  RNSVG: 3a79c0c4992213e4f06c08e62730c5e7b9e4dc17
   RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8
   RNZipArchive: 9dfdaa1d1ad49a423e83df505f292e0ae8126a5d
+  SimpleKeychain: 130211269f88f038d7dc5254cf0b1b9ce978c398
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   toolbar-android: 2a73856e98b750d7e71ce4644d3f41cc98211719
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0a711bbf8370c56859706d2c46f477b9c195e0d7
+PODFILE CHECKSUM: dff35b74578b55d308b2ab6368e5846a71722cb4
 
 COCOAPODS: 1.11.3

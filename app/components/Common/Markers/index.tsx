@@ -1,12 +1,13 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
 import Config from 'react-native-config';
+import { StyleSheet } from 'react-native';
+import MapboxGL from '@react-native-mapbox-gl/maps';
+import { useEffect, useRef, useState } from 'react';
+
 import { Colors } from '../../../styles';
+import MarkerSVG from '../../Common/MarkerSVG';
 import { geoJSONType, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import MarkerSVG from '../../Common/MarkerSVG';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 

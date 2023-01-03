@@ -1,19 +1,20 @@
 import i18next from 'i18next';
-import React, { useContext, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
 import Share from 'react-native-share';
 import { SvgXml } from 'react-native-svg';
+import React, { useContext, useState } from 'react';
+import DocumentPicker from 'react-native-document-picker';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+
 import { importIcon } from '../../assets';
-import { AdditionalDataContext } from '../../reducers/additionalData';
 import dbLog from '../../repositories/logs';
-import { Colors, Typography } from '../../styles';
-import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
-import { askExternalStoragePermission } from '../../utils/permissions';
+import { Colors, Typography } from '../../styles';
 import { AlertModal, Header, LargeButton } from '../Common';
+import { AdditionalDataContext } from '../../reducers/additionalData';
+import { askExternalStoragePermission } from '../../utils/permissions';
+import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 
 const AdditionalDataSettings = () => {
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -22,14 +23,8 @@ const AdditionalDataSettings = () => {
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [showSecondaryButton, setShowSecondaryButton] = useState<boolean>(false);
 
-  const {
-    forms,
-    metadata,
-    addFormsToState,
-    addMetadataInState,
-    setTreeType,
-    setRegistrationType,
-  } = useContext(AdditionalDataContext);
+  const { forms, metadata, addFormsToState, addMetadataInState, setTreeType, setRegistrationType } =
+    useContext(AdditionalDataContext);
 
   const exportAdditionalData = () => {
     const exportData = {
@@ -46,8 +41,9 @@ const AdditionalDataSettings = () => {
       failOnCancel: false,
     };
 
-    Share.open(options).catch((err) => {
-      if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+    Share.open(options).catch(err => {
+      if (err?.error?.code != 'ECANCELLED500') {
+        // iOS cancel button pressed
         setAlertHeading(i18next.t('label.something_went_wrong'));
         setAlertMessage(i18next.t('label.share_additional_data_error'));
         setShowSecondaryButton(false);

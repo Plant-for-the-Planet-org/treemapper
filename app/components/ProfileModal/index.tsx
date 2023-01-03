@@ -1,15 +1,16 @@
-import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
-import { Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import React, { useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { APIConfig } from '../../actions/Config';
+import { Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { logo } from '../../assets';
-import { Colors, Typography } from '../../styles';
-import openWebView from '../../utils/openWebView';
 import AvatarIcon from '../Common/AvatarIcon';
 import ProfileListItem from './ProfileListItem';
+import { APIConfig } from '../../actions/Config';
+import { Colors, Typography } from '../../styles';
+import openWebView from '../../utils/openWebView';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 

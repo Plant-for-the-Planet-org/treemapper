@@ -1,10 +1,11 @@
-import i18next from 'i18next';
 import React from 'react';
+import i18next from 'i18next';
 import Share from 'react-native-share';
+
+import LargeButton from '../LargeButton';
 import { toBase64 } from '../../../utils/base64';
 import getGeoJsonData from '../../../utils/convertInventoryToGeoJson';
 import { askExternalStoragePermission } from '../../../utils/permissions';
-import LargeButton from '../LargeButton';
 
 interface ExportGeoJSONProps {
   inventory: any;
@@ -26,7 +27,7 @@ const ExportGeoJSON: React.FunctionComponent<ExportGeoJSONProps> = ({ inventory 
         .then(() => {
           alert(i18next.t('label.inventory_overview_export_json_success'));
         })
-        .catch((err) => {
+        .catch(err => {
           // shows error if occurred and not canceled by the user
           if (err?.error?.code != 'ECANCELLED500' && err?.message !== 'User did not share') {
             // iOS cancel button pressed
