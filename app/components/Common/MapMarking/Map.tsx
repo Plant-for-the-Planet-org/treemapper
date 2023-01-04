@@ -11,7 +11,7 @@ import Markers from '../Markers';
 import SampleTreeMarkers from '../SampleTreeMarkers';
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
-Logger.setLogCallback((log) => {
+Logger.setLogCallback(log => {
   const { message } = log;
   // expected warnings - see https://github.com/mapbox/mapbox-gl-native/issues/15341#issuecomment-522889062
   if (
@@ -77,7 +77,7 @@ export default function Map({
         {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
         <MapboxGL.Camera
-          ref={(el) => {
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
@@ -88,7 +88,7 @@ export default function Map({
           </MapboxGL.ShapeSource>
         )}
         {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
+          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
         )}
       </MapboxGL.MapView>
 

@@ -1,79 +1,81 @@
-import { CommonActions, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  BackHandler,
-  Dimensions,
+  Text,
+  View,
   Image,
   Platform,
-  SafeAreaView,
-  ScrollView,
   StyleSheet,
-  Text,
+  Dimensions,
+  ScrollView,
+  BackHandler,
+  SafeAreaView,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Config from 'react-native-config';
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import FIcon from 'react-native-vector-icons/Fontisto';
+import Geolocation from 'react-native-geolocation-service';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { APIConfig } from '../../actions/Config';
-import {
-  deleteInventoryId,
-  setIsExtraSampleTree,
-  setRemeasurementId,
-  setSamplePlantLocationIndex,
-  setSkipToInventoryOverview,
-} from '../../actions/inventory';
-import { InventoryContext } from '../../reducers/inventory';
-import {
-  addAppMetadata,
-  changeInventoryStatus,
-  deleteInventory,
-  getInventory,
-  updateLastScreen,
-  updatePlantingDate,
-  updateSingleTreeSpecie,
-  updateSpecieDiameter,
-  updateSpecieHeight,
-  updateTreeTag,
-} from '../../repositories/inventory';
-import { getProjectById } from '../../repositories/projects';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
+import React, { useContext, useEffect, useState } from 'react';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { CommonActions, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+
 import {
   cmToInch,
+  inchToCm,
   DBHInMeter,
   footToMeter,
-  inchToCm,
   meterToFoot,
   nonISUCountries,
 } from '../../utils/constants';
 import {
-  FIX_NEEDED,
-  INCOMPLETE,
-  INCOMPLETE_SAMPLE_TREE,
+  deleteInventoryId,
+  setRemeasurementId,
+  setIsExtraSampleTree,
+  setSkipToInventoryOverview,
+  setSamplePlantLocationIndex,
+} from '../../actions/inventory';
+import {
   MULTI,
-  ON_SITE,
-  PENDING_DATA_UPLOAD,
   SINGLE,
   SYNCED,
+  ON_SITE,
+  FIX_NEEDED,
+  INCOMPLETE,
+  PENDING_DATA_UPLOAD,
+  INCOMPLETE_SAMPLE_TREE,
 } from '../../utils/inventoryConstants';
+import {
+  getInventory,
+  updateTreeTag,
+  addAppMetadata,
+  deleteInventory,
+  updateLastScreen,
+  updateSpecieHeight,
+  updatePlantingDate,
+  updateSpecieDiameter,
+  changeInventoryStatus,
+  updateSingleTreeSpecie,
+} from '../../repositories/inventory';
+import { bugsnag } from '../../utils';
+import ManageSpecies from '../ManageSpecies';
+import AlertModal from '../Common/AlertModal';
+import { APIConfig } from '../../actions/Config';
+import { Colors, Typography } from '../../styles';
+import SpecieSampleTree from '../SpecieSampleTree';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
+import { InventoryContext } from '../../reducers/inventory';
+import { locationPermission } from '../../utils/permissions';
+import { getProjectById } from '../../repositories/projects';
 import { updateSampleTree } from '../../utils/updateSampleTree';
-import { measurementValidation } from '../../utils/validations/measurements';
+import distanceCalculator from '../../utils/distanceCalculator';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
-import AlertModal from '../Common/AlertModal';
-import ExportGeoJSON from '../Common/ExportGeoJSON';
-import ManageSpecies from '../ManageSpecies';
-import SpecieSampleTree from '../SpecieSampleTree';
-import Geolocation from 'react-native-geolocation-service';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { locationPermission } from '../../utils/permissions';
-import { bugsnag } from '../../utils';
-import distanceCalculator from '../../utils/distanceCalculator';
 import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
-import Config from 'react-native-config';
+import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { measurementValidation } from '../../utils/validations/measurements';
+
 const { protocol, cdnUrl } = APIConfig;
 
 type RootStackParamList = {
@@ -991,7 +993,6 @@ const SingleTreeOverview = () => {
         .catch(err => console.error(err));
     }
   };
-  console.log('route==>', route);
 
   return isShowManageSpecies ? (
     isSampleTree ? (
