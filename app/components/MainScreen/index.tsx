@@ -124,8 +124,6 @@ export default function MainScreen() {
     } else {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
-      console.log('11');
-
       setUserInfo(stringifiedUserDetails);
       setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
@@ -134,7 +132,6 @@ export default function MainScreen() {
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
-      console.log('22');
       setUserInfo({});
       setIsUserLogin(false);
       clearUserDetails()(userDispatch);
@@ -212,7 +209,6 @@ export default function MainScreen() {
         if (userDetails) {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
           if (stringifiedUserDetails) {
-            console.log('33');
             setUserInfo(stringifiedUserDetails);
             setIsUserLogin(!!stringifiedUserDetails.accessToken);
           }
@@ -291,7 +287,6 @@ export default function MainScreen() {
   };
 
   // console.log(isUserLogin, userInfo, 'userInfo?.type');
-
   return (
     <>
       <MainMap

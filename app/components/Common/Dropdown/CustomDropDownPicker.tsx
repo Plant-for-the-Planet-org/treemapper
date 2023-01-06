@@ -1,23 +1,24 @@
-import i18next from 'i18next';
 import React from 'react';
+import i18next from 'i18next';
 import { StyleSheet } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+import DropDownPicker, { DropDownDirectionType } from 'react-native-dropdown-picker';
+
 import { Colors, Typography } from '../../../styles';
 
 type Props = {
   items: any;
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   value: any;
-  setValue: React.Dispatch<any>;
-  zIndex?: number;
-  zIndexInverse?: number;
   style?: any;
-  textStyle?: any;
+  open: boolean;
+  zIndex?: number;
   iconColor?: any;
+  textStyle?: any;
+  zIndexInverse?: number;
   listItemLabelStyle?: any;
-  dropDownDirection?: string;
+  setValue: React.Dispatch<any>;
+  dropDownDirection?: DropDownDirectionType;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const CustomDropDownPicker = ({

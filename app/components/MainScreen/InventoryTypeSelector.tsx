@@ -1,13 +1,14 @@
-import React, {useState, useEffect} from 'react';
 import i18next from 'i18next';
-import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
-import {useInventory} from '../../reducers/inventory';
-import {setFetchNecessaryInventoryFlag} from '../../actions/inventory';
-import {InventoryType} from '../../types/inventory';
-import {getUserDetails, modifyUserDetails} from '../../repositories/user';
+import React, { useState, useEffect } from 'react';
 
-export const InventoryTypeSelector = () => {
-  const {dispatch} = useInventory();
+import { InventoryType } from '../../types/inventory';
+import { useInventory } from '../../reducers/inventory';
+import { setFetchNecessaryInventoryFlag } from '../../actions/inventory';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
+import { getUserDetails, modifyUserDetails } from '../../repositories/user';
+
+const InventoryTypeSelector = React.memo(() => {
+  const { dispatch } = useInventory();
 
   const [showInventoryTypeDropdown, setShowInventoryTypeDropdown] = useState<boolean>(false);
   const [selectedInvType, setSelectedInvType] = useState<InventoryType | null>(null);
@@ -40,8 +41,8 @@ export const InventoryTypeSelector = () => {
   }, [selectedInvType]);
 
   const inventoryTypeOption = [
-    {label: i18next.t('label.fetch_all_items'), value: InventoryType.AllItems},
-    {label: i18next.t('label.fetch_necessary_items'), value: InventoryType.NecessaryItems},
+    { label: i18next.t('label.fetch_all_items'), value: InventoryType.AllItems },
+    { label: i18next.t('label.fetch_necessary_items'), value: InventoryType.NecessaryItems },
   ];
 
   return (
@@ -51,7 +52,10 @@ export const InventoryTypeSelector = () => {
       setOpen={setShowInventoryTypeDropdown}
       value={selectedInvType}
       setValue={setSelectedInvType}
-      style={{marginBottom: 8}}
+      style={[{ marginBottom: 8 }]}
     />
   );
-};
+});
+
+InventoryTypeSelector.displayName = 'InventoryTypeSelector';
+export { InventoryTypeSelector };

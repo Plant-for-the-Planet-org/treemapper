@@ -1,17 +1,18 @@
-import {useNetInfo} from '@react-native-community/netinfo';
-import {useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, {useContext, useEffect, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import {InventoryContext} from '../../../reducers/inventory';
-import {UserContext} from '../../../reducers/user';
-import dbLog from '../../../repositories/logs';
-import {Colors, Typography} from '../../../styles';
-import {LogTypes} from '../../../utils/constants';
-import {uploadInventoryData} from '../../../utils/uploadInventory';
+import { useNetInfo } from '@react-native-community/netinfo';
+import React, { memo, useContext, useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import AlertModal from '../AlertModal';
 import RotatingView from '../RotatingView';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
+import { Colors, Typography } from '../../../styles';
+import { UserContext } from '../../../reducers/user';
+import { InventoryContext } from '../../../reducers/inventory';
+import { uploadInventoryData } from '../../../utils/uploadInventory';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -22,7 +23,7 @@ interface ISyncingProps {
   borderLess?: boolean;
 }
 
-export default function Syncing({
+function Syncing({
   uploadCount,
   pendingCount,
   isUploading,
@@ -36,8 +37,8 @@ export default function Syncing({
   const navigation = useNavigation();
   const netInfo = useNetInfo();
 
-  const {dispatch} = useContext(InventoryContext);
-  const {dispatch: userDispatch} = useContext(UserContext);
+  const { dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
 
   // checks for the pending count and updates the sync message based on the same
   const checkPendingCount = () => {
@@ -96,12 +97,12 @@ export default function Syncing({
     );
   };
   const SyncIcon = () => {
-    return <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} style={{marginRight: 6}} />;
+    return <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} style={{ marginRight: 6 }} />;
   };
   const SyncContainer = () => {
     return (
       <View>
-        <View style={[styles.syncContainer, borderLess ? {} : {borderWidth: 1, marginRight: 10}]}>
+        <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>
               <SyncIcon />
@@ -130,6 +131,8 @@ export default function Syncing({
     return <SyncContainer />;
   }
 }
+
+export default memo(Syncing);
 
 const styles = StyleSheet.create({
   syncContainer: {
