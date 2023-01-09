@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -186,7 +186,7 @@ const ProfileModal = ({
   return (
     <Modal visible={isProfileModalVisible} transparent>
       <TouchableOpacity style={styles.container} onPressIn={() => onPressCloseProfileModal()} />
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.mainContainer}>
         <View style={styles.subContainer}>
           <View style={styles.headerContainer}>
             <TouchableOpacity
@@ -205,21 +205,9 @@ const ProfileModal = ({
             <>
               <View style={styles.profileSection1}>
                 {avatar ? (
-                  <Image
-                    style={{
-                      width: 50,
-                      height: 50,
-                      marginLeft: 10,
-                      marginRight: 4,
-                      borderRadius: 50,
-                    }}
-                    source={{ uri: avatar }}
-                  />
+                  <Image style={styles.profileAvatar} source={{ uri: avatar }} />
                 ) : (
-                  <AvatarIcon
-                    name={userInfo.firstName}
-                    style={{ marginLeft: 10, marginRight: 14 }}
-                  />
+                  <AvatarIcon name={userInfo.firstName} style={styles.avatarIcon} />
                 )}
                 <View style={styles.nameAndEmailContainer}>
                   {userName ? <Text style={styles.userName}>{`${userName}`}</Text> : []}
@@ -235,13 +223,7 @@ const ProfileModal = ({
             item.isVisible ? <ProfileListItem key={index} {...item} /> : [],
           )}
           <View style={styles.horizontalBar} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-evenly',
-              alignItems: 'center',
-              marginHorizontal: 50,
-            }}>
+          <View style={styles.horizontalBarAction}>
             <TouchableOpacity onPress={onPressLegals}>
               <Text style={styles.textAlignCenter}>{i18next.t('label.legal_docs')}</Text>
             </TouchableOpacity>
@@ -260,6 +242,13 @@ const ProfileModal = ({
   );
 };
 
+export default memo(ProfileModal, (prevProps, nextProps) => {
+  if (prevProps.isProfileModalVisible === nextProps.isProfileModalVisible) {
+    return true; // props are equal
+  }
+  return false; // props are not equal -> update the component
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -271,6 +260,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  mainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subContainer: {
     width: '90%',
@@ -294,32 +288,25 @@ const styles = StyleSheet.create({
     height: 44,
     width: 44,
   },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   profileSection1: {
     flexDirection: 'row',
     marginVertical: 5,
     paddingTop: 15,
     alignItems: 'center',
   },
-  avatar: {
-    marginHorizontal: 20,
+  profileAvatar: {
+    width: 50,
+    height: 50,
+    marginLeft: 10,
+    marginRight: 4,
+    borderRadius: 50,
   },
+  avatarIcon: { marginLeft: 10, marginRight: 14 },
   nameAndEmailContainer: {
     flex: 1,
     justifyContent: 'space-evenly',
     paddingVertical: 10,
     paddingLeft: 13,
-  },
-  primaryBtnContainer: {
-    borderColor: Colors.LIGHT_BORDER_COLOR,
-    paddingVertical: 10,
-  },
-  primaryBtnText: {
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   textAlignCenter: {
     color: Colors.TEXT_COLOR,
@@ -347,11 +334,10 @@ const styles = StyleSheet.create({
     fontWeight: Typography.FONT_WEIGHT_BOLD,
     textTransform: 'capitalize',
   },
-  imgIcon: {
-    width: 25,
-    height: 25,
-    marginHorizontal: 20,
+  horizontalBarAction: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    marginHorizontal: 50,
   },
 });
-
-export default ProfileModal;

@@ -1,11 +1,12 @@
+import { StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { Colors, Typography } from '../../../styles';
-import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import { getIsDateInRemeasurementRange } from '../../../utils/remeasurement';
+
 import MarkerSVG from '../../Common/MarkerSVG';
+import { Colors, Typography } from '../../../styles';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
+import { getIsDateInRemeasurementRange } from '../../../utils/remeasurement';
 
 interface Props {
   geoJSON: any;
@@ -104,20 +105,3 @@ const SampleTreeMarkers = ({
 };
 
 export default SampleTreeMarkers;
-
-const styles = StyleSheet.create({
-  markerContainer: {
-    width: 30,
-    height: 43,
-    paddingBottom: 85,
-  },
-  markerText: {
-    width: 30,
-    height: 43,
-    color: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-    textAlign: 'center',
-    paddingTop: 4,
-  },
-});

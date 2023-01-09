@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Modal, StyleSheet } from 'react-native';
-import { Colors, Typography } from '../../../styles';
+
 import FlatButton from '../FlatButton';
+import { Colors, Typography } from '../../../styles';
 
 interface IAlertModalProps {
   visible: boolean;
@@ -50,6 +51,13 @@ const AlertModal = ({
   );
 };
 
+export default memo(AlertModal, (prevProps, nextProps) => {
+  if (prevProps.visible === nextProps.visible) {
+    return true; // props are equal
+  }
+  return false; // props are not equal -> update the component
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -92,5 +100,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 });
-
-export default AlertModal;
