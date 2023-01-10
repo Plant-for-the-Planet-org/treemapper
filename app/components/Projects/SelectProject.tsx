@@ -1,14 +1,15 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
 import { Colors } from '../../styles';
-import { InventoryContext } from '../../reducers/inventory';
-import { updateInventory } from '../../repositories/inventory';
+import ProjectList from './ProjectList';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 import { Header, PrimaryButton } from '../Common';
-import ProjectList from './ProjectList';
+import { InventoryContext } from '../../reducers/inventory';
+import { updateInventory } from '../../repositories/inventory';
 
 interface SelectProjectProps {}
 
@@ -45,7 +46,7 @@ export default function SelectProject({}: SelectProjectProps) {
         });
         navigation.goBack();
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.info({
           logType: LogTypes.INVENTORY,
           message: `Error while adding project id ${selectedProjectId} to inventory ${inventoryState.inventoryID}`,
@@ -62,7 +63,6 @@ export default function SelectProject({}: SelectProjectProps) {
           headingText={i18next.t('label.select_project')}
           subHeadingText={i18next.t('label.select_project_desc')}
         />
-
         <ProjectList
           isSelectable
           onProjectPress={onProjectPress}
@@ -71,7 +71,7 @@ export default function SelectProject({}: SelectProjectProps) {
         <PrimaryButton
           onPress={onPressContinue}
           btnText={i18next.t('label.continue')}
-          style={{ marginTop: 10 }}
+          style={styles.primaryBtn}
         />
       </View>
     </SafeAreaView>
@@ -86,5 +86,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
+  },
+  primaryBtn: {
+    marginTop: 10,
   },
 });

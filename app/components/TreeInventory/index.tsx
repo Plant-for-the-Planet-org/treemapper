@@ -1,49 +1,50 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  BackHandler,
+  View,
   Linking,
   Platform,
-  SafeAreaView,
-  SectionList,
   StyleSheet,
+  BackHandler,
+  SectionList,
+  SafeAreaView,
   TouchableOpacity,
-  View,
+  ActivityIndicator,
 } from 'react-native';
+import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
-import { setInventoryId } from '../../actions/inventory';
-import { empty_inventory_banner } from '../../assets';
-import { InventoryContext } from '../../reducers/inventory';
-import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
-import { UserContext } from '../../reducers/user';
-import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
+import { useNetInfo } from '@react-native-community/netinfo';
+import React, { useContext, useEffect, useState } from 'react';
+import { StackActions, useNavigation } from '@react-navigation/native';
+
 import {
-  clearAllIncompletePlantLocationHistory,
   getPlantLocationHistory,
+  clearAllIncompletePlantLocationHistory,
 } from '../../repositories/plantLocationHistory';
-import { getUserDetails } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
 import {
-  DATA_UPLOAD_START,
+  SYNCED,
+  SINGLE,
   EDITING,
+  OFF_SITE,
   FIX_NEEDED,
   INCOMPLETE,
-  INCOMPLETE_SAMPLE_TREE,
-  OFF_SITE,
+  DATA_UPLOAD_START,
   PENDING_DATA_UPDATE,
   PENDING_DATA_UPLOAD,
   PENDING_IMAGE_UPLOAD,
+  INCOMPLETE_SAMPLE_TREE,
   PENDING_SAMPLE_TREES_UPLOAD,
-  SINGLE,
-  SYNCED,
 } from '../../utils/inventoryConstants';
-import { uploadInventoryData } from '../../utils/uploadInventory';
-import { AlertModal, Header, InventoryCard, PrimaryButton, SmallHeader, Sync } from '../Common';
+import { Colors, Typography } from '../../styles';
+import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
+import { empty_inventory_banner } from '../../assets';
+import { getUserDetails } from '../../repositories/user';
+import { setInventoryId } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
+import { uploadInventoryData } from '../../utils/uploadInventory';
 import RemeasurementItem from '../Remeasurements/RemeasurementItem';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
+import { AlertModal, Header, InventoryCard, PrimaryButton, SmallHeader, Sync } from '../Common';
+import { clearAllIncompleteInventory, getInventoryByStatus } from '../../repositories/inventory';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -229,7 +230,7 @@ const TreeInventory = () => {
           <PrimaryButton
             onPress={() => navigation.navigate('TreeTypeSelection')}
             btnText={i18next.t('label.register_tree')}
-            style={{ marginTop: 10 }}
+            style={styles.primaryBtn}
           />
         </View>
       </View>
@@ -285,8 +286,129 @@ const TreeInventory = () => {
     },
   ];
 
+  const listHeaderComponent = () => (
+    <>
+      <Header
+        headingText={i18next.t('label.tree_inventory_list_header')}
+        subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
+        onBackPress={handleBackPress}
+        TopRightComponent={uploadButton}
+      />
+      {uploadedInventory.length > 0 && (
+        <PrimaryButton
+          onPress={() => navigation.navigate('UploadedInventory')}
+          btnText={i18next.t('label.tree_inventory_view_upload')}
+          theme={'white'}
+          style={{ marginVertical: 20 }}
+        />
+      )}
+    </>
+  );
+
+  const renderItem = ({ item, index, section }) => {
+    if (section.type === 'pending_remeasurement' || section.type === 'incomplete_remeasurement') {
+      return <RemeasurementItem item={item} />;
+    }
+    return (
+      <Item
+        item={item}
+        accessibilityLabel={`inventory-${index}`}
+        onPressInventory={onPressInventory}
+        itemStyle={
+          section.type === 'fix_needed'
+            ? {
+                backgroundColor: '#E86F5620',
+                paddingHorizontal: 12,
+                margin: 0,
+                borderBottomLeftRadius: index === section.data.length - 1 ? 16 : 0,
+                borderBottomRightRadius: index === section.data.length - 1 ? 16 : 0,
+              }
+            : {}
+        }
+        containerStyle={section.type === 'fix_needed' ? { padding: 12, borderRadius: 12 } : {}}
+      />
+    );
+  };
+
+  const renderSectionHeader = ({ section: { title, type, data } }) => {
+    if (data.length > 0) {
+      switch (type) {
+        case 'uploading':
+          return (
+            <SmallHeader
+              leftText={title}
+              rightText={state.isUploading ? i18next.t('label.uploading') : ''}
+              sync={state.isUploading}
+              style={styles.smallHeaderMargin}
+            />
+          );
+        case 'pending':
+          return (
+            <SmallHeader
+              onPressRight={onPressUploadNow}
+              leftText={title}
+              style={styles.smallHeaderMargin}
+            />
+          );
+        case 'pending_remeasurement':
+          return (
+            <SmallHeader
+              rightText={i18next.t('label.upload_pending', {
+                count: pendingPlantLocationHistoryUploadCount,
+              })}
+              icon={'cloud-upload'}
+              iconType={'MCIcon'}
+              sync={isRemeasurementUploading}
+              iconColor={Colors.PRIMARY}
+              onPressRight={onPressUploadRemeasurement}
+              leftText={title}
+              style={styles.smallHeaderMargin}
+            />
+          );
+        case 'incomplete':
+          return (
+            <SmallHeader
+              onPressRight={onPressClearAll}
+              leftText={title}
+              iconColor={Colors.ALERT}
+              rightTextStyle={{ color: Colors.ALERT }}
+              icon={'trash'}
+              iconType={'FAIcon'}
+              style={styles.smallHeaderMargin}
+            />
+          );
+
+        case 'incomplete_remeasurement':
+          return (
+            <SmallHeader
+              onPressRight={onPressClearAllIncompleteRemeasurements}
+              leftText={title}
+              iconColor={Colors.ALERT}
+              rightTextStyle={{ color: Colors.ALERT }}
+              icon={'trash'}
+              iconType={'FAIcon'}
+              style={styles.smallHeaderMargin}
+            />
+          );
+
+        case 'fix_needed':
+          return (
+            <SmallHeader
+              leftText={title}
+              leftTextStyle={styles.fixNeededHeaderLeftText}
+              style={styles.fixNeededHeader}
+            />
+          );
+        default:
+          return <></>;
+      }
+    } else {
+      return <></>;
+    }
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
+    <SafeAreaView style={styles.container}>
       {pendingInventory.length > 0 ||
       inCompleteInventory.length > 0 ||
       uploadedInventory.length > 0 ||
@@ -295,143 +417,11 @@ const TreeInventory = () => {
       pendingPlantLocationHistoryUpload.length > 0 ? (
         <SectionList
           sections={allData}
-          style={{ paddingHorizontal: 25 }}
+          style={styles.sectionList}
+          renderItem={renderItem}
+          ListHeaderComponent={listHeaderComponent}
+          renderSectionHeader={renderSectionHeader}
           keyExtractor={(_, index) => `list-${index}`}
-          ListHeaderComponent={() => (
-            <>
-              <Header
-                headingText={i18next.t('label.tree_inventory_list_header')}
-                subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
-                onBackPress={handleBackPress}
-                TopRightComponent={uploadButton}
-              />
-              {uploadedInventory.length > 0 && (
-                <PrimaryButton
-                  onPress={() => navigation.navigate('UploadedInventory')}
-                  btnText={i18next.t('label.tree_inventory_view_upload')}
-                  theme={'white'}
-                  style={{ marginVertical: 20 }}
-                />
-              )}
-            </>
-          )}
-          renderItem={({ item, index, section }) => {
-            if (
-              section.type === 'pending_remeasurement' ||
-              section.type === 'incomplete_remeasurement'
-            ) {
-              return <RemeasurementItem item={item} />;
-            }
-            return (
-              <Item
-                item={item}
-                accessibilityLabel={`inventory-${index}`}
-                onPressInventory={onPressInventory}
-                itemStyle={
-                  section.type === 'fix_needed'
-                    ? {
-                        backgroundColor: '#E86F5620',
-                        paddingHorizontal: 12,
-                        margin: 0,
-                        borderBottomLeftRadius: index === section.data.length - 1 ? 16 : 0,
-                        borderBottomRightRadius: index === section.data.length - 1 ? 16 : 0,
-                      }
-                    : {}
-                }
-                containerStyle={
-                  section.type === 'fix_needed' ? { padding: 12, borderRadius: 12 } : {}
-                }
-              />
-            );
-          }}
-          renderSectionHeader={({ section: { title, type, data } }) => {
-            if (data.length > 0) {
-              switch (type) {
-                case 'uploading':
-                  return (
-                    <SmallHeader
-                      leftText={title}
-                      rightText={state.isUploading ? i18next.t('label.uploading') : ''}
-                      sync={state.isUploading}
-                      style={{ marginVertical: 15 }}
-                    />
-                  );
-                case 'pending':
-                  return (
-                    <SmallHeader
-                      onPressRight={onPressUploadNow}
-                      leftText={title}
-                      style={{ marginVertical: 15 }}
-                    />
-                  );
-                case 'pending_remeasurement':
-                  return (
-                    <SmallHeader
-                      rightText={i18next.t('label.upload_pending', {
-                        count: pendingPlantLocationHistoryUploadCount,
-                      })}
-                      icon={'cloud-upload'}
-                      iconType={'MCIcon'}
-                      sync={isRemeasurementUploading}
-                      iconColor={Colors.PRIMARY}
-                      onPressRight={onPressUploadRemeasurement}
-                      leftText={title}
-                      style={{ marginVertical: 15 }}
-                    />
-                  );
-                case 'incomplete':
-                  return (
-                    <SmallHeader
-                      onPressRight={onPressClearAll}
-                      leftText={title}
-                      iconColor={Colors.ALERT}
-                      rightTextStyle={{ color: Colors.ALERT }}
-                      icon={'trash'}
-                      iconType={'FAIcon'}
-                      style={{ marginVertical: 15 }}
-                    />
-                  );
-
-                case 'incomplete_remeasurement':
-                  return (
-                    <SmallHeader
-                      onPressRight={onPressClearAllIncompleteRemeasurements}
-                      leftText={title}
-                      iconColor={Colors.ALERT}
-                      rightTextStyle={{ color: Colors.ALERT }}
-                      icon={'trash'}
-                      iconType={'FAIcon'}
-                      style={{ marginVertical: 15 }}
-                    />
-                  );
-
-                case 'fix_needed':
-                  return (
-                    <SmallHeader
-                      leftText={title}
-                      leftTextStyle={{
-                        color: Colors.PLANET_RED,
-                        fontFamily: Typography.FONT_FAMILY_REGULAR,
-                        fontWeight: '600',
-                        fontSize: Typography.FONT_SIZE_16,
-                      }}
-                      style={{
-                        marginTop: 15,
-                        marginBottom: 0,
-                        padding: 15,
-                        backgroundColor: '#E86F5620',
-                        borderTopRightRadius: 16,
-                        borderTopLeftRadius: 16,
-                      }}
-                    />
-                  );
-                default:
-                  return <></>;
-              }
-            } else {
-              return <></>;
-            }
-          }}
         />
       ) : allInventory == null ? (
         renderLoadingInventoryList()
@@ -442,7 +432,7 @@ const TreeInventory = () => {
         <PrimaryButton
           onPress={() => navigation.navigate('TreeTypeSelection')}
           btnText={i18next.t('label.register_tree')}
-          style={{ marginTop: 10 }}
+          style={styles.primaryBtn}
         />
       </View>
       <PermissionBlockedAlert
@@ -488,19 +478,31 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
     bottom: -10,
   },
+  primaryBtn: {
+    marginTop: 10,
+  },
   primaryBtnCont: {
     paddingHorizontal: 25,
   },
-  dowloadModalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+  fixNeededHeader: {
+    marginTop: 15,
+    marginBottom: 0,
+    padding: 15,
+    backgroundColor: '#E86F5620',
+    borderTopRightRadius: 16,
+    borderTopLeftRadius: 16,
   },
-  loader: {
-    backgroundColor: Colors.WHITE,
-    borderRadius: 20,
-    marginVertical: 20,
+  fixNeededHeaderLeftText: {
+    color: Colors.PLANET_RED,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontWeight: '600',
+    fontSize: Typography.FONT_SIZE_16,
+  },
+  smallHeaderMargin: {
+    paddingVertical: 15,
+  },
+  sectionList: {
+    paddingHorizontal: 25,
   },
 });
 
@@ -509,33 +511,43 @@ interface IPermissionBlockedAlertShowProps {
   setIsPermissionBlockedAlertShow: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const PermissionBlockedAlert = ({
-  isPermissionBlockedAlertShow,
-  setIsPermissionBlockedAlertShow,
-}: IPermissionBlockedAlertShowProps) => {
-  return (
-    <AlertModal
-      visible={isPermissionBlockedAlertShow}
-      heading={i18next.t('label.permission_blocked')}
-      message={i18next.t('label.permission_blocked_message')}
-      primaryBtnText={i18next.t('label.open_settings')}
-      secondaryBtnText={i18next.t('label.cancel')}
-      onPressPrimaryBtn={() => {
-        setIsPermissionBlockedAlertShow(false);
-        if (isAndroid) {
-          Linking.openSettings();
-        } else {
-          Linking.openURL('app-settings:');
-        }
-      }}
-      onPressSecondaryBtn={() => {
-        setIsPermissionBlockedAlertShow(false);
-      }}
-      showSecondaryButton={true}
-    />
-  );
-};
+// eslint-disable-next-line react/display-name
+const PermissionBlockedAlert = React.memo(
+  ({
+    isPermissionBlockedAlertShow,
+    setIsPermissionBlockedAlertShow,
+  }: IPermissionBlockedAlertShowProps) => {
+    return (
+      <AlertModal
+        visible={isPermissionBlockedAlertShow}
+        heading={i18next.t('label.permission_blocked')}
+        message={i18next.t('label.permission_blocked_message')}
+        primaryBtnText={i18next.t('label.open_settings')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => {
+          setIsPermissionBlockedAlertShow(false);
+          if (isAndroid) {
+            Linking.openSettings();
+          } else {
+            Linking.openURL('app-settings:');
+          }
+        }}
+        onPressSecondaryBtn={() => {
+          setIsPermissionBlockedAlertShow(false);
+        }}
+        showSecondaryButton={true}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    if (prevProps.isPermissionBlockedAlertShow === nextProps.isPermissionBlockedAlertShow) {
+      return true; // props are equal
+    }
+    return false; // props are not equal -> update the component
+  },
+);
 
+// eslint-disable-next-line react/display-name
 const Item = ({
   item,
   countryCode,
@@ -594,13 +606,14 @@ const Item = ({
     tagId: item.tagId,
     countryCode,
   };
+
   return (
     <TouchableOpacity
-      onPress={() => onPressInventory(item)}
+      style={itemStyle}
       accessible={true}
-      accessibilityLabel={accessibilityLabel}
       testID="upload_inventory_list"
-      style={itemStyle}>
+      onPress={() => onPressInventory(item)}
+      accessibilityLabel={accessibilityLabel}>
       <InventoryCard
         icon={
           item.status === INCOMPLETE || item.status === INCOMPLETE_SAMPLE_TREE

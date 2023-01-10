@@ -47,8 +47,6 @@ export const updateSingleInventoryMissingStatus = (
   }: any = oldInventory;
   let isFixNeeded = false;
 
-  console.log(status, 'Status');
-
   // checks for missing data if status is not incomplete
   if (!getIncompleteStatus().includes(status)) {
     // checks for single tree and if there's any data missing then marks
