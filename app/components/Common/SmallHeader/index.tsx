@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
-import { Colors, Typography } from '../../../styles';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, Text, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
+
+import { Colors, Typography } from '../../../styles';
 import RotatingView from '../../Common/RotatingView';
 import IconSwitcher from '../../Common/IconSwitcher';
 
@@ -65,13 +66,6 @@ const SmallHeader = ({
 export default SmallHeader;
 
 const styles = StyleSheet.create({
-  headerText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_27,
-    lineHeight: Typography.LINE_HEIGHT_40,
-    color: Colors.TEXT_COLOR,
-    fontWeight: Typography.FONT_WEIGHT_BOLD,
-  },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
@@ -89,8 +83,5 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_20,
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
     paddingRight: 10,
-  },
-  redTheme: {
-    color: 'red',
   },
 });

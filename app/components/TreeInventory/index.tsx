@@ -547,7 +547,6 @@ const PermissionBlockedAlert = React.memo(
   },
 );
 
-// eslint-disable-next-line react/display-name
 const Item = ({
   item,
   countryCode,

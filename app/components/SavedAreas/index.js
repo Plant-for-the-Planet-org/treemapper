@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
 import {
   View,
-  StyleSheet,
   Text,
-  ScrollView,
   Image,
   FlatList,
+  StyleSheet,
+  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import { Header, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
+import i18next from 'i18next';
+import React, { useState, useEffect } from 'react';
+
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
+import { Header, PrimaryButton } from '../Common';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { getAllOfflineMaps, deleteOfflineMap } from '../../repositories/maps';
-import i18next from 'i18next';
 
 const SavedAreas = ({ navigation }) => {
   const [areas, setAreas] = useState(null);
@@ -24,12 +24,12 @@ const SavedAreas = ({ navigation }) => {
   }, []);
 
   const loadAreas = async () => {
-    getAllOfflineMaps().then((offlineMaps) => {
+    getAllOfflineMaps().then(offlineMaps => {
       setAreas(offlineMaps);
     });
   };
 
-  const deleteArea = async (name) => {
+  const deleteArea = async name => {
     deleteOfflineMap({ name }).then(async () => {
       setTimeout(async () => await MapboxGL.offlineManager.deletePack(name), 0);
       loadAreas();
@@ -128,12 +128,5 @@ const styles = StyleSheet.create({
   },
   regularText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
-  addSpecies: {
-    color: Colors.ALERT,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_30,
-    textAlign: 'center',
   },
 });
