@@ -1,38 +1,39 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  BackHandler,
-  Image,
-  Linking,
-  Modal,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  Image,
+  Modal,
+  Linking,
+  Platform,
+  StyleSheet,
+  BackHandler,
+  SafeAreaView,
 } from 'react-native';
+import i18next from 'i18next';
 import { RNCamera } from 'react-native-camera';
-import { InventoryContext } from '../../../reducers/inventory';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+
 import {
-  completePolygon,
   getInventory,
-  insertImageAtIndexCoordinate,
-  insertImageSingleRegisterTree,
   polygonUpdate,
   removeLastCoord,
   updateInventory,
+  completePolygon,
   updateLastScreen,
+  insertImageAtIndexCoordinate,
+  insertImageSingleRegisterTree,
 } from '../../../repositories/inventory';
+import Header from '../Header';
+import Alrighty from '../Alrighty';
+import PrimaryButton from '../PrimaryButton';
 import dbLog from '../../../repositories/logs';
-import { Colors, Typography } from '../../../styles';
 import { LogTypes } from '../../../utils/constants';
+import { Colors, Typography } from '../../../styles';
+import { InventoryContext } from '../../../reducers/inventory';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import { copyImageAndGetData } from '../../../utils/FSInteration';
 import { MULTI, ON_SITE } from '../../../utils/inventoryConstants';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import Alrighty from '../Alrighty';
-import Header from '../Header';
-import PrimaryButton from '../PrimaryButton';
 
 interface IImageCapturingProps {
   toggleState?: any;
@@ -65,7 +66,7 @@ const ImageCapturing = ({
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     if (inventoryType === MULTI && !isSampleTree) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
         setInventory(inventoryData);
         if (
           Array.isArray(inventoryData.polygons) &&
@@ -77,7 +78,7 @@ const ImageCapturing = ({
       });
       generateMarkers();
     } else {
-      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
         setInventory(inventoryData);
         if (inventoryData.polygons[0]?.coordinates[0]?.imageUrl && !isSampleTree) {
           setImagePath(inventoryData.polygons[0].coordinates[0].imageUrl);
@@ -193,7 +194,7 @@ const ImageCapturing = ({
                 navigation.navigate('SpecieSampleTree');
               }
             })
-            .catch((err) => {
+            .catch(err => {
               dbLog.error({
                 logType: LogTypes.INVENTORY,
                 message: `Failed to add image for sample tree #${

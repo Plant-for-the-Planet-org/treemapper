@@ -1,10 +1,11 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+
+import KeyValueForm from './KeyValueForm';
+import { accessTypes } from '../../utils/additionalData/constants';
 import { AdditionalDataContext } from '../../reducers/additionalData';
 import { addOrUpdateMetadataField } from '../../repositories/additionalData';
-import { accessTypes } from '../../utils/additionalData/constants';
-import KeyValueForm from './KeyValueForm';
 
 interface IAddMetadataFormProps {
   fieldKey?: string;

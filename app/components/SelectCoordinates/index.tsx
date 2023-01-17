@@ -1,4 +1,5 @@
 import React from 'react';
+
 import MapMarking from '../Common/MapMarking';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
 

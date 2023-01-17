@@ -117,7 +117,7 @@ const AdditionalDataSettings = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
+    <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.container}>
         <Header
           headingText={i18next.t('label.import_export_data')}
@@ -130,7 +130,7 @@ const AdditionalDataSettings = () => {
             <ActivityIndicator
               size="large"
               color={Colors.PRIMARY}
-              style={{ paddingVertical: 20 }}
+              style={styles.activityIndicator}
             />
           </View>
         ) : (
@@ -173,6 +173,13 @@ const AdditionalDataSettings = () => {
 export default AdditionalDataSettings;
 
 const styles = StyleSheet.create({
+  safeAreaView: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
+  activityIndicator: {
+    paddingVertical: 20,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,

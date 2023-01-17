@@ -1,9 +1,10 @@
-import {useNavigation} from '@react-navigation/native';
-import i18next from 'i18next';
 import React from 'react';
-import {SafeAreaView, StyleSheet, View} from 'react-native';
-import {Colors} from '../../styles';
-import {Header} from '../../components/Common';
+import i18next from 'i18next';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+
+import { Colors } from '../../styles';
+import { Header } from '../../components/Common';
 import ProjectList from '../../components/Projects/ProjectList';
 
 interface ManageProjectsProps {}
@@ -14,7 +15,7 @@ const ManageProjects = ({}: ManageProjectsProps) => {
   // const onProjectPress = (id: string) => {
   //   // navigation.navigate('ProjectConfig', { projectId: id });
   // };
-  
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
