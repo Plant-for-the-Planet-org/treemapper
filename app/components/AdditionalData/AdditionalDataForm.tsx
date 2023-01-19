@@ -1,32 +1,33 @@
-import {CommonActions, useNavigation} from '@react-navigation/native';
 import i18next from 'i18next';
-import React, {useContext, useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
-import {InventoryContext} from '../../reducers/inventory';
-import {getForms, getMetadata} from '../../repositories/additionalData';
-import {getInventory, updateInventory, updateLastScreen} from '../../repositories/inventory';
+import React, { useContext, useEffect, useState } from 'react';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+
+import { Colors } from '../../styles';
+import { Header, Loader } from '../Common';
 import dbLog from '../../repositories/logs';
-import {Colors} from '../../styles';
-import {marginTop24} from '../../styles/design';
 import {
-  accessTypes,
-  elementsType,
   inputTypes,
+  accessTypes,
   numberRegex,
+  elementsType,
 } from '../../utils/additionalData/constants';
 import {
-  filterFormByTreeAndRegistrationType,
   sortByField,
+  filterFormByTreeAndRegistrationType,
 } from '../../utils/additionalData/functions';
-import {LogTypes} from '../../utils/constants';
-import {INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE} from '../../utils/inventoryConstants';
-import {Header, Loader} from '../Common';
-import PrimaryButton from '../Common/PrimaryButton';
 import ElementSwitcher from './ElementSwitcher';
-import {version} from '../../../package.json';
-import {addAdditionDataToPlantLocationHistory} from '../../repositories/plantLocationHistory';
+import { version } from '../../../package.json';
+import { LogTypes } from '../../utils/constants';
+import { marginTop24 } from '../../styles/design';
+import PrimaryButton from '../Common/PrimaryButton';
+import { InventoryContext } from '../../reducers/inventory';
+import { getForms, getMetadata } from '../../repositories/additionalData';
+import { INCOMPLETE_SAMPLE_TREE, MULTI, SINGLE } from '../../utils/inventoryConstants';
+import { getInventory, updateInventory, updateLastScreen } from '../../repositories/inventory';
+import { addAdditionDataToPlantLocationHistory } from '../../repositories/plantLocationHistory';
 
-const AdditionalDataForm = ({route}: {route: any}) => {
+const AdditionalDataForm = ({ route }: { route: any }) => {
   const [forms, setForms] = useState<any>([]);
   const [currentFormIndex, setCurrentFormIndex] = useState<number>(0);
   const [treeType, setTreeType] = useState<string>('');
@@ -41,7 +42,7 @@ const AdditionalDataForm = ({route}: {route: any}) => {
   const [isRemeasurement, setIsRemeasurement] = useState<boolean>(false);
   const [isTreeAlive, setIsTreeAlive] = useState<boolean>(false);
 
-  const {state: inventoryState} = useContext(InventoryContext);
+  const { state: inventoryState } = useContext(InventoryContext);
 
   const navigation = useNavigation();
 
@@ -54,10 +55,10 @@ const AdditionalDataForm = ({route}: {route: any}) => {
         setIsTreeAlive(route.params.isTreeAlive);
       }
       if (inventoryState.inventoryID) {
-        let data = {inventory_id: inventoryState.inventoryID, lastScreen: 'AdditionalDataForm'};
+        let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'AdditionalDataForm' };
         updateLastScreen(data);
         setLoading(true);
-        getInventory({inventoryID: inventoryState.inventoryID}).then(inventoryData => {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
           if (inventoryData) {
             setInventory(inventoryData);
             setTreeType(inventoryData.treeType);
@@ -193,8 +194,6 @@ const AdditionalDataForm = ({route}: {route: any}) => {
     });
   };
 
-  console.log(isRemeasurement, '==isRemeasurement==');
-
   const addAdditionalDataToDB = ({
     transformedData,
     isSample = false,
@@ -259,7 +258,7 @@ const AdditionalDataForm = ({route}: {route: any}) => {
     } else {
       console.log('5');
 
-      updateInventory({inventory_id: inventoryState.inventoryID, inventoryData: data})
+      updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData: data })
         .then(() => {
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
@@ -304,7 +303,7 @@ const AdditionalDataForm = ({route}: {route: any}) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{name: 'MainScreen'}, {name: 'TreeInventory'}, {name: nextScreen}],
+          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: nextScreen }],
         }),
       );
     }
@@ -376,13 +375,13 @@ const AdditionalDataForm = ({route}: {route: any}) => {
         });
 
         transformedData = [...transformedData, ...metadata];
-        addAdditionalDataToDB({transformedData, isSample: isSampleTree, isRemeasurement});
+        addAdditionalDataToDB({ transformedData, isSample: isSampleTree, isRemeasurement });
       }
     }
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {loading ? (
           <Loader isLoaderShow={loading} loadingText={loadingText} />
@@ -395,9 +394,7 @@ const AdditionalDataForm = ({route}: {route: any}) => {
                   <View
                     style={[
                       marginTop24,
-                      index === forms[currentFormIndex].elements.length - 1
-                        ? {marginBottom: 40}
-                        : {},
+                      index === forms[currentFormIndex].elements.length - 1 ? styles.mb : {},
                     ]}
                     key={element.key}>
                     <ElementSwitcher
@@ -415,7 +412,7 @@ const AdditionalDataForm = ({route}: {route: any}) => {
             <PrimaryButton
               btnText={i18next.t('label.continue')}
               onPress={handleContinueClick}
-              style={{marginTop: 10}}
+              style={styles.btn}
             />
           </>
         )}
@@ -427,9 +424,14 @@ const AdditionalDataForm = ({route}: {route: any}) => {
 export default AdditionalDataForm;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
+  mb: { marginBottom: 40 },
+  btn: { marginTop: 10 },
 });

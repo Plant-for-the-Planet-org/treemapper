@@ -294,8 +294,6 @@ const SingleTreeOverview = () => {
             ? Math.round(currentSampleTree.specieHeight * meterToFoot * 1000) / 1000
             : currentSampleTree.specieHeight;
 
-          console.log(currentSampleTree.specieHeight, 'currentSampleTree.specieHeight');
-
           updateDiameterLabel(currentSampleTree.specieHeight);
 
           setSampleTreeIndex(index);

@@ -1,13 +1,14 @@
-import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { deleteInventoryId } from '../../actions/inventory';
-import { multipleTreesIcon, singleTreeIcon } from '../../assets';
-import { InventoryContext } from '../../reducers/inventory';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+
 import { Colors } from '../../styles';
 import { Header, LargeButton } from '../Common';
+import { deleteInventoryId } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
+import { multipleTreesIcon, singleTreeIcon } from '../../assets';
 
 type Props = {};
 
@@ -30,9 +31,9 @@ export default function TreeTypeSelection({}: Props) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
+    <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.container}>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
           <Header
             headingText={i18next.t('label.register_trees')}
             subHeadingText={i18next.t('label.register_trees_description')}
@@ -63,7 +64,7 @@ export default function TreeTypeSelection({}: Props) {
               </View>
             }
           />
-          <View style={{ flex: 1 }}></View>
+          <View style={styles.flex1}></View>
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -71,10 +72,21 @@ export default function TreeTypeSelection({}: Props) {
 } // end TreeTypeSelection
 
 const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  safeAreaView: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
-  icon: { height: 64, width: 64, marginLeft: 4 },
+  icon: {
+    height: 64,
+    width: 64,
+    marginLeft: 4,
+  },
 });

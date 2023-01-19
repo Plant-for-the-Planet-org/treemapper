@@ -1,38 +1,39 @@
-import {useNavigation} from '@react-navigation/native';
-import i18next from 'i18next';
-import {nanoid} from 'nanoid';
-import React, {createRef, useContext, useEffect, useState} from 'react';
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Switch,
   Text,
   View,
-  ScrollView,
   LogBox,
+  Switch,
+  Platform,
+  Keyboard,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {
-  getBrand,
-  getManufacturer,
   getModel,
+  getBrand,
   getSystemName,
+  getManufacturer,
   getSystemVersion,
 } from 'react-native-device-info';
-import {setRemeasurementId} from '../../actions/inventory';
-import {InventoryContext} from '../../reducers/inventory';
-import {getInventory, updateSampleTreeMeasurements} from '../../repositories/inventory';
-import {addPlantLocationHistory} from '../../repositories/plantLocationHistory';
-import {getUserInformation} from '../../repositories/user';
-import {Colors, Typography} from '../../styles';
-import {nonISUCountries} from '../../utils/constants';
-import {measurementValidation} from '../../utils/validations/measurements';
-import {AlertModal, Header, PrimaryButton} from '../../components/Common';
-import CustomDropDownPicker from '../../components/Common/Dropdown/CustomDropDownPicker';
+import i18next from 'i18next';
+import { nanoid } from 'nanoid';
+import { useNavigation } from '@react-navigation/native';
+import React, { createRef, useContext, useEffect, useState } from 'react';
+
+import { Colors, Typography } from '../../styles';
+import { nonISUCountries } from '../../utils/constants';
+import { INCOMPLETE } from '../../utils/inventoryConstants';
+import { InventoryContext } from '../../reducers/inventory';
+import { setRemeasurementId } from '../../actions/inventory';
+import { getUserInformation } from '../../repositories/user';
 import MeasurementInputs from '../../components/Common/MeasurementInputs';
-import {INCOMPLETE} from '../../utils/inventoryConstants';
+import { AlertModal, Header, PrimaryButton } from '../../components/Common';
+import { measurementValidation } from '../../utils/validations/measurements';
+import { addPlantLocationHistory } from '../../repositories/plantLocationHistory';
+import CustomDropDownPicker from '../../components/Common/Dropdown/CustomDropDownPicker';
+import { getInventory, updateSampleTreeMeasurements } from '../../repositories/inventory';
 
 type Props = {};
 
@@ -54,7 +55,7 @@ export default function RemeasurementForm({}: Props) {
 
   const navigation = useNavigation();
 
-  const {state, dispatch} = useContext(InventoryContext);
+  const { state, dispatch } = useContext(InventoryContext);
 
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
@@ -87,7 +88,7 @@ export default function RemeasurementForm({}: Props) {
 
   const fetchInventory = () => {
     if (state.inventoryID) {
-      getInventory({inventoryID: state.inventoryID}).then(inventoryData => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
         setInventory(inventoryData);
       });
     }
@@ -113,7 +114,7 @@ export default function RemeasurementForm({}: Props) {
   const onPressMeasurementBtn = () => {
     Keyboard.dismiss();
     const validationObject = measurementValidation(height, diameter, isNonISUCountry);
-    const {diameterErrorMessage, heightErrorMessage, isRatioCorrect} = validationObject;
+    const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
 
     setDiameterError(diameterErrorMessage);
     setHeightError(heightErrorMessage);
@@ -223,14 +224,14 @@ export default function RemeasurementForm({}: Props) {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.flex1}>
       <SafeAreaView style={styles.mainContainer}>
         <KeyboardAvoidingView
           enabled
           behavior={Platform.OS == 'ios' ? 'padding' : undefined}
-          style={{flex: 1}}>
+          style={styles.flex1}>
           <View style={styles.container}>
-            <View style={{flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 24}}>
+            <View style={styles.subContainer}>
               {/* header shows the HID and Species */}
               <Header
                 headingText={i18next.t('label.remeasurement')}
@@ -250,23 +251,14 @@ export default function RemeasurementForm({}: Props) {
 
             {/* shows the form layout */}
 
-            <View
-              style={
-                !isTreeAlive
-                  ? {
-                      flex: 1,
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                    }
-                  : {}
-              }>
+            <View style={!isTreeAlive ? styles.formLayout : {}}>
               <View>
                 {/* Toggle - used to decide whether the tree is alive or not */}
                 {/* and toggles the form field based on same */}
-                <View style={[styles.switchContainer, {marginBottom: 24}]}>
+                <View style={styles.switchContainer}>
                   <Text style={styles.switchText}>{i18next.t('label.tree_is_still_alive')}</Text>
                   <Switch
-                    trackColor={{false: '#767577', true: '#d4e7b1'}}
+                    trackColor={{ false: '#767577', true: '#d4e7b1' }}
                     thumbColor={isTreeAlive ? Colors.PRIMARY : '#f4f3f4'}
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={() => handleIsTreeAliveChange()}
@@ -287,7 +279,7 @@ export default function RemeasurementForm({}: Props) {
                       diameterRef={diameterRef}
                       isNonISUCountry={isNonISUCountry}
                     />
-                    <View style={{marginTop: 24}}>
+                    <View style={{ marginTop: 24 }}>
                       <PrimaryButton
                         onPress={onPressMeasurementBtn}
                         btnText={i18next.t('label.select_species_continue')}
@@ -351,11 +343,24 @@ export default function RemeasurementForm({}: Props) {
 }
 
 const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
     flexDirection: 'column',
+  },
+  formLayout: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  subContainer: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    marginBottom: 24,
   },
   mainContainer: {
     flex: 1,
@@ -370,6 +375,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 24,
   },
   switchText: {
     color: Colors.TEXT_COLOR,

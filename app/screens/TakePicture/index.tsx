@@ -1,16 +1,17 @@
-import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
+import { RNCamera } from 'react-native-camera';
+import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useRef, useState } from 'react';
 import { Image, Linking, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { RNCamera } from 'react-native-camera';
-import { PrimaryButton } from '../../components/Common';
-import Header from '../../components/Common/Header';
-import { InventoryContext } from '../../reducers/inventory';
+
 import dbLog from '../../repositories/logs';
-import { addImageToPlantLocationHistory } from '../../repositories/plantLocationHistory';
-import { Colors, Typography } from '../../styles';
 import { LogTypes } from '../../utils/constants';
+import { Colors, Typography } from '../../styles';
+import Header from '../../components/Common/Header';
+import { PrimaryButton } from '../../components/Common';
+import { InventoryContext } from '../../reducers/inventory';
 import { copyImageAndGetData } from '../../utils/FSInteration';
+import { addImageToPlantLocationHistory } from '../../repositories/plantLocationHistory';
 
 type Props = {};
 
