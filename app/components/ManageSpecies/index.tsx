@@ -1,41 +1,40 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  FlatList,
-  Keyboard,
-  SafeAreaView,
-  StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
+  FlatList,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
-import Snackbar from 'react-native-snackbar';
+import Realm from 'realm';
+import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
+import Snackbar from 'react-native-snackbar';
 import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Realm from 'realm';
-import { setSpecie } from '../../actions/species';
+import { useNetInfo } from '@react-native-community/netinfo';
+import React, { useContext, useEffect, useState } from 'react';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+
 import { empty } from '../../assets';
-import { InventoryContext } from '../../reducers/inventory';
-import { NavigationContext } from '../../reducers/navigation';
-import { SpeciesContext } from '../../reducers/species';
-import { getSchema } from '../../repositories/default';
-import { getInventory } from '../../repositories/inventory';
+import { SpecieCard } from './MySpecies';
 import dbLog from '../../repositories/logs';
-import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
-import { Colors, Typography } from '../../styles';
 import { LogTypes } from '../../utils/constants';
-import { MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { IScientificSpecies } from '../../utils/schemaInterfaces';
-import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
-import { AlertModal, Header, SpeciesSyncError } from '../Common';
+import { setSpecie } from '../../actions/species';
+import { Colors, Typography } from '../../styles';
 import IconSwitcher from '../Common/IconSwitcher';
 import TreeCountModal from '../Common/TreeCountModal';
-import { SpecieCard } from './MySpecies';
+import { getSchema } from '../../repositories/default';
+import { SpeciesContext } from '../../reducers/species';
+import { getInventory } from '../../repositories/inventory';
+import { InventoryContext } from '../../reducers/inventory';
+import { NavigationContext } from '../../reducers/navigation';
+import { MULTI, SINGLE } from '../../utils/inventoryConstants';
+import { AlertModal, Header, SpeciesSyncError } from '../Common';
+import { IScientificSpecies } from '../../utils/schemaInterfaces';
+import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
 interface ManageSpeciesProps {
   onPressSpeciesSingle?: (item?: any) => void;
@@ -84,11 +83,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
-  const {
-    showInitialNavigationStack,
-    setInitialNavigationScreen,
-    setUpdateSpeciesSync,
-  } = useContext(NavigationContext);
+  const { showInitialNavigationStack, setInitialNavigationScreen, setUpdateSpeciesSync } =
+    useContext(NavigationContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
@@ -315,14 +311,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       return (
         <>
           <View>
-            <Text
-              style={{
-                fontSize: Typography.FONT_SIZE_16,
-                fontFamily: Typography.FONT_FAMILY_REGULAR,
-                color: Colors.PLANET_BLACK,
-              }}>
-              {item.scientificName}
-            </Text>
+            <Text style={styles.scientificName}>{item.scientificName}</Text>
           </View>
           <TouchableOpacity
             key={index}
@@ -397,12 +386,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             route.name === 'ManageSpecies'
               ? () => (
                   <TouchableOpacity
-                    style={{ padding: 10 }}
+                    style={styles.syncAltContainer}
                     onPress={() => setShowSpeciesSyncAlert(true)}>
                     <IconSwitcher
+                      size={20}
                       name={'sync-alt'}
                       iconType={'FA5Icon'}
-                      size={20}
                       color={Colors.TEXT_COLOR}
                     />
                   </TouchableOpacity>
@@ -458,52 +447,50 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     );
   }, [searchText, showSearchSpecies, searchList]);
 
+  const renderListEmptyComponent = () => {
+    if (showSearchSpecies && searchList && searchList.length > 0) {
+      return <></>;
+    } else {
+      return (
+        <View style={styles.listEmptyComponent}>
+          <SvgXml xml={empty} style={styles.svgEmptyList} />
+          <Text style={styles.headerText}>
+            {i18next.t('label.select_species_looks_empty_here')}
+          </Text>
+          <Text style={styles.subHeadingText}>
+            {i18next.t('label.select_species_add_species_desscription')}
+          </Text>
+        </View>
+      );
+    }
+  };
+
+  const renderItem = (props: any) => {
+    return (
+      <View style={styles.container}>
+        {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
+          memoizedRenderSearchSpecieCard(props)
+        ) : !showSearchSpecies ? (
+          renderSpecieCard(props)
+        ) : (
+          <></>
+        )}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       {/* <DismissKeyBoard> */}
       <FlatList
-        style={{ flex: 1 }}
         data={list}
-        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+        renderItem={renderItem}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={() => {
-          if (showSearchSpecies && searchList && searchList.length > 0) {
-            return <></>;
-          } else {
-            return (
-              <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
-                <SvgXml
-                  xml={empty}
-                  style={{
-                    bottom: 10,
-                  }}
-                />
-                <Text style={styles.headerText}>
-                  {i18next.t('label.select_species_looks_empty_here')}
-                </Text>
-                <Text style={styles.subHeadingText}>
-                  {i18next.t('label.select_species_add_species_desscription')}
-                </Text>
-              </View>
-            );
-          }
-        }}
-        contentContainerStyle={{}}
-        renderItem={(props: any) => {
-          return (
-            <View style={styles.container}>
-              {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
-                memoizedRenderSearchSpecieCard(props)
-              ) : !showSearchSpecies ? (
-                renderSpecieCard(props)
-              ) : (
-                <></>
-              )}
-            </View>
-          );
-        }}
+        ListEmptyComponent={renderListEmptyComponent}
       />
       {/* </DismissKeyBoard> */}
       <TreeCountModal
@@ -623,5 +610,24 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.PLANET_BLACK,
+  },
+  listEmptyComponent: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  svgEmptyList: {
+    bottom: 10,
+  },
+  flatList: {
+    flex: 1,
+  },
+  scientificName: {
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.PLANET_BLACK,
+  },
+  syncAltContainer: {
+    padding: 10,
   },
 });

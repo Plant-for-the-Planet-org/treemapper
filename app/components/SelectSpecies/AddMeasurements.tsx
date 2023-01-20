@@ -1,29 +1,30 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+} from 'react-native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { InventoryContext } from '../../reducers/inventory';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+
 import {
   getInventory,
   updateInventory,
   updateSpecieAndMeasurements,
 } from '../../repositories/inventory';
+import { Colors } from '../../styles';
 import dbLog from '../../repositories/logs';
+import MeasurementInputs from '../Common/MeasurementInputs';
+import { InventoryContext } from '../../reducers/inventory';
 import { getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
+import { AlertModal, Header, PrimaryButton } from '../Common';
 import { LogTypes, nonISUCountries } from '../../utils/constants';
 import { INCOMPLETE_SAMPLE_TREE } from '../../utils/inventoryConstants';
-import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 import { measurementValidation } from '../../utils/validations/measurements';
-import { AlertModal, Header, PrimaryButton } from '../Common';
-import MeasurementInputs from '../Common/MeasurementInputs';
+import { getConvertedDiameter, getConvertedHeight } from '../../utils/measurements';
 
 export const AddMeasurements = () => {
   const [singleTreeSpecie, setSingleTreeSpecie] = useState('');
@@ -196,28 +197,28 @@ export const AddMeasurements = () => {
     setTagIdError('');
     setTagId(text);
   };
+  const handlePressSecBtn = () => {
+    setShowIncorrectRatioAlert(false);
+    addMeasurements();
+  };
+  const handlePressPrimary = () => setShowIncorrectRatioAlert(false);
+
+  const handleBack = () => navigation.goBack();
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.flex1}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
+          <View style={styles.headerContainer}>
             <Header
+              onBackPress={handleBack}
               headingText={i18next.t('label.select_species_add_measurements')}
-              onBackPress={() => {
-                navigation.goBack();
-              }}
             />
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS == 'ios' ? 'padding' : undefined}
-            style={{ flex: 1 }}>
-            <View
-              style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}>
+            style={styles.flex1}>
+            <View style={styles.measureContainer}>
               <MeasurementInputs
                 height={height}
                 heightError={heightError}
@@ -246,17 +247,14 @@ export const AddMeasurements = () => {
           </KeyboardAvoidingView>
         </View>
         <AlertModal
-          visible={showIncorrectRatioAlert}
-          heading={i18next.t('label.not_optimal_ratio')}
-          message={i18next.t('label.not_optimal_ratio_message')}
-          primaryBtnText={i18next.t('label.check_again')}
-          onPressPrimaryBtn={() => setShowIncorrectRatioAlert(false)}
           showSecondaryButton
+          visible={showIncorrectRatioAlert}
+          onPressPrimaryBtn={handlePressPrimary}
+          onPressSecondaryBtn={handlePressSecBtn}
+          heading={i18next.t('label.not_optimal_ratio')}
           secondaryBtnText={i18next.t('label.continue')}
-          onPressSecondaryBtn={() => {
-            setShowIncorrectRatioAlert(false);
-            addMeasurements();
-          }}
+          primaryBtnText={i18next.t('label.check_again')}
+          message={i18next.t('label.not_optimal_ratio_message')}
         />
       </SafeAreaView>
     </View>
@@ -264,6 +262,9 @@ export const AddMeasurements = () => {
 };
 
 const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
@@ -274,20 +275,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  inputBox: {
-    marginTop: 24,
-    marginBottom: 4,
-  },
-  switchContainer: {
+  headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'flex-start',
   },
-  switchText: {
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    marginRight: 10,
+  measureContainer: {
     flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
 });
