@@ -137,7 +137,8 @@ jobs:
           xcodebuild -sdk iphoneos -workspace treemapper.xcworkspace \
           -configuration Release -scheme 'treemapper(.env.staging)' \
           -derivedDataPath DerivedData \
-          -archivePath DerivedData/Archive/treemapper archive
+          -archivePath DerivedData/Archive/treemapper archive \
+          -allowProvisioningUpdates
         working-directory: ./ios
 
       - name: Export Archive
