@@ -95,10 +95,6 @@ jobs:
 
       - name: Fixes for Android Build
         run: |
-          # react-native-reanimated has an incompatible build.gradle file
-          search="classpath += files(project.getConfigurations().getByName('compile').asList())"
-          replace="project.getConfigurations().getByName('implementation').setCanBeResolved(true); classpath += files(project.getConfigurations().getByName('implementation').asList())"
-          sed -i "s|${search}|${replace}|g" node_modules/react-native-reanimated/android/build.gradle
           # react-native-mapbox-gl has a problem with a null object
           search="telemetry.setUserTelemetryRequestState(telemetryEnabled);"
           replace="if (telemetry != null) telemetry.setUserTelemetryRequestState(telemetryEnabled);"
