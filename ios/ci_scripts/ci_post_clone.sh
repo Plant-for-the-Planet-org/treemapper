@@ -40,8 +40,8 @@ cat $ENV_FILENAME
 touch ~/.netrc
 chmod 600 ~/.netrc
 echo "machine api.mapbox.com" >> ~/.netrc
-echo "login mapbox" >> ~/.netrc
-echo "password $MAPBOXGL_DOWNLOAD_TOKEN" >> ~/.netrc
+echo "  login mapbox" >> ~/.netrc
+echo "  password $MAPBOXGL_DOWNLOAD_TOKEN" >> ~/.netrc
 
 # Install dependencies
 echo "Running npm install"
