@@ -41,7 +41,7 @@
     "bugsnag-react-native": "^2.23.10",
     "d3-shape": "^3.0.1",
     "i18next": "^20.6.1",
-    "jail-monkey": "^2.6.0",
+    "jail-monkey": "^2.7.0",
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.2",
     "react": "17.0.2",
