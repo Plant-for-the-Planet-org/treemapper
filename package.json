@@ -15,7 +15,8 @@
     "lint:errors": "eslint app --quiet",
     "format": "prettier --write app",
     "clean-android": "./clean-android.sh",
-    "clean-ios": "./clean-ios.sh"
+    "clean-ios": "./clean-ios.sh",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.17.11",
@@ -45,6 +46,7 @@
     "jwt-decode": "^2.2.0",
     "moment": "^2.29.2",
     "nanoid": "^4.0.0",
+    "patch-package": "^6.5.1",
     "react": "17.0.2",
     "react-native": "0.68.2",
     "react-native-auth0": "^2.16.0",
