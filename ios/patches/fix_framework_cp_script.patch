@@ -1,0 +1,11 @@
+--- Pods/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks.sh	2023-04-01 12:44:42
++++ Pods/Target Support Files/Pods-treemapper/Pods-treemapper-frameworks-2.sh	2023-04-01 12:47:57
+@@ -41,7 +41,7 @@
+
+   if [ -L "${source}" ]; then
+     echo "Symlinked..."
+-    source="$(readlink "${source}")"
++    source="$(readlink -f "${source}")"
+   fi
+
+   if [ -d "${source}/${BCSYMBOLMAP_DIR}" ]; then
