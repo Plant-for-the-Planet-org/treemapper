@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 echo "Xcode version:"
 xcodebuild -version
