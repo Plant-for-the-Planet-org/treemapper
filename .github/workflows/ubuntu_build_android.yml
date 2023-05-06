@@ -62,7 +62,7 @@ jobs:
             ${{ runner.os }}-node-treemapper2-
 
       - name: Install npm
-        run: npm install --legacy-peer-deps
+        run: REALM_DISABLE_ANALYTICS=1 npm install --legacy-peer-deps
 
       - name: Setting Environment Variables
         env:
