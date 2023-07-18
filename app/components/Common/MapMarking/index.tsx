@@ -13,7 +13,7 @@ import i18next from 'i18next';
 import { Coord } from '@turf/helpers';
 import turfCenter from '@turf/center';
 import Config from 'react-native-config';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -44,7 +44,7 @@ import distanceCalculator from '../../../utils/distanceCalculator';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
 import { PermissionBlockedAlert, PermissionDeniedAlert } from './LocationPermissionAlerts';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const isAndroid = Platform.OS === 'android';
 
@@ -218,7 +218,7 @@ export default function MapMarking({
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
-      MapboxGL.setTelemetryEnabled(false);
+      MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition();
       return true;
     } catch (err) {

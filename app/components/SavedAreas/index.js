@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import i18next from 'i18next';
 import React, { useState, useEffect } from 'react';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 
 import { Colors, Typography } from '_styles';
 import { placeholder_image } from '../../assets';
 import { Header, PrimaryButton } from '../Common';
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import { getAllOfflineMaps, deleteOfflineMap } from '../../repositories/maps';
 
 const SavedAreas = ({ navigation }) => {
@@ -31,7 +31,7 @@ const SavedAreas = ({ navigation }) => {
 
   const deleteArea = async name => {
     deleteOfflineMap({ name }).then(async () => {
-      setTimeout(async () => await MapboxGL.offlineManager.deletePack(name), 0);
+      setTimeout(async () => await MapLibreGL.offlineManager.deletePack(name), 0);
       loadAreas();
     });
   };

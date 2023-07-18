@@ -20,7 +20,7 @@ import RNFS from 'react-native-fs';
 import turfCenter from '@turf/center';
 import { SvgXml } from 'react-native-svg';
 import { convertArea } from '@turf/helpers';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CommonActions } from '@react-navigation/routers';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
@@ -333,23 +333,23 @@ const InventoryOverview = ({ navigation }: any) => {
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         showUserLocation={false}
         style={styles.mapContainer}
         ref={map}
         zoomEnabled={true}
         scrollEnabled={true}
         rotateEnabled={false}>
-        <MapboxGL.Camera
+        <MapLibreGL.Camera
           ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
         />
         {shouldRenderShape && !isPointForMultipleTree && (
-          <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-          </MapboxGL.ShapeSource>
+          <MapLibreGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            <MapLibreGL.LineLayer id={'polyline'} style={polyline} />
+          </MapLibreGL.ShapeSource>
         )}
         <SampleTreeMarkers
           geoJSON={geoJSON}
@@ -370,7 +370,7 @@ const InventoryOverview = ({ navigation }: any) => {
         ) : (
           []
         )}
-      </MapboxGL.MapView>
+      </MapLibreGL.MapView>
     );
   };
 

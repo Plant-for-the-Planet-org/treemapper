@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import React, { useEffect, useState } from 'react';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 
 import MarkerSVG from '../../Common/MarkerSVG';
 import { Colors, Typography } from '../../../styles';
@@ -69,7 +69,7 @@ const SampleTreeMarkers = ({
     }
 
     markers.push(
-      <MapboxGL.PointAnnotation
+      <MapLibreGL.PointAnnotation
         key={`sampleTree-${i}`}
         id={`sampleTree-${i}`}
         coordinate={oneMarker}
@@ -98,7 +98,7 @@ const SampleTreeMarkers = ({
           color={color}
           opacity={i == activeSampleCarouselIndex ? 1 : opacity}
         />
-      </MapboxGL.PointAnnotation>,
+      </MapLibreGL.PointAnnotation>,
     );
   }
   return <>{markers}</>;

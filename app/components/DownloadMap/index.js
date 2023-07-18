@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import i18next from 'i18next';
 import Config from 'react-native-config';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -31,7 +31,7 @@ const ATTR_POSITION = {
 };
 const MAP_ZOOM_LEVEL = 15;
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
@@ -144,7 +144,7 @@ const DownloadMap = ({ navigation }) => {
               alert(err.message);
             }
           };
-          await MapboxGL.offlineManager.createPack(
+          await MapLibreGL.offlineManager.createPack(
             {
               name: offlineMapId,
               styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
@@ -186,17 +186,17 @@ const DownloadMap = ({ navigation }) => {
       <View style={styles.container}>
         <Header headingText={i18next.t('label.download_map_area')} />
         <View style={styles.mapViewContainer}>
-          <MapboxGL.MapView
+          <MapLibreGL.MapView
             ref={MapBoxGLRef}
             style={styles.cont}
             zoomLevel={MAP_ZOOM_LEVEL}
-            styleURL={MapboxGL.StyleURL.Street}
+            styleURL={MapLibreGL.StyleURL.Street}
             attributionPosition={ATTR_POSITION}
             onWillStartRenderingFrame={zoomLevelChanged}
             onDidFinishRenderingMapFully={initialMapCamera}>
-            <MapboxGL.UserLocation showsUserHeadingIndicator />
-            <MapboxGL.Camera ref={camera} />
-          </MapboxGL.MapView>
+            <MapLibreGL.UserLocation showsUserHeadingIndicator />
+            <MapLibreGL.Camera ref={camera} />
+          </MapLibreGL.MapView>
           <TouchableOpacity
             accessible={true}
             onPress={handleCurrLoc}

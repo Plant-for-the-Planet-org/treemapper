@@ -13,7 +13,7 @@ import {
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
 import Config from 'react-native-config';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import FIcon from 'react-native-vector-icons/Fontisto';
 import Geolocation from 'react-native-geolocation-service';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
@@ -132,7 +132,7 @@ const SingleTreeOverview = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [showNoProjectWarning, setShowNoProjectWarning] = useState<boolean>(false);
   const [navigationType, setNavigationType] = useState<string>('save');
-  const [location, setLocation] = useState<MapboxGL.Location | Geolocation.GeoPosition>();
+  const [location, setLocation] = useState<MapLibreGL.Location | Geolocation.GeoPosition>();
   const [isRemeasurementDisabled, setIsRemeasurementDisabled] = useState<boolean>(false);
   const [showRemeasurementButton, setShowRemeasurementButton] = useState<boolean>(false);
   const [plantLocationCoordinates, setPlantLocationCoordinates] = useState<[number, number]>([
@@ -225,7 +225,7 @@ const SingleTreeOverview = () => {
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      MapboxGL.setTelemetryEnabled(false);
+      MapLibreGL.setTelemetryEnabled(false);
 
       updateCurrentPosition(showAlert);
       return true;

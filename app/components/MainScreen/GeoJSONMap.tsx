@@ -1,4 +1,4 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
+import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -17,9 +17,9 @@ interface IGeoJSONMapProps {
   carouselRef: any;
   isCameraRefVisible: boolean;
   camera: any;
-  location: MapboxGL.Location | Geolocation.GeoPosition | undefined;
+  location: MapLibreGL.Location | Geolocation.GeoPosition | undefined;
   setLocation: React.Dispatch<
-    React.SetStateAction<MapboxGL.Location | Geolocation.GeoPosition | undefined>
+    React.SetStateAction<MapLibreGL.Location | Geolocation.GeoPosition | undefined>
   >;
   geoJSON: any;
   pointGeoJSON: any;
@@ -192,19 +192,19 @@ const GeoJSONMap = ({
 
   const SitePolygon = useCallback(() => {
     return (
-      <MapboxGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
-        <MapboxGL.LineLayer
+      <MapLibreGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
+        <MapLibreGL.LineLayer
           id={'projectSitesPolyline'}
           style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
         />
-      </MapboxGL.ShapeSource>
+      </MapLibreGL.ShapeSource>
     );
   }, [projectSitesGeoJSON]);
 
   const RemeasurePolygon = () => {
     return (
       <>
-        <MapboxGL.ShapeSource
+        <MapLibreGL.ShapeSource
           id={'point'}
           shape={pointGeoJSON}
           onPress={e => {
@@ -213,9 +213,9 @@ const GeoJSONMap = ({
               getSelectedPlantLocations(e.features);
             }
           }}>
-          <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
-        </MapboxGL.ShapeSource>
-        <MapboxGL.ShapeSource
+          <MapLibreGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
+        </MapLibreGL.ShapeSource>
+        <MapLibreGL.ShapeSource
           id={'polygon'}
           shape={geoJSON}
           onPress={e => {
@@ -224,14 +224,14 @@ const GeoJSONMap = ({
               getSelectedPlantLocations(e.features);
             }
           }}>
-          <MapboxGL.FillLayer
+          <MapLibreGL.FillLayer
             id={'polyFill'}
             style={{
               fillColor: ['get', 'color'],
               fillOpacity: 0.3,
             }}
           />
-          <MapboxGL.LineLayer
+          <MapLibreGL.LineLayer
             id={'polyline'}
             style={{
               lineWidth: 2,
@@ -240,13 +240,13 @@ const GeoJSONMap = ({
               lineJoin: 'bevel',
             }}
           />
-        </MapboxGL.ShapeSource>
+        </MapLibreGL.ShapeSource>
       </>
     );
   };
 
   return (
-    <MapboxGL.MapView
+    <MapLibreGL.MapView
       style={styles.container}
       ref={map}
       compassViewPosition={3}
@@ -254,7 +254,7 @@ const GeoJSONMap = ({
       attributionPosition={attributionPosition}
       onRegionWillChange={onChangeRegionStart}
       onRegionDidChange={onChangeRegionComplete}>
-      <MapboxGL.Camera
+      <MapLibreGL.Camera
         ref={el => {
           camera.current = el;
           setIsCameraRefVisible(!!el);
@@ -274,16 +274,16 @@ const GeoJSONMap = ({
             isCarouselSample
             sampleCarouselRef={sampleCarouselRef}
           />
-          <MapboxGL.ShapeSource
+          <MapLibreGL.ShapeSource
             id={'singleSelectedPolygon'}
             shape={{
               type: 'FeatureCollection',
               features: [singleSelectedGeoJSON.features[0]],
             }}>
-            <MapboxGL.FillLayer id={'singleSelectedPolyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'singleSelectedPolyline'} style={polyline} />
-            <MapboxGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} />
-          </MapboxGL.ShapeSource>
+            <MapLibreGL.FillLayer id={'singleSelectedPolyFill'} style={fillStyle} />
+            <MapLibreGL.LineLayer id={'singleSelectedPolyline'} style={polyline} />
+            <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} />
+          </MapLibreGL.ShapeSource>
         </>
       ) : showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
         clickedGeoJSON.map((singleGeoJson, index) => {
@@ -322,7 +322,7 @@ const GeoJSONMap = ({
             : 'notSelectedDefaultStyle';
 
           return (
-            <MapboxGL.ShapeSource
+            <MapLibreGL.ShapeSource
               key={`polygonClicked-${index}`}
               id={`polygonClicked-${index}`}
               shape={singleGeoJson}
@@ -335,26 +335,26 @@ const GeoJSONMap = ({
                 }
               }}
               style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
-              <MapboxGL.FillLayer
+              <MapLibreGL.FillLayer
                 id={`polyFillClicked-${index}`}
                 style={{
                   ...styles[`${polygonStyleKey}`].fill,
                   fillOpacity: isSelected ? 0.3 : 0.1,
                 }}
               />
-              <MapboxGL.LineLayer
+              <MapLibreGL.LineLayer
                 id={`polylineClicked-${index}`}
                 style={{ ...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5 }}
               />
 
-              <MapboxGL.CircleLayer
+              <MapLibreGL.CircleLayer
                 id={`circleClicked-${index}`}
                 style={{
                   ...styles[`${polygonStyleKey}`].circle,
                   circleOpacity: isSelected ? 1 : 0.2,
                 }}
               />
-            </MapboxGL.ShapeSource>
+            </MapLibreGL.ShapeSource>
           );
         })
       ) : (
@@ -364,9 +364,9 @@ const GeoJSONMap = ({
         </>
       )}
       {location && (
-        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
+        <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
       )}
-    </MapboxGL.MapView>
+    </MapLibreGL.MapView>
   );
 };
 

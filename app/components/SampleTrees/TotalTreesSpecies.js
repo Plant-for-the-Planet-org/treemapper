@@ -1,4 +1,4 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
@@ -30,7 +30,7 @@ import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import TreeCountModal from '../Common/TreeCountModal';
 import ManageSpecies from '../ManageSpecies';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 export default function TotalTreesSpecies() {
   const [bounds, setBounds] = useState([]);
@@ -110,7 +110,7 @@ export default function TotalTreesSpecies() {
   // initializes the state by updating state
   const initializeState = () => {
     if (inventoryState.inventoryID) {
-      getInventory({ inventoryID: inventoryState.inventoryID }).then(async (inventoryData) => {
+      getInventory({ inventoryID: inventoryState.inventoryID }).then(async inventoryData => {
         setInventory(inventoryData);
         if (inventoryData.polygons.length > 0) {
           const geoJSONData = await getGeoJsonData({ inventoryData });
@@ -138,7 +138,7 @@ export default function TotalTreesSpecies() {
     setDeleteSpeciesAlertDescription(i18next.t('label.delete_species_delete_sample_tree_warning'));
   };
 
-  const onPressDelete = (deleteSpecieIndex) => {
+  const onPressDelete = deleteSpecieIndex => {
     setSpecieIndex(deleteSpecieIndex);
     let species = [...inventory.species];
     let sampleTrees = [...inventory.sampleTrees];
@@ -155,7 +155,7 @@ export default function TotalTreesSpecies() {
     });
   };
 
-  const deleteSpeciesAndSampleTrees = async (deleteSpeciesIndex) => {
+  const deleteSpeciesAndSampleTrees = async deleteSpeciesIndex => {
     let species = [...inventory.species];
     let sampleTrees = [...inventory.sampleTrees];
     const deleteSpecies = species[deleteSpeciesIndex];
@@ -187,7 +187,7 @@ export default function TotalTreesSpecies() {
           message: `Successfully deleted species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
         });
       })
-      .catch((err) =>
+      .catch(err =>
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Failed to delete species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
@@ -196,7 +196,7 @@ export default function TotalTreesSpecies() {
       );
   };
 
-  const deleteSpecie = (index) => {
+  const deleteSpecie = index => {
     let species = [...inventory.species];
     const updatedSpecies = species.splice(index, 1);
 
@@ -214,7 +214,7 @@ export default function TotalTreesSpecies() {
           message: `Successfully deleted specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
-      .catch((err) =>
+      .catch(err =>
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Failed to delete specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
@@ -259,7 +259,7 @@ export default function TotalTreesSpecies() {
       })
         .then(() => {
           setShowTreeCountModal(false);
-          getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+          getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
             setInventory(inventoryData);
           });
           dbLog.info({
@@ -267,7 +267,7 @@ export default function TotalTreesSpecies() {
             message: `Successfully changed tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
           });
         })
-        .catch((err) => {
+        .catch(err => {
           dbLog.error({
             logType: LogTypes.INVENTORY,
             message: `Failed to change tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
@@ -277,7 +277,7 @@ export default function TotalTreesSpecies() {
     }
   };
 
-  const addSpecieToInventory = (stringifiedSpecie) => {
+  const addSpecieToInventory = stringifiedSpecie => {
     let specie = JSON.parse(stringifiedSpecie);
 
     let species = [...inventory.species];
@@ -315,7 +315,7 @@ export default function TotalTreesSpecies() {
       },
     })
       .then(() => {
-        getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+        getInventory({ inventoryID: inventoryState.inventoryID }).then(inventoryData => {
           setInventory(inventoryData);
         });
         dbLog.info({
@@ -323,7 +323,7 @@ export default function TotalTreesSpecies() {
           message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
-      .catch((err) => {
+      .catch(err => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
@@ -342,7 +342,7 @@ export default function TotalTreesSpecies() {
       geoJSON.features[0].geometry.coordinates.length > 0 &&
       geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         showUserLocation={false}
         style={styles.mapContainer}
         ref={map}
@@ -350,22 +350,22 @@ export default function TotalTreesSpecies() {
         pitchEnabled={false}
         zoomEnabled={false}
         rotateEnabled={false}>
-        <MapboxGL.Camera
-          ref={(el) => {
+        <MapLibreGL.Camera
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
         />
         {shouldRenderShape && !isPointForMultipleTree && (
-          <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-          </MapboxGL.ShapeSource>
+          <MapLibreGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            <MapLibreGL.LineLayer id={'polyline'} style={polyline} />
+          </MapLibreGL.ShapeSource>
         )}
         <SampleTreeMarkers geoJSON={geoJSON} isPointForMultipleTree={isPointForMultipleTree} />
         {inventory?.treeType === MULTI && !isPointForMultipleTree && (
           <Markers geoJSON={geoJSON} ignoreLastMarker />
         )}
-      </MapboxGL.MapView>
+      </MapLibreGL.MapView>
     );
   };
 
@@ -438,26 +438,26 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((plantedSpecie, index) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setSpecie(plantedSpecie);
-                  setSpecieIndex(index);
-                  setShowTreeCountModal(true);
-                }}
-                key={index}>
-                <SpecieListItem
-                  item={plantedSpecie}
-                  index={index}
-                  key={`${plantedSpecie.id}`}
-                  deleteSpecie={() =>
-                    inventory.completedSampleTreesCount > 0
-                      ? onPressDelete(index)
-                      : deleteSpecie(index)
-                  }
-                  setSpecieIndex={setSpecieIndex}
-                />
-              </TouchableOpacity>
-            ))
+                <TouchableOpacity
+                  onPress={() => {
+                    setSpecie(plantedSpecie);
+                    setSpecieIndex(index);
+                    setShowTreeCountModal(true);
+                  }}
+                  key={index}>
+                  <SpecieListItem
+                    item={plantedSpecie}
+                    index={index}
+                    key={`${plantedSpecie.id}`}
+                    deleteSpecie={() =>
+                      inventory.completedSampleTreesCount > 0
+                        ? onPressDelete(index)
+                        : deleteSpecie(index)
+                    }
+                    setSpecieIndex={setSpecieIndex}
+                  />
+                </TouchableOpacity>
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>
@@ -514,7 +514,7 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
   const [specieImage, setSpecieImage] = useState();
   const [species, setSpecies] = useState();
   useEffect(() => {
-    getScientificSpeciesById(item?.id || item?.guid).then((specie) => {
+    getScientificSpeciesById(item?.id || item?.guid).then(specie => {
       setSpecies(specie);
       setSpecieImage(specie.image);
     });
