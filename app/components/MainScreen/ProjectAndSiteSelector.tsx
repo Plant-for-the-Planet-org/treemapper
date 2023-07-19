@@ -1,10 +1,11 @@
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { setProject, setProjectSite } from '../../actions/projects';
-import { ProjectContext } from '../../reducers/project';
+import React, { useContext, useEffect } from 'react';
+
 import { Colors, Typography } from '../../styles';
+import { ProjectContext } from '../../reducers/project';
+import { setProject, setProjectSite } from '../../actions/projects';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
 interface Props {

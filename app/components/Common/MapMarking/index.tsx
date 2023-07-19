@@ -861,7 +861,7 @@ export default function MapMarking({
   };
 
   return (
-    <View style={styles.container} fourceInset={{ top: 'always' }}>
+    <View style={styles.container}>
       <Map
         geoJSON={geoJSON}
         treeType={treeType}

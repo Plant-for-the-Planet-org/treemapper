@@ -1,11 +1,14 @@
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleProp, StyleSheet } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { Platform, StyleProp, StyleSheet } from 'react-native';
+import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+
 import { Colors } from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+
+const mapStyle = JSON.stringify(require('../../assets/mapStyle/mapStyleOutput.json'));
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -248,6 +251,7 @@ const GeoJSONMap = ({
   return (
     <MapLibreGL.MapView
       style={styles.container}
+      styleURL={mapStyle}
       ref={map}
       compassViewPosition={3}
       compassViewMargins={compassViewMargins}

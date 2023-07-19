@@ -1,13 +1,16 @@
-import MapLibreGL, { Logger } from '@maplibre/maplibre-react-native';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
+import MapLibreGL, { Logger } from '@maplibre/maplibre-react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import Markers from '../Markers';
 import { active_marker } from '../../../assets';
 import { Colors, Typography } from '../../../styles';
-import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
-import Markers from '../Markers';
 import SampleTreeMarkers from '../SampleTreeMarkers';
+import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
+
+const mapStyle = JSON.stringify(require('../../../assets/mapStyle/mapStyleOutput.json'));
 
 MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
@@ -69,6 +72,7 @@ export default function Map({
           y: 230,
         }}
         logo
+        styleJSON={mapStyle}
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
         {(treeType === MULTI || treeType === SAMPLE) && (
