@@ -537,7 +537,7 @@ PODS:
     - React-jsi (= 0.72.3)
     - React-logger (= 0.72.3)
     - React-perflogger (= 0.72.3)
-  - RealmJS (12.0.0-rc.1):
+  - RealmJS (11.10.1):
     - React
   - RNCAsyncStorage (1.19.1):
     - React-Core
@@ -882,11 +882,11 @@ SPEC CHECKSUMS:
   A0Auth0: 5ae918d2f043395f83ac26d6eb85b249bcb54634
   Auth0: 64da28fdc5cd499aa516dc4bfd0ace8efae2c1da
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: a7c83b31436843459a1961bfd74b96033dc77234
   BugsnagReactNative: 98fb350df4bb0c94cce903023531a1a5cc11fa51
   BVLinearGradient: 612a04ff38e8480291f3379ee5b5a2c571f03fe0
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
+  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: 4cce221dd782d3ff7c4172167bba09d58af67ccb
   FBReactNativeSpec: c6bd9e179757b3c0ecf815864fae8032377903ef
   Flipper: 6edb735e6c3e332975d1b17956bcc584eccf5818
@@ -898,7 +898,7 @@ SPEC CHECKSUMS:
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
   FlipperKit: 2efad7007d6745a3f95e4034d547be637f89d3f6
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  glog: 476ee3e89abb49e07f822b48323c51c57124b572
   hermes-engine: 10fbd3f62405c41ea07e71973ea61e1878d07322
   jail-monkey: a71b35d482a70ecba844a90f002994012cf12a5d
   JWTDecode: 2eed97c2fa46ccaf3049a787004eedf0be474a87
@@ -946,7 +946,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 837c1bebd2f84572db17698cd702ceaf585b0d9a
   React-utils: bcb57da67eec2711f8b353f6e3d33bd8e4b2efa3
   ReactCommon: 3ccb8fb14e6b3277e38c73b0ff5e4a1b8db017a9
-  RealmJS: cb6d5f24b40ec9859a46857c8810e0322e07e2d6
+  RealmJS: 8deebf00c84f499c654bc585583c54f55b586751
   RNCAsyncStorage: f47fe18526970a69c34b548883e1aeceb115e3e1
   RNCCheckbox: 75255b03e604bbcc26411eb31c4cbe3e3865f538
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
@@ -972,4 +972,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 5c35ee23158277c4ca5e28d361c5396e75a1d3a5
 
-COCOAPODS: 1.12.0
+COCOAPODS: 1.12.1
