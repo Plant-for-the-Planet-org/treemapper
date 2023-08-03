@@ -9,6 +9,7 @@ project.ext.envConfigFiles = [
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import com.android.build.OutputFile
 
 /**
  * The react.gradle file registers a task for each build variant (edef enableHermes = project.g. bundleDebugJsAndAssets
@@ -95,7 +96,6 @@ project.ext.react = [
     enableHermes: true,  // clean and rebuild if changing
 ]
 
-apply from: "../../node_modules/react-native/react.gradle"
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
 /**
@@ -151,10 +151,13 @@ android {
     namespace "com.rndiffapp"
     defaultConfig {
         applicationId "org.pftp.treemapper"
+        multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 26
         versionName "1.0.9"
+        missingDimensionStrategy 'react-native-camera', 'general'
+        manifestPlaceholders = [auth0Domain: "@string/AUTH0_DOMAIN", auth0Scheme: "${applicationId}"]
     }
     signingConfigs {
       release {
@@ -226,6 +229,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation project(':react-native-camera')
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
