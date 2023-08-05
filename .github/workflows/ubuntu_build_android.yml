@@ -95,18 +95,10 @@ jobs:
 
       - name: Fixes for Android Build
         run: |
-          # react-native-reanimated has an incompatible build.gradle file
-          search="classpath += files(project.getConfigurations().getByName('compile').asList())"
-          replace="project.getConfigurations().getByName('implementation').setCanBeResolved(true); classpath += files(project.getConfigurations().getByName('implementation').asList())"
-          sed -i "s|${search}|${replace}|g" node_modules/react-native-reanimated/android/build.gradle
-          # react-native-mapbox-gl has a problem with a null object
-          search="telemetry.setUserTelemetryRequestState(telemetryEnabled);"
-          replace="if (telemetry != null) telemetry.setUserTelemetryRequestState(telemetryEnabled);"
-          sed -i "s|${search}|${replace}|g" node_modules/@react-native-mapbox-gl/maps/android/rctmgl/src/main/java/com/mapbox/rctmgl/modules/RCTMGLModule.java
           # fix problems with 'Error: ENOSPC: System limit for number of file watchers reached'
-          echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+          # echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
           # fix for task ':app:stripDevelopReleaseDebugSymbols'
-          (echo y; echo y; echo y;) | sudo $ANDROID_HOME/tools/bin/sdkmanager  'ndk;20.0.5594570'
+          # (echo y; echo y; echo y;) | sudo $ANDROID_HOME/tools/bin/sdkmanager  'ndk;20.0.5594570'
 
       - name: Caching Gradle dependencies
         uses: actions/cache@v1
