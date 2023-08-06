@@ -54,6 +54,8 @@
 	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to precise location to be able to register trees.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need access to precise location to be able to register trees.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>TreeMapper would like to save photos from the app to your gallery.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
