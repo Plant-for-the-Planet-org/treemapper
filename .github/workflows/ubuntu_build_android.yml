@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - upgrade/*
   pull_request:
     branches:
       - develop
