@@ -64,7 +64,7 @@ export default function SelectProject({}: SelectProjectProps) {
           subHeadingText={i18next.t('label.select_project_desc')}
         />
         <ProjectList
-          isSelectable
+          isSelectable={true}
           onProjectPress={onProjectPress}
           selectedProjectId={selectedProjectId}
         />
