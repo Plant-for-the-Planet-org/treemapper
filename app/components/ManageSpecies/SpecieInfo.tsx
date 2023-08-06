@@ -154,7 +154,7 @@ const SpecieInfo = ({ route }: { route: any }) => {
                   onPress={() => setIsCamera(true)}>
                   <View style={{ alignItems: 'center' }}>
                     <Ionicons
-                      name={'md-cloud-upload-outline'}
+                      name={'cloud-upload-outline'}
                       size={80}
                       color={Colors.GRAY_LIGHTEST}
                     />

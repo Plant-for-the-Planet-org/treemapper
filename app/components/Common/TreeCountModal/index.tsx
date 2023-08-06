@@ -51,7 +51,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
       <View style={styles.modalBackground}>
         <View style={styles.inputModal}>
           <Ionicons
-            name={'md-close'}
+            name={'close'}
             size={30}
             color={Colors.TEXT_COLOR}
             onPress={() => {

@@ -87,7 +87,7 @@ export default function index({ visible, openModal, userCountry }) {
           <View style={styles.container}>
             <TouchableOpacity style={{ paddingTop: Platform.OS === 'ios' ? 14 : null }}>
               <Ionicons
-                name="md-arrow-back"
+                name="arrow-back"
                 size={30}
                 color={Colors.TEXT_COLOR}
                 style={styles.iconStyle}
