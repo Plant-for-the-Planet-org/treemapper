@@ -76,7 +76,7 @@
     "react-native-snap-carousel": "^3.9.1",
     "react-native-svg": "^13.6.0",
     "react-native-tab-view": "^3.3.4",
-    "react-native-vector-icons": "^9.2.0",
+    "react-native-vector-icons": "^10.0.0",
     "react-native-zip-archive": "^5.0.6",
     "realm": "^11.9.0"
   },
