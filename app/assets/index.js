@@ -39,9 +39,12 @@ import plant_project from './images/plant_project';
 import importIcon from './images/importIcon';
 import multipleTreesIcon from './images/multipleTrees';
 import singleTreeIcon from './images/roundTree';
+import { add_icon } from './images/add_icon';
+import { map_explore } from './images/map_explore';
 
 export {
   arrow_up,
+  map_explore,
   arrow_down,
   close,
   camera,
@@ -50,6 +53,7 @@ export {
   cloud,
   upload_check,
   upload_now,
+  add_icon,
   tree,
   placeholder_image,
   alrighty_banner,

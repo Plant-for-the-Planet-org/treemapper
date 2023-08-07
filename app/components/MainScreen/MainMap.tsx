@@ -482,7 +482,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 56 }]}
+              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 106 }]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">
@@ -541,8 +541,7 @@ const styles = StyleSheet.create({
   },
   myLocationIcon: {
     position: 'absolute',
-    right: -16,
-    bottom: 36,
+    right: 9,
     width: 45,
     height: 45,
     backgroundColor: Colors.WHITE,

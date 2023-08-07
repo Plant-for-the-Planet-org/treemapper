@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/core';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 
 import { Colors, Typography } from '../../styles';
-import { multipleTreesIcon, singleTreeIcon } from '../../assets';
+import { add_icon, map_explore, multipleTreesIcon, singleTreeIcon } from '../../assets';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -44,17 +44,22 @@ const getPath = (): string => {
     .x(d => d[0])
     .y(d => d[1])
     .curve(shape.curveBasis)([
-    [width - 5, 0],
-    [width, 0],
-    [width + 5, 5],
-    [width + 7, curveHeight / 2],
-    [width + tabWidth / 2 - 16, curveHeight],
-    [width + tabWidth / 2 + 16, curveHeight],
-    [width + tabWidth - 7, curveHeight / 2],
-    [width + tabWidth - 5, 5],
-    [width + tabWidth, 0],
-    [width + 5 + tabWidth, 0],
+    [width * 1.9 - 5, 0],
+    [width * 1.9, 0],
+    [width * 1.9 + 5, 5],
+    [width * 1.9 + 7, curveHeight / 2],
+    [width * 1.9 + tabWidth / 2 - 16, curveHeight],
+    [width * 1.9 + tabWidth / 2 + 16, curveHeight],
+    [width * 1.9 + tabWidth - 7, curveHeight / 2],
+    [width * 1.9 + tabWidth - 5, 5],
+    [width * 1.9 + tabWidth, 0],
+    [width * 1.9 + 5 + tabWidth, 0],
   ]);
+
+  console.log('[width]', width);
+  console.log('[tabWidth]', tabWidth);
+  console.log('[buttonWidth]', buttonWidth);
+  console.log('[buttonGutter]', buttonGutter);
 
   const right = shape
     .line()
@@ -162,25 +167,43 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
         {/* add button */}
         <TouchableOpacity style={styles.addButton} onPress={() => onAddPress()}>
           <Animated.View style={animatedScaleStyle}>
-            <FA5Icon name="plus" color={Colors.WHITE} size={32} />
+            <SvgXml xml={add_icon} style={styles.addIcon} />
           </Animated.View>
         </TouchableOpacity>
 
         {/* menu button */}
-        <TouchableOpacity style={[styles.left, styles.tabButton]} onPress={onMenuPress}>
+        {/* <TouchableOpacity style={[styles.left, styles.tabButton]} onPress={onMenuPress}>
           <>
             <View style={[styles.menuDash, styles.firstDash]} />
             <View style={[styles.menuDash, styles.secondDash]} />
           </>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <View style={styles.tabItemContainer}>
+          {/* map button */}
+          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
+            <SvgXml xml={map_explore} style={styles.addIcon} />
+            <Text style={styles.tabItemText}>Map</Text>
+          </TouchableOpacity>
 
+          {/* map button */}
+          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
+            <SvgXml xml={map_explore} style={styles.addIcon} />
+            <Text style={styles.tabItemText}>Interventions</Text>
+          </TouchableOpacity>
+
+          {/* map button */}
+          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
+            <SvgXml xml={map_explore} style={styles.addIcon} />
+            <Text style={styles.tabItemText}>Plots</Text>
+          </TouchableOpacity>
+        </View>
         {/* Tree Inventory button */}
-        <TouchableOpacity style={[styles.right, styles.tabButton]} onPress={onTreeInventoryPress}>
+        {/* <TouchableOpacity style={[styles.right, styles.tabButton]} onPress={onTreeInventoryPress}>
           <Text style={styles.tabText}>{i18next.t('label.tree_inventory')}</Text>
           <View style={styles.inventoryCount}>
             <Text style={styles.inventoryCountText}>{numberOfInventory}</Text>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <SafeAreaView style={styles.safeArea} />
       </View>
       {showAddOptions ? <AddOptions navigation={navigation} /> : []}
@@ -242,8 +265,8 @@ const styles = StyleSheet.create({
     width: buttonWidth,
     height: buttonWidth,
     borderRadius: 60,
-    backgroundColor: Colors.PRIMARY_DARK,
-    left: width + buttonGutter,
+    backgroundColor: Colors.WHITE,
+    left: width * 1.9 + buttonGutter,
     elevation: 4,
     justifyContent: 'center',
     alignItems: 'center',
@@ -294,5 +317,28 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
+  },
+  addIcon: {
+    width: 48,
+    height: 48,
+  },
+  tabItemContainer: {
+    position: 'absolute',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: IS_ANDROID ? 0 : 6,
+    flexDirection: 'row',
+    width: width * 2,
+    height: tabbarHeight,
+  },
+  tabItem: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabItemText: {
+    marginTop: 7,
+    color: Colors.TEXT_LIGHT,
+    fontSize: Typography.FONT_SIZE_12,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
 });

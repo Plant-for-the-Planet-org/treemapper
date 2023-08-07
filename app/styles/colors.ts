@@ -16,6 +16,8 @@ export const BLACK = '#000000';
 export const TEXT_COLOR = '#4D5153';
 export const LIGHT_BORDER_COLOR = '#D5D5D5';
 export const DISABLE = '#CCCCCC';
+export const TEXT_LIGHT = '#828282';
+
 // ACTIONS
 export const SUCCESS = '#2ecc71';
 export const WARNING = '#e67e22';
