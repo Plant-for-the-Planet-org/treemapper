@@ -14,7 +14,7 @@ import { getAllProjects } from '../../repositories/projects';
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProjectListProps {
-  isSelectable?: boolean;
+  isSelectable: boolean;
   onProjectPress?: any;
   selectedProjectId?: string;
 }

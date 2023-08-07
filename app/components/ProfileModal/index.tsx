@@ -195,7 +195,7 @@ const ProfileModal = ({
               accessible={true}
               accessibilityLabel="Profile Modal"
               testID="profile_modal">
-              <Ionicons name={'md-close'} size={30} color={Colors.TEXT_COLOR} />
+              <Ionicons name={'close'} size={30} color={Colors.TEXT_COLOR} />
             </TouchableOpacity>
             <View style={styles.logoContainer}>
               <SvgXml xml={logo} />

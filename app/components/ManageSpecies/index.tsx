@@ -421,7 +421,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                 onPress={() => {
                   setSearchText('');
                 }}>
-                <Ionicons name="md-close" size={20} style={styles.closeIcon} />
+                <Ionicons name="close" size={20} style={styles.closeIcon} />
               </TouchableOpacity>
             ) : (
               []

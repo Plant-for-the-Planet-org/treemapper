@@ -57,7 +57,7 @@ const Header = ({
             accessibilityLabel={accessibilityLabel}
             style={styles.paddingVertical}>
             <Ionicons
-              name={closeIcon ? 'md-close' : 'md-arrow-back'}
+              name={closeIcon ? 'close' : 'arrow-back'}
               size={30}
               color={whiteBackIcon ? Colors.WHITE : Colors.TEXT_COLOR}
             />

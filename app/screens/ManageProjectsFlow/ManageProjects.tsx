@@ -21,7 +21,7 @@ const ManageProjects = ({}: ManageProjectsProps) => {
       <View style={styles.container}>
         <Header headingText={i18next.t('label.manage_projects')} />
 
-        <ProjectList isSelectable={true} />
+        <ProjectList isSelectable={false} />
       </View>
     </SafeAreaView>
   );

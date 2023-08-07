@@ -218,7 +218,8 @@ export default function MapMarking({
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
-      MapLibreGL.setTelemetryEnabled(false);
+      // @ts-ignore
+      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition();
       return true;
     } catch (err) {

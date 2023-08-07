@@ -225,8 +225,8 @@ const SingleTreeOverview = () => {
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      MapLibreGL.setTelemetryEnabled(false);
-
+      // @ts-ignore
+      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {

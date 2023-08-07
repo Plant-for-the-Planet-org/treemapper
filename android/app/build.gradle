@@ -154,7 +154,7 @@ android {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 26
+        versionCode 27
         versionName "1.0.9"
         missingDimensionStrategy 'react-native-camera', 'general'
         manifestPlaceholders = [auth0Domain: "@string/AUTH0_DOMAIN", auth0Scheme: "${applicationId}"]
