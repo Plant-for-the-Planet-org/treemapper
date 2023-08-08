@@ -48,8 +48,18 @@ import CrossArrow from './images/crossArrow';
 import ChartIcon from './images/chart_icon';
 import SingleTreeIcon from './images/singleTreeIcon';
 import MultipleTreeIcon from './images/multipleTreeIcon';
+import LogoutSign from './images/drawerIcons/logoutSign';
+import SpeciesLeaf from './images/drawerIcons/speciesLeaf';
+import ProjectDoc from './images/drawerIcons/projectDoc';
+import PieAdditionalData from './images/drawerIcons/pieAdditionalData';
+import OfflineMapIcon from './images/drawerIcons/offlineMapIcon';
 
 export {
+  ProjectDoc,
+  OfflineMapIcon,
+  PieAdditionalData,
+  SpeciesLeaf,
+  LogoutSign,
   MultipleTreeIcon,
   SingleTreeIcon,
   ChartIcon,

@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/core';
 import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import React, { useContext, useEffect, useState } from 'react';
-import { Platform, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { Platform, View, StyleSheet, Text, SafeAreaView, Dimensions } from 'react-native';
 
 import {
   getInventoryCount,
@@ -32,7 +32,10 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
+import IonIcons from 'react-native-vector-icons/Ionicons';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
+const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 25;
 const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
@@ -300,7 +303,7 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
+          {/* <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
             <View style={styles.mainMapHeader}>
               <View style={{ display: 'flex', width: '45%' }}>
                 <Sync
@@ -349,6 +352,24 @@ export default function MainScreen() {
             ) : (
               []
             )}
+          </View> */}
+          <View style={[styles.mainMapHeaderContainer, styles.extraHeaderStyle]}>
+            <View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.openDrawer()}
+                style={[styles.headerLeftBtn, styles.boxShadow]}>
+                <IonIcons name={'menu'} size={24} color={Colors.WHITE} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.headerRight}>
+              <TouchableOpacity activeOpacity={0.7} style={[styles.headerBtn, styles.boxShadow]}>
+                <IonIcons name={'location'} size={24} color={Colors.WHITE} />
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.7} style={[styles.headerBtn, styles.boxShadow]}>
+                <IonIcons name={'options'} size={24} color={Colors.WHITE} />
+              </TouchableOpacity>
+            </View>
           </View>
           <SafeAreaView>
             <BottomBar
@@ -411,5 +432,43 @@ const styles = StyleSheet.create({
   },
   syncTextContainer: {
     flex: 1,
+  },
+  headerLeftBtn: {
+    padding: 8,
+    width: 40,
+    height: 40,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    backgroundColor: Colors.PRIMARY,
+  },
+  headerBtn: {
+    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: Colors.PRIMARY,
+    marginLeft: 16,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    marginRight: 12,
+  },
+  boxShadow: {
+    // shadow
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4.62,
+    elevation: 5,
+  },
+  extraHeaderStyle: {
+    width,
+    left: 0,
+    top: topValue,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

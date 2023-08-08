@@ -18,8 +18,10 @@ import TopRightBackground from './TopRightBackground';
 import InputModal from './InputModal';
 import GradientText from './GradientText/GradientText';
 import ComingSoon from './ComingSoon/ComingSoon';
+import CustomDrawer from './CustomDrawer/CustomDrawer';
 
 export {
+  CustomDrawer,
   ComingSoon,
   Header,
   LargeButton,

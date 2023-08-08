@@ -798,7 +798,7 @@ export default function MapMarking({
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'BottomTab' },
+          { name: 'NavDrawer' },
           {
             name: 'TreeInventory',
           },

@@ -251,7 +251,6 @@ export default DownloadMap;
 // eslint-disable-next-line react/display-name
 const LoaderModal = React.memo(
   ({ isLoaderShow, areaName }) => {
-    console.log('rerere');
     return (
       <Modal transparent visible={isLoaderShow}>
         <View style={styles.dowloadModalContainer}>

@@ -33,6 +33,7 @@ import {
   RegisterSingleTree,
   SingleTreeOverview,
 } from '../';
+import NavDrawer from './Drawer';
 import AdditionalData from '../AdditionalData';
 import TakePicture from '../../screens/TakePicture';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
@@ -47,7 +48,6 @@ import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
 import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
-import BottomTab from './BottomTab';
 
 const Stack = createStackNavigator();
 const screenOptions = { headerShown: false };
@@ -84,7 +84,7 @@ const MyTransition: StackNavigationOptions = {
 export default function MainNavigator() {
   return (
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
-      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="NavDrawer" component={NavDrawer} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
       <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
       <Stack.Screen name="SelectProject" component={SelectProject} options={MyTransition} />
