@@ -16,9 +16,12 @@ import SpeciesSyncError from './SpeciesSyncError';
 import Camera from './Camera';
 import TopRightBackground from './TopRightBackground';
 import InputModal from './InputModal';
+import GradientText from './GradientText/GradientText';
+
 export {
   Header,
   LargeButton,
+  GradientText,
   PrimaryButton,
   Input,
   SmallHeader,

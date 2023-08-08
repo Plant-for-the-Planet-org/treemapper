@@ -40,11 +40,15 @@ import importIcon from './images/importIcon';
 import multipleTreesIcon from './images/multipleTrees';
 import singleTreeIcon from './images/roundTree';
 import { add_icon } from './images/add_icon';
-import { map_explore } from './images/map_explore';
+import MapExplore from './images/map_explore';
+import ListIcon from './images/listIcon';
+import PlotIcon from './images/plotIcon';
 
 export {
+  PlotIcon,
+  ListIcon,
   arrow_up,
-  map_explore,
+  MapExplore,
   arrow_down,
   close,
   camera,

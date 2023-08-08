@@ -5,7 +5,6 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
 import i18next from 'i18next';
@@ -13,10 +12,17 @@ import * as shape from 'd3-shape';
 import React, { useEffect, useState } from 'react';
 import Svg, { Path, SvgXml } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/core';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 
+import {
+  add_icon,
+  ListIcon,
+  PlotIcon,
+  MapExplore,
+  singleTreeIcon,
+  multipleTreesIcon,
+} from '../../assets';
+import { GradientText } from '../Common';
 import { Colors, Typography } from '../../styles';
-import { add_icon, map_explore, multipleTreesIcon, singleTreeIcon } from '../../assets';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -36,7 +42,7 @@ const getPath = (): string => {
     .x(d => d[0])
     .y(d => d[1])([
     [0, 0],
-    [width - 5, 0],
+    [width * 1.9 + 5, 0],
   ]);
 
   const tab = shape
@@ -44,28 +50,23 @@ const getPath = (): string => {
     .x(d => d[0])
     .y(d => d[1])
     .curve(shape.curveBasis)([
-    [width * 1.9 - 5, 0],
-    [width * 1.9, 0],
+    [width * 1.9 + 5, 0],
+    [width * 1.9 + 5, 0],
     [width * 1.9 + 5, 5],
     [width * 1.9 + 7, curveHeight / 2],
     [width * 1.9 + tabWidth / 2 - 16, curveHeight],
     [width * 1.9 + tabWidth / 2 + 16, curveHeight],
     [width * 1.9 + tabWidth - 7, curveHeight / 2],
-    [width * 1.9 + tabWidth - 5, 5],
-    [width * 1.9 + tabWidth, 0],
-    [width * 1.9 + 5 + tabWidth, 0],
+    [width * 1.9 + tabWidth - 5, 0],
+    [width * 1.9 + tabWidth - 5, 0],
+    [width * 1.9 + 5 + tabWidth - 5, 0],
   ]);
-
-  console.log('[width]', width);
-  console.log('[tabWidth]', tabWidth);
-  console.log('[buttonWidth]', buttonWidth);
-  console.log('[buttonGutter]', buttonGutter);
 
   const right = shape
     .line()
     .x(d => d[0])
     .y(d => d[1])([
-    [width + 5 + tabWidth, 0],
+    [width * 2 + tabWidth - 15, 0],
     [width * 2 + tabWidth, 0],
     [width * 2 + tabWidth, tabbarHeight],
     [0, tabbarHeight],
@@ -120,9 +121,16 @@ interface IBottomBarProps {
   numberOfInventory: number;
 }
 
-const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBottomBarProps) => {
+const BottomBar = ({
+  onMenuPress,
+  onTreeInventoryPress,
+  numberOfInventory,
+  state,
+  descriptors,
+  navigation,
+  ...props
+}: IBottomBarProps) => {
   const [showAddOptions, setShowAddOptions] = useState(false);
-  const navigation = useNavigation();
   const [spinValue] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -178,24 +186,66 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
             <View style={[styles.menuDash, styles.secondDash]} />
           </>
         </TouchableOpacity> */}
+
         <View style={styles.tabItemContainer}>
-          {/* map button */}
-          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
-            <SvgXml xml={map_explore} style={styles.addIcon} />
-            <Text style={styles.tabItemText}>Map</Text>
-          </TouchableOpacity>
+          {state?.routes?.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label =
+              options.tabBarLabel !== undefined
+                ? options.tabBarLabel
+                : options.title !== undefined
+                ? options.title
+                : route.name;
 
-          {/* map button */}
-          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
-            <SvgXml xml={map_explore} style={styles.addIcon} />
-            <Text style={styles.tabItemText}>Interventions</Text>
-          </TouchableOpacity>
+            const isFocused = state.index === index;
 
-          {/* map button */}
-          <TouchableOpacity style={styles.tabItem} onPress={onMenuPress}>
-            <SvgXml xml={map_explore} style={styles.addIcon} />
-            <Text style={styles.tabItemText}>Plots</Text>
-          </TouchableOpacity>
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                // The `merge: true` option makes sure that the params inside the tab screen are preserved
+                navigation.navigate({ name: route.name, merge: true });
+              }
+            };
+
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
+
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                testID={options.tabBarTestID}
+                onLongPress={onLongPress}
+                style={styles.tabItem}
+                onPress={onPress}>
+                {index === 0 && <MapExplore color={state?.index === index} />}
+                {index === 1 && <ListIcon color={state?.index === index} />}
+                {index === 2 && <PlotIcon color={state?.index === index} />}
+                {state?.index === index ? (
+                  <GradientText style={styles.tabItemText}>{label}</GradientText>
+                ) : (
+                  <Text style={styles.tabItemText}>{label}</Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <View style={[styles.addText, styles.tabButton]}>
+          {showAddOptions ? (
+            <GradientText style={styles.tabItemAddText}>Add</GradientText>
+          ) : (
+            <Text style={styles.tabItemAddText}>Add</Text>
+          )}
         </View>
         {/* Tree Inventory button */}
         {/* <TouchableOpacity style={[styles.right, styles.tabButton]} onPress={onTreeInventoryPress}>
@@ -204,7 +254,6 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
             <Text style={styles.inventoryCountText}>{numberOfInventory}</Text>
           </View>
         </TouchableOpacity> */}
-        <SafeAreaView style={styles.safeArea} />
       </View>
       {showAddOptions ? <AddOptions navigation={navigation} /> : []}
     </>
@@ -229,9 +278,10 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     position: 'absolute',
-    justifyContent: 'space-around',
-    alignItems: 'flex-start',
-    marginBottom: IS_ANDROID ? 0 : 6,
+    width: width / 2.1,
+    right: 0,
+    justifyContent: 'flex-end',
+    height: tabbarHeight,
   },
   firstDash: {
     width: 16,
@@ -337,6 +387,12 @@ const styles = StyleSheet.create({
   },
   tabItemText: {
     marginTop: 7,
+    color: Colors.TEXT_LIGHT,
+    fontSize: Typography.FONT_SIZE_12,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+  },
+  tabItemAddText: {
+    marginBottom: 17,
     color: Colors.TEXT_LIGHT,
     fontSize: Typography.FONT_SIZE_12,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
