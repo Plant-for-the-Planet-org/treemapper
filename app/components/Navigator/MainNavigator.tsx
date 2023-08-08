@@ -11,7 +11,6 @@ import {
   Logs,
   Legals,
   SignUp,
-  MainScreen,
   SavedAreas,
   LocateTree,
   ManageUsers,

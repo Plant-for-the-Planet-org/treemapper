@@ -11,7 +11,6 @@ import i18next from 'i18next';
 import * as shape from 'd3-shape';
 import React, { useEffect, useState } from 'react';
 import Svg, { Path, SvgXml } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/core';
 
 import {
   add_icon,
@@ -20,13 +19,19 @@ import {
   MapExplore,
   singleTreeIcon,
   multipleTreesIcon,
+  SingleTreeIcon,
+  MultipleTreeIcon,
+  Intervention,
+  ChartIcon,
+  CrossArrow,
 } from '../../assets';
 import { GradientText } from '../Common';
 import { Colors, Typography } from '../../styles';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const IS_ANDROID = Platform.OS === 'android';
 
-let { width } = Dimensions.get('window');
+let { width, height } = Dimensions.get('window');
 const buttonWidth = 64;
 const buttonGutter = 10;
 const extraHeight = IS_ANDROID ? 0 : 20;
@@ -77,41 +82,60 @@ const getPath = (): string => {
 
 const d = getPath();
 
-const AddOptions = ({ navigation }: any) => {
+const AddOptions = ({ onReqClose, navigation }: any) => {
   const addOptions = [
     {
-      svgXML: singleTreeIcon,
+      svgIcon: <ChartIcon />,
+      title: 'Monitoring Plot',
+      coming_soon: true,
+      onPress: () => navigation.navigate('Intervention'),
+    },
+    {
+      svgIcon: <CrossArrow />,
+      title: 'Project Site',
+      coming_soon: true,
+      onPress: () => navigation.navigate('Intervention'),
+    },
+    {
+      svgIcon: <Intervention />,
+      title: 'Intervention',
+      coming_soon: true,
+      onPress: () => navigation.navigate('Intervention'),
+    },
+    {
+      svgIcon: <SingleTreeIcon />,
       title: 'label.tree_registration_type_1',
+      coming_soon: false,
       onPress: () => navigation.navigate('RegisterSingleTree'),
     },
     {
-      svgXML: multipleTreesIcon,
+      svgIcon: <MultipleTreeIcon />,
       title: 'label.tree_registration_type_2',
+      coming_soon: false,
       onPress: () => navigation.navigate('LocateTree'),
     },
   ];
 
   return (
-    <View style={styles.addOptionsParent}>
-      <View style={styles.addOptionsContainer}>
+    <TouchableOpacity activeOpacity={1} onPress={onReqClose} style={styles.addOptionsParent}>
+      <View style={[styles.addOptionsContainer, styles.boxShadow]}>
         {addOptions.length > 0
           ? addOptions.map((option: any, index: number) => (
-              <TouchableOpacity
-                style={[
-                  styles.addButtonOption,
-                  addOptions.length - 1 !== index ? { marginBottom: 8 } : {},
-                ]}
-                onPress={option.onPress}
-                key={`addOption${index}`}>
-                <View style={styles.icon}>
-                  <SvgXml xml={option.svgXML} />
-                </View>
-                <Text style={styles.text}>{i18next.t(option.title)}</Text>
-              </TouchableOpacity>
+              <View key={`addOption${index}`} style={styles.addButtonOptionWrap}>
+                <TouchableOpacity onPress={option.onPress} style={styles.addButtonOption}>
+                  <View style={styles.icon}>{option.svgIcon}</View>
+                  <View>
+                    <Text style={styles.text}>{i18next.t(option.title)}</Text>
+                    {option.coming_soon && (
+                      <GradientText style={styles.coming_soon}>Coming Soon</GradientText>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
             ))
           : []}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -119,6 +143,9 @@ interface IBottomBarProps {
   onMenuPress: any;
   onTreeInventoryPress: any;
   numberOfInventory: number;
+  state: BottomTabBarProps;
+  descriptors: BottomTabBarProps;
+  navigation: BottomTabBarProps;
 }
 
 const BottomBar = ({
@@ -128,7 +155,6 @@ const BottomBar = ({
   state,
   descriptors,
   navigation,
-  ...props
 }: IBottomBarProps) => {
   const [showAddOptions, setShowAddOptions] = useState(false);
   const [spinValue] = useState(new Animated.Value(0));
@@ -149,16 +175,14 @@ const BottomBar = ({
   };
 
   const onAddPress = () => {
-    {
-      setShowAddOptions(!showAddOptions);
-      Animated.spring(
-        spinValue, // The animated value to drive
-        {
-          toValue: showAddOptions ? 0 : 1,
-          useNativeDriver: true,
-        },
-      ).start();
-    }
+    setShowAddOptions(!showAddOptions);
+    Animated.spring(
+      spinValue, // The animated value to drive
+      {
+        toValue: showAddOptions ? 0 : 1,
+        useNativeDriver: true,
+      },
+    ).start();
   };
 
   return (
@@ -240,7 +264,7 @@ const BottomBar = ({
             );
           })}
         </View>
-        <View style={[styles.addText, styles.tabButton]}>
+        <View style={styles.tabButton}>
           {showAddOptions ? (
             <GradientText style={styles.tabItemAddText}>Add</GradientText>
           ) : (
@@ -255,7 +279,7 @@ const BottomBar = ({
           </View>
         </TouchableOpacity> */}
       </View>
-      {showAddOptions ? <AddOptions navigation={navigation} /> : []}
+      {showAddOptions ? <AddOptions onReqClose={onAddPress} navigation={navigation} /> : []}
     </>
   );
 };
@@ -323,50 +347,48 @@ const styles = StyleSheet.create({
   },
   addOptionsParent: {
     position: 'absolute',
-    bottom: tabbarHeight + 42,
     left: 0,
-    right: 0,
-    alignItems: 'center',
+    right: 25,
+    bottom: 0,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    height,
   },
   addOptionsContainer: {
-    borderRadius: 14,
-    padding: 8,
+    width: 229,
+    borderRadius: 12,
+    marginBottom: 130,
     backgroundColor: Colors.WHITE,
     justifyContent: 'center',
     alignItems: 'flex-start',
     elevation: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  addButtonOptionWrap: {
+    borderRadius: 8,
   },
   addButtonOption: {
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
+    marginVertical: 10,
+    backgroundColor: Colors.PRIMARY + '1A',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    width: 193,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingLeft: 6,
+    borderColor: Colors.PRIMARY + '1A',
   },
-  inventoryCount: {
-    position: 'absolute',
-    top: 0,
-    right: -6,
-    minWidth: 18,
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    borderRadius: 100,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.PRIMARY_DARK,
-  },
-  inventoryCountText: {
-    color: Colors.WHITE,
-    fontSize: Typography.FONT_SIZE_10,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-  },
-  icon: { height: 48, width: 48, marginRight: 16 },
+  icon: { height: 36, width: 36, marginRight: 6 },
   text: {
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
+  },
+  coming_soon: {
+    fontSize: Typography.FONT_SIZE_8,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   addIcon: {
     width: 48,

@@ -17,8 +17,10 @@ import Camera from './Camera';
 import TopRightBackground from './TopRightBackground';
 import InputModal from './InputModal';
 import GradientText from './GradientText/GradientText';
+import ComingSoon from './ComingSoon/ComingSoon';
 
 export {
+  ComingSoon,
   Header,
   LargeButton,
   GradientText,

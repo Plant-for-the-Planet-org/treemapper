@@ -43,11 +43,21 @@ import { add_icon } from './images/add_icon';
 import MapExplore from './images/map_explore';
 import ListIcon from './images/listIcon';
 import PlotIcon from './images/plotIcon';
+import Intervention from './images/intervention';
+import CrossArrow from './images/crossArrow';
+import ChartIcon from './images/chart_icon';
+import SingleTreeIcon from './images/singleTreeIcon';
+import MultipleTreeIcon from './images/multipleTreeIcon';
 
 export {
+  MultipleTreeIcon,
+  SingleTreeIcon,
+  ChartIcon,
+  CrossArrow,
   PlotIcon,
   ListIcon,
   arrow_up,
+  Intervention,
   MapExplore,
   arrow_down,
   close,
