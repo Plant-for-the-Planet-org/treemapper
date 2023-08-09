@@ -2,6 +2,7 @@ import {
   View,
   Text,
   Platform,
+  FlatList,
   Dimensions,
   StyleSheet,
   SafeAreaView,
@@ -23,6 +24,7 @@ import {
 import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
+import Dropdown from '../Common/Dropdown';
 import ProfileModal from '../ProfileModal';
 import { AlertModal, Switch, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
@@ -47,6 +49,8 @@ const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 25;
 const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
+const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
+const SITE_ARR = Array.from(Array(10).keys());
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -72,6 +76,15 @@ export default function MainScreen() {
   // used to store and focus on the center of the bounding box of the selected site
   const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
+  // dropdown states
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState([
+    { label: 'yucatanRestoration', value: 'Yucatan Restoration' },
+  ]);
+
+  const [modalType, setModalType] = useState<string>('');
+
   const { state, dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
@@ -82,11 +95,13 @@ export default function MainScreen() {
 
   const modalizeRef = useRef<Modalize>(null);
 
-  const onOpen = () => {
+  const _onOpen = modalType => () => {
+    setModalType(modalType);
     modalizeRef.current?.open();
   };
 
   const onClose = () => {
+    setModalType('');
     modalizeRef.current?.close();
   };
 
@@ -272,6 +287,13 @@ export default function MainScreen() {
     }
   };
 
+  const renderSiteList = ({ item, index }) => (
+    <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={styles.listItem}>
+      <Text style={styles.listItemTitle}>{`Las Americas ${item + 1}`}</Text>
+      {SITE_ARR.length - 1 !== index && <View style={styles.divider} />}
+    </TouchableOpacity>
+  );
+
   const onPressLogout = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       closeProfileModal();
@@ -379,11 +401,14 @@ export default function MainScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.headerRight}>
-              <TouchableOpacity activeOpacity={0.7} style={[styles.headerBtn, styles.boxShadow]}>
+              <TouchableOpacity
+                onPress={_onOpen('zoomToSite')}
+                activeOpacity={0.7}
+                style={[styles.headerBtn, styles.boxShadow]}>
                 <IonIcons name={'location'} size={24} color={Colors.WHITE} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={onOpen}
+                onPress={_onOpen('filters')}
                 activeOpacity={0.7}
                 style={[styles.headerBtn, styles.boxShadow]}>
                 <IonIcons name={'options'} size={24} color={Colors.WHITE} />
@@ -398,27 +423,59 @@ export default function MainScreen() {
       <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>
         <View style={styles.filterModalHeader}>
           <View style={styles.filterModalHeaderInfo}>
-            <IonIcons name={'options'} size={24} color={Colors.PRIMARY} />
-            <Text style={styles.filterModalHeaderTitle}>Filters</Text>
+            <IonIcons
+              name={modalType === MODEL_TYPE.FILTERS ? 'options' : 'location'}
+              size={24}
+              color={Colors.PRIMARY}
+            />
+            <Text style={styles.filterModalHeaderTitle}>
+              {modalType === MODEL_TYPE.FILTERS ? 'Filters' : 'Zoom to site'}
+            </Text>
           </View>
           <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
             <IonIcons name={'close'} size={24} color={Colors.BLACK} />
           </TouchableOpacity>
         </View>
-        <View style={styles.filter}>
-          <View style={styles.filterItem}>
-            <Text style={styles.filterItemLabel}>Interventions</Text>
-            <Switch value={true} onValueChange={val => {}} />
+        {modalType === MODEL_TYPE.FILTERS && (
+          <View style={styles.filter}>
+            <View style={styles.filterItem}>
+              <Text style={styles.filterItemLabel}>Interventions</Text>
+              <Switch value={true} onValueChange={val => {}} />
+            </View>
+            <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+              <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
+              <Switch value={false} onValueChange={val => {}} />
+            </View>
+            <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+              <Text style={styles.filterItemLabel}>Only interventions that need remeasurement</Text>
+              <Switch value={false} onValueChange={val => {}} />
+            </View>
           </View>
-          <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
-            <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
-            <Switch value={false} onValueChange={val => {}} />
+        )}
+        {modalType === MODEL_TYPE.ZOOM_TO_SITE && (
+          <View style={styles.filter}>
+            <View style={styles.dropdownContainer}>
+              <Text style={[styles.zoomToSiteTitle]}>Select Project</Text>
+              <Dropdown
+                defaultValue={items[0]}
+                editable={true}
+                options={items}
+                label={'Project'}
+                onChange={(option: any) => setValue(option.value)}
+              />
+            </View>
+            <Text
+              style={[styles.zoomToSiteTitle, { marginBottom: 16, marginTop: 37, marginLeft: 9 }]}>
+              Select Site
+            </Text>
+            <FlatList
+              data={SITE_ARR}
+              renderItem={renderSiteList}
+              style={{ borderRadius: 12, height: 176 }}
+              keyExtractor={item => `SITE_ARR${item}`}
+            />
           </View>
-          <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
-            <Text style={styles.filterItemLabel}>Only interventions that need remeasurement</Text>
-            <Switch value={false} onValueChange={val => {}} />
-          </View>
-        </View>
+        )}
       </Modalize>
       <ProfileModal
         isProfileModalVisible={isProfileModalVisible}
@@ -545,5 +602,30 @@ const styles = StyleSheet.create({
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 12,
     width: width / 2,
+  },
+  zoomToSiteTitle: {
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.TEXT_COLOR,
+    marginBottom: 21,
+  },
+  dropdownContainer: {
+    paddingHorizontal: 9,
+  },
+  listItem: {
+    backgroundColor: '#E0E0E050',
+  },
+  listItemTitle: {
+    marginLeft: 12,
+    paddingVertical: 12,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_13,
+    color: Colors.TEXT_COLOR,
+  },
+  divider: {
+    height: 1,
+    width: '93%',
+    backgroundColor: '#E0E0E0',
+    alignSelf: 'center',
   },
 });
