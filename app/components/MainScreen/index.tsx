@@ -1,9 +1,19 @@
+import {
+  View,
+  Text,
+  Platform,
+  Dimensions,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import i18next from 'i18next';
+import { Modalize } from 'react-native-modalize';
 import { useNavigation } from '@react-navigation/core';
+import IonIcons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import React, { useContext, useEffect, useState } from 'react';
-import { Platform, View, StyleSheet, Text, SafeAreaView, Dimensions } from 'react-native';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 
 import {
   getInventoryCount,
@@ -14,7 +24,7 @@ import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import ProfileModal from '../ProfileModal';
-import { AlertModal, Sync } from '../Common';
+import { AlertModal, Switch, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
 import { Colors, Typography } from '../../styles';
 import RotatingView from '../Common/RotatingView';
@@ -32,8 +42,6 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import IonIcons from 'react-native-vector-icons/Ionicons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
@@ -71,6 +79,16 @@ export default function MainScreen() {
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
+
+  const modalizeRef = useRef<Modalize>(null);
+
+  const onOpen = () => {
+    modalizeRef.current?.open();
+  };
+
+  const onClose = () => {
+    modalizeRef.current?.close();
+  };
 
   useEffect(() => {
     let realm: Realm;
@@ -281,8 +299,6 @@ export default function MainScreen() {
     }
   };
 
-  const onBottomBarMenuPress = () => setIsProfileModalVisible(true);
-  const onTreeInventoryPress = () => navigation.navigate('TreeInventory');
   const onPressCloseProfileModal = () => closeProfileModal();
   const onPressPrimaryBtn = () => {
     setOfflineModal(false);
@@ -366,23 +382,44 @@ export default function MainScreen() {
               <TouchableOpacity activeOpacity={0.7} style={[styles.headerBtn, styles.boxShadow]}>
                 <IonIcons name={'location'} size={24} color={Colors.WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.7} style={[styles.headerBtn, styles.boxShadow]}>
+              <TouchableOpacity
+                onPress={onOpen}
+                activeOpacity={0.7}
+                style={[styles.headerBtn, styles.boxShadow]}>
                 <IonIcons name={'options'} size={24} color={Colors.WHITE} />
               </TouchableOpacity>
             </View>
           </View>
-          <SafeAreaView>
-            <BottomBar
-              onMenuPress={onBottomBarMenuPress}
-              onTreeInventoryPress={onTreeInventoryPress}
-              numberOfInventory={numberOfInventory}
-            />
-          </SafeAreaView>
         </>
       ) : (
         []
       )}
 
+      <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>
+        <View style={styles.filterModalHeader}>
+          <View style={styles.filterModalHeaderInfo}>
+            <IonIcons name={'options'} size={24} color={Colors.PRIMARY} />
+            <Text style={styles.filterModalHeaderTitle}>Filters</Text>
+          </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+            <IonIcons name={'close'} size={24} color={Colors.BLACK} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filter}>
+          <View style={styles.filterItem}>
+            <Text style={styles.filterItemLabel}>Interventions</Text>
+            <Switch value={true} onValueChange={val => {}} />
+          </View>
+          <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+            <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
+            <Switch value={false} onValueChange={val => {}} />
+          </View>
+          <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+            <Text style={styles.filterItemLabel}>Only interventions that need remeasurement</Text>
+            <Switch value={false} onValueChange={val => {}} />
+          </View>
+        </View>
+      </Modalize>
       <ProfileModal
         isProfileModalVisible={isProfileModalVisible}
         onPressCloseProfileModal={onPressCloseProfileModal}
@@ -470,5 +507,43 @@ const styles = StyleSheet.create({
     top: topValue,
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  filterModalHeader: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  filterModalHeaderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterModalHeaderTitle: {
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+    marginLeft: 12,
+  },
+  filter: {
+    padding: 10,
+    marginBottom: 20,
+  },
+  filterItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.PRIMARY + '10',
+    borderRadius: 8,
+    minHeight: 54,
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  filterItemLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.DARK_TEXT_COLOR,
+    marginLeft: 12,
+    width: width / 2,
   },
 });
