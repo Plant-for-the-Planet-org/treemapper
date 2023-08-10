@@ -53,8 +53,16 @@ import SpeciesLeaf from './images/drawerIcons/speciesLeaf';
 import ProjectDoc from './images/drawerIcons/projectDoc';
 import PieAdditionalData from './images/drawerIcons/pieAdditionalData';
 import OfflineMapIcon from './images/drawerIcons/offlineMapIcon';
+import CleanerPhone from './images/cleaner_phone';
+import Exclamation from './images/exclamation_icon';
+import SyncSuccess from './images/sync_success';
+import SyncFail from './images/sync_failed';
 
 export {
+  SyncFail,
+  SyncSuccess,
+  Exclamation,
+  CleanerPhone,
   ProjectDoc,
   OfflineMapIcon,
   PieAdditionalData,

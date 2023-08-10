@@ -48,6 +48,7 @@ import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
 import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
+import Interventions from '../../screens/Interventions/Interventions';
 
 const Stack = createStackNavigator();
 const screenOptions = { headerShown: false };
@@ -86,6 +87,7 @@ export default function MainNavigator() {
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
       <Stack.Screen name="NavDrawer" component={NavDrawer} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
+      <Stack.Screen name="Interventions" component={Interventions} options={MyTransition} />
       <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
       <Stack.Screen name="SelectProject" component={SelectProject} options={MyTransition} />
       <Stack.Screen name="LocateTree" component={LocateTree} options={MyTransition} />

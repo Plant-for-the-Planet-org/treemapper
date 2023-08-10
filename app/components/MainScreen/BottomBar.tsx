@@ -88,19 +88,19 @@ const AddOptions = ({ onReqClose, navigation }: any) => {
       svgIcon: <ChartIcon />,
       title: 'Monitoring Plot',
       coming_soon: true,
-      onPress: () => navigation.navigate('Intervention'),
+      onPress: () => navigation.navigate('Interventions'),
     },
     {
       svgIcon: <CrossArrow />,
       title: 'Project Site',
       coming_soon: true,
-      onPress: () => navigation.navigate('Intervention'),
+      onPress: () => navigation.navigate('Interventions'),
     },
     {
       svgIcon: <Intervention />,
       title: 'Intervention',
       coming_soon: true,
-      onPress: () => navigation.navigate('Intervention'),
+      onPress: () => navigation.navigate('Interventions'),
     },
     {
       svgIcon: <SingleTreeIcon />,
