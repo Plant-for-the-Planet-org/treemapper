@@ -57,8 +57,10 @@ import CleanerPhone from './images/cleaner_phone';
 import Exclamation from './images/exclamation_icon';
 import SyncSuccess from './images/sync_success';
 import SyncFail from './images/sync_failed';
+import FolderIcon from './images/folder_icon';
 
 export {
+  FolderIcon,
   SyncFail,
   SyncSuccess,
   Exclamation,

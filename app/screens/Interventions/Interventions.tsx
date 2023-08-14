@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { Modalize } from 'react-native-modalize';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { StyleSheet, Text, TouchableOpacity, View, SafeAreaView, FlatList } from 'react-native';
+import { Text, View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 
+import {
+  SyncFail,
+  FolderIcon,
+  Exclamation,
+  SyncSuccess,
+  CleanerPhone,
+  MultipleTreeIcon,
+} from '../../assets';
 import { Colors, Typography } from '../../styles';
-import { CleanerPhone, Exclamation, MultipleTreeIcon, SyncFail, SyncSuccess } from '../../assets';
+import { GradientText } from '../../components/Common';
 
 const FILTER_TYPES = ['All', 'Incomplete', 'Synced', 'Unsynced'];
 const INTERVENTION_DATA = [
@@ -62,7 +71,16 @@ const Interventions = () => {
   const [interventionsList, setInterventionsList] = useState<Array<any>>(INTERVENTION_DATA);
   const [selectedFilter, setSelectedFilter] = useState<string>(FILTER_TYPES[0]);
 
+  const modalizeRef = useRef<Modalize>(null);
+
   const handleEdit = () => {};
+  const onOpen = () => {
+    modalizeRef.current?.open();
+  };
+  const onClose = () => {
+    modalizeRef.current?.close();
+  };
+
   const _handleSelectFilter = (item: string) => () => {
     setSelectedFilter(item);
     if (item === 'All') {
@@ -75,6 +93,7 @@ const Interventions = () => {
       setInterventionsList(INTERVENTION_DATA.filter(el => !el.synced && el.complete));
     }
   };
+
   const filteredLength = (key: string) => {
     if (key === 'All') {
       return INTERVENTION_DATA.length;
@@ -164,7 +183,7 @@ const Interventions = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Interventions</Text>
-        <TouchableOpacity activeOpacity={0.7} style={styles.freeSpaceBtn}>
+        <TouchableOpacity onPress={onOpen} activeOpacity={0.7} style={styles.freeSpaceBtn}>
           <CleanerPhone />
           <Text style={styles.freeSpaceTxt}>Free up space</Text>
         </TouchableOpacity>
@@ -184,6 +203,24 @@ const Interventions = () => {
         renderItem={renderIntervention}
         keyExtractor={(item, index) => `INTERVENTION_DATA${index}`}
       />
+      <Modalize
+        withReactModal
+        ref={modalizeRef}
+        withHandle={false}
+        adjustToContentHeight
+        modalStyle={styles.modalContainer}>
+        <View style={styles.modal}>
+          <FolderIcon />
+          <Text style={styles.modalTitle}>Clear Up Some Space</Text>
+          <Text style={styles.modalDesc}>
+            Reclaim storage by removing local copies of images. All files will continue to be
+            available in the cloud.
+          </Text>
+          <TouchableOpacity onPress={onClose}>
+            <GradientText style={styles.btnFreeSpace}>Free up space</GradientText>
+          </TouchableOpacity>
+        </View>
+      </Modalize>
     </SafeAreaView>
   );
 };
@@ -273,6 +310,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
+
   typeCon: {
     flexDirection: 'row',
   },
@@ -335,5 +373,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4.62,
     elevation: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    marginTop: 281,
+    borderRadius: 12,
+    marginBottom: 251,
+    alignSelf: 'center',
+    marginHorizontal: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modal: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalTitle: {
+    marginTop: 16,
+    fontSize: Typography.FONT_SIZE_18,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.DARK_TEXT_COLOR,
+  },
+  modalDesc: {
+    marginTop: 4,
+    fontSize: Typography.FONT_SIZE_12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT_COLOR,
+    textAlign: 'center',
+  },
+  btnFreeSpace: {
+    marginTop: 22,
+    fontSize: Typography.FONT_SIZE_14,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.DARK_TEXT_COLOR,
   },
 });
