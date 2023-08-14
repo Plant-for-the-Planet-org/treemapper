@@ -34,7 +34,7 @@ export default function Camera({ handleCamera }) {
       return;
     }
     const options = { base64: true };
-    const data = await camera.current.takePictureAsync(options).catch((err) => {
+    const data = await camera.current.takePictureAsync(options).catch(err => {
       alert(i18next.t('label.permission_camera_message'));
       dbLog.error({
         logType: LogTypes.OTHER,
