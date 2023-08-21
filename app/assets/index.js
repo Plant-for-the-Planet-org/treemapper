@@ -58,8 +58,10 @@ import Exclamation from './images/exclamation_icon';
 import SyncSuccess from './images/sync_success';
 import SyncFail from './images/sync_failed';
 import FolderIcon from './images/folder_icon';
+import ArrowBack from './images/arrow_back';
 
 export {
+  ArrowBack,
   FolderIcon,
   SyncFail,
   SyncSuccess,

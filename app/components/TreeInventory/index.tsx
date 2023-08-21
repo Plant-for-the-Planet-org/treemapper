@@ -292,6 +292,7 @@ const TreeInventory = () => {
         headingText={i18next.t('label.tree_inventory_list_header')}
         subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
         onBackPress={handleBackPress}
+        containerStyle={{ paddingHorizontal: 0 }}
         TopRightComponent={uploadButton}
       />
       {uploadedInventory.length > 0 && (
