@@ -1,57 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <item android:drawable="@drawable/ic_loadingscreen" />
-  <item android:drawable="@drawable/ic_middle_logo"
-    android:gravity="center"
-    />
-  <item android:drawable="@drawable/pp_logo_with_climate_justice"
-    android:right="360dp"
-    android:top="0dp"
-    android:bottom="60dp"
-    android:left="80dp"
-    android:gravity="bottom"
-    android:width="71dp"
-    android:height="88dp"
-    />
-  <item android:drawable="@drawable/ic_line"
-    android:right="360dp"
-    android:top="0dp"
-    android:bottom="80dp"
-    android:left="160dp"
-    android:gravity="bottom"
-    android:width="2dp"
-    android:height="45dp"
-    />
-  <item android:drawable="@drawable/ic_unep_logo"
-    android:left="180dp"
-    android:top="0dp"
-    android:bottom="80dp"
-    android:gravity="bottom"
-    android:height="70dp"
-    android:width="72dp"
-    />
-  <item android:drawable="@drawable/ic_line"
-    android:top="0dp"
-    android:bottom="80dp"
-    android:left="270dp"
-    android:gravity="bottom"
-    android:width="2dp"
-    android:height="45dp"
-    />
-  <item android:drawable="@drawable/ic_eco_logo"
-    android:left="285dp"
-    android:top="0dp"
-    android:bottom="80dp"
-    android:gravity="bottom"
-    android:width="150dp"
-    android:height="55dp"
-    />
-  <item android:drawable="@drawable/ic_bottom_text"
-    android:gravity="bottom"
-    android:left="120dp"
+  <!-- Background Loading Screen -->
+  <item
+    android:drawable="@drawable/ic_loadingscreen" />
+
+  <!-- Central Image -->
+  <item
+    android:drawable="@drawable/ic_middle_logo"
+    android:gravity="center" />
+
+  <!-- Bottom Logos & Lines Container -->
+  <item>
+    <layer-list>
+      <!-- Climate Justice (Planet) Logo on the left -->
+      <item
+        android:drawable="@drawable/pp_logo_with_climate_justice"
+        android:gravity="bottom|center_horizontal"
+        android:right="230dp"
+        android:bottom="70dp"
+        android:width="52dp"
+        android:height="65dp" />
+
+      <!-- Line after Climate Justice Logo -->
+      <item
+        android:drawable="@drawable/ic_line"
+        android:gravity="bottom|center_horizontal"
+        android:right="160dp"
+        android:bottom="80dp"
+        android:width="2dp"
+        android:height="45dp" />
+
+      <!-- UNEP Logo in the center -->
+      <item
+        android:drawable="@drawable/ic_unep_logo"
+        android:gravity="bottom|center_horizontal"
+        android:right="65dp"
+        android:bottom="80dp"
+        android:width="61dp"
+        android:height="60dp" />
+
+      <!-- Line before ECO Logo -->
+      <item
+        android:drawable="@drawable/ic_line"
+        android:gravity="bottom|center_horizontal"
+        android:left="30dp"
+        android:bottom="80dp"
+        android:width="2dp"
+        android:height="45dp" />
+
+      <!-- ECO Logo on the right -->
+      <item
+        android:drawable="@drawable/ic_eco_logo"
+        android:gravity="bottom|center_horizontal"
+        android:left="170dp"
+        android:bottom="83dp"
+        android:width="120dp"
+        android:height="40dp" />
+    </layer-list>
+  </item>
+
+  <!-- Bottom Text -->
+  <item
+    android:drawable="@drawable/ic_bottom_text"
+    android:gravity="bottom|center_horizontal"
     android:bottom="40dp"
-    android:width="300dp"
-    android:height="15dp"
-    />
+    android:width="250dp"
+    android:height="13dp" />
+
 </layer-list>
