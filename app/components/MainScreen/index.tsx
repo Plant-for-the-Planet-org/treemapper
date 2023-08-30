@@ -24,7 +24,6 @@ import {
 import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
-import Dropdown from '../Common/Dropdown';
 import ProfileModal from '../ProfileModal';
 import { AlertModal, Switch, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
@@ -44,6 +43,7 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
@@ -456,12 +456,14 @@ export default function MainScreen() {
           <View style={styles.filter}>
             <View style={styles.dropdownContainer}>
               <Text style={[styles.zoomToSiteTitle]}>Select Project</Text>
-              <Dropdown
-                defaultValue={items[0]}
-                editable={true}
-                options={items}
-                label={'Project'}
-                onChange={(option: any) => setValue(option.value)}
+              <CustomDropDownPicker
+                open={open}
+                items={items}
+                value={value}
+                setOpen={setOpen}
+                setValue={setValue}
+                style={{ borderRadius: 5 }}
+                placeholder={'Select Project'}
               />
             </View>
             <Text

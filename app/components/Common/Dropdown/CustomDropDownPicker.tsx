@@ -34,6 +34,7 @@ const CustomDropDownPicker = ({
   listItemLabelStyle = {},
   iconColor = Colors.GRAY_LIGHTEST,
   dropDownDirection = 'DEFAULT',
+  ...props
 }: Props) => {
   return (
     <DropDownPicker
@@ -57,6 +58,7 @@ const CustomDropDownPicker = ({
       itemSeparator
       ArrowDownIconComponent={() => <EntypoIcon name="chevron-down" color={iconColor} size={20} />}
       ArrowUpIconComponent={() => <EntypoIcon name="chevron-up" color={iconColor} size={20} />}
+      {...props}
     />
   );
 };
