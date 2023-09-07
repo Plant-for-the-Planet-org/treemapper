@@ -8,9 +8,10 @@ import {
   StyleSheet,
   BackHandler,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import i18next from 'i18next';
-import { RNCamera } from 'react-native-camera';
+import { Camera, CameraCaptureError, useCameraDevices } from 'react-native-vision-camera';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 
@@ -54,7 +55,9 @@ const ImageCapturing = ({
   inventoryType,
   isSampleTree,
 }: IImageCapturingProps) => {
-  const camera = useRef();
+  const camera = useRef<Camera>(null);
+  const devices = useCameraDevices();
+  const device: any = devices.back;
 
   const navigation = useNavigation();
   const { state } = useContext(InventoryContext);
@@ -62,6 +65,7 @@ const ImageCapturing = ({
   const [ALPHABETS, setALPHABETS] = useState<string[]>([]);
   const [inventory, setInventory] = useState<any>(null);
   const [isAlrightyModalShow, setIsAlrightyModalShow] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | any>(false);
 
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
@@ -117,18 +121,22 @@ const ImageCapturing = ({
       setImagePath('');
       return;
     }
-    const data = await camera?.current?.takePictureAsync().catch((err: any) => {
-      alert(i18next.t('label.permission_camera_message'));
-      dbLog.error({
-        logType: LogTypes.OTHER,
-        message: `Failed to take picture ${err}`,
-        logStack: JSON.stringify(err),
-      });
-      setImagePath('');
-      return;
-    });
-    if (data) {
-      setImagePath(data.uri);
+    try {
+      const data = await camera?.current?.takePhoto();
+      if (data) {
+        setImagePath('file://' + data.path);
+      }
+    } catch (e) {
+      if (e instanceof CameraCaptureError) {
+        alert(i18next.t('label.permission_camera_message'));
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: `Failed to take picture ${e.code}`,
+          logStack: JSON.stringify(e.code),
+        });
+        setImagePath('');
+        return;
+      }
     }
   };
 
@@ -293,6 +301,30 @@ const ImageCapturing = ({
     }
   };
 
+  const requestCameraPermission = async (): Promise<any> => {
+    const status = await Camera.requestCameraPermission();
+    setHasPermission(status === 'authorized');
+  };
+
+  useEffect(() => {
+    requestCameraPermission();
+  }, []);
+
+  if (device == null) return <ActivityIndicator color={Colors.PRIMARY} />;
+
+  if (!hasPermission) {
+    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <Text style={styles.message}>{i18next.t('label.permission_camera_message')}</Text>
+      {Platform.OS === 'ios' ? (
+        <Text style={styles.message} onPress={onClickOpenSettings}>
+          {i18next.t('label.open_settings')}
+        </Text>
+      ) : (
+        []
+      )}
+    </View>;
+  }
+
   return (
     <SafeAreaView style={styles.container} fourceInset={{ bottom: 'always' }}>
       <View style={styles.screenMargin}>
@@ -311,32 +343,20 @@ const ImageCapturing = ({
             <Image source={{ uri: imagePath }} style={styles.container} />
           ) : (
             <View style={styles.cameraContainer}>
-              <RNCamera
-                ratio={'1:1'}
-                captureAudio={false}
+              <Camera
+                audio={false}
                 ref={camera}
                 style={styles.container}
-                notAuthorizedView={
-                  <View
-                    style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                    <Text style={styles.message}>
-                      {i18next.t('label.permission_camera_message')}
-                    </Text>
-                    {Platform.OS === 'ios' ? (
-                      <Text style={styles.message} onPress={onClickOpenSettings}>
-                        {i18next.t('label.open_settings')}
-                      </Text>
-                    ) : (
-                      []
-                    )}
-                  </View>
-                }
-                androidCameraPermissionOptions={{
-                  title: i18next.t('label.permission_camera_title'),
-                  message: i18next.t('label.permission_camera_message'),
-                  buttonPositive: i18next.t('label.permission_camera_ok'),
-                  buttonNegative: i18next.t('label.permission_camera_cancel'),
-                }}
+                device={device}
+                isActive={true}
+                photo={true}
+
+                // androidCameraPermissionOptions={{
+                //   title: i18next.t('label.permission_camera_title'),
+                //   message: i18next.t('label.permission_camera_message'),
+                //   buttonPositive: i18next.t('label.permission_camera_ok'),
+                //   buttonNegative: i18next.t('label.permission_camera_cancel'),
+                // }}
               />
             </View>
           )}
