@@ -1,5 +1,5 @@
-import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import React, { useEffect, useState, useContext } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { View, SafeAreaView, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
 
@@ -11,7 +11,10 @@ import {
   single_tree_png,
   PieAdditionalData,
 } from '../../../assets';
+import { auth0Logout } from '../../../actions/user';
 import { Colors, Typography } from '../../../styles';
+import { UserContext } from '../../../reducers/user';
+import { getUserInformation } from '../../../repositories/user';
 
 const getIcon = screenName => {
   switch (screenName) {
@@ -49,7 +52,19 @@ const getLabel = screenName => {
 
 const CustomDrawer = props => {
   const { navigation, state } = props;
-  const handleLogout = () => {};
+  const [userInfo, setUserInfo] = useState(null);
+  const { dispatch: userDispatch } = useContext(UserContext);
+
+  const handleLogout = async () => {
+    await auth0Logout(userDispatch);
+  };
+
+  useEffect(() => {
+    getUserInformation().then(data => {
+      setUserInfo(data);
+    });
+  }, []);
+
   return (
     <>
       <SafeAreaView style={{ flex: 1 }}>
@@ -65,8 +80,10 @@ const CustomDrawer = props => {
               <View style={styles.profileInfo}>
                 <Image resizeMode={'contain'} source={single_tree_png} style={styles.avatar} />
                 <View style={styles.profileInfoTextCon}>
-                  <Text style={styles.username}>Felix Finkbeiner</Text>
-                  <Text style={styles.email}>info@plant-for-the-planet.org</Text>
+                  <Text style={styles.username}>
+                    {userInfo?.firstName + '' + userInfo?.lastName}
+                  </Text>
+                  <Text style={styles.email}>{userInfo?.email}</Text>
                 </View>
               </View>
               <TouchableOpacity activeOpacity={0.7} style={styles.pencil}>
