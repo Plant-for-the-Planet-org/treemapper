@@ -32,6 +32,7 @@ import {
   RecordSampleTrees,
   RegisterSingleTree,
   SingleTreeOverview,
+  CreateIntervention,
 } from '../';
 import NavDrawer from './Drawer';
 import AdditionalData from '../AdditionalData';
@@ -86,6 +87,7 @@ export default function MainNavigator() {
   return (
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
       <Stack.Screen name="NavDrawer" component={NavDrawer} />
+      <Stack.Screen name="CreateIntervention" component={CreateIntervention} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
       <Stack.Screen name="Interventions" component={Interventions} options={MyTransition} />
       <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />

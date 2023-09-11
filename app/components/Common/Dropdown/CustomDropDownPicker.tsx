@@ -16,6 +16,7 @@ type Props = {
   textStyle?: any;
   zIndexInverse?: number;
   listItemLabelStyle?: any;
+  placeholder?: string;
   setValue: React.Dispatch<any>;
   dropDownDirection?: DropDownDirectionType;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;

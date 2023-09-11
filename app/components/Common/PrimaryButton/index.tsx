@@ -1,8 +1,8 @@
 import React from 'react';
+import LinearGradient from 'react-native-linear-gradient';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { Colors, Typography } from '../../../styles';
-import LinearGradient from 'react-native-linear-gradient';
 import GradientText from '../GradientText/GradientText';
 
 interface IPrimaryButtonProps {

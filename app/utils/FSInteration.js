@@ -13,10 +13,10 @@ export const copyImageAndGetData = async imagePath => {
   fileName = fileName.split('.')[0];
 
   // stores the destination path in which image should be stored
-  const outputPath = `file://${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
+  const outputPath = `${RNFS.DocumentDirectoryPath}/${fileName}.${fileExtension}`;
 
   // stores the path from which the image should be copied
-  const inputPath = `file://${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
+  const inputPath = `${RNFS.CachesDirectoryPath}/${parentDirectory}/${fileName}.${fileExtension}`;
 
   try {
     if (await RNFS.exists(outputPath)) {
@@ -24,7 +24,6 @@ export const copyImageAndGetData = async imagePath => {
     }
     // copies the image to destination folder
     await RNFS.copyFile(inputPath, outputPath);
-    console.log(inputPath, outputPath, '[]]');
     return `${fileName}.${fileExtension}`;
   } catch (err) {
     console.error('error while saving file', err);

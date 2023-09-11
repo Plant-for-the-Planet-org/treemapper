@@ -100,7 +100,7 @@ const AddOptions = ({ onReqClose, navigation }: any) => {
       svgIcon: <Intervention />,
       title: 'Intervention',
       coming_soon: true,
-      onPress: () => navigation.navigate('Interventions'),
+      onPress: () => navigation.navigate('CreateIntervention'),
     },
     {
       svgIcon: <SingleTreeIcon />,
