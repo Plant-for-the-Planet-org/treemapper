@@ -1,21 +1,20 @@
-import { useNavigation } from '@react-navigation/core';
+import {useNavigation} from '@react-navigation/core';
 import i18next from 'i18next';
-import React from 'react';
-import {
-  Dimensions,
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, {useContext} from 'react';
+import {Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
-import { APIConfig } from '../../actions/Config';
-import { Colors, Typography } from '../../styles';
-import { nonISUCountries } from '../../utils/constants';
-const { protocol, cdnUrl } = APIConfig;
+import {APIConfig} from '../../actions/Config';
+import {setRemeasurementId, setSamplePlantLocationIndex} from '../../actions/inventory';
+import {InventoryContext} from '../../reducers/inventory';
+import {Colors, Typography} from '../../styles';
+import {nonISUCountries} from '../../utils/constants';
+import distanceCalculator from '../../utils/distanceCalculator';
+import {PENDING_DATA_UPLOAD, SYNCED} from '../../utils/inventoryConstants';
+import {getIsDateInRemeasurementRange} from '../../utils/remeasurement';
+import PrimaryButton from '../Common/PrimaryButton';
+const {protocol, cdnUrl} = APIConfig;
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -24,9 +23,11 @@ interface ISelectedPlantLocationSampleTreesCardsProps {
   carouselRef: any;
   setIsCarouselRefVisible: React.Dispatch<React.SetStateAction<boolean>>;
   countryCode: string;
+  location: any;
+  loadingInventoryData: boolean;
 }
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const itemWidth = width - 25 * 3;
 
 const SelectedPlantLocationSampleTreesCards = ({
@@ -34,8 +35,11 @@ const SelectedPlantLocationSampleTreesCards = ({
   carouselRef,
   setIsCarouselRefVisible,
   countryCode,
+  location,
+  loadingInventoryData,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
+  const {dispatch} = useContext(InventoryContext);
 
   const heightUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_feet')
@@ -44,6 +48,39 @@ const SelectedPlantLocationSampleTreesCards = ({
     ? i18next.t('label.select_species_inches')
     : 'cm';
 
+  const onPressRemeasure = (item: any, index: string) => {
+    let lastScreen;
+    setSamplePlantLocationIndex(index)(dispatch);
+    if (item?.plantLocationHistory?.length > 0) {
+      lastScreen = item?.plantLocationHistory[item?.plantLocationHistory?.length - 1]?.lastScreen;
+    } else {
+      lastScreen = '';
+    }
+
+    if (lastScreen) {
+      setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+        dispatch,
+      );
+      navigation.navigate(lastScreen);
+    } else {
+      navigation.navigate('RemeasurementForm');
+    }
+  };
+
+  const onPressCheckRemeasurement = (item: any) => {
+    setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
+      dispatch,
+    );
+    navigation.navigate('RemeasurementReview');
+  };
+  // useEffect(() => {
+  //   const isDateInRange = getIsDateInRemeasurementRange(item.plantation_date)
+
+  //   return () => {
+  //     second
+  //   }
+  // }, [third])
+
   return (
     <View style={styles.carousel}>
       <Carousel
@@ -51,11 +88,14 @@ const SelectedPlantLocationSampleTreesCards = ({
           carouselRef.current = el;
           setIsCarouselRefVisible(true);
         }}
+        useScrollView={true}
         data={singleSelectedPlantLocation?.sampleTrees}
         itemWidth={itemWidth}
         sliderWidth={width}
-        renderItem={({ item, index }: any) => {
+        renderItem={({item, index}: any) => {
           let imageSource;
+          // let canRemeasurePlantLocation = false;
+          let isUserDistanceMoreThen100M = true;
 
           const imageURIPrefix = Platform.OS === 'android' ? 'file://' : '';
           if (item?.imageUrl) {
@@ -68,6 +108,21 @@ const SelectedPlantLocationSampleTreesCards = ({
             };
           }
 
+          if (item.plantationDate && item.status === SYNCED) {
+            // canRemeasurePlantLocation = getIsDateInRemeasurementRange(item.plantationDate);
+
+            if (Config.IS_TEST_VERSION == 'true') {
+              isUserDistanceMoreThen100M = false;
+            } else {
+              isUserDistanceMoreThen100M =
+                distanceCalculator(
+                  [location?.coords.latitude as number, location?.coords.longitude as number],
+                  [item.latitude, item.longitude],
+                  'meters',
+                ) > 100;
+            }
+          }
+
           return (
             <TouchableOpacity
               onPress={() => {
@@ -75,6 +130,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                   isSampleTree: true,
                   sampleTreeIndex: index,
                   totalSampleTrees: singleSelectedPlantLocation?.totalSampleTrees,
+                  item: item,
                 });
               }}>
               <View style={styles.cardContainer} key={item.locationId}>
@@ -86,17 +142,17 @@ const SelectedPlantLocationSampleTreesCards = ({
                   {imageSource ? <Image source={imageSource} style={styles.image} /> : []}
 
                   {/* textual info of sample tree */}
-                  <View style={{ flex: 1 }}>
+                  <View style={{flex: 1}}>
                     <Text style={styles.hidText}>HID: {item.hid}</Text>
 
                     {/* species name */}
-                    <Text style={[styles.text, { fontStyle: 'italic', opacity: 0.6 }]}>
+                    <Text style={[styles.text, {fontStyle: 'italic', opacity: 0.6}]}>
                       {item.specieName}
                     </Text>
 
                     {/* plantation date */}
                     <Text style={styles.text}>
-                      {`${i18next.t('label.plantation_date')} ${i18next.t(
+                      {`${i18next.t('label.plantation_date')}${i18next.t(
                         'label.inventory_overview_date',
                         {
                           date: new Date(item.plantationDate),
@@ -106,12 +162,74 @@ const SelectedPlantLocationSampleTreesCards = ({
 
                     {/* dimensions and tree tag */}
                     <Text style={styles.text}>
-                      {`${Math.round(item.specieHeight * 100) / 100}${heightUnit} • ${
-                        Math.round(item.specieDiameter * 100) / 100
+                      {`${
+                        Math.round(
+                          (item.plantLocationHistory.length > 0
+                            ? item.plantLocationHistory[item.plantLocationHistory.length - 1].height
+                            : item.specieHeight) * 100,
+                        ) / 100
+                      }${heightUnit} • ${
+                        Math.round(
+                          (item.plantLocationHistory.length > 0
+                            ? item.plantLocationHistory[item.plantLocationHistory.length - 1]
+                                .diameter
+                            : item.specieDiameter) * 100,
+                        ) / 100
                       }${diameterUnit} ${item.tagId ? `• #${item.tagId}` : ''}`}
                     </Text>
                   </View>
                 </View>
+                {
+                  // canRemeasurePlantLocation ? (
+                  isUserDistanceMoreThen100M ? (
+                    <Text
+                      style={[
+                        styles.text,
+                        {fontSize: Typography.FONT_SIZE_12, opacity: 0.4, marginTop: 8},
+                      ]}>
+                      {i18next.t('label.you_are_far_to_remeasure')}
+                    </Text>
+                  ) : loadingInventoryData ? (
+                    <></>
+                  ) : (
+                    <View
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        top: 18,
+                        // left: 5,
+                      }}>
+                      {item?.plantLocationHistory?.length > 0 &&
+                      item?.plantLocationHistory[item.plantLocationHistory?.length - 1]?.status ===
+                        'dead' ? (
+                        <PrimaryButton
+                          btnText={i18next.t('label.view_status')}
+                          onPress={() => {
+                            onPressCheckRemeasurement(item);
+                          }}
+                          accessibilityLabel="remeasure-button"
+                        />
+                      ) : (
+                        <PrimaryButton
+                          btnText={i18next.t('label.remeasure')}
+                          onPress={() => {
+                            onPressRemeasure(item, index);
+                          }}
+                          // disabled={
+                          //   item?.plantLocationHistory?.length > 0 &&
+                          //   item?.plantLocationHistory[item.plantLocationHistory?.length - 1]
+                          //     ?.dataStatus === PENDING_DATA_UPLOAD
+                          // }
+                          accessibilityLabel="remeasure-button"
+                        />
+                      )}
+                    </View>
+                  )
+                  // ) : (
+                  //   []
+                  // )
+                }
               </View>
             </TouchableOpacity>
           );

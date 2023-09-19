@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { Typography, Colors } from '../../../styles';
-import RotatingView from '../RotatingView';
-import { uploadInventoryData } from '../../../utils/uploadInventory';
-import { InventoryContext } from '../../../reducers/inventory';
 import i18next from 'i18next';
-import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { useNetInfo } from '@react-native-community/netinfo';
+import React, { memo, useContext, useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import AlertModal from '../AlertModal';
+import RotatingView from '../RotatingView';
 import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
-import { useNetInfo } from '@react-native-community/netinfo';
-import AlertModal from '../AlertModal';
+import { Colors, Typography } from '../../../styles';
+import { UserContext } from '../../../reducers/user';
+import { InventoryContext } from '../../../reducers/inventory';
+import { uploadInventoryData } from '../../../utils/uploadInventory';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -22,7 +23,7 @@ interface ISyncingProps {
   borderLess?: boolean;
 }
 
-export default function Syncing({
+function Syncing({
   uploadCount,
   pendingCount,
   isUploading,
@@ -31,7 +32,6 @@ export default function Syncing({
   borderLess = false,
 }: ISyncingProps) {
   const [syncText, setSyncText] = useState('');
-  const [maxWidth, setMaxWidth] = useState('100%');
   const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
@@ -48,9 +48,7 @@ export default function Syncing({
           count: pendingCount,
         }),
       );
-      setMaxWidth('100%');
     } else {
-      setMaxWidth('50%');
       setSyncText(i18next.t('label.all_backed_up'));
     }
   };
@@ -103,7 +101,7 @@ export default function Syncing({
   };
   const SyncContainer = () => {
     return (
-      <View style={{ maxWidth }}>
+      <View>
         <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
           {isUploading ? (
             <RotatingView isClockwise={true}>
@@ -134,6 +132,8 @@ export default function Syncing({
   }
 }
 
+export default memo(Syncing);
+
 const styles = StyleSheet.create({
   syncContainer: {
     borderRadius: 14,
@@ -144,15 +144,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: Colors.WHITE,
+    marginBottom: 8,
   },
   syncText: {
     paddingLeft: 6,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
-  },
-  progressText: {
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });

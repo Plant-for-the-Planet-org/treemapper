@@ -7,6 +7,7 @@ import { Colors, Typography } from '../../styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory, updateLastScreen } from '../../repositories/inventory';
 import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
+import { getIsValidMeasurement } from '../../utils/measurements';
 
 /**
  * Maps/Shows the button to select the sample tree count which user is going to add
@@ -83,7 +84,7 @@ const TreeNumberSelection = ({
             }}
             textAlign={'center'}
             ref={customInputRef}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setSelectedTreeCount(text.replace(/,./g, '').replace(/[^0-9]/g, ''));
             }}
           />
@@ -113,14 +114,13 @@ export default function SampleTreesCount() {
 
   // used for navigation
   const navigation = useNavigation();
-  const dimensionRegex = /^\d{0,3}(\.\d{0})?$/;
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {
     if (
       selectedTreeCount &&
       Number(selectedTreeCount) > 4 &&
-      dimensionRegex.test(selectedTreeCount)
+      getIsValidMeasurement(selectedTreeCount)
     ) {
       updateInventory({
         inventory_id: state.inventoryID,

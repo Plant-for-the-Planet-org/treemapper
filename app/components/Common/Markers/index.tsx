@@ -1,14 +1,15 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
 import Config from 'react-native-config';
+import { StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import MapLibreGL from '@maplibre/maplibre-react-native';
+
 import { Colors } from '../../../styles';
+import MarkerSVG from '../../Common/MarkerSVG';
 import { geoJSONType, ON_SITE } from '../../../utils/inventoryConstants';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
-import MarkerSVG from '../../Common/MarkerSVG';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 interface MarkersProps {
   geoJSON: geoJSONType;
@@ -109,8 +110,8 @@ const PointAnnotationMarker = ({
   type = 'Polygon',
   nonDragablePoint = false,
 }: PointAnnotationMarkerProps): JSX.Element => {
-  const annotationRefList = useRef<MapboxGL.PointAnnotation[] | null>([]);
-  const calloutRefList = useRef<MapboxGL.Callout[] | null>([]);
+  const annotationRefList = useRef<MapLibreGL.PointAnnotation[] | null>([]);
+  const calloutRefList = useRef<MapLibreGL.Callout[] | null>([]);
 
   let onePolygon = geoJSON.features[i];
   let coordinates =
@@ -123,7 +124,7 @@ const PointAnnotationMarker = ({
 
   if (onePolygon.geometry.type === 'Point') {
     markers.push(
-      <MapboxGL.PointAnnotation
+      <MapLibreGL.PointAnnotation
         key={`${i}-point-${nonDragablePoint ? 'nonDragablePoint' : ''}`}
         id={`${i}-point-${nonDragablePoint ? 'nonDragablePoint' : ''}`}
         coordinate={onePolygon.geometry.coordinates}
@@ -140,7 +141,7 @@ const PointAnnotationMarker = ({
           color={nonDragablePoint ? Colors.GRAY_LIGHTEST : Colors.PRIMARY}
         />
         {/* <View style={styles.annotationContainer} /> */}
-      </MapboxGL.PointAnnotation>,
+      </MapLibreGL.PointAnnotation>,
     );
   } else {
     const iterationCount = ignoreLastMarker ? coordinates.length - 1 : coordinates.length;
@@ -148,7 +149,7 @@ const PointAnnotationMarker = ({
       let oneMarker = coordinates[j];
 
       markers.push(
-        <MapboxGL.PointAnnotation
+        <MapLibreGL.PointAnnotation
           key={`${i}${j}`}
           id={`${i}${j}`}
           coordinate={oneMarker}
@@ -170,7 +171,7 @@ const PointAnnotationMarker = ({
           onDrag={e => onDrag(e, j)}
           onDragEnd={e => onDragEnd(e, j)}>
           <MarkerSVG point={alphabets[j]} color={Colors.PRIMARY} />
-        </MapboxGL.PointAnnotation>,
+        </MapLibreGL.PointAnnotation>,
       );
     }
   }

@@ -1,13 +1,14 @@
+import { StyleSheet, View } from 'react-native';
 import { useRoute } from '@react-navigation/core';
 import { RouteProp } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { InventoryContext } from '../../reducers/inventory';
-import { getInventory, updateLastScreen } from '../../repositories/inventory';
-import { Colors, Typography } from '../../styles';
-import { MULTI, OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
-import ImageCapturing from '../Common/ImageCapturing';
+
 import MapMarking from '../Common/MapMarking';
+import { Colors, Typography } from '../../styles';
+import ImageCapturing from '../Common/ImageCapturing';
+import { InventoryContext } from '../../reducers/inventory';
+import { MULTI, OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
+import { getInventory, updateLastScreen } from '../../repositories/inventory';
 
 type RootStackParamList = {
   CreatePolygon: {
@@ -33,7 +34,7 @@ const CreatePolygon = () => {
     if (state.inventoryID) {
       let data = { inventory_id: state.inventoryID, lastScreen: 'CreatePolygon' };
       updateLastScreen(data);
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventory => {
         let coordinatesLength = inventory.polygons[0].coordinates.length;
         if (
           !inventory.polygons[0].coordinates[coordinatesLength - 1].imageUrl &&
@@ -51,7 +52,7 @@ const CreatePolygon = () => {
 
   const checkIsEdit = () => {
     if (route.params?.isEdit && state.inventoryID) {
-      getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
+      getInventory({ inventoryID: state.inventoryID }).then(inventory => {
         setIsMapMarkingState(false);
         setActiveMarkerIndex(inventory.polygons[0].coordinates.length - 1);
         setLocateTree(inventory.locateTree);

@@ -1,5 +1,6 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import { useNavigation } from '@react-navigation/core';
+import { useFocusEffect } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -20,6 +21,7 @@ import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
 import { bugsnag } from '../../utils';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import { getRemeasurementPolygons } from '../../utils/getRemeasurementPolygons';
 import {
   INCOMPLETE,
   INCOMPLETE_SAMPLE_TREE,
@@ -74,13 +76,14 @@ const MainMap = ({
 
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
 
-  const [location, setLocation] = useState<MapboxGL.Location | Geolocation.GeoPosition>();
+  const [location, setLocation] = useState<MapLibreGL.Location | Geolocation.GeoPosition>();
   const [isLocationAlertShow, setIsLocationAlertShow] = useState(false);
   const [isPermissionBlocked, setIsPermissionBlocked] = useState(false);
   const [isPermissionDenied, setIsPermissionDenied] = useState(false);
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
   const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
+  const [loadingInventoryData, setLoadingInventoryData] = useState(false);
 
   // stores the geoJSON
   const [geoJSON, setGeoJSON] = useState(geoJSONInitialState);
@@ -96,10 +99,12 @@ const MainMap = ({
   // stores the plant locations details of the selected geoJSON
   const [singleSelectedPlantLocation, setSingleSelectedPlantLocation] = useState();
   const [countryCode, setCountryCode] = useState('');
+  const [remeasurePolygons, setRemeasurePolygons] = useState([]);
+  const [remeasureDuePolygons, setRemeasureDuePolygons] = useState([]);
 
   const { state, dispatch } = useContext(InventoryContext);
 
-  const camera = useRef<MapboxGL.Camera | null>(null);
+  const camera = useRef<MapLibreGL.Camera | null>(null);
 
   const carouselRef = useRef(null);
   const sampleCarouselRef = useRef(null);
@@ -111,6 +116,32 @@ const MainMap = ({
       initializeInventory();
     }
   }, [state.inventoryFetchProgress, userInfo]);
+
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (state?.inventoryID) {
+        setLoadingInventoryData(true);
+        getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+          setSingleSelectedPlantLocation(inventoryData);
+          setLoadingInventoryData(false);
+        });
+      }
+    });
+    return () => {
+      unsubscribeFocus();
+    };
+  }, [state]);
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (state?.inventoryID) {
+  //       getInventory({ inventoryID: state.inventoryID }).then(inventoryData => {
+  //         setSingleSelectedPlantLocation(inventoryData);
+  //       });
+  //     }
+  //     return () => {};
+  //   }, [state]),
+  // );
 
   useEffect(() => {
     let isCancelled = false;
@@ -138,8 +169,8 @@ const MainMap = ({
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      MapboxGL.setTelemetryEnabled(false);
-
+      // @ts-ignore
+      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
@@ -213,13 +244,22 @@ const MainMap = ({
     getInventoryByStatus([SYNCED]).then(async (syncedInventory: any) => {
       const geoJSONFeatures = [];
       const pointGeoJSONFeatures = [];
+      const remeasurePolygons = await getRemeasurementPolygons(
+        JSON.parse(JSON.stringify(syncedInventory)),
+      );
+      setRemeasurePolygons(remeasurePolygons.remeasurementNeededPolygons);
+      setRemeasureDuePolygons(remeasurePolygons.remeasurementDuePolygons);
       // fetches geoJSON which includes inventory id and ignores sample tree of all the SYNCED registrations
       for (const inventoryData of JSON.parse(JSON.stringify(syncedInventory))) {
         const data: any = await getGeoJsonData({
           inventoryData,
           includeInventoryId: true,
           ignoreSampleTrees: true,
+          remeasureNeededPolygons: remeasurePolygons.remeasurementNeededPolygons,
+          remeasureDuePolygons: remeasurePolygons.remeasurementDuePolygons,
         });
+        // console.log(JSON.stringify(data), 'data');
+
         if (inventoryData.treeType === SINGLE) {
           pointGeoJSONFeatures.push(...data.features);
         } else {
@@ -239,7 +279,7 @@ const MainMap = ({
   };
 
   // recenter the map to the current coordinates of user location
-  const onPressMyLocationIcon = (position: MapboxGL.Location | Geolocation.GeoPosition) => {
+  const onPressMyLocationIcon = (position: MapLibreGL.Location | Geolocation.GeoPosition) => {
     if (isCameraRefVisible && camera?.current?.setCamera) {
       setIsInitial(false);
       camera.current.setCamera({
@@ -253,7 +293,7 @@ const MainMap = ({
 
   // only for the first time map will follow the user's current location by default
   const onUpdateUserLocation = (
-    userLocation: MapboxGL.Location | Geolocation.GeoPosition | undefined,
+    userLocation: MapLibreGL.Location | Geolocation.GeoPosition | undefined,
   ) => {
     if (isInitial && userLocation) {
       onPressMyLocationIcon(userLocation);
@@ -270,7 +310,9 @@ const MainMap = ({
           resolve(position);
         },
         err => {
-          if (showAlert) setIsLocationAlertShow(true);
+          if (showAlert) {
+            setIsLocationAlertShow(true);
+          }
         },
         {
           enableHighAccuracy: true,
@@ -304,7 +346,7 @@ const MainMap = ({
       if (item.treeType === SINGLE) {
         navigation.navigate('SingleTreeOverview', { navigateBackToHomeScreen: true });
       } else {
-        navigation.navigate('InventoryOverview', { navigateBackToHomeScreen: true });
+        navigation.navigate('InventoryOverview', { navigateToScreen: 'MainScreen' });
       }
     } else {
       navigation.navigate(item.lastScreen);
@@ -324,6 +366,25 @@ const MainMap = ({
     setSelectedPlantLocations([]);
     setInventoryId('')(dispatch);
   };
+
+  const onPressLocationAlertPrimaryBtn = () => {
+    setIsLocationAlertShow(false);
+    if (IS_ANDROID) {
+      updateCurrentPosition();
+    } else {
+      Linking.openURL('app-settings:');
+    }
+  };
+
+  const onPressLocationAlertSecondaryBtn = () => setIsLocationAlertShow(false);
+
+  const onPressPerBlockedAlertPrimaryBtn = () => {};
+  const onPressPerBlockedAlertSecondaryBtn = () => {
+    BackHandler.exitApp();
+  };
+
+  const onPressPerDeniedAlertPrimaryBtn = () => checkPermission();
+  const onPressPerDeniedAlertSecondaryBtn = () => checkPermission();
 
   return (
     <View style={styles.container}>
@@ -349,6 +410,8 @@ const MainMap = ({
         siteCenterCoordinate={siteCenterCoordinate}
         siteBounds={siteBounds}
         projectSites={projectSites}
+        remeasurePolygons={remeasurePolygons}
+        remeasureDuePolygons={remeasureDuePolygons}
       />
 
       {/* shows alert if location permission is not provided */}
@@ -358,32 +421,23 @@ const MainMap = ({
         message={i18next.t('label.location_service_message')}
         primaryBtnText={IS_ANDROID ? i18next.t('label.ok') : i18next.t('label.open_settings')}
         secondaryBtnText={i18next.t('label.back')}
-        onPressPrimaryBtn={() => {
-          setIsLocationAlertShow(false);
-          if (IS_ANDROID) {
-            updateCurrentPosition();
-          } else {
-            Linking.openURL('app-settings:');
-          }
-        }}
-        onPressSecondaryBtn={() => setIsLocationAlertShow(false)}
+        onPressPrimaryBtn={onPressLocationAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressLocationAlertSecondaryBtn}
         showSecondaryButton={true}
       />
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlocked}
         setIsPermissionBlockedAlertShow={setIsPermissionBlocked}
         message={i18next.t('label.need_location_permission_to_continue')}
-        onPressPrimaryBtn={() => {}}
-        onPressSecondaryBtn={() => {
-          BackHandler.exitApp();
-        }}
+        onPressPrimaryBtn={onPressPerBlockedAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressPerBlockedAlertSecondaryBtn}
       />
       <PermissionDeniedAlert
         isPermissionDeniedAlertShow={isPermissionDenied}
         setIsPermissionDeniedAlertShow={setIsPermissionDenied}
         message={i18next.t('label.need_location_permission_to_continue')}
-        onPressPrimaryBtn={() => checkPermission()}
-        onPressSecondaryBtn={() => checkPermission()}
+        onPressPrimaryBtn={onPressPerDeniedAlertPrimaryBtn}
+        onPressSecondaryBtn={onPressPerDeniedAlertSecondaryBtn}
       />
 
       {/* shows the back button when plant location is selected */}
@@ -447,6 +501,8 @@ const MainMap = ({
           carouselRef={sampleCarouselRef}
           setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
           countryCode={countryCode}
+          location={location}
+          loadingInventoryData={loadingInventoryData}
         />
       ) : selectedPlantLocations.length > 0 && showClickedGeoJSON ? (
         <SelectedPlantLocationsCards

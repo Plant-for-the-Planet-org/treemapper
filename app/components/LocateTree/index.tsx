@@ -1,14 +1,15 @@
-import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import JailMonkey from 'jail-monkey';
+import { useNavigation } from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { Colors, Typography } from '../../styles';
 import { deleteInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { addLocateTree } from '../../repositories/inventory';
-import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 import { Header, LargeButton, PrimaryButton } from '../Common';
+import { OFF_SITE, ON_SITE } from '../../utils/inventoryConstants';
 
 const LocateTree = () => {
   const isRooted = JailMonkey.isJailBroken();
@@ -44,11 +45,6 @@ const LocateTree = () => {
     }
   };
 
-  const onPressSelectCoordinates = async () => {
-    onPressItem('');
-    setIsSelectCoordinates(true);
-  };
-
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
@@ -64,7 +60,7 @@ const LocateTree = () => {
             heading={i18next.t('label.locate_tree_heading')}
             subHeading={i18next.t('label.locate_tree_sub_heading')}
             active={locateTree == ON_SITE}
-            subHeadingStyle={{ fontStyle: 'italic' }}
+            subHeadingStyle={styles.subHeadingStyle}
             testID={'page_on_site_polygon'}
             accessibilityLabel={'On Site'}
           />
@@ -73,26 +69,10 @@ const LocateTree = () => {
             heading={i18next.t('label.locate_tree_off_site')}
             subHeading={i18next.t('label.locate_tree_off_site_sub_heading')}
             active={locateTree === OFF_SITE}
-            subHeadingStyle={{ fontStyle: 'italic' }}
+            subHeadingStyle={styles.subHeadingStyle}
             testID={'page_off_site_polygon'}
             accessibilityLabel={'Off Site Polygon'}
           />
-          <LargeButton
-            onPress={onPressSelectCoordinates}
-            heading={i18next.t('label.locate_tree_off_site_point_heading')}
-            subHeading={i18next.t('label.locate_tree_off_site_point_sub_heading')}
-            active={isSelectCoordinates}
-            subHeadingStyle={{ fontStyle: 'italic' }}
-            testID={'page_off_site_point'}
-            accessibilityLabel={'Off Site Point'}
-          />
-          {/* <LargeButton
-            onPress={onPressSelectCoordinates}
-            heading={i18next.t('label.locate_tree_geo_json')}
-            subHeadingStyle={{ fontStyle: 'italic' }}
-            rightIcon={<SvgXml xml={cloud_upload_gray} />}
-            disabled
-          /> */}
         </ScrollView>
         {isRooted && <Text style={styles.addSpecies}>Device is rooted</Text>}
         <PrimaryButton
@@ -105,6 +85,7 @@ const LocateTree = () => {
     </SafeAreaView>
   );
 };
+
 export default LocateTree;
 
 const styles = StyleSheet.create({
@@ -117,14 +98,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  cont: {
-    flex: 1,
-  },
   addSpecies: {
     color: Colors.ALERT,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_30,
     textAlign: 'center',
+  },
+  subHeadingStyle: {
+    fontStyle: 'italic',
   },
 });

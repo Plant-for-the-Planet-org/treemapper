@@ -1,6 +1,7 @@
-import i18next from 'i18next';
 import React from 'react';
+import i18next from 'i18next';
 import { View, Text, Modal, StyleSheet, ActivityIndicator } from 'react-native';
+
 import { Colors, Typography } from '../../../styles';
 
 interface ILoaderContentProps {
@@ -14,7 +15,7 @@ interface ILoaderProps extends ILoaderContentProps {
 const LoaderContent = ({ loadingText }: ILoaderContentProps) => {
   return (
     <View style={styles.downloadModalContainer}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={styles.downloadModalSubContainer}>
         <ActivityIndicator size="large" color={Colors.PRIMARY} />
         <Text style={styles.text}>{loadingText || i18next.t('label.loading_content')}</Text>
       </View>
@@ -39,6 +40,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  downloadModalSubContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     padding: 30,

@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-community/async-storage';
-import dbLog, { deleteOldLogs } from '../repositories/logs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { LogTypes } from './constants';
+import dbLog, { deleteOldLogs } from '../repositories/logs';
 
 // This function checks everyday if there are any older logs stored in the db which needs to be deleted
 export const dailyLogUpdateCheck = async () => {

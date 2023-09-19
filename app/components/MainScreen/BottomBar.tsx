@@ -1,21 +1,22 @@
-import { useNavigation } from '@react-navigation/core';
-import * as shape from 'd3-shape';
-import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
 import {
+  Text,
+  View,
+  Platform,
   Animated,
   Dimensions,
-  Platform,
-  SafeAreaView,
   StyleSheet,
-  Text,
+  SafeAreaView,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import i18next from 'i18next';
+import * as shape from 'd3-shape';
+import React, { useEffect, useState } from 'react';
 import Svg, { Path, SvgXml } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/core';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { multipleTreesIcon, singleTreeIcon } from '../../assets';
+
 import { Colors, Typography } from '../../styles';
+import { multipleTreesIcon, singleTreeIcon } from '../../assets';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -32,16 +33,16 @@ const curveHeight = tabbarHeight - (22 + extraHeight);
 const getPath = (): string => {
   const left = shape
     .line()
-    .x((d) => d[0])
-    .y((d) => d[1])([
+    .x(d => d[0])
+    .y(d => d[1])([
     [0, 0],
     [width - 5, 0],
   ]);
 
   const tab = shape
     .line()
-    .x((d) => d[0])
-    .y((d) => d[1])
+    .x(d => d[0])
+    .y(d => d[1])
     .curve(shape.curveBasis)([
     [width - 5, 0],
     [width, 0],
@@ -57,8 +58,8 @@ const getPath = (): string => {
 
   const right = shape
     .line()
-    .x((d) => d[0])
-    .y((d) => d[1])([
+    .x(d => d[0])
+    .y(d => d[1])([
     [width + 5 + tabWidth, 0],
     [width * 2 + tabWidth, 0],
     [width * 2 + tabWidth, tabbarHeight],
@@ -168,8 +169,8 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
         {/* menu button */}
         <TouchableOpacity style={[styles.left, styles.tabButton]} onPress={onMenuPress}>
           <>
-            <View style={[styles.menuDash, { width: 16 }]} />
-            <View style={[styles.menuDash, { width: 24, marginTop: 6 }]} />
+            <View style={[styles.menuDash, styles.firstDash]} />
+            <View style={[styles.menuDash, styles.secondDash]} />
           </>
         </TouchableOpacity>
 
@@ -208,6 +209,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'flex-start',
     marginBottom: IS_ANDROID ? 0 : 6,
+  },
+  firstDash: {
+    width: 16,
+  },
+  secondDash: {
+    width: 24,
+    marginTop: 6,
   },
   // 44 = height of menu container + 2 * padding
   left: {

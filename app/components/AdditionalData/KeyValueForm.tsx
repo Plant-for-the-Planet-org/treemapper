@@ -1,10 +1,11 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+
 import { Colors, Typography } from '../../styles';
-import { marginTop24, marginTop30 } from '../../styles/design';
 import { Header, PrimaryButton } from '../Common';
 import OutlinedInput from '../Common/OutlinedInput';
+import { marginTop24, marginTop30 } from '../../styles/design';
 
 interface IKeyValueFormProps {
   headingText: string;
@@ -75,7 +76,7 @@ const KeyValueForm = ({
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.container}>
         <ScrollView>
           <Header headingText={headingText} onBackPress={onBackPress} />
@@ -109,7 +110,7 @@ const KeyValueForm = ({
         <PrimaryButton
           onPress={handleOnPress}
           btnText={i18next.t('label.continue')}
-          style={{ marginTop: 10 }}
+          style={styles.primaryBtn}
         />
       </View>
     </SafeAreaView>
@@ -119,6 +120,12 @@ const KeyValueForm = ({
 export default KeyValueForm;
 
 const styles = StyleSheet.create({
+  safeAreaView: {
+    flex: 1,
+  },
+  primaryBtn: {
+    marginTop: 10,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,

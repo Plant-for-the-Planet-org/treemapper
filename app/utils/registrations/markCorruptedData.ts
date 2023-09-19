@@ -60,18 +60,22 @@ export const updateSingleInventoryMissingStatus = (
         isNull(plantation_date))
     ) {
       newInventory.status = FIX_NEEDED;
+      console.log('+');
+
       isFixNeeded = true;
     }
     // checks missing data for multiple trees
     else if (treeType === MULTI) {
       // checks if plantataion_date is missing then marks as FIX_NEEDED
       if (isNull(plantation_date)) {
+        console.log('++');
         isFixNeeded = true;
       } else {
         // loops through species array and check if aliases or treeCount is missing
         // and marks as FIX_NEEDED if anyone of them is absent
         for (const singleSpecies of species) {
           if (isNull(singleSpecies.aliases) || singleSpecies.treeCount < 1) {
+            console.log('+++');
             isFixNeeded = true;
             break;
           }
@@ -94,6 +98,7 @@ export const updateSingleInventoryMissingStatus = (
 
         if (areCoordinatesNull || isSpeciesNull || areMeasurementNull || isPlantationDateNull) {
           newInventory.sampleTrees[sampleTreeIndex].status = FIX_NEEDED;
+          console.log('++++');
           isFixNeeded = true;
         }
       }

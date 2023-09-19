@@ -1,49 +1,50 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import bbox from '@turf/bbox';
-import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
-import turfCenter from '@turf/center';
-import { Coord } from '@turf/helpers';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  Linking,
-  Modal,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  Modal,
+  Linking,
+  Platform,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
+import bbox from '@turf/bbox';
+import i18next from 'i18next';
+import { Coord } from '@turf/helpers';
+import turfCenter from '@turf/center';
 import Config from 'react-native-config';
+import MapLibreGL from '@maplibre/maplibre-react-native';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
-import { AlertModal, Header } from '../';
-import { initiateInventoryState } from '../../../actions/inventory';
-import { InventoryContext } from '../../../reducers/inventory';
+
 import {
-  addCoordinates,
-  addCoordinateSingleRegisterTree,
-  addLocateTree,
   getInventory,
-  initiateInventory,
+  addLocateTree,
+  addCoordinates,
   updateInventory,
   updateLastScreen,
+  initiateInventory,
+  addCoordinateSingleRegisterTree,
 } from '../../../repositories/inventory';
-import dbLog from '../../../repositories/logs';
-import { Colors, Typography } from '../../../styles';
+import Map from './Map';
+import MapButtons from './MapButtons';
+import { AlertModal, Header } from '../';
 import { bugsnag } from '../../../utils';
+import dbLog from '../../../repositories/logs';
+import MapAlrightyModal from './MapAlrightyModal';
 import { LogTypes } from '../../../utils/constants';
-import distanceCalculator from '../../../utils/distanceCalculator';
-import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
+import { Colors, Typography } from '../../../styles';
+import { InventoryContext } from '../../../reducers/inventory';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import { locationPermission } from '../../../utils/permissions';
+import { initiateInventoryState } from '../../../actions/inventory';
+import distanceCalculator from '../../../utils/distanceCalculator';
+import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../../utils/inventoryConstants';
 import { PermissionBlockedAlert, PermissionDeniedAlert } from './LocationPermissionAlerts';
-import Map from './Map';
-import MapAlrightyModal from './MapAlrightyModal';
-import MapButtons from './MapButtons';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const isAndroid = Platform.OS === 'android';
 
@@ -217,7 +218,8 @@ export default function MapMarking({
   const checkPermission = async ({ showAlert = false, isOffsite = false }) => {
     try {
       await locationPermission();
-      MapboxGL.setTelemetryEnabled(false);
+      // @ts-ignore
+      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition();
       return true;
     } catch (err) {
@@ -598,6 +600,18 @@ export default function MapMarking({
         plantationDate: new Date(),
         specieId,
         specieName,
+        // remeasurementDates: {
+        //   created: new Date(),
+        //   lastMeasurement: null,
+        //   sampleTreeId: sample.id,
+        //   remeasureBy: sample?.remeasureBy
+        //     ? sample.remeasureBy
+        //     : new Date(
+        //       plantationDate.getFullYear() + 1,
+        //       plantationDate.getMonth(),
+        //       plantationDate.getDay(),
+        //     ),
+        // }
       };
 
       if (sampleTrees[inventory.completedSampleTreesCount]) {
@@ -848,7 +862,7 @@ export default function MapMarking({
   };
 
   return (
-    <View style={styles.container} fourceInset={{ top: 'always' }}>
+    <View style={styles.container}>
       <Map
         geoJSON={geoJSON}
         treeType={treeType}
@@ -957,25 +971,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  cont: {
-    flex: 1,
-  },
-  continueBtnCont: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 10,
-    backgroundColor: 'transparent',
-    width: '100%',
-    justifyContent: 'center',
-  },
-  completePolygonBtnCont: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 80,
-    backgroundColor: 'transparent',
-    width: '100%',
-    justifyContent: 'center',
-  },
   headerCont: {
     paddingHorizontal: 25,
     position: 'absolute',
@@ -1019,49 +1014,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_20,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
-  },
-  fakeMarkerCont: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  markerImage: {
-    position: 'absolute',
-    resizeMode: 'contain',
-    bottom: 0,
-  },
-  loader: {
-    position: 'absolute',
-    bottom: 67,
-  },
-  activeMarkerLocation: {
-    position: 'absolute',
-    bottom: 67,
-    color: Colors.WHITE,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  myLocationIcon: {
-    width: 45,
-    height: 45,
-    backgroundColor: Colors.WHITE,
-    position: 'absolute',
-    borderRadius: 100,
-    right: 0,
-    marginHorizontal: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: Colors.TEXT_COLOR,
-    bottom: 90,
-  },
-  myLocationIconContainer: {
-    top: 1.5,
-    left: 0.8,
-  },
-  bottomBtnWith: {
-    width: '90%',
   },
 });
 

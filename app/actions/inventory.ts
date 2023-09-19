@@ -1,4 +1,4 @@
-import { getAuthenticatedRequest } from '../utils/api';
+import {getAuthenticatedRequest, postAuthenticatedRequest} from '../utils/api';
 import {
   DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
@@ -9,12 +9,16 @@ import {
   UPDATE_PROGRESS_COUNT,
   SET_SKIP_TO_INVENTORY_OVERVIEW,
   SET_IS_EXTRA_SAMPLE_TREE,
-  INVENTORY_FETCH_FROM_SERVER
+  INVENTORY_FETCH_FROM_SERVER,
+  SET_SELECTED_REMEASUREMENT_ID,
+  SET_SAMPLE_PLANT_LOCATION_INDEX,
+  SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
 } from './Types';
-import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
-import { LogTypes } from '../utils/constants';
+import {PENDING_DATA_UPLOAD} from '../utils/inventoryConstants';
+import {LogTypes} from '../utils/constants';
 import dbLog from '../repositories/logs';
 import React from 'react';
+import {IAddPlantLocationEventData, InventoryType} from '../types/inventory';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -94,58 +98,95 @@ export const updateIsUploading = (isUploading: boolean) => (dispatch: React.Disp
  * It requires the following param
  * @param {boolean} skipToInventoryOverview - used to update the skipToInventoryOverview in inventory state
  */
-export const setSkipToInventoryOverview = (skipToInventoryOverview: boolean) => (
-  dispatch: React.Dispatch<any>,
-) => {
-  dispatch({
-    type: SET_SKIP_TO_INVENTORY_OVERVIEW,
-    payload: skipToInventoryOverview,
-  });
-};
+export const setSkipToInventoryOverview =
+  (skipToInventoryOverview: boolean) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_SKIP_TO_INVENTORY_OVERVIEW,
+      payload: skipToInventoryOverview,
+    });
+  };
+
+/**
+ * This function dispatches type SWITCH_FETCH_NECESSARY_INVENTORY_FLAG with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {boolean} fetchNecessaryInventoryFlag - used to update the fetchNecessaryInventoryFlag in inventory state
+ */
+export const setFetchNecessaryInventoryFlag =
+  (fetchNecessaryInventoryFlag: InventoryType) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
+      payload: fetchNecessaryInventoryFlag,
+    });
+  };
 
 /**
  * This function dispatches type SET_IS_EXTRA_SAMPLE_TREE with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
  */
-export const setIsExtraSampleTree = (isExtraSampleTree: boolean) => (
-  dispatch: React.Dispatch<any>,
-) => {
-  dispatch({
-    type: SET_IS_EXTRA_SAMPLE_TREE,
-    payload: isExtraSampleTree,
-  });
-};
+export const setIsExtraSampleTree =
+  (isExtraSampleTree: boolean) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_IS_EXTRA_SAMPLE_TREE,
+      payload: isExtraSampleTree,
+    });
+  };
 
 /**
  * This function dispatches type INVENTORY_FETCH_FROM_SERVER with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {string} fetchStatus - used to update the inventoryFetchProgress in inventory state
  */
-export const updateInventoryFetchFromServer = (fetchStatus: string) => (
-  dispatch: React.Dispatch<any>,
-) => {
+export const updateInventoryFetchFromServer =
+  (fetchStatus: string) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: INVENTORY_FETCH_FROM_SERVER,
+      payload: fetchStatus,
+    });
+  };
+
+/**
+ * This function dispatches type SET_SELECTED_REMEASUREMENT_ID with payload as
+ * remeasurement id which will be used on remeasurement screens
+ * It requires the following param
+ * @param {string} remeasurementId - used to for recording data for that remeasurement id
+ */
+export const setRemeasurementId = (remeasurementId: string) => (dispatch: React.Dispatch<any>) => {
   dispatch({
-    type: INVENTORY_FETCH_FROM_SERVER,
-    payload: fetchStatus,
+    type: SET_SELECTED_REMEASUREMENT_ID,
+    payload: remeasurementId,
   });
 };
+
+/**
+ * This function dispatches type SET_SAMPLE_PLANT_LOCATION_INDEX with payload as
+ * sample plant location index which will be used to know to which sample tree the remeasurement belongs
+ * It requires the following param
+ * @param {number} samplePlantLocationIndex - used for recording data for the sample tree plant location index
+ */
+export const setSamplePlantLocationIndex =
+  (samplePlantLocationIndex: string) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SET_SAMPLE_PLANT_LOCATION_INDEX,
+      payload: samplePlantLocationIndex,
+    });
+  };
 
 export const getAllInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',
 ): Promise<any> => {
   try {
-    let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
-
+    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.0.3'});
+    
     dbLog.info({
       logType: LogTypes.DATA_SYNC,
       message: 'Successfully fetched all Inventories From server',
     });
 
     if (data.data._links.next) {
-      return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
+      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
     } else {
-      return { data: data?.data?.items ?? [], nextRouteLink: null };
+      return {data: data?.data?.items ?? [], nextRouteLink: null};
     }
   } catch (err) {
     dbLog.error({
@@ -154,6 +195,101 @@ export const getAllInventoryFromServer = async (
       statusCode: err?.response?.status,
       logStack: JSON.stringify(err?.response),
     });
-    return { data: [], nextRouteLink: null };
+    return {data: [], nextRouteLink: null};
   }
+};
+
+export const getNecessaryInventoryFromServer = async (
+  requestRoute = '/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended',
+): Promise<any> => {
+  try {
+    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.1'});
+
+    // console.log(
+    //   data?.data?.items.length,
+    //   '=====Data=====',
+    //   Object.keys(data),
+    //   data.data.total,
+    //   data.data.count,
+    //   data.data._links,
+    //   data.data._filters,
+    //   '===',
+    //   Object.keys(data.data),
+    //   '++',
+    //   Object.keys(data.data._links),
+    // );
+
+    dbLog.info({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Successfully fetched necessary Inventories From server',
+    });
+
+    if (data.data._links.next) {
+      // console.log(JSON.stringify(data?.data?.items), 'data?.data?.items');
+
+      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
+    } else {
+      return {data: data?.data?.items ?? [], nextRouteLink: null};
+    }
+  } catch (err) {
+    dbLog.error({
+      logType: LogTypes.DATA_SYNC,
+      message: 'Failed fetch Inventories From server',
+      statusCode: err?.response?.status,
+      logStack: JSON.stringify(err?.response),
+    });
+    return {data: [], nextRouteLink: null};
+  }
+};
+
+/**
+ * Adds a scientific specie to user's preferred species
+ * @param {string} locationId - location id of the plant location of which
+ *                              event is to be added
+ * @param {object} data - contains data to create an event
+ */
+export const addPlantLocationEvent = (locationId: string, data: IAddPlantLocationEventData) => {
+  if (!locationId) {
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    // makes an authorized POST request on /species to add a specie of user.
+    postAuthenticatedRequest(`/treemapper/plantLocations/${locationId}/event`, data)
+      .then(res => {
+        const {data, status} = res;
+
+        // checks if the status code is 200 the resolves the promise with the fetched data
+        if (status === 200) {
+          // logging the success in to the db
+          dbLog.info({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Successfully added event with plant location id: ${locationId}, POST - /treemapper/plantLocations/${locationId}/event`,
+            statusCode: status,
+          });
+          resolve(data);
+        } else {
+          // logging the success in to the db
+          dbLog.warn({
+            logType: LogTypes.REMEASUREMENT,
+            message: `Got success response from server other than status code 200, POST - /treemapper/plantLocations/${locationId}/event`,
+            statusCode: status,
+          });
+          resolve(false);
+        }
+      })
+      .catch(err => {
+        // logs the error
+        console.error(
+          `Error at /actions/inventory/addPlantLocationEvent, ${JSON.stringify(err?.response)}`,
+        );
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.REMEASUREMENT,
+          message: `Failed to add event of plant locaiton having id ${locationId}, POST - /treemapper/plantLocations/${locationId}/event`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
+        reject(err);
+      });
+  });
 };

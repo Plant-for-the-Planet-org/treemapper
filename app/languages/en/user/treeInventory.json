@@ -1,10 +1,12 @@
 {
   "tree_inventory_loading_modal": "Uploading .......",
   "tree_inventory_left_text": "Pending Upload",
+  "pending_remeasurement_upload": "Pending Remeasurement Upload",
   "tree_inventory_left_text_uploading": "Upload in progress",
   "tree_inventory_right_text": "Upload now",
   "tree_inventory_view_upload": "View all uploaded Items",
   "tree_inventory_incomplete_registrations": "Incomplete Registrations",
+  "incomplete_remeasurement": "Incomplete Remeasurements",
   "tree_inventory_list_header": "Tree Inventory",
   "tree_inventory_list_sub_header": "It’s empty in here, please register some trees to view them.",
   "tree_inventory_empty_list_header": "Tree Inventory",
@@ -38,5 +40,12 @@
   "missing_data_found_registration": "Missing data found in registrations",
   "tree_inventory_fix_needed": "There are some missing data in this registration.",
   "tree_inventory_fix_needed_sample": "Check in the map below for the sample trees in red to see the missing data (if any).",
-  "fix_before_uploading": "Please fix the missing data before uploading."
+  "fix_before_uploading": "Please fix the missing data before uploading.",
+  "flood": "Flood",
+  "fire": "Fire",
+  "drought": "Drought",
+  "other": "Other",
+  "cause_of_mortality": "Likely cause of Mortality",
+  "status": "Status",
+  "dead": "Dead"
 }

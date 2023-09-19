@@ -1,17 +1,20 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import Logger from '@react-native-mapbox-gl/maps/javascript/utils/Logger';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Config from 'react-native-config';
 import { SvgXml } from 'react-native-svg';
+import MapLibreGL, { Logger } from '@maplibre/maplibre-react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import Markers from '../Markers';
 import { active_marker } from '../../../assets';
 import { Colors, Typography } from '../../../styles';
-import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
-import Markers from '../Markers';
 import SampleTreeMarkers from '../SampleTreeMarkers';
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 
-Logger.setLogCallback((log) => {
+const mapStyle = JSON.stringify(require('../../../assets/mapStyle/mapStyleOutput.json'));
+
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+
+Logger.setLogCallback(log => {
   const { message } = log;
   // expected warnings - see https://github.com/mapbox/mapbox-gl-native/issues/15341#issuecomment-522889062
   if (
@@ -59,7 +62,7 @@ export default function Map({
 
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         showUserLocation={true}
         style={styles.container}
         ref={map}
@@ -69,6 +72,7 @@ export default function Map({
           y: 230,
         }}
         logo
+        styleJSON={mapStyle}
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>
         {(treeType === MULTI || treeType === SAMPLE) && (
@@ -76,21 +80,21 @@ export default function Map({
         )}
         {treeType === SAMPLE && <SampleTreeMarkers geoJSON={geoJSON} />}
 
-        <MapboxGL.Camera
-          ref={(el) => {
+        <MapLibreGL.Camera
+          ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
         />
         {(treeType === MULTI || treeType === SAMPLE) && shouldRenderShape && (
-          <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-          </MapboxGL.ShapeSource>
+          <MapLibreGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            <MapLibreGL.LineLayer id={'polyline'} style={polyline} />
+          </MapLibreGL.ShapeSource>
         )}
         {location && (
-          <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={(data) => setLocation(data)} />
+          <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
         )}
-      </MapboxGL.MapView>
+      </MapLibreGL.MapView>
 
       <View style={styles.fakeMarkerCont}>
         <SvgXml xml={active_marker} style={styles.markerImage} />

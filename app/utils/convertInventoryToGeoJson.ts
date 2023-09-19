@@ -1,3 +1,4 @@
+import { Colors } from '../styles';
 import { appAdditionalDataForGeoJSON, getFormattedMetadata } from './additionalData/functions';
 
 interface IGeoJsonDataParams {
@@ -5,6 +6,8 @@ interface IGeoJsonDataParams {
   includeInventoryId?: boolean;
   ignoreSampleTrees?: boolean;
   includeStatus?: boolean;
+  remeasureNeededPolygons?: string[];
+  remeasureDuePolygons?: string[];
 }
 
 export default async function getGeoJsonData({
@@ -12,6 +15,8 @@ export default async function getGeoJsonData({
   includeInventoryId = false,
   ignoreSampleTrees = false,
   includeStatus = false,
+  remeasureNeededPolygons = [],
+  remeasureDuePolygons = [],
 }: IGeoJsonDataParams) {
   let featureList;
   let appAdditionalDetails: any = {};
@@ -73,6 +78,19 @@ export default async function getGeoJsonData({
       // includes inventory id if asked for
       if (includeInventoryId) {
         feature.properties.inventoryId = inventoryData.inventory_id;
+        if (
+          remeasureNeededPolygons.length > 0 &&
+          remeasureNeededPolygons.includes(inventoryData.inventory_id)
+        ) {
+          feature.properties.color = Colors.WARNING;
+        } else if (
+          remeasureDuePolygons.length > 0 &&
+          remeasureDuePolygons.includes(inventoryData.inventory_id)
+        ) {
+          feature.properties.color = Colors.PLANET_CRIMSON;
+        } else {
+          feature.properties.color = Colors.PRIMARY;
+        }
       }
       return feature;
     });

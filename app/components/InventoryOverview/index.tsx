@@ -1,75 +1,77 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { CommonActions } from '@react-navigation/routers';
-import turfArea from '@turf/area';
-import bbox from '@turf/bbox';
-import turfCenter from '@turf/center';
-import { convertArea } from '@turf/helpers';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  BackHandler,
-  Dimensions,
+  View,
+  Text,
   Image,
   Modal,
   Platform,
-  SafeAreaView,
+  Animated,
+  Dimensions,
   ScrollView,
   StyleSheet,
-  Text,
+  BackHandler,
+  InteractionManager,
+  SafeAreaView,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import i18next from 'i18next';
+import bbox from '@turf/bbox';
+import turfArea from '@turf/area';
 import RNFS from 'react-native-fs';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import turfCenter from '@turf/center';
 import { SvgXml } from 'react-native-svg';
+import { convertArea } from '@turf/helpers';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { CommonActions } from '@react-navigation/routers';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { APIConfig } from '../../actions/Config';
-import { setSkipToInventoryOverview } from '../../actions/inventory';
-import { map_img, plus_icon, two_trees } from '../../assets';
-import { InventoryContext } from '../../reducers/inventory';
+import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+
 import {
-  addAppMetadata,
-  changeInventoryStatus,
-  changeSampleTreesStatusToPendingUpload,
-  deleteInventory,
   getInventory,
+  addAppMetadata,
+  deleteInventory,
   updateInventory,
   updateLastScreen,
-  updateMissingStatusOfSingleInventory,
   updatePlantingDate,
+  changeInventoryStatus,
+  updateMissingStatusOfSingleInventory,
+  changeSampleTreesStatusToPendingUpload,
 } from '../../repositories/inventory';
-import { getProjectById } from '../../repositories/projects';
-import { getScientificSpeciesById } from '../../repositories/species';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
-import { Colors, Typography } from '../../styles';
-import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
-import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
-import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import {
+  SYNCED,
+  ON_SITE,
+  OFF_SITE,
+  INCOMPLETE,
   FIX_NEEDED,
   getIncompleteStatus,
-  INCOMPLETE,
-  INCOMPLETE_SAMPLE_TREE,
-  OFF_SITE,
-  ON_SITE,
   PENDING_DATA_UPLOAD,
-  SYNCED,
+  INCOMPLETE_SAMPLE_TREE,
 } from '../../utils/inventoryConstants';
-import { Header, Label, PrimaryButton } from '../Common';
-import AdditionalDataOverview from '../Common/AdditionalDataOverview';
-import AlertModal from '../Common/AlertModal';
-import ExportGeoJSON from '../Common/ExportGeoJSON';
 import Markers from '../Common/Markers';
+import AlertModal from '../Common/AlertModal';
+import { APIConfig } from '../../actions/Config';
+import { Colors, Typography } from '../../styles';
+import ExportGeoJSON from '../Common/ExportGeoJSON';
+import { Header, Label, PrimaryButton } from '../Common';
+import { InventoryContext } from '../../reducers/inventory';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import { map_img, plus_icon, two_trees } from '../../assets';
+import { getProjectById } from '../../repositories/projects';
+import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
+import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
+import { setSkipToInventoryOverview } from '../../actions/inventory';
+import AdditionalDataOverview from '../Common/AdditionalDataOverview';
+import { getScientificSpeciesById } from '../../repositories/species';
+import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 
 let scrollAdjust = 0;
 
 type RootStackParamList = {
   InventoryOverview: {
-    navigateBackToHomeScreen: boolean;
+    navigateToScreen: boolean;
   };
 };
 
@@ -180,12 +182,11 @@ const InventoryOverview = ({ navigation }: any) => {
     };
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+  useFocusEffect(
+    React.useCallback(() => {
       initialState();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    }, []),
+  );
 
   useEffect(() => {
     const setPlantingArea = async (totalTreeCount: number) => {
@@ -332,23 +333,23 @@ const InventoryOverview = ({ navigation }: any) => {
   const renderMapView = () => {
     let shouldRenderShape = geoJSON.features[0].geometry.coordinates[0].length > 1;
     return (
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         showUserLocation={false}
         style={styles.mapContainer}
         ref={map}
         zoomEnabled={true}
         scrollEnabled={true}
         rotateEnabled={false}>
-        <MapboxGL.Camera
+        <MapLibreGL.Camera
           ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
           }}
         />
         {shouldRenderShape && !isPointForMultipleTree && (
-          <MapboxGL.ShapeSource id={'polygon'} shape={geoJSON}>
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-          </MapboxGL.ShapeSource>
+          <MapLibreGL.ShapeSource id={'polygon'} shape={geoJSON}>
+            <MapLibreGL.LineLayer id={'polyline'} style={polyline} />
+          </MapLibreGL.ShapeSource>
         )}
         <SampleTreeMarkers
           geoJSON={geoJSON}
@@ -369,7 +370,7 @@ const InventoryOverview = ({ navigation }: any) => {
         ) : (
           []
         )}
-      </MapboxGL.MapView>
+      </MapLibreGL.MapView>
     );
   };
 
@@ -420,7 +421,6 @@ const InventoryOverview = ({ navigation }: any) => {
   const renderDatePicker = () => {
     const handleConfirm = (data: any) => onChangeDate(data);
     const hideDatePicker = () => setShowDate(false);
-
     return (
       showDate && (
         <DateTimePickerModal
@@ -555,8 +555,18 @@ const InventoryOverview = ({ navigation }: any) => {
         : i18next.t('label.tree_inventory_on_site');
   }
 
+  const handleAddSampleTree = () => {
+    inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
+      ? addSampleTree
+      : addAnotherSampleTree;
+  };
+
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
   const showEditButton = inventory?.status && getIncompleteStatus().includes(inventory?.status);
+  const showAddSampleTreeFlag =
+    inventory?.status &&
+    (getIncompleteStatus().includes(inventory?.status) || inventory?.status === FIX_NEEDED) &&
+    inventory?.locateTree === ON_SITE;
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -580,8 +590,8 @@ const InventoryOverview = ({ navigation }: any) => {
                   headingText={i18next.t('label.inventory_overview_header_text')}
                   subHeadingText={i18next.t('label.inventory_overview_sub_header')}
                   onBackPress={() => {
-                    if (route?.params?.navigateBackToHomeScreen) {
-                      navigation.navigate('MainScreen');
+                    if (route?.params?.navigateToScreen) {
+                      navigation.navigate(route.params.navigateToScreen);
                     } else {
                       navigation.navigate('TreeInventory');
                     }
@@ -630,57 +640,17 @@ const InventoryOverview = ({ navigation }: any) => {
                 {renderMapView()}
                 {showEditButton ? (
                   <TouchableOpacity
-                    style={{
-                      paddingVertical: 10,
-                      paddingHorizontal: 10,
-                      backgroundColor: Colors.WHITE,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: Colors.GRAY_LIGHT,
-                      position: 'absolute',
-                      top: 30,
-                      right: 6,
-                    }}
+                    style={styles.editBtn}
                     onPress={() => navigation.navigate('EditPolygon')}>
                     <MIcon name={'edit'} size={20} color={Colors.TEXT_COLOR} />
                   </TouchableOpacity>
                 ) : (
                   []
                 )}
-                {inventory?.status &&
-                (getIncompleteStatus().includes(inventory?.status) ||
-                  inventory?.status === FIX_NEEDED) &&
-                inventory?.locateTree === ON_SITE ? (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      right: showEditButton ? 48 : 0,
-                      paddingTop: 20,
-                    }}>
-                    <TouchableOpacity
-                      style={{
-                        paddingVertical: 11,
-                        paddingHorizontal: 12,
-                        margin: 10,
-                        backgroundColor: Colors.WHITE,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        borderColor: Colors.GRAY_LIGHT,
-                      }}
-                      onPress={
-                        inventory?.completedSampleTreesCount == 0 &&
-                        inventory?.locateTree === ON_SITE
-                          ? addSampleTree
-                          : addAnotherSampleTree
-                      }>
-                      <Text
-                        style={{
-                          color: '#007A49',
-                          fontFamily: Typography.FONT_FAMILY_REGULAR,
-                          fontSize: Typography.FONT_SIZE_14,
-                          fontWeight: Typography.FONT_WEIGHT_BOLD,
-                        }}>
+                {showAddSampleTreeFlag ? (
+                  <View style={[styles.addSampleTreeCon, { right: showEditButton ? 48 : 0 }]}>
+                    <TouchableOpacity style={styles.addSampleTreeBtn} onPress={handleAddSampleTree}>
+                      <Text style={styles.addSampleTreeText}>
                         {i18next.t('label.add_sample_tree')}
                       </Text>
                     </TouchableOpacity>
@@ -1055,23 +1025,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  markerContainer: {
-    width: 30,
-    height: 43,
-    paddingBottom: 85,
-  },
-  markerText: {
-    width: 30,
-    height: 43,
-    color: Colors.WHITE,
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingTop: 4,
-  },
-  screenMargin: {
-    marginHorizontal: 25,
-  },
+
   plantSpeciesText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_20,
@@ -1079,11 +1033,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
-  detailText: {
-    fontSize: Typography.FONT_SIZE_16,
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
+
   mapContainer: {
     backgroundColor: Colors.WHITE,
     height: 380,
@@ -1106,6 +1056,37 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.PLANET_RED,
+  },
+  addSampleTreeCon: {
+    position: 'absolute',
+    top: 0,
+    paddingTop: 20,
+  },
+  addSampleTreeBtn: {
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    margin: 10,
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
+  },
+  addSampleTreeText: {
+    color: '#007A49',
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+  },
+  editBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
+    position: 'absolute',
+    top: 30,
+    right: 6,
   },
 });
 

@@ -17,7 +17,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['react', 'react-native', 'prettier'],
-  parser: 'babel-eslint',
+  parser: '@babel/eslint-parser',
   rules: {
     indent: ['error', 2, { SwitchCase: 1 }],
     quotes: ['error', 'single'],

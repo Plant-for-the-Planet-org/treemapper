@@ -1,11 +1,13 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
 import React from 'react';
-import Config from 'react-native-config';
 import 'react-native-gesture-handler';
-import Provider from '../../reducers/provider';
-import AppNavigator from '../Navigator';
+import Config from 'react-native-config';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
+import '../../utils/ignoreWarnings';
+import AppNavigator from '../Navigator';
+import Provider from '../../reducers/provider';
+
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const App = () => {
   return (

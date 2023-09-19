@@ -1,22 +1,19 @@
-import AsyncStorage from '@react-native-community/async-storage';
 import Auth0 from 'react-native-auth0';
 import Config from 'react-native-config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { bugsnag } from '../utils';
 import dbLog from '../repositories/logs';
-import {addProjects, deleteAllProjects} from '../repositories/projects';
-import {resetAllSpecies} from '../repositories/species';
-import {createOrModifyUserToken, deleteUser, modifyUserDetails} from '../repositories/user';
-import {bugsnag} from '../utils';
-import {addInventoryFromServer} from '../utils/addInventoryFromServer';
-import {checkAndAddUserSpecies} from '../utils/addUserSpecies';
-import {getAuthenticatedRequest, getExpirationTimeStamp, postRequest} from '../utils/api';
-import {isInternetConnected} from '../utils/checkInternet';
-import {LogTypes} from '../utils/constants';
-import {CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS} from './Types';
-import {updateInventoryFetchFromServer} from './inventory';
-import {inventoryFetchConstant} from '../reducers/inventory';
+import { LogTypes } from '../utils/constants';
+import { resetAllSpecies } from '../repositories/species';
+import { isInternetConnected } from '../utils/checkInternet';
+import { addProjects, deleteAllProjects } from '../repositories/projects';
+import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
+import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '../utils/api';
+import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
-const auth0 = new Auth0({domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID});
+const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
 
 // stores the protocol and url used for api request
 
@@ -42,7 +39,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           prompt: 'login',
           audience: 'urn:plant-for-the-planet',
         },
-        {ephemeralSession: false},
+        { ephemeralSession: false },
       )
       .then(credentials => {
         const expirationTime = getExpirationTimeStamp(credentials.accessToken);
@@ -55,7 +52,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
 
         // creates the user after successful login by passing the credentials having accessToken, idToken
         // and refreshToken to store in DB
-        createOrModifyUserToken({...credentials, expirationTime});
+        createOrModifyUserToken({ ...credentials, expirationTime });
 
         // sets the accessToken and idToken in the user state of the app
         setUserInitialState(credentials)(dispatch);
@@ -73,16 +70,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               id: userId,
             }: any = userDetails;
 
-            console.log(
-              '\n\n==> getUserDetailsFromServer',
-              email,
-              firstName,
-              lastName,
-              image,
-              country,
-              userId,
-            );
-
             // dispatch function sets the passed user details into the user state
             setUserDetails({
               email,
@@ -93,11 +80,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               userId,
             })(dispatch);
 
-            getAllProjects();
-            checkAndAddUserSpecies().then(() => {
-              updateInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(inventoryDispatch);
-              addInventoryFromServer('', inventoryDispatch);
-            });
             resolve(true);
           })
           .catch(err => {
@@ -105,7 +87,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           });
       })
       .catch(err => {
-        console.log('\n\n==> err from auth0', err);
         if (err?.error !== 'a0.session.user_cancelled') {
           dbLog.error({
             logType: LogTypes.USER,
@@ -202,11 +183,11 @@ export const getNewAccessToken = async (refreshToken: string) => {
     if (refreshToken) {
       // calls the refreshToken function of auth0 by passing the refreshToken
       auth0.auth
-        .refreshToken({refreshToken})
+        .refreshToken({ refreshToken })
         .then(data => {
           const expirationTime = getExpirationTimeStamp(data.accessToken);
           // calls the repo function which modifies the accessToken, idToken and refreshToken from the fetched data
-          createOrModifyUserToken({...data, expirationTime});
+          createOrModifyUserToken({ ...data, expirationTime });
           // logs the success to DB
           dbLog.info({
             logType: LogTypes.USER,
@@ -326,7 +307,7 @@ export const SignupService = (payload: any, dispatch: any) => {
   return new Promise((resolve, reject) => {
     postRequest('/app/profile', payload)
       .then(async res => {
-        const {status, data}: any = res;
+        const { status, data }: any = res;
         if (status === 200) {
           await modifyUserDetails({
             firstName: data.firstname,
@@ -375,16 +356,17 @@ export const getAllProjects = () => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile/projects?_scope=extended')
       .then(async res => {
-        const {status, data}: any = res;
+        const { status, data }: any = res;
         if (status === 200) {
           await addProjects(data);
           // logging the success in to the db
+
           dbLog.info({
             logType: LogTypes.USER,
             message: 'Successfully Fetched all projects: GET - /app/profile/projects',
             statusCode: status,
           });
-          resolve(true);
+          resolve(data);
         }
       })
       .catch(err => {

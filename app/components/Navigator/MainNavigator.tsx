@@ -1,49 +1,56 @@
-import {
-  createStackNavigator,
-  HeaderStyleInterpolators,
-  StackNavigationOptions,
-  TransitionSpecs,
-} from '@react-navigation/stack';
 import React from 'react';
-import 'react-native-gesture-handler';
 import {
-  CreatePolygon,
-  DownloadMap,
-  InventoryOverview,
-  Legals,
-  LocateTree,
+  TransitionSpecs,
+  createStackNavigator,
+  StackNavigationOptions,
+  HeaderStyleInterpolators,
+} from '@react-navigation/stack';
+import 'react-native-gesture-handler';
+
+import {
   Logs,
-  MainScreen,
-  ManageSpecies,
-  ManageUsers,
-  RegisterSingleTree,
-  RegisterTree,
-  SavedAreas,
-  SelectCoordinates,
-  SelectProject,
-  SelectSpecies,
+  Legals,
   SignUp,
-  SingleTreeOverview,
+  MainScreen,
+  SavedAreas,
+  LocateTree,
+  ManageUsers,
+  DownloadMap,
+  RegisterTree,
+  CreatePolygon,
+  SelectProject,
+  ManageSpecies,
+  SelectSpecies,
   TreeInventory,
-  UploadedInventory,
-  SampleTreesCount,
-  RecordSampleTrees,
-  TotalTreesSpecies,
   LogoutWarning,
   ManageProjects,
+  SampleTreesCount,
   SpecieSampleTree,
+  UploadedInventory,
+  SelectCoordinates,
+  TotalTreesSpecies,
+  InventoryOverview,
+  RecordSampleTrees,
+  RegisterSingleTree,
+  SingleTreeOverview,
 } from '../';
-import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AdditionalData from '../AdditionalData';
-import AddEditElement from '../AdditionalData/AddEditElement';
-import SelectElement from '../AdditionalData/SelectElement';
-import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
+import TakePicture from '../../screens/TakePicture';
+import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AddMetadata from '../AdditionalData/AddMetadata';
-import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
-import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 import EditPolygon from '../InventoryOverview/EditPolygon';
+import SelectElement from '../AdditionalData/SelectElement';
+import AddEditElement from '../AdditionalData/AddEditElement';
+import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
+import TreeTypeSelection from '../RegistrationFlow/TreeTypeSelection';
+import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
+import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
+import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
+import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
+import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
 
 const Stack = createStackNavigator();
+const screenOptions = { headerShown: false };
 
 const MyTransition: StackNavigationOptions = {
   gestureDirection: 'vertical',
@@ -76,7 +83,7 @@ const MyTransition: StackNavigationOptions = {
 
 export default function MainNavigator() {
   return (
-    <Stack.Navigator initialRouteName="MainScreen" headerMode="none">
+    <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
       <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
       <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
@@ -127,6 +134,15 @@ export default function MainNavigator() {
       <Stack.Screen name="SpecieSampleTree" component={SpecieSampleTree} options={MyTransition} />
       <Stack.Screen name="AddMeasurements" component={AddMeasurements} options={MyTransition} />
       <Stack.Screen name="EditPolygon" component={EditPolygon} options={MyTransition} />
+      <Stack.Screen name="TreeTypeSelection" component={TreeTypeSelection} options={MyTransition} />
+      <Stack.Screen name="RemeasurementForm" component={RemeasurementForm} options={MyTransition} />
+      <Stack.Screen name="TakePicture" component={TakePicture} options={MyTransition} />
+      <Stack.Screen
+        name="RemeasurementReview"
+        component={RemeasurementReview}
+        options={MyTransition}
+      />
+      <Stack.Screen name="ProjectConfig" component={ProjectConfig} options={MyTransition} />
     </Stack.Navigator>
   );
 }

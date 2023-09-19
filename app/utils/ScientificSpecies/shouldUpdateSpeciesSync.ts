@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-community/async-storage';
-import dbLog from '../../repositories/logs';
 import { LogTypes } from '../constants';
+import dbLog from '../../repositories/logs';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Checks if the gap between current date and the last species updated date is greater than 90 then returns true else returns false
 const shouldUpdateSpeciesSync = async (): Promise<boolean> => {

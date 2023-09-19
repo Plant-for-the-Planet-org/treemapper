@@ -22,7 +22,7 @@ import SampleTreesCount from './SampleTrees/SampleTreesCount';
 import RecordSampleTrees from './SampleTrees/RecordSampleTrees';
 import TotalTreesSpecies from './SampleTrees/TotalTreesSpecies';
 import LogoutWarning from './LogoutWarning';
-import ManageProjects from './Projects/ManageProjects';
+import ManageProjects from '../screens/ManageProjectsFlow/ManageProjects';
 import SelectProject from './Projects/SelectProject';
 import SpecieSampleTree from './SpecieSampleTree';
 

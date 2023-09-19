@@ -1,22 +1,30 @@
-import { useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  SafeAreaView,
+  View,
   StyleSheet,
+  SafeAreaView,
   TouchableOpacity,
   useWindowDimensions,
-  View,
 } from 'react-native';
+import i18next from 'i18next';
 import { TabView } from 'react-native-tab-view';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { AdditionalDataContext } from '../../reducers/additionalData';
-import { Colors, Typography } from '../../styles';
-import { MULTI, OFF_SITE, ON_SITE, SAMPLE, SINGLE } from '../../utils/inventoryConstants';
-import CustomTabBar from '../Common/CustomTabBar';
-import Header from '../Common/Header';
+import React, { useContext, useEffect, useState } from 'react';
+
 import Form from './Form';
 import Metadata from './Metadata';
+import Header from '../Common/Header';
+import {
+  MULTI,
+  SAMPLE,
+  SINGLE,
+  ON_SITE,
+  OFF_SITE,
+  REMEASUREMENT,
+} from '../../utils/inventoryConstants';
+import { Colors, Typography } from '../../styles';
+import CustomTabBar from '../Common/CustomTabBar';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 
 interface IRenderSceneProps {
   route: {
@@ -37,7 +45,7 @@ export default function AdditionalData() {
     { key: 'all', disabled: false, value: i18next.t('label.all') },
     { key: ON_SITE, disabled: false, value: i18next.t('label.on_site') },
     { key: OFF_SITE, disabled: false, value: i18next.t('label.off_site') },
-    // { type: 'REVIEW', disabled:false,value: i18next.t('label.review') },
+    { type: REMEASUREMENT, disabled: false, value: i18next.t('label.remeasurement') },
   ];
 
   const [routeIndex, setRouteIndex] = useState(0);
@@ -105,9 +113,9 @@ export default function AdditionalData() {
       case 'form':
         return (
           <Form
-            registrationTypeOptions={registrationTypeOptions}
             treeTypeOptions={treeTypeOptions}
             selectedTreeOption={selectedTreeOption}
+            registrationTypeOptions={registrationTypeOptions}
           />
         );
       case 'metadata':
@@ -140,7 +148,7 @@ export default function AdditionalData() {
           renderScene={renderScene}
           onIndexChange={setRouteIndex}
           initialLayout={{ width: layout.width }}
-          renderTabBar={(props) => (
+          renderTabBar={props => (
             <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
           )}
           swipeEnabled={false}

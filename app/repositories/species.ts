@@ -1,11 +1,12 @@
-import { bugsnag } from '../utils';
 import Realm from 'realm';
-import { LogTypes } from '../utils/constants';
-import dbLog from '../repositories/logs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { bugsnag } from '../utils';
 import { getSchema } from './default';
-import AsyncStorage from '@react-native-community/async-storage';
-import { getBase64ImageFromURL, updateUserSpecie } from '../actions/species';
+import dbLog from '../repositories/logs';
+import { LogTypes } from '../utils/constants';
 import { IScientificSpecies } from '../utils/schemaInterfaces';
+import { getBase64ImageFromURL, updateUserSpecie } from '../actions/species';
 
 interface IApiSpeciesData {
   guid: string;

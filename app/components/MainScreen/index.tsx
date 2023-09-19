@@ -1,35 +1,41 @@
-import {useNetInfo} from '@react-native-community/netinfo';
-import {useNavigation} from '@react-navigation/core';
 import i18next from 'i18next';
-import React, {useContext, useEffect, useState} from 'react';
-import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import { useNavigation } from '@react-navigation/core';
+import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import {updateCount} from '../../actions/inventory';
-import {startLoading, stopLoading} from '../../actions/loader';
-import {auth0Login, auth0Logout, clearUserDetails, setUserDetails} from '../../actions/user';
-import {InventoryContext, inventoryFetchConstant} from '../../reducers/inventory';
-import {LoadingContext} from '../../reducers/loader';
-import {UserContext} from '../../reducers/user';
-import {getSchema} from '../../repositories/default';
+import React, { useContext, useEffect, useState } from 'react';
+import { Platform, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+
 import {
-  clearAllUploadedInventory,
   getInventoryCount,
   updateMissingDataStatus,
+  clearAllUploadedInventory,
 } from '../../repositories/inventory';
-import {getAllProjects} from '../../repositories/projects';
-import {shouldSpeciesUpdate} from '../../repositories/species';
-import {getUserDetails} from '../../repositories/user';
-import {Colors, Typography} from '../../styles';
-import {PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT} from '../../utils/inventoryConstants';
-import {AlertModal, Sync} from '../Common';
-import RotatingView from '../Common/RotatingView';
-import ProfileModal from '../ProfileModal';
+import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
-import MainMap from './MainMap';
+import ProfileModal from '../ProfileModal';
+import { AlertModal, Sync } from '../Common';
+import { UserContext } from '../../reducers/user';
+import { Colors, Typography } from '../../styles';
+import RotatingView from '../Common/RotatingView';
+import { InventoryType } from '../../types/inventory';
+import { getSchema } from '../../repositories/default';
+import { LoadingContext } from '../../reducers/loader';
+import { getAllProjects } from '../../repositories/projects';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+import { InventoryTypeSelector } from './InventoryTypeSelector';
+import { startLoading, stopLoading } from '../../actions/loader';
+import { shouldSpeciesUpdate } from '../../repositories/species';
+import { getUserDetails, modifyUserDetails } from '../../repositories/user';
+import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
+import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
+import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
+import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
 
 const IS_ANDROID = Platform.OS === 'android';
+const topValue = Platform.OS === 'ios' ? 50 : 25;
+const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -55,9 +61,10 @@ export default function MainScreen() {
   // used to store and focus on the center of the bounding box of the selected site
   const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
-  const {state, dispatch} = useContext(InventoryContext);
-  const {dispatch: userDispatch} = useContext(UserContext);
-  const {state: loadingState, dispatch: loadingDispatch} = useContext(LoadingContext);
+  const { state, dispatch } = useContext(InventoryContext);
+  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+  const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -162,6 +169,19 @@ export default function MainScreen() {
     }
   }
 
+  function plantLocationHistoryListener(
+    _: Realm.Collection<any>,
+    changes: Realm.CollectionChangeSet,
+  ) {
+    if (
+      changes.deletions.length > 0 ||
+      changes.insertions.length > 0 ||
+      changes.newModifications.length > 0
+    ) {
+      getPendingPlantLocationHistory();
+    }
+  }
+
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
   const initializeRealm = async (realm: Realm) => {
@@ -170,10 +190,12 @@ export default function MainScreen() {
       const userObject = realm.objects('User');
       const plantLocationObject = realm.objects('Inventory');
       const projectsObject = realm.objects('Projects');
+      const plantLocationHistoryObject = realm.objects('PlantLocationHistory');
       // Observe collection notifications.
       userObject.addListener(listener);
       plantLocationObject.addListener(inventoryListener);
       projectsObject.addListener(projectListener);
+      plantLocationHistoryObject.addListener(plantLocationHistoryListener);
     } catch (err) {
       console.error('Error at /components/MainScreen/initializeRealm, ', err);
     }
@@ -186,7 +208,6 @@ export default function MainScreen() {
       getUserDetails().then(userDetails => {
         if (userDetails) {
           const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          console.log('\n\n==> stringifiedUserDetails', stringifiedUserDetails);
           if (stringifiedUserDetails) {
             setUserInfo(stringifiedUserDetails);
             setIsUserLogin(!!stringifiedUserDetails.accessToken);
@@ -198,7 +219,7 @@ export default function MainScreen() {
 
   const fetchInventoryCount = () => {
     getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
-      updateCount({type: PENDING_DATA_UPLOAD, count})(dispatch);
+      updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
     });
     getInventoryCount().then(count => {
       setNumberOfInventory(count);
@@ -206,20 +227,17 @@ export default function MainScreen() {
   };
 
   const onPressLogin = async () => {
-    console.log('\n\n==> isUserLogin', isUserLogin);
     if (isUserLogin) {
       setIsProfileModalVisible(true);
     } else {
       startLoading()(loadingDispatch);
       auth0Login(userDispatch, dispatch)
         .then(() => {
-          console.log('\n\n==> login success');
           stopLoading()(loadingDispatch);
           fetchUserDetails();
           fetchInventoryCount();
         })
         .catch(err => {
-          console.log('\n\n==> err', err);
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (
@@ -242,9 +260,14 @@ export default function MainScreen() {
           if (isSyncRequired) {
             navigation.navigate('LogoutWarning');
           } else {
-            auth0Logout(userDispatch).then(result => {
+            auth0Logout(userDispatch).then(async result => {
               if (result) {
+                console.log('55');
                 setUserInfo({});
+                await modifyUserDetails({
+                  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+                });
+                setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
               }
             });
           }
@@ -255,8 +278,15 @@ export default function MainScreen() {
     }
   };
 
-  const topValue = Platform.OS === 'ios' ? 50 : 25;
+  const onBottomBarMenuPress = () => setIsProfileModalVisible(true);
+  const onTreeInventoryPress = () => navigation.navigate('TreeInventory');
+  const onPressCloseProfileModal = () => closeProfileModal();
+  const onPressPrimaryBtn = () => {
+    setOfflineModal(false);
+    closeProfileModal();
+  };
 
+  // console.log(isUserLogin, userInfo, 'userInfo?.type');
   return (
     <>
       <MainMap
@@ -270,23 +300,22 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={{position: 'absolute', top: topValue, left: 25, right: 25}}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-              }}>
-              <Sync
-                uploadCount={state.uploadCount}
-                pendingCount={state.pendingCount}
-                isUploading={state.isUploading}
-                isUserLogin={isUserLogin}
-                setEmailAlert={setEmailAlert}
-              />
+          <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
+            <View style={styles.mainMapHeader}>
+              <View style={{ display: 'flex', width: '45%' }}>
+                <Sync
+                  uploadCount={state.uploadCount}
+                  pendingCount={state.pendingCount}
+                  isUploading={state.isUploading}
+                  isUserLogin={isUserLogin}
+                  setEmailAlert={setEmailAlert}
+                />
+                {isUserLogin && <InventoryTypeSelector />}
+              </View>
 
               {isUserLogin ? (
-                userInfo?.type === 'tpo' && (
+                userInfo?.type === 'tpo' &&
+                projects.length > 0 && (
                   <ProjectAndSiteSelector
                     projects={projects}
                     showProjectOptions={showProjectOptions}
@@ -305,13 +334,13 @@ export default function MainScreen() {
               )}
             </View>
             {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
-              <View style={[styles.fetchPlantLocationContainer, {zIndex: IS_ANDROID ? 0 : -1}]}>
-                <View style={{marginRight: 16}}>
+              <View style={[styles.fetchPlantLocationContainer, FETCH_PLANT_LOCATION_ZINDEX]}>
+                <View style={styles.syncIconContainer}>
                   <RotatingView isClockwise={true}>
                     <FA5Icon size={16} name="sync-alt" color={Colors.PRIMARY} />
                   </RotatingView>
                 </View>
-                <View style={{flex: 1}}>
+                <View style={styles.syncTextContainer}>
                   <Text style={styles.text}>
                     {i18next.t('label.plant_location_fetch_in_progress')}
                   </Text>
@@ -323,8 +352,8 @@ export default function MainScreen() {
           </View>
           <SafeAreaView>
             <BottomBar
-              onMenuPress={() => setIsProfileModalVisible(true)}
-              onTreeInventoryPress={() => navigation.navigate('TreeInventory')}
+              onMenuPress={onBottomBarMenuPress}
+              onTreeInventoryPress={onTreeInventoryPress}
               numberOfInventory={numberOfInventory}
             />
           </SafeAreaView>
@@ -335,7 +364,7 @@ export default function MainScreen() {
 
       <ProfileModal
         isProfileModalVisible={isProfileModalVisible}
-        onPressCloseProfileModal={() => closeProfileModal()}
+        onPressCloseProfileModal={onPressCloseProfileModal}
         onPressLogout={onPressLogout}
         userInfo={userInfo}
       />
@@ -344,10 +373,7 @@ export default function MainScreen() {
         heading={i18next.t('label.network_error')}
         message={i18next.t('label.network_error_message')}
         primaryBtnText={i18next.t('label.ok')}
-        onPressPrimaryBtn={() => {
-          setOfflineModal(false);
-          closeProfileModal();
-        }}
+        onPressPrimaryBtn={onPressPrimaryBtn}
       />
     </>
   );
@@ -369,5 +395,21 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
+  },
+  mainMapHeaderContainer: {
+    position: 'absolute',
+    left: 25,
+    right: 25,
+  },
+  mainMapHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  syncIconContainer: {
+    marginRight: 16,
+  },
+  syncTextContainer: {
+    flex: 1,
   },
 });

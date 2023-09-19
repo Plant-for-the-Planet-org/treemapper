@@ -1,21 +1,22 @@
-import { useNavigation, useRoute } from '@react-navigation/core';
-import { RouteProp } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  Dimensions,
-  SafeAreaView,
+  Text,
+  View,
   ScrollView,
   StyleSheet,
-  Text,
+  Dimensions,
+  SafeAreaView,
   TouchableOpacity,
-  View,
 } from 'react-native';
-import { AdditionalDataContext } from '../../reducers/additionalData';
-import { Colors, Typography } from '../../styles';
-import { elementsType } from '../../utils/additionalData/constants';
+import i18next from 'i18next';
+import { RouteProp } from '@react-navigation/native';
+import React, { useContext, useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/core';
+
 import { Header } from '../Common';
 import IconSwitcher from '../Common/IconSwitcher';
+import { Colors, Typography } from '../../styles';
+import { elementsType } from '../../utils/additionalData/constants';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 
 type RootStackParamList = {
   SelectElement: { formId: string; formOrder: number };
@@ -66,6 +67,7 @@ const elements = [
 const SelectElement = () => {
   const [formId, setFormId] = useState<string>('');
   const [formOrder, setFormOrder] = useState<number>(1);
+
   const navigation = useNavigation();
   const route: SelectElementScreenRouteProp = useRoute();
 

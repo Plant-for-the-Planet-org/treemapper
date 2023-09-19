@@ -1,18 +1,20 @@
 import i18next from 'i18next';
+import { SvgXml } from 'react-native-svg';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
-import { APIConfig } from '../../actions/Config';
-import { plant_project } from '../../assets';
-import { getAllProjects } from '../../repositories/projects';
-import { Colors, Typography } from '../../styles';
-import { handleFilter } from '../../utils/CountryDataFilter';
-import openWebView from '../../utils/openWebView';
+
 import { LargeButton } from '../Common';
+import { plant_project } from '../../assets';
+import { APIConfig } from '../../actions/Config';
+import { Colors, Typography } from '../../styles';
+import openWebView from '../../utils/openWebView';
+import { handleFilter } from '../../utils/CountryDataFilter';
+import { getAllProjects } from '../../repositories/projects';
+
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
 interface ProjectListProps {
-  isSelectable?: boolean;
+  isSelectable: boolean;
   onProjectPress?: any;
   selectedProjectId?: string;
 }
@@ -28,46 +30,54 @@ export default function ProjectList({
     getAllProjects().then((projectsData: any) => (projectsData ? setProjects(projectsData) : {}));
   }, []);
 
+  const listHeaderComponent = () => {
+    if (isSelectable) {
+      return (
+        <LargeButton
+          heading={i18next.t('label.continue_without_project')}
+          subHeading={i18next.t('label.continue_without_project_desc')}
+          onPress={() => onProjectPress(null)}
+          active={!selectedProjectId}
+        />
+      );
+    }
+    return <></>;
+  };
+
+  const listFooterComponent = () => {
+    return (
+      <LargeButton
+        onPress={() => openWebView(`${protocol}://${webAppUrl}/profile/projects/new-project`)}
+        style={{ marginTop: 20 }}
+        heading={i18next.t('label.add_new_project')}
+        subHeading={i18next.t('label.add_new_project_desc')}
+        testID={'add_new_project_button'}
+        accessibilityLabel={'add_new_project_button'}
+      />
+    );
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    if (isSelectable) {
+      return (
+        <TouchableProjectItem
+          item={item}
+          onProjectPress={() => {
+            onProjectPress(item.id);
+          }}
+          selectedProjectId={selectedProjectId}
+        />
+      );
+    }
+    return <ProjectItem item={item} />;
+  };
+
   return (
     <FlatList
       data={projects}
-      ListHeaderComponent={() => {
-        if (isSelectable) {
-          return (
-            <LargeButton
-              heading={i18next.t('label.continue_without_project')}
-              subHeading={i18next.t('label.continue_without_project_desc')}
-              onPress={() => onProjectPress(null)}
-              active={!selectedProjectId}
-            />
-          );
-        }
-        return <></>;
-      }}
-      ListFooterComponent={() => {
-        return (
-          <LargeButton
-            onPress={() => openWebView(`${protocol}://${webAppUrl}/manage-projects/add-project`)}
-            style={{ marginTop: 20 }}
-            heading={i18next.t('label.add_new_project')}
-            subHeading={i18next.t('label.add_new_project_desc')}
-            testID={'add_new_project_button'}
-            accessibilityLabel={'add_new_project_button'}
-          />
-        );
-      }}
-      renderItem={({ item }: { item: any }) => {
-        if (isSelectable) {
-          return (
-            <TouchableProjectItem
-              item={item}
-              onProjectPress={() => onProjectPress(item.id)}
-              selectedProjectId={selectedProjectId}
-            />
-          );
-        }
-        return <ProjectItem item={item} />;
-      }}
+      ListHeaderComponent={listHeaderComponent}
+      ListFooterComponent={listFooterComponent}
+      renderItem={renderItem}
       keyExtractor={(item: any) => item.id}
     />
   );
@@ -76,7 +86,7 @@ export default function ProjectList({
 const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId?: string }) => {
   const isProjectSelected = selectedProjectId === item.id;
   let country: any = handleFilter(item.country);
-  if (country) {
+  if (country && country.length > 0) {
     country = country[0].countryName;
   }
   return (

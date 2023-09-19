@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Header, LargeButton, PrimaryButton } from '../Common';
-import { SafeAreaView } from 'react-native';
-import { InventoryContext } from '../../reducers/inventory';
-import { Colors } from '_styles';
 import i18next from 'i18next';
+import React, { useState, useContext } from 'react';
+import { SafeAreaView, View, StyleSheet, ScrollView } from 'react-native';
+
+import { Colors } from '_styles';
+import { InventoryContext } from '../../reducers/inventory';
 import { deleteInventoryId } from '../../actions/inventory';
+import { Header, LargeButton, PrimaryButton } from '../Common';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 
 const RegisterTree = ({ navigation }) => {
@@ -27,9 +27,9 @@ const RegisterTree = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
+    <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.container}>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.flex_1} showsVerticalScrollIndicator={false}>
           <Header
             headingText={i18next.t('label.register_trees')}
             subHeadingText={i18next.t('label.register_trees_description')}
@@ -52,14 +52,14 @@ const RegisterTree = ({ navigation }) => {
             testID={'page_rt_multiple_trees'}
             accessibilityLabel={'Multiple Trees'}
           />
-          <View style={{ flex: 1 }}></View>
+          <View style={styles.flex_1}></View>
         </ScrollView>
         <PrimaryButton
-          onPress={onPressContinue}
-          btnText={i18next.t('label.continue')}
           theme={'primary'}
+          onPress={onPressContinue}
           testID={'btn_rt_continue'}
           accessibilityLabel={'Continue'}
+          btnText={i18next.t('label.continue')}
         />
       </View>
     </SafeAreaView>
@@ -68,10 +68,17 @@ const RegisterTree = ({ navigation }) => {
 export default RegisterTree;
 
 const styles = StyleSheet.create({
+  safeAreaView: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
+  },
+  flex_1: {
+    flex: 1,
   },
   activeTextColor: {
     color: Colors.PRIMARY,

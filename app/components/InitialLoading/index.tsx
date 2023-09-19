@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
-import { Colors, Typography } from '../../styles';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
-import { mobile_download, cloud_sync } from '../../assets';
-import i18next from '../../languages/languages';
-import { migrateRealm } from '../../repositories/default';
-import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
-import AsyncStorage from '@react-native-community/async-storage';
-import { NavigationContext } from '../../reducers/navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+
 import dbLog from '../../repositories/logs';
+import i18next from '../../languages/languages';
 import { LogTypes } from '../../utils/constants';
+import { Colors, Typography } from '../../styles';
+import { migrateRealm } from '../../repositories/default';
+import { mobile_download, cloud_sync } from '../../assets';
+import { NavigationContext } from '../../reducers/navigation';
+import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
 import shouldUpdateSpeciesSync from '../../utils/ScientificSpecies/shouldUpdateSpeciesSync';
 
 const SpeciesContainer = ({ updatingSpeciesState }: { updatingSpeciesState: string }) => {
@@ -119,7 +120,7 @@ export default function InitialLoading() {
         ) : (
           <Text style={styles.descriptionText}>{descriptionText}</Text>
         )}
-        <ActivityIndicator size="large" color={Colors.PRIMARY} style={{ paddingVertical: 20 }} />
+        <ActivityIndicator size="large" color={Colors.PRIMARY} style={styles.activityIndicator} />
       </View>
     </SafeAreaView>
   );
@@ -149,5 +150,8 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
     marginTop: 20,
+  },
+  activityIndicator: {
+    paddingVertical: 20,
   },
 });

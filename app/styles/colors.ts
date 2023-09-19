@@ -2,6 +2,7 @@ export const PRIMARY = '#68B030';
 export const PRIMARY_DARK = '#007A49';
 export const PLANET_PURPLE = '#6C63FF';
 export const PLANET_RED = '#E86F56';
+export const PLANET_CRIMSON = '#990000';
 export const PLANET_GRAY = '#EBEBEB';
 export const PLANET_BLUE = '#48AADD';
 export const PLANET_BLACK = '#2F3336';

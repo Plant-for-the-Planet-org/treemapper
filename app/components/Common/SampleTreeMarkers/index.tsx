@@ -1,10 +1,12 @@
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Colors, Typography } from '../../../styles';
-import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
-import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import React, { useEffect, useState } from 'react';
+import MapLibreGL from '@maplibre/maplibre-react-native';
+
 import MarkerSVG from '../../Common/MarkerSVG';
+import { Colors, Typography } from '../../../styles';
+import { toLetters } from '../../../utils/mapMarkingCoordinate';
+import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
+import { getIsDateInRemeasurementRange } from '../../../utils/remeasurement';
 
 interface Props {
   geoJSON: any;
@@ -16,8 +18,13 @@ interface Props {
   locateTree?: string;
   isCarouselSample?: boolean;
   activeSampleCarouselIndex?: number | null;
+  setActiveSampleCarouselIndex?: any;
+  sampleCarouselRef?: any;
 }
-
+function useForceUpdate() {
+  const [value, setValue] = useState(0); // integer state
+  return () => setValue(value => value + 1); // update the state to force render
+}
 const SampleTreeMarkers = ({
   geoJSON,
   isPointForMultipleTree,
@@ -28,33 +35,53 @@ const SampleTreeMarkers = ({
   locateTree = '',
   isCarouselSample = false,
   activeSampleCarouselIndex = null,
+  setActiveSampleCarouselIndex,
+  sampleCarouselRef,
 }: Props) => {
   const markers = [];
+  const [selectedMarker, setSelectedMarker] = useState();
+  const forceUpdate = useForceUpdate();
+  useEffect(() => {
+    forceUpdate();
+  }, [isCarouselSample, activeSampleCarouselIndex]);
+
   for (let i = isPointForMultipleTree ? 0 : 1; i < geoJSON.features.length; i++) {
     let onePoint = geoJSON.features[i];
     const markerText = isPointForMultipleTree ? toLetters(1) : `${i}`;
     let oneMarker = onePoint.geometry.coordinates;
 
+    let shouldRemeasure = getIsDateInRemeasurementRange(
+      geoJSON.features[i].properties?.app?.plantationDate,
+    );
+
     let color = Colors.PRIMARY_DARK;
     let opacity = 1;
-
-    if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {
-      color = Colors.PLANET_RED;
-    }
 
     if (isCarouselSample && activeSampleCarouselIndex !== i - 1) {
       color = Colors.GRAY_LIGHTEST;
       opacity = 0.6;
     }
+    if (shouldRemeasure) {
+      color = Colors.PLANET_CRIMSON;
+    }
+    if (geoJSON?.features[i].properties?.app?.status === FIX_NEEDED) {
+      color = Colors.PLANET_RED;
+    }
 
     markers.push(
-      <MapboxGL.PointAnnotation
+      <MapLibreGL.PointAnnotation
         key={`sampleTree-${i}`}
         id={`sampleTree-${i}`}
         coordinate={oneMarker}
         onSelected={feature => {
+          if (sampleCarouselRef && sampleCarouselRef?.current) {
+            sampleCarouselRef.current.snapToItem(i - 1);
+            setActiveSampleCarouselIndex(i - 1);
+            setSelectedMarker(i);
+          }
+
           if (
-            locateTree == ON_SITE &&
+            // locateTree == ON_SITE &&
             onPressMarker &&
             setCoordinateIndex &&
             setIsSampleTree &&
@@ -66,28 +93,15 @@ const SampleTreeMarkers = ({
             setCoordinateModalShow(true);
           }
         }}>
-        <MarkerSVG point={markerText} color={color} opacity={opacity} />
-      </MapboxGL.PointAnnotation>,
+        <MarkerSVG
+          point={markerText}
+          color={color}
+          opacity={i == activeSampleCarouselIndex ? 1 : opacity}
+        />
+      </MapLibreGL.PointAnnotation>,
     );
   }
   return <>{markers}</>;
 };
 
 export default SampleTreeMarkers;
-
-const styles = StyleSheet.create({
-  markerContainer: {
-    width: 30,
-    height: 43,
-    paddingBottom: 85,
-  },
-  markerText: {
-    width: 30,
-    height: 43,
-    color: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-    textAlign: 'center',
-    paddingTop: 4,
-  },
-});

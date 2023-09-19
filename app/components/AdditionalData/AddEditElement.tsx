@@ -1,36 +1,37 @@
-import { useRoute } from '@react-navigation/core';
-import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  SafeAreaView,
+  Text,
+  View,
+  Switch,
   ScrollView,
   StyleSheet,
-  Switch,
-  Text,
+  SafeAreaView,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import i18next from 'i18next';
+import { nanoid } from 'nanoid';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
-import { AdditionalDataContext } from '../../reducers/additionalData';
-import { Colors, Typography } from '../../styles';
-import { marginTop24, marginTop30 } from '../../styles/design';
+import { useRoute } from '@react-navigation/core';
+import React, { useContext, useEffect, useState } from 'react';
+import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
+
 import {
-  accessTypes,
-  elementsType,
-  ElementType,
-  inputOptions,
   inputTypes,
-  nonInputElementsTypes,
+  accessTypes,
+  ElementType,
   numberRegex,
+  elementsType,
+  inputOptions,
+  nonInputElementsTypes,
 } from '../../utils/additionalData/constants';
+import KeyValueInput from './KeyValueInput';
+import TypeSelection from './TypeSelection';
+import { Colors, Typography } from '../../styles';
 import { Header, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
+import { marginTop24, marginTop30 } from '../../styles/design';
+import { AdditionalDataContext } from '../../reducers/additionalData';
 import AddDropdownOption from './AddElementSwitcher/AddDropdownOption';
-import KeyValueInput from './KeyValueInput';
-import TypeSelection from './TypeSelection';
 
 type RootStackParamList = {
   AddEditElement: {
@@ -226,11 +227,11 @@ export default function AddEditElement() {
 
   const getElementData = () => {
     if (areElementPropsValid()) {
-      const id = elementId || uuidv4();
+      const id = elementId || nanoid();
       let typeProperties: any = {
         defaultValue,
         isRequired,
-        id: isModification ? subElementId : uuidv4(),
+        id: isModification ? subElementId : nanoid(),
         parentId: id,
       };
 
@@ -309,7 +310,7 @@ export default function AddEditElement() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.flex1}>
       <View style={styles.container}>
         <Header
           headingText={headingText}
@@ -326,7 +327,7 @@ export default function AddEditElement() {
             return <></>;
           }}
         />
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
           <AddElementSwitcher
             elementType={elementType}
             isAdvanceModeEnabled={isAdvanceModeEnabled}
@@ -437,6 +438,7 @@ const Switcher = ({ switchText = '', isEnabled, setIsEnabled }: ISwitcherProps) 
 };
 
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: 25,

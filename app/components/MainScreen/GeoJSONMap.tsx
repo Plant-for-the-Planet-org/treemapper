@@ -1,11 +1,14 @@
-import MapboxGL, { LineLayerStyle } from '@react-native-mapbox-gl/maps';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleProp, StyleSheet } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { Platform, StyleProp, StyleSheet } from 'react-native';
+import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+
 import { Colors } from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+
+const mapStyle = JSON.stringify(require('../../assets/mapStyle/mapStyleOutput.json'));
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -17,9 +20,9 @@ interface IGeoJSONMapProps {
   carouselRef: any;
   isCameraRefVisible: boolean;
   camera: any;
-  location: MapboxGL.Location | Geolocation.GeoPosition | undefined;
+  location: MapLibreGL.Location | Geolocation.GeoPosition | undefined;
   setLocation: React.Dispatch<
-    React.SetStateAction<MapboxGL.Location | Geolocation.GeoPosition | undefined>
+    React.SetStateAction<MapLibreGL.Location | Geolocation.GeoPosition | undefined>
   >;
   geoJSON: any;
   pointGeoJSON: any;
@@ -33,6 +36,8 @@ interface IGeoJSONMapProps {
   siteCenterCoordinate: any;
   siteBounds: any;
   projectSites: any;
+  remeasurePolygons: string[];
+  remeasureDuePolygons: string[];
 }
 
 const GeoJSONMap = ({
@@ -57,6 +62,8 @@ const GeoJSONMap = ({
   siteCenterCoordinate,
   siteBounds,
   projectSites,
+  remeasurePolygons,
+  remeasureDuePolygons,
 }: IGeoJSONMapProps) => {
   const geoJSONInitialState = {
     type: 'FeatureCollection',
@@ -70,6 +77,8 @@ const GeoJSONMap = ({
       },
     ],
   };
+
+  // console.log(JSON.stringify(geoJSON), '==geoJSON==');
 
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
@@ -186,25 +195,70 @@ const GeoJSONMap = ({
 
   const SitePolygon = useCallback(() => {
     return (
-      <MapboxGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
-        <MapboxGL.LineLayer
+      <MapLibreGL.ShapeSource id={'projectSites'} shape={projectSitesGeoJSON}>
+        <MapLibreGL.LineLayer
           id={'projectSitesPolyline'}
           style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
         />
-      </MapboxGL.ShapeSource>
+      </MapLibreGL.ShapeSource>
     );
   }, [projectSitesGeoJSON]);
 
+  const RemeasurePolygon = () => {
+    return (
+      <>
+        <MapLibreGL.ShapeSource
+          id={'point'}
+          shape={pointGeoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapLibreGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
+        </MapLibreGL.ShapeSource>
+        <MapLibreGL.ShapeSource
+          id={'polygon'}
+          shape={geoJSON}
+          onPress={e => {
+            console.log('\n\n\ne.features ssss', e.features);
+            if (e?.features.length > 0) {
+              getSelectedPlantLocations(e.features);
+            }
+          }}>
+          <MapLibreGL.FillLayer
+            id={'polyFill'}
+            style={{
+              fillColor: ['get', 'color'],
+              fillOpacity: 0.3,
+            }}
+          />
+          <MapLibreGL.LineLayer
+            id={'polyline'}
+            style={{
+              lineWidth: 2,
+              lineColor: ['get', 'color'],
+              lineOpacity: 0.5,
+              lineJoin: 'bevel',
+            }}
+          />
+        </MapLibreGL.ShapeSource>
+      </>
+    );
+  };
+
   return (
-    <MapboxGL.MapView
+    <MapLibreGL.MapView
       style={styles.container}
+      styleURL={mapStyle}
       ref={map}
       compassViewPosition={3}
       compassViewMargins={compassViewMargins}
       attributionPosition={attributionPosition}
       onRegionWillChange={onChangeRegionStart}
       onRegionDidChange={onChangeRegionComplete}>
-      <MapboxGL.Camera
+      <MapLibreGL.Camera
         ref={el => {
           camera.current = el;
           setIsCameraRefVisible(!!el);
@@ -220,23 +274,59 @@ const GeoJSONMap = ({
             geoJSON={singleSelectedGeoJSON}
             isPointForMultipleTree={false}
             activeSampleCarouselIndex={activeSampleCarouselIndex}
+            setActiveSampleCarouselIndex={setActiveSampleCarouselIndex}
             isCarouselSample
+            sampleCarouselRef={sampleCarouselRef}
           />
-          <MapboxGL.ShapeSource
+          <MapLibreGL.ShapeSource
             id={'singleSelectedPolygon'}
             shape={{
               type: 'FeatureCollection',
               features: [singleSelectedGeoJSON.features[0]],
             }}>
-            <MapboxGL.FillLayer id={'singleSelectedPolyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'singleSelectedPolyline'} style={polyline} />
-            <MapboxGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} />
-          </MapboxGL.ShapeSource>
+            <MapLibreGL.FillLayer id={'singleSelectedPolyFill'} style={fillStyle} />
+            <MapLibreGL.LineLayer id={'singleSelectedPolyline'} style={polyline} />
+            <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} />
+          </MapLibreGL.ShapeSource>
         </>
       ) : showClickedGeoJSON && clickedGeoJSON.length > 0 ? (
         clickedGeoJSON.map((singleGeoJson, index) => {
+          const styles = {
+            remeasurePolygonStyle: {
+              fill: remeasureFillStyle,
+              line: remeasurePolyline,
+              circle: remeasureCircleStyle,
+            },
+            remeasureDuePolygonStyle: {
+              fill: remeasureElapseFillStyle,
+              line: remeasureElapsePolyline,
+              circle: remeasureElapseCircleStyle,
+            },
+            selectedDefaultStyle: {
+              fill: fillStyle,
+              line: polyline,
+              circle: circleStyle,
+            },
+            notSelectedDefaultStyle: {
+              fill: inactiveFillStyle,
+              line: inactivePolyline,
+              circle: inactiveCircleStyle,
+            },
+          };
+
+          const inventoryId = singleGeoJson?.features[0]?.properties?.inventoryId;
+
+          const isSelected = activeCarouselIndex == index;
+          const polygonStyleKey = remeasurePolygons.includes(inventoryId)
+            ? 'remeasurePolygonStyle'
+            : remeasureDuePolygons.includes(inventoryId)
+            ? 'remeasureDuePolygonStyle'
+            : isSelected
+            ? 'selectedDefaultStyle'
+            : 'notSelectedDefaultStyle';
+
           return (
-            <MapboxGL.ShapeSource
+            <MapLibreGL.ShapeSource
               key={`polygonClicked-${index}`}
               id={`polygonClicked-${index}`}
               shape={singleGeoJson}
@@ -249,53 +339,38 @@ const GeoJSONMap = ({
                 }
               }}
               style={activeCarouselIndex === index ? { zIndex: 1000 } : { zIndex: 999 }}>
-              <MapboxGL.FillLayer
+              <MapLibreGL.FillLayer
                 id={`polyFillClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveFillStyle : fillStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].fill,
+                  fillOpacity: isSelected ? 0.3 : 0.1,
+                }}
               />
-              <MapboxGL.LineLayer
+              <MapLibreGL.LineLayer
                 id={`polylineClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactivePolyline : polyline}
+                style={{ ...styles[`${polygonStyleKey}`].line, lineOpacity: isSelected ? 1 : 0.5 }}
               />
 
-              <MapboxGL.CircleLayer
+              <MapLibreGL.CircleLayer
                 id={`circleClicked-${index}`}
-                style={activeCarouselIndex !== index ? inactiveCircleStyle : circleStyle}
+                style={{
+                  ...styles[`${polygonStyleKey}`].circle,
+                  circleOpacity: isSelected ? 1 : 0.2,
+                }}
               />
-            </MapboxGL.ShapeSource>
+            </MapLibreGL.ShapeSource>
           );
         })
       ) : (
         <>
-          <MapboxGL.ShapeSource
-            id={'point'}
-            shape={pointGeoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.CircleLayer id={'pointCircle'} style={bigCircleStyle} />
-          </MapboxGL.ShapeSource>
-          <MapboxGL.ShapeSource
-            id={'polygon'}
-            shape={geoJSON}
-            onPress={e => {
-              if (e?.features.length > 0) {
-                getSelectedPlantLocations(e.features);
-              }
-            }}>
-            <MapboxGL.FillLayer id={'polyFill'} style={fillStyle} />
-            <MapboxGL.LineLayer id={'polyline'} style={polyline} />
-            {/* <MapboxGL.CircleLayer id={'circle'} style={circleStyle} aboveLayerID={'fillpoly'} /> */}
-          </MapboxGL.ShapeSource>
+          <RemeasurePolygon />
           <SitePolygon />
         </>
       )}
       {location && (
-        <MapboxGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
+        <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
       )}
-    </MapboxGL.MapView>
+    </MapLibreGL.MapView>
   );
 };
 
@@ -321,9 +396,27 @@ const inactivePolyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 };
 
+const remeasurePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.WARNING,
+  lineOpacity: 1,
+  lineJoin: 'bevel',
+};
+
+const remeasureElapsePolyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.PLANET_CRIMSON,
+  lineOpacity: 1,
+  lineJoin: 'bevel',
+};
+
 const fillStyle = { fillColor: Colors.PRIMARY, fillOpacity: 0.3 };
 const inactiveFillStyle = { fillColor: Colors.PLANET_BLACK, fillOpacity: 0.2 };
+const remeasureFillStyle = { fillColor: Colors.WARNING, fillOpacity: 0.3 };
+const remeasureElapseFillStyle = { fillColor: Colors.PLANET_CRIMSON, fillOpacity: 0.3 };
 
 const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
 const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 const inactiveCircleStyle = { circleColor: Colors.PLANET_BLACK, circleOpacity: 0.2 };
+const remeasureCircleStyle = { circleColor: Colors.WARNING, circleOpacity: 0.2 };
+const remeasureElapseCircleStyle = { circleColor: Colors.PLANET_CRIMSON, circleOpacity: 0.2 };

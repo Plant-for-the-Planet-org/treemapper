@@ -1,8 +1,8 @@
-import MapboxGL, {
+import MapLibreGL, {
   CircleLayerStyle,
   FillLayerStyle,
   LineLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+} from '@maplibre/maplibre-react-native';
 import { useNavigation } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import i18next from 'i18next';
@@ -279,7 +279,7 @@ const EditPolygon = () => {
 
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         style={styles.container}
         ref={map}
         pitchEnabled={false}
@@ -289,7 +289,7 @@ const EditPolygon = () => {
           right: 8,
         }}
         logoEnabled>
-        <MapboxGL.Camera
+        <MapLibreGL.Camera
           ref={el => {
             camera.current = el;
             setIsCameraRefVisible(!!el);
@@ -299,17 +299,19 @@ const EditPolygon = () => {
         {!isPointJSON ? (
           <>
             {/* original geoJSON to show */}
-            <MapboxGL.ShapeSource id={'nonDragablePolygon'} shape={nonDragableGeoJSON}>
-              <MapboxGL.FillLayer id={'nonDragablePolyFill'} style={inactiveFillStyle} />
-              {/* <MapboxGL.LineLayer id={'nonDragablePolyline'} style={inactivePolyline} /> */}
-              <MapboxGL.CircleLayer id={'nonDragableCircle'} style={inactiveCircle} />
-            </MapboxGL.ShapeSource>
+            <MapLibreGL.ShapeSource id={'nonDragablePolygon'} shape={nonDragableGeoJSON}>
+              <MapLibreGL.FillLayer id={'nonDragablePolyFill'} style={inactiveFillStyle} />
+              {/* <MapLibreGL.LineLayer id={'nonDragablePolyline'} style={inactivePolyline} /> */}
+              <MapLibreGL.CircleLayer id={'nonDragableCircle'} style={inactiveCircle} />
+            </MapLibreGL.ShapeSource>
 
             {/* changes as the coordinates changes */}
-            <MapboxGL.ShapeSource id={'dragablePolygon'} shape={draggedGeoJSON[currentStackIndex]}>
-              <MapboxGL.FillLayer id={'dragablePolyFill'} style={fillStyle} />
-              <MapboxGL.LineLayer id={'dragablePolyline'} style={polyline} />
-            </MapboxGL.ShapeSource>
+            <MapLibreGL.ShapeSource
+              id={'dragablePolygon'}
+              shape={draggedGeoJSON[currentStackIndex]}>
+              <MapLibreGL.FillLayer id={'dragablePolyFill'} style={fillStyle} />
+              <MapLibreGL.LineLayer id={'dragablePolyline'} style={polyline} />
+            </MapLibreGL.ShapeSource>
           </>
         ) : (
           []
@@ -324,7 +326,7 @@ const EditPolygon = () => {
         />
 
         {isPointJSON ? <Markers geoJSON={nonDragableGeoJSON} nonDragablePoint /> : []}
-      </MapboxGL.MapView>
+      </MapLibreGL.MapView>
 
       <EditPolygonButtons
         navigation={navigation}

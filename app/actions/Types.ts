@@ -48,3 +48,27 @@ export const SET_IS_EXTRA_SAMPLE_TREE = 'SET_IS_EXTRA_SAMPLE_TREE';
 
 // Used to check if fetching of registrations are completed and load the geoJSON on the map
 export const INVENTORY_FETCH_FROM_SERVER = 'INVENTORY_FETCH_FROM_SERVER';
+
+// Used to set the remeasurement id for an inventory
+export const SET_SELECTED_REMEASUREMENT_ID = 'SET_SELECTED_REMEASUREMENT_ID';
+
+// Used to set the index of the remeasurement of sample tree
+export const SET_SAMPLE_PLANT_LOCATION_INDEX = 'SET_SAMPLE_PLANT_LOCATION_INDEX';
+
+//Used to set the selected project in project context
+export const SET_PROJECT = 'SET_PROJECT';
+
+//Used to delete the selected project from project context
+export const CLEAR_PROJECT = 'CLEAR_PROJECT';
+
+//Used to set the selected project site in project context
+export const SET_PROJECT_SITE = 'SET_PROJECT_SITE';
+
+//Used to delete the selected project from project context
+export const CLEAR_PROJECT_SITE = 'CLEAR_PROJECT_SITE';
+
+//Used to delete the selected project from project context
+export const CLEAR_PROJECT_AND_PROJECT_SITE = 'CLEAR_PROJECT_AND_PROJECT_SITE';
+
+//Fetch necessary inventory
+export const SWITCH_FETCH_NECESSARY_INVENTORY_FLAG = 'SWITCH_FETCH_NECESSARY_INVENTORY_FLAG';

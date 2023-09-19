@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform, ViewStyle } from 'react-native';
-import { Colors, Typography } from '../../../styles';
-import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import i18next from 'i18next';
 import RNFS from 'react-native-fs';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
+import React, { useEffect, useState } from 'react';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, Text, StyleSheet, Image, Platform, ViewStyle } from 'react-native';
+
+import { Colors, Typography } from '../../../styles';
 import { APIConfig } from './../../../actions/Config';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../../utils/constants';
+import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
+import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
+
 const { protocol, cdnUrl } = APIConfig;
 
 interface IInventoryCardProps {
@@ -61,10 +63,11 @@ const InventoryCard = ({
     ? `${Math.round(data.height * meterToFoot * 1000) / 1000} ${i18next.t(
         'label.select_species_feet',
       )}`
-    : `${Math.round(data.height) / 1000} m`;
+    : `${Math.round(data.height * 1000) / 1000} m`;
+
   const diameterWithUnit = nonISUCountries.includes(data.countryCode)
     ? `${Math.round(data.diameter * cmToInch) / 1000} ${i18next.t('label.select_species_inches')}`
-    : `${Math.round(data.diameter) / 1000} cm`;
+    : `${Math.round(data.diameter * 1000) / 1000} cm`;
 
   return (
     <View style={[styles.container, containerStyle]}>

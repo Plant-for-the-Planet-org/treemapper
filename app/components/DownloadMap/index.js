@@ -1,30 +1,37 @@
-import { useNetInfo } from '@react-native-community/netinfo';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import i18next from 'i18next';
-import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Linking,
-  Modal,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  Modal,
+  Linking,
+  Platform,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import i18next from 'i18next';
 import Config from 'react-native-config';
+import MapLibreGL from '@maplibre/maplibre-react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Colors, Typography } from '../../styles';
+import { useNetInfo } from '@react-native-community/netinfo';
+
 import dbLog from '../../repositories/logs';
-import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
+import { Colors, Typography } from '../../styles';
 import { LogTypes } from '../../utils/constants';
 import { locationPermission } from '../../utils/permissions';
 import { AlertModal, Header, PrimaryButton } from '../Common';
+import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 
-MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const isAndroid = Platform.OS === 'android';
+const ATTR_POSITION = {
+  bottom: 7,
+  left: 96,
+};
+const MAP_ZOOM_LEVEL = 15;
+
+MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const DownloadMap = ({ navigation }) => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
@@ -137,7 +144,7 @@ const DownloadMap = ({ navigation }) => {
               alert(err.message);
             }
           };
-          await MapboxGL.offlineManager.createPack(
+          await MapLibreGL.offlineManager.createPack(
             {
               name: offlineMapId,
               styleURL: 'mapbox://styles/sagararl/ckdfyrsw80y3a1il9eqpecoc7',
@@ -164,50 +171,38 @@ const DownloadMap = ({ navigation }) => {
     }
   };
 
-  const renderLoaderModal = () => {
-    return (
-      <Modal transparent visible={isLoaderShow}>
-        <View style={styles.dowloadModalContainer}>
-          <View style={styles.contentContainer}>
-            <ActivityIndicator size="large" color={Colors.PRIMARY} style={styles.loader} />
-            <Text style={styles.areaName}>{areaName}</Text>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   const onPressViewAll = () => {
     navigation.navigate('SavedAreas');
   };
+
+  const handleCurrLoc = () => {
+    initialMapCamera();
+  };
+
+  const onPressPrimaryBtn = () => setOfflineModal(false);
 
   return (
     <SafeAreaView style={styles.mainContainer}>
       <View style={styles.container}>
         <Header headingText={i18next.t('label.download_map_area')} />
         <View style={styles.mapViewContainer}>
-          <MapboxGL.MapView
-            onDidFinishRenderingMapFully={initialMapCamera}
-            onWillStartRenderingFrame={zoomLevelChanged}
+          <MapLibreGL.MapView
             ref={MapBoxGLRef}
             style={styles.cont}
-            styleURL={MapboxGL.StyleURL.Street}
-            attributionPosition={{
-              bottom: 7,
-              left: 96,
-            }}
-            zoomLevel={15}>
-            <MapboxGL.UserLocation showsUserHeadingIndicator />
-            <MapboxGL.Camera ref={camera} />
-          </MapboxGL.MapView>
+            zoomLevel={MAP_ZOOM_LEVEL}
+            styleURL={MapLibreGL.StyleURL.Street}
+            attributionPosition={ATTR_POSITION}
+            onWillStartRenderingFrame={zoomLevelChanged}
+            onDidFinishRenderingMapFully={initialMapCamera}>
+            <MapLibreGL.UserLocation showsUserHeadingIndicator />
+            <MapLibreGL.Camera ref={camera} />
+          </MapLibreGL.MapView>
           <TouchableOpacity
-            onPress={() => {
-              initialMapCamera();
-            }}
-            style={[styles.myLocationIcon]}
-            accessibilityLabel="Register Tree Camera"
             accessible={true}
-            testID="register_tree_camera">
+            onPress={handleCurrLoc}
+            style={styles.myLocationIcon}
+            testID="register_tree_camera"
+            accessibilityLabel="Register Tree Camera">
             <View style={Platform.OS == 'ios' && styles.myLocationIconContainer}>
               <Icon name={'my-location'} size={24} color={Colors.PLANET_BLACK} />
             </View>
@@ -228,30 +223,53 @@ const DownloadMap = ({ navigation }) => {
               theme={'white'}
             />
             <PrimaryButton
+              halfWidth
               disabled={zoomLevel < 11}
               onPress={onPressDownloadArea}
               btnText={i18next.t('label.download_map')}
-              halfWidth
             />
           </View>
         )}
       </View>
       <AlertModal
         visible={offlineModal}
+        onPressPrimaryBtn={onPressPrimaryBtn}
+        primaryBtnText={i18next.t('label.ok')}
         heading={i18next.t('label.network_error')}
         message={i18next.t('label.network_error_message')}
-        primaryBtnText={i18next.t('label.ok')}
-        onPressPrimaryBtn={() => setOfflineModal(false)}
       />
       <PermissionBlockedAlert
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
       />
-      {renderLoaderModal()}
+      <LoaderModal isLoaderShow={isLoaderShow} areaName={areaName} />
     </SafeAreaView>
   );
 };
 export default DownloadMap;
+
+// eslint-disable-next-line react/display-name
+const LoaderModal = React.memo(
+  ({ isLoaderShow, areaName }) => {
+    console.log('rerere');
+    return (
+      <Modal transparent visible={isLoaderShow}>
+        <View style={styles.dowloadModalContainer}>
+          <View style={styles.contentContainer}>
+            <ActivityIndicator size="large" color={Colors.PRIMARY} style={styles.loader} />
+            <Text style={styles.areaName}>{areaName}</Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  },
+  (prevProps, nextProps) => {
+    if (prevProps.isLoaderShow === nextProps.isLoaderShow) {
+      return true; // props are equal
+    }
+    return false; // props are not equal -> update the component
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
