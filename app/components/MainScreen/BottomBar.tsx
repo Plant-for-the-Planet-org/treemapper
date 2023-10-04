@@ -89,30 +89,35 @@ const AddOptions = ({ onReqClose, navigation }: any) => {
       title: 'Monitoring Plot',
       coming_soon: true,
       onPress: () => navigation.navigate('Interventions'),
+      disabled: true,
     },
     {
       svgIcon: <CrossArrow />,
       title: 'Project Site',
       coming_soon: true,
       onPress: () => navigation.navigate('Interventions'),
+      disabled: true,
     },
     {
       svgIcon: <Intervention />,
       title: 'Intervention',
       coming_soon: true,
       onPress: () => navigation.navigate('CreateIntervention'),
+      disabled: true,
     },
     {
       svgIcon: <SingleTreeIcon />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
       onPress: () => navigation.navigate('RegisterSingleTree'),
+      disabled: false,
     },
     {
       svgIcon: <MultipleTreeIcon />,
       title: 'label.tree_registration_type_2',
       coming_soon: false,
       onPress: () => navigation.navigate('LocateTree'),
+      disabled: false,
     },
   ];
 
@@ -122,7 +127,10 @@ const AddOptions = ({ onReqClose, navigation }: any) => {
         {addOptions.length > 0
           ? addOptions.map((option: any, index: number) => (
               <View key={`addOption${index}`} style={styles.addButtonOptionWrap}>
-                <TouchableOpacity onPress={option.onPress} style={styles.addButtonOption}>
+                <TouchableOpacity
+                  disabled={option.disabled}
+                  onPress={option.onPress}
+                  style={styles.addButtonOption}>
                   <View style={styles.icon}>{option.svgIcon}</View>
                   <View>
                     <Text style={styles.text}>{i18next.t(option.title)}</Text>
@@ -246,6 +254,7 @@ const BottomBar = ({
             return (
               <TouchableOpacity
                 accessibilityRole="button"
+                disabled={index === 1 || index === 2}
                 accessibilityState={isFocused ? { selected: true } : {}}
                 accessibilityLabel={options.tabBarAccessibilityLabel}
                 testID={options.tabBarTestID}

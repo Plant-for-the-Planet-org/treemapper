@@ -257,7 +257,7 @@ const ImageCapturing = ({
             CommonActions.reset({
               index: 2,
               routes: [
-                { name: 'MainScreen' },
+                { name: 'NavDrawer' },
                 { name: 'TreeInventory' },
                 { name: 'TotalTreesSpecies' },
               ],

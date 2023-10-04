@@ -9,13 +9,24 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import i18next from 'i18next';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
 import { Modalize } from 'react-native-modalize';
+import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/core';
+import { useFocusEffect } from '@react-navigation/native';
 import IonIcons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import React, { useContext, useEffect, useState, useRef } from 'react';
 
+import {
+  auth0Login,
+  auth0Logout,
+  getAllProjects,
+  setUserDetails,
+  clearUserDetails,
+} from '../../actions/user';
 import {
   getInventoryCount,
   updateMissingDataStatus,
@@ -25,32 +36,29 @@ import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import ProfileModal from '../ProfileModal';
-import { AlertModal, Switch, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
 import { Colors, Typography } from '../../styles';
 import RotatingView from '../Common/RotatingView';
+import { AlertModal, Switch, Sync } from '../Common';
 import { InventoryType } from '../../types/inventory';
 import { getSchema } from '../../repositories/default';
 import { LoadingContext } from '../../reducers/loader';
-import { getAllProjects } from '../../repositories/projects';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
 import { InventoryTypeSelector } from './InventoryTypeSelector';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { shouldSpeciesUpdate } from '../../repositories/species';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import { getUserDetails, modifyUserDetails } from '../../repositories/user';
 import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
-import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
-import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 25;
 const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
-const SITE_ARR = Array.from(Array(10).keys());
 
 export default function MainScreen() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -70,6 +78,8 @@ export default function MainScreen() {
   // used to set all the project sites of selected project
   const [projectSites, setProjectSites] = React.useState([]);
 
+  const [selectedSite, setSelectedSite] = React.useState(null);
+
   // sets the bound to focus the selected site
   const [siteBounds, setSiteBounds] = useState<any>([]);
 
@@ -79,9 +89,7 @@ export default function MainScreen() {
   // dropdown states
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: 'yucatanRestoration', value: 'Yucatan Restoration' },
-  ]);
+  const [items, setItems] = useState([]);
 
   const [modalType, setModalType] = useState<string>('');
 
@@ -104,6 +112,15 @@ export default function MainScreen() {
     setModalType('');
     modalizeRef.current?.close();
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (projects.length > 0) {
+        setValue(projects[0]?.properties?.id);
+        setProjectSites(projects[0]?.properties?.sites || []);
+      }
+    }, [projects]),
+  );
 
   useEffect(() => {
     let realm: Realm;
@@ -147,9 +164,14 @@ export default function MainScreen() {
   }, [showProjectOptions]);
 
   const fetchAndSaveProjects = async () => {
+    // directly api call instead retrieving from db .. have to change in future
     const allProjects = await getAllProjects();
     if (allProjects && allProjects.length > 0) {
       setProjects(allProjects);
+      const dropdownArr = allProjects.map(project => {
+        return { value: project.properties.id, label: project.properties.name };
+      });
+      setItems(dropdownArr);
     }
   };
 
@@ -287,10 +309,32 @@ export default function MainScreen() {
     }
   };
 
+  const _onSelectSite = item => () => {
+    setSelectedSite(item);
+    setSiteBounds(bbox(item?.geometry));
+    const centerCoordinate = turfCenter(item?.geometry)?.geometry?.coordinates;
+    setSiteCenterCoordinate(centerCoordinate);
+    onClose();
+  };
+
   const renderSiteList = ({ item, index }) => (
-    <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={styles.listItem}>
-      <Text style={styles.listItemTitle}>{`Las Americas ${item + 1}`}</Text>
-      {SITE_ARR.length - 1 !== index && <View style={styles.divider} />}
+    <TouchableOpacity onPress={_onSelectSite(item)} activeOpacity={0.7} style={styles.listItem}>
+      <View style={styles.listItemCon}>
+        <Text
+          style={
+            selectedSite?.id !== item?.id
+              ? styles.listItemTitle
+              : { ...styles.listItemTitle, fontFamily: Typography.FONT_FAMILY_BOLD }
+          }>
+          {item?.name}
+        </Text>
+        {selectedSite?.id === item?.id ? (
+          <Entypo size={16} name="check" color={Colors.PRIMARY} />
+        ) : (
+          []
+        )}
+      </View>
+      {projectSites.length - 1 !== index && <View style={styles.divider} />}
     </TouchableOpacity>
   );
 
@@ -321,13 +365,18 @@ export default function MainScreen() {
     }
   };
 
+  const onSelectProject = val => {
+    const selectedProjectSites = projects.filter(item => item?.properties?.id === val)[0]
+      ?.properties?.sites;
+    setProjectSites(selectedProjectSites);
+  };
+
   const onPressCloseProfileModal = () => closeProfileModal();
   const onPressPrimaryBtn = () => {
     setOfflineModal(false);
     closeProfileModal();
   };
 
-  // console.log(isUserLogin, userInfo, 'userInfo?.type');
   return (
     <>
       <MainMap
@@ -462,6 +511,7 @@ export default function MainScreen() {
                 value={value}
                 setOpen={setOpen}
                 setValue={setValue}
+                onChangeValue={onSelectProject}
                 style={{ borderRadius: 5 }}
                 placeholder={'Select Project'}
               />
@@ -471,10 +521,10 @@ export default function MainScreen() {
               Select Site
             </Text>
             <FlatList
-              data={SITE_ARR}
+              data={projectSites}
               renderItem={renderSiteList}
               style={{ borderRadius: 12, height: 176 }}
-              keyExtractor={item => `SITE_ARR${item}`}
+              keyExtractor={item => `SITE_ARR${item?.id}`}
             />
           </View>
         )}
@@ -613,12 +663,18 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     paddingHorizontal: 9,
+    zIndex: 2000,
   },
   listItem: {
     backgroundColor: '#E0E0E050',
   },
+  listItemCon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
   listItemTitle: {
-    marginLeft: 12,
     paddingVertical: 12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_13,

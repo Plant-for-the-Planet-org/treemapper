@@ -23,7 +23,7 @@ const NavDrawer = () => {
           ? null
           : {
               width: '100%',
-              left: 0,
+
               backgroundColor: Colors.WHITE,
             },
       }}>

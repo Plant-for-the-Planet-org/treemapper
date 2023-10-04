@@ -69,8 +69,8 @@ const CustomDrawer = props => {
   const isDrawerOpen = useDrawerStatus() === 'open';
 
   const handleLogout = async () => {
-    await auth0Logout(userDispatch);
-    setIsLoggedIn(false);
+    const isLogout = await auth0Logout(userDispatch);
+    isLogout && setIsLoggedIn(false);
   };
 
   useEffect(() => {

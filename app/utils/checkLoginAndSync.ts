@@ -1,11 +1,11 @@
-import {updateInventoryFetchFromServer} from '../actions/inventory';
-import {getAllProjects, getUserDetailsFromServer} from '../actions/user';
-import {inventoryFetchConstant} from '../reducers/inventory';
-import {getUserDetails} from '../repositories/user';
-import {checkAndAddUserSpecies} from '../utils/addUserSpecies';
-import {bugsnag} from './';
-import {addInventoryFromServer, addNecessaryInventoryFromServer} from './addInventoryFromServer';
-import {getRemeasurementDates} from './getRemeasuremDates';
+import { updateInventoryFetchFromServer } from '../actions/inventory';
+import { getAllProjects, getUserDetailsFromServer } from '../actions/user';
+import { inventoryFetchConstant } from '../reducers/inventory';
+import { getUserDetails } from '../repositories/user';
+import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
+import { bugsnag } from './';
+import { addInventoryFromServer, addNecessaryInventoryFromServer } from './addInventoryFromServer';
+import { getRemeasurementDates } from './getRemeasuremDates';
 
 export const checkLoginAndSync = async ({
   sync,

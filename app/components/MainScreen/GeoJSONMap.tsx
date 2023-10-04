@@ -131,12 +131,12 @@ const GeoJSONMap = ({
         1000,
       );
     }
-    if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
-      let config = {
-        centerCoordinate: siteCenterCoordinate,
-      };
-      camera.current.setCamera(config);
-    }
+    // if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
+    //   let config = {
+    //     centerCoordinate: siteCenterCoordinate,
+    //   };
+    //   camera.current.setCamera(config);
+    // }
   }, [isCameraRefVisible, siteBounds, siteCenterCoordinate]);
 
   // creates geoJSON object for the selected project sites

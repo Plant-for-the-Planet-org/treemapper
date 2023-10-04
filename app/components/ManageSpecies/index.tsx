@@ -257,11 +257,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            { name: 'TotalTreesSpecies' },
-          ],
+          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
         }),
       );
     }
