@@ -258,6 +258,7 @@ const BottomBar = ({
                 accessibilityState={isFocused ? { selected: true } : {}}
                 accessibilityLabel={options.tabBarAccessibilityLabel}
                 testID={options.tabBarTestID}
+                key={index}
                 onLongPress={onLongPress}
                 style={styles.tabItem}
                 onPress={onPress}>

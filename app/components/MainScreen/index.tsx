@@ -20,13 +20,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import React, { useContext, useEffect, useState, useRef } from 'react';
 
-import {
-  auth0Login,
-  auth0Logout,
-  getAllProjects,
-  setUserDetails,
-  clearUserDetails,
-} from '../../actions/user';
+import { auth0Login, auth0Logout, setUserDetails, clearUserDetails } from '../../actions/user';
 import {
   getInventoryCount,
   updateMissingDataStatus,
@@ -53,6 +47,7 @@ import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
+import { getAllProjects } from '../../repositories/projects';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';

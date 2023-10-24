@@ -112,3 +112,6 @@ export const maxHeightDiameterRatio: number = 160 / 1;
 
 // countries which does not follow International System of Units for measurements
 export const nonISUCountries = ['US', 'LR', 'MM'];
+
+// Project purposes to filter them after fetching through API
+export const ProjectPurposeTypes = ['trees'];
