@@ -114,4 +114,4 @@ export const maxHeightDiameterRatio: number = 160 / 1;
 export const nonISUCountries = ['US', 'LR', 'MM'];
 
 // Project purposes to filter them after fetching through API
-export const ProjectPurposeTypes = ['trees'];
+export const ProjectPurposeTypes = ['trees', 'conservation'];
