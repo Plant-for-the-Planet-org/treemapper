@@ -1,6 +1,6 @@
 import Realm from 'realm';
 import { bugsnag } from '../utils';
-import { LogTypes } from '../utils/constants';
+import { LogTypes, ProjectPurposeTypes } from '../utils/constants';
 import dbLog from './logs';
 import { getSchema } from './default';
 
@@ -90,6 +90,9 @@ export const addProjects = (projects: any) => {
     Realm.open(getSchema())
       .then(realm => {
         realm.write(() => {
+          projects = projects.filter((project: any) =>
+            ProjectPurposeTypes.includes(project?.properties?.purpose),
+          );
           projects.forEach((project: any, index: number) => {
             const { properties } = project;
             const sites = [];

@@ -22,7 +22,7 @@ const NavDrawer = () => {
         drawerStyle: isLargeScreen
           ? null
           : {
-              width: '100%',
+              width: dimensions.width,
 
               backgroundColor: Colors.WHITE,
             },
