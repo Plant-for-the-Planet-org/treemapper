@@ -18,6 +18,7 @@ const BottomTab = () => {
       <Tab.Screen name="MainScreen" options={{ tabBarLabel: 'Map' }} component={MainScreen} />
       <Tab.Screen name="Interventions" component={Interventions} />
       <Tab.Screen name="Plots" component={ComingSoon} />
+      <Tab.Screen name="Add" component={ComingSoon} />
     </Tab.Navigator>
   );
 };

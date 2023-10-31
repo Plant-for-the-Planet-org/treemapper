@@ -13,7 +13,10 @@ import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '..
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
-const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
+const auth0 = new Auth0({
+  domain: Config.AUTH0_DOMAIN,
+  clientId: Config.AUTH0_CLIENT_ID,
+});
 
 // stores the protocol and url used for api request
 
@@ -37,6 +40,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           scope: 'openid email profile offline_access',
           federated: true,
           prompt: 'login',
+          // audience: Config.AUTH0_AUD,
           audience: 'urn:plant-for-the-planet',
         },
         { ephemeralSession: false },

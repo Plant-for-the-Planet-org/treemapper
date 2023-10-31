@@ -164,7 +164,7 @@ export default function MainScreen() {
     if (allProjects && allProjects.length > 0) {
       setProjects(allProjects);
       const dropdownArr = allProjects.map(project => {
-        return { value: project.properties.id, label: project.properties.name };
+        return { value: project?.id, label: project.name };
       });
       setItems(dropdownArr);
     }
