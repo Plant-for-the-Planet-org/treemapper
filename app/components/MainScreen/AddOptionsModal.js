@@ -72,7 +72,7 @@ export default React.forwardRef(({ visible, setVisible = () => {} }, ref) => {
           disabled={option.disabled}
           onPress={option.onPress}
           style={styles.addButtonOption}>
-          <View style={styles.icon}>{/* <Test /> */}</View>
+          <View style={styles.icon}>{option.svgIcon}</View>
           <View>
             <Text style={styles.text}>{i18next.t(option.title)}</Text>
             {option.coming_soon && (

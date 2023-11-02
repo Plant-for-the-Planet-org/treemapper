@@ -1,4 +1,4 @@
-import { StatusBar, Platform } from 'react-native';
+import { StatusBar, Platform, View } from 'react-native';
 import React, { useEffect, useContext } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,15 +12,16 @@ import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import InitialLoadingNavigator from './InitialLoadingNavigator';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
 const isAndroid = Platform.OS === 'android';
 const screenOptions = { headerShown: false };
-const barStyle = isAndroid ? 'light-content' : 'dark-content';
 
 export default function AppNavigator() {
   const { showInitialStack } = useContext(NavigationContext);
   const netInfo = useNetInfo();
+  const insets = useSafeAreaInsets();
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
@@ -59,7 +60,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle={barStyle} backgroundColor={Colors.PRIMARY} />
+      <StatusBar barStyle={'dark-content'} backgroundColor={Colors.WHITE} />
       <Stack.Navigator screenOptions={screenOptions}>
         {showInitialStack ? (
           <Stack.Screen name="InitialLoading" component={InitialLoadingNavigator} />

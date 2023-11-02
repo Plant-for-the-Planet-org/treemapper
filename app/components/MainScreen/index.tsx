@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import i18next from 'i18next';
 import bbox from '@turf/bbox';
@@ -48,10 +49,11 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { getAllProjects } from '../../repositories/projects';
+import FocusAwareStatusBar from '../FocusAwareStatusBar';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
-const topValue = Platform.OS === 'ios' ? 50 : 25;
+const topValue = Platform.OS === 'ios' ? 50 : 50;
 const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
 
@@ -374,6 +376,11 @@ export default function MainScreen() {
 
   return (
     <>
+      <FocusAwareStatusBar
+        translucent={true}
+        barStyle="dark-content"
+        backgroundColor="transparent"
+      />
       <MainMap
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}

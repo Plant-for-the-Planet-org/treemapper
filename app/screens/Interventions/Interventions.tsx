@@ -10,9 +10,12 @@ import {
   SyncSuccess,
   CleanerPhone,
   MultipleTreeIcon,
+  ArrowBack,
 } from '../../assets';
 import { Colors, Typography } from '../../styles';
 import { GradientText } from '../../components/Common';
+import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 const FILTER_TYPES = ['All', 'Incomplete', 'Synced', 'Unsynced'];
 const INTERVENTION_DATA = [
@@ -72,6 +75,7 @@ const Interventions = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>(FILTER_TYPES[0]);
 
   const modalizeRef = useRef<Modalize>(null);
+  const navigation = useNavigation();
 
   const handleEdit = () => {};
   const onOpen = () => {
@@ -142,8 +146,10 @@ const Interventions = () => {
         <View style={styles.itemInfo}>
           <Text style={styles.itemTitle}>{item.title}</Text>
           <View style={styles.typeCon}>
-            {item.type.map(type => (
-              <View style={[styles.itemWrap, { backgroundColor: getColor(type)?.backgroundColor }]}>
+            {item.type.map((type, index) => (
+              <View
+                key={index}
+                style={[styles.itemWrap, { backgroundColor: getColor(type)?.backgroundColor }]}>
                 <Text style={[styles.type, { color: getColor(type)?.color }]}>{type}</Text>
               </View>
             ))}
@@ -182,27 +188,39 @@ const Interventions = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Interventions</Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+          style={{
+            padding: 16,
+          }}>
+          <ArrowBack />
+        </TouchableOpacity>
         <TouchableOpacity onPress={onOpen} activeOpacity={0.7} style={styles.freeSpaceBtn}>
           <CleanerPhone />
           <Text style={styles.freeSpaceTxt}>Free up space</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        horizontal
-        data={FILTER_TYPES}
-        style={styles.filterList}
-        renderItem={renderFilters}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.flatListCon}
-        keyExtractor={(item, index) => `FILTER_TYPES${index}`}
-      />
-      <FlatList
-        data={interventionsList}
-        style={styles.interventionList}
-        renderItem={renderIntervention}
-        keyExtractor={(item, index) => `INTERVENTION_DATA${index}`}
-      />
+      <LinearGradient
+        colors={['rgba(224, 224, 224, 0.15)', '#fff', 'rgba(224, 224, 224, 0.15)']}
+        style={{ flex: 1 }}>
+        <FlatList
+          horizontal
+          data={[...FILTER_TYPES]}
+          style={styles.filterList}
+          renderItem={renderFilters}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.flatListCon}
+          keyExtractor={(item, index) => `FILTER_TYPES${index}`}
+        />
+        <FlatList
+          data={interventionsList}
+          contentContainerStyle={styles.interventionList}
+          renderItem={renderIntervention}
+          keyExtractor={(item, index) => `INTERVENTION_DATA${index}`}
+        />
+      </LinearGradient>
+
       <Modalize
         withReactModal
         ref={modalizeRef}
@@ -232,10 +250,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: 'white',
+    paddingRight: 16,
   },
   freeSpaceBtn: {
     borderWidth: 1,
@@ -252,23 +271,16 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_10,
     color: Colors.TEXT_COLOR,
   },
-  headerTitle: {
-    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: Typography.FONT_SIZE_22,
-    color: Colors.TEXT_COLOR,
-  },
   filterItemCon: {
-    height: 28,
     marginRight: 5,
     borderRadius: 120,
     backgroundColor: Colors.WHITE,
-  },
-  filterLabel: {
     paddingVertical: 6,
     paddingHorizontal: 12,
+  },
+  filterLabel: {
     color: Colors.TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_14,
-    marginTop: -2,
   },
   filterList: {
     marginTop: 16,
@@ -280,7 +292,7 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   interventionList: {
-    marginTop: 16,
+    paddingTop: 16,
     paddingHorizontal: 16,
   },
   avatar: {
@@ -309,6 +321,7 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: '#4F4F4F',
   },
 
   typeCon: {

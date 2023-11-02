@@ -4,12 +4,15 @@ import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/b
 import MainScreen from '../MainScreen';
 import { ComingSoon } from '../Common';
 import BottomBar from '../MainScreen/BottomBar';
-import NavDrawer from './Drawer';
 import Interventions from '../../screens/Interventions/Interventions';
 
 const screenOptions = { headerShown: false };
 
 const Tab = createBottomTabNavigator();
+
+const AddComponent = () => {
+  return null;
+};
 
 const BottomTab = () => {
   const tabBar = (props: BottomTabBarProps) => <BottomBar {...props} />;
@@ -18,7 +21,7 @@ const BottomTab = () => {
       <Tab.Screen name="MainScreen" options={{ tabBarLabel: 'Map' }} component={MainScreen} />
       <Tab.Screen name="Interventions" component={Interventions} />
       <Tab.Screen name="Plots" component={ComingSoon} />
-      <Tab.Screen name="Add" component={ComingSoon} />
+      <Tab.Screen name="Add" component={AddComponent} />
     </Tab.Navigator>
   );
 };

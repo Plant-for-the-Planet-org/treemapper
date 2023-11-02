@@ -8,7 +8,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 import AddOptionsModal from './AddOptionsModal';
 
-const AnimatedTextInput = Animated.createAnimatedComponent(TouchableOpacity);
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface IBottomBarProps {
   state: BottomTabBarProps;
@@ -35,13 +35,7 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
 
   return (
     <>
-      <View
-        style={{
-          backgroundColor: 'white',
-          elevation: 4,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
-        }}>
+      <View style={styles.container}>
         <View style={styles.tabItemContainer}>
           {state?.routes?.map((route, index) => {
             const { options } = descriptors[route.key];
@@ -78,28 +72,19 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
               return (
                 <TouchableOpacity
                   accessibilityRole="button"
+                  activeOpacity={1}
                   accessibilityState={isFocused ? { selected: true } : {}}
                   accessibilityLabel={options.tabBarAccessibilityLabel}
                   testID={options.tabBarTestID}
                   key={index}
                   onLongPress={onLongPress}
                   style={[styles.tabItem]}
-                  onPress={onPress}>
-                  <AnimatedTextInput
-                    style={[
-                      {
-                        backgroundColor: 'white',
-                        borderRadius: 100,
-                        padding: 12,
-                        elevation: 4,
-                        position: 'absolute',
-                        top: -36,
-                      },
-                      rotationStyle,
-                    ]}
+                  onPress={() => onAddPress()}>
+                  <AnimatedTouchableOpacity
+                    style={[styles.animatedTouch, rotationStyle]}
                     onPress={() => onAddPress()}>
                     <SvgXml xml={add_icon} style={styles.addIcon} />
-                  </AnimatedTextInput>
+                  </AnimatedTouchableOpacity>
                   {state?.index === index ? (
                     <GradientText style={styles.tabItemText}>{label}</GradientText>
                   ) : (
@@ -140,14 +125,28 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
 export default BottomBar;
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    elevation: 4,
+    borderTopLeftRadius: Spacing.SCALE_12,
+    borderTopRightRadius: Spacing.SCALE_12,
+  },
+  animatedTouch: {
+    backgroundColor: 'white',
+    borderRadius: 100,
+    padding: Spacing.SCALE_12,
+    elevation: 4,
+    position: 'absolute',
+    top: -Spacing.SCALE_36,
+  },
   addIcon: {
-    width: 48,
-    height: 48,
+    width: Spacing.SCALE_48,
+    height: Spacing.SCALE_48,
   },
   tabItemContainer: {
     justifyContent: 'space-around',
     flexDirection: 'row',
-    marginVertical: 15,
+    marginVertical: Spacing.SCALE_16,
   },
   tabItem: {
     justifyContent: 'flex-end',
