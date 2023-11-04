@@ -119,26 +119,26 @@ export default function MainScreen() {
     }, [projects]),
   );
 
-  useEffect(() => {
-    let realm: Realm;
-    // stores the listener to later unsubscribe when screen is unmounted
-    const unsubscribe = navigation.addListener('focus', async () => {
-      fetchUserDetails();
-      fetchInventoryCount();
+  // useEffect(() => {
+  //   let realm: Realm;
+  //   // stores the listener to later unsubscribe when screen is unmounted
+  //   const unsubscribe = navigation.addListener('focus', async () => {
+  //     fetchUserDetails();
+  //     fetchInventoryCount();
 
-      realm = await Realm.open(getSchema());
-      initializeRealm(realm);
-    });
+  //     realm = await Realm.open(getSchema());
+  //     initializeRealm(realm);
+  //   });
 
-    // Return the function to unsubscribe from the event so it gets removed on unmount
-    return () => {
-      unsubscribe();
-      if (realm) {
-        // Unregister all realm listeners
-        realm.removeAllListeners();
-      }
-    };
-  }, [navigation]);
+  //   // Return the function to unsubscribe from the event so it gets removed on unmount
+  //   return () => {
+  //     unsubscribe();
+  //     if (realm) {
+  //       // Unregister all realm listeners
+  //       realm.removeAllListeners();
+  //     }
+  //   };
+  // }, [navigation]);
 
   // added projects to the state
   useEffect(() => {
@@ -185,76 +185,76 @@ export default function MainScreen() {
   };
 
   // Define the collection notification listener
-  function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
-    if (changes.deletions.length > 0) {
-      setUserInfo({});
-      setIsUserLogin(false);
-      clearUserDetails()(userDispatch);
-    }
+  // function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
+  //   if (changes.deletions.length > 0) {
+  //     setUserInfo({});
+  //     setIsUserLogin(false);
+  //     clearUserDetails()(userDispatch);
+  //   }
 
-    // Update UI in response to inserted objects
-    changes.insertions.forEach(index => {
-      if (userData[index].id === 'id0001') {
-        checkIsSignedInAndUpdate(userData[index]);
-      }
-    });
+  //   // Update UI in response to inserted objects
+  //   changes.insertions.forEach(index => {
+  //     if (userData[index].id === 'id0001') {
+  //       checkIsSignedInAndUpdate(userData[index]);
+  //     }
+  //   });
 
-    // TODO: change this to newModifications or oldModifications
-    // Update UI in response to modified objects
-    // changes.modifications.forEach((index) => {
-    //   if (userData[index].id === 'id0001') {
-    //     checkIsSignedInAndUpdate(userData[index]);
-    //   }
-    // });
-  }
+  //   // TODO: change this to newModifications or oldModifications
+  //   // Update UI in response to modified objects
+  //   // changes.modifications.forEach((index) => {
+  //   //   if (userData[index].id === 'id0001') {
+  //   //     checkIsSignedInAndUpdate(userData[index]);
+  //   //   }
+  //   // });
+  // }
 
-  function inventoryListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
-    if (changes.deletions.length > 0 || changes.insertions.length > 0) {
-      fetchInventoryCount();
-    }
-  }
+  // function inventoryListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
+  //   if (changes.deletions.length > 0 || changes.insertions.length > 0) {
+  //     fetchInventoryCount();
+  //   }
+  // }
 
-  function projectListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
-    if (
-      changes.deletions.length > 0 ||
-      changes.insertions.length > 0 ||
-      changes.newModifications.length > 0
-    ) {
-      fetchAndSaveProjects();
-    }
-  }
+  // function projectListener(_: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
+  //   if (
+  //     changes.deletions.length > 0 ||
+  //     changes.insertions.length > 0 ||
+  //     changes.newModifications.length > 0
+  //   ) {
+  //     fetchAndSaveProjects();
+  //   }
+  // }
 
-  function plantLocationHistoryListener(
-    _: Realm.Collection<any>,
-    changes: Realm.CollectionChangeSet,
-  ) {
-    if (
-      changes.deletions.length > 0 ||
-      changes.insertions.length > 0 ||
-      changes.newModifications.length > 0
-    ) {
-      getPendingPlantLocationHistory();
-    }
-  }
+  // function plantLocationHistoryListener(
+  //   _: Realm.Collection<any>,
+  //   changes: Realm.CollectionChangeSet,
+  // ) {
+  //   if (
+  //     changes.deletions.length > 0 ||
+  //     changes.insertions.length > 0 ||
+  //     changes.newModifications.length > 0
+  //   ) {
+  //     getPendingPlantLocationHistory();
+  //   }
+  // }
 
   // initializes the realm by adding listener to user object of realm to listen
   // the modifications and update the application state
-  const initializeRealm = async (realm: Realm) => {
-    try {
-      // gets the user object from realm
-      const userObject = realm.objects('User');
-      const plantLocationObject = realm.objects('Inventory');
-      const projectsObject = realm.objects('Projects');
-      const plantLocationHistoryObject = realm.objects('PlantLocationHistory');
-      // Observe collection notifications.
-      userObject.addListener(listener);
-      plantLocationObject.addListener(inventoryListener);
-      projectsObject.addListener(projectListener);
-      plantLocationHistoryObject.addListener(plantLocationHistoryListener);
-    } catch (err) {
-      console.error('Error at /components/MainScreen/initializeRealm, ', err);
-    }
-  };
+  // const initializeRealm = async (realm: Realm) => {
+  //   try {
+  //     // gets the user object from realm
+  //     const userObject = realm.objects('User');
+  //     const plantLocationObject = realm.objects('Inventory');
+  //     const projectsObject = realm.objects('Projects');
+  //     const plantLocationHistoryObject = realm.objects('PlantLocationHistory');
+  //     // Observe collection notifications.
+  //     userObject.addListener(listener);
+  //     plantLocationObject.addListener(inventoryListener);
+  //     projectsObject.addListener(projectListener);
+  //     plantLocationHistoryObject.addListener(plantLocationHistoryListener);
+  //   } catch (err) {
+  //     console.error('Error at /components/MainScreen/initializeRealm, ', err);
+  //   }
+  // };
 
   const closeProfileModal = () => setIsProfileModalVisible(false);
 

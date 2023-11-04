@@ -21,6 +21,7 @@ import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
 import { startLoading, stopLoading } from '../../../actions/loader';
 import { getUserDetails, isLogin } from '../../../repositories/user';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -65,6 +66,8 @@ const CustomDrawer = props => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const { dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+
+  const insects = useSafeAreaInsets();
 
   const isDrawerOpen = useDrawerStatus() === 'open';
 
@@ -121,7 +124,7 @@ const CustomDrawer = props => {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, paddingTop: insects.top }}>
         <View style={styles.container}>
           <View style={styles.profileContainer}>
             <TouchableOpacity

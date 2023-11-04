@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import Realm from 'realm';
+// import Realm from 'realm';
 import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
 import Snackbar from 'react-native-snackbar';
@@ -153,42 +153,40 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid: string, addSpecie = false) => {
-    return new Promise(resolve => {
-      Realm.open(getSchema())
-        .then(realm => {
-          realm.write(() => {
-            let specieToToggle: any = realm.objectForPrimaryKey('ScientificSpecies', guid);
-            if (addSpecie) {
-              specieToToggle.isUserSpecies = true;
-            } else {
-              specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
-            }
-            // copies the current search list in variable currentSearchList
-            const currentSearchList = [...searchList];
-
-            // sets the changes done by realm into the state
-            setSearchList(currentSearchList);
-
-            // logging the success in to the db
-            dbLog.info({
-              logType: LogTypes.MANAGE_SPECIES,
-              message: `Specie with guid ${guid} ${
-                specieToToggle.isUserSpecies ? 'added' : 'removed'
-              }`,
-            });
-          });
-          resolve(true);
-        })
-        .catch(err => {
-          console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
-          // logging the error in to the db
-          dbLog.error({
-            logType: LogTypes.MANAGE_SPECIES,
-            message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
-            logStack: JSON.stringify(err),
-          });
-        });
-    });
+    // return new Promise(resolve => {
+    //   Realm.open(getSchema())
+    //     .then(realm => {
+    //       realm.write(() => {
+    //         let specieToToggle: any = realm.objectForPrimaryKey('ScientificSpecies', guid);
+    //         if (addSpecie) {
+    //           specieToToggle.isUserSpecies = true;
+    //         } else {
+    //           specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+    //         }
+    //         // copies the current search list in variable currentSearchList
+    //         const currentSearchList = [...searchList];
+    //         // sets the changes done by realm into the state
+    //         setSearchList(currentSearchList);
+    //         // logging the success in to the db
+    //         dbLog.info({
+    //           logType: LogTypes.MANAGE_SPECIES,
+    //           message: `Specie with guid ${guid} ${
+    //             specieToToggle.isUserSpecies ? 'added' : 'removed'
+    //           }`,
+    //         });
+    //       });
+    //       resolve(true);
+    //     })
+    //     .catch(err => {
+    //       console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
+    //       // logging the error in to the db
+    //       dbLog.error({
+    //         logType: LogTypes.MANAGE_SPECIES,
+    //         message: `Error while adding or removing specie from user specie for specie id: ${guid}`,
+    //         logStack: JSON.stringify(err),
+    //       });
+    //     });
+    // });
   };
 
   //This function handles search whenever any search text is entered

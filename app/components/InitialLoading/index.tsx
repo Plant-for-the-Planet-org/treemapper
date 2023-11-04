@@ -57,36 +57,33 @@ export default function InitialLoading() {
     let syncSpecies = updateSpeciesSync;
     if (route.name !== 'SpeciesLoading') {
       // calls the migration function to migrate the realm
-      migrateRealm()
-        .then(async () => {
-          // logs success in DB
-          dbLog.info({
-            logType: LogTypes.OTHER,
-            message: 'DB migration successfully done',
-          });
-
-          // calls the function and stores whether species data was already loaded or not
-          const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
-
-          if (!syncSpecies) {
-            syncSpecies = await shouldUpdateSpeciesSync();
-          }
-
-          if (isSpeciesLoaded === 'true' && !syncSpecies) {
-            setInitialNavigationScreen('');
-            showMainNavigationStack();
-          } else {
-            navigation.navigate('SpeciesLoading');
-          }
-        })
-        .catch(err => {
-          dbLog.error({
-            logType: LogTypes.OTHER,
-            message: 'Failed to migrate the Realm Database',
-            logStack: JSON.stringify(err),
-          });
-          console.error('Error while setting up realm connection - App', err);
-        });
+      // migrateRealm()
+      //   .then(async () => {
+      //     // logs success in DB
+      //     dbLog.info({
+      //       logType: LogTypes.OTHER,
+      //       message: 'DB migration successfully done',
+      //     });
+      //     // calls the function and stores whether species data was already loaded or not
+      //     const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
+      //     if (!syncSpecies) {
+      //       syncSpecies = await shouldUpdateSpeciesSync();
+      //     }
+      //     if (isSpeciesLoaded === 'true' && !syncSpecies) {
+      //       setInitialNavigationScreen('');
+      //       showMainNavigationStack();
+      //     } else {
+      //       navigation.navigate('SpeciesLoading');
+      //     }
+      //   })
+      //   .catch(err => {
+      //     dbLog.error({
+      //       logType: LogTypes.OTHER,
+      //       message: 'Failed to migrate the Realm Database',
+      //       logStack: JSON.stringify(err),
+      //     });
+      //     console.error('Error while setting up realm connection - App', err);
+      //   });
     } else {
       // calls this function to update the species in the realm DB
       updateAndSyncLocalSpecies(setUpdatingSpeciesState, syncSpecies)

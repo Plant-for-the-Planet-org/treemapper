@@ -30,6 +30,7 @@
     "@react-navigation/drawer": "^6.3.0",
     "@react-navigation/native": "^6.1.1",
     "@react-navigation/stack": "^6.3.10",
+    "@realm/react": "^0.6.1",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",

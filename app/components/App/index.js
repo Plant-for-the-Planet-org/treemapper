@@ -7,14 +7,20 @@ import '../../utils/ignoreWarnings';
 import AppNavigator from '../Navigator';
 import Provider from '../../reducers/provider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Realm, RealmProvider, useRealm, useQuery } from '@realm/react';
+import { getSchema } from '../../repositories/default';
+
 MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 
 const App = () => {
+  console.log(getSchema().schema);
   return (
     <SafeAreaProvider>
-      <Provider>
-        <AppNavigator />
-      </Provider>
+      <RealmProvider schema={getSchema().schema}>
+        <Provider>
+          <AppNavigator />
+        </Provider>
+      </RealmProvider>
     </SafeAreaProvider>
   );
 };
