@@ -1,5 +1,5 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 
@@ -13,14 +13,13 @@ import {
 } from '../../../assets';
 import PrimaryButton from '../PrimaryButton';
 import { APIConfig } from '../../../actions/Config';
-import { Colors, Typography } from '../../../styles';
+import { Colors, Spacing, Typography } from '../../../styles';
 import { UserContext } from '../../../reducers/user';
 import { LoadingContext } from '../../../reducers/loader';
-import { useDrawerStatus } from '@react-navigation/drawer';
 import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
 import { startLoading, stopLoading } from '../../../actions/loader';
-import { getUserDetails, isLogin } from '../../../repositories/user';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -60,43 +59,17 @@ const getLabel = screenName => {
 
 const CustomDrawer = props => {
   const { navigation, state } = props;
-  const [userInfo, setUserInfo] = useState<any>({});
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { dispatch } = useContext(InventoryContext);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
 
-  const isDrawerOpen = useDrawerStatus() === 'open';
+  const insects = useSafeAreaInsets();
+
+  console.log('userState', userState);
 
   const handleLogout = async () => {
     const isLogout = await auth0Logout(userDispatch);
-    isLogout && setIsLoggedIn(false);
-  };
-
-  useEffect(() => {
-    isLogin().then(isUserLogin => {
-      setIsLoggedIn(isUserLogin);
-    });
-  }, [isDrawerOpen]);
-
-  useEffect(() => {
-    if (Object.keys(userInfo).length < 1) {
-      fetchUserDetails();
-    }
-  }, [isDrawerOpen]);
-
-  const fetchUserDetails = () => {
-    if (!loadingState.isLoading) {
-      getUserDetails().then(userDetails => {
-        if (userDetails) {
-          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          if (stringifiedUserDetails) {
-            setUserInfo(stringifiedUserDetails);
-            setIsLoggedIn(!!stringifiedUserDetails.accessToken);
-          }
-        }
-      });
-    }
+    // isLogout && setIsLoggedIn(false);
   };
 
   const onPressLogin = async () => {
@@ -104,7 +77,6 @@ const CustomDrawer = props => {
     auth0Login(userDispatch, dispatch)
       .then(() => {
         stopLoading()(loadingDispatch);
-        fetchUserDetails();
       })
       .catch(err => {
         if (err?.response?.status === 303) {
@@ -115,13 +87,13 @@ const CustomDrawer = props => {
   };
 
   let avatar =
-    cdnUrl && userInfo.image
-      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userInfo.image}`
+    cdnUrl && userState?.image
+      ? `${protocol}://${cdnUrl}/media/cache/profile/avatar/${userState?.image}`
       : '';
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, paddingTop: insects.top }}>
         <View style={styles.container}>
           <View style={styles.profileContainer}>
             <TouchableOpacity
@@ -137,12 +109,12 @@ const CustomDrawer = props => {
                 ) : (
                   <Image resizeMode={'contain'} source={single_tree_png} style={styles.avatar} />
                 )}
-                {isLoggedIn ? (
+                {userState?.accessToken ? (
                   <View style={styles.profileInfoTextCon}>
                     <Text style={styles.username}>
-                      {userInfo?.firstName + '' + userInfo?.lastName}
+                      {userState?.firstName + '' + userState?.lastName}
                     </Text>
-                    <Text style={styles.email}>{userInfo?.email}</Text>
+                    <Text style={styles.email}>{userState?.email}</Text>
                   </View>
                 ) : (
                   <View style={styles.profileInfoTextCon}>
@@ -150,7 +122,7 @@ const CustomDrawer = props => {
                   </View>
                 )}
               </View>
-              {isLoggedIn && (
+              {userState?.accessToken && (
                 <TouchableOpacity activeOpacity={0.7} style={styles.pencil}>
                   <FontAwesome name="pencil" size={24} color={Colors.PRIMARY} />
                 </TouchableOpacity>
@@ -180,7 +152,7 @@ const CustomDrawer = props => {
                   </TouchableOpacity>
                 ),
             )}
-            {isLoggedIn && (
+            {userState?.accessToken && (
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.drawerItem}
@@ -193,7 +165,7 @@ const CustomDrawer = props => {
               </TouchableOpacity>
             )}
           </View>
-          {!isLoggedIn && (
+          {!userState?.accessToken && (
             <PrimaryButton
               onPress={onPressLogin}
               btnText={'Login / Signup'}
@@ -214,11 +186,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E026',
   },
   profileContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.SCALE_16,
     backgroundColor: Colors.WHITE,
   },
   header: {
-    width: 30,
+    width: Spacing.SCALE_30,
     height: 56,
     justifyContent: 'center',
   },
@@ -239,6 +211,7 @@ const styles = StyleSheet.create({
   username: {
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: 'black',
   },
   email: {
     marginTop: 4,
