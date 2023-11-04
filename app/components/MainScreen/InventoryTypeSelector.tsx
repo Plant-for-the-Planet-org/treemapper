@@ -5,20 +5,16 @@ import { InventoryType } from '../../types/inventory';
 import { useInventory } from '../../reducers/inventory';
 import { setFetchNecessaryInventoryFlag } from '../../actions/inventory';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
-import { getUserDetails, modifyUserDetails } from '../../repositories/user';
+import { modifyUserDetails } from '../../repositories/user';
+import { UserContext } from '../../reducers/user';
+import { useContext } from 'react';
 
 const InventoryTypeSelector = React.memo(() => {
   const { dispatch } = useInventory();
 
   const [showInventoryTypeDropdown, setShowInventoryTypeDropdown] = useState<boolean>(false);
   const [selectedInvType, setSelectedInvType] = useState<InventoryType | null>(null);
-
-  const setInventoryType = async () => {
-    const user = await getUserDetails();
-    if (user) {
-      setSelectedInvType(user.fetchNecessaryInventoryFlag);
-    }
-  };
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const switchInventoryFetchTypeFlag = async () => {
     if (selectedInvType !== null) {
@@ -33,8 +29,8 @@ const InventoryTypeSelector = React.memo(() => {
   };
 
   useEffect(() => {
-    setInventoryType();
-  }, []);
+    setSelectedInvType(userState?.fetchNecessaryInventoryFlag);
+  }, [userState?.fetchNecessaryInventoryFlag]);
 
   useEffect(() => {
     switchInventoryFetchTypeFlag();

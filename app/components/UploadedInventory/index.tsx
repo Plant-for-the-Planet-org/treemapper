@@ -16,13 +16,11 @@ import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { deleteFromFS } from '../../utils/FSInteration';
 import { SYNCED } from '../../utils/inventoryConstants';
-import { getUserDetails } from '../../repositories/user';
 import { useNavigation } from '@react-navigation/core';
 
 const UploadedInventory = () => {
   const [allInventory, setAllInventory] = useState<any>(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
-  const [countryCode, setCountryCode] = useState('');
 
   const navigation = useNavigation();
 
@@ -37,9 +35,6 @@ const UploadedInventory = () => {
   const initialState = () => {
     getInventoryByStatus([SYNCED]).then(allInventory => {
       setAllInventory(allInventory);
-    });
-    getUserDetails().then(userDetails => {
-      setCountryCode(userDetails?.country || '');
     });
   };
 
@@ -102,7 +97,6 @@ const UploadedInventory = () => {
           <InventoryList
             accessibilityLabel={i18next.t('label.tree_inventory_upload_inventory_list')}
             inventoryList={allInventory}
-            countryCode={countryCode}
             ListHeaderComponent={() => {
               return (
                 <>

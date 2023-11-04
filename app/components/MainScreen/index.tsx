@@ -58,9 +58,6 @@ const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
 
 export default function MainScreen() {
-  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-  const [isUserLogin, setIsUserLogin] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [offlineModal, setOfflineModal] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
@@ -91,9 +88,8 @@ export default function MainScreen() {
   const [modalType, setModalType] = useState<string>('');
 
   const { state, dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
-  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
@@ -123,9 +119,7 @@ export default function MainScreen() {
     let realm: Realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
-      fetchUserDetails();
       fetchInventoryCount();
-
       realm = await Realm.open(getSchema());
       initializeRealm(realm);
     });
@@ -149,7 +143,6 @@ export default function MainScreen() {
   useEffect(() => {
     if (showClickedGeoJSON) {
       setOfflineModal(false);
-      setIsProfileModalVisible(false);
     }
   }, [showClickedGeoJSON]);
 
@@ -179,16 +172,12 @@ export default function MainScreen() {
     } else {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
-      setUserInfo(stringifiedUserDetails);
-      setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
   };
 
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
-      setUserInfo({});
-      setIsUserLogin(false);
       clearUserDetails()(userDispatch);
     }
 
@@ -258,20 +247,6 @@ export default function MainScreen() {
 
   const closeProfileModal = () => setIsProfileModalVisible(false);
 
-  const fetchUserDetails = () => {
-    if (!loadingState.isLoading) {
-      getUserDetails().then(userDetails => {
-        if (userDetails) {
-          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          if (stringifiedUserDetails) {
-            setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(!!stringifiedUserDetails.accessToken);
-          }
-        }
-      });
-    }
-  };
-
   const fetchInventoryCount = () => {
     getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
       updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
@@ -279,31 +254,6 @@ export default function MainScreen() {
     getInventoryCount().then(count => {
       setNumberOfInventory(count);
     });
-  };
-
-  const onPressLogin = async () => {
-    if (isUserLogin) {
-      setIsProfileModalVisible(true);
-    } else {
-      startLoading()(loadingDispatch);
-      auth0Login(userDispatch, dispatch)
-        .then(() => {
-          stopLoading()(loadingDispatch);
-          fetchUserDetails();
-          fetchInventoryCount();
-        })
-        .catch(err => {
-          if (err?.response?.status === 303) {
-            navigation.navigate('SignUp');
-          } else if (
-            (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) ||
-            (err?.message == 401 && err?.name === 'unauthorized')
-          ) {
-            setEmailAlert(true);
-          }
-          stopLoading()(loadingDispatch);
-        });
-    }
   };
 
   const _onSelectSite = item => () => {
@@ -335,40 +285,12 @@ export default function MainScreen() {
     </TouchableOpacity>
   );
 
-  const onPressLogout = () => {
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      closeProfileModal();
-      clearAllUploadedInventory();
-      shouldSpeciesUpdate()
-        .then(isSyncRequired => {
-          if (isSyncRequired) {
-            navigation.navigate('LogoutWarning');
-          } else {
-            auth0Logout(userDispatch).then(async result => {
-              if (result) {
-                console.log('55');
-                setUserInfo({});
-                await modifyUserDetails({
-                  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
-                });
-                setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
-              }
-            });
-          }
-        })
-        .catch(err => console.error(err));
-    } else {
-      setOfflineModal(true);
-    }
-  };
-
   const onSelectProject = val => {
     const selectedProjectSites = projects.filter(item => item?.properties?.id === val)[0]
       ?.properties?.sites;
     setProjectSites(selectedProjectSites);
   };
 
-  const onPressCloseProfileModal = () => closeProfileModal();
   const onPressPrimaryBtn = () => {
     setOfflineModal(false);
     closeProfileModal();
@@ -384,7 +306,6 @@ export default function MainScreen() {
       <MainMap
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}
-        userInfo={userInfo}
         siteCenterCoordinate={siteCenterCoordinate}
         siteBounds={siteBounds}
         projectSites={projectSites}
@@ -531,12 +452,6 @@ export default function MainScreen() {
           </View>
         )}
       </Modalize>
-      <ProfileModal
-        isProfileModalVisible={isProfileModalVisible}
-        onPressCloseProfileModal={onPressCloseProfileModal}
-        onPressLogout={onPressLogout}
-        userInfo={userInfo}
-      />
       <AlertModal
         visible={offlineModal}
         heading={i18next.t('label.network_error')}

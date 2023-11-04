@@ -16,6 +16,7 @@ import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { setInventoryId } from '../../actions/inventory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
@@ -45,7 +46,6 @@ const IS_ANDROID = Platform.OS === 'android';
 interface IMainMapProps {
   showClickedGeoJSON: boolean;
   setShowClickedGeoJSON: React.Dispatch<React.SetStateAction<boolean>>;
-  userInfo: any;
   siteCenterCoordinate: any;
   siteBounds: any;
   projectSites: any;
@@ -54,7 +54,6 @@ interface IMainMapProps {
 const MainMap = ({
   showClickedGeoJSON,
   setShowClickedGeoJSON,
-  userInfo,
   siteCenterCoordinate,
   siteBounds,
   projectSites,
@@ -73,7 +72,7 @@ const MainMap = ({
   };
   const [loader, setLoader] = useState(false);
   const [isInitial, setIsInitial] = useState(true);
-
+  const { state: userInfo, dispatch: userDispatch } = useContext(UserContext);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
 
   const [location, setLocation] = useState<MapLibreGL.Location | Geolocation.GeoPosition>();

@@ -22,7 +22,6 @@ import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../action
 import { auth0Logout, SignupService } from '../../actions/user';
 import { LoadingContext } from '../../reducers/loader';
 import { UserContext } from '../../reducers/user';
-import { getUserDetails } from '../../repositories/user';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { Header, Loader, PrimaryButton } from '../Common';
 import Modal from '../Common/Modal';
@@ -40,7 +39,6 @@ const SignUp = ({ navigation }) => {
   const [isPrivate, setIsPrivate] = useState(true);
   const [getNews, setGetNews] = useState(false);
   const [authDetail, setAuthDetails] = useState({});
-  const [oAuthAccessToken, setAuthAccessToken] = useState('');
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
   const [address, setAddress] = useState('');
@@ -55,13 +53,13 @@ const SignUp = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const lang = RNLocalize.getLocales()[0];
 
-  const toggleSwitchPublish = () => setIsPrivate((previousState) => !previousState);
-  const toggleSwitchContact = () => setGetNews((previousState) => !previousState);
+  const toggleSwitchPublish = () => setIsPrivate(previousState => !previousState);
+  const toggleSwitchContact = () => setGetNews(previousState => !previousState);
 
-  const SelectType = (type) => {
+  const SelectType = type => {
     let name;
     switch (type) {
       case 'individual':
@@ -83,7 +81,7 @@ const SignUp = ({ navigation }) => {
     return name;
   };
 
-  const checkValidation = (name) => {
+  const checkValidation = name => {
     if (name === 'individual') {
       if (lastname && firstname && country) {
         setCompleteCheck(true);
@@ -172,7 +170,7 @@ const SignUp = ({ navigation }) => {
           city,
           zipCode,
           address,
-          oAuthAccessToken,
+          oAuthAccessToken: userState.accessToken,
           type: accountType,
           name: nameOfOrg,
         };
@@ -194,7 +192,7 @@ const SignUp = ({ navigation }) => {
           isPrivate,
           country: countryName,
           locale,
-          oAuthAccessToken,
+          oAuthAccessToken: userState.accessToken,
           type: accountType,
           name: nameOfOrg,
         };
@@ -209,7 +207,7 @@ const SignUp = ({ navigation }) => {
           isPrivate,
           country: countryName,
           locale,
-          oAuthAccessToken,
+          oAuthAccessToken: userState.accessToken,
           type: accountType,
         };
       }
@@ -222,7 +220,7 @@ const SignUp = ({ navigation }) => {
           stopSignUpLoading()(loadingDispatch);
           navigation.navigate('MainScreen');
         })
-        .catch((err) => {
+        .catch(err => {
           alert(err.response.data.message);
           console.error(err.response.data.message, 'err');
           stopSignUpLoading()(loadingDispatch);
@@ -233,42 +231,40 @@ const SignUp = ({ navigation }) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
-      getUserDetails().then(async (userDetails) => {
-        if (userDetails?.isSignUpRequired) {
-          await auth0Logout(userDispatch);
-        }
-      });
+      if (userState?.isSignUpRequired) {
+        auth0Logout(userDispatch);
+      }
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, userState?.isSignUpRequired]);
+
+  useEffect(() => {
+    if (userState?.idToken) {
+      let decode = jwtDecode(userState.idToken);
+      setAuthDetails(decode);
+      setEmail(decode.email);
+    }
+  }, [userState?.idToken]);
 
   useEffect(() => {
     stopLoading()(loadingDispatch);
-    getUserDetails().then((User) => {
-      if (User) {
-        let decode = jwtDecode(User.idToken);
-        setAuthAccessToken(User.accessToken);
-        setAuthDetails(decode);
-        setEmail(decode.email);
-        setCountry(handleFilter(lang.countryCode)[0]);
-      }
-    });
+    setCountry(handleFilter(lang.countryCode)[0]);
   }, []);
 
   useEffect(() => {
     checkValidation(accountType);
   }, [accountType, lastname, firstname, nameOfOrg, address, city, zipCode, country]);
 
-  const openModal = (data) => {
+  const openModal = data => {
     setModalVisible(data);
   };
 
-  const userCountry = (data) => {
+  const userCountry = data => {
     setCountry(data);
     setModalVisible(!modalVisible);
   };
 
-  const checkAndAlert = (error) => {
+  const checkAndAlert = error => {
     if (error) {
       return Colors.ALERT;
     }

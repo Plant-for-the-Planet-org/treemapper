@@ -20,6 +20,7 @@ import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
 import { startLoading, stopLoading } from '../../../actions/loader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scaleSize } from '../../../styles/mixins';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -112,7 +113,7 @@ const CustomDrawer = props => {
                 {userState?.accessToken ? (
                   <View style={styles.profileInfoTextCon}>
                     <Text style={styles.username}>
-                      {userState?.firstName + '' + userState?.lastName}
+                      {userState?.firstName} {userState?.lastName}
                     </Text>
                     <Text style={styles.email}>{userState?.email}</Text>
                   </View>
@@ -191,22 +192,22 @@ const styles = StyleSheet.create({
   },
   header: {
     width: Spacing.SCALE_30,
-    height: 56,
+    height: Spacing.SCALE_56,
     justifyContent: 'center',
   },
   profile: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: Spacing.SCALE_16,
+    marginBottom: Spacing.SCALE_24,
   },
   profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileInfoTextCon: {
-    marginLeft: 12,
+    marginLeft: Spacing.SCALE_12,
   },
   username: {
     fontSize: Typography.FONT_SIZE_16,
@@ -214,31 +215,30 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   email: {
-    marginTop: 4,
+    marginTop: Spacing.SCALE_4,
     color: '#4F4F4F',
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   avatar: {
-    width: 50,
-    height: 50,
+    width: Spacing.SCALE_50,
+    height: Spacing.SCALE_50,
     borderRadius: 10,
   },
   pencil: {
     backgroundColor: Colors.PRIMARY + '20',
-    padding: 10,
+    padding: scaleSize(10),
     borderRadius: 500,
   },
   drawerItemContainer: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    marginTop: scaleSize(24),
+    paddingHorizontal: scaleSize(16),
   },
   drawerItem: {
-    height: 48,
-    padding: 12,
+    padding: scaleSize(12),
     borderRadius: 8,
     backgroundColor: Colors.WHITE,
-    marginBottom: 12,
+    marginBottom: scaleSize(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
-    marginLeft: 12,
+    marginLeft: scaleSize(12),
   },
   drawerItemInfo: {
     flexDirection: 'row',

@@ -12,11 +12,11 @@ import {
   SINGLE,
   SYNCED,
 } from '../../../utils/inventoryConstants';
+import { UserContext } from '../../../reducers/user';
 
 interface IInventoryListProps {
   inventoryList: any;
   accessibilityLabel: string;
-  countryCode?: string;
   /**
    * Rendered in between each item, but not at the top or bottom
    */
@@ -50,7 +50,6 @@ interface IInventoryListProps {
 export default function InventoryList({
   inventoryList,
   accessibilityLabel,
-  countryCode = '',
   ItemSeparatorComponent,
   ListEmptyComponent,
   ListFooterComponent,
@@ -61,6 +60,7 @@ export default function InventoryList({
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const onPressInventory = (item: any) => {
     setInventoryId(item.inventory_id)(dispatch);
@@ -132,7 +132,7 @@ export default function InventoryList({
           diameter: item.specieDiameter,
           height: item.specieHeight,
           tagId: item.tagId,
-          countryCode,
+          countryCode: userState.country || '',
         };
 
         return (

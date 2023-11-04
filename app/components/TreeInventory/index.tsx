@@ -37,7 +37,6 @@ import { Colors, Typography } from '../../styles';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { empty_inventory_banner } from '../../assets';
-import { getUserDetails } from '../../repositories/user';
 import { setInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
@@ -61,7 +60,6 @@ const TreeInventory = () => {
   const [editingPlantLocationHistory, setEditingPlantLocationHistory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
-  const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
 
@@ -118,9 +116,6 @@ const TreeInventory = () => {
     getInventoryByStatus([]).then(allInventory => {
       setAllInventory(allInventory);
       filteredInventories();
-    });
-    getUserDetails().then(userDetails => {
-      setCountryCode(userDetails?.country || '');
     });
   };
 

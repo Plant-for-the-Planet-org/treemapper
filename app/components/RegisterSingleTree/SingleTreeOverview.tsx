@@ -75,6 +75,7 @@ import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { measurementValidation } from '../../utils/validations/measurements';
+import { UserContext } from '../../reducers/user';
 
 const { protocol, cdnUrl } = APIConfig;
 
@@ -92,7 +93,8 @@ type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTr
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
-
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const showProject = userState?.type == 'tpo' ? true : false;
   const [inventory, setInventory] = useState<any>();
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [isShowDate, setIsShowDate] = useState<boolean>(false);
@@ -114,7 +116,6 @@ const SingleTreeOverview = () => {
   const [showInputError, setShowInputError] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [showProject, setShowProject] = useState<boolean>(false);
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
@@ -157,16 +158,6 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
-    getUserDetails().then(userDetails => {
-      if (userDetails) {
-        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-        if (stringifiedUserDetails?.type === 'tpo') {
-          setShowProject(true);
-        } else {
-          setShowProject(false);
-        }
-      }
-    });
     const unsubscribe = navigation.addListener('focus', () => {
       if (inventoryState.inventoryID) {
         fetchAndUpdateInventoryDetails();

@@ -66,6 +66,7 @@ import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getScientificSpeciesById } from '../../repositories/species';
 import { getUserDetails, getUserInformation } from '../../repositories/user';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
+import { UserContext } from '../../reducers/user';
 
 let scrollAdjust = 0;
 
@@ -85,13 +86,13 @@ const InventoryOverview = ({ navigation }: any) => {
   const camera = useRef(null);
   const scrollPosition = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useContext(InventoryContext);
-
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const showProject = userState?.type == 'tpo' ? true : false;
   const [inventory, setInventory] = useState<any>(null);
   const [showDate, setShowDate] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [showProject, setShowProject] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
   const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
@@ -155,17 +156,6 @@ const InventoryOverview = ({ navigation }: any) => {
   }, [isCameraRefVisible, bounds, centerCoordinate]);
 
   useEffect(() => {
-    getUserDetails().then(userDetails => {
-      if (userDetails) {
-        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-        if (stringifiedUserDetails?.type === 'tpo') {
-          setShowProject(true);
-        } else {
-          setShowProject(false);
-        }
-      }
-    });
-
     const unsubscribeFocus = navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
