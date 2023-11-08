@@ -73,7 +73,7 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { getUserInformation } from '../../repositories/user';
 import { measurementValidation } from '../../utils/validations/measurements';
 import { UserContext } from '../../reducers/user';
 

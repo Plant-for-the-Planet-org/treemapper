@@ -7,7 +7,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,7 +25,9 @@ import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
 import { updateSpecieData } from '../../repositories/species';
 import InputModal from '../Common/InputModal';
-
+import HeaderV2 from '../Common/Header/HeaderV2';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import HeartFilled from '../../assets/svg/HeartFilled.svg';
 let screen;
 
 const SpecieInfo = ({ route }: { route: any }) => {
@@ -34,13 +35,13 @@ const SpecieInfo = ({ route }: { route: any }) => {
   const [aliases, setAliases] = useState('');
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
-  const [isOpenModal, setIsOpenModal] = useState(false);
   const [specieName, setSpecieName] = useState('');
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
   const [inputValue, setInputValue] = useState('');
-  const [editEnable, setEditEnable] = useState('');
   const { state: specieState, dispatch } = useContext<any>(SpeciesContext);
+
+  const insects = useSafeAreaInsets();
 
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
@@ -61,46 +62,46 @@ const SpecieInfo = ({ route }: { route: any }) => {
 
   useEffect(() => {
     if (!isFocused) {
-      onSubmitInputField();
+      // onSubmitInputField();
       clearSpecie()(dispatch);
     }
   }, [isFocused]);
 
-  const onSubmitInputField = () => {
-    if (editEnable === 'aliases') {
-      setAliases(inputValue);
-    } else if (editEnable === 'description') {
-      setDescription(inputValue);
-    }
-    const isImageChanged = image ? specieState?.specie?.image !== image : true;
-    const isDescriptionChanged = specieState.specie.description !== description;
-    const isAliasesChanged = specieState.specie.aliases !== aliases;
+  // const onSubmitInputField = () => {
+  //   if (editEnable === 'aliases') {
+  //     setAliases(inputValue);
+  //   } else if (editEnable === 'description') {
+  //     setDescription(inputValue);
+  //   }
+  //   const isImageChanged = image ? specieState?.specie?.image !== image : true;
+  //   const isDescriptionChanged = specieState.specie.description !== description;
+  //   const isAliasesChanged = specieState.specie.aliases !== aliases;
 
-    const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
-    if (shouldUpdateData) {
-      updateSpecieData({
-        scientificSpecieGuid: specieGuid,
-        aliases,
-        description,
-        image,
-      })
-        .then(async () => {
-          const userToken = await getUserToken();
-          if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
-            updateUserSpecie({
-              scientificSpecieGuid: specieGuid,
-              specieId: specieId,
-              aliases,
-              description,
-              image: image || image === '' ? image : null,
-            });
-          }
-        })
-        .catch((err) => {
-          console.error('something went wrong', err);
-        });
-    }
-  };
+  //   const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
+  //   if (shouldUpdateData) {
+  //     updateSpecieData({
+  //       scientificSpecieGuid: specieGuid,
+  //       aliases,
+  //       description,
+  //       image,
+  //     })
+  //       .then(async () => {
+  //         const userToken = await getUserToken();
+  //         if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
+  //           updateUserSpecie({
+  //             scientificSpecieGuid: specieGuid,
+  //             specieId: specieId,
+  //             aliases,
+  //             description,
+  //             image: image || image === '' ? image : null,
+  //           });
+  //         }
+  //       })
+  //       .catch(err => {
+  //         console.error('something went wrong', err);
+  //       });
+  //   }
+  // };
 
   const handleCamera = ({ base64Image }: { base64Image: any }) => {
     setIsCamera(!isCamera);
@@ -116,11 +117,7 @@ const SpecieInfo = ({ route }: { route: any }) => {
           setIsUserSpecies(!isUserSpecies);
         }}>
         {isUserSpecies ? (
-          <Ionicons
-            name={'ios-checkmark-circle-sharp'}
-            size={30}
-            style={{ color: Colors.PRIMARY }}
-          />
+          <HeartFilled />
         ) : (
           <MaterialCommunityIcons
             name={'checkbox-blank-circle-outline'}
@@ -135,17 +132,20 @@ const SpecieInfo = ({ route }: { route: any }) => {
     return <Camera handleCamera={handleCamera} />;
   } else {
     return (
-      <SafeAreaView style={styles.mainContainer}>
+      <View style={[styles.mainContainer, { paddingTop: insects.top }]}>
         <View style={styles.container}>
-          <Header
-            headingTextEditable={aliases}
-            TitleRightComponent={CheckIcon}
-            onPressHeading={() => {
-              setEditEnable('aliases');
-              setInputValue(aliases);
-              setIsOpenModal(true);
-            }}
-          />
+          <HeaderV2 />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 16,
+              paddingTop: 0,
+            }}>
+            <Text></Text>
+            {CheckIcon()}
+          </View>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'handled'}>
             <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
               {!image ? (
@@ -191,9 +191,7 @@ const SpecieInfo = ({ route }: { route: any }) => {
                 <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
                 <TouchableOpacity
                   onPress={() => {
-                    setEditEnable('description');
                     setInputValue(description);
-                    setIsOpenModal(true);
                   }}>
                   {description && description !== '' ? (
                     <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
@@ -207,17 +205,9 @@ const SpecieInfo = ({ route }: { route: any }) => {
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
-            <InputModal
-              value={inputValue}
-              setValue={setInputValue}
-              onSubmitInputField={onSubmitInputField}
-              isOpenModal={isOpenModal}
-              setIsOpenModal={setIsOpenModal}
-              inputType={'text'}
-            />
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 };
@@ -225,12 +215,11 @@ const SpecieInfo = ({ route }: { route: any }) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: 'white',
   },
   container: {
     flex: 1,
-    paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: '#E0E0E0',
   },
   cont: {
     flex: 1,

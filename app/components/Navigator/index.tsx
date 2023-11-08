@@ -25,18 +25,18 @@ export default function AppNavigator() {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
-  const autoSync = () => {
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      checkLoginAndSync({
-        sync: true,
-        inventoryState,
-        dispatch: dispatch,
-        userDispatch: userDispatch,
-        connected: netInfo.isConnected,
-        internet: netInfo.isInternetReachable,
-      });
-    }
-  };
+  // const autoSync = () => {
+  //   if (netInfo.isConnected && netInfo.isInternetReachable) {
+  //     checkLoginAndSync({
+  //       sync: true,
+  //       inventoryState,
+  //       dispatch: dispatch,
+  //       userDispatch: userDispatch,
+  //       connected: netInfo.isConnected,
+  //       internet: netInfo.isInternetReachable,
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     if (!showInitialStack) {
@@ -52,11 +52,11 @@ export default function AppNavigator() {
     }
   }, [showInitialStack, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
-  useEffect(() => {
-    if (!showInitialStack) {
-      autoSync();
-    }
-  }, [netInfo, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
+  // useEffect(() => {
+  //   if (!showInitialStack) {
+  //     autoSync();
+  //   }
+  // }, [netInfo, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
 
   return (
     <NavigationContainer>

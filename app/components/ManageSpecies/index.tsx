@@ -35,6 +35,8 @@ import { AlertModal, Header, SpeciesSyncError } from '../Common';
 import { IScientificSpecies } from '../../utils/schemaInterfaces';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
+import HeaderV2 from '../Common/Header/HeaderV2';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ManageSpeciesProps {
   onPressSpeciesSingle?: (item?: any) => void;
@@ -76,6 +78,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const [list, setList] = useState<ScientificSpeciesType[]>(specieList);
+  const insects = useSafeAreaInsets();
 
   const netInfo = useNetInfo();
 
@@ -370,14 +373,14 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const renderListHeader = React.useMemo(() => {
     return (
       <>
-        <Header
-          closeIcon
-          onBackPress={onPressBack ? onPressBack : onPressHome}
+        <HeaderV2
+          onBackPress={() => navigation.goBack()}
           headingText={
             registrationType
               ? i18next.t('label.select_species_header')
               : i18next.t('label.select_species_tree_species')
           }
+          rightText={'aga'}
           TitleRightComponent={
             route.name === 'ManageSpecies'
               ? () => (
@@ -394,13 +397,49 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                 )
               : () => <></>
           }
-          style={{
+          containerStyle={{
             paddingLeft: 25,
             paddingRight: route.name === 'ManageSpecies' ? 15 : 25,
           }}
         />
-        <View style={styles.container}>
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor: 'rgba(104, 176, 48, 0.10)',
+              padding: 24,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+            },
+          ]}>
           <SpeciesSyncError />
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: Typography.FONT_SIZE_14,
+              fontFamily: Typography.FONT_FAMILY_BOLD,
+            }}>
+            Explore and Manage Species
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              textAlign: 'center',
+              fontSize: Typography.FONT_SIZE_12,
+              fontFamily: Typography.FONT_FAMILY_REGULAR,
+            }}>
+            {'Search '}
+            <Text
+              style={{
+                marginTop: 4,
+                textAlign: 'center',
+                fontSize: Typography.FONT_SIZE_14,
+                fontFamily: Typography.FONT_FAMILY_BOLD,
+              }}>
+              {'60,000 Species '}
+            </Text>
+            {`and Add Species to \n Your Favourites`}
+          </Text>
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
             <TextInput
@@ -430,7 +469,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
           ) : (
             []
           )}
-
+        </View>
+        <View
+          style={{
+            paddingLeft: 20,
+            backgroundColor: '#E0E0E026',
+          }}>
           {!showSearchSpecies ? (
             <Text style={styles.listTitle}>{i18next.t('label.select_species_my_species')}</Text>
           ) : showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
@@ -463,31 +507,50 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
 
   const renderItem = (props: any) => {
     return (
-      <View style={styles.container}>
-        {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
-          memoizedRenderSearchSpecieCard(props)
-        ) : !showSearchSpecies ? (
-          renderSpecieCard(props)
-        ) : (
-          <></>
-        )}
+      <View
+        style={[
+          styles.container,
+          { padding: 18, backgroundColor: 'rgba(224, 224, 224, 0.15)', paddingVertical: 6 },
+        ]}>
+        <View
+          style={{
+            backgroundColor: 'white',
+            borderRadius: 8,
+            elevation: 5,
+          }}>
+          {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
+            memoizedRenderSearchSpecieCard(props)
+          ) : !showSearchSpecies ? (
+            renderSpecieCard(props)
+          ) : (
+            <></>
+          )}
+        </View>
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.mainContainer}>
+    <>
       {/* <DismissKeyBoard> */}
-      <FlatList
-        data={list}
-        style={styles.flatList}
-        renderItem={renderItem}
-        keyExtractor={item => item.guid}
-        keyboardShouldPersistTaps="always"
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={renderListEmptyComponent}
-      />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+          paddingTop: insects.top,
+        }}>
+        <FlatList
+          data={list}
+          style={styles.flatList}
+          renderItem={renderItem}
+          keyExtractor={item => item.guid}
+          keyboardShouldPersistTaps="always"
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={renderListHeader}
+          ListEmptyComponent={renderListEmptyComponent}
+        />
+      </View>
+
       {/* </DismissKeyBoard> */}
       <TreeCountModal
         showTreeCountModal={showTreeCountModal}
@@ -517,7 +580,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
         onPressPrimaryBtn={() => handleSpeciesSyncPress()}
         onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
       />
-    </SafeAreaView>
+    </>
   );
 };
 
@@ -527,17 +590,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE,
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: Colors.WHITE,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
-    borderRadius: 5,
+    borderRadius: 100,
     marginTop: 24,
     backgroundColor: Colors.WHITE,
     shadowColor: '#000000',
@@ -547,7 +605,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.39,
     shadowRadius: 8.3,
-    elevation: 6,
+    elevation: 3,
   },
   searchIcon: {
     color: '#949596',

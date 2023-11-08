@@ -1,5 +1,5 @@
 import { updateInventoryFetchFromServer } from '../actions/inventory';
-import { getAllProjects, getUserDetailsFromServer } from '../actions/user';
+import { getAllProjects, getUserDetailsFromServer, setUserDetails } from '../actions/user';
 import { inventoryFetchConstant } from '../reducers/inventory';
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
@@ -17,6 +17,8 @@ export const checkLoginAndSync = async ({
 }: any) => {
   const dbUserDetails = await getUserDetails();
   if (dbUserDetails && dbUserDetails.accessToken && internet && connected) {
+    const stringifiedUserDetails = JSON.parse(JSON.stringify(dbUserDetails));
+    setUserDetails(stringifiedUserDetails)(userDispatch);
     // fetches the user details from server by passing the accessToken which is used while requesting the API
     getUserDetailsFromServer(userDispatch)
       .then(() => {

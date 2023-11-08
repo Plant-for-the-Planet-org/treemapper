@@ -21,6 +21,11 @@ import { auth0Login, auth0Logout } from '../../../actions/user';
 import { startLoading, stopLoading } from '../../../actions/loader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scaleSize } from '../../../styles/mixins';
+import { Skeleton } from 'moti/skeleton';
+import { useState } from 'react';
+import i18next from 'i18next';
+import openWebView from '../../../utils/openWebView';
+import { version } from '../../../../package.json';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -35,6 +40,8 @@ const getIcon = screenName => {
     case 'ManageProjects':
       return <ProjectDoc />;
     case 'DownloadMap':
+      return <OfflineMapIcon />;
+    case 'ActivityLogs':
       return <OfflineMapIcon />;
     default:
       return undefined;
@@ -53,6 +60,8 @@ const getLabel = screenName => {
       return 'Manage Projects';
     case 'DownloadMap':
       return 'Offline Maps';
+    case 'ActivityLogs':
+      return 'Activity Logs';
     default:
       return undefined;
   }
@@ -62,28 +71,39 @@ const CustomDrawer = props => {
   const { navigation, state } = props;
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { dispatch } = useContext(InventoryContext);
-  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
+  const [loading, setLoading] = useState(false);
 
   const insects = useSafeAreaInsets();
 
-  console.log('userState', userState);
-
   const handleLogout = async () => {
     const isLogout = await auth0Logout(userDispatch);
-    // isLogout && setIsLoggedIn(false);
+  };
+
+  const onPressImprint = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
+  };
+  const onPressPolicy = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
+  };
+  const onPressTerms = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
+  };
+
+  const onPressEdit = () => {
+    openWebView(`${protocol}://${webAppUrl}/login`);
   };
 
   const onPressLogin = async () => {
-    startLoading()(loadingDispatch);
+    setLoading(true);
     auth0Login(userDispatch, dispatch)
       .then(() => {
-        stopLoading()(loadingDispatch);
+        setLoading(false);
       })
       .catch(err => {
         if (err?.response?.status === 303) {
           navigation.navigate('SignUp');
         }
-        stopLoading()(loadingDispatch);
+        setLoading(false);
       });
   };
 
@@ -94,8 +114,8 @@ const CustomDrawer = props => {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1, paddingTop: insects.top }}>
-        <View style={styles.container}>
+      <Skeleton.Group show={loading}>
+        <View style={[styles.container, { backgroundColor: 'white', paddingTop: insects.top }]}>
           <View style={styles.profileContainer}>
             <TouchableOpacity
               activeOpacity={0.7}
@@ -105,26 +125,32 @@ const CustomDrawer = props => {
             </TouchableOpacity>
             <View style={styles.profile}>
               <View style={styles.profileInfo}>
-                {avatar ? (
-                  <Image resizeMode={'contain'} source={{ uri: avatar }} style={styles.avatar} />
-                ) : (
-                  <Image resizeMode={'contain'} source={single_tree_png} style={styles.avatar} />
-                )}
+                <Skeleton colorMode="light" radius={10}>
+                  {avatar ? (
+                    <Image resizeMode={'contain'} source={{ uri: avatar }} style={styles.avatar} />
+                  ) : (
+                    <Image resizeMode={'contain'} source={single_tree_png} style={styles.avatar} />
+                  )}
+                </Skeleton>
                 {userState?.accessToken ? (
                   <View style={styles.profileInfoTextCon}>
-                    <Text style={styles.username}>
-                      {userState?.firstName} {userState?.lastName}
-                    </Text>
-                    <Text style={styles.email}>{userState?.email}</Text>
+                    <Skeleton colorMode="light" radius={2}>
+                      <Text style={styles.username}>
+                        {userState?.firstName} {userState?.lastName}
+                      </Text>
+                      <Text style={styles.email}>{userState?.email}</Text>
+                    </Skeleton>
                   </View>
                 ) : (
                   <View style={styles.profileInfoTextCon}>
-                    <Text style={styles.username}>Guest User</Text>
+                    <Skeleton colorMode="light" radius={2}>
+                      <Text style={styles.username}>Guest User</Text>
+                    </Skeleton>
                   </View>
                 )}
               </View>
               {userState?.accessToken && (
-                <TouchableOpacity activeOpacity={0.7} style={styles.pencil}>
+                <TouchableOpacity onPress={onPressEdit} activeOpacity={0.7} style={styles.pencil}>
                   <FontAwesome name="pencil" size={24} color={Colors.PRIMARY} />
                 </TouchableOpacity>
               )}
@@ -134,38 +160,52 @@ const CustomDrawer = props => {
             {state.routeNames.map(
               (name, index) =>
                 !(name === 'BottomTab') && (
-                  <TouchableOpacity
-                    key={index}
-                    activeOpacity={0.7}
-                    style={styles.drawerItem}
-                    onPress={event => {
-                      props.navigation.navigate(name);
-                    }}>
-                    <View style={styles.drawerItemInfo}>
-                      {getIcon(name)}
-                      <Text style={styles.drawerItemLabel}>{getLabel(name)}</Text>
-                    </View>
-                    <Ionicons
-                      name={'chevron-forward-outline'}
-                      size={20}
-                      color={Colors.TEXT_COLOR}
-                    />
-                  </TouchableOpacity>
+                  <View key={index} style={{ paddingTop: scaleSize(12) }}>
+                    <Skeleton colorMode="light">
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        style={[styles.drawerItem, { opacity: name == 'DownloadMap' ? 0.6 : 1 }]}
+                        disabled={name == 'DownloadMap' || false}
+                        onPress={event => {
+                          navigation.navigate(name);
+                        }}>
+                        <View style={styles.drawerItemInfo}>
+                          {getIcon(name)}
+                          <Text style={styles.drawerItemLabel}>{getLabel(name)}</Text>
+                        </View>
+                        <Ionicons
+                          name={'chevron-forward-outline'}
+                          size={20}
+                          color={Colors.TEXT_COLOR}
+                        />
+                      </TouchableOpacity>
+                    </Skeleton>
+                  </View>
                 ),
             )}
             {userState?.accessToken && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.drawerItem}
-                onPress={handleLogout}>
-                <View style={styles.drawerItemInfo}>
-                  {getIcon('Logout')}
-                  <Text style={styles.drawerItemLabel}>{getLabel('Logout')}</Text>
-                </View>
-                <Ionicons name={'chevron-forward-outline'} size={20} color={Colors.TEXT_COLOR} />
-              </TouchableOpacity>
+              <View style={{ paddingTop: scaleSize(12) }}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.drawerItem}
+                  onPress={handleLogout}>
+                  <View style={styles.drawerItemInfo}>
+                    {getIcon('Logout')}
+                    <Text style={styles.drawerItemLabel}>{getLabel('Logout')}</Text>
+                  </View>
+                  <Ionicons name={'chevron-forward-outline'} size={20} color={Colors.TEXT_COLOR} />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
+        </View>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            paddingBottom: insects.bottom,
+          }}>
           {!userState?.accessToken && (
             <PrimaryButton
               onPress={onPressLogin}
@@ -173,8 +213,53 @@ const CustomDrawer = props => {
               style={styles.loginBtn}
             />
           )}
+          <View key="version" style={{ paddingBottom: 10 }}>
+            <View>
+              <Text style={styles.itemText}>{version}</Text>
+            </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              width: '100%',
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+              paddingBottom: 10,
+            }}>
+            <TouchableOpacity key="privacy_policy" style={styles.touchable} onPress={onPressPolicy}>
+              <View>
+                <Text style={styles.itemText}>{i18next.t('label.privacy_policy')}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View
+              style={{
+                height: 3,
+                width: 3,
+                borderRadius: 100,
+                backgroundColor: 'black',
+              }}
+            />
+
+            <TouchableOpacity key="imprint" style={styles.touchable} onPress={onPressImprint}>
+              <View>
+                <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={{ height: 3, width: 3, borderRadius: 100, backgroundColor: 'black' }} />
+
+            <TouchableOpacity
+              key="terms_of_service"
+              style={styles.touchable}
+              onPress={onPressTerms}>
+              <View>
+                <Text style={styles.itemText}>{i18next.t('label.terms_of_service')}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-      </SafeAreaView>
+      </Skeleton.Group>
     </>
   );
 };
@@ -184,7 +269,6 @@ export default CustomDrawer;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E0E0E026',
   },
   profileContainer: {
     paddingHorizontal: Spacing.SCALE_16,
@@ -231,14 +315,15 @@ const styles = StyleSheet.create({
     borderRadius: 500,
   },
   drawerItemContainer: {
+    flex: 1,
     marginTop: scaleSize(24),
     paddingHorizontal: scaleSize(16),
+    backgroundColor: '#E0E0E026',
   },
   drawerItem: {
     padding: scaleSize(12),
     borderRadius: 8,
-    backgroundColor: Colors.WHITE,
-    marginBottom: scaleSize(12),
+    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -254,9 +339,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginBtn: {
-    bottom: 0,
     width: '90%',
     alignSelf: 'center',
-    position: 'absolute',
+    marginBottom: 20,
+  },
+  mainContainer: {
+    flex: 1,
+  },
+  defaultSpacing: {
+    paddingHorizontal: 25,
+    paddingTop: 10,
+  },
+  touchable: {},
+  itemText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_18,
+    lineHeight: Typography.LINE_HEIGHT_24,
+    color: Colors.TEXT_COLOR,
+    textAlign: 'center',
   },
 });

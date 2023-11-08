@@ -7,7 +7,7 @@ import { Colors } from '../../styles';
 import { CustomDrawer } from '../Common';
 import AdditionalData from '../AdditionalData';
 import { DownloadMap, ManageProjects, ManageSpecies } from '../../components';
-
+import Logs from '../Logs/index';
 const Drawer = createDrawerNavigator();
 
 const NavDrawer = () => {
@@ -32,6 +32,7 @@ const NavDrawer = () => {
       <Drawer.Screen name="ManageProjects" component={ManageProjects} />
       <Drawer.Screen name="AdditionalData" component={AdditionalData} />
       <Drawer.Screen name="DownloadMap" component={DownloadMap} />
+      <Drawer.Screen name="ActivityLogs" component={Logs} />
     </Drawer.Navigator>
   );
 };

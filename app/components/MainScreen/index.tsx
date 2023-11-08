@@ -43,7 +43,6 @@ import { InventoryTypeSelector } from './InventoryTypeSelector';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { shouldSpeciesUpdate } from '../../repositories/species';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
-import { getUserDetails, modifyUserDetails } from '../../repositories/user';
 import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
@@ -109,8 +108,8 @@ export default function MainScreen() {
   useFocusEffect(
     React.useCallback(() => {
       if (projects.length > 0) {
-        setValue(projects[0]?.properties?.id);
-        setProjectSites(projects[0]?.properties?.sites || []);
+        setValue(projects[0]?.id);
+        setProjectSites(projects[0]?.sites || []);
       }
     }, [projects]),
   );
@@ -258,9 +257,12 @@ export default function MainScreen() {
 
   const _onSelectSite = item => () => {
     setSelectedSite(item);
-    setSiteBounds(bbox(item?.geometry));
-    const centerCoordinate = turfCenter(item?.geometry)?.geometry?.coordinates;
-    setSiteCenterCoordinate(centerCoordinate);
+    const geometry = JSON.parse(JSON.stringify(item?.geometry));
+    console.log(geometry);
+
+    setSiteBounds(bbox(geometry));
+    // const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
+    // setSiteCenterCoordinate(centerCoordinate);
     onClose();
   };
 
@@ -286,8 +288,8 @@ export default function MainScreen() {
   );
 
   const onSelectProject = val => {
-    const selectedProjectSites = projects.filter(item => item?.properties?.id === val)[0]
-      ?.properties?.sites;
+    console.log('ggggg', projects.filter(item => item?.id === val)[0]?.geometry);
+    const selectedProjectSites = projects.filter(item => item?.id === val)[0]?.sites;
     setProjectSites(selectedProjectSites);
   };
 
@@ -393,6 +395,7 @@ export default function MainScreen() {
       )}
 
       <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>
+        {/* <StatusBar barStyle="dark-content" backgroundColor="rgba(0,0,0,0.7)" /> */}
         <View style={styles.filterModalHeader}>
           <View style={styles.filterModalHeaderInfo}>
             <IonIcons

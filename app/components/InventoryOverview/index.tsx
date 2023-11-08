@@ -64,7 +64,7 @@ import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import { setSkipToInventoryOverview } from '../../actions/inventory';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getScientificSpeciesById } from '../../repositories/species';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { getUserInformation } from '../../repositories/user';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import { UserContext } from '../../reducers/user';
 

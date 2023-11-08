@@ -65,7 +65,6 @@ const Header = ({
           ) : (
             []
           )}
-          <View />
           {rightText ? (
             onPressFunction ? (
               <TouchableOpacity onPress={() => onPressFunction()}>
@@ -143,16 +142,14 @@ const styles = StyleSheet.create({
     marginLeft: 32,
   },
   containerStyle: {
-    marginTop: -45,
-    paddingTop: 45,
     flexDirection: 'row',
     paddingBottom: 16,
     backgroundColor: Colors.WHITE,
+    alignItems: 'center',
   },
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // alignItems: 'center',
   },
   paddingVertical: {
     paddingVertical: 4,
