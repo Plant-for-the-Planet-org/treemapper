@@ -167,6 +167,7 @@ export default function Logs() {
               headingText={i18next.t('label.activity_logs')}
               onBackPress={handleBackPress}
               TitleRightComponent={titleRightComponent}
+              containerStyle={{ paddingLeft: 25 }}
             />
           </View>
           <View style={styles.scene}>
@@ -176,6 +177,7 @@ export default function Logs() {
               onIndexChange={setRouteIndex}
               initialLayout={initialLayout}
               renderTabBar={renderTabBar}
+              sceneContainerStyle={{ paddingHorizontal: 25 }}
             />
           </View>
           <AlertModal
@@ -194,12 +196,13 @@ export default function Logs() {
 const styles = StyleSheet.create({
   scene: {
     flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   mainContainer: {
     flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   defaultSpacing: {
-    paddingHorizontal: 25,
     paddingTop: 10,
   },
   logStyle: {
