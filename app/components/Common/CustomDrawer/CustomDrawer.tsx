@@ -1,7 +1,7 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useContext } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 import {
   LogoutSign,
@@ -21,7 +21,7 @@ import { auth0Login, auth0Logout } from '../../../actions/user';
 import { startLoading, stopLoading } from '../../../actions/loader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scaleSize } from '../../../styles/mixins';
-import { Skeleton } from 'moti/skeleton';
+import { Skeleton } from 'moti/skeleton/react-native-linear-gradient';
 import { useState } from 'react';
 import i18next from 'i18next';
 import openWebView from '../../../utils/openWebView';
