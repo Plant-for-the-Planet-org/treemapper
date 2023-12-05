@@ -303,7 +303,7 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: nextScreen }],
+          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: nextScreen }],
         }),
       );
     }

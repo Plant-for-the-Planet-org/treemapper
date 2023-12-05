@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TextInput,
   View,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -22,12 +23,12 @@ import { clearSpecie, updateUserSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { toggleUserSpecies } from '../../repositories/species';
 import { getUserToken } from '../../repositories/user';
-import { Camera, Header } from '../Common';
+import { Camera, GradientText, Header } from '../Common';
 import { updateSpecieData } from '../../repositories/species';
-import InputModal from '../Common/InputModal';
 import HeaderV2 from '../Common/Header/HeaderV2';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import HeartFilled from '../../assets/svg/HeartFilled.svg';
+import { HeartGray, HeartPink, UploadSpecies } from '../../assets';
+
 let screen;
 
 const SpecieInfo = ({ route }: { route: any }) => {
@@ -39,6 +40,8 @@ const SpecieInfo = ({ route }: { route: any }) => {
   const [specieGuid, setSpecieGuid] = useState('');
   const [specieId, setSpecieId] = useState('');
   const [inputValue, setInputValue] = useState('');
+  const [isUserSpecies, setIsUserSpecies] = useState(true);
+
   const { state: specieState, dispatch } = useContext<any>(SpeciesContext);
 
   const insects = useSafeAreaInsets();
@@ -62,46 +65,46 @@ const SpecieInfo = ({ route }: { route: any }) => {
 
   useEffect(() => {
     if (!isFocused) {
-      // onSubmitInputField();
+      onSubmitInputField();
       clearSpecie()(dispatch);
     }
   }, [isFocused]);
 
-  // const onSubmitInputField = () => {
-  //   if (editEnable === 'aliases') {
-  //     setAliases(inputValue);
-  //   } else if (editEnable === 'description') {
-  //     setDescription(inputValue);
-  //   }
-  //   const isImageChanged = image ? specieState?.specie?.image !== image : true;
-  //   const isDescriptionChanged = specieState.specie.description !== description;
-  //   const isAliasesChanged = specieState.specie.aliases !== aliases;
+  const onSubmitInputField = () => {
+    // if (editEnable === 'aliases') {
+    //   setAliases(inputValue);
+    // } else if (editEnable === 'description') {
+    //   setDescription(inputValue);
+    // }
+    const isImageChanged = image ? specieState?.specie?.image !== image : true;
+    const isDescriptionChanged = specieState.specie.description !== description;
+    const isAliasesChanged = specieState.specie.aliases !== aliases;
 
-  //   const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
-  //   if (shouldUpdateData) {
-  //     updateSpecieData({
-  //       scientificSpecieGuid: specieGuid,
-  //       aliases,
-  //       description,
-  //       image,
-  //     })
-  //       .then(async () => {
-  //         const userToken = await getUserToken();
-  //         if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
-  //           updateUserSpecie({
-  //             scientificSpecieGuid: specieGuid,
-  //             specieId: specieId,
-  //             aliases,
-  //             description,
-  //             image: image || image === '' ? image : null,
-  //           });
-  //         }
-  //       })
-  //       .catch(err => {
-  //         console.error('something went wrong', err);
-  //       });
-  //   }
-  // };
+    const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
+    if (shouldUpdateData) {
+      updateSpecieData({
+        scientificSpecieGuid: specieGuid,
+        aliases,
+        description,
+        image,
+      })
+        .then(async () => {
+          const userToken = await getUserToken();
+          if (netInfo.isConnected && netInfo.isInternetReachable && specieId && userToken) {
+            updateUserSpecie({
+              scientificSpecieGuid: specieGuid,
+              specieId: specieId,
+              aliases,
+              description,
+              image: image || image === '' ? image : null,
+            });
+          }
+        })
+        .catch(err => {
+          console.error('something went wrong', err);
+        });
+    }
+  };
 
   const handleCamera = ({ base64Image }: { base64Image: any }) => {
     setIsCamera(!isCamera);
@@ -109,107 +112,118 @@ const SpecieInfo = ({ route }: { route: any }) => {
   };
 
   const CheckIcon = () => {
-    const [isUserSpecies, setIsUserSpecies] = useState(true);
     return (
       <TouchableOpacity
         onPress={() => {
           toggleUserSpecies(specieGuid);
           setIsUserSpecies(!isUserSpecies);
         }}>
-        {isUserSpecies ? (
-          <HeartFilled />
-        ) : (
-          <MaterialCommunityIcons
-            name={'checkbox-blank-circle-outline'}
-            size={30}
-            style={{ color: Colors.GRAY_MEDIUM }}
-          />
-        )}
+        {isUserSpecies ? <HeartPink /> : <HeartGray />}
       </TouchableOpacity>
     );
   };
-  if (isCamera) {
-    return <Camera handleCamera={handleCamera} />;
-  } else {
-    return (
-      <View style={[styles.mainContainer, { paddingTop: insects.top }]}>
-        <View style={styles.container}>
-          <HeaderV2 />
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: 16,
-              paddingTop: 0,
-            }}>
-            <Text></Text>
-            {CheckIcon()}
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={'handled'}>
-            <KeyboardAvoidingView behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
-              {!image ? (
-                <TouchableOpacity
-                  style={styles.emptyImageContainer}
-                  onPress={() => setIsCamera(true)}>
-                  <View style={{ alignItems: 'center' }}>
-                    <Ionicons
-                      name={'cloud-upload-outline'}
-                      size={80}
-                      color={Colors.GRAY_LIGHTEST}
+
+  return (
+    <>
+      {isCamera ? (
+        <Camera handleCamera={handleCamera} />
+      ) : (
+        <View style={[styles.mainContainer, { paddingTop: insects.top }]}>
+          <View style={styles.container}>
+            <HeaderV2 />
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 16,
+              }}>
+              <Text style={styles.specieName}>{specieName}</Text>
+              {CheckIcon()}
+            </View>
+            <ScrollView
+              style={{ paddingHorizontal: 18 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps={'handled'}>
+              <KeyboardAvoidingView
+                style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}
+                behavior="position"
+                enabled
+                keyboardVerticalOffset={200}>
+                {!image ? (
+                  <TouchableOpacity
+                    style={styles.emptyImageContainer}
+                    onPress={() => setIsCamera(true)}>
+                    <View style={{ alignItems: 'center' }}>
+                      <UploadSpecies />
+                      <GradientText style={styles.addImage}>
+                        {i18next.t('label.add_image')}
+                      </GradientText>
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{
+                        uri: `${image}`,
+                      }}
+                      style={styles.imageView}
                     />
-                    <Text style={styles.addImage}>{i18next.t('label.add_image')}</Text>
+                    <View style={styles.imageControls}>
+                      <TouchableOpacity onPress={() => setIsCamera(true)}>
+                        <View style={[styles.iconContainer, { marginRight: 10 }]}>
+                          <FA5Icon name={'pen'} size={16} color={Colors.GRAY_LIGHTEST} />
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => setImage('')}>
+                        <View style={styles.iconContainer}>
+                          <FAIcon name={'trash'} size={18} color={Colors.GRAY_LIGHTEST} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{
-                      uri: `${image}`,
-                    }}
-                    style={styles.imageView}
+                )}
+                <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
+                  <Text style={[styles.infoCardHeading, { color: Colors.DARK_TEXT_COLOR }]}>
+                    {i18next.t('label.species_name')}
+                  </Text>
+                  <TextInput
+                    editable={false}
+                    value={aliases}
+                    onChangeText={setAliases}
+                    style={styles.input}
                   />
-                  <View style={styles.imageControls}>
-                    <TouchableOpacity onPress={() => setIsCamera(true)}>
-                      <View style={[styles.iconContainer, { marginRight: 10 }]}>
-                        <FA5Icon name={'pen'} size={16} color={Colors.GRAY_LIGHTEST} />
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setImage('')}>
-                      <View style={styles.iconContainer}>
-                        <FAIcon name={'trash'} size={18} color={Colors.GRAY_LIGHTEST} />
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.infoCardHeading}>
+                    {i18next.t('label.species_description')}
+                  </Text>
+                  {/* <TouchableOpacity
+                    onPress={() => {
+                      setInputValue(description);
+                    }}>
+                    {description && description !== '' ? (
+                      <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
+                        {description}
+                      </Text>
+                    ) : (
+                      <Text style={[styles.infoCardText, { padding: 0, color: Colors.GRAY_DARK }]}>
+                        Add Description
+                      </Text>
+                    )}
+                  </TouchableOpacity> */}
+                  <TextInput
+                    multiline
+                    value={description}
+                    onChangeText={setDescription}
+                    style={[styles.input, { height: 105, paddingTop: 8, paddingTop: 8 }]}
+                  />
                 </View>
-              )}
-              <View style={{ flex: 1, flexDirection: 'column', marginBottom: 30 }}>
-                <Text style={styles.infoCardHeading}>{i18next.t('label.species_name')}</Text>
-                <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
-                  {specieName}
-                </Text>
-                <Text style={styles.infoCardHeading}>{i18next.t('label.species_description')}</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setInputValue(description);
-                  }}>
-                  {description && description !== '' ? (
-                    <Text style={[styles.infoCardText, { padding: 0, color: Colors.TEXT_COLOR }]}>
-                      {description}
-                    </Text>
-                  ) : (
-                    <Text style={[styles.infoCardText, { padding: 0, color: Colors.GRAY_DARK }]}>
-                      Add Description
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </ScrollView>
+              </KeyboardAvoidingView>
+            </ScrollView>
+          </View>
         </View>
-      </View>
-    );
-  }
+      )}
+    </>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -219,7 +233,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#E0E0E040',
   },
   cont: {
     flex: 1,
@@ -228,20 +242,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   emptyImageContainer: {
-    marginTop: 25,
+    marginTop: 16,
     height: 180,
-    backgroundColor: Colors.GRAY_LIGHT,
-    borderRadius: 6,
-    borderColor: Colors.GRAY_LIGHTEST,
+    backgroundColor: '#EBF3E6',
+    borderRadius: 8,
+    borderColor: '#86C059',
     borderWidth: 2,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
   },
   addImage: {
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    marginTop: 12,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
-    color: Colors.PRIMARY,
   },
   infoCardHeading: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -279,6 +293,21 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  specieName: {
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_ITALIC_BOLD,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: Colors.GRAY_DARK,
+    height: 40,
+    padding: 10,
+    color: Colors.DARK_TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginTop: 8,
   },
 });
 

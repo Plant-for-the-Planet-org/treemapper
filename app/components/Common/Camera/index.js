@@ -62,7 +62,7 @@ export default function Camera({ handleCamera }) {
     <SafeAreaView style={styles.mainContainer}>
       {imagePath ? (
         <ImageBackground source={{ uri: imagePath }} style={styles.cameraContainer}>
-          <Header whiteBackIcon />
+          <Header whiteBackIcon containerStyle={{ paddingHorizontal: 25 }} />
           <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
             <PrimaryButton
               onPress={onPressCamera}
@@ -107,7 +107,7 @@ export default function Camera({ handleCamera }) {
             buttonPositive: i18next.t('label.permission_camera_ok'),
             buttonNegative: i18next.t('label.permission_camera_cancel'),
           }}>
-          <Header whiteBackIcon />
+          <Header whiteBackIcon containerStyle={{ paddingHorizontal: 25 }} />
           <View style={[styles.bottomBtnsContainer, { justifyContent: 'space-between' }]}>
             <PrimaryButton
               onPress={onPressCamera}
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
   bottomBtnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: 25,
   },
   mainContainer: {
     flex: 1,
@@ -153,8 +154,6 @@ const styles = StyleSheet.create({
   cameraContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    backgroundColor: Colors.WHITE,
-    paddingHorizontal: 25,
   },
   container: {
     flex: 1,

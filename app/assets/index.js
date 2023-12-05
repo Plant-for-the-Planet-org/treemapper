@@ -59,8 +59,14 @@ import SyncSuccess from './images/sync_success';
 import SyncFail from './images/sync_failed';
 import FolderIcon from './images/folder_icon';
 import ArrowBack from './images/arrow_back';
+import HeartGray from './images/heart_gray';
+import HeartPink from './images/heart_pink';
+import UploadSpecies from './images/upload_species';
 
 export {
+  UploadSpecies,
+  HeartPink,
+  HeartGray,
   ArrowBack,
   FolderIcon,
   SyncFail,

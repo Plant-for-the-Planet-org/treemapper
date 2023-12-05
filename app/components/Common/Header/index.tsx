@@ -90,7 +90,7 @@ const Header = ({
               style={[
                 styles.headerText,
                 textAlignStyle,
-                // TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
+                TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
               ]}>
               {headingText}
             </Text>
@@ -150,6 +150,8 @@ const styles = StyleSheet.create({
   arrowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    // alignItems: 'center',
+    // width: '100%',
   },
   paddingVertical: {
     paddingVertical: 4,

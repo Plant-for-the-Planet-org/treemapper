@@ -12,6 +12,7 @@ const initialState = {
   country: null,
   idLogEnabled: null,
   userId: null,
+  type: null,
 };
 
 // User reducer function which takes the state and action param

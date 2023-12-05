@@ -72,6 +72,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               image,
               country,
               id: userId,
+              type,
             }: any = userDetails;
 
             // dispatch function sets the passed user details into the user state
@@ -82,6 +83,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               image,
               country,
               userId,
+              type,
             })(dispatch);
 
             resolve(true);

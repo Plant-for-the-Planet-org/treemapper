@@ -5,6 +5,9 @@ export const FONT_FAMILY_REGULAR = 'OpenSans-Regular';
 export const FONT_FAMILY_BOLD = 'OpenSans-Bold';
 export const FONT_FAMILY_SEMI_BOLD = 'OpenSans-SemiBold';
 export const FONT_FAMILY_EXTRA_BOLD = 'OpenSans-ExtraBold';
+export const FONT_FAMILY_ITALIC = 'OpenSans-Italic';
+export const FONT_FAMILY_ITALIC_BOLD = 'OpenSans-BoldItalic';
+export const FONT_FAMILY_ITALIC_SEMI_BOLD = 'OpenSans-SemiBoldItalic';
 
 // FONT WEIGHT
 export const FONT_WEIGHT_REGULAR = '400';

@@ -218,7 +218,7 @@ const InventoryOverview = ({ navigation }: any) => {
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
-          const project: any = await getProjectById(inventoryData.projectId);
+          const project: any = await getProjectById(inventoryData?.projectId);
           if (project) {
             setSelectedProjectName(project.name);
             setSelectedProjectId(project.id);
@@ -227,15 +227,15 @@ const InventoryOverview = ({ navigation }: any) => {
           setSelectedProjectName('');
           setSelectedProjectId('');
         }
-        if (inventoryData.polygons.length > 0) {
+        if (inventoryData?.polygons.length > 0) {
           if (
-            inventoryData.polygons[0].coordinates.length === 1 &&
-            inventoryData.polygons[0].isPolygonComplete
+            inventoryData?.polygons[0]?.coordinates?.length === 1 &&
+            inventoryData?.polygons[0]?.isPolygonComplete
           ) {
             setIsPointForMultipleTree(true);
             setCenterCoordinate([
-              inventoryData.polygons[0].coordinates[0].longitude,
-              inventoryData.polygons[0].coordinates[0].latitude,
+              inventoryData?.polygons[0]?.coordinates[0]?.longitude,
+              inventoryData?.polygons[0]?.coordinates[0]?.latitude,
             ]);
           } else {
             setCenterCoordinate(turfCenter(geoJSONData.features[0]));

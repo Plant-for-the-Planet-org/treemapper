@@ -1,10 +1,5 @@
-import { StyleSheet, TouchableOpacity, View, Text, Modal } from 'react-native';
-import Animated, {
-  ReduceMotion,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { StyleSheet, TouchableOpacity, View, Text, Dimensions } from 'react-native';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 import {
   SingleTreeIcon,
   MultipleTreeIcon,
@@ -18,7 +13,9 @@ import i18next from 'i18next';
 import { Colors, Typography } from '../../styles';
 import { GradientText } from '../Common';
 
-export default React.forwardRef(({ visible, setVisible = () => {} }, ref) => {
+const { width, height } = Dimensions.get('screen');
+
+export default React.forwardRef(({ visible, setVisible = () => {}, navigation }, ref) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(visible ? 0 : 500, { duration: 500 });
   }, [visible]);
@@ -86,23 +83,24 @@ export default React.forwardRef(({ visible, setVisible = () => {} }, ref) => {
 
   return (
     <>
-      <Modal
-        onRequestClose={() => setVisible(false)}
-        visible={visible}
-        transparent={true}
-        animationType="fade">
+      {visible && (
         <TouchableOpacity
           onPress={() => setVisible(false)}
-          style={{ flex: 1 }}
-          activeOpacity={1}></TouchableOpacity>
-      </Modal>
+          style={{
+            height,
+            width,
+            position: 'absolute',
+          }}
+          activeOpacity={1}
+        />
+      )}
       <Animated.View
         style={[
           {
             overflow: 'hidden',
             position: 'absolute',
-            right: 25,
-            bottom: 100,
+            right: 18,
+            bottom: 120,
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,
@@ -114,7 +112,7 @@ export default React.forwardRef(({ visible, setVisible = () => {} }, ref) => {
           },
           animatedStyles,
         ]}>
-        <Animated.View style={{}}>{calcComponents}</Animated.View>
+        <Animated.View style={{ zIndex: 100 }}>{calcComponents}</Animated.View>
       </Animated.View>
     </>
   );

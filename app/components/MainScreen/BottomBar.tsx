@@ -117,7 +117,12 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
           })}
         </View>
       </View>
-      <AddOptionsModal setVisible={setOpen} visible={open} ref={_addOptionsRef} />
+      <AddOptionsModal
+        setVisible={setOpen}
+        visible={open}
+        ref={_addOptionsRef}
+        navigation={navigation}
+      />
     </>
   );
 };

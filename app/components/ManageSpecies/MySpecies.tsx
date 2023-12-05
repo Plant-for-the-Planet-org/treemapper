@@ -3,7 +3,7 @@ import i18next from 'i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 
-import { species_default } from '../../assets';
+import { HeartPink, SingleTreeIcon, species_default } from '../../assets';
 import { Colors, Typography } from '../../styles';
 import { SINGLE } from '../../utils/inventoryConstants';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
@@ -20,6 +20,7 @@ interface SpecieCardProps {
   navigateToSpecieInfo?: (specie: ScientificSpeciesType) => void;
   screen?: string;
   isSampleTreeSpecies?: boolean;
+  handleRemoveFavourite?: (specie: ScientificSpeciesType) => void;
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -34,6 +35,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   navigateToSpecieInfo,
   screen,
   isSampleTreeSpecies,
+  handleRemoveFavourite,
 }) => {
   const handlePress = () => {
     if (isSampleTree && isSampleTreeSpecies) {
@@ -60,7 +62,9 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             style={styles.imageView}
           />
         ) : (
-          <Image source={species_default} style={styles.image} />
+          <View style={{ backgroundColor: '#82828210', borderRadius: 8 }}>
+            <SingleTreeIcon width={74} height={74} />
+          </View>
         )}
       </View>
       <View style={styles.flex1}>
@@ -82,6 +86,9 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
       ) : (
         []
       )}
+      <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
+        <HeartPink />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -99,8 +106,8 @@ const styles = StyleSheet.create({
   },
   mySpecies: {
     flex: 1,
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
     paddingRight: 10,
     alignItems: 'center',
     flexDirection: 'row',
@@ -110,10 +117,11 @@ const styles = StyleSheet.create({
   },
   imageCon: {
     paddingRight: 18,
+    paddingLeft: 8,
   },
   image: {
-    height: 80,
-    width: 100,
+    height: 74,
+    width: 74,
     borderRadius: 8,
     resizeMode: 'contain',
   },
@@ -121,11 +129,11 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     color: Colors.PLANET_BLACK,
     fontSize: Typography.FONT_SIZE_16,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   unknownTextVal: {
     color: Colors.PLANET_BLACK,
     fontSize: Typography.FONT_SIZE_12,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_ITALIC_SEMI_BOLD,
   },
 });

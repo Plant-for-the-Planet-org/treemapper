@@ -168,8 +168,6 @@ const MainMap = ({
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      // @ts-ignore
-      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
@@ -481,7 +479,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 136 }]}
+              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 42 }]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">
@@ -545,7 +543,7 @@ const styles = StyleSheet.create({
     height: 45,
     backgroundColor: Colors.WHITE,
     borderRadius: 100,
-    marginHorizontal: 25,
+    marginHorizontal: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,

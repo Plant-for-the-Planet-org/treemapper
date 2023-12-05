@@ -4,7 +4,7 @@ import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/b
 import MainScreen from '../MainScreen';
 import { ComingSoon } from '../Common';
 import BottomBar from '../MainScreen/BottomBar';
-import Interventions from '../../screens/Interventions/Interventions';
+import TreeInventory from '../TreeInventory';
 
 const screenOptions = { headerShown: false };
 
@@ -19,7 +19,7 @@ const BottomTab = () => {
   return (
     <Tab.Navigator screenOptions={screenOptions} tabBar={tabBar}>
       <Tab.Screen name="MainScreen" options={{ tabBarLabel: 'Map' }} component={MainScreen} />
-      <Tab.Screen name="Interventions" component={Interventions} />
+      <Tab.Screen name="TreeInventory" component={TreeInventory} />
       <Tab.Screen name="Plots" component={ComingSoon} />
       <Tab.Screen name="Add" component={AddComponent} />
     </Tab.Navigator>

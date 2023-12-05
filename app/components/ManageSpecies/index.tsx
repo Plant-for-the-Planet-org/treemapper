@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import Realm from 'realm';
 import i18next from 'i18next';
@@ -14,10 +15,10 @@ import Snackbar from 'react-native-snackbar';
 import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 
-import { empty } from '../../assets';
+import { ArrowBack, HeartGray, HeartPink, empty } from '../../assets';
 import { SpecieCard } from './MySpecies';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
@@ -31,12 +32,13 @@ import { getInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { AlertModal, Header, SpeciesSyncError } from '../Common';
+import { AlertModal, FlatButton, GradientText, Header, SpeciesSyncError } from '../Common';
 import { IScientificSpecies } from '../../utils/schemaInterfaces';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 import HeaderV2 from '../Common/Header/HeaderV2';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Modalize } from 'react-native-modalize';
 
 interface ManageSpeciesProps {
   onPressSpeciesSingle?: (item?: any) => void;
@@ -78,9 +80,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const [list, setList] = useState<ScientificSpeciesType[]>(specieList);
+  const [removeFavSpecieModal, setRemoveFavSpecieModal] = useState(false);
+  const [removeFavSpecieItem, setRemoveFavSpecieItem] = useState<ScientificSpeciesType>(null);
   const insects = useSafeAreaInsets();
 
   const netInfo = useNetInfo();
+  const modalizeRef = useRef<Modalize>(null);
 
   const route = useRoute();
 
@@ -317,11 +322,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             onPress={() => {
               toggleUserSpecies(item.guid);
             }}>
-            <Icon
-              name={isCheck ? 'check-circle' : 'plus-circle'}
-              size={25}
-              color={isCheck ? Colors.PRIMARY : Colors.TEXT_COLOR}
-            />
+            {isCheck ? <HeartPink /> : <HeartGray />}
           </TouchableOpacity>
         </>
       );
@@ -353,6 +354,11 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
 
   const memoizedRenderSearchSpecieCard = React.useMemo(() => renderSearchSpecieCard, [searchList]);
 
+  const handleRemoveFavourite = () => {
+    toggleUserSpecies(removeFavSpecieItem?.guid);
+    setRemoveFavSpecieModal(false);
+  };
+
   const renderSpecieCard = ({ item, index }: { item: ScientificSpeciesType; index: number }) => {
     return (
       <SpecieCard
@@ -366,6 +372,10 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
         isSampleTree={isSampleTree}
         navigateToSpecieInfo={navigateToSpecieInfo}
         screen={screen || 'ManageSpecies'}
+        handleRemoveFavourite={item => {
+          setRemoveFavSpecieItem(item);
+          setRemoveFavSpecieModal(true);
+        }}
       />
     );
   };
@@ -440,9 +450,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             </Text>
             {`and Add Species to \n Your Favourites`}
           </Text>
-          <View style={styles.searchBar}>
+          <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
-            <TextInput
+            <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
+              Search all species
+            </Text>
+            {/* <TextInput
               style={styles.searchText}
               placeholder={i18next.t('label.select_species_search_species')}
               onChangeText={handleSpeciesSearch}
@@ -450,8 +463,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
               returnKeyType={'search'}
               autoCorrect={false}
               placeholderTextColor={Colors.GRAY_LIGHTEST}
-            />
-            {searchText ? (
+            /> */}
+            {/* {searchText ? (
               <TouchableOpacity
                 onPress={() => {
                   setSearchText('');
@@ -460,17 +473,34 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
               </TouchableOpacity>
             ) : (
               []
-            )}
-          </View>
-          {showSearchSpecies && searchText.length < 3 ? (
+            )} */}
+          </TouchableOpacity>
+          {/* {showSearchSpecies && searchText.length < 3 ? (
             <Text style={styles.notPresentText}>
               {i18next.t('label.select_species_search_atleast_3_characters')}
             </Text>
           ) : (
             []
-          )}
+          )} */}
         </View>
+
         <View
+          style={{
+            paddingLeft: 16,
+            backgroundColor: '#E0E0E026',
+          }}>
+          <Text
+            style={[
+              styles.listTitle,
+              {
+                fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+              },
+            ]}>
+            {i18next.t('label.select_species_my_species')}
+          </Text>
+        </View>
+
+        {/* <View
           style={{
             paddingLeft: 20,
             backgroundColor: '#E0E0E026',
@@ -482,13 +512,13 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
           ) : (
             []
           )}
-        </View>
+        </View> */}
       </>
     );
   }, [searchText, showSearchSpecies, searchList]);
 
   const renderListEmptyComponent = () => {
-    if (showSearchSpecies && searchList && searchList.length > 0) {
+    if (showSearchSpecies && specieList && specieList.length > 0) {
       return <></>;
     } else {
       return (
@@ -518,10 +548,18 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             borderRadius: 8,
             elevation: 5,
           }}>
+          {renderSpecieCard(props)}
+        </View>
+      </View>
+    );
+  };
+
+  const renderSearchItem = (props: any) => {
+    return (
+      <View style={[styles.searchBarMainFlatlist]}>
+        <View style={{}}>
           {showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
             memoizedRenderSearchSpecieCard(props)
-          ) : !showSearchSpecies ? (
-            renderSpecieCard(props)
           ) : (
             <></>
           )}
@@ -530,9 +568,89 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     );
   };
 
+  const renderSearchListHeader = () => {
+    return (
+      <View style={{ paddingLeft: 16, backgroundColor: 'rgba(224, 224, 224, 0.15)' }}>
+        {searchList && searchList.length > 0 && searchText.length > 2 ? (
+          <Text style={[styles.listTitle, { paddingTop: 16 }]}>
+            {i18next.t('label.search_result')}
+          </Text>
+        ) : (
+          []
+        )}
+      </View>
+    );
+  };
+
+  const handleBackModal = () => modalizeRef.current?.close();
+
   return (
     <>
       {/* <DismissKeyBoard> */}
+      <Modalize ref={modalizeRef} withHandle={false} modalStyle={styles.modalStyle}>
+        <View style={styles.mainSearchContainer}>
+          <TouchableOpacity style={styles.backArrowCon} onPress={handleBackModal} accessible={true}>
+            <ArrowBack />
+          </TouchableOpacity>
+          <View style={styles.searchBarMain}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+              <Ionicons name="search-outline" size={20} style={styles.searchIconMain} />
+              <TextInput
+                autoFocus
+                style={styles.searchText}
+                placeholder={i18next.t('label.select_species_search_species')}
+                onChangeText={handleSpeciesSearch}
+                value={searchText}
+                returnKeyType={'search'}
+                autoCorrect={false}
+                placeholderTextColor={Colors.GRAY_LIGHTEST}
+              />
+              {searchText ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchText('');
+                  }}>
+                  <Ionicons name="close" size={20} style={styles.closeIcon} />
+                </TouchableOpacity>
+              ) : (
+                []
+              )}
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.syncAltContainerMain}
+            onPress={() => setShowSpeciesSyncAlert(true)}>
+            <IconSwitcher
+              size={20}
+              name={'sync-alt'}
+              iconType={'FA5Icon'}
+              color={Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+        </View>
+        {showSearchSpecies && searchText.length < 3 ? (
+          <Text style={styles.notPresentText}>
+            {i18next.t('label.select_species_search_atleast_3_characters')}
+          </Text>
+        ) : (
+          []
+        )}
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: Colors.WHITE,
+          }}>
+          <FlatList
+            data={searchList}
+            style={styles.flatList}
+            renderItem={renderSearchItem}
+            keyExtractor={item => item.guid}
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={renderSearchListHeader}
+          />
+        </View>
+      </Modalize>
       <View
         style={{
           flex: 1,
@@ -540,7 +658,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
           paddingTop: insects.top,
         }}>
         <FlatList
-          data={list}
+          data={specieList}
           style={styles.flatList}
           renderItem={renderItem}
           keyExtractor={item => item.guid}
@@ -560,6 +678,37 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
         onPressTreeCountNextBtn={handleTreeCountNextButton}
         setShowTreeCountModal={setShowTreeCountModal}
       />
+      <Modal visible={removeFavSpecieModal} transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.subContainer}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <HeartPink />
+              <Text style={styles.alertHeader}>{i18next.t('label.remove_species')}</Text>
+            </View>
+            <Text style={styles.alertMessage}>{i18next.t('label.sure_remove_species')}</Text>
+            <View style={styles.bottomBtnContainer}>
+              <FlatButton
+                onPress={() => {
+                  setRemoveFavSpecieItem(null);
+                  setRemoveFavSpecieModal(false);
+                }}
+                text={i18next.t('label.cancel')}
+                style={styles.secondaryButtonStyle}
+              />
+              <TouchableOpacity onPress={handleRemoveFavourite} style={styles.primaryButtonStyle}>
+                <GradientText
+                  style={{
+                    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+                    fontSize: Typography.FONT_SIZE_16,
+                    lineHeight: Typography.LINE_HEIGHT_24,
+                  }}>
+                  {i18next.t('label.remove')}
+                </GradientText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <AlertModal
         visible={deleteSpecieAlert}
         heading={i18next.t('label.delete_species')}
@@ -591,6 +740,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 25,
   },
+  modalStyle: {
+    minHeight: '100%',
+    paddingTop: 55,
+  },
+  mainSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  backArrowCon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -601,27 +765,40 @@ const styles = StyleSheet.create({
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 3,
     },
-    shadowOpacity: 0.39,
-    shadowRadius: 8.3,
+    shadowOpacity: 0.09,
+    shadowRadius: 3.3,
     elevation: 3,
   },
+  searchBarMain: {
+    width: '80%',
+    height: 48,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.WHITE,
+  },
   searchIcon: {
-    color: '#949596',
+    color: 'rgb(104, 176, 48)',
+    paddingLeft: 19,
+  },
+  searchIconMain: {
+    color: Colors.TEXT_COLOR,
     paddingLeft: 19,
   },
   searchText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontWeight: Typography.FONT_WEIGHT_REGULAR,
+    fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     fontSize: Typography.FONT_SIZE_14,
     paddingLeft: 12,
     flex: 1,
     color: Colors.PLANET_BLACK,
   },
   specieListItem: {
-    paddingVertical: 20,
-    paddingRight: 10,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: '#E1E0E061',
     flexDirection: 'row',
@@ -632,7 +809,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontWeight: Typography.FONT_WEIGHT_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
-    paddingVertical: 20,
+    paddingVertical: 10,
     alignSelf: 'center',
     color: Colors.PLANET_BLACK,
   },
@@ -678,10 +855,56 @@ const styles = StyleSheet.create({
   },
   scientificName: {
     fontSize: Typography.FONT_SIZE_16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_ITALIC,
     color: Colors.PLANET_BLACK,
   },
   syncAltContainer: {
     padding: 10,
+  },
+  syncAltContainerMain: {},
+  searchBarMainFlatlist: {
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(224, 224, 224, 0.15)',
+  },
+  subContainer: {
+    width: '90%',
+    backgroundColor: Colors.WHITE,
+    borderRadius: 10,
+    padding: 20,
+  },
+  bottomBtnContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 24,
+  },
+  alertHeader: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    lineHeight: Typography.LINE_HEIGHT_24,
+    color: Colors.BLACK,
+    marginVertical: 10,
+    marginLeft: 8,
+  },
+  alertMessage: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_16,
+    lineHeight: Typography.LINE_HEIGHT_24,
+    color: Colors.BLACK,
+  },
+  primaryButtonStyle: {
+    marginLeft: 16,
+    color: Colors.ALERT,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  secondaryButtonStyle: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
 });

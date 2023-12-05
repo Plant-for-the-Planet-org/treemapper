@@ -377,7 +377,7 @@ export const updateSpecieData = ({
             if (aliases) {
               specieResult.aliases = aliases;
             }
-            if (description) {
+            if (description || description === '') {
               specieResult.description = description;
             }
             if (image || image === '') {

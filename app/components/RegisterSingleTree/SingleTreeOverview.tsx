@@ -779,7 +779,7 @@ const SingleTreeOverview = () => {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }],
         }),
       );
     } else {
@@ -849,7 +849,7 @@ const SingleTreeOverview = () => {
           CommonActions.reset({
             index: 2,
             routes: [
-              { name: 'MainScreen' },
+              { name: 'NavDrawer' },
               { name: 'TreeInventory' },
               {
                 name: inventoryState.skipToInventoryOverview
@@ -882,7 +882,7 @@ const SingleTreeOverview = () => {
                 CommonActions.reset({
                   index: 2,
                   routes: [
-                    { name: 'MainScreen' },
+                    { name: 'NavDrawer' },
                     { name: 'TreeInventory' },
                     { name: 'RegisterSingleTree' },
                   ],
@@ -909,7 +909,7 @@ const SingleTreeOverview = () => {
             CommonActions.reset({
               index: 2,
               routes: [
-                { name: 'MainScreen' },
+                { name: 'NavDrawer' },
                 { name: 'TreeInventory' },
                 { name: 'RecordSampleTrees' },
               ],
@@ -942,7 +942,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
+                  { name: 'NavDrawer' },
                   { name: 'TreeInventory' },
                   { name: 'RecordSampleTrees' },
                 ],
@@ -959,7 +959,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
+                  { name: 'NavDrawer' },
                   { name: 'TreeInventory' },
                   { name: 'InventoryOverview' },
                 ],
@@ -975,7 +975,7 @@ const SingleTreeOverview = () => {
           navigation.dispatch(
             CommonActions.reset({
               index: 1,
-              routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+              routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }],
             }),
           );
         })
@@ -1030,39 +1030,35 @@ const SingleTreeOverview = () => {
       {renderDateModal()}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingVertical: 0,
-              marginBottom: 24,
-            }}>
-            <Header
-              style={{ flex: 1 }}
-              closeIcon
-              onBackPress={() => onPressSave()}
-              headingText={
-                isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
-                  ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                      sampleTreesCount: totalSampleTrees,
-                    })
-                  : status === SYNCED
-                  ? i18next.t('label.tree_review_details')
-                  : i18next.t('label.tree_review_header')
-              }
-              rightText={
-                status === INCOMPLETE ||
-                status === INCOMPLETE_SAMPLE_TREE ||
-                status === FIX_NEEDED ||
-                (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
-                  ? i18next.t('label.tree_review_delete')
-                  : ''
-              }
-              onPressFunction={() => setShowDeleteAlert(true)}
-            />
-          </View>
-
+          <Header
+            style={{ flex: 1 }}
+            closeIcon
+            onBackPress={() => onPressSave()}
+            headingText={
+              isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
+                ? i18next.t('label.sample_tree_review_tree_number', {
+                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    sampleTreesCount: totalSampleTrees,
+                  })
+                : status === SYNCED
+                ? i18next.t('label.tree_review_details')
+                : i18next.t('label.tree_review_header')
+            }
+            TitleRightComponent={() => (
+              <TouchableOpacity
+                style={{ marginLeft: 'auto' }}
+                onPress={() => setShowDeleteAlert(true)}>
+                <Text style={styles.rightText}>
+                  {status === INCOMPLETE ||
+                  status === INCOMPLETE_SAMPLE_TREE ||
+                  status === FIX_NEEDED ||
+                  (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
+                    ? i18next.t('label.tree_review_delete')
+                    : ''}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
           {inventory && (
             <View style={styles.scrollViewContainer}>
               {imageSource && (
@@ -1279,5 +1275,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     color: Colors.TEXT_COLOR,
     lineHeight: Typography.LINE_HEIGHT_24,
+  },
+  rightText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PRIMARY,
   },
 });

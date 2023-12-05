@@ -885,7 +885,7 @@ export default function MapMarking({
       />
 
       <View style={styles.headerCont}>
-        <SafeAreaView />
+        {/* <SafeAreaView /> */}
         <Header
           onBackPress={resetRouteStack}
           headingText={
@@ -905,7 +905,7 @@ export default function MapMarking({
                 }`
               : i18next.t('label.tree_map_marking_header')
           }
-          containerStyle={{ paddingHorizontal: 16 }}
+          containerStyle={{ paddingHorizontal: 25, paddingTop: 66 }}
           TitleRightComponent={renderAccuracyInfo}
         />
       </View>
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     borderRadius: 25,
     position: 'absolute',
-    top: 110,
+    top: 120,
     right: 20,
     padding: 8,
   },

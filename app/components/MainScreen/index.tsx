@@ -1,13 +1,13 @@
 import {
   View,
   Text,
+  Modal,
   Platform,
   FlatList,
   Dimensions,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  StatusBar,
+  Pressable,
 } from 'react-native';
 import i18next from 'i18next';
 import bbox from '@turf/bbox';
@@ -49,12 +49,18 @@ import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inven
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { getAllProjects } from '../../repositories/projects';
 import FocusAwareStatusBar from '../FocusAwareStatusBar';
+import CheckBox from '@react-native-community/checkbox';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 50;
-const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
+const INTERVENTION_DURATION = [
+  { id: 1, duration: '30 days', selected: false },
+  { id: 2, duration: '6 months', selected: false },
+  { id: 3, duration: '1 year', selected: false },
+  { id: 4, duration: 'Always', selected: false },
+];
 
 export default function MainScreen() {
   const [emailAlert, setEmailAlert] = useState(false);
@@ -84,7 +90,13 @@ export default function MainScreen() {
   const [value, setValue] = useState(null);
   const [items, setItems] = useState([]);
 
+  // filter states
+  const [interventionFilter, setInterventionFilter] = useState(false);
+
   const [modalType, setModalType] = useState<string>('');
+
+  const [checkboxes, setCheckboxes] = useState(INTERVENTION_DURATION);
+  const [interventionModal, setInterventionModal] = useState<boolean>(false);
 
   const { state, dispatch } = useContext(InventoryContext);
   const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
@@ -288,7 +300,6 @@ export default function MainScreen() {
   );
 
   const onSelectProject = val => {
-    console.log('ggggg', projects.filter(item => item?.id === val)[0]?.geometry);
     const selectedProjectSites = projects.filter(item => item?.id === val)[0]?.sites;
     setProjectSites(selectedProjectSites);
   };
@@ -296,6 +307,26 @@ export default function MainScreen() {
   const onPressPrimaryBtn = () => {
     setOfflineModal(false);
     closeProfileModal();
+  };
+
+  const handleInterventionFilter = val => {
+    setInterventionFilter(val);
+    if (val) {
+      modalizeRef?.current?.close();
+      setTimeout(() => {
+        setInterventionModal(true);
+      }, 800);
+    }
+  };
+
+  const toggleCheckbox = index => {
+    const checkboxData = [...checkboxes];
+    checkboxes.forEach(element => (element.selected = false));
+    checkboxData[index].selected = !checkboxData[index].checked;
+    setCheckboxes(checkboxData);
+    setTimeout(() => {
+      setInterventionModal(false);
+    }, 200);
   };
 
   return (
@@ -375,12 +406,14 @@ export default function MainScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.headerRight}>
-              <TouchableOpacity
-                onPress={_onOpen('zoomToSite')}
-                activeOpacity={0.7}
-                style={[styles.headerBtn, styles.boxShadow]}>
-                <IonIcons name={'location'} size={24} color={Colors.WHITE} />
-              </TouchableOpacity>
+              {userState?.type === 'tpo' && (
+                <TouchableOpacity
+                  onPress={_onOpen('zoomToSite')}
+                  activeOpacity={0.7}
+                  style={[styles.headerBtn, styles.boxShadow]}>
+                  <IonIcons name={'location'} size={24} color={Colors.WHITE} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={_onOpen('filters')}
                 activeOpacity={0.7}
@@ -393,9 +426,36 @@ export default function MainScreen() {
       ) : (
         []
       )}
+      <Modal visible={interventionModal} transparent>
+        <View style={styles.modalCon}>
+          <View style={styles.modalSubCon}>
+            {checkboxes.map(({ id, duration, selected }, i) => (
+              <>
+                <View style={styles.modalItem}>
+                  <Text style={styles.durationText}>{duration}</Text>
+                  <CheckBox
+                    key={id}
+                    value={selected}
+                    boxType={'square'}
+                    animationDuration={0}
+                    style={styles.checkbox}
+                    onTintColor={'transparent'}
+                    onCheckColor={Colors.WHITE}
+                    onFillColor={Colors.PRIMARY}
+                    onChange={() => toggleCheckbox(i)}
+                    tintColors={{ true: Colors.PRIMARY, false: Colors.WHITE }}
+                  />
+                </View>
+                {checkboxes.length - 1 !== i && (
+                  <View style={[styles.divider, { width: '100%' }]} />
+                )}
+              </>
+            ))}
+          </View>
+        </View>
+      </Modal>
 
       <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>
-        {/* <StatusBar barStyle="dark-content" backgroundColor="rgba(0,0,0,0.7)" /> */}
         <View style={styles.filterModalHeader}>
           <View style={styles.filterModalHeaderInfo}>
             <IonIcons
@@ -415,7 +475,7 @@ export default function MainScreen() {
           <View style={styles.filter}>
             <View style={styles.filterItem}>
               <Text style={styles.filterItemLabel}>Interventions</Text>
-              <Switch value={true} onValueChange={val => {}} />
+              <Switch value={interventionFilter} onValueChange={handleInterventionFilter} />
             </View>
             <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
               <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
@@ -605,5 +665,30 @@ const styles = StyleSheet.create({
     width: '93%',
     backgroundColor: '#E0E0E0',
     alignSelf: 'center',
+  },
+  modalCon: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  modalSubCon: {
+    width: 261,
+    borderRadius: 12,
+    backgroundColor: Colors.WHITE,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  checkbox: { width: 18, height: 18 },
+  modalItem: {
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  durationText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
   },
 });
