@@ -95,7 +95,11 @@ const TreeInventory = () => {
   }, []);
 
   const handleBackPress = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.dispatch(StackActions.popToTop());
+    }
     return true;
   };
 

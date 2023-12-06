@@ -44,7 +44,6 @@ const Alrighty = ({
               subHeadingText={subHeading}
               textAlignStyle={styles.headercustomStyle}
               subHeadingStyle={styles.subHeadingStyle}
-              containerStyle={{ marginTop: -35 }}
             />
           </View>
         </View>
@@ -81,6 +80,7 @@ const styles = StyleSheet.create({
   },
   headercustomStyle: {
     textAlign: 'center',
+    marginLeft: 0,
   },
   bottomBtnsContainer: {
     flexDirection: 'row',

@@ -90,8 +90,9 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
       <View style={styles.container}>
         <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
           <TopRightBackground />
-          <View style={styles.headerContainer}>
+          <View>
             <Header
+              containerStyle={styles.headerContainer}
               headingText={
                 inventory?.sampleTrees[inventory?.completedSampleTreesCount] || editOnlySpecieName
                   ? i18next.t('label.select_species')
@@ -153,6 +154,6 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   speciesCardContainer: {
-    paddingLeft: 25,
+    // paddingLeft: 25,
   },
 });

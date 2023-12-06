@@ -20,7 +20,7 @@ interface SpecieCardProps {
   navigateToSpecieInfo?: (specie: ScientificSpeciesType) => void;
   screen?: string;
   isSampleTreeSpecies?: boolean;
-  handleRemoveFavourite?: (specie: ScientificSpeciesType) => void;
+  handleRemoveFavourite?: any;
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -86,9 +86,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
       ) : (
         []
       )}
-      <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
-        <HeartPink />
-      </TouchableOpacity>
+      {handleRemoveFavourite && (
+        <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
+          <HeartPink />
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };
