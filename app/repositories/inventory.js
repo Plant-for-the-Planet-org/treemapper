@@ -561,7 +561,6 @@ export const clearAllUploadedInventory = () => {
       .then(realm => {
         realm.write(() => {
           let allInventory = realm.objects('Inventory').filtered('status == "SYNCED"');
-          console.log(allInventory.length, 'allInventory.length');
           realm.delete(allInventory);
 
           // logging the success in to the db

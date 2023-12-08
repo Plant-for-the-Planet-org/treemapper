@@ -147,31 +147,38 @@ export default function SampleTreesCount() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
-        <ScrollView style={{}} showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <TopRightBackground />
-          <View style={{ paddingHorizontal: 25 }}>
-            <Header headingText={i18next.t('label.sample_trees')} />
-            {/* container for description of what sample trees are and how to proceed */}
-            <View style={styles.descriptionContainer}>
-              <Text style={styles.description}>
-                {i18next.t('label.next_step_to_measure_sample_trees_text')}
-              </Text>
-              <Text style={[styles.description, styles.descriptionMarginTop]}>
-                {i18next.t('label.recommend_at_least_sample_trees')}
-              </Text>
-              <Text style={[styles.description, styles.descriptionMarginTop]}>
-                {i18next.t('label.sample_one_tree_for_each_species')}
-              </Text>
-              <Text
-                style={[
-                  styles.description,
-                  styles.descriptionMarginTop,
-                  { fontFamily: Typography.FONT_FAMILY_BOLD },
-                ]}>
-                {i18next.t('label.how_many_sample_trees_to_record')}
-              </Text>
-            </View>
-
+          <Header
+            containerStyle={{
+              paddingHorizontal: 25,
+            }}
+            headingText={i18next.t('label.sample_trees')}
+          />
+          {/* container for description of what sample trees are and how to proceed */}
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.description}>
+              {i18next.t('label.next_step_to_measure_sample_trees_text')}
+            </Text>
+            <Text style={[styles.description, styles.descriptionMarginTop]}>
+              {i18next.t('label.recommend_at_least_sample_trees')}
+            </Text>
+            <Text style={[styles.description, styles.descriptionMarginTop]}>
+              {i18next.t('label.sample_one_tree_for_each_species')}
+            </Text>
+            <Text
+              style={[
+                styles.description,
+                styles.descriptionMarginTop,
+                { fontFamily: Typography.FONT_FAMILY_BOLD },
+              ]}>
+              {i18next.t('label.how_many_sample_trees_to_record')}
+            </Text>
+          </View>
+          <View
+            style={{
+              paddingHorizontal: 25,
+            }}>
             {/* container for sample tree count selection options */}
             <TreeNumberSelection
               sampleTreesCount={sampleTreesCount}
@@ -210,6 +217,7 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     marginTop: 40,
+    paddingHorizontal: 25,
   },
   description: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

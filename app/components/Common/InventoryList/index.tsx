@@ -46,6 +46,11 @@ interface IInventoryListProps {
    * Styling for internal View for ListHeaderComponent
    */
   ListHeaderComponentStyle?: StyleProp<ViewStyle>;
+
+  /**
+   * Styling for list item
+   */
+  itemStyle?: StyleProp<ViewStyle>;
 }
 export default function InventoryList({
   inventoryList,
@@ -56,6 +61,7 @@ export default function InventoryList({
   ListFooterComponentStyle,
   ListHeaderComponent,
   ListHeaderComponentStyle,
+  itemStyle,
 }: IInventoryListProps) {
   const navigation = useNavigation();
 
@@ -140,6 +146,7 @@ export default function InventoryList({
             onPress={() => onPressInventory(item)}
             accessible={true}
             accessibilityLabel={accessibilityLabel}
+            style={itemStyle}
             testID="upload_inventory_list">
             <InventoryCard
               icon={

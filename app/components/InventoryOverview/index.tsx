@@ -201,7 +201,7 @@ const InventoryOverview = ({ navigation }: any) => {
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'MainScreen' },
+          { name: 'NavDrawer' },
           {
             name: 'TreeInventory',
           },
@@ -474,11 +474,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            { name: 'RecordSampleTrees' },
-          ],
+          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     }
@@ -502,11 +498,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            { name: 'RecordSampleTrees' },
-          ],
+          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     });
@@ -547,8 +539,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const handleAddSampleTree = () => {
     inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
-      ? addSampleTree
-      : addAnotherSampleTree;
+      ? addSampleTree()
+      : addAnotherSampleTree();
   };
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
@@ -586,14 +578,20 @@ const InventoryOverview = ({ navigation }: any) => {
                       navigation.navigate('TreeInventory');
                     }
                   }}
-                  rightText={
-                    status == INCOMPLETE_SAMPLE_TREE ||
-                    status == INCOMPLETE ||
-                    status == PENDING_DATA_UPLOAD
-                      ? i18next.t('label.tree_review_delete')
-                      : []
-                  }
-                  onPressFunction={() => setShowAlert(true)}
+                  subHeadingStyle={{ width: '45%' }}
+                  TitleRightComponent={() => (
+                    <TouchableOpacity
+                      style={{ marginLeft: 'auto' }}
+                      onPress={() => setShowAlert(true)}>
+                      <Text style={styles.rightText}>
+                        {status == INCOMPLETE_SAMPLE_TREE ||
+                        status == INCOMPLETE ||
+                        status == PENDING_DATA_UPLOAD
+                          ? i18next.t('label.tree_review_delete')
+                          : []}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 />
                 {inventory.status === FIX_NEEDED ? (
                   <View style={styles.fixNeededContainer}>
@@ -1077,6 +1075,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 30,
     right: 6,
+  },
+  rightText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PRIMARY,
   },
 });
 

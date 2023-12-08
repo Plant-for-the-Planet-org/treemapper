@@ -19,7 +19,11 @@ const BottomTab = () => {
   return (
     <Tab.Navigator screenOptions={screenOptions} tabBar={tabBar}>
       <Tab.Screen name="MainScreen" options={{ tabBarLabel: 'Map' }} component={MainScreen} />
-      <Tab.Screen name="TreeInventory" component={TreeInventory} />
+      <Tab.Screen
+        name="TreeInventory"
+        options={{ tabBarLabel: 'Tree Inventory' }}
+        component={TreeInventory}
+      />
       <Tab.Screen name="Plots" component={ComingSoon} />
       <Tab.Screen name="Add" component={AddComponent} />
     </Tab.Navigator>

@@ -140,9 +140,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 100,
     padding: Spacing.SCALE_12,
-    elevation: 4,
     position: 'absolute',
     top: -Spacing.SCALE_36,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4.62,
+    elevation: 5,
   },
   addIcon: {
     width: Spacing.SCALE_48,
