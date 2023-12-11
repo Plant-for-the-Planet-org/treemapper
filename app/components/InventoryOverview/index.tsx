@@ -578,7 +578,6 @@ const InventoryOverview = ({ navigation }: any) => {
                       navigation.navigate('TreeInventory');
                     }
                   }}
-                  subHeadingStyle={{ width: '45%' }}
                   TitleRightComponent={() => (
                     <TouchableOpacity
                       style={{ marginLeft: 'auto' }}

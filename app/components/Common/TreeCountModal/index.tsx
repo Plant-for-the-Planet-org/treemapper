@@ -40,7 +40,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
 
   useEffect(() => {
     if (activeSpecie?.id && showTreeCountModal) {
-      getScientificSpeciesById(activeSpecie?.id).then((scientificSpecie) => {
+      getScientificSpeciesById(activeSpecie?.id).then(scientificSpecie => {
         setSpecie(scientificSpecie);
       });
       setTreeCount(activeSpecie.treeCount);
@@ -79,6 +79,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             hideBackIcon
             subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
             textAlignStyle={{ textAlign: 'center' }}
+            subHeadingStyle={{ marginLeft: 0 }}
           />
           <Header
             hideBackIcon
@@ -86,11 +87,13 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               specieName,
             })}
             textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
+            subHeadingStyle={{ marginLeft: 0 }}
           />
           <Header
             hideBackIcon
             subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
             textAlignStyle={{ textAlign: 'center' }}
+            subHeadingStyle={{ marginLeft: 0 }}
           />
         </View>
       </View>
@@ -106,7 +109,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             style={CommonStyles.bottomInputText}
             autoFocus
             placeholderTextColor={Colors.TEXT_COLOR}
-            onChangeText={(text) => setTreeCount(text.replace(/[^0-9]/g, ''))}
+            onChangeText={text => setTreeCount(text.replace(/[^0-9]/g, ''))}
             keyboardType={'number-pad'}
           />
           <MCIcon

@@ -65,26 +65,6 @@ const Header = ({
           ) : (
             []
           )}
-          {rightText ? (
-            onPressFunction ? (
-              <TouchableOpacity onPress={() => onPressFunction()}>
-                <Text style={styles.rightText}>{rightText}</Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.rightText}>{rightText}</Text>
-            )
-          ) : null}
-        </View>
-        <View
-          style={
-            TitleRightComponent
-              ? {
-                  // flexDirection: 'row-reverse',
-                  // alignItems: 'center',
-                  // justifyContent: 'space-between',
-                }
-              : {}
-          }>
           {headingText ? (
             <Text
               style={[
@@ -110,6 +90,27 @@ const Header = ({
           ) : (
             []
           )}
+          {rightText ? (
+            onPressFunction ? (
+              <TouchableOpacity onPress={() => onPressFunction()}>
+                <Text style={styles.rightText}>{rightText}</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.rightText}>{rightText}</Text>
+            )
+          ) : null}
+          {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
+        </View>
+        <View
+          style={
+            TitleRightComponent
+              ? {
+                  // flexDirection: 'row-reverse',
+                  // alignItems: 'center',
+                  // justifyContent: 'space-between',
+                }
+              : {}
+          }>
           {subHeadingText ? (
             <View style={{ marginVertical: 10 }}>
               <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
@@ -121,8 +122,6 @@ const Header = ({
           )}
           {TopRightComponent ? <TopRightComponent /> : null}
         </View>
-
-        {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
       </View>
     </View>
   );
@@ -139,18 +138,18 @@ const styles = StyleSheet.create({
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
-    marginLeft: 32,
+    marginLeft: 50,
   },
   containerStyle: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
     paddingBottom: 16,
     backgroundColor: Colors.WHITE,
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   arrowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    // alignItems: 'center',
+    // justifyContent: 'space-between',
+    alignItems: 'center',
     // width: '100%',
   },
   paddingVertical: {

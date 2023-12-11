@@ -979,8 +979,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     borderRadius: 25,
     position: 'absolute',
-    top: 120,
-    right: 20,
+    top: 55,
+    right: -10,
     padding: 8,
   },
   gpsText: {

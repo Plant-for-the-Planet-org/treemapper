@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
   headercustomStyle: {
     textAlign: 'center',
     marginLeft: 0,
+    width: '100%',
   },
   bottomBtnsContainer: {
     flexDirection: 'row',
@@ -93,5 +94,6 @@ const styles = StyleSheet.create({
   },
   subHeadingStyle: {
     lineHeight: Typography.LINE_HEIGHT_24,
+    width: 'auto',
   },
 });
