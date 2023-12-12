@@ -7,14 +7,17 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Modal,
+  Platform,
 } from 'react-native';
 import Realm from 'realm';
 import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
 import Snackbar from 'react-native-snackbar';
+import { Modalize } from 'react-native-modalize';
 import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 
@@ -22,6 +25,7 @@ import { ArrowBack, HeartGray, HeartPink, empty } from '../../assets';
 import { SpecieCard } from './MySpecies';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
+import HeaderV2 from '../Common/Header/HeaderV2';
 import { setSpecie } from '../../actions/species';
 import { Colors, Typography } from '../../styles';
 import IconSwitcher from '../Common/IconSwitcher';
@@ -32,13 +36,12 @@ import { getInventory } from '../../repositories/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
-import { AlertModal, FlatButton, GradientText, Header, SpeciesSyncError } from '../Common';
 import { IScientificSpecies } from '../../utils/schemaInterfaces';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { AlertModal, FlatButton, GradientText, Header, SpeciesSyncError } from '../Common';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
-import HeaderV2 from '../Common/Header/HeaderV2';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Modalize } from 'react-native-modalize';
+
+const IS_ANDROID = Platform.OS === 'android';
 
 interface ManageSpeciesProps {
   onPressSpeciesSingle?: (item?: any) => void;
@@ -265,7 +268,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
         }),
       );
     }
@@ -742,7 +745,9 @@ const styles = StyleSheet.create({
   },
   modalStyle: {
     minHeight: '100%',
-    paddingTop: 55,
+    paddingTop: IS_ANDROID ? 0 : 55,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   mainSearchContainer: {
     flexDirection: 'row',

@@ -1,13 +1,3 @@
-import {
-  Text,
-  View,
-  Modal,
-  Linking,
-  Platform,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
 import bbox from '@turf/bbox';
 import i18next from 'i18next';
 import { Coord } from '@turf/helpers';
@@ -19,6 +9,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Text, View, Modal, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
 import {
   getInventory,
@@ -799,7 +790,7 @@ export default function MapMarking({
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'NavDrawer' },
+          { name: 'BottomTab' },
           {
             name: 'TreeInventory',
           },
@@ -905,7 +896,7 @@ export default function MapMarking({
                 }`
               : i18next.t('label.tree_map_marking_header')
           }
-          containerStyle={{ paddingHorizontal: 25, paddingTop: 66 }}
+          containerStyle={{ paddingHorizontal: 25, paddingTop: isAndroid ? 16 : 66 }}
           TitleRightComponent={renderAccuracyInfo}
         />
       </View>
@@ -974,7 +965,7 @@ const styles = StyleSheet.create({
   gpsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: 96,
     backgroundColor: Colors.WHITE,
     borderRadius: 25,
@@ -982,6 +973,7 @@ const styles = StyleSheet.create({
     top: 55,
     right: -10,
     padding: 8,
+    flexWrap: 'wrap',
   },
   gpsText: {
     textAlign: 'center',

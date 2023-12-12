@@ -1,7 +1,12 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useContext } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Skeleton } from 'moti/skeleton/react-native-linear-gradient';
+import { useState } from 'react';
+import i18next from 'i18next';
+import { useNavigation } from '@react-navigation/native';
 
 import {
   LogoutSign,
@@ -11,21 +16,16 @@ import {
   single_tree_png,
   PieAdditionalData,
 } from '../../../assets';
-import PrimaryButton from '../PrimaryButton';
+import { PrimaryButton } from '../../Common';
+import { version } from '../../../../package.json';
+import { scaleSize } from '../../../styles/mixins';
 import { APIConfig } from '../../../actions/Config';
-import { Colors, Spacing, Typography } from '../../../styles';
+import openWebView from '../../../utils/openWebView';
 import { UserContext } from '../../../reducers/user';
-import { LoadingContext } from '../../../reducers/loader';
+import { Colors, Spacing, Typography } from '../../../styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
-import { startLoading, stopLoading } from '../../../actions/loader';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scaleSize } from '../../../styles/mixins';
-import { Skeleton } from 'moti/skeleton/react-native-linear-gradient';
-import { useState } from 'react';
-import i18next from 'i18next';
-import openWebView from '../../../utils/openWebView';
-import { version } from '../../../../package.json';
+import { log } from 'console';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -41,7 +41,7 @@ const getIcon = screenName => {
       return <ProjectDoc />;
     case 'DownloadMap':
       return <OfflineMapIcon />;
-    case 'ActivityLogs':
+    case 'Logs':
       return <OfflineMapIcon />;
     default:
       return undefined;
@@ -60,19 +60,23 @@ const getLabel = screenName => {
       return 'Manage Projects';
     case 'DownloadMap':
       return 'Offline Maps';
-    case 'ActivityLogs':
+    case 'Logs':
       return 'Activity Logs';
     default:
       return undefined;
   }
 };
 
-const CustomDrawer = props => {
-  const { navigation, state } = props;
+const state = {
+  routeNames: ['ManageSpecies', 'ManageProjects', 'AdditionalData', 'DownloadMap', 'Logs'],
+};
+
+const NavDrawer = props => {
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { dispatch } = useContext(InventoryContext);
   const [loading, setLoading] = useState(false);
 
+  const navigation = useNavigation();
   const insects = useSafeAreaInsets();
 
   const handleLogout = async () => {
@@ -120,7 +124,7 @@ const CustomDrawer = props => {
             <TouchableOpacity
               activeOpacity={0.7}
               style={styles.header}
-              onPress={() => navigation.closeDrawer()}>
+              onPress={() => navigation.navigate('BottomTab')}>
               <Ionicons name="arrow-back" size={24} color={Colors.BLACK} />
             </TouchableOpacity>
             <View style={styles.profile}>
@@ -264,7 +268,7 @@ const CustomDrawer = props => {
   );
 };
 
-export default CustomDrawer;
+export default NavDrawer;
 
 const styles = StyleSheet.create({
   container: {

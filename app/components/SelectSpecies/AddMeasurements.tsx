@@ -173,7 +173,7 @@ export const AddMeasurements = () => {
       CommonActions.reset({
         index: 2,
         routes: [
-          { name: 'NavDrawer' },
+          { name: 'BottomTab' },
           { name: 'TreeInventory' },
           {
             name: 'AdditionalDataForm',

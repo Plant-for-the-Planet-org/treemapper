@@ -10,6 +10,8 @@ import { Colors, Typography } from '../../../styles';
 import SampleTreeMarkers from '../SampleTreeMarkers';
 import { MULTI, SAMPLE } from '../../../utils/inventoryConstants';
 
+const IS_ANDROID = Platform.OS === 'android';
+
 const mapStyle = JSON.stringify(require('../../../assets/mapStyle/mapStyleOutput.json'));
 
 MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
@@ -25,6 +27,11 @@ Logger.setLogCallback(log => {
   }
   return false;
 });
+
+let attributionPosition: any = {
+  bottom: IS_ANDROID ? 160 : 85,
+  left: IS_ANDROID ? 30 : 20,
+};
 
 interface IMapProps {
   geoJSON?: any;
@@ -63,7 +70,6 @@ export default function Map({
   return (
     <View style={styles.container}>
       <MapLibreGL.MapView
-        showUserLocation={true}
         style={styles.container}
         ref={map}
         compassViewPosition={3}
@@ -71,7 +77,7 @@ export default function Map({
           x: 30,
           y: 230,
         }}
-        logo
+        attributionPosition={attributionPosition}
         styleJSON={mapStyle}
         onRegionWillChange={onChangeRegionStart}
         onRegionDidChange={onChangeRegionComplete}>

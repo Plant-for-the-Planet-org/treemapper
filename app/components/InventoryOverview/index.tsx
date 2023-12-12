@@ -201,7 +201,7 @@ const InventoryOverview = ({ navigation }: any) => {
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'NavDrawer' },
+          { name: 'BottomTab' },
           {
             name: 'TreeInventory',
           },
@@ -474,7 +474,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     }
@@ -498,7 +498,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     });

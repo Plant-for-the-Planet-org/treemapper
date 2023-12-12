@@ -153,7 +153,7 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
             isRemeasurement,
             isTreeAlive,
           });
-          setTimeout(() => navigate(treeType, isSample, isRemeasurement, isTreeAlive), 2000);
+          navigate(treeType, isSample, isRemeasurement, isTreeAlive);
           return;
         }
 
@@ -189,7 +189,7 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
           disableNavigation: true,
           inventoryData,
         });
-        setTimeout(() => navigate(treeType, isSample, isRemeasurement, isTreeAlive), 2000);
+        navigate(treeType, isSample, isRemeasurement, isTreeAlive);
       }
     });
   };
@@ -303,7 +303,7 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }, { name: nextScreen }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: nextScreen }],
         }),
       );
     }

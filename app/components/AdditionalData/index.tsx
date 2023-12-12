@@ -165,7 +165,6 @@ const styles = StyleSheet.create({
   },
   defaultSpacing: {
     paddingHorizontal: 25,
-    paddingTop: 10,
   },
   logStyle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

@@ -479,7 +479,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 42 }]}
+              style={[styles.myLocationIcon, { bottom: 42 }]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">

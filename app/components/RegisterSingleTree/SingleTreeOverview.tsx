@@ -779,7 +779,7 @@ const SingleTreeOverview = () => {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
         }),
       );
     } else {
@@ -849,7 +849,7 @@ const SingleTreeOverview = () => {
           CommonActions.reset({
             index: 2,
             routes: [
-              { name: 'NavDrawer' },
+              { name: 'BottomTab' },
               { name: 'TreeInventory' },
               {
                 name: inventoryState.skipToInventoryOverview
@@ -882,7 +882,7 @@ const SingleTreeOverview = () => {
                 CommonActions.reset({
                   index: 2,
                   routes: [
-                    { name: 'NavDrawer' },
+                    { name: 'BottomTab' },
                     { name: 'TreeInventory' },
                     { name: 'RegisterSingleTree' },
                   ],
@@ -909,7 +909,7 @@ const SingleTreeOverview = () => {
             CommonActions.reset({
               index: 2,
               routes: [
-                { name: 'NavDrawer' },
+                { name: 'BottomTab' },
                 { name: 'TreeInventory' },
                 { name: 'RecordSampleTrees' },
               ],
@@ -942,7 +942,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'NavDrawer' },
+                  { name: 'BottomTab' },
                   { name: 'TreeInventory' },
                   { name: 'RecordSampleTrees' },
                 ],
@@ -959,7 +959,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'NavDrawer' },
+                  { name: 'BottomTab' },
                   { name: 'TreeInventory' },
                   { name: 'InventoryOverview' },
                 ],
@@ -975,7 +975,7 @@ const SingleTreeOverview = () => {
           navigation.dispatch(
             CommonActions.reset({
               index: 1,
-              routes: [{ name: 'NavDrawer' }, { name: 'TreeInventory' }],
+              routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
             }),
           );
         })

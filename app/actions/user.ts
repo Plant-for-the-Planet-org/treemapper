@@ -11,6 +11,7 @@ import { addProjects, deleteAllProjects } from '../repositories/projects';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '../utils/api';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
+import { clearAllUploadedInventory } from '../repositories/inventory';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({
@@ -135,6 +136,7 @@ export const auth0Logout = async (userDispatch = null) => {
         // deletes the user from DB
         await deleteUser();
         await deleteAllProjects();
+        await clearAllUploadedInventory();
 
         await resetAllSpecies();
 

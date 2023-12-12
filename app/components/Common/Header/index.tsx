@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
   containerStyle: {
     // flexDirection: 'row',
     paddingBottom: 16,
+    paddingTop: 16,
     backgroundColor: Colors.WHITE,
     justifyContent: 'center',
   },

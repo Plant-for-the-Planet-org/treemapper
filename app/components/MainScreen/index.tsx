@@ -400,7 +400,7 @@ export default function MainScreen() {
             <View>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => navigation.openDrawer()}
+                onPress={() => navigation.navigate('NavDrawer')}
                 style={[styles.headerLeftBtn, styles.boxShadow]}>
                 <IonIcons name={'menu'} size={24} color={Colors.WHITE} />
               </TouchableOpacity>

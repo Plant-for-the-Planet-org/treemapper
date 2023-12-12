@@ -6,6 +6,7 @@ import MapLibreGL from '@maplibre/maplibre-react-native';
 import '../../utils/ignoreWarnings';
 import AppNavigator from '../Navigator';
 import Provider from '../../reducers/provider';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 MapLibreGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 

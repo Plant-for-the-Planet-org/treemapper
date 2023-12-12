@@ -176,8 +176,8 @@ const GeoJSONMap = ({
   const onChangeRegionComplete = () => setLoader(false);
 
   let attributionPosition: any = {
-    bottom: IS_ANDROID ? 92 : 56,
-    left: 8,
+    bottom: IS_ANDROID ? 20 : 10,
+    left: IS_ANDROID ? 20 : 8,
   };
 
   let compassViewMargins = {

@@ -202,9 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  defaultSpacing: {
-    paddingTop: 10,
-  },
+  defaultSpacing: {},
   logStyle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
@@ -214,5 +212,6 @@ const styles = StyleSheet.create({
   },
   titleRightComponent: {
     padding: 8,
+    marginRight: 16,
   },
 });

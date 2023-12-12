@@ -34,8 +34,9 @@ import {
   SingleTreeOverview,
   CreateIntervention,
 } from '../';
-import NavDrawer from './Drawer';
+import BottomTab from './BottomTab';
 import AdditionalData from '../AdditionalData';
+import NavDrawer from '../MainScreen/NavDrawer';
 import TakePicture from '../../screens/TakePicture';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AddMetadata from '../AdditionalData/AddMetadata';
@@ -86,7 +87,14 @@ const MyTransition: StackNavigationOptions = {
 export default function MainNavigator() {
   return (
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
-      <Stack.Screen name="NavDrawer" component={NavDrawer} />
+      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen
+        name="NavDrawer"
+        component={NavDrawer}
+        options={{
+          gestureDirection: 'horizontal-inverted',
+        }}
+      />
       <Stack.Screen name="CreateIntervention" component={CreateIntervention} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
       <Stack.Screen name="Interventions" component={Interventions} options={MyTransition} />
