@@ -13,6 +13,7 @@ import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
 import { useNetInfo } from '@react-native-community/netinfo';
 import React, { useContext, useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackActions, useNavigation } from '@react-navigation/native';
 
 import {
@@ -71,6 +72,7 @@ const TreeInventory = () => {
   } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
+  const insects = useSafeAreaInsets();
   const navigation = useNavigation();
 
   useEffect(() => {

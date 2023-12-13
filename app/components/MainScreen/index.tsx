@@ -6,8 +6,9 @@ import {
   FlatList,
   Dimensions,
   StyleSheet,
-  TouchableOpacity,
   Pressable,
+  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import i18next from 'i18next';
 import bbox from '@turf/bbox';
@@ -15,6 +16,7 @@ import turfCenter from '@turf/center';
 import { Modalize } from 'react-native-modalize';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/core';
+import CheckBox from '@react-native-community/checkbox';
 import { useFocusEffect } from '@react-navigation/native';
 import IonIcons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -48,8 +50,6 @@ import { InventoryContext, inventoryFetchConstant } from '../../reducers/invento
 import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { getAllProjects } from '../../repositories/projects';
-import FocusAwareStatusBar from '../FocusAwareStatusBar';
-import CheckBox from '@react-native-community/checkbox';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
@@ -331,11 +331,7 @@ export default function MainScreen() {
 
   return (
     <>
-      <FocusAwareStatusBar
-        translucent={true}
-        barStyle="dark-content"
-        backgroundColor="transparent"
-      />
+      <StatusBar translucent={true} barStyle="dark-content" backgroundColor="transparent" />
       <MainMap
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}
@@ -426,8 +422,14 @@ export default function MainScreen() {
       ) : (
         []
       )}
-      <Modal visible={interventionModal} transparent>
-        <View style={styles.modalCon}>
+      <Modal
+        visible={interventionModal}
+        transparent
+        onRequestClose={() => setInterventionModal(false)}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalCon}
+          onPress={() => setInterventionModal(false)}>
           <View style={styles.modalSubCon}>
             {checkboxes.map(({ id, duration, selected }, i) => (
               <>
@@ -443,7 +445,7 @@ export default function MainScreen() {
                     onCheckColor={Colors.WHITE}
                     onFillColor={Colors.PRIMARY}
                     onChange={() => toggleCheckbox(i)}
-                    tintColors={{ true: Colors.PRIMARY, false: Colors.WHITE }}
+                    tintColors={{ true: Colors.PRIMARY, false: Colors.TEXT_COLOR }}
                   />
                 </View>
                 {checkboxes.length - 1 !== i && (
@@ -452,7 +454,7 @@ export default function MainScreen() {
               </>
             ))}
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>

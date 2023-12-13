@@ -1,11 +1,12 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import i18next from 'i18next';
 import React from 'react';
+import i18next from 'i18next';
 import { Modal, StyleSheet, View } from 'react-native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+
 import { Alrighty } from '../';
 import { off_site_enable_banner } from '../../../assets';
-import { addCoordinates, polygonUpdate, updateLastScreen } from '../../../repositories/inventory';
 import { MULTI, OFF_SITE, ON_SITE, SAMPLE } from '../../../utils/inventoryConstants';
+import { addCoordinates, polygonUpdate, updateLastScreen } from '../../../repositories/inventory';
 
 interface IMapAlrightyModalProps {
   treeType?: any;
@@ -124,7 +125,7 @@ export default function MapAlrightyModal({
   };
 
   return (
-    <Modal animationType={'slide'} visible={showAlrightyModal}>
+    <Modal animationType={'slide'} statusBarTranslucent visible={showAlrightyModal}>
       <View style={styles.cont}>
         <Alrighty
           closeIcon

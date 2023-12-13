@@ -1,4 +1,4 @@
-import { Dimensions, PixelRatio } from 'react-native';
+import { Dimensions, PixelRatio, Platform } from 'react-native';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 
@@ -60,3 +60,5 @@ export function boxShadow(
     elevation: radius,
   };
 }
+
+export const IS_ANDROID = Platform.OS === 'android';

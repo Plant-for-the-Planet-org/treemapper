@@ -211,8 +211,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
   }) => {
     inventoryData = inventoryData || inventory;
     let data;
-    console.log(JSON.stringify(transformedData), 'transformedData', isRemeasurement);
-
     if (isSample) {
       let updatedSampleTrees = [...inventoryData.sampleTrees];
       updatedSampleTrees[inventoryData.completedSampleTreesCount].additionalDetails =

@@ -1,27 +1,23 @@
 import {
   Text,
   View,
+  Modal,
   FlatList,
+  Platform,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  Modal,
-  Platform,
 } from 'react-native';
 import Realm from 'realm';
 import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
 import Snackbar from 'react-native-snackbar';
-import { Modalize } from 'react-native-modalize';
-import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
+import React, { useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 
-import { ArrowBack, HeartGray, HeartPink, empty } from '../../assets';
 import { SpecieCard } from './MySpecies';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
@@ -37,8 +33,9 @@ import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import { MULTI, SINGLE } from '../../utils/inventoryConstants';
 import { IScientificSpecies } from '../../utils/schemaInterfaces';
+import { ArrowBack, HeartGray, HeartPink, empty } from '../../assets';
+import { AlertModal, FlatButton, GradientText, SpeciesSyncError } from '../Common';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
-import { AlertModal, FlatButton, GradientText, Header, SpeciesSyncError } from '../Common';
 import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -85,11 +82,11 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [list, setList] = useState<ScientificSpeciesType[]>(specieList);
   const [removeFavSpecieModal, setRemoveFavSpecieModal] = useState(false);
   const [removeFavSpecieItem, setRemoveFavSpecieItem] = useState<ScientificSpeciesType>(null);
+  const [searchModal, setSearchModal] = useState(false);
+
+  const inputRef = React.useRef(null);
   const insects = useSafeAreaInsets();
-
   const netInfo = useNetInfo();
-  const modalizeRef = useRef<Modalize>(null);
-
   const route = useRoute();
 
   const { dispatch } = useContext(SpeciesContext);
@@ -453,40 +450,20 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             </Text>
             {`and Add Species to \n Your Favourites`}
           </Text>
-          <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.searchBar}>
+          <TouchableOpacity
+            onPress={() => {
+              setSearchModal(true);
+              setTimeout(() => {
+                inputRef?.current?.focus();
+              }, 500);
+            }}
+            style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
             <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
               Search all species
             </Text>
-            {/* <TextInput
-              style={styles.searchText}
-              placeholder={i18next.t('label.select_species_search_species')}
-              onChangeText={handleSpeciesSearch}
-              value={searchText}
-              returnKeyType={'search'}
-              autoCorrect={false}
-              placeholderTextColor={Colors.GRAY_LIGHTEST}
-            /> */}
-            {/* {searchText ? (
-              <TouchableOpacity
-                onPress={() => {
-                  setSearchText('');
-                }}>
-                <Ionicons name="close" size={20} style={styles.closeIcon} />
-              </TouchableOpacity>
-            ) : (
-              []
-            )} */}
           </TouchableOpacity>
-          {/* {showSearchSpecies && searchText.length < 3 ? (
-            <Text style={styles.notPresentText}>
-              {i18next.t('label.select_species_search_atleast_3_characters')}
-            </Text>
-          ) : (
-            []
-          )} */}
         </View>
-
         <View
           style={{
             paddingLeft: 16,
@@ -502,20 +479,6 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             {i18next.t('label.select_species_my_species')}
           </Text>
         </View>
-
-        {/* <View
-          style={{
-            paddingLeft: 20,
-            backgroundColor: '#E0E0E026',
-          }}>
-          {!showSearchSpecies ? (
-            <Text style={styles.listTitle}>{i18next.t('label.select_species_my_species')}</Text>
-          ) : showSearchSpecies && searchList && searchList.length > 0 && searchText.length > 2 ? (
-            <Text style={styles.listTitle}>{i18next.t('label.search_result')}</Text>
-          ) : (
-            []
-          )}
-        </View> */}
       </>
     );
   }, [searchText, showSearchSpecies, searchList]);
@@ -585,21 +548,22 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     );
   };
 
-  const handleBackModal = () => modalizeRef.current?.close();
+  const handleBackModal = () => setSearchModal(false);
 
   return (
     <>
       {/* <DismissKeyBoard> */}
-      <Modalize ref={modalizeRef} withHandle={false} modalStyle={styles.modalStyle}>
-        <View style={styles.mainSearchContainer}>
-          <TouchableOpacity style={styles.backArrowCon} onPress={handleBackModal} accessible={true}>
+      <Modal visible={searchModal} animationType={'slide'} onRequestClose={handleBackModal}>
+        <View style={[styles.mainSearchContainer, !IS_ANDROID && { paddingTop: insects.top }]}>
+          <TouchableOpacity style={styles.backArrowCon} onPress={handleBackModal}>
             <ArrowBack />
           </TouchableOpacity>
           <View style={styles.searchBarMain}>
             <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
               <Ionicons name="search-outline" size={20} style={styles.searchIconMain} />
               <TextInput
-                autoFocus
+                // autoFocus
+                ref={inputRef}
                 style={styles.searchText}
                 placeholder={i18next.t('label.select_species_search_species')}
                 onChangeText={handleSpeciesSearch}
@@ -653,7 +617,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             ListHeaderComponent={renderSearchListHeader}
           />
         </View>
-      </Modalize>
+      </Modal>
       <View
         style={{
           flex: 1,
@@ -742,12 +706,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 25,
-  },
-  modalStyle: {
-    minHeight: '100%',
-    paddingTop: IS_ANDROID ? 0 : 55,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
   },
   mainSearchContainer: {
     flexDirection: 'row',

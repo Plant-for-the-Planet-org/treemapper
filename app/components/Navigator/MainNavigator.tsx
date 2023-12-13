@@ -84,17 +84,40 @@ const MyTransition: StackNavigationOptions = {
   },
 };
 
+const MyTransitionLTR: StackNavigationOptions = {
+  gestureDirection: 'vertical',
+  transitionSpec: {
+    open: TransitionSpecs.TransitionIOSSpec,
+    close: TransitionSpecs.TransitionIOSSpec,
+  },
+  headerStyleInterpolator: HeaderStyleInterpolators.forFade,
+  cardStyleInterpolator: ({ current, layouts }) => {
+    return {
+      cardStyle: {
+        transform: [
+          {
+            translateX: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-layouts.screen.width, 0],
+            }),
+          },
+        ],
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.5],
+        }),
+      },
+    };
+  },
+};
+
 export default function MainNavigator() {
   return (
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
       <Stack.Screen name="BottomTab" component={BottomTab} />
-      <Stack.Screen
-        name="NavDrawer"
-        component={NavDrawer}
-        options={{
-          gestureDirection: 'horizontal-inverted',
-        }}
-      />
+      <Stack.Screen name="NavDrawer" component={NavDrawer} options={MyTransitionLTR} />
       <Stack.Screen name="CreateIntervention" component={CreateIntervention} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
       <Stack.Screen name="Interventions" component={Interventions} options={MyTransition} />

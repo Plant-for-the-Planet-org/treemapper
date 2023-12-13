@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { ArrowBack } from '../../../assets';
+import { IS_ANDROID } from '../../../styles/mixins';
 import { Colors, Typography } from '../../../styles';
 
 interface IHeaderProps {
@@ -48,10 +50,16 @@ const Header = ({
   containerStyle = {},
 }: IHeaderProps) => {
   const navigation = useNavigation();
+  const insects = useSafeAreaInsets();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
   return (
     <View style={style}>
-      <View style={[styles.containerStyle, containerStyle]}>
+      <View
+        style={[
+          styles.containerStyle,
+          containerStyle,
+          IS_ANDROID && { paddingTop: insects.top + 20 },
+        ]}>
         <View style={styles.arrowContainer}>
           {!hideBackIcon ? (
             <TouchableOpacity

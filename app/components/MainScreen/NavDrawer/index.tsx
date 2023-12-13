@@ -1,14 +1,15 @@
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import i18next from 'i18next';
+import { useState } from 'react';
 import React, { useContext } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Skeleton } from 'moti/skeleton/react-native-linear-gradient';
-import { useState } from 'react';
-import i18next from 'i18next';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 import {
+  ArrowBack,
   LogoutSign,
   ProjectDoc,
   SpeciesLeaf,
@@ -25,7 +26,6 @@ import { UserContext } from '../../../reducers/user';
 import { Colors, Spacing, Typography } from '../../../styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
-import { log } from 'console';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -125,7 +125,7 @@ const NavDrawer = props => {
               activeOpacity={0.7}
               style={styles.header}
               onPress={() => navigation.navigate('BottomTab')}>
-              <Ionicons name="arrow-back" size={24} color={Colors.BLACK} />
+              <ArrowBack />
             </TouchableOpacity>
             <View style={styles.profile}>
               <View style={styles.profileInfo}>
@@ -203,13 +203,7 @@ const NavDrawer = props => {
             )}
           </View>
         </View>
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            paddingBottom: insects.bottom,
-          }}>
+        <View style={[styles.versionContainer, { paddingBottom: insects.bottom }]}>
           {!userState?.accessToken && (
             <PrimaryButton
               onPress={onPressLogin}
@@ -217,49 +211,20 @@ const NavDrawer = props => {
               style={styles.loginBtn}
             />
           )}
-          <View key="version" style={{ paddingBottom: 10 }}>
-            <View>
-              <Text style={styles.itemText}>{version}</Text>
-            </View>
+          <View key="version" style={styles.version}>
+            <Text style={styles.itemText}>{version}</Text>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              width: '100%',
-              justifyContent: 'space-evenly',
-              alignItems: 'center',
-              paddingBottom: 10,
-            }}>
-            <TouchableOpacity key="privacy_policy" style={styles.touchable} onPress={onPressPolicy}>
-              <View>
-                <Text style={styles.itemText}>{i18next.t('label.privacy_policy')}</Text>
-              </View>
+          <View style={styles.termsContainer}>
+            <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>
+              <Text style={styles.itemText}>{i18next.t('label.privacy_policy')}</Text>
             </TouchableOpacity>
-
-            <View
-              style={{
-                height: 3,
-                width: 3,
-                borderRadius: 100,
-                backgroundColor: 'black',
-              }}
-            />
-
-            <TouchableOpacity key="imprint" style={styles.touchable} onPress={onPressImprint}>
-              <View>
-                <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
-              </View>
+            <View style={styles.dot} />
+            <TouchableOpacity key="imprint" onPress={onPressImprint}>
+              <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
             </TouchableOpacity>
-
-            <View style={{ height: 3, width: 3, borderRadius: 100, backgroundColor: 'black' }} />
-
-            <TouchableOpacity
-              key="terms_of_service"
-              style={styles.touchable}
-              onPress={onPressTerms}>
-              <View>
-                <Text style={styles.itemText}>{i18next.t('label.terms_of_service')}</Text>
-              </View>
+            <View style={styles.dot} />
+            <TouchableOpacity key="terms_of_service" onPress={onPressTerms}>
+              <Text style={styles.itemText}>{i18next.t('label.terms_of_service')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,6 +247,7 @@ const styles = StyleSheet.create({
     width: Spacing.SCALE_30,
     height: Spacing.SCALE_56,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   profile: {
     flexDirection: 'row',
@@ -350,16 +316,31 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
   },
-  defaultSpacing: {
-    paddingHorizontal: 25,
-    paddingTop: 10,
-  },
-  touchable: {},
   itemText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_24,
+    fontSize: Typography.FONT_SIZE_14,
+    lineHeight: Typography.LINE_HEIGHT_16,
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
   },
+  dot: {
+    height: 3,
+    width: 3,
+    borderRadius: 100,
+    backgroundColor: Colors.TEXT_COLOR,
+  },
+  versionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    width: '80%',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingBottom: 15,
+    alignSelf: 'center',
+  },
+  version: { paddingBottom: 10 },
 });

@@ -1,11 +1,12 @@
-import i18next from 'i18next';
 import React from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
-import { alrighty_banner } from '../../../assets';
-import { Colors, Typography } from '../../../styles';
+import { SafeAreaView, StyleSheet, View, Text } from 'react-native';
+
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
+import { alrighty_banner } from '../../../assets';
+import { Colors, Typography } from '../../../styles';
 
 interface IAlrightyProps {
   heading: any;
@@ -33,35 +34,28 @@ const Alrighty = ({
   const isShowBottomWhiteBtn = whiteBtnText || coordsLength > 2;
   return (
     <SafeAreaView style={styles.mainContainer}>
+      <Header onBackPress={onPressClose} closeIcon={closeIcon} containerStyle={styles.header} />
       <View style={styles.container}>
-        <Header onBackPress={onPressClose} closeIcon={closeIcon} />
-        <View style={{ flex: 1 }}>
-          <View style={styles.bannerContainer}>
-            <SvgXml xml={bannerImage ? bannerImage : alrighty_banner} />
-            <Header
-              hideBackIcon
-              headingText={heading}
-              subHeadingText={subHeading}
-              textAlignStyle={styles.headercustomStyle}
-              subHeadingStyle={styles.subHeadingStyle}
-            />
-          </View>
+        <SvgXml xml={bannerImage ? bannerImage : alrighty_banner} />
+        <View style={styles.infoContainer}>
+          <Text style={styles.heading}>{heading}</Text>
+          <Text style={styles.subHeading}>{subHeading}</Text>
         </View>
-        <View style={styles.bottomBtnsContainer}>
-          {isShowBottomWhiteBtn && (
-            <PrimaryButton
-              onPress={onPressWhiteButton}
-              btnText={coordsLength >= 2 ? i18next.t('label.tree_review_alrighty') : whiteBtnText}
-              halfWidth
-              theme={'white'}
-            />
-          )}
+      </View>
+      <View style={styles.bottomBtnsContainer}>
+        {isShowBottomWhiteBtn && (
           <PrimaryButton
-            onPress={onPressContinue}
-            btnText={i18next.t('label.continue')}
-            halfWidth={isShowBottomWhiteBtn}
+            onPress={onPressWhiteButton}
+            btnText={coordsLength >= 2 ? i18next.t('label.tree_review_alrighty') : whiteBtnText}
+            halfWidth
+            theme={'white'}
           />
-        </View>
+        )}
+        <PrimaryButton
+          onPress={onPressContinue}
+          btnText={i18next.t('label.continue')}
+          halfWidth={isShowBottomWhiteBtn}
+        />
       </View>
     </SafeAreaView>
   );
@@ -73,27 +67,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
-  bannerContainer: {
-    flex: 1,
+  header: {
+    paddingHorizontal: 25,
+  },
+  container: {
+    flex: 0.8,
+    paddingHorizontal: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headercustomStyle: {
+  heading: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_20,
+    color: Colors.BLACK,
     textAlign: 'center',
-    marginLeft: 0,
-    width: '100%',
+    lineHeight: Typography.LINE_HEIGHT_40,
+  },
+  subHeading: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    textAlign: 'center',
+  },
+  infoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bottomBtnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 25,
-    backgroundColor: Colors.WHITE,
-  },
-  subHeadingStyle: {
-    lineHeight: Typography.LINE_HEIGHT_24,
-    width: 'auto',
+    bottom: 25,
+    position: 'absolute',
+    width: '90%',
+    alignSelf: 'center',
   },
 });
