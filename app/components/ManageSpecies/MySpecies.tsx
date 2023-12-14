@@ -80,7 +80,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
         </Text>
       </View>
       {item.guid !== 'unknown' && screen === 'SelectSpecies' && navigateToSpecieInfo ? (
-        <TouchableOpacity onPress={() => navigateToSpecieInfo(item)}>
+        <TouchableOpacity style={styles.infoIcon} onPress={() => navigateToSpecieInfo(item)}>
           <Ionicons name="information-circle-outline" size={20} />
         </TouchableOpacity>
       ) : (
@@ -137,5 +137,10 @@ const styles = StyleSheet.create({
     color: Colors.PLANET_BLACK,
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_ITALIC_SEMI_BOLD,
+  },
+  infoIcon: {
+    marginHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
