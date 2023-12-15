@@ -51,17 +51,17 @@ const getIcon = screenName => {
 const getLabel = screenName => {
   switch (screenName) {
     case 'ManageSpecies':
-      return 'Manage Species';
+      return i18next.t('label.manage_species');
     case 'Logout':
-      return 'Logout';
+      return i18next.t('label.logout');
     case 'AdditionalData':
-      return 'Additional Data';
+      return i18next.t('label.additional_data');
     case 'ManageProjects':
-      return 'Manage Projects';
+      return i18next.t('label.manage_projects');
     case 'DownloadMap':
-      return 'Offline Maps';
+      return i18next.t('label.manage_offline');
     case 'Logs':
-      return 'Activity Logs';
+      return i18next.t('label.activity_logs');
     default:
       return undefined;
   }
@@ -119,7 +119,8 @@ const NavDrawer = props => {
   return (
     <>
       <Skeleton.Group show={loading}>
-        <View style={[styles.container, { backgroundColor: 'white', paddingTop: insects.top }]}>
+        <View
+          style={[styles.container, { backgroundColor: Colors.WHITE, paddingTop: insects.top }]}>
           <View style={styles.profileContainer}>
             <TouchableOpacity
               activeOpacity={0.7}

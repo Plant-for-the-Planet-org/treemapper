@@ -1,10 +1,14 @@
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '../../styles';
-import { Header, PrimaryButton, Switch } from '../Common';
+import HeaderV2 from '../Common/Header/HeaderV2';
+import { IS_ANDROID } from '../../styles/mixins';
+import { PrimaryButton, Switch } from '../Common';
+import { ProjectContext } from '../../reducers/project';
 import FloatingHeaderDropdown from '../Common/Dropdown/FloatingHeaderDropdown';
 
 const CreateIntervention = () => {
@@ -33,6 +37,8 @@ const CreateIntervention = () => {
   const [itemsIntervention, setItemsIntervention] = useState([
     { label: 'yucatanRestoration', value: 'Yucatan Restoration' },
   ]);
+
+  const insects = useSafeAreaInsets();
 
   const handleToggle = () => setToggle(!toggle);
 
@@ -73,8 +79,14 @@ const CreateIntervention = () => {
   const handleContinue = () => {};
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header headingText="Intervention" containerStyle={{ paddingHorizontal: 16 }} />
+    <View style={styles.container}>
+      <HeaderV2
+        headingText="Intervention"
+        containerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: IS_ANDROID ? insects.top + 20 : insects.top,
+        }}
+      />
       <View style={styles.subContainer}>
         <FloatingHeaderDropdown
           open={openProject}
@@ -139,7 +151,7 @@ const CreateIntervention = () => {
         </View>
         <PrimaryButton btnText="Continue" style={styles.btn} onPress={handleContinue} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -425,11 +425,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
           <SpeciesSyncError />
           <Text
             style={{
+              marginTop: 4,
               textAlign: 'center',
               fontSize: Typography.FONT_SIZE_14,
               fontFamily: Typography.FONT_FAMILY_BOLD,
             }}>
-            Explore and Manage Species
+            {i18next.t('label.explore_and_manage_species')}
           </Text>
           <Text
             style={{
@@ -438,7 +439,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
               fontSize: Typography.FONT_SIZE_12,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
             }}>
-            {'Search '}
+            {i18next.t('label.search')}
             <Text
               style={{
                 marginTop: 4,
@@ -446,9 +447,9 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
                 fontSize: Typography.FONT_SIZE_14,
                 fontFamily: Typography.FONT_FAMILY_BOLD,
               }}>
-              {'60,000 Species '}
+              {i18next.t('label.number_species')}
             </Text>
-            {`and Add Species to \n Your Favourites`}
+            {i18next.t('label.add_species_in_fav')}
           </Text>
           <TouchableOpacity
             onPress={() => {
@@ -460,7 +461,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
             <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
-              Search all species
+              {i18next.t('label.select_species_search_species')}
             </Text>
           </TouchableOpacity>
         </View>
