@@ -142,9 +142,11 @@ const GeoJSONMap = ({
   // creates geoJSON object for the selected project sites
   useEffect(() => {
     if (projectSites && projectSites?.length > 0) {
-      const features = projectSites.map(site => {
-        const geometry = JSON.parse(JSON.stringify(site.geometry));
-        if (geometry.type === 'MultiPolygon') {
+      // filteredNonNullSites = here removing the sites that contains null in geometry
+      const filteredNonNullSites = projectSites.filter(item => JSON.parse(item?.geometry) !== null);
+      const features = filteredNonNullSites.map(site => {
+        const geometry = JSON.parse(site?.geometry);
+        if (geometry?.type === 'MultiPolygon') {
           const coordinates = geometry.coordinates.map(polygon => {
             return polygon[0];
           });

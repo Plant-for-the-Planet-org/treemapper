@@ -427,6 +427,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             style={{
               marginTop: 4,
               textAlign: 'center',
+              color: Colors.BLACK,
               fontSize: Typography.FONT_SIZE_14,
               fontFamily: Typography.FONT_FAMILY_BOLD,
             }}>
@@ -436,6 +437,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
             style={{
               marginTop: 4,
               textAlign: 'center',
+              color: Colors.BLACK,
               fontSize: Typography.FONT_SIZE_12,
               fontFamily: Typography.FONT_FAMILY_REGULAR,
             }}>
@@ -444,6 +446,7 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
               style={{
                 marginTop: 4,
                 textAlign: 'center',
+                color: Colors.BLACK,
                 fontSize: Typography.FONT_SIZE_14,
                 fontFamily: Typography.FONT_FAMILY_BOLD,
               }}>

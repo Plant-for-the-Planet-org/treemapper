@@ -12,9 +12,9 @@ import {
   View,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, CommonStyles } from '../../../styles';
-import { species_default } from '../../../assets';
-import { Header } from '../';
+import { Colors, CommonStyles, Typography } from '../../../styles';
+import { MultipleTreeIcon } from '../../../assets';
+import { GradientText, Header } from '../';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getScientificSpeciesById } from '../../../repositories/species';
 
@@ -38,7 +38,12 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
   const [specie, setSpecie] = useState();
 
+  const inputRef = React.useRef(null);
+
   useEffect(() => {
+    setTimeout(() => {
+      inputRef?.current?.focus();
+    }, 400);
     if (activeSpecie?.id && showTreeCountModal) {
       getScientificSpeciesById(activeSpecie?.id).then(scientificSpecie => {
         setSpecie(scientificSpecie);
@@ -58,43 +63,27 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               setShowTreeCountModal(false);
             }}
           />
-          <Image
-            source={
-              activeSpecie?.image
-                ? { uri: `${activeSpecie?.image}` }
-                : specie?.image
-                ? { uri: `${specie?.image}` }
-                : species_default
-            }
-            style={{
-              alignSelf: 'center',
-              marginVertical: 20,
-              width: 150,
-              height: 100,
-              borderRadius: 5,
-              resizeMode: activeSpecie?.image || specie?.image ? null : 'contain',
-            }}
-          />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_header')}
-            textAlignStyle={{ textAlign: 'center' }}
-            subHeadingStyle={{ marginLeft: 0 }}
-          />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header', {
-              specieName,
-            })}
-            textAlignStyle={{ textAlign: 'center', fontStyle: 'italic' }}
-            subHeadingStyle={{ marginLeft: 0 }}
-          />
-          <Header
-            hideBackIcon
-            subHeadingText={i18next.t('label.select_species_tree_count_modal_sub_header_2')}
-            textAlignStyle={{ textAlign: 'center' }}
-            subHeadingStyle={{ marginLeft: 0 }}
-          />
+          {activeSpecie?.image ? (
+            <Image source={{ uri: `${activeSpecie?.image}` }} style={styles.image} />
+          ) : specie?.image ? (
+            <Image source={{ uri: `${specie?.image}` }} style={styles.image} />
+          ) : (
+            <View style={styles.iconContainer}>
+              <MultipleTreeIcon width={150} height={120} />
+            </View>
+          )}
+          <View style={styles.textCon}>
+            <Text style={styles.speciesText}>
+              {i18next.t('label.select_species_tree_count_modal_header')}
+            </Text>
+            <GradientText style={styles.speciesName}>
+              {i18next.t('label.select_species_tree_count_modal_sub_header')}
+              {specieName}
+            </GradientText>
+            <Text style={styles.speciesText}>
+              {i18next.t('label.select_species_tree_count_modal_sub_header_2')}
+            </Text>
+          </View>
         </View>
       </View>
       <KeyboardAvoidingView
@@ -105,9 +94,9 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             {i18next.t('label.select_species_modal_label')}
           </Text>
           <TextInput
+            ref={inputRef}
             value={treeCount?.toString()}
             style={CommonStyles.bottomInputText}
-            autoFocus
             placeholderTextColor={Colors.TEXT_COLOR}
             onChangeText={text => setTreeCount(text.replace(/[^0-9]/g, ''))}
             keyboardType={'number-pad'}
@@ -144,5 +133,36 @@ const styles = StyleSheet.create({
   },
   bgWhite: {
     backgroundColor: Colors.WHITE,
+  },
+  speciesText: {
+    marginTop: 16,
+    marginHorizontal: 20,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+    textAlign: 'center',
+  },
+  speciesName: {
+    marginTop: 16,
+    marginHorizontal: 20,
+    fontFamily: Typography.FONT_FAMILY_ITALIC_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    textAlign: 'center',
+  },
+  textCon: {
+    marginBottom: 8,
+  },
+  image: {
+    alignSelf: 'center',
+    marginVertical: 20,
+    width: 150,
+    height: 100,
+    borderRadius: 5,
+  },
+  iconContainer: {
+    alignSelf: 'center',
+    marginTop: 10,
+    borderBottomWidth: 2,
+    borderColor: '#d3d3d350',
   },
 });

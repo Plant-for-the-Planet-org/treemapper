@@ -140,9 +140,7 @@ const NavDrawer = props => {
                 {userState?.accessToken ? (
                   <View style={styles.profileInfoTextCon}>
                     <Skeleton colorMode="light" radius={2}>
-                      <Text style={styles.username}>
-                        {userState?.firstName} {userState?.lastName}
-                      </Text>
+                      <Text style={styles.username}>{userState?.displayName}</Text>
                       <Text style={styles.email}>{userState?.email}</Text>
                     </Skeleton>
                   </View>

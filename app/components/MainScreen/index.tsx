@@ -269,12 +269,14 @@ export default function MainScreen() {
 
   const _onSelectSite = item => () => {
     setSelectedSite(item);
-    const geometry = JSON.parse(JSON.stringify(item?.geometry));
-    console.log(geometry);
-
-    setSiteBounds(bbox(geometry));
-    // const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
-    // setSiteCenterCoordinate(centerCoordinate);
+    const geometry = JSON.parse(item?.geometry);
+    if (geometry) {
+      setSiteBounds(bbox(geometry));
+      const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
+      setSiteCenterCoordinate(centerCoordinate);
+    } else {
+      console.warn('geometry is null');
+    }
     onClose();
   };
 

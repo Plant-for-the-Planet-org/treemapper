@@ -65,16 +65,15 @@ export default React.forwardRef(({ visible, setVisible = () => {}, navigation },
   const calcComponents = useMemo(() => {
     return addOptions.map((option, index) => (
       <View key={`addOption${index}`} style={styles.addButtonOptionWrap}>
-        <TouchableOpacity
-          disabled={option.disabled}
-          onPress={option.onPress}
-          style={styles.addButtonOption}>
-          <View style={styles.icon}>{option.svgIcon}</View>
-          <View>
-            <Text style={styles.text}>{i18next.t(option.title)}</Text>
-            {option.coming_soon && (
-              <GradientText style={styles.coming_soon}>Coming Soon</GradientText>
-            )}
+        <TouchableOpacity disabled={option.disabled} onPress={option.onPress}>
+          <View style={styles.addButtonOption}>
+            <View style={styles.icon}>{option.svgIcon}</View>
+            <View>
+              <Text style={styles.text}>{i18next.t(option.title)}</Text>
+              {option.coming_soon && (
+                <GradientText style={styles.coming_soon}>Coming Soon</GradientText>
+              )}
+            </View>
           </View>
         </TouchableOpacity>
       </View>
@@ -104,7 +103,8 @@ export default React.forwardRef(({ visible, setVisible = () => {}, navigation },
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,
-            paddingHorizontal: 18,
+            paddingLeft: 18,
+            paddingRight: 18,
             paddingVertical: 10,
             height: 340,
             width: 230,
@@ -129,6 +129,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 193,
     height: 44,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
     borderRadius: 8,
     borderWidth: 1,
     paddingLeft: 6,
