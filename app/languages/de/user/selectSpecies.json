@@ -61,5 +61,18 @@
   "not_optimal_ratio_message": "Das Verhältnis von Höhe zu Durchmesser fällt nicht in den optimalen Verhältnisbereich, der zwischen 2:1 (minimale Höhe:Durchmesser) und 160:1 (maximale Höhe:Durchmesser) liegt. Bist du sicher, dass du fortfahren möchtest?",
   "delete_species": "Spezies löschen?",
   "delete_species_delete_sample_tree_warning": "Wenn du diese Art löscht, werden auch die mit dieser Art verbundenen Musterbäume gelöscht. Bist du sicher, dass du sie löschen möchtest?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, und die mit dieser Art verbundenen Musterbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?"
+  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, und die mit dieser Art verbundenen Musterbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?",
+  "tree_is_still_alive": "Der Baum lebt noch",
+  "select_intensity_for_remeasurement": "Wählen Sie den Prozentsatz der Bäume aus, den Sie an der Gesamtzahl der gepflanzten Musterbäume erneut messen möchten",
+  "select_frequency_for_remeasurement": "Wählen Sie die Häufigkeit aus, nach der Sie die Probenbäume erneut messen.",
+  "cant_change_frequency": "Sie können die Frequenz derzeit nicht ändern.",
+  "cant_change_intensity": "Sie können die Intensität vorerst nicht ändern.",
+  "remove_species": "Arten entfernen",
+  "sure_remove_species": "Möchten Sie diese Art wirklich aus Ihren Favoriten entfernen?",
+  "remove": "Entfernen",
+  "cancel": "Stornieren",
+  "explore_and_manage_species": "Erkunden und verwalten Sie Arten",
+  "search": "Erkunden und verwalten Sie Arten ",
+  "number_species": "60.000 Arten",
+  "add_species_in_fav": "und Arten hinzufügen \n Ihre Favoriten"
 }

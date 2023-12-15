@@ -60,5 +60,18 @@
   "not_optimal_ratio_message": "Le rapport hauteur/diamètre ne se situe pas dans la fourchette optimale, qui va de 2:1 (hauteur/diamètre minimum) à 160:1 (hauteur/diamètre maximum). Êtes-vous sûr de vouloir continuer ?",
   "delete_species": "Supprimer les espèces ?",
   "delete_species_delete_sample_tree_warning": "Si vous supprimez cette espèce, le ou les arbres échantillons liés à cette espèce seront également supprimés. Etes-vous sûr que vous voulez supprimer ?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Cette espèce sera supprimée si le nombre d'arbres est fixé à 0 et le ou les arbres échantillons liés à cette espèce seront également supprimés. Êtes-vous sûr de vouloir fixer le nombre d'arbres à zéro ?"
+  "zero_tree_count_species_delete_sample_tree_warning": "Cette espèce sera supprimée si le nombre d'arbres est fixé à 0 et le ou les arbres échantillons liés à cette espèce seront également supprimés. Êtes-vous sûr de vouloir fixer le nombre d'arbres à zéro ?",
+  "tree_is_still_alive": "L'arbre est toujours vivant",
+  "select_intensity_for_remeasurement": "Sélectionnez le pourcentage d'arbres que vous mesurerez à nouveau par rapport au nombre total d'arbres échantillons plantés.",
+  "select_frequency_for_remeasurement": "Sélectionnez la fréquence après laquelle vous mesurerez à nouveau les arbres d'échantillonnage.",
+  "cant_change_frequency": "Vous ne pouvez pas changer de fréquence pour l'instant.",
+  "cant_change_intensity": "Vous ne pouvez pas modifier l'intensité pour l'instant.",
+  "remove_species": "Supprimer des espèces",
+  "sure_remove_species": "Etes-vous sûr de vouloir supprimer cette espèce de vos favoris ?",
+  "remove": "Retirer",
+  "cancel": "Annuler",
+  "explore_and_manage_species": "Explorer et gérer les espèces",
+  "search": "Recherche ",
+  "number_species": "60 000 espèces ",
+  "add_species_in_fav": "et ajouter des espèces à \n vos favoris"
 }

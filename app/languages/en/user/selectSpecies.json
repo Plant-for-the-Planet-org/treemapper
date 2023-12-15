@@ -70,5 +70,9 @@
   "remove_species": "Remove Species",
   "sure_remove_species": "Are you sure you want to remove this species from your favourites?",
   "remove": "Remove",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "explore_and_manage_species": "Explore and manage species",
+  "search": "Search ",
+  "number_species": "60,000 Species ",
+  "add_species_in_fav": "and add species to \n your favourites"
 }
