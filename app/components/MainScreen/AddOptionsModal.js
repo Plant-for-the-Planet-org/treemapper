@@ -12,6 +12,7 @@ import React, { useMemo } from 'react';
 import i18next from 'i18next';
 import { Colors, Typography } from '../../styles';
 import { GradientText } from '../Common';
+import { scaleFont, scaleSize } from '../../styles/mixins';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -99,15 +100,14 @@ export default React.forwardRef(({ visible, setVisible = () => {}, navigation },
             overflow: 'hidden',
             position: 'absolute',
             right: 18,
-            bottom: 120,
+            bottom: scaleSize(115),
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,
-            paddingLeft: 18,
-            paddingRight: 18,
-            paddingVertical: 10,
-            height: 340,
-            width: 230,
+            paddingLeft: scaleSize(18),
+            paddingRight: scaleSize(18),
+            paddingVertical: scaleSize(10),
+            width: scaleSize(220),
             zIndex: 10,
           },
           animatedStyles,
@@ -123,27 +123,28 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   addButtonOption: {
-    marginVertical: 10,
+    marginVertical: scaleFont(10),
     backgroundColor: Colors.PRIMARY + '1A',
     flexDirection: 'row',
     alignItems: 'center',
-    width: 193,
-    height: 44,
-    paddingVertical: 3,
-    paddingHorizontal: 5,
+    // width: scaleSize(180),
+    // height: scaleSize(40),
+    paddingVertical: scaleFont(3),
+    paddingHorizontal: scaleFont(5),
     borderRadius: 8,
     borderWidth: 1,
-    paddingLeft: 6,
+    paddingLeft: scaleFont(6),
     borderColor: Colors.PRIMARY + '1A',
+    flexWrap: 'wrap',
   },
   icon: { height: 36, width: 36, marginRight: 6 },
   text: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: scaleFont(16),
     color: Colors.TEXT_COLOR,
   },
   coming_soon: {
-    fontSize: Typography.FONT_SIZE_8,
+    fontSize: scaleFont(8),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
 });
