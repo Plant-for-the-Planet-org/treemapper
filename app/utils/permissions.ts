@@ -9,7 +9,7 @@ export const locationPermission = () => {
   return new Promise((resolve, reject) => {
     if (isAndroid) {
       PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-        .then((granted) => {
+        .then(granted => {
           switch (granted) {
             case PermissionsAndroid.RESULTS.GRANTED:
               resolve('granted');
@@ -22,9 +22,9 @@ export const locationPermission = () => {
               return false;
           }
         })
-        .catch((err) => console.warn(err));
+        .catch(err => console.warn(err));
     } else {
-      Geolocation.requestAuthorization('whenInUse').then((permissionStatus) => {
+      Geolocation.requestAuthorization('whenInUse').then(permissionStatus => {
         if (permissionStatus === 'granted') {
           resolve(true);
         } else {

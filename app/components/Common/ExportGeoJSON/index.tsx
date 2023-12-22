@@ -5,7 +5,6 @@ import Share from 'react-native-share';
 import LargeButton from '../LargeButton';
 import { toBase64 } from '../../../utils/base64';
 import getGeoJsonData from '../../../utils/convertInventoryToGeoJson';
-import { askExternalStoragePermission } from '../../../utils/permissions';
 
 interface ExportGeoJSONProps {
   inventory: any;
@@ -37,10 +36,7 @@ const ExportGeoJSON: React.FunctionComponent<ExportGeoJSONProps> = ({ inventory 
     }
   };
   const onPressExportJSON = async () => {
-    const permissionResult = await askExternalStoragePermission();
-    if (permissionResult) {
-      await exportGeoJSONFile();
-    }
+    await exportGeoJSONFile();
   };
 
   return (
