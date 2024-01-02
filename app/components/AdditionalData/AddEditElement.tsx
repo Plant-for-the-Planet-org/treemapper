@@ -12,6 +12,7 @@ import { nanoid } from 'nanoid';
 import 'react-native-get-random-values';
 import { useRoute } from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { CommonActions, RouteProp, useNavigation } from '@react-navigation/native';
 
 import {
@@ -25,6 +26,7 @@ import {
 } from '../../utils/additionalData/constants';
 import KeyValueInput from './KeyValueInput';
 import TypeSelection from './TypeSelection';
+import { scaleSize } from '../../styles/mixins';
 import { Colors, Typography } from '../../styles';
 import { Header, PrimaryButton } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
@@ -272,7 +274,7 @@ export default function AddEditElement() {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'AdditionalData' }],
+          routes: [{ name: 'BottomTab' }, { name: 'AdditionalData' }],
         }),
       );
     }
@@ -293,8 +295,9 @@ export default function AddEditElement() {
   };
 
   const onSwipe = (index: number) => {
-    dropdownOptions.splice(index, 1);
-    setDropdownOptions(dropdownOptions);
+    const dropdownOpt = [...dropdownOptions];
+    dropdownOpt.splice(index, 1);
+    setDropdownOptions(dropdownOpt);
   };
 
   if (showDropdownOptionForm) {
@@ -324,7 +327,11 @@ export default function AddEditElement() {
                 />
               );
             }
+
             return <></>;
+          }}
+          containerStyle={{
+            paddingHorizontal: 25,
           }}
         />
         <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
@@ -383,13 +390,16 @@ export default function AddEditElement() {
                 dropdownOptions.length > 0 &&
                 dropdownOptions.map((option: any, index: number) => (
                   <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
-                    <SwipeDeleteRow onSwipe={() => onSwipe(index)}>
-                      <KeyValueInput
-                        fieldKey={option.key}
-                        fieldValue={option.value}
-                        onPress={() => updateDropdownOption(option.key, option.value, index)}
-                      />
-                    </SwipeDeleteRow>
+                    {/* <SwipeDeleteRow onSwipe={() => onSwipe(index)}> */}
+                    <KeyValueInput
+                      fieldKey={option.key}
+                      fieldValue={option.value}
+                      onPress={() => updateDropdownOption(option.key, option.value, index)}
+                    />
+                    <TouchableOpacity style={styles.deleteIcon} onPress={() => onSwipe(index)}>
+                      <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
+                    </TouchableOpacity>
+                    {/* </SwipeDeleteRow> */}
                   </View>
                 ))}
               <TouchableOpacity onPress={handleAddDropdownOption}>
@@ -438,13 +448,12 @@ const Switcher = ({ switchText = '', isEnabled, setIsEnabled }: ISwitcherProps) 
 };
 
 const styles = StyleSheet.create({
-  flex1: { flex: 1 },
+  flex1: { flex: 1, paddingHorizontal: 25 },
   container: {
     flex: 1,
-    paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
-  button: { marginTop: 10 },
+  button: { marginTop: 10, width: '90%', alignSelf: 'center' },
   switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -483,5 +492,15 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     marginTop: 6,
+  },
+  deleteIcon: {
+    position: 'absolute',
+    right: -10,
+    top: -scaleSize(15),
+    backgroundColor: Colors.WHITE,
+    padding: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
 });

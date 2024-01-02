@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 24,
+    marginBottom: 16,
   },
   checkboxText: {
     color: Colors.TEXT_COLOR,

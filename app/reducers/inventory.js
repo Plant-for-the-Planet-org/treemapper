@@ -1,4 +1,4 @@
-import React, {createContext, useReducer, useContext} from 'react';
+import React, { createContext, useReducer, useContext } from 'react';
 import {
   ADD_INVENTORY,
   IS_UPLOADING,
@@ -14,9 +14,11 @@ import {
   SET_SELECTED_REMEASUREMENT_ID,
   SET_SAMPLE_PLANT_LOCATION_INDEX,
   SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
+  SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG,
+  GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER,
 } from '../actions/Types';
 
-import {InventoryType} from '../types/inventory';
+import { InventoryType } from '../types/inventory';
 
 export const inventoryFetchConstant = {
   PENDING: 'PENDING',
@@ -39,6 +41,8 @@ const initialState = {
   samplePlantLocationIndex: null,
   selectedRemeasurementId: '',
   fetchNecessaryInventoryFlag: null,
+  fetchGivenMonthsInventoryFlag: null,
+  inventoryLastMonthFetchProgress: inventoryFetchConstant.PENDING,
 };
 
 // Inventory reducer function which takes the state and action param
@@ -160,6 +164,16 @@ const inventoryReducer = (state = initialState, action) => {
         ...state,
         fetchNecessaryInventoryFlag: action.payload,
       };
+    case SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG:
+      return {
+        ...state,
+        fetchGivenMonthsInventoryFlag: action.payload,
+      };
+    case GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER:
+      return {
+        ...state,
+        inventoryLastMonthFetchProgress: action.payload,
+      };
     default:
       return state;
   }
@@ -172,13 +186,13 @@ export const InventoryContext = createContext({
 });
 
 // Create a provider for components to consume and subscribe to changes
-export const InventoryContextProvider = ({children}) => {
+export const InventoryContextProvider = ({ children }) => {
   // stores state and dispatch of inventory using the reducer and initialState
   const [state, dispatch] = useReducer(inventoryReducer, initialState);
 
   // returns a provider used by component to access the state and dispatch function of inventory
   return (
-    <InventoryContext.Provider value={{state, dispatch}}>{children}</InventoryContext.Provider>
+    <InventoryContext.Provider value={{ state, dispatch }}>{children}</InventoryContext.Provider>
   );
 };
 

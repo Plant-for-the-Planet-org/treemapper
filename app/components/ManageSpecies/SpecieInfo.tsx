@@ -1,7 +1,7 @@
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useIsFocused } from '@react-navigation/native';
 import i18next from 'i18next';
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -28,6 +28,7 @@ import { updateSpecieData } from '../../repositories/species';
 import HeaderV2 from '../Common/Header/HeaderV2';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HeartGray, HeartPink, UploadSpecies } from '../../assets';
+import { scaleSize } from '../../styles/mixins';
 
 let screen;
 
@@ -214,7 +215,7 @@ const SpecieInfo = ({ route }: { route: any }) => {
                     multiline
                     value={description}
                     onChangeText={setDescription}
-                    style={[styles.input, { height: 105, paddingTop: 8, paddingTop: 8 }]}
+                    style={[styles.input, { height: scaleSize(105), paddingTop: 8 }]}
                   />
                 </View>
               </KeyboardAvoidingView>
@@ -297,13 +298,14 @@ const styles = StyleSheet.create({
   specieName: {
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_ITALIC_BOLD,
+    color: Colors.BLACK,
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
     borderColor: Colors.GRAY_DARK,
-    height: 40,
-    padding: 10,
+    height: scaleSize(40),
+    padding: scaleSize(10),
     color: Colors.DARK_TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,

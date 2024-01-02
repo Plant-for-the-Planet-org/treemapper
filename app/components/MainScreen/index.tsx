@@ -9,6 +9,7 @@ import {
   Pressable,
   StatusBar,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import i18next from 'i18next';
 import bbox from '@turf/bbox';
@@ -47,19 +48,24 @@ import { shouldSpeciesUpdate } from '../../repositories/species';
 import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
+import {
+  setFetchGivenMonthsInventoryFlag,
+  setFetchNecessaryInventoryFlag,
+  updateCount,
+} from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { getAllProjects } from '../../repositories/projects';
+import { modifyUserDetails } from '../../repositories/user';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 50;
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
 const INTERVENTION_DURATION = [
-  { id: 1, duration: '30 days', selected: false },
-  { id: 2, duration: '6 months', selected: false },
-  { id: 3, duration: '1 year', selected: false },
-  { id: 4, duration: 'Always', selected: false },
+  { id: 1, duration: '30 days', selected: false, totalMonths: 1 },
+  { id: 2, duration: '6 months', selected: false, totalMonths: 6 },
+  { id: 3, duration: '1 year', selected: false, totalMonths: 12 },
+  { id: 4, duration: 'Always', selected: false, totalMonths: 60 },
 ];
 
 export default function MainScreen() {
@@ -97,6 +103,7 @@ export default function MainScreen() {
 
   const [checkboxes, setCheckboxes] = useState(INTERVENTION_DURATION);
   const [interventionModal, setInterventionModal] = useState<boolean>(false);
+  const [remeasurementFlag, setRemeasurementFlag] = useState<boolean>(false);
 
   const { state, dispatch } = useContext(InventoryContext);
   const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
@@ -125,6 +132,41 @@ export default function MainScreen() {
       }
     }, [projects]),
   );
+
+  useEffect(() => {
+    if (userState.fetchGivenMonthsInventoryFlag) {
+      const checkboxesDuplicate = [...checkboxes];
+      checkboxesDuplicate.forEach(element => (element.selected = false));
+      const filteredIndex = checkboxesDuplicate.findIndex(
+        item => item.totalMonths === userState.fetchGivenMonthsInventoryFlag,
+      );
+      if (checkboxesDuplicate.length && filteredIndex > -1) {
+        checkboxesDuplicate[filteredIndex].selected = true;
+      }
+    }
+  }, [userState.fetchGivenMonthsInventoryFlag]);
+
+  const fetchGivenMonthsInventory = async () => {
+    if (checkboxes.length) {
+      const givenMonths = checkboxes.filter(item => item.selected === true)[0]?.totalMonths;
+      if (givenMonths) {
+        setFetchGivenMonthsInventoryFlag(givenMonths)(dispatch);
+        await modifyUserDetails({
+          fetchGivenMonthsInventoryFlag: givenMonths,
+        });
+      } else {
+        await modifyUserDetails({
+          fetchGivenMonthsInventoryFlag: 0,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      fetchGivenMonthsInventory();
+    }, 500);
+  }, [checkboxes]);
 
   useEffect(() => {
     let realm: Realm;
@@ -321,10 +363,10 @@ export default function MainScreen() {
     }
   };
 
-  const toggleCheckbox = index => {
+  const toggleCheckbox = (index, newValue) => {
     const checkboxData = [...checkboxes];
     checkboxes.forEach(element => (element.selected = false));
-    checkboxData[index].selected = !checkboxData[index].checked;
+    checkboxData[index].selected = newValue;
     setCheckboxes(checkboxData);
     setTimeout(() => {
       setInterventionModal(false);
@@ -430,8 +472,12 @@ export default function MainScreen() {
         onRequestClose={() => setInterventionModal(false)}>
         <TouchableOpacity
           activeOpacity={1}
-          style={styles.modalCon}
-          onPress={() => setInterventionModal(false)}>
+          onPress={() =>
+            setTimeout(() => {
+              setInterventionModal(false);
+            }, 500)
+          }
+          style={styles.modalCon}>
           <View style={styles.modalSubCon}>
             {checkboxes.map(({ id, duration, selected }, i) => (
               <>
@@ -446,7 +492,7 @@ export default function MainScreen() {
                     onTintColor={'transparent'}
                     onCheckColor={Colors.WHITE}
                     onFillColor={Colors.PRIMARY}
-                    onChange={() => toggleCheckbox(i)}
+                    onValueChange={newValue => toggleCheckbox(i, newValue)}
                     tintColors={{ true: Colors.PRIMARY, false: Colors.TEXT_COLOR }}
                   />
                 </View>
@@ -477,17 +523,60 @@ export default function MainScreen() {
         </View>
         {modalType === MODEL_TYPE.FILTERS && (
           <View style={styles.filter}>
-            <View style={styles.filterItem}>
+            <TouchableOpacity
+              onPress={handleInterventionFilter}
+              disabled={
+                state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ||
+                state.inventoryLastMonthFetchProgress === inventoryFetchConstant.IN_PROGRESS
+              }
+              style={[
+                styles.filterItem,
+                checkboxes.find(item => item.selected === true)?.duration && {
+                  backgroundColor: Colors.PRIMARY + '10',
+                },
+              ]}>
               <Text style={styles.filterItemLabel}>Interventions</Text>
-              <Switch value={interventionFilter} onValueChange={handleInterventionFilter} />
-            </View>
-            <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+              {state.inventoryLastMonthFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={styles.fetchLoad}>Fetching </Text>
+                  <ActivityIndicator size={'small'} color={Colors.PRIMARY_DARK} />
+                </View>
+              ) : (
+                <Text style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
+                  {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
+                </Text>
+              )}
+            </TouchableOpacity>
+            {/* <View style={[styles.filterItem]}>
               <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
               <Switch value={false} onValueChange={val => {}} />
-            </View>
-            <View style={[styles.filterItem, { backgroundColor: '#E0E0E066' }]}>
+            </View> */}
+
+            <View style={[styles.filterItem]}>
               <Text style={styles.filterItemLabel}>Only interventions that need remeasurement</Text>
-              <Switch value={false} onValueChange={val => {}} />
+              {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={styles.fetchLoad}>Fetching </Text>
+                  <ActivityIndicator size={'small'} color={Colors.PRIMARY_DARK} />
+                </View>
+              ) : (
+                <Switch
+                  value={remeasurementFlag}
+                  onValueChange={async val => {
+                    setRemeasurementFlag(val);
+                    if (val) {
+                      setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
+                      await modifyUserDetails({
+                        fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+                      });
+                    } else {
+                      setFetchNecessaryInventoryFlag(null)(dispatch);
+                    }
+                  }}
+                />
+              )}
             </View>
           </View>
         )}
@@ -625,7 +714,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.PRIMARY + '10',
+    backgroundColor: '#E0E0E066',
+
     borderRadius: 8,
     minHeight: 54,
     marginTop: 10,
@@ -694,5 +784,20 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
+  },
+  borderFilterItem: {
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY_DARK,
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    fontSize: Typography.FONT_SIZE_12,
+    color: Colors.PRIMARY_DARK,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  fetchLoad: {
+    color: Colors.PRIMARY_DARK,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    marginRight: 5,
   },
 });

@@ -8,11 +8,11 @@ const circleSize = 18;
 const switchWidthMultiplier = toggleWidth / circleSize;
 const multiplierFix = circleSize / ((circleSize * switchWidthMultiplier - circleSize) / 2);
 
-const Switch = ({ value = false, onValueChange }) => (
+const Switch = ({ value = false, onValueChange, disabled = false }) => (
   <RNSwitch
     value={value}
     onValueChange={onValueChange}
-    disabled={false}
+    disabled={disabled}
     activeText={'On'}
     inActiveText={'Off'}
     barHeight={12}

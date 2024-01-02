@@ -72,3 +72,9 @@ export const CLEAR_PROJECT_AND_PROJECT_SITE = 'CLEAR_PROJECT_AND_PROJECT_SITE';
 
 //Fetch necessary inventory
 export const SWITCH_FETCH_NECESSARY_INVENTORY_FLAG = 'SWITCH_FETCH_NECESSARY_INVENTORY_FLAG';
+
+//Fetch inventory from last given months
+export const SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG = 'SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG';
+
+//Used to check if fetching of registrations are completed and load the geoJSON on the map
+export const GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER = 'GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER';

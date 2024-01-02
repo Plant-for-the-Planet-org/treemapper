@@ -1,16 +1,18 @@
+import moment from 'moment';
 import {
   getAllInventoryFromServer,
   getNecessaryInventoryFromServer,
   updateInventoryFetchFromServer,
+  updateLastGivenMonthInventoryFetchFromServer,
 } from '../actions/inventory';
-import {getRemeasurementDatesFromServer} from '../actions/remeasurement';
-import {inventoryFetchConstant} from '../reducers/inventory';
+import { getRemeasurementDatesFromServer } from '../actions/remeasurement';
+import { inventoryFetchConstant } from '../reducers/inventory';
 import {
   addOrUpdateInventory,
   getInventoryByStatus,
   updateInventory,
 } from '../repositories/inventory';
-import {getRemeasurementDates} from './getRemeasuremDates';
+import { getRemeasurementDates } from './getRemeasuremDates';
 import {
   DATA_UPLOAD_START,
   FIX_NEEDED,
@@ -21,6 +23,7 @@ import {
   PENDING_SAMPLE_TREES_UPLOAD,
   SYNCED,
 } from './inventoryConstants';
+import { isWithinLastMonths } from '.';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
   let allRegistrationsDetails: any;
@@ -48,9 +51,9 @@ export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) 
           }
         } else {
           const notAddedRegistrations = allRegistrationsDetails.data.filter(
-            ({id: locationId1}: any) =>
+            ({ id: locationId1 }: any) =>
               !allRegistrations.some(
-                ({locationId: locationId2}: any) => locationId2 === locationId1,
+                ({ locationId: locationId2 }: any) => locationId2 === locationId1,
               ),
           );
 
@@ -99,7 +102,7 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
         //Checks if the inventory from server is present in the local database or not
         const isLocalInventoryPresent = (serverLocationId: any) => {
           return allLocalRegistrations.some(
-            ({locationId: localLocationId}: any) => serverLocationId == localLocationId,
+            ({ locationId: localLocationId }: any) => serverLocationId == localLocationId,
           );
         };
 
@@ -115,11 +118,11 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
             if (ServerRegistration.captureStatus === 'complete' && !isInventoryPresentInDB) {
               addOrUpdateInventory(ServerRegistration, InventoryAction.ADD);
             } else if (ServerRegistration.captureStatus === 'complete' && isInventoryPresentInDB) {
-              const localRegistration = allLocalRegistrations.find(({locationId}: any) => {
+              const localRegistration = allLocalRegistrations.find(({ locationId }: any) => {
                 return locationId === ServerRegistration.id;
               });
               addOrUpdateInventory(
-                {...ServerRegistration, inventory_id: localRegistration.inventory_id},
+                { ...ServerRegistration, inventory_id: localRegistration.inventory_id },
                 InventoryAction.UPDATE,
               );
             }
@@ -138,5 +141,70 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
       });
   } else {
     updateInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
+  }
+};
+
+export const addLastGivenMonthsInventoryFromServer = async (
+  nextRouteLink = '',
+  dispatch: any,
+  lastGivenMonths: number,
+) => {
+  let allRegistrationsDetails: any;
+  if (nextRouteLink) {
+    allRegistrationsDetails = await getAllInventoryFromServer(`${nextRouteLink}&_scope=extended`);
+  } else {
+    allRegistrationsDetails = await getAllInventoryFromServer();
+  }
+  if (allRegistrationsDetails.data.length !== 0) {
+    getInventoryByStatus([
+      PENDING_DATA_UPLOAD,
+      DATA_UPLOAD_START,
+      PENDING_IMAGE_UPLOAD,
+      PENDING_SAMPLE_TREES_UPLOAD,
+      SYNCED,
+      PENDING_DATA_UPDATE,
+      FIX_NEEDED,
+    ])
+      .then((allRegistrations: any) => {
+        if (allRegistrations.length === 0) {
+          for (const registration of allRegistrationsDetails.data) {
+            if (
+              registration.captureStatus === 'complete' &&
+              isWithinLastMonths(registration.registrationDate, lastGivenMonths)
+            )
+              addOrUpdateInventory(registration, InventoryAction.ADD);
+          }
+        } else {
+          const notAddedRegistrations = allRegistrationsDetails.data.filter(
+            ({ id: locationId1 }: any) =>
+              !allRegistrations.some(
+                ({ locationId: locationId2 }: any) => locationId2 === locationId1,
+              ),
+          );
+
+          for (const registration of notAddedRegistrations) {
+            if (
+              registration.captureStatus === 'complete' &&
+              isWithinLastMonths(registration.registrationDate, lastGivenMonths)
+            )
+              addOrUpdateInventory(registration, InventoryAction.ADD);
+          }
+        }
+
+        if (allRegistrationsDetails.nextRouteLink) {
+          addLastGivenMonthsInventoryFromServer(
+            allRegistrationsDetails.nextRouteLink,
+            dispatch,
+            lastGivenMonths,
+          );
+        } else {
+          updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
+        }
+      })
+      .catch((err: any) => {
+        console.error(err);
+      });
+  } else {
+    updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
   }
 };

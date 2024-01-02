@@ -50,13 +50,23 @@ export default function AppNavigator() {
       });
       dailyLogUpdateCheck();
     }
-  }, [showInitialStack, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
+  }, [
+    showInitialStack,
+    inventoryState.fetchNecessaryInventoryFlag,
+    inventoryState.fetchGivenMonthsInventoryFlag,
+    userState.accessToken,
+  ]);
 
   useEffect(() => {
     if (!showInitialStack) {
       autoSync();
     }
-  }, [netInfo, inventoryState.fetchNecessaryInventoryFlag, userState.accessToken]);
+  }, [
+    netInfo,
+    inventoryState.fetchNecessaryInventoryFlag,
+    inventoryState.fetchGivenMonthsInventoryFlag,
+    userState.accessToken,
+  ]);
 
   return (
     <NavigationContainer>

@@ -18,7 +18,7 @@ const { width, height } = Dimensions.get('screen');
 
 export default React.forwardRef(({ visible, setVisible = () => {}, navigation }, ref) => {
   const heightValue = useDerivedValue(() => {
-    return withTiming(visible ? 0 : 500, { duration: 500 });
+    return withTiming(visible ? 0 : 700, { duration: 500 });
   }, [visible]);
 
   const animatedStyles = useAnimatedStyle(() => ({
