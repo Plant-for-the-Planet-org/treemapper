@@ -7,7 +7,6 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -59,13 +58,6 @@ export default function Page({
         index,
       };
       return (
-        // <SwipeDeleteRow
-        //   style={marginTop24}
-        //   onSwipe={() => deleteElement(index)}
-        //   isDraggable
-        //   drag={drag}
-        //   dragging={dragging}
-        //   setDragging={setDragging}>
         <>
           <TouchableOpacity
             onPress={() =>
@@ -82,7 +74,6 @@ export default function Page({
             <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
           </TouchableOpacity>
         </>
-        // </SwipeDeleteRow>
       );
     },
     [dragging, setDragging],

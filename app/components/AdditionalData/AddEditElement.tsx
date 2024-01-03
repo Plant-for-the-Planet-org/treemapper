@@ -29,7 +29,6 @@ import TypeSelection from './TypeSelection';
 import { scaleSize } from '../../styles/mixins';
 import { Colors, Typography } from '../../styles';
 import { Header, PrimaryButton } from '../Common';
-import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AddElementSwitcher from './AddElementSwitcher';
 import { marginTop24, marginTop30 } from '../../styles/design';
 import { AdditionalDataContext } from '../../reducers/additionalData';
@@ -390,7 +389,6 @@ export default function AddEditElement() {
                 dropdownOptions.length > 0 &&
                 dropdownOptions.map((option: any, index: number) => (
                   <View style={styles.fieldWrapper} key={`dropdown-option-${index}`}>
-                    {/* <SwipeDeleteRow onSwipe={() => onSwipe(index)}> */}
                     <KeyValueInput
                       fieldKey={option.key}
                       fieldValue={option.value}
@@ -399,7 +397,6 @@ export default function AddEditElement() {
                     <TouchableOpacity style={styles.deleteIcon} onPress={() => onSwipe(index)}>
                       <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
                     </TouchableOpacity>
-                    {/* </SwipeDeleteRow> */}
                   </View>
                 ))}
               <TouchableOpacity onPress={handleAddDropdownOption}>

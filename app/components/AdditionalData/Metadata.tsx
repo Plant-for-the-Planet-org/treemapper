@@ -10,7 +10,6 @@ import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
 import { accessTypes } from '../../utils/additionalData/constants';
 import { Loader, PrimaryButton } from '../Common';
-import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import KeyValueInput from './KeyValueInput';
 import { scaleSize } from '../../styles/mixins';
@@ -72,12 +71,6 @@ function Metadata(): JSX.Element {
           }
           renderItem={({ item, drag }: any) => (
             <View style={styles.fieldWrapper} key={`metadata-${item.id}`}>
-              {/* <SwipeDeleteRow
-                onSwipe={() => onSwipe(item.id)}
-                isDraggable
-                drag={drag}
-                dragging={dragging}
-                setDragging={setDragging}> */}
               <KeyValueInput
                 fieldKey={item.key}
                 fieldValue={item.value}
@@ -94,7 +87,6 @@ function Metadata(): JSX.Element {
               <TouchableOpacity style={styles.deleteIcon} onPress={() => onSwipe(item.id)}>
                 <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
               </TouchableOpacity>
-              {/* </SwipeDeleteRow> */}
             </View>
           )}
           dragHitSlop={{ right: -width + 50 + 36 }}
