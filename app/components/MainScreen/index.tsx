@@ -10,6 +10,7 @@ import {
   StatusBar,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import i18next from 'i18next';
 import bbox from '@turf/bbox';
@@ -317,7 +318,10 @@ export default function MainScreen() {
       const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
       setSiteCenterCoordinate(centerCoordinate);
     } else {
-      console.warn('geometry is null');
+      Alert.alert(
+        'Invalid geometry detected',
+        'Site cannot be processed. Apologies for inconvenience.',
+      );
     }
     onClose();
   };
@@ -454,12 +458,14 @@ export default function MainScreen() {
                   <IonIcons name={'location'} size={24} color={Colors.WHITE} />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                onPress={_onOpen('filters')}
-                activeOpacity={0.7}
-                style={[styles.headerBtn, styles.boxShadow]}>
-                <IonIcons name={'options'} size={24} color={Colors.WHITE} />
-              </TouchableOpacity>
+              {userState?.type && (
+                <TouchableOpacity
+                  onPress={_onOpen('filters')}
+                  activeOpacity={0.7}
+                  style={[styles.headerBtn, styles.boxShadow]}>
+                  <IonIcons name={'options'} size={24} color={Colors.WHITE} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </>
@@ -483,18 +489,20 @@ export default function MainScreen() {
               <>
                 <View style={styles.modalItem}>
                   <Text style={styles.durationText}>{duration}</Text>
-                  <CheckBox
+                  <TouchableOpacity
                     key={id}
-                    value={selected}
-                    boxType={'square'}
-                    animationDuration={0}
-                    style={styles.checkbox}
-                    onTintColor={'transparent'}
-                    onCheckColor={Colors.WHITE}
-                    onFillColor={Colors.PRIMARY}
-                    onValueChange={newValue => toggleCheckbox(i, newValue)}
-                    tintColors={{ true: Colors.PRIMARY, false: Colors.TEXT_COLOR }}
-                  />
+                    activeOpacity={0.7}
+                    onPress={() => toggleCheckbox(i, !selected)}>
+                    <View
+                      style={[
+                        styles.radioButtonOuterCircle,
+                        {
+                          borderColor: selected ? Colors.PRIMARY : Colors.TEXT_COLOR,
+                        },
+                      ]}>
+                      {selected && <View style={styles.radioButtonInnerCircle} />}
+                    </View>
+                  </TouchableOpacity>
                 </View>
                 {checkboxes.length - 1 !== i && (
                   <View style={[styles.divider, { width: '100%' }]} />
@@ -799,5 +807,19 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY_DARK,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginRight: 5,
+  },
+  radioButtonInnerCircle: {
+    width: 15,
+    height: 15,
+    borderRadius: 100,
+    backgroundColor: Colors.PRIMARY,
+  },
+  radioButtonOuterCircle: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
