@@ -4,6 +4,7 @@ import React, { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from 'moti/skeleton/react-native-linear-gradient';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
@@ -26,6 +27,7 @@ import { UserContext } from '../../../reducers/user';
 import { Colors, Spacing, Typography } from '../../../styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
+import { isPlantForThePlanetEmail } from '../../../utils';
 
 const { protocol, cdnUrl, webAppUrl } = APIConfig;
 
@@ -43,6 +45,12 @@ const getIcon = screenName => {
       return <OfflineMapIcon />;
     case 'Logs':
       return <OfflineMapIcon />;
+    case 'Environment':
+      return (
+        <View style={styles.iconCon}>
+          <MaterialIcons name={'settings'} size={16} color={Colors.WHITE} />
+        </View>
+      );
     default:
       return undefined;
   }
@@ -62,6 +70,8 @@ const getLabel = screenName => {
       return i18next.t('label.manage_offline');
     case 'Logs':
       return i18next.t('label.activity_logs');
+    case 'Environment':
+      return i18next.t('label.environment');
     default:
       return undefined;
   }
@@ -83,19 +93,10 @@ const NavDrawer = props => {
     const isLogout = await auth0Logout(userDispatch);
   };
 
-  const onPressImprint = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
-  };
-  const onPressPolicy = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
-  };
-  const onPressTerms = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
-  };
-
-  const onPressEdit = () => {
-    openWebView(`${protocol}://${webAppUrl}/login`);
-  };
+  const onPressImprint = () => openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
+  const onPressPolicy = () => openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
+  const onPressTerms = () => openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
+  const onPressEdit = () => openWebView(`${protocol}://${webAppUrl}/login`);
 
   const onPressLogin = async () => {
     setLoading(true);
@@ -185,6 +186,20 @@ const NavDrawer = props => {
                     </Skeleton>
                   </View>
                 ),
+            )}
+            {isPlantForThePlanetEmail(userState?.email) && (
+              <View style={{ paddingTop: scaleSize(12) }}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.drawerItem}
+                  onPress={() => navigation.navigate('Environment')}>
+                  <View style={styles.drawerItemInfo}>
+                    {getIcon('Environment')}
+                    <Text style={styles.drawerItemLabel}>{getLabel('Environment')}</Text>
+                  </View>
+                  <Ionicons name={'chevron-forward-outline'} size={20} color={Colors.TEXT_COLOR} />
+                </TouchableOpacity>
+              </View>
             )}
             {userState?.accessToken && (
               <View style={{ paddingTop: scaleSize(12) }}>
@@ -342,4 +357,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   version: { paddingBottom: 10 },
+  iconCon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.PRIMARY_DARK,
+    borderRadius: 100,
+    width: 24,
+    height: 24,
+  },
 });

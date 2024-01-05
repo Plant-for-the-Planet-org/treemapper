@@ -26,8 +26,10 @@ import ManageProjects from '../screens/ManageProjectsFlow/ManageProjects';
 import SelectProject from './Projects/SelectProject';
 import SpecieSampleTree from './SpecieSampleTree';
 import CreateIntervention from './CreateIntervention/CreateIntervention';
+import Environment from './Environment/Environment';
 
 export {
+  Environment,
   CreateIntervention,
   RegisterTree,
   TPOQuestion,

@@ -29,6 +29,7 @@
     "@react-navigation/bottom-tabs": "^6.5.8",
     "@react-navigation/native": "^6.1.1",
     "@react-navigation/stack": "^6.3.10",
+    "@reduxjs/toolkit": "^2.0.1",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",
@@ -78,6 +79,7 @@
     "react-native-tab-view": "^3.3.4",
     "react-native-vector-icons": "^10.0.0",
     "react-native-zip-archive": "^5.0.6",
+    "react-redux": "^9.0.4",
     "realm": "^11.10.2"
   },
   "devDependencies": {

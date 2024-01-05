@@ -12,4 +12,18 @@ const isWithinLastMonths = (registrationDate: string, monthsCount: number): bool
   return diffBool;
 };
 
-export { ALPHABETS, bugsnag, isWithinLastMonths };
+const isPlantForThePlanetEmail = (email: string) => {
+  const domain = 'plant-for-the-planet.org';
+  // Convert email to lowercase for case-insensitive comparison
+  const lowerCaseEmail = email?.toLowerCase();
+
+  // Check if the email ends with the specified domain
+  const endsWithDomain = lowerCaseEmail?.endsWith(domain);
+
+  // Check if the email contains "plant-for-the-planet" before the domain
+  const containsPlantForThePlanet = lowerCaseEmail?.includes('plant-for-the-planet');
+
+  return endsWithDomain && containsPlantForThePlanet;
+};
+
+export { ALPHABETS, bugsnag, isWithinLastMonths, isPlantForThePlanetEmail };

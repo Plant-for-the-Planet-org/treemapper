@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Vibration } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { SvgXml } from 'react-native-svg';
 import { add_icon, ListIcon, PlotIcon, MapExplore } from '../../assets';
@@ -30,6 +30,7 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
   const _addOptionsRef = useRef();
 
   const onAddPress = () => {
+    Vibration.vibrate();
     setOpen(prev => !prev);
   };
 

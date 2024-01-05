@@ -1,5 +1,6 @@
-import { StatusBar, Platform, View } from 'react-native';
+import { useDispatch } from 'react-redux';
 import React, { useEffect, useContext } from 'react';
+import { StatusBar, Platform, View } from 'react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -13,6 +14,7 @@ import { NavigationContext } from '../../reducers/navigation';
 import InitialLoadingNavigator from './InitialLoadingNavigator';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SET_APP_ENVIRONMENT } from '../../redux/slices/envSlice';
 
 const Stack = createStackNavigator();
 const isAndroid = Platform.OS === 'android';
@@ -22,6 +24,7 @@ export default function AppNavigator() {
   const { showInitialStack } = useContext(NavigationContext);
   const netInfo = useNetInfo();
   const insets = useSafeAreaInsets();
+  const reduxDispatch = useDispatch();
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
@@ -56,6 +59,12 @@ export default function AppNavigator() {
     inventoryState.fetchGivenMonthsInventoryFlag,
     userState.accessToken,
   ]);
+
+  useEffect(() => {
+    if (userState?.appEnvironment) {
+      reduxDispatch(SET_APP_ENVIRONMENT(userState.appEnvironment));
+    }
+  }, [userState?.appEnvironment]);
 
   useEffect(() => {
     if (!showInitialStack) {

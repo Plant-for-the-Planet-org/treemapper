@@ -33,6 +33,7 @@ import {
   RegisterSingleTree,
   SingleTreeOverview,
   CreateIntervention,
+  Environment,
 } from '../';
 import BottomTab from './BottomTab';
 import AdditionalData from '../AdditionalData';
@@ -178,6 +179,7 @@ export default function MainNavigator() {
         options={MyTransition}
       />
       <Stack.Screen name="ProjectConfig" component={ProjectConfig} options={MyTransition} />
+      <Stack.Screen name="Environment" component={Environment} options={MyTransition} />
     </Stack.Navigator>
   );
 }
