@@ -27,5 +27,16 @@
   "tree_inventory_overview_date": "{{item.title}}",
   "tree_inventory_input_error": "Input Error",
   "tree_inventory_input_error_message": "Por favor, introduza dados válidos",
-  "delete_incomplete_registrations_warning": "Estes registos ainda não estão carregados e serão apagados para sempre se continuar."
+  "delete_incomplete_registrations_warning": "Estes registos ainda não estão carregados e serão apagados para sempre se continuar.",
+  "plant_location_fetch_in_progress": "Recuperando a localização das suas plantas. Isto pode demorar algum tempo.",
+  "edit_polygon": "Editar polígono",
+  "edit_point": "Editar ponto",
+  "edit_geometry_message": "Clique e arraste um marcador para mudar a sua posição.",
+  "reset": "Resetar",
+  "save": "Salvar",
+  "uploading": "Fazendo upload",
+  "missing_data_found_registration": "Encontramos dados em falta nos registros",
+  "tree_inventory_fix_needed": "Há alguns dados em falta neste registro.",
+  "tree_inventory_fix_needed_sample": "Verificar no mapa abaixo as árvores de amostra em vermelho para ver os dados em falta (se existirem).",
+  "fix_before_uploading": "Por favor, conserte os dados em falta antes de carregar."
 }
