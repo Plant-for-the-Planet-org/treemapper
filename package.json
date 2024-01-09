@@ -37,7 +37,7 @@
     "@turf/distance": "^6.5.0",
     "@turf/helpers": "^6.5.0",
     "@types/react-native-snap-carousel": "^3.8.5",
-    "axios": "^1.2.2",
+    "axios": "^1.6.4",
     "bson": "^5.4.0",
     "buffer": "^6.0.3",
     "bugsnag-react-native": "^2.23.10",
