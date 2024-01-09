@@ -10,8 +10,12 @@ import shouldUpdateSpeciesSync, {
   setSpeciesSyncUpdateDate,
 } from './ScientificSpecies/shouldUpdateSpeciesSync';
 import { updateAndSyncLocalSpecies as updateAndSyncLocalSpeciesRepo } from '../repositories/species';
+import { store } from '../redux/store';
+import { ENVS } from '../../environment';
 
-const { protocol, url } = APIConfig;
+const { protocol } = APIConfig;
+const { currentEnv } = store.getState().envSlice;
+const url = ENVS[currentEnv].API_ENDPOINT;
 
 /**
  * Reads the target path passed as params and parse the file contents to update the species locally in DB.

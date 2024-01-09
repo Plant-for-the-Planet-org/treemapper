@@ -1,20 +1,30 @@
-import {useNavigation} from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
-import React, {useContext} from 'react';
-import {Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, { useContext } from 'react';
+import {
+  Dimensions,
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
 import Carousel from 'react-native-snap-carousel';
-import {APIConfig} from '../../actions/Config';
-import {setRemeasurementId, setSamplePlantLocationIndex} from '../../actions/inventory';
-import {InventoryContext} from '../../reducers/inventory';
-import {Colors, Typography} from '../../styles';
-import {nonISUCountries} from '../../utils/constants';
+import { APIConfig } from '../../actions/Config';
+import { setRemeasurementId, setSamplePlantLocationIndex } from '../../actions/inventory';
+import { InventoryContext } from '../../reducers/inventory';
+import { Colors, Typography } from '../../styles';
+import { nonISUCountries } from '../../utils/constants';
 import distanceCalculator from '../../utils/distanceCalculator';
-import {PENDING_DATA_UPLOAD, SYNCED} from '../../utils/inventoryConstants';
-import {getIsDateInRemeasurementRange} from '../../utils/remeasurement';
+import { PENDING_DATA_UPLOAD, SYNCED } from '../../utils/inventoryConstants';
+import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 import PrimaryButton from '../Common/PrimaryButton';
-const {protocol, cdnUrl} = APIConfig;
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
+const { protocol } = APIConfig;
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -27,7 +37,7 @@ interface ISelectedPlantLocationSampleTreesCardsProps {
   loadingInventoryData: boolean;
 }
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const itemWidth = width - 25 * 3;
 
 const SelectedPlantLocationSampleTreesCards = ({
@@ -39,7 +49,9 @@ const SelectedPlantLocationSampleTreesCards = ({
   loadingInventoryData,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
-  const {dispatch} = useContext(InventoryContext);
+  const { dispatch } = useContext(InventoryContext);
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   const heightUnit = nonISUCountries.includes(countryCode)
     ? i18next.t('label.select_species_feet')
@@ -92,7 +104,7 @@ const SelectedPlantLocationSampleTreesCards = ({
         data={singleSelectedPlantLocation?.sampleTrees}
         itemWidth={itemWidth}
         sliderWidth={width}
-        renderItem={({item, index}: any) => {
+        renderItem={({ item, index }: any) => {
           let imageSource;
           // let canRemeasurePlantLocation = false;
           let isUserDistanceMoreThen100M = true;
@@ -142,11 +154,11 @@ const SelectedPlantLocationSampleTreesCards = ({
                   {imageSource ? <Image source={imageSource} style={styles.image} /> : []}
 
                   {/* textual info of sample tree */}
-                  <View style={{flex: 1}}>
+                  <View style={{ flex: 1 }}>
                     <Text style={styles.hidText}>HID: {item.hid}</Text>
 
                     {/* species name */}
-                    <Text style={[styles.text, {fontStyle: 'italic', opacity: 0.6}]}>
+                    <Text style={[styles.text, { fontStyle: 'italic', opacity: 0.6 }]}>
                       {item.specieName}
                     </Text>
 
@@ -185,7 +197,7 @@ const SelectedPlantLocationSampleTreesCards = ({
                     <Text
                       style={[
                         styles.text,
-                        {fontSize: Typography.FONT_SIZE_12, opacity: 0.4, marginTop: 8},
+                        { fontSize: Typography.FONT_SIZE_12, opacity: 0.4, marginTop: 8 },
                       ]}>
                       {i18next.t('label.you_are_far_to_remeasure')}
                     </Text>

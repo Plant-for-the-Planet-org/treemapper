@@ -76,8 +76,10 @@ import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 import { getUserInformation } from '../../repositories/user';
 import { measurementValidation } from '../../utils/validations/measurements';
 import { UserContext } from '../../reducers/user';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 type RootStackParamList = {
   SingleTreeOverview: {
@@ -139,6 +141,8 @@ const SingleTreeOverview = () => {
   const [plantLocationCoordinates, setPlantLocationCoordinates] = useState<[number, number]>([
     0, 0,
   ]);
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();

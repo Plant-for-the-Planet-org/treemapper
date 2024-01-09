@@ -1,22 +1,33 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert } from 'react-native';
 
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-
-import { ENV_TYPE } from '../../environment';
+import { ENV_TYPE } from '../../../environment';
 import HeaderV2 from '../Common/Header/HeaderV2';
 import { Colors, Typography } from '../../styles';
 import { IS_ANDROID, scaleSize } from '../../styles/mixins';
 import { SET_APP_ENVIRONMENT } from '../../redux/slices/envSlice';
+import { InventoryContext } from '../../reducers/inventory';
+import { clearAllUploadedInventory } from '../../repositories/inventory';
 
 const { width, height } = Dimensions.get('screen');
 
 const Environment = () => {
   const { currentEnv } = useSelector(state => state.envSlice);
+  const { state } = useContext(InventoryContext);
   const dispatch = useDispatch();
   const insects = useSafeAreaInsets();
+
+  const handleChangeEnv = async type => {
+    if (state.isUploading) {
+      Alert.alert('Inventory upload is in progress');
+    } else {
+      await clearAllUploadedInventory();
+      dispatch(SET_APP_ENVIRONMENT(type));
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -30,7 +41,8 @@ const Environment = () => {
       <View style={styles.btnCon}>
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => dispatch(SET_APP_ENVIRONMENT(ENV_TYPE.STAGING))}>
+          disabled={state.isUploading}
+          onPress={() => handleChangeEnv(ENV_TYPE.STAGING)}>
           <View
             style={[
               styles.btn,
@@ -46,7 +58,8 @@ const Environment = () => {
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => dispatch(SET_APP_ENVIRONMENT(ENV_TYPE.PROD))}>
+          disabled={state.isUploading}
+          onPress={() => handleChangeEnv(ENV_TYPE.PROD)}>
           <View
             style={[
               styles.btn,

@@ -1,4 +1,4 @@
-import { ENV_TYPE } from '../../environment';
+import { ENV_TYPE } from '../../../environment';
 import { InventoryType } from '../../types/inventory';
 
 // schema version
@@ -224,7 +224,7 @@ const User = {
     expirationTime: 'int?',
     fetchNecessaryInventoryFlag: { type: 'int', default: InventoryType.NecessaryItems },
     fetchGivenMonthsInventoryFlag: 'int?',
-    appEnvironment: 'string',
+    appEnvironment: 'string?',
   },
 };
 

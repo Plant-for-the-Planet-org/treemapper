@@ -513,7 +513,7 @@ export default function MainScreen() {
         </TouchableOpacity>
       </Modal>
 
-      <Modalize adjustToContentHeight withReactModal ref={modalizeRef}>
+      <Modalize adjustToContentHeight ref={modalizeRef}>
         <View style={styles.filterModalHeader}>
           <View style={styles.filterModalHeaderInfo}>
             <IonIcons
@@ -797,11 +797,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.PRIMARY_DARK,
     borderRadius: 8,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    paddingLeft: 5,
+    paddingRight: 5,
+    paddingTop: 2,
+    paddingBottom: 2,
     fontSize: Typography.FONT_SIZE_12,
     color: Colors.PRIMARY_DARK,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    textAlignVertical: 'center',
+    textAlign: 'center',
   },
   fetchLoad: {
     color: Colors.PRIMARY_DARK,

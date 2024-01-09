@@ -1,6 +1,7 @@
 import i18next from 'i18next';
 import { useState } from 'react';
 import React, { useContext } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -28,8 +29,9 @@ import { Colors, Spacing, Typography } from '../../../styles';
 import { InventoryContext } from '../../../reducers/inventory';
 import { auth0Login, auth0Logout } from '../../../actions/user';
 import { isPlantForThePlanetEmail } from '../../../utils';
+import { ENVS } from '../../../../environment';
 
-const { protocol, cdnUrl, webAppUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 const getIcon = screenName => {
   switch (screenName) {
@@ -84,10 +86,14 @@ const state = {
 const NavDrawer = props => {
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { dispatch } = useContext(InventoryContext);
+  const { currentEnv } = useSelector(state => state.envSlice);
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
   const insects = useSafeAreaInsets();
+
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
+  const webAppUrl = ENVS[currentEnv].WEB_APP_URL;
 
   const handleLogout = async () => {
     const isLogout = await auth0Logout(userDispatch);

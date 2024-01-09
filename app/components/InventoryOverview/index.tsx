@@ -67,6 +67,8 @@ import { getScientificSpeciesById } from '../../repositories/species';
 import { getUserInformation } from '../../repositories/user';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import { UserContext } from '../../reducers/user';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
 let scrollAdjust = 0;
 
@@ -79,7 +81,9 @@ type RootStackParamList = {
 type InventoryOverviewScreenRouteProp = RouteProp<RootStackParamList, 'InventoryOverview'>;
 
 const InventoryOverview = ({ navigation }: any) => {
-  const { protocol, cdnUrl } = APIConfig;
+  const { protocol } = APIConfig;
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
   const windowHeight = Dimensions.get('window').height;
 
   // reference for camera to focus on map

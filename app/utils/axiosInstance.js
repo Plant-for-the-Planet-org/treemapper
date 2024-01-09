@@ -1,6 +1,6 @@
 // axiosInstance.js
 import axios from 'axios';
-import { ENVS } from '../environment';
+import { ENVS } from '../../environment';
 import { store } from '../redux/store';
 
 const axiosInstance = axios.create({

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import { ENV_TYPE } from '../../environment';
+import { ENV_TYPE } from '../../../environment';
 import { modifyUserDetails } from '../../repositories/user';
 
 interface EnvState {
@@ -9,7 +9,7 @@ interface EnvState {
 }
 
 const initialState: EnvState = {
-  currentEnv: ENV_TYPE.STAGING,
+  currentEnv: ENV_TYPE.PROD,
 };
 
 export const envSlice = createSlice({

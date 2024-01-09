@@ -26,8 +26,10 @@ import { handleFilter } from '../../utils/CountryDataFilter';
 import { Header, Loader, PrimaryButton } from '../Common';
 import Modal from '../Common/Modal';
 import OutlinedInput from '../Common/OutlinedInput';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 // TODO:i18n - if this file is used, please add translations
 const SignUp = ({ navigation }) => {
@@ -52,9 +54,12 @@ const SignUp = ({ navigation }) => {
   const [country, setCountry] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
+  const { currentEnv } = useSelector(state => state.envSlice);
   const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const lang = RNLocalize.getLocales()[0];
+
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   const toggleSwitchPublish = () => setIsPrivate(previousState => !previousState);
   const toggleSwitchContact = () => setGetNews(previousState => !previousState);
