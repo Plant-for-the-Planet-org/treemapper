@@ -1127,8 +1127,8 @@ export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
             }
             const latitude = coordinate[1];
             const longitude = coordinate[0];
-            const currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
-            const currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
+            const currentloclat = inventoryFromServer.deviceLocation.coordinates[1] || null;
+            const currentloclong = inventoryFromServer.deviceLocation.coordinates[0] || null;
             const cdnImageUrl =
               inventoryFromServer.geometry.coordinates[0].length - 1
                 ? inventoryFromServer.coordinates[0].image
@@ -1231,7 +1231,7 @@ export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
-        console.log(err, 'Error==');
+        console.log(err, inventoryFromServer, 'Error==');
         resolve(false);
       });
   });

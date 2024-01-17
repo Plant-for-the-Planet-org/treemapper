@@ -1,13 +1,10 @@
-import {
-  setFetchGivenMonthsInventoryFlag,
-  updateLastGivenMonthInventoryFetchFromServer,
-} from './../actions/inventory';
+import { updateLastGivenMonthInventoryFetchFromServer } from './../actions/inventory';
 import { updateInventoryFetchFromServer } from '../actions/inventory';
 import { getAllProjects, getUserDetailsFromServer, setUserDetails } from '../actions/user';
 import { inventoryFetchConstant } from '../reducers/inventory';
 import { getUserDetails } from '../repositories/user';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import { bugsnag } from './';
+import { bugsnag, isWithinLastGivenDays } from './';
 import {
   addInventoryFromServer,
   addLastGivenMonthsInventoryFromServer,

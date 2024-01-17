@@ -5,10 +5,10 @@ import Config from 'react-native-config';
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bugsnag = new Client(Config.BUGSNAP_CLIENT_KEY);
 
-const isWithinLastMonths = (registrationDate: string, monthsCount: number): boolean => {
+const isWithinLastGivenDays = (registrationDate: string, daysCount: number): boolean => {
   const currentDate = moment();
   const regDate = moment(registrationDate, 'YYYY-MM-DD HH:mm:ss');
-  const diffBool = currentDate.diff(regDate, 'months') <= monthsCount;
+  const diffBool = currentDate.diff(regDate, 'days') <= daysCount;
   return diffBool;
 };
 
@@ -26,4 +26,4 @@ const isPlantForThePlanetEmail = (email: string) => {
   return endsWithDomain && containsPlantForThePlanet;
 };
 
-export { ALPHABETS, bugsnag, isWithinLastMonths, isPlantForThePlanetEmail };
+export { ALPHABETS, bugsnag, isWithinLastGivenDays, isPlantForThePlanetEmail };

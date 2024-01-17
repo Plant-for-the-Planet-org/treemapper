@@ -1,9 +1,10 @@
 import { useDispatch } from 'react-redux';
+import { StatusBar, Platform } from 'react-native';
 import React, { useEffect, useContext } from 'react';
-import { StatusBar, Platform, View } from 'react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../../styles';
 import MainNavigator from './MainNavigator';
@@ -13,7 +14,6 @@ import { InventoryContext } from '../../reducers/inventory';
 import { NavigationContext } from '../../reducers/navigation';
 import InitialLoadingNavigator from './InitialLoadingNavigator';
 import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SET_APP_ENVIRONMENT } from '../../redux/slices/envSlice';
 
 const Stack = createStackNavigator();
@@ -30,6 +30,8 @@ export default function AppNavigator() {
 
   const autoSync = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
+      console.log('Run 1');
+
       checkLoginAndSync({
         sync: true,
         inventoryState,
@@ -43,6 +45,8 @@ export default function AppNavigator() {
 
   useEffect(() => {
     if (!showInitialStack) {
+      console.log('Run 2');
+
       checkLoginAndSync({
         sync: false,
         inventoryState,
@@ -54,11 +58,13 @@ export default function AppNavigator() {
       dailyLogUpdateCheck();
     }
   }, [
+    netInfo,
     showInitialStack,
     inventoryState.fetchNecessaryInventoryFlag,
     inventoryState.fetchGivenMonthsInventoryFlag,
-    userState.accessToken,
   ]);
+
+  console.log(userState.accessToken, 'ppp');
 
   useEffect(() => {
     if (userState?.appEnvironment) {
@@ -66,16 +72,15 @@ export default function AppNavigator() {
     }
   }, [userState?.appEnvironment]);
 
-  useEffect(() => {
-    if (!showInitialStack) {
-      autoSync();
-    }
-  }, [
-    netInfo,
-    inventoryState.fetchNecessaryInventoryFlag,
-    inventoryState.fetchGivenMonthsInventoryFlag,
-    userState.accessToken,
-  ]);
+  // useEffect(() => {
+  //   if (!showInitialStack) {
+  //     autoSync();
+  //   }
+  // }, [
+  //   netInfo,
+  //   inventoryState.fetchNecessaryInventoryFlag,
+  //   inventoryState.fetchGivenMonthsInventoryFlag,
+  // ]);
 
   return (
     <NavigationContainer>

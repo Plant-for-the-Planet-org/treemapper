@@ -3,7 +3,7 @@ import Config from 'react-native-config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { bugsnag } from '../utils';
-import dbLog from '../repositories/logs';
+import dbLog, { deleteAllLogs } from '../repositories/logs';
 import { LogTypes } from '../utils/constants';
 import { resetAllSpecies } from '../repositories/species';
 import { isInternetConnected } from '../utils/checkInternet';
@@ -141,6 +141,7 @@ export const auth0Logout = async (userDispatch = null) => {
         await clearAllUploadedInventory();
 
         await resetAllSpecies();
+        await deleteAllLogs();
 
         // removes [isInitialSyncDone] item from AsyncStorage
         await AsyncStorage.removeItem('isInitialSyncDone');

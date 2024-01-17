@@ -21,6 +21,7 @@ import schema17 from './migrations/schema17';
 import schema18 from './migrations/schema18';
 import schema19 from './migrations/schema19';
 import schema20 from './migrations/schema20';
+import schema21 from './migrations/schema21';
 
 export const schemas = [
   schema0,
@@ -44,6 +45,7 @@ export const schemas = [
   schema18,
   schema19,
   schema20,
+  schema21,
 ];
 
 export const getSchema = () => schemas[schemas.length - 1];

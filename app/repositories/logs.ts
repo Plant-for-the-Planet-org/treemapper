@@ -162,5 +162,41 @@ export const deleteOldLogs = () => {
   });
 };
 
+// delete all logs
+export const deleteAllLogs = () => {
+  return new Promise((resolve, reject) => {
+    Realm.open(getSchema())
+      .then(realm => {
+        realm.write(() => {
+          let logs = realm.objects('ActivityLogs');
+
+          // Delete all logs
+          realm.delete(logs);
+
+          // Logging the success in the DB
+          dbLog.info({
+            logType: LogTypes.OTHER,
+            message: 'Deleted all logs',
+          });
+
+          resolve(true);
+        });
+      })
+      .catch(err => {
+        // Log the error
+        console.error(`Error at repositories/logs/deleteAllLogs, ${err}`);
+
+        // Log the error of the failed request in the DB
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: 'Failed to delete all logs',
+          logStack: JSON.stringify(err),
+        });
+
+        reject(err);
+      });
+  });
+};
+
 // export to access the logging object
 export default dbLog;

@@ -53,20 +53,23 @@ import {
   setFetchGivenMonthsInventoryFlag,
   setFetchNecessaryInventoryFlag,
   updateCount,
+  updateLastGivenMonthInventoryFetchFromServer,
 } from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
 import { getAllProjects } from '../../repositories/projects';
 import { modifyUserDetails } from '../../repositories/user';
+import { addLastGivenMonthsInventoryFromServer } from '../../utils/addInventoryFromServer';
 
 const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
 const topValue = Platform.OS === 'ios' ? 50 : 50;
 const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
 const INTERVENTION_DURATION = [
-  { id: 1, duration: '30 days', selected: false, totalMonths: 1 },
-  { id: 2, duration: '6 months', selected: false, totalMonths: 6 },
-  { id: 3, duration: '1 year', selected: false, totalMonths: 12 },
-  { id: 4, duration: 'Always', selected: false, totalMonths: 60 },
+  { id: 1, duration: '1 week', selected: false, totalDays: 7 },
+  { id: 1, duration: '30 days', selected: false, totalDays: 30 },
+  { id: 2, duration: '6 months', selected: false, totalDays: 180 },
+  { id: 3, duration: '1 year', selected: false, totalDays: 365 },
+  { id: 4, duration: 'Always', selected: false, totalDays: 1825 },
 ];
 
 export default function MainScreen() {
@@ -139,17 +142,23 @@ export default function MainScreen() {
       const checkboxesDuplicate = [...checkboxes];
       checkboxesDuplicate.forEach(element => (element.selected = false));
       const filteredIndex = checkboxesDuplicate.findIndex(
-        item => item.totalMonths === userState.fetchGivenMonthsInventoryFlag,
+        item => item.totalDays === userState.fetchGivenMonthsInventoryFlag,
       );
       if (checkboxesDuplicate.length && filteredIndex > -1) {
         checkboxesDuplicate[filteredIndex].selected = true;
+      }
+      if (!userState.isFirstFetched) {
+        setFetchGivenMonthsInventoryFlag(userState.fetchGivenMonthsInventoryFlag)(dispatch);
+        modifyUserDetails({
+          isFirstFetched: true,
+        });
       }
     }
   }, [userState.fetchGivenMonthsInventoryFlag]);
 
   const fetchGivenMonthsInventory = async () => {
     if (checkboxes.length) {
-      const givenMonths = checkboxes.filter(item => item.selected === true)[0]?.totalMonths;
+      const givenMonths = checkboxes.filter(item => item.selected === true)[0]?.totalDays;
       if (givenMonths) {
         setFetchGivenMonthsInventoryFlag(givenMonths)(dispatch);
         await modifyUserDetails({
@@ -163,11 +172,16 @@ export default function MainScreen() {
     }
   };
 
-  useEffect(() => {
-    setTimeout(() => {
-      fetchGivenMonthsInventory();
-    }, 500);
-  }, [checkboxes]);
+  const refetchGivenMonthsInventory = async () => {
+    if (checkboxes.length) {
+      setFetchGivenMonthsInventoryFlag(null)(dispatch);
+      const givenMonths = checkboxes.filter(item => item.selected === true)[0]?.totalDays;
+      if (givenMonths) {
+        updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.IN_PROGRESS)(dispatch);
+        addLastGivenMonthsInventoryFromServer('', dispatch, givenMonths);
+      }
+    }
+  };
 
   useEffect(() => {
     let realm: Realm;
@@ -374,6 +388,7 @@ export default function MainScreen() {
     setCheckboxes(checkboxData);
     setTimeout(() => {
       setInterventionModal(false);
+      fetchGivenMonthsInventory();
     }, 200);
   };
 
@@ -551,9 +566,17 @@ export default function MainScreen() {
                   <ActivityIndicator size={'small'} color={Colors.PRIMARY_DARK} />
                 </View>
               ) : (
-                <Text style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
-                  {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
-                </Text>
+                <>
+                  <Text
+                    style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
+                    {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
+                  </Text>
+                  <TouchableOpacity onPress={() => refetchGivenMonthsInventory()}>
+                    {checkboxes.find(item => item.selected === true)?.duration && (
+                      <FA5Icon name="sync-alt" size={15} color={Colors.PRIMARY_DARK} />
+                    )}
+                  </TouchableOpacity>
+                </>
               )}
             </TouchableOpacity>
             {/* <View style={[styles.filterItem]}>

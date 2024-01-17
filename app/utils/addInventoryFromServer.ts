@@ -2,6 +2,7 @@ import moment from 'moment';
 import {
   getAllInventoryFromServer,
   getNecessaryInventoryFromServer,
+  setFetchGivenMonthsInventoryFlag,
   updateInventoryFetchFromServer,
   updateLastGivenMonthInventoryFetchFromServer,
 } from '../actions/inventory';
@@ -23,7 +24,8 @@ import {
   PENDING_SAMPLE_TREES_UPLOAD,
   SYNCED,
 } from './inventoryConstants';
-import { isWithinLastMonths } from '.';
+import { isWithinLastGivenDays } from '.';
+import { modifyUserDetails } from '../repositories/user';
 
 export const addInventoryFromServer = async (nextRouteLink = '', dispatch: any) => {
   let allRegistrationsDetails: any;
@@ -147,7 +149,7 @@ export const addNecessaryInventoryFromServer = async (nextRouteLink = '', dispat
 export const addLastGivenMonthsInventoryFromServer = async (
   nextRouteLink = '',
   dispatch: any,
-  lastGivenMonths: number,
+  lastGivenDays: number,
 ) => {
   let allRegistrationsDetails: any;
   if (nextRouteLink) {
@@ -170,7 +172,7 @@ export const addLastGivenMonthsInventoryFromServer = async (
           for (const registration of allRegistrationsDetails.data) {
             if (
               registration.captureStatus === 'complete' &&
-              isWithinLastMonths(registration.registrationDate, lastGivenMonths)
+              isWithinLastGivenDays(registration.registrationDate, lastGivenDays)
             )
               addOrUpdateInventory(registration, InventoryAction.ADD);
           }
@@ -185,7 +187,7 @@ export const addLastGivenMonthsInventoryFromServer = async (
           for (const registration of notAddedRegistrations) {
             if (
               registration.captureStatus === 'complete' &&
-              isWithinLastMonths(registration.registrationDate, lastGivenMonths)
+              isWithinLastGivenDays(registration.registrationDate, lastGivenDays)
             )
               addOrUpdateInventory(registration, InventoryAction.ADD);
           }
@@ -195,16 +197,59 @@ export const addLastGivenMonthsInventoryFromServer = async (
           addLastGivenMonthsInventoryFromServer(
             allRegistrationsDetails.nextRouteLink,
             dispatch,
-            lastGivenMonths,
+            lastGivenDays,
           );
         } else {
-          updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
+          console.log('NO NEXT ROUTE LINK', lastGivenDays);
+          if (lastGivenDays === 7) {
+            getInventoryByStatus([
+              PENDING_DATA_UPLOAD,
+              DATA_UPLOAD_START,
+              PENDING_IMAGE_UPLOAD,
+              PENDING_SAMPLE_TREES_UPLOAD,
+              SYNCED,
+              PENDING_DATA_UPDATE,
+              FIX_NEEDED,
+            ]).then((allRegistrations: any) => {
+              if (allRegistrations.length === 0) {
+                setFetchGivenMonthsInventoryFlag(30)(dispatch);
+                modifyUserDetails({
+                  fetchGivenMonthsInventoryFlag: 30,
+                });
+              }
+            });
+          } else {
+            console.log('COMPLETED 1', lastGivenDays);
+            updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(
+              dispatch,
+            );
+          }
         }
       })
       .catch((err: any) => {
         console.error(err);
       });
   } else {
-    updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
+    if (lastGivenDays === 7) {
+      getInventoryByStatus([
+        PENDING_DATA_UPLOAD,
+        DATA_UPLOAD_START,
+        PENDING_IMAGE_UPLOAD,
+        PENDING_SAMPLE_TREES_UPLOAD,
+        SYNCED,
+        PENDING_DATA_UPDATE,
+        FIX_NEEDED,
+      ]).then((allRegistrations: any) => {
+        if (allRegistrations.length === 0) {
+          setFetchGivenMonthsInventoryFlag(30)(dispatch);
+          modifyUserDetails({
+            fetchGivenMonthsInventoryFlag: 30,
+          });
+        }
+      });
+    } else {
+      console.log('COMPLETED 2', lastGivenDays);
+      updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
+    }
   }
 };

@@ -8,24 +8,49 @@ import { ENV_TYPE } from '../../../environment';
 import HeaderV2 from '../Common/Header/HeaderV2';
 import { Colors, Typography } from '../../styles';
 import { IS_ANDROID, scaleSize } from '../../styles/mixins';
-import { SET_APP_ENVIRONMENT } from '../../redux/slices/envSlice';
 import { InventoryContext } from '../../reducers/inventory';
+import { SET_APP_ENVIRONMENT } from '../../redux/slices/envSlice';
+import { checkLoginAndSync } from '../../utils/checkLoginAndSync';
+import { UserContext } from '../../reducers/user';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { clearAllUploadedInventory } from '../../repositories/inventory';
+import { deleteAllProjects } from '../../repositories/projects';
+import { resetAllSpecies } from '../../repositories/species';
+import { modifyUserDetails } from '../../repositories/user';
+import { setFetchGivenMonthsInventoryFlag } from '../../actions/inventory';
 
 const { width, height } = Dimensions.get('screen');
 
 const Environment = () => {
   const { currentEnv } = useSelector(state => state.envSlice);
-  const { state } = useContext(InventoryContext);
   const dispatch = useDispatch();
   const insects = useSafeAreaInsets();
+
+  const netInfo = useNetInfo();
+  const insets = useSafeAreaInsets();
+  const { state, dispatch: inventoryDispatch } = useContext(InventoryContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const handleChangeEnv = async type => {
     if (state.isUploading) {
       Alert.alert('Inventory upload is in progress');
     } else {
+      deleteAllProjects();
       await clearAllUploadedInventory();
+      await resetAllSpecies();
       dispatch(SET_APP_ENVIRONMENT(type));
+      checkLoginAndSync({
+        sync: false,
+        inventoryState: state,
+        dispatch: inventoryDispatch,
+        userDispatch: userDispatch,
+        connected: netInfo.isConnected,
+        internet: netInfo.isInternetReachable,
+      });
+      setFetchGivenMonthsInventoryFlag(7)(dispatch);
+      modifyUserDetails({
+        isFirstFetched: true,
+      });
     }
   };
 
