@@ -30,8 +30,6 @@ export default function AppNavigator() {
 
   const autoSync = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
-      console.log('Run 1');
-
       checkLoginAndSync({
         sync: true,
         inventoryState,
@@ -45,8 +43,6 @@ export default function AppNavigator() {
 
   useEffect(() => {
     if (!showInitialStack) {
-      console.log('Run 2');
-
       checkLoginAndSync({
         sync: false,
         inventoryState,
@@ -63,8 +59,6 @@ export default function AppNavigator() {
     inventoryState.fetchNecessaryInventoryFlag,
     inventoryState.fetchGivenMonthsInventoryFlag,
   ]);
-
-  console.log(userState.accessToken, 'ppp');
 
   useEffect(() => {
     if (userState?.appEnvironment) {

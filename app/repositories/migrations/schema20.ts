@@ -223,8 +223,9 @@ const User = {
     // stores the expiry time of token in seconds
     expirationTime: 'int?',
     fetchNecessaryInventoryFlag: { type: 'int', default: InventoryType.NecessaryItems },
-    fetchGivenMonthsInventoryFlag: 'int?',
+    fetchGivenMonthsInventoryFlag: { type: 'int', default: 7 },
     appEnvironment: 'string?',
+    isFirstFetched: { type: 'bool', default: false },
   },
 };
 
