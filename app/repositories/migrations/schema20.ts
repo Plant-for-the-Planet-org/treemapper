@@ -226,6 +226,8 @@ const User = {
     fetchGivenMonthsInventoryFlag: { type: 'int', default: 7 },
     appEnvironment: 'string?',
     isFirstFetched: { type: 'bool', default: false },
+    selectedSiteId: 'string?',
+    selectedProjectId: 'string?',
   },
 };
 

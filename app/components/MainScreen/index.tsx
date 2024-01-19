@@ -130,11 +130,17 @@ export default function MainScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      if (projects.length > 0) {
+      if (userState.selectedProjectId) {
+        setValue(userState.selectedProjectId);
+        onSelectProject(userState.selectedProjectId, userState.selectedSiteId);
+      } else {
         setValue(projects[0]?.id);
+        modifyUserDetails({
+          selectedProjectId: projects[0]?.id,
+        });
         setProjectSites(projects[0]?.sites || []);
       }
-    }, [projects]),
+    }, [userState.selectedProjectId, projects]),
   );
 
   useEffect(() => {
@@ -324,14 +330,22 @@ export default function MainScreen() {
     });
   };
 
-  const _onSelectSite = item => () => {
+  const onSelectSite = item => {
     setSelectedSite(item);
     const geometry = JSON.parse(item?.geometry);
     if (geometry) {
-      setSiteBounds(bbox(geometry));
+      modifyUserDetails({
+        selectedSiteId: item?.id,
+      });
       const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
-      setSiteCenterCoordinate(centerCoordinate);
+      setTimeout(() => {
+        setSiteBounds(bbox(geometry));
+        setSiteCenterCoordinate(centerCoordinate);
+      }, 300);
     } else {
+      modifyUserDetails({
+        selectedSiteId: '',
+      });
       Alert.alert(
         'Invalid geometry detected',
         'Site cannot be processed. Apologies for inconvenience.',
@@ -341,7 +355,10 @@ export default function MainScreen() {
   };
 
   const renderSiteList = ({ item, index }) => (
-    <TouchableOpacity onPress={_onSelectSite(item)} activeOpacity={0.7} style={styles.listItem}>
+    <TouchableOpacity
+      onPress={() => onSelectSite(item)}
+      activeOpacity={0.7}
+      style={styles.listItem}>
       <View style={styles.listItemCon}>
         <Text
           style={
@@ -361,8 +378,15 @@ export default function MainScreen() {
     </TouchableOpacity>
   );
 
-  const onSelectProject = val => {
+  const onSelectProject = (val, siteId = null) => {
     const selectedProjectSites = projects.filter(item => item?.id === val)[0]?.sites;
+    if (siteId && selectedProjectSites.length) {
+      const storedSite = selectedProjectSites.filter(item => item?.id === siteId);
+      if (storedSite.length) onSelectSite(storedSite[0]);
+    }
+    modifyUserDetails({
+      selectedProjectId: val,
+    });
     setProjectSites(selectedProjectSites);
   };
 
