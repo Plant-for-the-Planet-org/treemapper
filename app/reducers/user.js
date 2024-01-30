@@ -1,5 +1,5 @@
-import React, {createContext, useContext, useReducer} from 'react';
-import {SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS} from '../actions/Types';
+import React, { createContext, useContext, useReducer } from 'react';
+import { SET_INITIAL_USER_STATE, SET_USER_DETAILS, CLEAR_USER_DETAILS } from '../actions/Types';
 
 // stores the initial properties of the user state
 const initialState = {
@@ -12,6 +12,7 @@ const initialState = {
   country: null,
   idLogEnabled: null,
   userId: null,
+  type: null,
 };
 
 // User reducer function which takes the state and action param
@@ -47,10 +48,10 @@ export const UserContext = createContext({
 });
 
 // Create a provider for components to consume and subscribe to changes
-export const UserContextProvider = ({children}) => {
+export const UserContextProvider = ({ children }) => {
   // stores state and dispatch of user using the reducer and initialState
   const [state, dispatch] = useReducer(userReducer, initialState);
 
   // returns a provider used by component to access the state and dispatch function of user
-  return <UserContext.Provider value={{state, dispatch}}>{children}</UserContext.Provider>;
+  return <UserContext.Provider value={{ state, dispatch }}>{children}</UserContext.Provider>;
 };

@@ -16,6 +16,7 @@ import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { setInventoryId } from '../../actions/inventory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
+import { UserContext } from '../../reducers/user';
 import { getInventory, getInventoryByStatus } from '../../repositories/inventory';
 import { getUserInformation } from '../../repositories/user';
 import { Colors, Typography } from '../../styles';
@@ -45,7 +46,6 @@ const IS_ANDROID = Platform.OS === 'android';
 interface IMainMapProps {
   showClickedGeoJSON: boolean;
   setShowClickedGeoJSON: React.Dispatch<React.SetStateAction<boolean>>;
-  userInfo: any;
   siteCenterCoordinate: any;
   siteBounds: any;
   projectSites: any;
@@ -54,7 +54,6 @@ interface IMainMapProps {
 const MainMap = ({
   showClickedGeoJSON,
   setShowClickedGeoJSON,
-  userInfo,
   siteCenterCoordinate,
   siteBounds,
   projectSites,
@@ -73,7 +72,7 @@ const MainMap = ({
   };
   const [loader, setLoader] = useState(false);
   const [isInitial, setIsInitial] = useState(true);
-
+  const { state: userInfo, dispatch: userDispatch } = useContext(UserContext);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
 
   const [location, setLocation] = useState<MapLibreGL.Location | Geolocation.GeoPosition>();
@@ -169,8 +168,6 @@ const MainMap = ({
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      // @ts-ignore
-      // MapLibreGL.setTelemetryEnabled(false);
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
@@ -482,7 +479,7 @@ const MainMap = ({
                   checkPermission();
                 }
               }}
-              style={[styles.myLocationIcon, IS_ANDROID ? { bottom: 72 } : { bottom: 56 }]}
+              style={[styles.myLocationIcon, { bottom: 42 }]}
               accessibilityLabel="my_location"
               accessible={true}
               testID="my_location">
@@ -541,13 +538,12 @@ const styles = StyleSheet.create({
   },
   myLocationIcon: {
     position: 'absolute',
-    right: -16,
-    bottom: 36,
+    right: 9,
     width: 45,
     height: 45,
     backgroundColor: Colors.WHITE,
     borderRadius: 100,
-    marginHorizontal: 25,
+    marginHorizontal: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,

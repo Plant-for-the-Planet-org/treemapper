@@ -1,4 +1,4 @@
-import {getAuthenticatedRequest, postAuthenticatedRequest} from '../utils/api';
+import { getAuthenticatedRequest, postAuthenticatedRequest } from '../utils/api';
 import {
   DELETE_INVENTORY_ID,
   INITIATE_INVENTORY_STATE,
@@ -13,12 +13,14 @@ import {
   SET_SELECTED_REMEASUREMENT_ID,
   SET_SAMPLE_PLANT_LOCATION_INDEX,
   SWITCH_FETCH_NECESSARY_INVENTORY_FLAG,
+  SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG,
+  GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER,
 } from './Types';
-import {PENDING_DATA_UPLOAD} from '../utils/inventoryConstants';
-import {LogTypes} from '../utils/constants';
+import { PENDING_DATA_UPLOAD } from '../utils/inventoryConstants';
+import { LogTypes } from '../utils/constants';
 import dbLog from '../repositories/logs';
 import React from 'react';
-import {IAddPlantLocationEventData, InventoryType} from '../types/inventory';
+import { IAddPlantLocationEventData, InventoryType } from '../types/inventory';
 
 /**
  * This function dispatches type SET_INVENTORY_ID with payload inventoryId to add in inventory state
@@ -120,6 +122,19 @@ export const setFetchNecessaryInventoryFlag =
   };
 
 /**
+ * This function dispatches type SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG with payload as number value to update in inventory state
+ * It requires the following param
+ * @param {number} fetchNecessaryInventoryFlag - used to update the fetchNecessaryInventoryFlag in inventory state
+ */
+export const setFetchGivenMonthsInventoryFlag =
+  (fetchNecessaryInventoryFlag: InventoryType) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: SWITCH_FETCH_GIVEN_MONTHS_INVENTORY_FLAG,
+      payload: fetchNecessaryInventoryFlag,
+    });
+  };
+
+/**
  * This function dispatches type SET_IS_EXTRA_SAMPLE_TREE with payload as boolean value to update in inventory state
  * It requires the following param
  * @param {boolean} isAnotherSampleTree - used to update the isAnotherSampleTree in inventory state
@@ -141,6 +156,19 @@ export const updateInventoryFetchFromServer =
   (fetchStatus: string) => (dispatch: React.Dispatch<any>) => {
     dispatch({
       type: INVENTORY_FETCH_FROM_SERVER,
+      payload: fetchStatus,
+    });
+  };
+
+/**
+ * This function dispatches type INVENTORY_FETCH_FROM_SERVER with payload as boolean value to update in inventory state
+ * It requires the following param
+ * @param {string} fetchStatus - used to update the inventoryFetchProgress in inventory state
+ */
+export const updateLastGivenMonthInventoryFetchFromServer =
+  (fetchStatus: string) => (dispatch: React.Dispatch<any>) => {
+    dispatch({
+      type: GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER,
       payload: fetchStatus,
     });
   };
@@ -176,17 +204,17 @@ export const getAllInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&_scope=extended',
 ): Promise<any> => {
   try {
-    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.0.3'});
-    
+    let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.0.3' });
+
     dbLog.info({
       logType: LogTypes.DATA_SYNC,
       message: 'Successfully fetched all Inventories From server',
     });
 
     if (data.data._links.next) {
-      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
+      return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
     } else {
-      return {data: data?.data?.items ?? [], nextRouteLink: null};
+      return { data: data?.data?.items ?? [], nextRouteLink: null };
     }
   } catch (err) {
     dbLog.error({
@@ -195,7 +223,7 @@ export const getAllInventoryFromServer = async (
       statusCode: err?.response?.status,
       logStack: JSON.stringify(err?.response),
     });
-    return {data: [], nextRouteLink: null};
+    return { data: [], nextRouteLink: null };
   }
 };
 
@@ -203,7 +231,7 @@ export const getNecessaryInventoryFromServer = async (
   requestRoute = '/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended',
 ): Promise<any> => {
   try {
-    let data: any = await getAuthenticatedRequest(requestRoute, {'x-accept-versions': '1.1'});
+    let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.1' });
 
     // console.log(
     //   data?.data?.items.length,
@@ -227,9 +255,9 @@ export const getNecessaryInventoryFromServer = async (
     if (data.data._links.next) {
       // console.log(JSON.stringify(data?.data?.items), 'data?.data?.items');
 
-      return {data: data?.data?.items ?? [], nextRouteLink: data.data._links.next};
+      return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
     } else {
-      return {data: data?.data?.items ?? [], nextRouteLink: null};
+      return { data: data?.data?.items ?? [], nextRouteLink: null };
     }
   } catch (err) {
     dbLog.error({
@@ -238,7 +266,7 @@ export const getNecessaryInventoryFromServer = async (
       statusCode: err?.response?.status,
       logStack: JSON.stringify(err?.response),
     });
-    return {data: [], nextRouteLink: null};
+    return { data: [], nextRouteLink: null };
   }
 };
 
@@ -256,7 +284,7 @@ export const addPlantLocationEvent = (locationId: string, data: IAddPlantLocatio
     // makes an authorized POST request on /species to add a specie of user.
     postAuthenticatedRequest(`/treemapper/plantLocations/${locationId}/event`, data)
       .then(res => {
-        const {data, status} = res;
+        const { data, status } = res;
 
         // checks if the status code is 200 the resolves the promise with the fetched data
         if (status === 200) {

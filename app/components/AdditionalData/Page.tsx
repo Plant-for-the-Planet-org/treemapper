@@ -7,9 +7,9 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 
 interface IPageProps {
   pageNo: number;
@@ -58,13 +58,7 @@ export default function Page({
         index,
       };
       return (
-        <SwipeDeleteRow
-          style={marginTop24}
-          onSwipe={() => deleteElement(index)}
-          isDraggable
-          drag={drag}
-          dragging={dragging}
-          setDragging={setDragging}>
+        <>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('AddEditElement', {
@@ -76,7 +70,10 @@ export default function Page({
             }>
             <ElementSwitcher {...item} />
           </TouchableOpacity>
-        </SwipeDeleteRow>
+          <TouchableOpacity style={styles.deleteIcon} onPress={() => deleteElement(index)}>
+            <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
+          </TouchableOpacity>
+        </>
       );
     },
     [dragging, setDragging],
@@ -96,7 +93,7 @@ export default function Page({
       <DraggableFlatList
         data={elements}
         renderItem={renderItem}
-        keyExtractor={(item) => `elements-${item.id}`}
+        keyExtractor={item => `elements-${item.id}`}
         onDragEnd={({ data }) => {
           setDragging(false);
           updateFormElements(data);
@@ -120,9 +117,8 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   newPage: {
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderTopColor: Colors.LIGHT_BORDER_COLOR,
-    borderStyle: 'dashed',
     paddingTop: 40,
   },
   pageContents: { paddingBottom: 30 },

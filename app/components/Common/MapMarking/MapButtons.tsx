@@ -30,7 +30,7 @@ export default function MapButtons({
             setIsLocationAlertShow(true);
           }
         }}
-        style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 160 } : {}]}
+        style={[styles.myLocationIcon, Platform.OS === 'ios' ? { bottom: 120, right: -10 } : {}]}
         accessibilityLabel="main-my-location"
         accessible={true}
         testID="main-my-location">
@@ -38,7 +38,7 @@ export default function MapButtons({
           <Icon name={'my-location'} size={24} color={Colors.PLANET_BLACK} />
         </View>
       </TouchableOpacity>
-      <View style={[styles.continueBtnCont, Platform.OS === 'ios' ? { bottom: 70 } : {}]}>
+      <View style={[styles.continueBtnCont, Platform.OS === 'ios' ? { bottom: 30 } : {}]}>
         <PrimaryButton
           onPress={addMarker}
           disabled={loader}

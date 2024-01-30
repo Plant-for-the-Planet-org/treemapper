@@ -5,6 +5,9 @@ export const FONT_FAMILY_REGULAR = 'OpenSans-Regular';
 export const FONT_FAMILY_BOLD = 'OpenSans-Bold';
 export const FONT_FAMILY_SEMI_BOLD = 'OpenSans-SemiBold';
 export const FONT_FAMILY_EXTRA_BOLD = 'OpenSans-ExtraBold';
+export const FONT_FAMILY_ITALIC = 'OpenSans-Italic';
+export const FONT_FAMILY_ITALIC_BOLD = 'OpenSans-BoldItalic';
+export const FONT_FAMILY_ITALIC_SEMI_BOLD = 'OpenSans-SemiBoldItalic';
 
 // FONT WEIGHT
 export const FONT_WEIGHT_REGULAR = '400';
@@ -21,6 +24,7 @@ export const FONT_SIZE_16 = scaleFont(16);
 export const FONT_SIZE_14 = scaleFont(14);
 export const FONT_SIZE_12 = scaleFont(12);
 export const FONT_SIZE_10 = scaleFont(10);
+export const FONT_SIZE_8 = scaleFont(8);
 
 // LINE HEIGHT
 export const LINE_HEIGHT_40 = scaleFont(40);

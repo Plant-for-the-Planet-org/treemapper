@@ -9,8 +9,10 @@ import { APIConfig } from './../../../actions/Config';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../../utils/constants';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE, SINGLE } from '../../../utils/inventoryConstants';
 import { single_tree_png, placeholder_image, map_img, multiple_tree_png } from '../../../assets';
+import { store } from '../../../redux/store';
+import { ENVS } from '../../../../environment';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 interface IInventoryCardProps {
   data?: any;
@@ -37,8 +39,9 @@ const InventoryCard = ({
         uri: `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${data.imageURL}`,
       });
     } else if (data.cdnImageUrl) {
+      const currentEnv = store.getState().envSlice.currentEnv;
       setImageSource({
-        uri: `${protocol}://${cdnUrl}/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
+        uri: `${protocol}://${ENVS[currentEnv].CDN_URL}/media/cache/coordinate/thumb/${data.cdnImageUrl}`,
       });
     } else if (
       activeBtn === true ||

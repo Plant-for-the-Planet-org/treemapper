@@ -11,8 +11,10 @@ import ProfileListItem from './ProfileListItem';
 import { APIConfig } from '../../actions/Config';
 import { Colors, Typography } from '../../styles';
 import openWebView from '../../utils/openWebView';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
-const { protocol, cdnUrl, webAppUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 interface ProfileModalProps {
   onPressCloseProfileModal: any;
@@ -27,6 +29,10 @@ const ProfileModal = ({
   onPressLogout,
   userInfo,
 }: ProfileModalProps) => {
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
+  const webAppUrl = ENVS[currentEnv].WEB_APP_URL;
+
   const onPressEdit = () => {
     openWebView(`${protocol}://${webAppUrl}/login`);
   };

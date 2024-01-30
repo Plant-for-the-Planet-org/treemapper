@@ -2,7 +2,7 @@ import React from 'react';
 import i18next from 'i18next';
 import { StyleSheet } from 'react-native';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
-import DropDownPicker, { DropDownDirectionType } from 'react-native-dropdown-picker';
+import DropDownPicker, { DropDownDirectionType, ValueType } from 'react-native-dropdown-picker';
 
 import { Colors, Typography } from '../../../styles';
 
@@ -16,9 +16,11 @@ type Props = {
   textStyle?: any;
   zIndexInverse?: number;
   listItemLabelStyle?: any;
+  placeholder?: string;
   setValue: React.Dispatch<any>;
   dropDownDirection?: DropDownDirectionType;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onChangeValue: (value: ValueType) => void | ((value: ValueType[]) => void | null);
 };
 
 const CustomDropDownPicker = ({
@@ -34,6 +36,8 @@ const CustomDropDownPicker = ({
   listItemLabelStyle = {},
   iconColor = Colors.GRAY_LIGHTEST,
   dropDownDirection = 'DEFAULT',
+  onChangeValue,
+  ...props
 }: Props) => {
   return (
     <DropDownPicker
@@ -50,6 +54,7 @@ const CustomDropDownPicker = ({
       listItemLabelStyle={{ ...styles.listItemLabel, ...listItemLabelStyle }}
       dropDownContainerStyle={styles.dropDownContainerStyle}
       zIndex={zIndex}
+      onChangeValue={onChangeValue}
       dropDownDirection={dropDownDirection}
       zIndexInverse={zIndexInverse}
       showTickIcon={false}
@@ -57,6 +62,7 @@ const CustomDropDownPicker = ({
       itemSeparator
       ArrowDownIconComponent={() => <EntypoIcon name="chevron-down" color={iconColor} size={20} />}
       ArrowUpIconComponent={() => <EntypoIcon name="chevron-up" color={iconColor} size={20} />}
+      {...props}
     />
   );
 };

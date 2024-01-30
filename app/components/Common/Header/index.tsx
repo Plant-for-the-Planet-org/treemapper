@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography } from '../../../styles';
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+import { ArrowBack } from '../../../assets';
+import { IS_ANDROID } from '../../../styles/mixins';
+import { Colors, Typography } from '../../../styles';
 
 interface IHeaderProps {
   hideBackIcon?: any;
@@ -15,6 +18,7 @@ interface IHeaderProps {
   onBackPress?: any;
   textAlignStyle?: any;
   style?: any;
+  containerStyle?: any;
   subHeadingStyle?: any;
   testID?: any;
   accessibilityLabel?: any;
@@ -43,87 +47,90 @@ const Header = ({
   TopRightComponent,
   TitleRightComponent,
   whiteBackIcon,
+  containerStyle = {},
 }: IHeaderProps) => {
   const navigation = useNavigation();
+  const insects = useSafeAreaInsets();
   const onPressBack = onBackPress ? onBackPress : () => navigation.goBack();
   return (
     <View style={style}>
-      <View style={styles.arrowContainer}>
-        {!hideBackIcon ? (
-          <TouchableOpacity
-            onPress={onPressBack}
-            testID={testID}
-            accessible={true}
-            accessibilityLabel={accessibilityLabel}
-            style={styles.paddingVertical}>
-            <Ionicons
-              name={closeIcon ? 'close' : 'arrow-back'}
-              size={30}
-              color={whiteBackIcon ? Colors.WHITE : Colors.TEXT_COLOR}
-            />
-          </TouchableOpacity>
-        ) : (
-          []
-        )}
-        <View />
-        {rightText ? (
-          onPressFunction ? (
-            <TouchableOpacity onPress={() => onPressFunction()}>
-              <Text style={styles.rightText}>{rightText}</Text>
+      <View
+        style={[
+          styles.containerStyle,
+          containerStyle,
+          IS_ANDROID && { paddingTop: insects.top + 20 },
+        ]}>
+        <View style={styles.arrowContainer}>
+          {!hideBackIcon ? (
+            <TouchableOpacity
+              onPress={onPressBack}
+              testID={testID}
+              accessible={true}
+              accessibilityLabel={accessibilityLabel}
+              style={styles.paddingVertical}>
+              <ArrowBack />
             </TouchableOpacity>
           ) : (
-            <Text style={styles.rightText}>{rightText}</Text>
-          )
-        ) : TopRightComponent ? (
-          <TopRightComponent />
-        ) : null}
-      </View>
-      <View
-        style={
-          TitleRightComponent
-            ? {
-                flexDirection: 'row-reverse',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }
-            : {}
-        }>
-        {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
-        {headingText ? (
-          <Text
-            style={[
-              styles.headerText,
-              textAlignStyle,
-              TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
-            ]}>
-            {headingText}
-          </Text>
-        ) : headingTextEditable !== undefined ? (
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => onPressHeading()}>
+            []
+          )}
+          {headingText ? (
             <Text
-              style={{
-                fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-                fontSize: Typography.FONT_SIZE_27,
-                color: Colors.TEXT_COLOR,
-                // flex: 1,
-              }}>
-              {`${headingTextEditable} `}
-              <MIcon name={'edit'} size={20} />
+              style={[
+                styles.headerText,
+                textAlignStyle,
+                TitleRightComponent ? { flex: 1, marginRight: 16 } : {},
+              ]}>
+              {headingText}
             </Text>
-          </TouchableOpacity>
-        ) : (
-          []
-        )}
-      </View>
-      {subHeadingText ? (
-        <View style={{ marginVertical: 10 }}>
-          <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
-            {subHeadingText}
-          </Text>
+          ) : headingTextEditable !== undefined ? (
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => onPressHeading()}>
+              <Text
+                style={{
+                  fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
+                  fontSize: Typography.FONT_SIZE_27,
+                  color: Colors.TEXT_COLOR,
+                  // flex: 1,
+                }}>
+                {`${headingTextEditable} `}
+                <MIcon name={'edit'} size={20} />
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            []
+          )}
+          {rightText ? (
+            onPressFunction ? (
+              <TouchableOpacity onPress={() => onPressFunction()}>
+                <Text style={styles.rightText}>{rightText}</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.rightText}>{rightText}</Text>
+            )
+          ) : null}
+          {TitleRightComponent ? <TitleRightComponent style={{ marginRight: 0 }} /> : null}
         </View>
-      ) : (
-        []
-      )}
+        <View
+          style={
+            TitleRightComponent
+              ? {
+                  // flexDirection: 'row-reverse',
+                  // alignItems: 'center',
+                  // justifyContent: 'space-between',
+                }
+              : {}
+          }>
+          {subHeadingText ? (
+            <View style={{ marginVertical: 10 }}>
+              <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
+                {subHeadingText}
+              </Text>
+            </View>
+          ) : (
+            []
+          )}
+          {TopRightComponent ? <TopRightComponent /> : null}
+        </View>
+      </View>
     </View>
   );
 };
@@ -131,23 +138,31 @@ export default Header;
 
 const styles = StyleSheet.create({
   headerText: {
-    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: Typography.FONT_SIZE_27,
-    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_20,
+    color: Colors.BLACK,
+    marginLeft: 32,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_18,
-    lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
+    marginLeft: 50,
+  },
+  containerStyle: {
+    // flexDirection: 'row',
+    paddingBottom: 16,
+    paddingTop: 16,
+    backgroundColor: Colors.WHITE,
+    justifyContent: 'center',
   },
   arrowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     alignItems: 'center',
+    // width: '100%',
   },
   paddingVertical: {
-    paddingVertical: 15,
+    paddingVertical: 4,
   },
   rightText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

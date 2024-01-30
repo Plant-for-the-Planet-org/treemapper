@@ -1,9 +1,11 @@
 import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
+import { useSelector } from 'react-redux';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { LargeButton } from '../Common';
+import { ENVS } from '../../../environment';
 import { plant_project } from '../../assets';
 import { APIConfig } from '../../actions/Config';
 import { Colors, Typography } from '../../styles';
@@ -11,7 +13,7 @@ import openWebView from '../../utils/openWebView';
 import { handleFilter } from '../../utils/CountryDataFilter';
 import { getAllProjects } from '../../repositories/projects';
 
-const { protocol, cdnUrl, webAppUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 interface ProjectListProps {
   isSelectable: boolean;
@@ -24,7 +26,10 @@ export default function ProjectList({
   onProjectPress,
   selectedProjectId,
 }: ProjectListProps) {
+  const { currentEnv } = useSelector(state => state.envSlice);
   const [projects, setProjects] = useState([]);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
+  const webAppUrl = ENVS[currentEnv].WEB_APP_URL;
 
   useEffect(() => {
     getAllProjects().then((projectsData: any) => (projectsData ? setProjects(projectsData) : {}));
@@ -69,7 +74,7 @@ export default function ProjectList({
         />
       );
     }
-    return <ProjectItem item={item} />;
+    return <ProjectItem item={item} cdnUrl={cdnUrl} />;
   };
 
   return (
@@ -83,7 +88,14 @@ export default function ProjectList({
   );
 }
 
-const ProjectItem = ({ item, selectedProjectId }: { item: any; selectedProjectId?: string }) => {
+const ProjectItem = ({
+  item,
+  selectedProjectId,
+  cdnUrl,
+}: {
+  item: any;
+  selectedProjectId?: string;
+}) => {
   const isProjectSelected = selectedProjectId === item.id;
   let country: any = handleFilter(item.country);
   if (country && country.length > 0) {

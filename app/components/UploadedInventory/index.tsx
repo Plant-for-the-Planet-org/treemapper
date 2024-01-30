@@ -6,23 +6,26 @@ import {
   ScrollView,
   ActivityIndicator,
   Text,
+  Dimensions,
 } from 'react-native';
 import { Header, InventoryList, PrimaryButton, AlertModal } from '../Common';
 import { SafeAreaView } from 'react-native';
-import { getInventoryByStatus, removeImageUrl } from '../../repositories/inventory';
+import {
+  clearAllUploadedInventory,
+  getInventoryByStatus,
+  removeImageUrl,
+} from '../../repositories/inventory';
 import { Colors, Typography } from '../../styles';
 import { empty_inventory_banner } from '../../assets';
 import { SvgXml } from 'react-native-svg';
 import i18next from 'i18next';
 import { deleteFromFS } from '../../utils/FSInteration';
 import { SYNCED } from '../../utils/inventoryConstants';
-import { getUserDetails } from '../../repositories/user';
 import { useNavigation } from '@react-navigation/core';
 
 const UploadedInventory = () => {
   const [allInventory, setAllInventory] = useState<any>(null);
   const [isShowFreeUpSpaceAlert, setIsShowFreeUpSpaceAlert] = useState(false);
-  const [countryCode, setCountryCode] = useState('');
 
   const navigation = useNavigation();
 
@@ -38,13 +41,10 @@ const UploadedInventory = () => {
     getInventoryByStatus([SYNCED]).then(allInventory => {
       setAllInventory(allInventory);
     });
-    getUserDetails().then(userDetails => {
-      setCountryCode(userDetails?.country || '');
-    });
   };
 
   const freeUpSpace = () => {
-    toogleIsShowFreeUpSpaceAlert();
+    toggleIsShowFreeUpSpaceAlert();
 
     getInventoryByStatus([SYNCED]).then(allInventory => {
       for (let inventory of allInventory) {
@@ -75,9 +75,10 @@ const UploadedInventory = () => {
         }
       }
     });
+    clearAllUploadedInventory();
   };
 
-  const toogleIsShowFreeUpSpaceAlert = () => {
+  const toggleIsShowFreeUpSpaceAlert = () => {
     setIsShowFreeUpSpaceAlert(!isShowFreeUpSpaceAlert);
   };
 
@@ -96,20 +97,27 @@ const UploadedInventory = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
+        <Header
+          containerStyle={{
+            paddingHorizontal: 25,
+          }}
+          headingText={i18next.t('label.tree_inventory_upload_list_header')}
+        />
         {allInventory == null ? (
           renderLoadingInventoryList()
         ) : (
           <InventoryList
+            itemStyle={{
+              paddingHorizontal: 25,
+            }}
             accessibilityLabel={i18next.t('label.tree_inventory_upload_inventory_list')}
             inventoryList={allInventory}
-            countryCode={countryCode}
             ListHeaderComponent={() => {
               return (
                 <>
-                  <Header headingText={i18next.t('label.tree_inventory_upload_list_header')} />
                   {allInventory && allInventory.length > 0 && (
                     <TouchableOpacity
-                      onPress={toogleIsShowFreeUpSpaceAlert}
+                      onPress={toggleIsShowFreeUpSpaceAlert}
                       accessible={true}
                       accessibilityLabel={i18next.t('label.tree_inventory_free_up_space')}
                       testID="free_up_space">
@@ -123,15 +131,12 @@ const UploadedInventory = () => {
             }}
             ListEmptyComponent={() => (
               <View style={styles.cont}>
-                <Header
-                  headingText={i18next.t('label.tree_inventory_upload_list_header')}
-                  style={{ marginHorizontal: 25 }}
-                />
                 <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
                 <View style={styles.parimaryBtnCont}>
                   <PrimaryButton
                     onPress={() => navigation.navigate('TreeInventory')}
                     btnText={i18next.t('label.tree_inventory_upload_empty_btn_text')}
+                    style={{ width: '90%', alignSelf: 'center' }}
                   />
                 </View>
               </View>
@@ -145,7 +150,7 @@ const UploadedInventory = () => {
           primaryBtnText={i18next.t('label.tree_review_delete')}
           secondaryBtnText={i18next.t('label.alright_modal_white_btn')}
           onPressPrimaryBtn={freeUpSpace}
-          onPressSecondaryBtn={toogleIsShowFreeUpSpaceAlert}
+          onPressSecondaryBtn={toggleIsShowFreeUpSpaceAlert}
           showSecondaryButton={true}
         />
       </View>
@@ -157,24 +162,25 @@ export default UploadedInventory;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
     backgroundColor: Colors.WHITE,
   },
   cont: {
     flex: 1,
+    height: Dimensions.get('screen').height,
+    width: Dimensions.get('screen').width,
   },
   emptyInventoryBanner: {
     width: '109%',
-    height: '80%',
+    height: '100%',
     marginHorizontal: -5,
     bottom: -10,
   },
   parimaryBtnCont: {
     position: 'absolute',
     width: '100%',
+    height: '45%',
     justifyContent: 'center',
-    bottom: 10,
-    paddingHorizontal: 25,
+    bottom: 0,
   },
   freeUpSpace: {
     color: Colors.PRIMARY,

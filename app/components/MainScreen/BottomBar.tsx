@@ -1,189 +1,128 @@
-import {
-  Text,
-  View,
-  Platform,
-  Animated,
-  Dimensions,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
-import i18next from 'i18next';
-import * as shape from 'd3-shape';
-import React, { useEffect, useState } from 'react';
-import Svg, { Path, SvgXml } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/core';
-import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { SvgXml } from 'react-native-svg';
+import { add_icon, ListIcon, PlotIcon, MapExplore } from '../../assets';
+import { GradientText } from '../Common';
+import { Colors, Spacing, Typography } from '../../styles';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
+import AddOptionsModal from './AddOptionsModal';
 
-import { Colors, Typography } from '../../styles';
-import { multipleTreesIcon, singleTreeIcon } from '../../assets';
-
-const IS_ANDROID = Platform.OS === 'android';
-
-let { width } = Dimensions.get('window');
-const buttonWidth = 64;
-const buttonGutter = 10;
-const extraHeight = IS_ANDROID ? 0 : 20;
-const tabbarHeight = 60 + extraHeight;
-
-const tabWidth = buttonWidth + buttonGutter * 2;
-width = (width - tabWidth) / 2;
-const curveHeight = tabbarHeight - (22 + extraHeight);
-
-const getPath = (): string => {
-  const left = shape
-    .line()
-    .x(d => d[0])
-    .y(d => d[1])([
-    [0, 0],
-    [width - 5, 0],
-  ]);
-
-  const tab = shape
-    .line()
-    .x(d => d[0])
-    .y(d => d[1])
-    .curve(shape.curveBasis)([
-    [width - 5, 0],
-    [width, 0],
-    [width + 5, 5],
-    [width + 7, curveHeight / 2],
-    [width + tabWidth / 2 - 16, curveHeight],
-    [width + tabWidth / 2 + 16, curveHeight],
-    [width + tabWidth - 7, curveHeight / 2],
-    [width + tabWidth - 5, 5],
-    [width + tabWidth, 0],
-    [width + 5 + tabWidth, 0],
-  ]);
-
-  const right = shape
-    .line()
-    .x(d => d[0])
-    .y(d => d[1])([
-    [width + 5 + tabWidth, 0],
-    [width * 2 + tabWidth, 0],
-    [width * 2 + tabWidth, tabbarHeight],
-    [0, tabbarHeight],
-    [0, 0],
-  ]);
-  return `${left} ${tab} ${right}`;
-};
-
-const d = getPath();
-
-const AddOptions = ({ navigation }: any) => {
-  const addOptions = [
-    {
-      svgXML: singleTreeIcon,
-      title: 'label.tree_registration_type_1',
-      onPress: () => navigation.navigate('RegisterSingleTree'),
-    },
-    {
-      svgXML: multipleTreesIcon,
-      title: 'label.tree_registration_type_2',
-      onPress: () => navigation.navigate('LocateTree'),
-    },
-  ];
-
-  return (
-    <View style={styles.addOptionsParent}>
-      <View style={styles.addOptionsContainer}>
-        {addOptions.length > 0
-          ? addOptions.map((option: any, index: number) => (
-              <TouchableOpacity
-                style={[
-                  styles.addButtonOption,
-                  addOptions.length - 1 !== index ? { marginBottom: 8 } : {},
-                ]}
-                onPress={option.onPress}
-                key={`addOption${index}`}>
-                <View style={styles.icon}>
-                  <SvgXml xml={option.svgXML} />
-                </View>
-                <Text style={styles.text}>{i18next.t(option.title)}</Text>
-              </TouchableOpacity>
-            ))
-          : []}
-      </View>
-    </View>
-  );
-};
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface IBottomBarProps {
-  onMenuPress: any;
-  onTreeInventoryPress: any;
-  numberOfInventory: number;
+  state: BottomTabBarProps;
+  descriptors: BottomTabBarProps;
+  navigation: BottomTabBarProps;
 }
 
-const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBottomBarProps) => {
-  const [showAddOptions, setShowAddOptions] = useState(false);
-  const navigation = useNavigation();
-  const [spinValue] = useState(new Animated.Value(0));
+const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    return () => setShowAddOptions(false);
-  }, []);
+  const rotation = useDerivedValue(() => {
+    return withTiming(open ? '135deg' : '0deg');
+  }, [open]);
 
-  // Next, interpolate beginning and end values (in this case 0 and 1)
-  // if Clockwise icon will rotate clockwise, else anti-clockwise
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '225deg'],
-  });
+  const rotationStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: rotation.value }],
+  }));
 
-  const animatedScaleStyle = {
-    transform: [{ rotate: spin }],
-  };
+  const _addOptionsRef = useRef();
 
   const onAddPress = () => {
-    {
-      setShowAddOptions(!showAddOptions);
-      Animated.spring(
-        spinValue, // The animated value to drive
-        {
-          toValue: showAddOptions ? 0 : 1,
-          useNativeDriver: true,
-        },
-      ).start();
-    }
+    setOpen(prev => !prev);
   };
 
   return (
     <>
-      <View style={styles.bottomBarContainer}>
-        <Svg
-          width={width * 2 + tabWidth}
-          height={tabbarHeight}
-          style={styles.bottomBar}
-          strokeWidth="1"
-          stroke={Colors.GRAY_LIGHT}>
-          <Path {...{ d }} fill={Colors.WHITE} />
-        </Svg>
-        {/* add button */}
-        <TouchableOpacity style={styles.addButton} onPress={() => onAddPress()}>
-          <Animated.View style={animatedScaleStyle}>
-            <FA5Icon name="plus" color={Colors.WHITE} size={32} />
-          </Animated.View>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.tabItemContainer}>
+          {state?.routes?.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label =
+              options.tabBarLabel !== undefined
+                ? options.tabBarLabel
+                : options.title !== undefined
+                ? options.title
+                : route.name;
 
-        {/* menu button */}
-        <TouchableOpacity style={[styles.left, styles.tabButton]} onPress={onMenuPress}>
-          <>
-            <View style={[styles.menuDash, styles.firstDash]} />
-            <View style={[styles.menuDash, styles.secondDash]} />
-          </>
-        </TouchableOpacity>
+            const isFocused = state.index === index;
 
-        {/* Tree Inventory button */}
-        <TouchableOpacity style={[styles.right, styles.tabButton]} onPress={onTreeInventoryPress}>
-          <Text style={styles.tabText}>{i18next.t('label.tree_inventory')}</Text>
-          <View style={styles.inventoryCount}>
-            <Text style={styles.inventoryCountText}>{numberOfInventory}</Text>
-          </View>
-        </TouchableOpacity>
-        <SafeAreaView style={styles.safeArea} />
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                // The `merge: true` option makes sure that the params inside the tab screen are preserved
+                navigation.navigate({ name: route.name, merge: true });
+              }
+            };
+
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
+
+            if (label == 'Add') {
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  activeOpacity={1}
+                  accessibilityState={isFocused ? { selected: true } : {}}
+                  accessibilityLabel={options.tabBarAccessibilityLabel}
+                  testID={options.tabBarTestID}
+                  key={index}
+                  onLongPress={onLongPress}
+                  style={[styles.tabItem]}
+                  onPress={() => onAddPress()}>
+                  <AnimatedTouchableOpacity
+                    style={[styles.animatedTouch, rotationStyle]}
+                    onPress={() => onAddPress()}>
+                    <SvgXml xml={add_icon} style={styles.addIcon} />
+                  </AnimatedTouchableOpacity>
+                  {state?.index === index ? (
+                    <GradientText style={styles.tabItemText}>{label}</GradientText>
+                  ) : (
+                    <Text style={styles.tabItemText}>{label}</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            }
+
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                testID={options.tabBarTestID}
+                key={index}
+                onLongPress={onLongPress}
+                style={styles.tabItem}
+                onPress={onPress}>
+                {index === 0 && <MapExplore color={state?.index === index} />}
+                {index === 1 && <ListIcon color={state?.index === index} />}
+                {index === 2 && <PlotIcon color={state?.index === index} />}
+                {state?.index === index ? (
+                  <GradientText style={styles.tabItemText}>{label}</GradientText>
+                ) : (
+                  <Text style={styles.tabItemText}>{label}</Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-      {showAddOptions ? <AddOptions navigation={navigation} /> : []}
+      <AddOptionsModal
+        setVisible={setOpen}
+        visible={open}
+        ref={_addOptionsRef}
+        navigation={navigation}
+      />
     </>
   );
 };
@@ -191,108 +130,44 @@ const BottomBar = ({ onMenuPress, onTreeInventoryPress, numberOfInventory }: IBo
 export default BottomBar;
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: Colors.WHITE,
-  },
-  bottomBar: { backgroundColor: 'transparent' },
-  bottomBarContainer: {
-    position: 'absolute',
-    bottom: 0,
-  },
-  menuDash: {
-    height: 3,
-    borderRadius: 10,
-    backgroundColor: Colors.TEXT_COLOR,
-  },
-  tabButton: {
-    position: 'absolute',
-    justifyContent: 'space-around',
-    alignItems: 'flex-start',
-    marginBottom: IS_ANDROID ? 0 : 6,
-  },
-  firstDash: {
-    width: 16,
-  },
-  secondDash: {
-    width: 24,
-    marginTop: 6,
-  },
-  // 44 = height of menu container + 2 * padding
-  left: {
-    left: 16,
-    bottom: (tabbarHeight - 44) / 2,
-    padding: 16,
-  },
-  // 38 = height of text + 2 * padding
-  right: {
-    right: 16,
-    bottom: (tabbarHeight - 38) / 2,
-    padding: 10,
-    borderRadius: 8,
-    position: 'relative',
-  },
-  tabText: {
-    fontSize: Typography.FONT_SIZE_14,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    color: Colors.TEXT_COLOR,
-  },
-  addButton: {
-    position: 'absolute',
-    bottom: tabbarHeight - buttonWidth / 2,
-    width: buttonWidth,
-    height: buttonWidth,
-    borderRadius: 60,
-    backgroundColor: Colors.PRIMARY_DARK,
-    left: width + buttonGutter,
+  container: {
+    backgroundColor: 'white',
     elevation: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderTopLeftRadius: Spacing.SCALE_12,
+    borderTopRightRadius: Spacing.SCALE_12,
   },
-  addOptionsParent: {
-    position: 'absolute',
-    bottom: tabbarHeight + 42,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  addOptionsContainer: {
-    borderRadius: 14,
-    padding: 8,
-    backgroundColor: Colors.WHITE,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    elevation: 4,
-  },
-  addButtonOption: {
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  inventoryCount: {
-    position: 'absolute',
-    top: 0,
-    right: -6,
-    minWidth: 18,
-    paddingVertical: 2,
-    paddingHorizontal: 4,
+  animatedTouch: {
+    backgroundColor: 'white',
     borderRadius: 100,
-    display: 'flex',
+    padding: Spacing.SCALE_12,
+    position: 'absolute',
+    top: -Spacing.SCALE_36,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4.62,
+    elevation: 5,
+  },
+  addIcon: {
+    width: Spacing.SCALE_48,
+    height: Spacing.SCALE_48,
+  },
+  tabItemContainer: {
+    justifyContent: 'space-around',
+    flexDirection: 'row',
+    marginVertical: Spacing.SCALE_16,
+  },
+  tabItem: {
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.PRIMARY_DARK,
   },
-  inventoryCountText: {
-    color: Colors.WHITE,
-    fontSize: Typography.FONT_SIZE_10,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-  },
-  icon: { height: 48, width: 48, marginRight: 16 },
-  text: {
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-    color: Colors.TEXT_COLOR,
+  tabItemText: {
+    marginTop: Spacing.SCALE_8,
+    color: Colors.TEXT_LIGHT,
+    fontSize: Typography.FONT_SIZE_14,
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
 });

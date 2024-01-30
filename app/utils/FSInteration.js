@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 
-export const copyImageAndGetData = async (imagePath) => {
+export const copyImageAndGetData = async imagePath => {
   // splits and stores the image path directories
   let splittedPath = imagePath.split('/');
   // splits and stores the file name and extension which is present on last index
@@ -38,7 +38,7 @@ export const deleteFromFS = (file, inventory, index) => {
         resolve({ inventory, index });
       })
       // `unlink` will throw an error, if the item to unlink does not exist
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });

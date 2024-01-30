@@ -39,9 +39,54 @@ import plant_project from './images/plant_project';
 import importIcon from './images/importIcon';
 import multipleTreesIcon from './images/multipleTrees';
 import singleTreeIcon from './images/roundTree';
+import { add_icon } from './images/add_icon';
+import MapExplore from './images/map_explore';
+import ListIcon from './images/listIcon';
+import PlotIcon from './images/plotIcon';
+import Intervention from './images/intervention';
+import CrossArrow from './images/crossArrow';
+import ChartIcon from './images/chart_icon';
+import SingleTreeIcon from './images/singleTreeIcon';
+import MultipleTreeIcon from './images/multipleTreeIcon';
+import LogoutSign from './images/drawerIcons/logoutSign';
+import SpeciesLeaf from './images/drawerIcons/speciesLeaf';
+import ProjectDoc from './images/drawerIcons/projectDoc';
+import PieAdditionalData from './images/drawerIcons/pieAdditionalData';
+import OfflineMapIcon from './images/drawerIcons/offlineMapIcon';
+import CleanerPhone from './images/cleaner_phone';
+import Exclamation from './images/exclamation_icon';
+import SyncSuccess from './images/sync_success';
+import SyncFail from './images/sync_failed';
+import FolderIcon from './images/folder_icon';
+import ArrowBack from './images/arrow_back';
+import HeartGray from './images/heart_gray';
+import HeartPink from './images/heart_pink';
+import UploadSpecies from './images/upload_species';
 
 export {
+  UploadSpecies,
+  HeartPink,
+  HeartGray,
+  ArrowBack,
+  FolderIcon,
+  SyncFail,
+  SyncSuccess,
+  Exclamation,
+  CleanerPhone,
+  ProjectDoc,
+  OfflineMapIcon,
+  PieAdditionalData,
+  SpeciesLeaf,
+  LogoutSign,
+  MultipleTreeIcon,
+  SingleTreeIcon,
+  ChartIcon,
+  CrossArrow,
+  PlotIcon,
+  ListIcon,
   arrow_up,
+  Intervention,
+  MapExplore,
   arrow_down,
   close,
   camera,
@@ -50,6 +95,7 @@ export {
   cloud,
   upload_check,
   upload_now,
+  add_icon,
   tree,
   placeholder_image,
   alrighty_banner,

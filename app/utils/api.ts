@@ -1,4 +1,3 @@
-import axios from 'axios';
 import jwtDecode from 'jwt-decode';
 import { Platform } from 'react-native';
 import 'react-native-get-random-values';
@@ -8,19 +7,11 @@ import { bugsnag } from './index';
 import { nanoid } from 'nanoid';
 import { LogTypes } from './constants';
 import dbLog from '../repositories/logs';
-import { APIConfig } from '../actions/Config';
+import axiosInstance from './axiosInstance';
 import { getUserDetails } from '../repositories/user';
 import { isInternetConnected } from './checkInternet';
 import { name as packageName, version } from '../../package.json';
 import { checkErrorCode, getNewAccessToken } from '../actions/user';
-
-const { protocol, url: baseURL } = APIConfig;
-
-// creates and axios instance with base url
-const axiosInstance = axios.create({
-  baseURL: `${protocol}://${baseURL}`,
-});
-console.log(baseURL, 'baseURL');
 
 // Add a request interceptor which adds the configuration in all the requests
 axiosInstance.interceptors.request.use(

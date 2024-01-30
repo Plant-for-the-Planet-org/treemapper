@@ -18,5 +18,6 @@
   "support": "Soutien",
   "complete_signup": "Inscription complète",
   "manage_projects": "Gérer les projets",
-  "additional_data": "Données supplémentaires"
+  "additional_data": "Données supplémentaires",
+  "login_signup": "Se connecter / S'inscrire"
 }

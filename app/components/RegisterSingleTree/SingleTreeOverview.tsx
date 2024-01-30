@@ -73,10 +73,13 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import { Header, InputModal, Label, PrimaryButton } from '../Common';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { getUserInformation } from '../../repositories/user';
 import { measurementValidation } from '../../utils/validations/measurements';
+import { UserContext } from '../../reducers/user';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 type RootStackParamList = {
   SingleTreeOverview: {
@@ -92,7 +95,8 @@ type SingleTreeOverviewScreenRouteProp = RouteProp<RootStackParamList, 'SingleTr
 
 const SingleTreeOverview = () => {
   const { state: inventoryState, dispatch } = useContext(InventoryContext);
-
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const showProject = userState?.type == 'tpo' ? true : false;
   const [inventory, setInventory] = useState<any>();
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [isShowDate, setIsShowDate] = useState<boolean>(false);
@@ -114,7 +118,6 @@ const SingleTreeOverview = () => {
   const [showInputError, setShowInputError] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [showProject, setShowProject] = useState<boolean>(false);
   const [isSampleTree, setIsSampleTree] = useState(false);
   const [sampleTreeIndex, setSampleTreeIndex] = useState<number>();
   const [totalSampleTrees, setTotalSampleTrees] = useState<number>();
@@ -138,6 +141,8 @@ const SingleTreeOverview = () => {
   const [plantLocationCoordinates, setPlantLocationCoordinates] = useState<[number, number]>([
     0, 0,
   ]);
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   const navigation = useNavigation();
   const route: SingleTreeOverviewScreenRouteProp = useRoute();
@@ -157,16 +162,6 @@ const SingleTreeOverview = () => {
       let data = { inventory_id: inventoryState.inventoryID, lastScreen: 'SingleTreeOverview' };
       updateLastScreen(data);
     }
-    getUserDetails().then(userDetails => {
-      if (userDetails) {
-        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-        if (stringifiedUserDetails?.type === 'tpo') {
-          setShowProject(true);
-        } else {
-          setShowProject(false);
-        }
-      }
-    });
     const unsubscribe = navigation.addListener('focus', () => {
       if (inventoryState.inventoryID) {
         fetchAndUpdateInventoryDetails();
@@ -788,7 +783,7 @@ const SingleTreeOverview = () => {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
         }),
       );
     } else {
@@ -858,7 +853,7 @@ const SingleTreeOverview = () => {
           CommonActions.reset({
             index: 2,
             routes: [
-              { name: 'MainScreen' },
+              { name: 'BottomTab' },
               { name: 'TreeInventory' },
               {
                 name: inventoryState.skipToInventoryOverview
@@ -891,7 +886,7 @@ const SingleTreeOverview = () => {
                 CommonActions.reset({
                   index: 2,
                   routes: [
-                    { name: 'MainScreen' },
+                    { name: 'BottomTab' },
                     { name: 'TreeInventory' },
                     { name: 'RegisterSingleTree' },
                   ],
@@ -918,7 +913,7 @@ const SingleTreeOverview = () => {
             CommonActions.reset({
               index: 2,
               routes: [
-                { name: 'MainScreen' },
+                { name: 'BottomTab' },
                 { name: 'TreeInventory' },
                 { name: 'RecordSampleTrees' },
               ],
@@ -951,7 +946,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
+                  { name: 'BottomTab' },
                   { name: 'TreeInventory' },
                   { name: 'RecordSampleTrees' },
                 ],
@@ -968,7 +963,7 @@ const SingleTreeOverview = () => {
               CommonActions.reset({
                 index: 2,
                 routes: [
-                  { name: 'MainScreen' },
+                  { name: 'BottomTab' },
                   { name: 'TreeInventory' },
                   { name: 'InventoryOverview' },
                 ],
@@ -984,7 +979,7 @@ const SingleTreeOverview = () => {
           navigation.dispatch(
             CommonActions.reset({
               index: 1,
-              routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
+              routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
             }),
           );
         })
@@ -1039,39 +1034,35 @@ const SingleTreeOverview = () => {
       {renderDateModal()}
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingVertical: 0,
-              marginBottom: 24,
-            }}>
-            <Header
-              style={{ flex: 1 }}
-              closeIcon
-              onBackPress={() => onPressSave()}
-              headingText={
-                isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
-                  ? i18next.t('label.sample_tree_review_tree_number', {
-                      ongoingSampleTreeNumber: sampleTreeIndex + 1,
-                      sampleTreesCount: totalSampleTrees,
-                    })
-                  : status === SYNCED
-                  ? i18next.t('label.tree_review_details')
-                  : i18next.t('label.tree_review_header')
-              }
-              rightText={
-                status === INCOMPLETE ||
-                status === INCOMPLETE_SAMPLE_TREE ||
-                status === FIX_NEEDED ||
-                (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
-                  ? i18next.t('label.tree_review_delete')
-                  : ''
-              }
-              onPressFunction={() => setShowDeleteAlert(true)}
-            />
-          </View>
-
+          <Header
+            style={{ flex: 1 }}
+            closeIcon
+            onBackPress={() => onPressSave()}
+            headingText={
+              isSampleTree && (sampleTreeIndex === 0 || sampleTreeIndex)
+                ? i18next.t('label.sample_tree_review_tree_number', {
+                    ongoingSampleTreeNumber: sampleTreeIndex + 1,
+                    sampleTreesCount: totalSampleTrees,
+                  })
+                : status === SYNCED
+                ? i18next.t('label.tree_review_details')
+                : i18next.t('label.tree_review_header')
+            }
+            TitleRightComponent={() => (
+              <TouchableOpacity
+                style={{ marginLeft: 'auto' }}
+                onPress={() => setShowDeleteAlert(true)}>
+                <Text style={styles.rightText}>
+                  {status === INCOMPLETE ||
+                  status === INCOMPLETE_SAMPLE_TREE ||
+                  status === FIX_NEEDED ||
+                  (status === PENDING_DATA_UPLOAD && inventory?.treeType === SINGLE)
+                    ? i18next.t('label.tree_review_delete')
+                    : ''}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
           {inventory && (
             <View style={styles.scrollViewContainer}>
               {imageSource && (
@@ -1288,5 +1279,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_18,
     color: Colors.TEXT_COLOR,
     lineHeight: Typography.LINE_HEIGHT_24,
+  },
+  rightText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PRIMARY,
   },
 });

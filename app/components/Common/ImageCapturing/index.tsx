@@ -257,7 +257,7 @@ const ImageCapturing = ({
             CommonActions.reset({
               index: 2,
               routes: [
-                { name: 'MainScreen' },
+                { name: 'NavDrawer' },
                 { name: 'TreeInventory' },
                 { name: 'TotalTreesSpecies' },
               ],
@@ -303,7 +303,6 @@ const ImageCapturing = ({
               ? `${i18next.t('label.locate_tree_location')} ${ALPHABETS[activeMarkerIndex]}`
               : i18next.t('label.image_capturing_header')
           }
-          subHeadingText={i18next.t('label.image_capturing_sub_header')}
         />
       </View>
       <View style={styles.container}>

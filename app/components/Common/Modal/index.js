@@ -15,17 +15,20 @@ import { Typography, Colors } from '_styles';
 import CountryData from '../../../utils/countryData.json';
 import i18next from 'i18next';
 import { APIConfig } from '../../../actions/Config';
+import { ENVS } from '../../../../environment';
+import { useSelector } from 'react-redux';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 export default function index({ visible, openModal, userCountry }) {
   const [countryData, setCountryData] = useState(null);
   const [search, setSearch] = useState(null);
+  const { currentEnv } = useSelector(state => state.envSlice);
 
   const renderItem = ({ item }) => {
     return <Item title={item} onPress={() => selectCountry(item)} />;
   };
-  const selectCountry = (title) => {
+  const selectCountry = title => {
     userCountry(title);
   };
   const Item = ({ title, onPress }) => (
@@ -34,7 +37,9 @@ export default function index({ visible, openModal, userCountry }) {
         <Image
           source={{
             // not using currencyCountryFlag any more as we have flags for every country
-            uri: cdnUrl ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${title.countryCode}.png` : null,
+            uri: ENVS[currentEnv].CDN_URL
+              ? `${protocol}://${ENVS[currentEnv].CDN_URL}/media/images/flags/png/256/${title.countryCode}.png`
+              : null,
           }}
           style={styles.countryFlag}
           resizeMode="contain"
@@ -74,8 +79,8 @@ export default function index({ visible, openModal, userCountry }) {
     openModal(false);
   };
 
-  const handleFilter = (input) => {
-    const filteredData = CountryData.filter((el) =>
+  const handleFilter = input => {
+    const filteredData = CountryData.filter(el =>
       el.countryName.toLowerCase().includes(input.toLowerCase()),
     );
     setCountryData(filteredData);

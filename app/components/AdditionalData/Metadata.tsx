@@ -1,19 +1,20 @@
-import { useNavigation } from '@react-navigation/core';
 import i18next from 'i18next';
 import React, { useContext, useState } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/core';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AdditionalDataContext } from '../../reducers/additionalData';
 import { deleteMetadataField } from '../../repositories/additionalData';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
 import { accessTypes } from '../../utils/additionalData/constants';
 import { Loader, PrimaryButton } from '../Common';
-import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import KeyValueInput from './KeyValueInput';
+import { scaleSize } from '../../styles/mixins';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 function Metadata(): JSX.Element {
   const [dragging, setDragging] = useState<boolean>(false);
@@ -28,7 +29,7 @@ function Metadata(): JSX.Element {
   const navigation = useNavigation();
 
   const onSwipe = (fieldId: string = '') => {
-    deleteMetadataField(fieldId).then((success) => {
+    deleteMetadataField(fieldId).then(success => {
       if (success) {
         addMetadataInState();
       }
@@ -70,26 +71,22 @@ function Metadata(): JSX.Element {
           }
           renderItem={({ item, drag }: any) => (
             <View style={styles.fieldWrapper} key={`metadata-${item.id}`}>
-              <SwipeDeleteRow
-                onSwipe={() => onSwipe(item.id)}
-                isDraggable
-                drag={drag}
-                dragging={dragging}
-                setDragging={setDragging}>
-                <KeyValueInput
-                  fieldKey={item.key}
-                  fieldValue={item.value}
-                  onPress={() =>
-                    navigation.navigate('AddMetadata', {
-                      metadataOrder: item.order,
-                      metadataId: item.id,
-                      fieldKey: item.key,
-                      fieldValue: item.value,
-                      isPublic: item.accessType === accessTypes.PUBLIC,
-                    })
-                  }
-                />
-              </SwipeDeleteRow>
+              <KeyValueInput
+                fieldKey={item.key}
+                fieldValue={item.value}
+                onPress={() =>
+                  navigation.navigate('AddMetadata', {
+                    metadataOrder: item.order,
+                    metadataId: item.id,
+                    fieldKey: item.key,
+                    fieldValue: item.value,
+                    isPublic: item.accessType === accessTypes.PUBLIC,
+                  })
+                }
+              />
+              <TouchableOpacity style={styles.deleteIcon} onPress={() => onSwipe(item.id)}>
+                <FontAwesome5Icon name={'trash'} size={18} color={Colors.ALERT} />
+              </TouchableOpacity>
             </View>
           )}
           dragHitSlop={{ right: -width + 50 + 36 }}
@@ -124,8 +121,8 @@ const styles = StyleSheet.create({
   container: {
     paddingRight: 25,
     paddingLeft: 17,
-    backgroundColor: Colors.WHITE,
-    flex: 1,
+    height,
+    width,
   },
 
   fieldWrapper: {
@@ -157,5 +154,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 20,
     marginBottom: 40,
+  },
+  deleteIcon: {
+    position: 'absolute',
+    right: -10,
+    top: -scaleSize(15),
+    backgroundColor: Colors.WHITE,
+    padding: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
   },
 });

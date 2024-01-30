@@ -1,10 +1,31 @@
+import {
+  View,
+  Text,
+  Modal,
+  Platform,
+  FlatList,
+  Dimensions,
+  StyleSheet,
+  Pressable,
+  StatusBar,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import i18next from 'i18next';
+import bbox from '@turf/bbox';
+import turfCenter from '@turf/center';
+import { Modalize } from 'react-native-modalize';
+import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/core';
+import CheckBox from '@react-native-community/checkbox';
+import { useFocusEffect } from '@react-navigation/native';
+import IonIcons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import React, { useContext, useEffect, useState } from 'react';
-import { Platform, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 
+import { auth0Login, auth0Logout, setUserDetails, clearUserDetails } from '../../actions/user';
 import {
   getInventoryCount,
   updateMissingDataStatus,
@@ -14,33 +35,41 @@ import MainMap from './MainMap';
 import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import ProfileModal from '../ProfileModal';
-import { AlertModal, Sync } from '../Common';
 import { UserContext } from '../../reducers/user';
 import { Colors, Typography } from '../../styles';
 import RotatingView from '../Common/RotatingView';
+import { AlertModal, Switch, Sync } from '../Common';
 import { InventoryType } from '../../types/inventory';
 import { getSchema } from '../../repositories/default';
 import { LoadingContext } from '../../reducers/loader';
-import { getAllProjects } from '../../repositories/projects';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
 import { InventoryTypeSelector } from './InventoryTypeSelector';
 import { startLoading, stopLoading } from '../../actions/loader';
 import { shouldSpeciesUpdate } from '../../repositories/species';
-import { getUserDetails, modifyUserDetails } from '../../repositories/user';
+import CustomDropDownPicker from '../Common/Dropdown/CustomDropDownPicker';
 import { PlantLocationHistoryContext } from '../../reducers/plantLocationHistory';
 import { InventoryContext, inventoryFetchConstant } from '../../reducers/inventory';
-import { setFetchNecessaryInventoryFlag, updateCount } from '../../actions/inventory';
+import {
+  setFetchGivenMonthsInventoryFlag,
+  setFetchNecessaryInventoryFlag,
+  updateCount,
+} from '../../actions/inventory';
 import { PENDING_DATA_UPLOAD, PENDING_UPLOAD_COUNT } from '../../utils/inventoryConstants';
-import { auth0Login, auth0Logout, clearUserDetails, setUserDetails } from '../../actions/user';
+import { getAllProjects } from '../../repositories/projects';
+import { modifyUserDetails } from '../../repositories/user';
 
+const { width, height } = Dimensions.get('screen');
 const IS_ANDROID = Platform.OS === 'android';
-const topValue = Platform.OS === 'ios' ? 50 : 25;
-const FETCH_PLANT_LOCATION_ZINDEX = { zIndex: IS_ANDROID ? 0 : -1 };
+const topValue = Platform.OS === 'ios' ? 50 : 50;
+const MODEL_TYPE = { ZOOM_TO_SITE: 'zoomToSite', FILTERS: 'filters' };
+const INTERVENTION_DURATION = [
+  { id: 1, duration: '30 days', selected: false, totalMonths: 1 },
+  { id: 2, duration: '6 months', selected: false, totalMonths: 6 },
+  { id: 3, duration: '1 year', selected: false, totalMonths: 12 },
+  { id: 4, duration: 'Always', selected: false, totalMonths: 60 },
+];
 
 export default function MainScreen() {
-  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-  const [isUserLogin, setIsUserLogin] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>({});
   const [emailAlert, setEmailAlert] = useState(false);
   const [offlineModal, setOfflineModal] = useState(false);
   const [numberOfInventory, setNumberOfInventory] = useState(0);
@@ -55,27 +84,96 @@ export default function MainScreen() {
   // used to set all the project sites of selected project
   const [projectSites, setProjectSites] = React.useState([]);
 
+  const [selectedSite, setSelectedSite] = React.useState(null);
+
   // sets the bound to focus the selected site
   const [siteBounds, setSiteBounds] = useState<any>([]);
 
   // used to store and focus on the center of the bounding box of the selected site
   const [siteCenterCoordinate, setSiteCenterCoordinate] = useState<any>([]);
 
+  // dropdown states
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState([]);
+
+  // filter states
+  const [interventionFilter, setInterventionFilter] = useState(false);
+
+  const [modalType, setModalType] = useState<string>('');
+
+  const [checkboxes, setCheckboxes] = useState(INTERVENTION_DURATION);
+  const [interventionModal, setInterventionModal] = useState<boolean>(false);
+  const [remeasurementFlag, setRemeasurementFlag] = useState<boolean>(false);
+
   const { state, dispatch } = useContext(InventoryContext);
-  const { dispatch: userDispatch } = useContext(UserContext);
-  const { state: loadingState, dispatch: loadingDispatch } = useContext(LoadingContext);
   const { getPendingPlantLocationHistory } = useContext(PlantLocationHistoryContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
 
   const netInfo = useNetInfo();
   const navigation = useNavigation();
+
+  const modalizeRef = useRef<Modalize>(null);
+
+  const _onOpen = modalType => () => {
+    setModalType(modalType);
+    modalizeRef.current?.open();
+  };
+
+  const onClose = () => {
+    setModalType('');
+    modalizeRef.current?.close();
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (projects.length > 0) {
+        setValue(projects[0]?.id);
+        setProjectSites(projects[0]?.sites || []);
+      }
+    }, [projects]),
+  );
+
+  useEffect(() => {
+    if (userState.fetchGivenMonthsInventoryFlag) {
+      const checkboxesDuplicate = [...checkboxes];
+      checkboxesDuplicate.forEach(element => (element.selected = false));
+      const filteredIndex = checkboxesDuplicate.findIndex(
+        item => item.totalMonths === userState.fetchGivenMonthsInventoryFlag,
+      );
+      if (checkboxesDuplicate.length && filteredIndex > -1) {
+        checkboxesDuplicate[filteredIndex].selected = true;
+      }
+    }
+  }, [userState.fetchGivenMonthsInventoryFlag]);
+
+  const fetchGivenMonthsInventory = async () => {
+    if (checkboxes.length) {
+      const givenMonths = checkboxes.filter(item => item.selected === true)[0]?.totalMonths;
+      if (givenMonths) {
+        setFetchGivenMonthsInventoryFlag(givenMonths)(dispatch);
+        await modifyUserDetails({
+          fetchGivenMonthsInventoryFlag: givenMonths,
+        });
+      } else {
+        await modifyUserDetails({
+          fetchGivenMonthsInventoryFlag: 0,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      fetchGivenMonthsInventory();
+    }, 500);
+  }, [checkboxes]);
 
   useEffect(() => {
     let realm: Realm;
     // stores the listener to later unsubscribe when screen is unmounted
     const unsubscribe = navigation.addListener('focus', async () => {
-      fetchUserDetails();
       fetchInventoryCount();
-
       realm = await Realm.open(getSchema());
       initializeRealm(realm);
     });
@@ -99,7 +197,6 @@ export default function MainScreen() {
   useEffect(() => {
     if (showClickedGeoJSON) {
       setOfflineModal(false);
-      setIsProfileModalVisible(false);
     }
   }, [showClickedGeoJSON]);
 
@@ -111,9 +208,14 @@ export default function MainScreen() {
   }, [showProjectOptions]);
 
   const fetchAndSaveProjects = async () => {
+    // directly api call instead retrieving from db .. have to change in future
     const allProjects = await getAllProjects();
     if (allProjects && allProjects.length > 0) {
       setProjects(allProjects);
+      const dropdownArr = allProjects.map(project => {
+        return { value: project?.id, label: project.name };
+      });
+      setItems(dropdownArr);
     }
   };
 
@@ -124,16 +226,12 @@ export default function MainScreen() {
     } else {
       // dispatch function sets the passed user details into the user state
       setUserDetails(stringifiedUserDetails)(userDispatch);
-      setUserInfo(stringifiedUserDetails);
-      setIsUserLogin(!!stringifiedUserDetails.accessToken);
     }
   };
 
   // Define the collection notification listener
   function listener(userData: Realm.Collection<any>, changes: Realm.CollectionChangeSet) {
     if (changes.deletions.length > 0) {
-      setUserInfo({});
-      setIsUserLogin(false);
       clearUserDetails()(userDispatch);
     }
 
@@ -203,20 +301,6 @@ export default function MainScreen() {
 
   const closeProfileModal = () => setIsProfileModalVisible(false);
 
-  const fetchUserDetails = () => {
-    if (!loadingState.isLoading) {
-      getUserDetails().then(userDetails => {
-        if (userDetails) {
-          const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-          if (stringifiedUserDetails) {
-            setUserInfo(stringifiedUserDetails);
-            setIsUserLogin(!!stringifiedUserDetails.accessToken);
-          }
-        }
-      });
-    }
-  };
-
   const fetchInventoryCount = () => {
     getInventoryCount(PENDING_UPLOAD_COUNT).then(count => {
       updateCount({ type: PENDING_DATA_UPLOAD, count })(dispatch);
@@ -226,73 +310,79 @@ export default function MainScreen() {
     });
   };
 
-  const onPressLogin = async () => {
-    if (isUserLogin) {
-      setIsProfileModalVisible(true);
+  const _onSelectSite = item => () => {
+    setSelectedSite(item);
+    const geometry = JSON.parse(item?.geometry);
+    if (geometry) {
+      setSiteBounds(bbox(geometry));
+      const centerCoordinate = turfCenter(geometry)?.geometry?.coordinates;
+      setSiteCenterCoordinate(centerCoordinate);
     } else {
-      startLoading()(loadingDispatch);
-      auth0Login(userDispatch, dispatch)
-        .then(() => {
-          stopLoading()(loadingDispatch);
-          fetchUserDetails();
-          fetchInventoryCount();
-        })
-        .catch(err => {
-          if (err?.response?.status === 303) {
-            navigation.navigate('SignUp');
-          } else if (
-            (err.error !== 'a0.session.user_cancelled' && err?.response?.status < 500) ||
-            (err?.message == 401 && err?.name === 'unauthorized')
-          ) {
-            setEmailAlert(true);
-          }
-          stopLoading()(loadingDispatch);
-        });
+      Alert.alert(
+        'Invalid geometry detected',
+        'Site cannot be processed. Apologies for inconvenience.',
+      );
     }
+    onClose();
   };
 
-  const onPressLogout = () => {
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      closeProfileModal();
-      clearAllUploadedInventory();
-      shouldSpeciesUpdate()
-        .then(isSyncRequired => {
-          if (isSyncRequired) {
-            navigation.navigate('LogoutWarning');
-          } else {
-            auth0Logout(userDispatch).then(async result => {
-              if (result) {
-                console.log('55');
-                setUserInfo({});
-                await modifyUserDetails({
-                  fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
-                });
-                setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
-              }
-            });
-          }
-        })
-        .catch(err => console.error(err));
-    } else {
-      setOfflineModal(true);
-    }
+  const renderSiteList = ({ item, index }) => (
+    <TouchableOpacity onPress={_onSelectSite(item)} activeOpacity={0.7} style={styles.listItem}>
+      <View style={styles.listItemCon}>
+        <Text
+          style={
+            selectedSite?.id !== item?.id
+              ? styles.listItemTitle
+              : { ...styles.listItemTitle, fontFamily: Typography.FONT_FAMILY_BOLD }
+          }>
+          {item?.name}
+        </Text>
+        {selectedSite?.id === item?.id ? (
+          <Entypo size={16} name="check" color={Colors.PRIMARY} />
+        ) : (
+          []
+        )}
+      </View>
+      {projectSites.length - 1 !== index && <View style={styles.divider} />}
+    </TouchableOpacity>
+  );
+
+  const onSelectProject = val => {
+    const selectedProjectSites = projects.filter(item => item?.id === val)[0]?.sites;
+    setProjectSites(selectedProjectSites);
   };
 
-  const onBottomBarMenuPress = () => setIsProfileModalVisible(true);
-  const onTreeInventoryPress = () => navigation.navigate('TreeInventory');
-  const onPressCloseProfileModal = () => closeProfileModal();
   const onPressPrimaryBtn = () => {
     setOfflineModal(false);
     closeProfileModal();
   };
 
-  // console.log(isUserLogin, userInfo, 'userInfo?.type');
+  const handleInterventionFilter = val => {
+    setInterventionFilter(val);
+    if (val) {
+      modalizeRef?.current?.close();
+      setTimeout(() => {
+        setInterventionModal(true);
+      }, 800);
+    }
+  };
+
+  const toggleCheckbox = (index, newValue) => {
+    const checkboxData = [...checkboxes];
+    checkboxes.forEach(element => (element.selected = false));
+    checkboxData[index].selected = newValue;
+    setCheckboxes(checkboxData);
+    setTimeout(() => {
+      setInterventionModal(false);
+    }, 200);
+  };
+
   return (
     <>
+      <StatusBar translucent={true} barStyle="dark-content" backgroundColor="transparent" />
       <MainMap
         showClickedGeoJSON={showClickedGeoJSON}
         setShowClickedGeoJSON={setShowClickedGeoJSON}
-        userInfo={userInfo}
         siteCenterCoordinate={siteCenterCoordinate}
         siteBounds={siteBounds}
         projectSites={projectSites}
@@ -300,7 +390,7 @@ export default function MainScreen() {
 
       {!showClickedGeoJSON ? (
         <>
-          <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
+          {/* <View style={[styles.mainMapHeaderContainer, { top: topValue }]}>
             <View style={styles.mainMapHeader}>
               <View style={{ display: 'flex', width: '45%' }}>
                 <Sync
@@ -349,25 +439,183 @@ export default function MainScreen() {
             ) : (
               []
             )}
+          </View> */}
+          <View style={[styles.mainMapHeaderContainer, styles.extraHeaderStyle]}>
+            <View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('NavDrawer')}
+                style={[styles.headerLeftBtn, styles.boxShadow]}>
+                <IonIcons name={'menu'} size={24} color={Colors.WHITE} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.headerRight}>
+              {userState?.type === 'tpo' && (
+                <TouchableOpacity
+                  onPress={_onOpen('zoomToSite')}
+                  activeOpacity={0.7}
+                  style={[styles.headerBtn, styles.boxShadow]}>
+                  <IonIcons name={'location'} size={24} color={Colors.WHITE} />
+                </TouchableOpacity>
+              )}
+              {userState?.type && (
+                <TouchableOpacity
+                  onPress={_onOpen('filters')}
+                  activeOpacity={0.7}
+                  style={[styles.headerBtn, styles.boxShadow]}>
+                  <IonIcons name={'options'} size={24} color={Colors.WHITE} />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          <SafeAreaView>
-            <BottomBar
-              onMenuPress={onBottomBarMenuPress}
-              onTreeInventoryPress={onTreeInventoryPress}
-              numberOfInventory={numberOfInventory}
-            />
-          </SafeAreaView>
         </>
       ) : (
         []
       )}
+      <Modal
+        visible={interventionModal}
+        transparent
+        onRequestClose={() => setInterventionModal(false)}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() =>
+            setTimeout(() => {
+              setInterventionModal(false);
+            }, 500)
+          }
+          style={styles.modalCon}>
+          <View style={styles.modalSubCon}>
+            {checkboxes.map(({ id, duration, selected }, i) => (
+              <>
+                <View style={styles.modalItem}>
+                  <Text style={styles.durationText}>{duration}</Text>
+                  <TouchableOpacity
+                    key={id}
+                    activeOpacity={0.7}
+                    onPress={() => toggleCheckbox(i, !selected)}>
+                    <View
+                      style={[
+                        styles.radioButtonOuterCircle,
+                        {
+                          borderColor: selected ? Colors.PRIMARY : Colors.TEXT_COLOR,
+                        },
+                      ]}>
+                      {selected && <View style={styles.radioButtonInnerCircle} />}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+                {checkboxes.length - 1 !== i && (
+                  <View style={[styles.divider, { width: '100%' }]} />
+                )}
+              </>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-      <ProfileModal
-        isProfileModalVisible={isProfileModalVisible}
-        onPressCloseProfileModal={onPressCloseProfileModal}
-        onPressLogout={onPressLogout}
-        userInfo={userInfo}
-      />
+      <Modalize adjustToContentHeight ref={modalizeRef}>
+        <View style={styles.filterModalHeader}>
+          <View style={styles.filterModalHeaderInfo}>
+            <IonIcons
+              name={modalType === MODEL_TYPE.FILTERS ? 'options' : 'location'}
+              size={24}
+              color={Colors.PRIMARY}
+            />
+            <Text style={styles.filterModalHeaderTitle}>
+              {modalType === MODEL_TYPE.FILTERS ? 'Filters' : 'Zoom to site'}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+            <IonIcons name={'close'} size={24} color={Colors.BLACK} />
+          </TouchableOpacity>
+        </View>
+        {modalType === MODEL_TYPE.FILTERS && (
+          <View style={styles.filter}>
+            <TouchableOpacity
+              onPress={handleInterventionFilter}
+              disabled={
+                state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ||
+                state.inventoryLastMonthFetchProgress === inventoryFetchConstant.IN_PROGRESS
+              }
+              style={[
+                styles.filterItem,
+                checkboxes.find(item => item.selected === true)?.duration && {
+                  backgroundColor: Colors.PRIMARY + '10',
+                },
+              ]}>
+              <Text style={styles.filterItemLabel}>Interventions</Text>
+              {state.inventoryLastMonthFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={styles.fetchLoad}>Fetching </Text>
+                  <ActivityIndicator size={'small'} color={Colors.PRIMARY_DARK} />
+                </View>
+              ) : (
+                <Text style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
+                  {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
+                </Text>
+              )}
+            </TouchableOpacity>
+            {/* <View style={[styles.filterItem]}>
+              <Text style={styles.filterItemLabel}>Monitoring Plots</Text>
+              <Switch value={false} onValueChange={val => {}} />
+            </View> */}
+
+            <View style={[styles.filterItem]}>
+              <Text style={styles.filterItemLabel}>Only interventions that need remeasurement</Text>
+              {state.inventoryFetchProgress === inventoryFetchConstant.IN_PROGRESS ? (
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={styles.fetchLoad}>Fetching </Text>
+                  <ActivityIndicator size={'small'} color={Colors.PRIMARY_DARK} />
+                </View>
+              ) : (
+                <Switch
+                  value={remeasurementFlag}
+                  onValueChange={async val => {
+                    setRemeasurementFlag(val);
+                    if (val) {
+                      setFetchNecessaryInventoryFlag(InventoryType.NecessaryItems)(dispatch);
+                      await modifyUserDetails({
+                        fetchNecessaryInventoryFlag: InventoryType.NecessaryItems,
+                      });
+                    } else {
+                      setFetchNecessaryInventoryFlag(null)(dispatch);
+                    }
+                  }}
+                />
+              )}
+            </View>
+          </View>
+        )}
+        {modalType === MODEL_TYPE.ZOOM_TO_SITE && (
+          <View style={styles.filter}>
+            <View style={styles.dropdownContainer}>
+              <Text style={[styles.zoomToSiteTitle]}>Select Project</Text>
+              <CustomDropDownPicker
+                open={open}
+                items={items}
+                value={value}
+                setOpen={setOpen}
+                setValue={setValue}
+                onChangeValue={onSelectProject}
+                style={{ borderRadius: 5 }}
+                placeholder={'Select Project'}
+              />
+            </View>
+            <Text
+              style={[styles.zoomToSiteTitle, { marginBottom: 16, marginTop: 37, marginLeft: 9 }]}>
+              Select Site
+            </Text>
+            <FlatList
+              data={projectSites}
+              renderItem={renderSiteList}
+              style={{ borderRadius: 12, height: 176 }}
+              keyExtractor={item => `SITE_ARR${item?.id}`}
+            />
+          </View>
+        )}
+      </Modalize>
       <AlertModal
         visible={offlineModal}
         heading={i18next.t('label.network_error')}
@@ -411,5 +659,171 @@ const styles = StyleSheet.create({
   },
   syncTextContainer: {
     flex: 1,
+  },
+  headerLeftBtn: {
+    padding: 8,
+    width: 40,
+    height: 40,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    backgroundColor: Colors.PRIMARY,
+  },
+  headerBtn: {
+    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: Colors.PRIMARY,
+    marginLeft: 16,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    marginRight: 12,
+  },
+  boxShadow: {
+    // shadow
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4.62,
+    elevation: 5,
+  },
+  extraHeaderStyle: {
+    width,
+    left: 0,
+    top: topValue,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  filterModalHeader: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  filterModalHeaderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterModalHeaderTitle: {
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+    marginLeft: 12,
+  },
+  filter: {
+    padding: 10,
+    marginBottom: 20,
+  },
+  filterItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#E0E0E066',
+
+    borderRadius: 8,
+    minHeight: 54,
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  filterItemLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.DARK_TEXT_COLOR,
+    marginLeft: 12,
+    width: width / 2,
+  },
+  zoomToSiteTitle: {
+    fontWeight: Typography.FONT_WEIGHT_BOLD,
+    fontSize: Typography.FONT_SIZE_14,
+    color: Colors.TEXT_COLOR,
+    marginBottom: 21,
+  },
+  dropdownContainer: {
+    paddingHorizontal: 9,
+    zIndex: 2000,
+  },
+  listItem: {
+    backgroundColor: '#E0E0E050',
+  },
+  listItemCon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  listItemTitle: {
+    paddingVertical: 12,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_13,
+    color: Colors.TEXT_COLOR,
+  },
+  divider: {
+    height: 1,
+    width: '93%',
+    backgroundColor: '#E0E0E0',
+    alignSelf: 'center',
+  },
+  modalCon: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  modalSubCon: {
+    width: 261,
+    borderRadius: 12,
+    backgroundColor: Colors.WHITE,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  checkbox: { width: 18, height: 18 },
+  modalItem: {
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  durationText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.TEXT_COLOR,
+  },
+  borderFilterItem: {
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY_DARK,
+    borderRadius: 8,
+    paddingLeft: 5,
+    paddingRight: 5,
+    paddingTop: 2,
+    paddingBottom: 2,
+    fontSize: Typography.FONT_SIZE_12,
+    color: Colors.PRIMARY_DARK,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    textAlignVertical: 'center',
+    textAlign: 'center',
+  },
+  fetchLoad: {
+    color: Colors.PRIMARY_DARK,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    marginRight: 5,
+  },
+  radioButtonInnerCircle: {
+    width: 15,
+    height: 15,
+    borderRadius: 100,
+    backgroundColor: Colors.PRIMARY,
+  },
+  radioButtonOuterCircle: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

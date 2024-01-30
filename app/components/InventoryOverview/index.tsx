@@ -64,8 +64,11 @@ import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
 import { setSkipToInventoryOverview } from '../../actions/inventory';
 import AdditionalDataOverview from '../Common/AdditionalDataOverview';
 import { getScientificSpeciesById } from '../../repositories/species';
-import { getUserDetails, getUserInformation } from '../../repositories/user';
+import { getUserInformation } from '../../repositories/user';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
+import { UserContext } from '../../reducers/user';
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
 
 let scrollAdjust = 0;
 
@@ -78,20 +81,22 @@ type RootStackParamList = {
 type InventoryOverviewScreenRouteProp = RouteProp<RootStackParamList, 'InventoryOverview'>;
 
 const InventoryOverview = ({ navigation }: any) => {
-  const { protocol, cdnUrl } = APIConfig;
+  const { protocol } = APIConfig;
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
   const windowHeight = Dimensions.get('window').height;
 
   // reference for camera to focus on map
   const camera = useRef(null);
   const scrollPosition = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useContext(InventoryContext);
-
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const showProject = userState?.type == 'tpo' ? true : false;
   const [inventory, setInventory] = useState<any>(null);
   const [showDate, setShowDate] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [showProject, setShowProject] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
   const [showAddSampleTrees, setShowAddSampleTrees] = useState(false);
   const [showNoSpeciesAlert, setShowNoSpeciesAlert] = useState(false);
@@ -155,17 +160,6 @@ const InventoryOverview = ({ navigation }: any) => {
   }, [isCameraRefVisible, bounds, centerCoordinate]);
 
   useEffect(() => {
-    getUserDetails().then(userDetails => {
-      if (userDetails) {
-        const stringifiedUserDetails = JSON.parse(JSON.stringify(userDetails));
-        if (stringifiedUserDetails?.type === 'tpo') {
-          setShowProject(true);
-        } else {
-          setShowProject(false);
-        }
-      }
-    });
-
     const unsubscribeFocus = navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
       initialState();
@@ -211,7 +205,7 @@ const InventoryOverview = ({ navigation }: any) => {
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'MainScreen' },
+          { name: 'BottomTab' },
           {
             name: 'TreeInventory',
           },
@@ -228,7 +222,7 @@ const InventoryOverview = ({ navigation }: any) => {
         setInventory(inventoryData);
 
         if (inventoryData.projectId) {
-          const project: any = await getProjectById(inventoryData.projectId);
+          const project: any = await getProjectById(inventoryData?.projectId);
           if (project) {
             setSelectedProjectName(project.name);
             setSelectedProjectId(project.id);
@@ -237,15 +231,15 @@ const InventoryOverview = ({ navigation }: any) => {
           setSelectedProjectName('');
           setSelectedProjectId('');
         }
-        if (inventoryData.polygons.length > 0) {
+        if (inventoryData?.polygons.length > 0) {
           if (
-            inventoryData.polygons[0].coordinates.length === 1 &&
-            inventoryData.polygons[0].isPolygonComplete
+            inventoryData?.polygons[0]?.coordinates?.length === 1 &&
+            inventoryData?.polygons[0]?.isPolygonComplete
           ) {
             setIsPointForMultipleTree(true);
             setCenterCoordinate([
-              inventoryData.polygons[0].coordinates[0].longitude,
-              inventoryData.polygons[0].coordinates[0].latitude,
+              inventoryData?.polygons[0]?.coordinates[0]?.longitude,
+              inventoryData?.polygons[0]?.coordinates[0]?.latitude,
             ]);
           } else {
             setCenterCoordinate(turfCenter(geoJSONData.features[0]));
@@ -484,11 +478,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            { name: 'RecordSampleTrees' },
-          ],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     }
@@ -512,11 +502,7 @@ const InventoryOverview = ({ navigation }: any) => {
       navigation.dispatch(
         CommonActions.reset({
           index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            { name: 'RecordSampleTrees' },
-          ],
+          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
         }),
       );
     });
@@ -557,8 +543,8 @@ const InventoryOverview = ({ navigation }: any) => {
 
   const handleAddSampleTree = () => {
     inventory?.completedSampleTreesCount == 0 && inventory?.locateTree === ON_SITE
-      ? addSampleTree
-      : addAnotherSampleTree;
+      ? addSampleTree()
+      : addAnotherSampleTree();
   };
 
   let status = inventory ? inventory.status : PENDING_DATA_UPLOAD;
@@ -596,14 +582,19 @@ const InventoryOverview = ({ navigation }: any) => {
                       navigation.navigate('TreeInventory');
                     }
                   }}
-                  rightText={
-                    status == INCOMPLETE_SAMPLE_TREE ||
-                    status == INCOMPLETE ||
-                    status == PENDING_DATA_UPLOAD
-                      ? i18next.t('label.tree_review_delete')
-                      : []
-                  }
-                  onPressFunction={() => setShowAlert(true)}
+                  TitleRightComponent={() => (
+                    <TouchableOpacity
+                      style={{ marginLeft: 'auto' }}
+                      onPress={() => setShowAlert(true)}>
+                      <Text style={styles.rightText}>
+                        {status == INCOMPLETE_SAMPLE_TREE ||
+                        status == INCOMPLETE ||
+                        status == PENDING_DATA_UPLOAD
+                          ? i18next.t('label.tree_review_delete')
+                          : []}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 />
                 {inventory.status === FIX_NEEDED ? (
                   <View style={styles.fixNeededContainer}>
@@ -1087,6 +1078,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 30,
     right: 6,
+  },
+  rightText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PRIMARY,
   },
 });
 

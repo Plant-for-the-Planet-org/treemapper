@@ -131,21 +131,22 @@ const GeoJSONMap = ({
         1000,
       );
     }
-    if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
-      let config = {
-        centerCoordinate: siteCenterCoordinate,
-      };
-      camera.current.setCamera(config);
-    }
+    // if (isCameraRefVisible && siteCenterCoordinate.length > 0 && camera?.current?.setCamera) {
+    //   let config = {
+    //     centerCoordinate: siteCenterCoordinate,
+    //   };
+    //   camera.current.setCamera(config);
+    // }
   }, [isCameraRefVisible, siteBounds, siteCenterCoordinate]);
 
   // creates geoJSON object for the selected project sites
   useEffect(() => {
-    if (projectSites.length > 0) {
-      const features = projectSites.map(site => {
-        const geometry = site.geometry;
-
-        if (geometry.type === 'MultiPolygon') {
+    if (projectSites && projectSites?.length > 0) {
+      // filteredNonNullSites = here removing the sites that contains null in geometry
+      const filteredNonNullSites = projectSites.filter(item => JSON.parse(item?.geometry) !== null);
+      const features = filteredNonNullSites.map(site => {
+        const geometry = JSON.parse(site?.geometry);
+        if (geometry?.type === 'MultiPolygon') {
           const coordinates = geometry.coordinates.map(polygon => {
             return polygon[0];
           });
@@ -177,8 +178,8 @@ const GeoJSONMap = ({
   const onChangeRegionComplete = () => setLoader(false);
 
   let attributionPosition: any = {
-    bottom: IS_ANDROID ? 92 : 56,
-    left: 8,
+    bottom: IS_ANDROID ? 20 : 10,
+    left: IS_ANDROID ? 20 : 8,
   };
 
   let compassViewMargins = {

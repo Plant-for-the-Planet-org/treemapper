@@ -11,7 +11,6 @@ import {
   Logs,
   Legals,
   SignUp,
-  MainScreen,
   SavedAreas,
   LocateTree,
   ManageUsers,
@@ -33,8 +32,12 @@ import {
   RecordSampleTrees,
   RegisterSingleTree,
   SingleTreeOverview,
+  CreateIntervention,
+  Environment,
 } from '../';
+import BottomTab from './BottomTab';
 import AdditionalData from '../AdditionalData';
+import NavDrawer from '../MainScreen/NavDrawer';
 import TakePicture from '../../screens/TakePicture';
 import SpecieInfo from '../ManageSpecies/SpecieInfo';
 import AddMetadata from '../AdditionalData/AddMetadata';
@@ -48,6 +51,7 @@ import ProjectConfig from '../../screens/ManageProjectsFlow/ProjectConfig';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
 import RemeasurementForm from '../../screens/RemeasurementFlow/RemeasurementForm';
 import RemeasurementReview from '../../screens/RemeasurementFlow/RemeasurementReview';
+import Interventions from '../../screens/Interventions/Interventions';
 
 const Stack = createStackNavigator();
 const screenOptions = { headerShown: false };
@@ -81,11 +85,43 @@ const MyTransition: StackNavigationOptions = {
   },
 };
 
+const MyTransitionLTR: StackNavigationOptions = {
+  gestureDirection: 'vertical',
+  transitionSpec: {
+    open: TransitionSpecs.TransitionIOSSpec,
+    close: TransitionSpecs.TransitionIOSSpec,
+  },
+  headerStyleInterpolator: HeaderStyleInterpolators.forFade,
+  cardStyleInterpolator: ({ current, layouts }) => {
+    return {
+      cardStyle: {
+        transform: [
+          {
+            translateX: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-layouts.screen.width, 0],
+            }),
+          },
+        ],
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.5],
+        }),
+      },
+    };
+  },
+};
+
 export default function MainNavigator() {
   return (
     <Stack.Navigator initialRouteName="MainScreen" screenOptions={screenOptions}>
-      <Stack.Screen name="MainScreen" component={MainScreen} options={MyTransition} />
+      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="NavDrawer" component={NavDrawer} options={MyTransitionLTR} />
+      <Stack.Screen name="CreateIntervention" component={CreateIntervention} />
       <Stack.Screen name="TreeInventory" component={TreeInventory} options={MyTransition} />
+      <Stack.Screen name="Interventions" component={Interventions} options={MyTransition} />
       <Stack.Screen name="RegisterTree" component={RegisterTree} options={MyTransition} />
       <Stack.Screen name="SelectProject" component={SelectProject} options={MyTransition} />
       <Stack.Screen name="LocateTree" component={LocateTree} options={MyTransition} />
@@ -143,6 +179,7 @@ export default function MainNavigator() {
         options={MyTransition}
       />
       <Stack.Screen name="ProjectConfig" component={ProjectConfig} options={MyTransition} />
+      <Stack.Screen name="Environment" component={Environment} options={MyTransition} />
     </Stack.Navigator>
   );
 }

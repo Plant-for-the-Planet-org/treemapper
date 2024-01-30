@@ -426,8 +426,11 @@ export default function TotalTreesSpecies() {
       <View style={styles.container}>
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <TopRightBackground />
-          <View style={{ paddingHorizontal: 25 }}>
-            <Header headingText={i18next.t('label.total_trees_header')} />
+          <View>
+            <Header
+              containerStyle={{ paddingHorizontal: 25 }}
+              headingText={i18next.t('label.total_trees_header')}
+            />
           </View>
 
           {/* container for description of what sample trees are and how to proceed */}
@@ -438,26 +441,26 @@ export default function TotalTreesSpecies() {
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
             ? inventory.species.map((plantedSpecie, index) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setSpecie(plantedSpecie);
-                  setSpecieIndex(index);
-                  setShowTreeCountModal(true);
-                }}
-                key={index}>
-                <SpecieListItem
-                  item={plantedSpecie}
-                  index={index}
-                  key={`${plantedSpecie.id}`}
-                  deleteSpecie={() =>
-                    inventory.completedSampleTreesCount > 0
-                      ? onPressDelete(index)
-                      : deleteSpecie(index)
-                  }
-                  setSpecieIndex={setSpecieIndex}
-                />
-              </TouchableOpacity>
-            ))
+                <TouchableOpacity
+                  onPress={() => {
+                    setSpecie(plantedSpecie);
+                    setSpecieIndex(index);
+                    setShowTreeCountModal(true);
+                  }}
+                  key={index}>
+                  <SpecieListItem
+                    item={plantedSpecie}
+                    index={index}
+                    key={`${plantedSpecie.id}`}
+                    deleteSpecie={() =>
+                      inventory.completedSampleTreesCount > 0
+                        ? onPressDelete(index)
+                        : deleteSpecie(index)
+                    }
+                    setSpecieIndex={setSpecieIndex}
+                  />
+                </TouchableOpacity>
+              ))
             : renderMapView()}
         </ScrollView>
         <View style={{ paddingHorizontal: 25 }}>

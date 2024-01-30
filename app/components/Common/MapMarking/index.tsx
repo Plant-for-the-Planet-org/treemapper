@@ -1,13 +1,3 @@
-import {
-  Text,
-  View,
-  Modal,
-  Linking,
-  Platform,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
 import bbox from '@turf/bbox';
 import i18next from 'i18next';
 import { Coord } from '@turf/helpers';
@@ -18,6 +8,8 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Text, View, Modal, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
 import {
   getInventory,
@@ -798,7 +790,7 @@ export default function MapMarking({
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'MainScreen' },
+          { name: 'BottomTab' },
           {
             name: 'TreeInventory',
           },
@@ -846,16 +838,8 @@ export default function MapMarking({
   //small button on top right corner which will show accuracy in meters and the respective colour
   const renderAccuracyInfo = () => {
     return (
-      <TouchableOpacity
-        style={[
-          styles.gpsContainer,
-          accuracyInMeters < 10 && accuracyInMeters > 0
-            ? { backgroundColor: '#1CE003' }
-            : accuracyInMeters < 30 && accuracyInMeters > 0
-            ? { backgroundColor: '#FFC400' }
-            : { backgroundColor: '#FF0000' },
-        ]}
-        onPress={() => setIsAccuracyModalShow(true)}>
+      <TouchableOpacity style={[styles.gpsContainer]} onPress={() => setIsAccuracyModalShow(true)}>
+        <MaterialCommunityIcons name={'navigation'} size={20} color={Colors.DARK_TEXT_COLOR} />
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
       </TouchableOpacity>
     );
@@ -892,10 +876,9 @@ export default function MapMarking({
       />
 
       <View style={styles.headerCont}>
-        <SafeAreaView />
+        {/* <SafeAreaView /> */}
         <Header
           onBackPress={resetRouteStack}
-          closeIcon
           headingText={
             treeType === SAMPLE
               ? i18next.t('label.sample_tree_marking_heading', {
@@ -913,6 +896,7 @@ export default function MapMarking({
                 }`
               : i18next.t('label.tree_map_marking_header')
           }
+          containerStyle={{ paddingHorizontal: 25, paddingTop: isAndroid ? 16 : 66 }}
           TitleRightComponent={renderAccuracyInfo}
         />
       </View>
@@ -972,25 +956,30 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   headerCont: {
-    paddingHorizontal: 25,
+    // paddingHorizontal: 25,
     position: 'absolute',
     top: 0,
     backgroundColor: 'rgba(255, 255, 255, 0)',
     width: '100%',
   },
   gpsContainer: {
-    width: 110,
-    backgroundColor: '#FFC400',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 96,
+    backgroundColor: Colors.WHITE,
     borderRadius: 25,
+    position: 'absolute',
+    top: 55,
+    right: -10,
+    padding: 8,
+    flexWrap: 'wrap',
   },
   gpsText: {
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: Colors.DARK_TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontWeight: Typography.FONT_WEIGHT_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
-    paddingHorizontal: 7,
-    paddingVertical: 3.5,
     alignSelf: 'center',
   },
   modalContainer: {

@@ -11,15 +11,17 @@ import {
 import { LogTypes } from '../utils/constants';
 import { SET_SPECIE, CLEAR_SPECIE } from './Types';
 import { APIConfig } from './Config';
+import { store } from '../redux/store';
+import { ENVS } from '../../environment';
 
-const { protocol, cdnUrl } = APIConfig;
+const { protocol } = APIConfig;
 
 /**
  * This function dispatches type SET_SPECIE with payload specie to show specie detail on SpecieInfo screen
  * It requires the following param
  * @param {Object} specie - specie which is to be shown or updated
  */
-export const setSpecie = (specie) => (dispatch) => {
+export const setSpecie = specie => dispatch => {
   dispatch({
     type: SET_SPECIE,
     payload: specie,
@@ -29,7 +31,7 @@ export const setSpecie = (specie) => (dispatch) => {
 /**
  * This function dispatches type CLEAR_SPECIE to clear the species after navigated back from SpecieInfo screen
  */
-export const clearSpecie = () => (dispatch) => {
+export const clearSpecie = () => dispatch => {
   dispatch({
     type: CLEAR_SPECIE,
   });
@@ -42,7 +44,7 @@ export const getSpeciesList = () => {
   return new Promise((resolve, reject) => {
     // makes an authorized GET request on /species to get the species list.
     getAuthenticatedRequest('/treemapper/species')
-      .then((res) => {
+      .then(res => {
         const { data, status } = res;
         // checks if the status code is 200 the resolves the promise with the fetched data
         if (status === 200) {
@@ -57,7 +59,7 @@ export const getSpeciesList = () => {
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error
         console.error(`Error at /actions/species/getSpeciesList, ${JSON.stringify(err.response)}`);
         // logs the error of the failed request in DB
@@ -78,11 +80,11 @@ export const getSpeciesList = () => {
  * @param {object} specieData - contains scientificSpecies as property having scientific specie id and
  *                              aliases as property (a name given by user to that scientific specie)
  */
-export const addUserSpecie = (specieData) => {
+export const addUserSpecie = specieData => {
   return new Promise((resolve, reject) => {
     // makes an authorized POST request on /species to add a specie of user.
     postAuthenticatedRequest('/treemapper/species', specieData)
-      .then((res) => {
+      .then(res => {
         const { data, status } = res;
 
         // checks if the status code is 200 the resolves the promise with the fetched data
@@ -104,7 +106,7 @@ export const addUserSpecie = (specieData) => {
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error
         console.error(`Error at /actions/species/addUserSpecie, ${JSON.stringify(err?.response)}`);
         // logs the error of the failed request in DB
@@ -123,11 +125,11 @@ export const addUserSpecie = (specieData) => {
  * Delete the user specie from the server using the specie id
  * @param {object} specieId - specie id of user saved species which is use to delete specie from server
  */
-export const deleteUserSpecie = (specieId) => {
+export const deleteUserSpecie = specieId => {
   return new Promise((resolve, reject) => {
     // makes an authorized DELETE request on /species to delete a specie of user.
     deleteAuthenticatedRequest(`/treemapper/species/${specieId}`)
-      .then((res) => {
+      .then(res => {
         const { status } = res;
 
         // checks if the status code is 204 then resolves the promise
@@ -143,7 +145,7 @@ export const deleteUserSpecie = (specieId) => {
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error
         console.error(
           `Error at /actions/species/deleteUserSpecie, ${JSON.stringify(err?.response)}, ${err}`,
@@ -171,7 +173,7 @@ export const updateUserSpecie = ({
     const data = { aliases, description, imageFile: image };
     // makes an authorized DELETE request on /species to delete a specie of user.
     putAuthenticatedRequest(`/treemapper/species/${specieId}`, data)
-      .then((res) => {
+      .then(res => {
         const { status } = res;
         // checks if the status code is 204 then resolves the promise
         if (status === 200) {
@@ -187,7 +189,7 @@ export const updateUserSpecie = ({
           resolve(false);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
@@ -207,14 +209,14 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
     };
 
     putAuthenticatedRequest(`/treemapper/species/${speciesId}`, body)
-      .then((res) => {
+      .then(res => {
         const { status } = res;
         if (status === 200) {
           changeIsUpdatedStatus({ scientificSpecieGuid: SpecieGuid, isUpdated: true });
           resolve(true);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // logs the error of the failed request in DB
         dbLog.error({
           logType: LogTypes.MANAGE_SPECIES,
@@ -227,24 +229,25 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
   });
 };
 
-export const getBase64ImageFromURL = async (specieImage) => {
+export const getBase64ImageFromURL = async specieImage => {
   return new Promise((resolve, reject) => {
-    if (cdnUrl) {
+    const currentEnv = store.getState().envSlice.currentEnv;
+    if (ENVS[currentEnv].CDN_URL) {
       RNFS.downloadFile({
-        fromUrl: `${protocol}://${cdnUrl}/media/cache/species/default/${specieImage}`,
+        fromUrl: `${protocol}://${ENVS[currentEnv].CDN_URL}/media/cache/species/default/${specieImage}`,
         toFile: `${RNFS.DocumentDirectoryPath}/${specieImage}`,
-      }).promise.then((response) => {
+      }).promise.then(response => {
         if (response.statusCode === 200) {
           RNFS.readFile(`${RNFS.DocumentDirectoryPath}/${specieImage}`, 'base64')
-            .then((data) => {
+            .then(data => {
               resolve(data);
-              RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
+              RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch(err => {
                 reject(err);
                 // `unlink` will throw an error, if the item to unlink does not exist
                 console.error(err.message);
               });
             })
-            .catch((err) => {
+            .catch(err => {
               dbLog.error({
                 logType: LogTypes.MANAGE_SPECIES,
                 message: 'Error while reading file image',

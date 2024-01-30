@@ -13,6 +13,7 @@ import i18next from 'i18next';
 import { SvgXml } from 'react-native-svg';
 import { useNetInfo } from '@react-native-community/netinfo';
 import React, { useContext, useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackActions, useNavigation } from '@react-navigation/native';
 
 import {
@@ -37,7 +38,6 @@ import { Colors, Typography } from '../../styles';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { empty_inventory_banner } from '../../assets';
-import { getUserDetails } from '../../repositories/user';
 import { setInventoryId } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
 import { uploadInventoryData } from '../../utils/uploadInventory';
@@ -61,7 +61,6 @@ const TreeInventory = () => {
   const [editingPlantLocationHistory, setEditingPlantLocationHistory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
   const [fixNeededInventory, setFixNeededInventory] = useState([]);
-  const [countryCode, setCountryCode] = useState('');
   const [offlineModal, setOfflineModal] = useState(false);
   const [showDeleteIncompleteAlert, setShowDeleteIncompleteAlert] = useState(false);
 
@@ -73,6 +72,7 @@ const TreeInventory = () => {
   } = useContext(PlantLocationHistoryContext);
 
   const netInfo = useNetInfo();
+  const insects = useSafeAreaInsets();
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -98,6 +98,9 @@ const TreeInventory = () => {
 
   const handleBackPress = () => {
     navigation.dispatch(StackActions.popToTop());
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
     return true;
   };
 
@@ -118,9 +121,6 @@ const TreeInventory = () => {
     getInventoryByStatus([]).then(allInventory => {
       setAllInventory(allInventory);
       filteredInventories();
-    });
-    getUserDetails().then(userDetails => {
-      setCountryCode(userDetails?.country || '');
     });
   };
 
@@ -292,6 +292,7 @@ const TreeInventory = () => {
         headingText={i18next.t('label.tree_inventory_list_header')}
         subHeadingText={i18next.t('label.tree_inventory_list_container_sub_header')}
         onBackPress={handleBackPress}
+        containerStyle={{ paddingHorizontal: 0 }}
         TopRightComponent={uploadButton}
       />
       {uploadedInventory.length > 0 && (

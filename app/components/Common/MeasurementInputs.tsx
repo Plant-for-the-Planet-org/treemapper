@@ -1,9 +1,9 @@
 import i18next from 'i18next';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Switch, Text, View, Keyboard} from 'react-native';
-import {Typography, Colors} from '../../styles';
-import {DBHInMeter, meterToFoot} from '../../utils/constants';
-import {getConvertedHeight} from '../../utils/measurements';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Switch, Text, View, Keyboard } from 'react-native';
+import { Typography, Colors } from '../../styles';
+import { DBHInMeter, meterToFoot } from '../../utils/constants';
+import { getConvertedHeight } from '../../utils/measurements';
 import OutlinedInput from './OutlinedInput';
 
 type Props = {
@@ -80,7 +80,7 @@ const MeasurementInputs = ({
         </View>
       </View>
 
-      <View style={[styles.inputBox, {zIndex: 1}]}>
+      <View style={[styles.inputBox, { zIndex: 1 }]}>
         <View>
           <OutlinedInput
             value={diameter}
@@ -105,12 +105,16 @@ const MeasurementInputs = ({
 
       {showTagIdInput ? (
         <>
-          <View style={styles.switchContainer}>
+          <View
+            style={[
+              styles.switchContainer,
+              isTagIdPresent && { backgroundColor: Colors.PRIMARY + '20' },
+            ]}>
             <Text style={styles.switchText}>
               {i18next.t('label.select_species_tagged_for_identification')}
             </Text>
             <Switch
-              trackColor={{false: '#767577', true: '#d4e7b1'}}
+              trackColor={{ false: '#767577', true: '#d4e7b1' }}
               thumbColor={isTagIdPresent ? Colors.PRIMARY : '#f4f3f4'}
               ios_backgroundColor="#3e3e3e"
               onValueChange={() => setIsTagIdPresent(!isTagIdPresent)}
@@ -120,15 +124,13 @@ const MeasurementInputs = ({
           {isTagIdPresent && handleTagIdChange ? (
             <>
               <View style={styles.inputBox}>
-                <View>
-                  <OutlinedInput
-                    value={tagId}
-                    label={i18next.t('label.select_species_tree_tag')}
-                    onChangeText={(text: string) => handleTagIdChange(text)}
-                    error={tagIdError}
-                    ref={tagIdRef}
-                  />
-                </View>
+                <OutlinedInput
+                  value={tagId}
+                  label={i18next.t('label.select_species_tree_tag')}
+                  onChangeText={(text: string) => handleTagIdChange(text)}
+                  error={tagIdError}
+                  ref={tagIdRef}
+                />
               </View>
             </>
           ) : (
@@ -154,6 +156,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+    backgroundColor: '#E0E0E050',
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 8,
   },
   switchText: {
     color: Colors.TEXT_COLOR,

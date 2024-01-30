@@ -11,9 +11,13 @@ import { addProjects, deleteAllProjects } from '../repositories/projects';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
 import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '../utils/api';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
+import { clearAllUploadedInventory } from '../repositories/inventory';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
-const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
+const auth0 = new Auth0({
+  domain: Config.AUTH0_DOMAIN,
+  clientId: Config.AUTH0_CLIENT_ID,
+});
 
 // stores the protocol and url used for api request
 
@@ -37,6 +41,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           scope: 'openid email profile offline_access',
           federated: true,
           prompt: 'login',
+          // audience: Config.AUTH0_AUD,
           audience: 'urn:plant-for-the-planet',
         },
         { ephemeralSession: false },
@@ -68,6 +73,8 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               image,
               country,
               id: userId,
+              type,
+              displayName,
             }: any = userDetails;
 
             // dispatch function sets the passed user details into the user state
@@ -78,6 +85,8 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
               image,
               country,
               userId,
+              type,
+              displayName,
             })(dispatch);
 
             resolve(true);
@@ -129,6 +138,7 @@ export const auth0Logout = async (userDispatch = null) => {
         // deletes the user from DB
         await deleteUser();
         await deleteAllProjects();
+        await clearAllUploadedInventory();
 
         await resetAllSpecies();
 

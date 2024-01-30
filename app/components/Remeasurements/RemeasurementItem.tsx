@@ -14,7 +14,9 @@ import { single_tree_png } from '../../assets';
 import { cmToInch, meterToFoot, nonISUCountries } from '../../utils/constants';
 import i18next from 'i18next';
 import { getUserInformation } from '../../repositories/user';
-const { protocol, cdnUrl } = APIConfig;
+import { useSelector } from 'react-redux';
+import { ENVS } from '../../../environment';
+const { protocol } = APIConfig;
 
 type Props = {
   item: any;
@@ -27,6 +29,9 @@ const RemeasurementItem = ({ item, hideImage = false, containerStyle = {} }: Pro
   const [imageSource, setImageSource] = useState<any>();
   const [isNonISUCountry, setIsNonISUCountry] = useState<boolean>(false);
   const [hid, setHid] = useState<string>('');
+
+  const { currentEnv } = useSelector(state => state.envSlice);
+  const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   // updates the [imageSource] based on the avaialble image property
   useEffect(() => {
