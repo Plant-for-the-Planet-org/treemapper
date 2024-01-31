@@ -70,3 +70,7 @@ yarn-error.log
 # testing
 /coverage
 /environment.tsx
+
+# Ignore staging and production folders in android/app
+android/app/staging/
+android/app/production/
