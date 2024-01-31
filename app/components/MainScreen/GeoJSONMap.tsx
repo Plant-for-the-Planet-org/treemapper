@@ -3,10 +3,11 @@ import turfCenter from '@turf/center';
 import Geolocation from 'react-native-geolocation-service';
 import { Platform, StyleProp, StyleSheet } from 'react-native';
 import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { Colors } from '../../styles';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
+import { UserContext } from '../../reducers/user';
 
 const mapStyle = JSON.stringify(require('../../assets/mapStyle/mapStyleOutput.json'));
 
@@ -88,6 +89,7 @@ const GeoJSONMap = ({
   const [centerCoordinate, setCenterCoordinate] = useState<any>([]);
   // used to store the selected project sites geoJSON
   const [projectSitesGeoJSON, setProjectSitesGeoJSON] = useState<any>(geoJSONInitialState);
+  const { state: userInfo, dispatch: userDispatch } = useContext(UserContext);
 
   const map = useRef(null);
 
@@ -141,7 +143,7 @@ const GeoJSONMap = ({
 
   // creates geoJSON object for the selected project sites
   useEffect(() => {
-    if (projectSites && projectSites?.length > 0) {
+    if (projectSites && projectSites.length > 0) {
       // filteredNonNullSites = here removing the sites that contains null in geometry
       const filteredNonNullSites = projectSites.filter(item => JSON.parse(item?.geometry) !== null);
       const features = filteredNonNullSites.map(site => {
@@ -171,7 +173,7 @@ const GeoJSONMap = ({
         features,
       });
     }
-  }, [projectSites]);
+  }, [projectSites, userInfo.accessToken]);
 
   const onChangeRegionStart = () => setLoader(true);
 

@@ -58,6 +58,7 @@ export default function AppNavigator() {
     showInitialStack,
     inventoryState.fetchNecessaryInventoryFlag,
     inventoryState.fetchGivenMonthsInventoryFlag,
+    userState.accessToken,
   ]);
 
   useEffect(() => {

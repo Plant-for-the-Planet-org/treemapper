@@ -18,8 +18,6 @@ import {
   GIVEN_MONTH_INVENTORY_FETCH_FROM_SERVER,
 } from '../actions/Types';
 
-import { InventoryType } from '../types/inventory';
-
 export const inventoryFetchConstant = {
   PENDING: 'PENDING',
   IN_PROGRESS: 'IN_PROGRESS',
@@ -42,7 +40,7 @@ const initialState = {
   selectedRemeasurementId: '',
   fetchNecessaryInventoryFlag: null,
   fetchGivenMonthsInventoryFlag: null,
-  inventoryLastMonthFetchProgress: inventoryFetchConstant.PENDING,
+  inventoryLastMonthFetchProgress: inventoryFetchConstant.COMPLETED,
 };
 
 // Inventory reducer function which takes the state and action param

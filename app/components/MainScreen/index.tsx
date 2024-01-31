@@ -591,10 +591,26 @@ export default function MainScreen() {
                 </View>
               ) : (
                 <>
-                  <Text
-                    style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
-                    {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
-                  </Text>
+                  {state.inventoryLastMonthFetchProgress === inventoryFetchConstant.COMPLETED ? (
+                    <Text
+                      style={[styles.filterItemLabel, styles.borderFilterItem, { width: 'auto' }]}>
+                      {checkboxes.find(item => item.selected === true)?.duration || 'Select'}
+                    </Text>
+                  ) : (
+                    <>
+                      <Text style={[styles.fetchLoad, { width: 75, textAlign: 'center' }]}>
+                        Pending
+                      </Text>
+                      <Text
+                        style={[
+                          styles.filterItemLabel,
+                          styles.borderFilterItem,
+                          { width: 'auto', marginRight: 15 },
+                        ]}>
+                        {checkboxes.find(item => item.selected === true)?.duration}
+                      </Text>
+                    </>
+                  )}
                   <TouchableOpacity onPress={() => refetchGivenMonthsInventory()}>
                     {checkboxes.find(item => item.selected === true)?.duration && (
                       <FA5Icon name="sync-alt" size={15} color={Colors.PRIMARY_DARK} />
@@ -770,7 +786,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#E0E0E066',
-
     borderRadius: 8,
     minHeight: 54,
     marginTop: 10,
@@ -782,7 +797,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 12,
-    width: width / 2,
+    width: width / 2.5,
   },
   zoomToSiteTitle: {
     fontWeight: Typography.FONT_WEIGHT_BOLD,

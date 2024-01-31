@@ -200,7 +200,6 @@ export const addLastGivenMonthsInventoryFromServer = async (
             lastGivenDays,
           );
         } else {
-          console.log('NO NEXT ROUTE LINK', lastGivenDays);
           if (lastGivenDays === 7) {
             getInventoryByStatus([
               PENDING_DATA_UPLOAD,
@@ -210,16 +209,23 @@ export const addLastGivenMonthsInventoryFromServer = async (
               SYNCED,
               PENDING_DATA_UPDATE,
               FIX_NEEDED,
-            ]).then((allRegistrations: any) => {
-              if (allRegistrations.length === 0) {
-                setFetchGivenMonthsInventoryFlag(30)(dispatch);
-                modifyUserDetails({
-                  fetchGivenMonthsInventoryFlag: 30,
-                });
-              }
-            });
+            ])
+              .then((allRegistrations: any) => {
+                if (allRegistrations.length === 0) {
+                  setFetchGivenMonthsInventoryFlag(30)(dispatch);
+                  modifyUserDetails({
+                    fetchGivenMonthsInventoryFlag: 30,
+                  });
+                } else {
+                  updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(
+                    dispatch,
+                  );
+                }
+              })
+              .catch((err: any) => {
+                console.error(err);
+              });
           } else {
-            console.log('COMPLETED 1', lastGivenDays);
             updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(
               dispatch,
             );
@@ -239,16 +245,19 @@ export const addLastGivenMonthsInventoryFromServer = async (
         SYNCED,
         PENDING_DATA_UPDATE,
         FIX_NEEDED,
-      ]).then((allRegistrations: any) => {
-        if (allRegistrations.length === 0) {
-          setFetchGivenMonthsInventoryFlag(30)(dispatch);
-          modifyUserDetails({
-            fetchGivenMonthsInventoryFlag: 30,
-          });
-        }
-      });
+      ])
+        .then((allRegistrations: any) => {
+          if (allRegistrations.length === 0) {
+            setFetchGivenMonthsInventoryFlag(30)(dispatch);
+            modifyUserDetails({
+              fetchGivenMonthsInventoryFlag: 30,
+            });
+          }
+        })
+        .catch((err: any) => {
+          console.error(err);
+        });
     } else {
-      console.log('COMPLETED 2', lastGivenDays);
       updateLastGivenMonthInventoryFetchFromServer(inventoryFetchConstant.COMPLETED)(dispatch);
     }
   }

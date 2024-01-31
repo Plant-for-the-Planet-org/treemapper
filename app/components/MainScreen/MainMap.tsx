@@ -111,10 +111,16 @@ const MainMap = ({
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (state.inventoryFetchProgress === inventoryFetchConstant.COMPLETED) {
+    if (
+      state.inventoryFetchProgress === inventoryFetchConstant.COMPLETED ||
+      state.inventoryLastMonthFetchProgress === inventoryFetchConstant.COMPLETED
+    ) {
       initializeInventory();
     }
-  }, [state.inventoryFetchProgress, userInfo]);
+    if (userInfo.accessToken === null) {
+      setPointGeoJSON(geoJSONInitialState);
+    }
+  }, [state.inventoryFetchProgress, state.inventoryLastMonthFetchProgress, userInfo.accessToken]);
 
   useEffect(() => {
     const unsubscribeFocus = navigation.addListener('focus', () => {
