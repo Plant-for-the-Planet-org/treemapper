@@ -8,5 +8,8 @@
   "download_maps": "Offline Maps",
   "download_maps_sub_header": "for offline use",
   "register_tree": "Register Trees",
-  "loading_content": "Loading content ..."
+  "loading_content": "Loading content ...",
+  "add": "Add",
+  "plots": "Plots",
+  "map": "Map"
 }

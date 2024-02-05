@@ -8,5 +8,8 @@
   "download_maps": "Karten herunterladen",
   "download_maps_sub_header": "zur Offline-Verwendung",
   "register_tree": "Bäume registrieren",
-  "loading_content": "Lade Inhalte ..."
+  "loading_content": "Lade Inhalte ...",
+  "add": "Hinzufügen",
+  "plots": "Grundstücke",
+  "map": "Karte"
 }

@@ -6,5 +6,8 @@
   "download_maps": "Mapas off-line",
   "download_maps_sub_header": "para utilização offline",
   "register_tree": "Registrar Árvores",
-  "loading_content": "Carregando conteúdo..."
+  "loading_content": "Carregando conteúdo...",
+  "add": "Adicionar",
+  "plots": "Parcelas",
+  "map": "Mapa"
 }

@@ -6,5 +6,8 @@
   "download_maps": "Télécharger les cartes",
   "download_maps_sub_header": "pour une utilisation hors ligne",
   "register_tree": "Enregistrer l'arbre",
-  "loading_content": "Chargement du contenu..."
+  "loading_content": "Chargement du contenu...",
+  "add": "Ajouter",
+  "plots": "Parcelles",
+  "map": "Carte"
 }
