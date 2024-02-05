@@ -186,12 +186,32 @@ export const AddMeasurements = () => {
 
   const handleHeightChange = (text: string) => {
     setHeightError('');
-    setHeight(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+    // Replace commas with dots for consistency
+    const sanitizedText = text.replace(/,/g, '.');
+
+    // Allow only digits and a single decimal point
+    const validHeight = sanitizedText.replace(/[^0-9.]/g, '');
+
+    // Ensure there is at most one decimal point
+    const decimalCount = validHeight.split('.').length - 1;
+    if (decimalCount <= 1) {
+      setHeight(validHeight);
+    }
   };
 
   const handleDiameterChange = (text: string) => {
     setDiameterError('');
-    setDiameter(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+    // Replace commas with dots for consistency
+    const sanitizedText = text.replace(/,/g, '.');
+
+    // Allow only digits and a single decimal point
+    const validDiameter = sanitizedText.replace(/[^0-9.]/g, '');
+
+    // Ensure there is at most one decimal point
+    const decimalCount = validDiameter.split('.').length - 1;
+    if (decimalCount <= 1) {
+      setDiameter(validDiameter);
+    }
   };
   const handleTagIdChange = (text: string) => {
     setTagIdError('');
