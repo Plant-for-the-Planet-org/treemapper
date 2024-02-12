@@ -31,7 +31,6 @@ interface IGeoJSONMapProps {
   isCarouselRefVisible: boolean;
   showSinglePlantLocation: boolean;
   singleSelectedGeoJSON: any;
-  isSampleCarouselRefVisible: boolean;
   sampleCarouselRef: any;
   onPressViewSampleTrees: any;
   siteCenterCoordinate: any;
@@ -57,7 +56,6 @@ const GeoJSONMap = ({
   isCarouselRefVisible,
   showSinglePlantLocation,
   singleSelectedGeoJSON,
-  isSampleCarouselRefVisible,
   sampleCarouselRef,
   onPressViewSampleTrees,
   siteCenterCoordinate,
@@ -82,7 +80,6 @@ const GeoJSONMap = ({
   // console.log(JSON.stringify(geoJSON), '==geoJSON==');
 
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
-  const [activeSampleCarouselIndex, setActiveSampleCarouselIndex] = useState(0);
   // sets the bound to focus the selected polygon
   const [bounds, setBounds] = useState<any>([]);
   // used to store and focus on the center of the bounding box of the polygon selected
@@ -103,12 +100,6 @@ const GeoJSONMap = ({
       setBounds(bbox(selectedGeoJSON.features[0]));
     }
   }, [carouselRef?.current?.currentIndex, isCarouselRefVisible]);
-
-  useEffect(() => {
-    if (isCameraRefVisible && sampleCarouselRef?.current) {
-      setActiveSampleCarouselIndex(sampleCarouselRef.current.currentIndex);
-    }
-  }, [sampleCarouselRef?.current?.currentIndex, isSampleCarouselRefVisible]);
 
   // used to focus the selected polygon whenever the bounds are changed or center coordinate is updated
   useEffect(() => {
@@ -276,9 +267,6 @@ const GeoJSONMap = ({
           <SampleTreeMarkers
             geoJSON={singleSelectedGeoJSON}
             isPointForMultipleTree={false}
-            activeSampleCarouselIndex={activeSampleCarouselIndex}
-            setActiveSampleCarouselIndex={setActiveSampleCarouselIndex}
-            isCarouselSample
             sampleCarouselRef={sampleCarouselRef}
           />
           <MapLibreGL.ShapeSource

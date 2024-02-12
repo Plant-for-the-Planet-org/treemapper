@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
-import Carousel from 'react-native-snap-carousel';
+import Carousel from 'react-native-reanimated-carousel';
 import { APIConfig } from '../../actions/Config';
 import { setRemeasurementId, setSamplePlantLocationIndex } from '../../actions/inventory';
 import { InventoryContext } from '../../reducers/inventory';
@@ -22,8 +22,9 @@ import distanceCalculator from '../../utils/distanceCalculator';
 import { PENDING_DATA_UPLOAD, SYNCED } from '../../utils/inventoryConstants';
 import { getIsDateInRemeasurementRange } from '../../utils/remeasurement';
 import PrimaryButton from '../Common/PrimaryButton';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ENVS } from '../../../environment';
+import { updateTreeMarkerCarousel } from '../../redux/slices/appSlice';
 const { protocol } = APIConfig;
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -31,7 +32,6 @@ const IS_ANDROID = Platform.OS === 'android';
 interface ISelectedPlantLocationSampleTreesCardsProps {
   singleSelectedPlantLocation: any;
   carouselRef: any;
-  setIsCarouselRefVisible: React.Dispatch<React.SetStateAction<boolean>>;
   countryCode: string;
   location: any;
   loadingInventoryData: boolean;
@@ -43,14 +43,15 @@ const itemWidth = width - 25 * 3;
 const SelectedPlantLocationSampleTreesCards = ({
   singleSelectedPlantLocation,
   carouselRef,
-  setIsCarouselRefVisible,
   countryCode,
   location,
   loadingInventoryData,
 }: ISelectedPlantLocationSampleTreesCardsProps) => {
   const navigation = useNavigation();
+  const dispatchState = useDispatch();
   const { dispatch } = useContext(InventoryContext);
   const { currentEnv } = useSelector(state => state.envSlice);
+  const { treeMarkerCarousel } = useSelector(state => state.appSlice);
   const cdnUrl = ENVS[currentEnv].CDN_URL;
 
   const heightUnit = nonISUCountries.includes(countryCode)
@@ -79,6 +80,15 @@ const SelectedPlantLocationSampleTreesCards = ({
     }
   };
 
+  const handleScrollChange=()=>{
+    if(carouselRef && carouselRef.current){
+      let index = carouselRef.current.getCurrentIndex()
+      if(treeMarkerCarousel !== index){
+        dispatchState(updateTreeMarkerCarousel(index))
+      }
+    }
+  }
+
   const onPressCheckRemeasurement = (item: any) => {
     setRemeasurementId(item?.plantLocationHistory[item?.plantLocationHistory?.length - 1].id)(
       dispatch,
@@ -96,14 +106,19 @@ const SelectedPlantLocationSampleTreesCards = ({
   return (
     <View style={styles.carousel}>
       <Carousel
-        ref={el => {
-          carouselRef.current = el;
-          setIsCarouselRefVisible(true);
+        ref={carouselRef}
+        pagingEnabled={true}
+        snapEnabled={true}
+        loop={false}
+        height={210}
+        onScrollEnd={handleScrollChange}
+        mode="parallax"
+        modeConfig={{
+          parallaxScrollingScale: 0.9,
+          parallaxScrollingOffset: 50,
         }}
-        useScrollView={true}
+        width={width}
         data={singleSelectedPlantLocation?.sampleTrees}
-        itemWidth={itemWidth}
-        sliderWidth={width}
         renderItem={({ item, index }: any) => {
           let imageSource;
           // let canRemeasurePlantLocation = false;

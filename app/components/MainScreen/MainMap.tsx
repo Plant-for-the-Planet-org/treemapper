@@ -40,6 +40,7 @@ import {
 import GeoJSONMap from './GeoJSONMap';
 import SelectedPlantLocationSampleTreesCards from './SelectedPlantLocationSampleTreesCards';
 import SelectedPlantLocationsCards from './SelectedPlantLocationsCards';
+import Carousel from 'react-native-reanimated-carousel';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -81,7 +82,6 @@ const MainMap = ({
   const [isPermissionDenied, setIsPermissionDenied] = useState(false);
 
   const [isCarouselRefVisible, setIsCarouselRefVisible] = useState(false);
-  const [isSampleCarouselRefVisible, setIsSampleCarouselRefVisible] = useState(false);
   const [loadingInventoryData, setLoadingInventoryData] = useState(false);
 
   // stores the geoJSON
@@ -106,7 +106,7 @@ const MainMap = ({
   const camera = useRef<MapLibreGL.Camera | null>(null);
 
   const carouselRef = useRef(null);
-  const sampleCarouselRef = useRef(null);
+  const sampleCarouselRef = useRef<typeof Carousel>(null);
 
   const navigation = useNavigation();
 
@@ -407,7 +407,6 @@ const MainMap = ({
         isCarouselRefVisible={isCarouselRefVisible}
         showSinglePlantLocation={showSinglePlantLocation}
         singleSelectedGeoJSON={singleSelectedGeoJSON}
-        isSampleCarouselRefVisible={isSampleCarouselRefVisible}
         sampleCarouselRef={sampleCarouselRef}
         onPressViewSampleTrees={onPressViewSampleTrees}
         siteCenterCoordinate={siteCenterCoordinate}
@@ -502,7 +501,6 @@ const MainMap = ({
         <SelectedPlantLocationSampleTreesCards
           singleSelectedPlantLocation={singleSelectedPlantLocation}
           carouselRef={sampleCarouselRef}
-          setIsCarouselRefVisible={setIsSampleCarouselRefVisible}
           countryCode={countryCode}
           location={location}
           loadingInventoryData={loadingInventoryData}

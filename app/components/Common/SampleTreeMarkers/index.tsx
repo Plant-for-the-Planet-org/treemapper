@@ -1,12 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-
 import MarkerSVG from '../../Common/MarkerSVG';
 import { Colors, Typography } from '../../../styles';
 import { toLetters } from '../../../utils/mapMarkingCoordinate';
 import { FIX_NEEDED, ON_SITE } from '../../../utils/inventoryConstants';
 import { getIsDateInRemeasurementRange } from '../../../utils/remeasurement';
+import { useSelector } from 'react-redux';
 
 interface Props {
   geoJSON: any;
@@ -16,15 +16,11 @@ interface Props {
   onPressMarker?: (isSampleTree: boolean, coordinate: []) => void;
   setIsSampleTree?: React.Dispatch<React.SetStateAction<boolean | null>>;
   locateTree?: string;
-  isCarouselSample?: boolean;
   activeSampleCarouselIndex?: number | null;
   setActiveSampleCarouselIndex?: any;
   sampleCarouselRef?: any;
 }
-function useForceUpdate() {
-  const [value, setValue] = useState(0); // integer state
-  return () => setValue(value => value + 1); // update the state to force render
-}
+
 const SampleTreeMarkers = ({
   geoJSON,
   isPointForMultipleTree,
@@ -32,18 +28,11 @@ const SampleTreeMarkers = ({
   setCoordinateIndex,
   onPressMarker,
   setIsSampleTree,
-  locateTree = '',
-  isCarouselSample = false,
-  activeSampleCarouselIndex = null,
-  setActiveSampleCarouselIndex,
   sampleCarouselRef,
 }: Props) => {
   const markers = [];
-  const [selectedMarker, setSelectedMarker] = useState();
-  const forceUpdate = useForceUpdate();
-  useEffect(() => {
-    forceUpdate();
-  }, [isCarouselSample, activeSampleCarouselIndex]);
+  const { treeMarkerCarousel } = useSelector(state => state.appSlice);
+
 
   for (let i = isPointForMultipleTree ? 0 : 1; i < geoJSON.features.length; i++) {
     let onePoint = geoJSON.features[i];
@@ -57,7 +46,7 @@ const SampleTreeMarkers = ({
     let color = Colors.PRIMARY_DARK;
     let opacity = 1;
 
-    if (isCarouselSample && activeSampleCarouselIndex !== i - 1) {
+    if (treeMarkerCarousel !== i - 1) {
       color = Colors.GRAY_LIGHTEST;
       opacity = 0.6;
     }
@@ -69,36 +58,36 @@ const SampleTreeMarkers = ({
     }
 
     markers.push(
-      <MapLibreGL.PointAnnotation
+      <Pressable 
+      key={`sampleTree-${i}`}
+      onPress={()=>{
+        if (sampleCarouselRef && sampleCarouselRef?.current) {
+          sampleCarouselRef.current.scrollTo({ index: i-1, animated: true});
+        }
+        if (
+          // locateTree == ON_SITE &&
+          onPressMarker &&
+          setCoordinateIndex &&
+          setIsSampleTree &&
+          setCoordinateModalShow
+        ) {
+          onPressMarker(true, geoJSON?.features[i].geometry.coordinates);
+          setCoordinateIndex(i);
+          setIsSampleTree(true);
+          setCoordinateModalShow(true);
+        }
+      }}>
+      <MapLibreGL.MarkerView
         key={`sampleTree-${i}`}
         id={`sampleTree-${i}`}
-        coordinate={oneMarker}
-        onSelected={feature => {
-          if (sampleCarouselRef && sampleCarouselRef?.current) {
-            sampleCarouselRef.current.snapToItem(i - 1);
-            setActiveSampleCarouselIndex(i - 1);
-            setSelectedMarker(i);
-          }
-
-          if (
-            // locateTree == ON_SITE &&
-            onPressMarker &&
-            setCoordinateIndex &&
-            setIsSampleTree &&
-            setCoordinateModalShow
-          ) {
-            onPressMarker(true, feature.geometry.coordinates);
-            setCoordinateIndex(i);
-            setIsSampleTree(true);
-            setCoordinateModalShow(true);
-          }
-        }}>
+        coordinate={oneMarker}>
         <MarkerSVG
           point={markerText}
           color={color}
-          opacity={i == activeSampleCarouselIndex ? 1 : opacity}
+          opacity={i == treeMarkerCarousel ? 1 : opacity}
         />
-      </MapLibreGL.PointAnnotation>,
+      </MapLibreGL.MarkerView>
+      </Pressable>
     );
   }
   return <>{markers}</>;
