@@ -92,14 +92,12 @@ const GeoJSONMap = ({
 
   useEffect(() => {
     if (isCameraRefVisible && carouselRef?.current) {
-      setActiveCarouselIndex(carouselRef.current.currentIndex);
-      const selectedGeoJSON = clickedGeoJSON[carouselRef.current.currentIndex];
-
+      setActiveCarouselIndex(carouselRef.current.getCurrentIndex());
+      const selectedGeoJSON = clickedGeoJSON[carouselRef.current.getCurrentIndex()];
       setCenterCoordinate(turfCenter(selectedGeoJSON.features[0]));
-
       setBounds(bbox(selectedGeoJSON.features[0]));
     }
-  }, [carouselRef?.current?.currentIndex, isCarouselRefVisible]);
+  }, [carouselRef?.current, isCarouselRefVisible]);
 
   // used to focus the selected polygon whenever the bounds are changed or center coordinate is updated
   useEffect(() => {
@@ -325,7 +323,7 @@ const GeoJSONMap = ({
                 if (activeCarouselIndex === index) {
                   onPressViewSampleTrees(index);
                 } else if (isCarouselRefVisible) {
-                  carouselRef.current.snapToItem(index);
+                  carouselRef.current.scrollTo({ index, animated: true})
                   setActiveCarouselIndex(index);
                 }
               }}

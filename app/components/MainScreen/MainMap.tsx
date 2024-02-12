@@ -105,7 +105,7 @@ const MainMap = ({
 
   const camera = useRef<MapLibreGL.Camera | null>(null);
 
-  const carouselRef = useRef(null);
+  const carouselRef = useRef<typeof Carousel>(null);
   const sampleCarouselRef = useRef<typeof Carousel>(null);
 
   const navigation = useNavigation();

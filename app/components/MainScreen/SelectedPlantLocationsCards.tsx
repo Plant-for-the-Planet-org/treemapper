@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import React from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Carousel from 'react-native-snap-carousel';
+import Carousel from 'react-native-reanimated-carousel';
 import { Colors, Typography } from '../../styles';
 import { MULTI } from '../../utils/inventoryConstants';
 
@@ -32,9 +32,17 @@ const SelectedPlantLocationsCards = ({
           carouselRef.current = el;
           setIsCarouselRefVisible(true);
         }}
+        mode="parallax"
+        modeConfig={{
+          parallaxScrollingScale: 0.9,
+          parallaxScrollingOffset: 50,
+        }}
+        width={width}
         data={plantLocations}
-        itemWidth={itemWidth}
-        sliderWidth={width}
+        pagingEnabled={true}
+        snapEnabled={true}
+        loop={false}
+        height={150}
         renderItem={({ item, index }: any) => {
           return (
             <TouchableOpacity onPress={() => navigateToDetailsScreen(item)}>
