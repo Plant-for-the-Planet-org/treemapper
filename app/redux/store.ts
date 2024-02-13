@@ -1,9 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import envSlice from './slices/envSlice';
+import appSlice from './slices/appSlice';
+
 
 export const store = configureStore({
   reducer: {
     envSlice,
+    appSlice
   },
 });
 
