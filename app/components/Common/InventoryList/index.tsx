@@ -72,7 +72,7 @@ export default function InventoryList({
     setInventoryId(item.inventory_id)(dispatch);
     if (item.status !== INCOMPLETE && item.status !== INCOMPLETE_SAMPLE_TREE) {
       if (item.treeType === SINGLE) {
-        navigation.navigate('SingleTreeOverview');
+        navigation.navigate('SingleTreeOverview',{item:item});
       } else {
         navigation.navigate('InventoryOverview');
       }
