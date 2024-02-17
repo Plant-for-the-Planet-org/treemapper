@@ -210,7 +210,7 @@ export default function RemeasurementForm({}: Props) {
         },
       });
     } catch (err) {
-      console.log(err, 'addPlantLocationHistory');
+      console.log('addPlantLocationHistory',err);
     }
     if (isTreeAlive) {
       try {
@@ -221,7 +221,7 @@ export default function RemeasurementForm({}: Props) {
           sampleTreeIndex: state.samplePlantLocationIndex,
         });
       } catch (err) {
-        console.log(err, 'updateSampleTreeMeasurements');
+        console.log('updateSampleTreeMeasurements',err);
       }
     }
     setRemeasurementId(remeasurementId)(dispatch);

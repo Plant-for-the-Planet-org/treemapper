@@ -232,29 +232,12 @@ export const getNecessaryInventoryFromServer = async (
 ): Promise<any> => {
   try {
     let data: any = await getAuthenticatedRequest(requestRoute, { 'x-accept-versions': '1.1' });
-
-    // console.log(
-    //   data?.data?.items.length,
-    //   '=====Data=====',
-    //   Object.keys(data),
-    //   data.data.total,
-    //   data.data.count,
-    //   data.data._links,
-    //   data.data._filters,
-    //   '===',
-    //   Object.keys(data.data),
-    //   '++',
-    //   Object.keys(data.data._links),
-    // );
-
     dbLog.info({
       logType: LogTypes.DATA_SYNC,
       message: 'Successfully fetched necessary Inventories From server',
     });
 
     if (data.data._links.next) {
-      // console.log(JSON.stringify(data?.data?.items), 'data?.data?.items');
-
       return { data: data?.data?.items ?? [], nextRouteLink: data.data._links.next };
     } else {
       return { data: data?.data?.items ?? [], nextRouteLink: null };

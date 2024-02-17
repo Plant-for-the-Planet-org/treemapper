@@ -261,8 +261,6 @@ const MainMap = ({
           remeasureNeededPolygons: remeasurePolygons.remeasurementNeededPolygons,
           remeasureDuePolygons: remeasurePolygons.remeasurementDuePolygons,
         });
-        // console.log(JSON.stringify(data), 'data');
-
         if (inventoryData.treeType === SINGLE) {
           pointGeoJSONFeatures.push(...data.features);
         } else {

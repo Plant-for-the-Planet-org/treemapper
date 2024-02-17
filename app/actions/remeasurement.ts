@@ -10,9 +10,6 @@ export const getRemeasurementDatesFromServer = async (projectId, index): Promise
       logType: LogTypes.DATA_SYNC,
       message: 'Successfully fetched all Inventories From server',
     });
-    if (index == 1) {
-      //   console.log(JSON.stringify(data), data.length, 'data');
-    }
     return true;
   } catch (err) {
     dbLog.error({

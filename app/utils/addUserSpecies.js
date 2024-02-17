@@ -155,7 +155,7 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
               areAllSpeciesUpdated(resolve);
             }
           })
-          .catch(err => console.error(err));
+          .catch(err => console.error('addUserSpecieToServer',err));
       });
       speciesToSync.speciesToDelete.forEach(async (specie, index) => {
         deleteUserSpecieFromServer(specie)
@@ -165,7 +165,7 @@ export const modifyUserSpecies = (speciesToSync, alreadySyncedSpecies) => {
               areAllSpeciesUpdated(resolve);
             }
           })
-          .catch(err => console.error(err));
+          .catch(err => console.error('deleteUserSpecieFromServer',err));
       });
       speciesToSync.speciesToUpdate.forEach(async (specie, index) => {
         if (specie.specieId) {

@@ -48,8 +48,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      console.log(route?.params, 'route?.params');
-
       if (route?.params && route.params.isRemeasurement) {
         setIsRemeasurement(route.params.isRemeasurement);
         setIsTreeAlive(route.params.isTreeAlive);
@@ -128,7 +126,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
 
         // const registrationType = 'REMEASUREMENT';
         // setIsRemeasurement();
-        console.log(treeType, registrationType, isSample, isRemeasurement, '=====');
         formsData = filterFormByTreeAndRegistrationType(
           formsData,
           treeType,
@@ -141,8 +138,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
           formsData && formsData.length > 0 && formsData[0].elements.length > 0;
 
         if (!shouldShowForm) {
-          console.log('1');
-
           setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
 
           addAdditionalDataToDB({
@@ -180,8 +175,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
 
         setLoading(false);
       } else {
-        console.log('22');
-
         setLoadingText(i18next.t('label.no_form_redirect_next_screen'));
         addAdditionalDataToDB({
           transformedData,
@@ -226,23 +219,17 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
     }
 
     if (isRemeasurement) {
-      console.log('2');
-
       addAdditionDataToPlantLocationHistory({
         remeasurementId: inventoryState.selectedRemeasurementId,
         additionalData: transformedData,
         lastScreen: isTreeAlive ? 'TakePicture' : 'RemeasurementReview',
       })
         .then(() => {
-          console.log('3');
-
           dbLog.info({
             logType: LogTypes.ADDITIONAL_DATA,
             message: `Successfully added additional details to inventory with id ${inventoryState.inventoryID}`,
           });
           if (!disableNavigation) {
-            console.log('4');
-
             navigate('', null, isRemeasurement, isTreeAlive);
           }
         })
@@ -254,8 +241,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
           });
         });
     } else {
-      console.log('5');
-
       updateInventory({ inventory_id: inventoryState.inventoryID, inventoryData: data })
         .then(() => {
           dbLog.info({
@@ -285,8 +270,6 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
     let nextScreen = '';
     isSample = isSample ?? isSampleTree;
     type = type || treeType;
-    console.log(isRemeasurement, 'isRemeasurement');
-
     if ((type === SINGLE || isSample) && !isRemeasurement) {
       nextScreen = 'SingleTreeOverview';
     } else if (isRemeasurement) {

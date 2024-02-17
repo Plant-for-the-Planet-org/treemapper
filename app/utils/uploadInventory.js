@@ -22,7 +22,7 @@ export const uploadInventoryData = (dispatch, userDispatch) => {
             if (err?.message === 'blocked' || err?.message === 'denied') {
               reject(err);
             }
-            console.error(err);
+            console.log('Upload Inventory',err);
           });
       }
     });

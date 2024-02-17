@@ -248,11 +248,6 @@ const TreeInventory = () => {
       />
     );
   };
-  // console.log(
-  //   'pendingPlantLocationHistoryUpload :>> ',
-  //   JSON.stringify(pendingPlantLocationHistoryUpload),
-  //   '>>',
-  // );
   const allData = [
     {
       title: i18next.t('label.tree_inventory_left_text_uploading'),

@@ -77,8 +77,6 @@ const GeoJSONMap = ({
     ],
   };
 
-  // console.log(JSON.stringify(geoJSON), '==geoJSON==');
-
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   // sets the bound to focus the selected polygon
   const [bounds, setBounds] = useState<any>([]);
@@ -203,7 +201,6 @@ const GeoJSONMap = ({
           id={'point'}
           shape={pointGeoJSON}
           onPress={e => {
-            console.log('\n\n\ne.features', e.features);
             if (e?.features.length > 0) {
               getSelectedPlantLocations(e.features);
             }
@@ -214,7 +211,6 @@ const GeoJSONMap = ({
           id={'polygon'}
           shape={geoJSON}
           onPress={e => {
-            console.log('\n\n\ne.features ssss', e.features);
             if (e?.features.length > 0) {
               getSelectedPlantLocations(e.features);
             }
@@ -358,7 +354,7 @@ const GeoJSONMap = ({
       )}
       {location && (
         <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
-      )}
+        )}
     </MapLibreGL.MapView>
   );
 };

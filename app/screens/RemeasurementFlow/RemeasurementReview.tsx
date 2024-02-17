@@ -100,15 +100,10 @@ export default function RemeasurementReview({}: Props) {
     getUserInformation().then(user => {
       setIsNonISUCountry(nonISUCountries.includes(user?.country || ''));
     });
-
-    console.log(selectedRemeasurementId, 'selectedRemeasurementId');
-
     // used to get the data for the selected remeasurement
     getPlantLocationHistoryById(selectedRemeasurementId).then((plantLocationHistory: any) => {
       getInventoryByLocationId({ locationId: plantLocationHistory?.parentId })
         .then(inventory => {
-          console.log(plantLocationHistory, ' plantLocationHistory.samplePlantLocationIndex');
-
           if (
             plantLocationHistory.samplePlantLocationIndex ||
             plantLocationHistory.samplePlantLocationIndex == 0
@@ -125,8 +120,6 @@ export default function RemeasurementReview({}: Props) {
 
       // used to get the image url either from local storage or from the server
       if (plantLocationHistory) {
-        console.log(JSON.stringify(plantLocationHistory), 'plantLocationHistory');
-
         let imageSource = '';
         if (plantLocationHistory.imageUrl)
           imageSource = `${imageURIPrefix}${RNFS.DocumentDirectoryPath}/${plantLocationHistory.imageUrl}`;
@@ -229,7 +222,7 @@ export default function RemeasurementReview({}: Props) {
         eventDate: new Date(),
       });
     } catch (err) {
-      console.log(err, 'EventDate');
+      console.log('EventDate',err);
     }
     try {
       statusResult = await updatePlantLocationHistoryStatus({
@@ -237,7 +230,7 @@ export default function RemeasurementReview({}: Props) {
         status: PENDING_DATA_UPLOAD,
       });
     } catch (err) {
-      console.log(err, 'StatusResult');
+      console.log('StatusResult',err);
     }
     setOldDataStatus(PENDING_DATA_UPLOAD);
     if (eventDateResult && statusResult) {
@@ -311,7 +304,7 @@ export default function RemeasurementReview({}: Props) {
           }),
         );
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error('deletePlantLocationHistory',err));
   };
 
   // changes styles depending on the imagePath

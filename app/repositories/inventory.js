@@ -246,7 +246,6 @@ export const getSampleTreeBySampleTreeId = ({ sampleTreeLocationId }) => {
         }
       })
       .catch(err => {
-        console.log(err);
         console.error(`Error while fetching sampleTree with location id: ${sampleTreeLocationId}`);
         // logging the error in to the db
         dbLog.error({
@@ -278,7 +277,6 @@ export const getInventoryByLocationId = ({ locationId }) => {
         }
       })
       .catch(err => {
-        console.log(err);
         console.error(`Error while fetching inventory with location id: ${locationId}`);
         // logging the error in to the db
         dbLog.error({
@@ -1231,7 +1229,6 @@ export const addOrUpdateInventory = (inventoryFromServer, inventoryAction) => {
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
-        console.log(err, inventoryFromServer, 'Error==');
         resolve(false);
       });
   });

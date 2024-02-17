@@ -24,7 +24,6 @@ module.exports = {
     semi: ['error', 'always'],
     'linebreak-style': ['error', 'unix'],
     'no-undef': ['error'],
-    'no-console': ['warn'],
     'no-unused-vars': ['warn'],
     'react/prop-types': ['off'],
     'react-native/no-unused-styles': ['warn'],

@@ -54,7 +54,7 @@ const writeOperationPlantLocationHistory = ({
         });
       })
       .catch(err => {
-        console.log(err);
+        console.log("writeOperationPlantLocationHistory",err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
@@ -162,8 +162,6 @@ export const addAdditionDataToPlantLocationHistory = async ({
   additionalData,
   lastScreen,
 }: IAddAdditionDataToPlantLocationHistory) => {
-  console.log(additionalData, 'additionalData');
-
   return await writeOperationPlantLocationHistory({
     remeasurementId: remeasurementId,
     data: {
@@ -205,7 +203,6 @@ IDeletePlantLocationHistory) => {
         resolve(true);
       })
       .catch(err => {
-        console.log(err, 'Error');
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
@@ -238,7 +235,6 @@ export const clearAllIncompletePlantLocationHistory = () => {
         resolve(true);
       })
       .catch(err => {
-        console.log(err, 'Error');
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
@@ -364,7 +360,6 @@ export const getPlantLocationHistoryById = (
         resolve(plantLocationHistory);
       })
       .catch(err => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
@@ -416,7 +411,6 @@ export const getPlantLocationHistory = (status: string[] = []): Promise<any[]> =
         resolve(plantLocationHistory || []);
       })
       .catch(err => {
-        console.log(err);
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.REMEASUREMENT,
