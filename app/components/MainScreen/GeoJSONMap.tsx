@@ -353,7 +353,7 @@ const GeoJSONMap = ({
         </>
       )}
       {location && (
-        <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={data => setLocation(data)} />
+        <MapLibreGL.UserLocation showsUserHeadingIndicator onUpdate={setLocation} minDisplacement={5} />
         )}
     </MapLibreGL.MapView>
   );
