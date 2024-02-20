@@ -53,7 +53,7 @@
     "react-native-camera": "^3.43.9",
     "react-native-config": "^1.4.11",
     "react-native-device-info": "^10.3.0",
-    "react-native-document-picker": "^5.2.0",
+    "react-native-document-picker": "^9.1.1",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-dropdown-picker": "^5.4.4",
     "react-native-flipper": "^0.176.1",
