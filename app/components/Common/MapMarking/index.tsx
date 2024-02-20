@@ -6,7 +6,7 @@ import Config from 'react-native-config';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {useNavigation } from '@react-navigation/native';
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Text, View, Modal, Platform, StyleSheet, TouchableOpacity } from 'react-native';
@@ -692,17 +692,8 @@ export default function MapMarking({
             : { latitude: currentCoords[0], longitude: currentCoords[1] },
         }).then(() => {
           if (isPointForMultipleTree) {
-            // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'MainScreen' },
-                  { name: 'TreeInventory' },
-                  { name: 'TotalTreesSpecies' },
-                ],
-              }),
-            );
+            navigation.popToTop();
+            navigation.navigate('TotalTreesSpecies')
           } else {
             setShowAlrightyModal(true);
           }
@@ -786,17 +777,7 @@ export default function MapMarking({
 
   // resets the navigation stack with MainScreen => TreeInventory
   const resetRouteStack = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'BottomTab' },
-          {
-            name: 'TreeInventory',
-          },
-        ],
-      }),
-    );
+    navigation.navigate('BottomTab', { screen: 'TreeInventory' });
   };
 
   //alert shown if the location setting are not satisfied

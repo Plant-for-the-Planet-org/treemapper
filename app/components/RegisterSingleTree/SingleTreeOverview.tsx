@@ -19,7 +19,7 @@ import Geolocation from 'react-native-geolocation-service';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import React, { useContext, useEffect, useState } from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { CommonActions, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 import {
   cmToInch,
@@ -780,12 +780,7 @@ const SingleTreeOverview = () => {
 
   const navigateBack = () => {
     if (!route?.params?.navigateBackToHomeScreen) {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 1,
-          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
-        }),
-      );
+      navigation.navigate('BottomTab', { screen: 'TreeInventory' });
     } else {
       navigation.goBack();
     }
@@ -849,20 +844,10 @@ const SingleTreeOverview = () => {
       .then(() => {
         setSkipToInventoryOverview(false)(dispatch);
         setIsExtraSampleTree(false)(dispatch);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 2,
-            routes: [
-              { name: 'BottomTab' },
-              { name: 'TreeInventory' },
-              {
-                name: inventoryState.skipToInventoryOverview
-                  ? 'InventoryOverview'
-                  : 'AdditionalDataForm',
-              },
-            ],
-          }),
-        );
+        navigation.popToTop();
+        navigation.navigate(inventoryState.skipToInventoryOverview
+          ? 'InventoryOverview'
+          : 'AdditionalDataForm');
       })
       .catch(() => setIsError(true));
   };
@@ -881,17 +866,9 @@ const SingleTreeOverview = () => {
             let data = { inventory_id: inventoryState.inventoryID, status: PENDING_DATA_UPLOAD };
             changeInventoryStatus(data, dispatch).then(() => {
               deleteInventoryId()(dispatch);
+              navigation.popToTop();
+              navigation.navigate('RegisterSingleTree')
 
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 2,
-                  routes: [
-                    { name: 'BottomTab' },
-                    { name: 'TreeInventory' },
-                    { name: 'RegisterSingleTree' },
-                  ],
-                }),
-              );
             });
           })
           .catch(() => setIsError(true));
@@ -909,16 +886,9 @@ const SingleTreeOverview = () => {
             lastScreen: 'RecordSampleTrees',
           };
           updateLastScreen(data);
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 2,
-              routes: [
-                { name: 'BottomTab' },
-                { name: 'TreeInventory' },
-                { name: 'RecordSampleTrees' },
-              ],
-            }),
-          );
+          navigation.popToTop();
+          navigation.navigate('RecordSampleTrees')
+
         })
         .catch(() => setIsError(true));
     }
@@ -942,16 +912,8 @@ const SingleTreeOverview = () => {
               lastScreen: 'RecordSampleTrees',
             };
             updateLastScreen(data);
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'BottomTab' },
-                  { name: 'TreeInventory' },
-                  { name: 'RecordSampleTrees' },
-                ],
-              }),
-            );
+            navigation.popToTop();
+            navigation.navigate('RecordSampleTrees')
           } else {
             setSkipToInventoryOverview(false)(dispatch);
             let data = {
@@ -959,16 +921,8 @@ const SingleTreeOverview = () => {
               lastScreen: 'InventoryOverview',
             };
             updateLastScreen(data);
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 2,
-                routes: [
-                  { name: 'BottomTab' },
-                  { name: 'TreeInventory' },
-                  { name: 'InventoryOverview' },
-                ],
-              }),
-            );
+            navigation.popToTop();
+            navigation.navigate('InventoryOverview');
           }
         })
         .catch(err => console.error(err));
@@ -976,12 +930,7 @@ const SingleTreeOverview = () => {
       deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
         .then(() => {
           setShowDeleteAlert(!showDeleteAlert);
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 1,
-              routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }],
-            }),
-          );
+          navigation.navigate('BottomTab', { screen: 'TreeInventory' });
         })
         .catch(err => console.error(err));
     }

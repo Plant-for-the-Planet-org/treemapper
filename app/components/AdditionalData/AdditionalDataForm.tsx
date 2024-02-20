@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Colors } from '../../styles';
@@ -281,12 +281,7 @@ const AdditionalDataForm = ({ route }: { route: any }) => {
     if (isRemeasurement) {
       navigation.navigate(nextScreen);
     } else {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 2,
-          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: nextScreen }],
-        }),
-      );
+      navigation.navigate('BottomTab', { screen: 'TreeInventory' });
     }
   };
 

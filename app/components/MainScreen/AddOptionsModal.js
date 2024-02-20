@@ -16,7 +16,7 @@ import { scaleFont, scaleSize } from '../../styles/mixins';
 
 const { width, height } = Dimensions.get('screen');
 
-export default React.forwardRef(({ visible, setVisible = () => {}, navigation }, ref) => {
+export default React.forwardRef(({ visible, setVisible = () => {}, navigation,close }, ref) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(visible ? 0 : 700, { duration: 500 });
   }, [visible]);
@@ -51,14 +51,17 @@ export default React.forwardRef(({ visible, setVisible = () => {}, navigation },
       svgIcon: <SingleTreeIcon />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
-      onPress: () => navigation.navigate('RegisterSingleTree'),
+      onPress: () => {
+        close();
+        navigation.navigate('RegisterSingleTree')},
       disabled: false,
     },
     {
       svgIcon: <MultipleTreeIcon />,
       title: 'label.tree_registration_type_2',
       coming_soon: false,
-      onPress: () => navigation.navigate('LocateTree'),
+      onPress: () => {close();
+        navigation.navigate('LocateTree')},
       disabled: false,
     },
   ];

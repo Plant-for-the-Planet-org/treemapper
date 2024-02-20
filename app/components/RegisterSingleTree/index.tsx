@@ -1,7 +1,7 @@
 import Geolocation from 'react-native-geolocation-service';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import { Loader } from '../Common';
 import { Colors } from '../../styles';
@@ -123,23 +123,14 @@ const RegisterSingleTree = () => {
   };
 
   const hardBackHandler = () => {
-    navigation.navigate('TreeInventory');
+    navigation.navigate('BottomTab', { screen: 'TreeInventory' });
     return true;
   };
 
   // resets the navigation stack with MainScreen => TreeInventory
   const resetRouteStack = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'MainScreen' },
-          {
-            name: 'TreeInventory',
-          },
-        ],
-      }),
-    );
+    navigation.navigate('BottomTab', { screen: 'TreeInventory' });
+
   };
 
   const updateScreenState = (state: string) => setScreenState(state);

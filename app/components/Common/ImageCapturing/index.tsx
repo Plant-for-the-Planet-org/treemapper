@@ -12,7 +12,7 @@ import {
 import i18next from 'i18next';
 import { RNCamera } from 'react-native-camera';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {useNavigation } from '@react-navigation/native';
 
 import {
   getInventory,
@@ -253,16 +253,8 @@ const ImageCapturing = ({
         }).then(() => {
           setIsAlrightyModalShow(false);
           // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 2,
-              routes: [
-                { name: 'NavDrawer' },
-                { name: 'TreeInventory' },
-                { name: 'TotalTreesSpecies' },
-              ],
-            }),
-          );
+          navigation.popToTop();
+          navigation.navigate('TotalTreesSpecies')
         });
       });
     });

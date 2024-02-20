@@ -16,7 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNetInfo } from '@react-native-community/netinfo';
 import React, { useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { SpecieCard } from './MySpecies';
 import dbLog from '../../repositories/logs';
@@ -262,12 +262,8 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     if (retainNavigationStack && onPressBack) {
       onPressBack();
     } else {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 2,
-          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
-        }),
-      );
+      navigation.popToTop();
+      navigation.navigate('TotalTreesSpecies')
     }
   };
 

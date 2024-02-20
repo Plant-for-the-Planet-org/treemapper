@@ -122,6 +122,7 @@ const BottomBar = ({ state, descriptors, navigation }: IBottomBarProps) => {
         visible={open}
         ref={_addOptionsRef}
         navigation={navigation}
+        close={onAddPress}
       />
     </>
   );

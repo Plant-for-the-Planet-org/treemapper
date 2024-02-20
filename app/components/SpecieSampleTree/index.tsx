@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import React, { useEffect, useState, useContext } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {useNavigation } from '@react-navigation/native';
 import { View, SafeAreaView, ScrollView, Text, StyleSheet } from 'react-native';
 
 import { Colors, Typography } from '../../styles';
@@ -59,19 +59,8 @@ const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
 
   const onPressSpecie = (specie: any) => {
     if (speciesType === 'notSampledSpecies') {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 2,
-          routes: [
-            { name: 'MainScreen' },
-            { name: 'TreeInventory' },
-            {
-              name: 'RecordSampleTrees',
-              params: { specieId: specie.guid, specieName: specie.scientificName },
-            },
-          ],
-        }),
-      );
+      navigation.popToTop();
+      navigation.navigate('RecordSampleTrees',{ specieId: specie.guid, specieName: specie.scientificName })
     } else if (editOnlySpecieName) {
       addSpecieToInventory(JSON.stringify(specie));
       onPressBack();

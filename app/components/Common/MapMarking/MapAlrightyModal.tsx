@@ -1,7 +1,7 @@
 import React from 'react';
 import i18next from 'i18next';
 import { Modal, StyleSheet, View } from 'react-native';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import { Alrighty } from '../';
 import { off_site_enable_banner } from '../../../assets';
@@ -103,16 +103,8 @@ export default function MapAlrightyModal({
     }).then(() => {
       if (locateTree !== ON_SITE) {
         // resets the navigation stack with MainScreen => TreeInventory => TotalTreesSpecies
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 2,
-            routes: [
-              { name: 'NavDrawer' },
-              { name: 'TreeInventory' },
-              { name: 'TotalTreesSpecies' },
-            ],
-          }),
-        );
+        navigation.popToTop();
+        navigation.navigate('TotalTreesSpecies')
       }
     });
   };

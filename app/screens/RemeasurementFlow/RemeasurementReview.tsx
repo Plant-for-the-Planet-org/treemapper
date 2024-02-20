@@ -1,4 +1,4 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -234,13 +234,13 @@ export default function RemeasurementReview({}: Props) {
     }
     setOldDataStatus(PENDING_DATA_UPLOAD);
     if (eventDateResult && statusResult) {
-      navigation.navigate('TreeInventory');
+      navigation.navigate('BottomTab', { screen: 'TreeInventory' });
     }
   };
 
   const onPressBack = () => {
-    navigation.navigate('TreeInventory');
     changeToOldStatus();
+    navigation.navigate('BottomTab', { screen: 'TreeInventory' });
   };
 
   // shows diameter label based on height
@@ -297,12 +297,7 @@ export default function RemeasurementReview({}: Props) {
     deletePlantLocationHistory({ remeasurementId: selectedRemeasurementId })
       .then(() => {
         setShowDeleteAlert(!showDeleteAlert);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 1,
-            routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }],
-          }),
-        );
+        navigation.navigate('BottomTab', { screen: 'TreeInventory' });
       })
       .catch(err => console.error('deletePlantLocationHistory',err));
   };

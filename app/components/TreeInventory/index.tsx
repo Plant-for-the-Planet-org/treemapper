@@ -201,6 +201,7 @@ const TreeInventory = () => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
+          hideBackIcon
           TopRightComponent={uploadButton}
         />
         <ActivityIndicator size="large" color={Colors.PRIMARY} />
@@ -216,6 +217,7 @@ const TreeInventory = () => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
+          hideBackIcon
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
         <View style={styles.primaryBtnCont}>
@@ -289,6 +291,7 @@ const TreeInventory = () => {
         onBackPress={handleBackPress}
         containerStyle={{ paddingHorizontal: 0 }}
         TopRightComponent={uploadButton}
+        hideBackIcon
       />
       {uploadedInventory.length > 0 && (
         <PrimaryButton

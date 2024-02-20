@@ -22,9 +22,8 @@ import { SvgXml } from 'react-native-svg';
 import { convertArea } from '@turf/helpers';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { CommonActions } from '@react-navigation/routers';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
+import { NavigationContainer, RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
@@ -201,18 +200,7 @@ const InventoryOverview = ({ navigation }: any) => {
   }, [inventory]);
 
   const hardBackHandler = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'BottomTab' },
-          {
-            name: 'TreeInventory',
-          },
-        ],
-      }),
-    );
-    return true;
+    navigation.navigate('BottomTab', { screen: 'TreeInventory' });
   };
 
   const initialState = () => {
@@ -257,7 +245,7 @@ const InventoryOverview = ({ navigation }: any) => {
       .then(() => {
         let data = { inventory_id: state.inventoryID, status: PENDING_DATA_UPLOAD };
         changeInventoryStatus(data, dispatch).then(() => {
-          navigation.navigate('TreeInventory');
+          navigation.navigate('BottomTab', { screen: 'TreeInventory' });
         });
       })
       .catch(() => {
@@ -475,12 +463,8 @@ const InventoryOverview = ({ navigation }: any) => {
         lastScreen: 'RecordSampleTrees',
       };
       updateLastScreen(data);
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 2,
-          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
-        }),
-      );
+        navigation.popToTop();
+        navigation.navigate('RecordSampleTrees')
     }
   };
   const addAnotherSampleTree = () => {
@@ -499,12 +483,9 @@ const InventoryOverview = ({ navigation }: any) => {
       };
       updateLastScreen(data);
       setSkipToInventoryOverview(true)(dispatch);
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 2,
-          routes: [{ name: 'BottomTab' }, { name: 'TreeInventory' }, { name: 'RecordSampleTrees' }],
-        }),
-      );
+      navigation.popToTop();
+      navigation.navigate('RecordSampleTrees')
+
     });
   };
   const onPressDate = (status: string) => {
@@ -524,7 +505,7 @@ const InventoryOverview = ({ navigation }: any) => {
     deleteInventory({ inventory_id: inventory.inventory_id }, dispatch)
       .then(() => {
         setShowAlert(!showAlert);
-        navigation.navigate('TreeInventory');
+        navigation.navigate('BottomTab', { screen: 'TreeInventory' });
       })
       .catch(err => {
         console.error(err);
@@ -579,7 +560,7 @@ const InventoryOverview = ({ navigation }: any) => {
                     if (route?.params?.navigateToScreen) {
                       navigation.navigate(route.params.navigateToScreen);
                     } else {
-                      navigation.navigate('TreeInventory');
+                      navigation.navigate('BottomTab', { screen: 'TreeInventory' });
                     }
                   }}
                   TitleRightComponent={() => (

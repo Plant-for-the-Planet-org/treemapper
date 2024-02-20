@@ -134,7 +134,7 @@ const UploadedInventory = () => {
                 <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
                 <View style={styles.parimaryBtnCont}>
                   <PrimaryButton
-                    onPress={() => navigation.navigate('TreeInventory')}
+                    onPress={() => {      navigation.navigate('BottomTab', { screen: 'TreeInventory' })}}
                     btnText={i18next.t('label.tree_inventory_upload_empty_btn_text')}
                     style={{ width: '90%', alignSelf: 'center' }}
                   />

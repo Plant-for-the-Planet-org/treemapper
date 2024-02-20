@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import {useNavigation } from '@react-navigation/native';
 
 import {
   getInventory,
@@ -169,19 +169,8 @@ export const AddMeasurements = () => {
     setDiameter('');
     setHeight('');
     setTagId('');
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [
-          { name: 'BottomTab' },
-          { name: 'TreeInventory' },
-          {
-            name: 'AdditionalDataForm',
-            params: isSampleTree ? { totalSampleTrees: inventory.sampleTreesCount } : {},
-          },
-        ],
-      }),
-    );
+    navigation.popToTop();
+    navigation.navigate('AdditionalDataForm',{...isSampleTree ? { totalSampleTrees: inventory.sampleTreesCount } : {}})
   };
 
   const handleHeightChange = (text: string) => {
