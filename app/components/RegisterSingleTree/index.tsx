@@ -28,8 +28,6 @@ const RegisterSingleTree = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', hardBackHandler);
-    const unsubscribe = navigation.addListener('transitionEnd', () => {
       setScreenState('');
       if (inventoryState.inventoryID) {
         getInventory({ inventoryID: inventoryState.inventoryID }).then(InventoryData => {
@@ -103,11 +101,6 @@ const RegisterSingleTree = () => {
             checkPermissionAlert(err);
           });
       }
-    });
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', hardBackHandler);
-      unsubscribe();
-    };
   }, [inventoryState, isGranted, navigation]);
 
   const checkPermissionAlert = (err: any) => {
