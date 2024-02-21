@@ -137,10 +137,7 @@ const RegisterSingleTree = () => {
       CommonActions.reset({
         index: 1,
         routes: [
-          { name: 'MainScreen' },
-          {
-            name: 'TreeInventory',
-          },
+          { name: 'BottomTab' },
         ],
       }),
     );

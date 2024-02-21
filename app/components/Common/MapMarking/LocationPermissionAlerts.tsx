@@ -71,7 +71,7 @@ export const PermissionBlockedAlert = ({
         if (isAndroid) {
           Linking.openSettings();
         } else {
-          Linking.openURL('app-settings');
+          Linking.openURL('app-settings:');
         }
       }}
       onPressSecondaryBtn={() => {
