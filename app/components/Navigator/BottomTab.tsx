@@ -28,6 +28,7 @@ const BottomTab = () => {
         name="TreeInventory"
         options={{ tabBarLabel: i18next.t('label.tree_inventory') }}
         component={TreeInventory}
+        initialParams={{isTab:true}}
       />
       <Tab.Screen
         name="Plots"

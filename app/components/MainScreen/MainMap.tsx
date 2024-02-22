@@ -177,6 +177,10 @@ const MainMap = ({
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
+      if (Array.isArray(err) && err.length > 0 && err[0].Error === 'blocked') {
+        setIsPermissionBlocked(true);
+        return false;
+      }
       if (err?.message == 'blocked') {
         setIsPermissionBlocked(true);
       } else if (err?.message == 'denied') {

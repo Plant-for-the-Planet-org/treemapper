@@ -14,7 +14,7 @@ import { SvgXml } from 'react-native-svg';
 import { useNetInfo } from '@react-native-community/netinfo';
 import React, { useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation,useRoute } from '@react-navigation/native';
 
 import {
   getPlantLocationHistory,
@@ -74,6 +74,8 @@ const TreeInventory = () => {
   const netInfo = useNetInfo();
   const insects = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute();
+  const isBottomTab = route.params?.isTab;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -201,6 +203,7 @@ const TreeInventory = () => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
+          hideBackIcon={isBottomTab || false}
           TopRightComponent={uploadButton}
         />
         <ActivityIndicator size="large" color={Colors.PRIMARY} />
@@ -216,6 +219,7 @@ const TreeInventory = () => {
           subHeadingText={i18next.t('label.tree_inventory_list_sub_header')}
           style={{ marginHorizontal: 25 }}
           onBackPress={handleBackPress}
+          hideBackIcon={isBottomTab || false}
         />
         <SvgXml xml={empty_inventory_banner} style={styles.emptyInventoryBanner} />
         <View style={styles.primaryBtnCont}>
@@ -294,6 +298,7 @@ const TreeInventory = () => {
         onBackPress={handleBackPress}
         containerStyle={{ paddingHorizontal: 0 }}
         TopRightComponent={uploadButton}
+        hideBackIcon={isBottomTab || false}
       />
       {uploadedInventory.length > 0 && (
         <PrimaryButton

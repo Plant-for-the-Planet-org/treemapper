@@ -121,7 +121,7 @@ const Header = ({
           }>
           {subHeadingText ? (
             <View style={{ marginVertical: 10 }}>
-              <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle]}>
+              <Text style={[styles.subHeadingText, textAlignStyle, subHeadingStyle,{marginLeft:hideBackIcon?0:35}]}>
                 {subHeadingText}
               </Text>
             </View>
@@ -141,12 +141,10 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_20,
     color: Colors.BLACK,
-    marginLeft: 32,
   },
   subHeadingText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
-    marginLeft: 50,
   },
   containerStyle: {
     // flexDirection: 'row',
@@ -163,6 +161,7 @@ const styles = StyleSheet.create({
   },
   paddingVertical: {
     paddingVertical: 4,
+    marginRight:12
   },
   rightText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
