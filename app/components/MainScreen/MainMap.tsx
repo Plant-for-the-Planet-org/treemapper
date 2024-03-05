@@ -138,8 +138,7 @@ const MainMap = ({
   const checkPermission = async (showAlert = true) => {
     try {
       await locationPermission();
-      MapboxGL.setTelemetryEnabled(false);
-
+      // MapboxGL.setTelemetryEnabled(false);
       updateCurrentPosition(showAlert);
       return true;
     } catch (err: any) {
