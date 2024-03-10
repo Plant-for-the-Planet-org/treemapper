@@ -14,6 +14,9 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      "@maplibre/maplibre-react-native"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -21,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "org.pftp.treemapper"
     },
     "web": {
       "favicon": "./assets/favicon.png"
