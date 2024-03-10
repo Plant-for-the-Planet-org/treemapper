@@ -1,4 +1,0 @@
-"NSCameraUsageDescription" = "Pour prendre des photos des arbres que vous avez plantés, autoriser l'accès à votre appareil photo.";
-"NSLocationWhenInUseUsageDescription" = "Nous avons besoin d'accéder à un emplacement précis pour enregistrer les arbres.";
-"NSPhotoLibraryAddUsageDescription" = "Tree Mapper souhaite enregistrer les photos de l'application dans votre galerie.";
-"NSPhotoLibraryUsageDescription" = "TreeMapper aimerait avoir accès à votre galerie de photos.";
