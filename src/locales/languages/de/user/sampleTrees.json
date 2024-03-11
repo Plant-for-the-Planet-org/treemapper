@@ -1,0 +1,12 @@
+{
+  "sample_trees": "Musterbäume",
+  "tree": "Baum",
+  "trees": "Bäume",
+  "next_step_to_measure_sample_trees_text": "In den nächsten Schritten wirst du gebeten, Muster für gepflanzte Bäume am Standort zu bestimmen.",
+  "recommend_at_least_sample_trees": "Wir empfehlen, dass du zumindest 10-12 zufällige Musterbäume bestimmst.",
+  "how_many_sample_trees_to_record": "Wie viele Bäume möchtest du aufzeichnen?",
+  "invalid_tree_count": "Ungültige Baumzahl",
+  "enter_valid_tree_count": "Du solltest mindestens 5 und maximal 999 Musterbäume hinzufügen.",
+  "add_another": "Mehr hinzufügen",
+  "add_sample_tree": "Musterbaum hinzufügen"
+}

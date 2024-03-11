@@ -1,0 +1,23 @@
+{
+  "edit_profile": "Profil bearbeiten",
+  "logout": "Abmelden",
+  "logout_anyway": "Trotzdem abmelden",
+  "privacy_policy": "Datenschutzerklärung",
+  "terms_of_service": "AGB",
+  "imprint": "Impressum",
+  "legal_docs": "Rechtliches",
+  "open_source_license": "Open Source Lizenzen",
+  "edit": "Bearbeiten",
+  "manage_offline": "Offlinekarten verwalten",
+  "manage_species": "Arten verwalten",
+  "activity_logging": "Aktivität aufzeichnen",
+  "activity_logs": "Aktivitäten",
+  "all_backed_up": "Alle Änderungen gesichert",
+  "upload_pending": "{{count}} ausstehend",
+  "sync_remaining": "Synchronisiere - {{count}} verbleibend",
+  "support": "Unterstützung",
+  "complete_signup": "Registrierung vervollständigen",
+  "manage_projects": "Projekte verwalten",
+  "additional_data": "Zusätzliche Daten",
+  "login_signup": "Einloggen / Anmelden"
+}

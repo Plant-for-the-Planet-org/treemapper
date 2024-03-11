@@ -1,0 +1,10 @@
+{
+  "download_map_complete": "Download do mapa completo",
+  "download_map_area": "Fazer download dessa área?",
+  "download_map": "Download",
+  "download_map_view": "Ver tudo",
+  "download_map_area_failed": "Não foi possível fazer download do mapa. Tente novamente mais tarde.",
+  "download_map_area_exists": "O download do mapa já foi realizado.",
+  "network_error": "Erro da rede",
+  "network_error_message": "Sem conexão com internet. Por favor, tente novamente mais tarde."
+}

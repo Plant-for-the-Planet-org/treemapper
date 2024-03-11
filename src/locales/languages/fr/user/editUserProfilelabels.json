@@ -1,0 +1,23 @@
+{
+  "edit_profile": "Editer le profil",
+  "logout": "Se déconnecter",
+  "logout_anyway": "Se déconnecter tout de même",
+  "privacy_policy": "Politique de confidentialité",
+  "terms_of_service": "Conditions d'utilisation",
+  "imprint": "Imprimer",
+  "legal_docs": "Documents légaux",
+  "open_source_license": "Licence Open Source",
+  "edit": "Éditer",
+  "manage_offline": "Gérer les cartes hors ligne",
+  "manage_species": "Gérer les espèces",
+  "activity_logging": "Enregistrement des activités",
+  "activity_logs": "Journaux d'activité",
+  "all_backed_up": "Tous les changements sauvegardés",
+  "upload_pending": "{{count}} en attente",
+  "sync_remaining": "Synchronisation - {{count}} restant(s)",
+  "support": "Soutien",
+  "complete_signup": "Inscription complète",
+  "manage_projects": "Gérer les projets",
+  "additional_data": "Données supplémentaires",
+  "login_signup": "Se connecter / S'inscrire"
+}

@@ -1,0 +1,13 @@
+{
+  "login": "Iniciar Sessão / Registar",
+  "tree_mapper": "TreeMapper",
+  "tree_inventory": "Inventário de Árvores",
+  "tree_inventory_sub_header": "de rascunhos e inscrições pendentes",
+  "download_maps": "Mapas off-line",
+  "download_maps_sub_header": "para utilização offline",
+  "register_tree": "Registrar Árvores",
+  "loading_content": "Carregando conteúdo...",
+  "add": "Adicionar",
+  "plots": "Parcelas",
+  "map": "Mapa"
+}

@@ -15,7 +15,8 @@
       "**/*"
     ],
     "plugins": [
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-localization"
     ],
     "ios": {
       "supportsTablet": true
