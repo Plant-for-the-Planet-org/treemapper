@@ -18,6 +18,7 @@
     "@react-navigation/native-stack": "^6.9.23",
     "@realm/react": "^0.6.2",
     "@reduxjs/toolkit": "^2.2.1",
+    "@shopify/flash-list": "1.4.3",
     "expo": "~49.0.23",
     "expo-localization": "~14.3.0",
     "expo-splash-screen": "~0.20.5",
