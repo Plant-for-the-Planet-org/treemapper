@@ -20,6 +20,7 @@
     "@reduxjs/toolkit": "^2.2.1",
     "@shopify/flash-list": "1.4.3",
     "expo": "~49.0.23",
+    "expo-font": "~11.4.0",
     "expo-localization": "~14.3.0",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
