@@ -15,7 +15,6 @@ interface Props {
 }
 
 const BottomTabIcon = (props: Props) => {
-  console.log('Adscjkl', props.isFocused)
   const {label, index, onPress} = props
   if (index === 3) {
     return (
