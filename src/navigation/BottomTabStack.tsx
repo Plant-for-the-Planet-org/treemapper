@@ -5,6 +5,7 @@ import Dummy from 'src/components/Dummy'
 import TabBar from 'src/components/bottomTab/BottomTabBar'
 import MainMapView from 'src/screens/MainMapView'
 import Interventions from 'src/screens/InterventionView'
+import ComingSoon from 'src/screens/ComingSoonView'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -19,7 +20,7 @@ const BottomStack = () => {
       }}>
       <BottomTabStack.Screen name="Map" component={MainMapView} />
       <BottomTabStack.Screen name="Interventions" component={Interventions} />
-      <BottomTabStack.Screen name="Plots" component={Dummy} />
+      <BottomTabStack.Screen name="Plots" component={ComingSoon} />
       <BottomTabStack.Screen name="Add" component={Dummy} />
     </BottomTabStack.Navigator>
   )
