@@ -2,8 +2,7 @@ import * as React from 'react'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {BottomTabParamList} from 'src/types/type/navigation'
 import Dummy from 'src/components/Dummy'
-import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
-import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
+import TabBar from 'src/components/bottomTab/BottomTabBar'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -12,39 +11,16 @@ const BottomStack = () => {
     <BottomTabStack.Navigator
       backBehavior="none"
       initialRouteName="Map"
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: 'transparent',
-          position: 'absolute', 
-          borderTopWidth: 0,
-          elevation:0,
-          height:60
-        }
+        headerShown: false
       }}>
-      <BottomTabStack.Screen
-        name="Map"
-        component={Dummy}
-        options={{tabBarIcon: () => <BottomTabIcon label="Map" index={0} />}}
-      />
-      <BottomTabStack.Screen
-        name="Interventions"
-        component={Dummy}
-        options={{tabBarIcon: () => <BottomTabIcon label="Intervention" index={1} />}}
-      />
-      <BottomTabStack.Screen
-        name="Plots"
-        component={Dummy}
-        options={{tabBarIcon: () => <BottomTabIcon label="Plots" index={2} />}}
-      />
-      <BottomTabStack.Screen
-        name="Add"
-        component={Dummy}
-        options={{tabBarIcon: () => <AddBottomTabIcon label='add' index={0}/>}}
-      />
+      <BottomTabStack.Screen name="Map" component={Dummy} />
+      <BottomTabStack.Screen name="Interventions" component={Dummy} />
+      <BottomTabStack.Screen name="Plots" component={Dummy} />
+      <BottomTabStack.Screen name="Add" component={Dummy} />
     </BottomTabStack.Navigator>
   )
 }
 
-export default BottomStack;
+export default BottomStack

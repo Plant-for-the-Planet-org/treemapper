@@ -1,21 +1,47 @@
-import {StyleSheet, View, Text} from 'react-native'
-import React from 'react'
+import {StyleSheet, View} from 'react-native'
+import React, {useState} from 'react'
 
-import MapTabIcon from 'assets/images/svg/MapTabIcon.svg'
+import AddOptionModal from './AddOptionModal'
+import {TouchableOpacity} from 'react-native'
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated'
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity)
 
-interface Props {
-  label: string
-  index: number
-}
+import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
 
-const AddBottomTabIcon = (props: Props) => {
-  const {label} = props
+const AddBottomTabIcon = () => {
+  const [open, setOpen] = useState(false)
+
+  const rotation = useDerivedValue(() => {
+    return withTiming(open ? '135deg' : '0deg');
+  }, [open]);
+
+  const rotationStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: rotation.value }],
+  }));
+
+  const onAddPress = () => {
+    setOpen(prev => !prev)
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper}>
-      <MapTabIcon />
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={1}
+          onPress={() => onAddPress()}>
+          <AnimatedTouchableOpacity
+            style={[rotationStyle]}
+            onPress={() => onAddPress()}>
+            <AddTabIcon />
+          </AnimatedTouchableOpacity>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.labelStyle}>{label}</Text>
+      <AddOptionModal
+        setVisible={setOpen}
+        visible={open}
+      />
     </View>
   )
 }
@@ -28,8 +54,9 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    backgroundColor: 'white',
   },
   iconWrapper: {},
-  labelStyle: {},
+  labelStyle: {
+    marginTop: 5,
+  },
 })

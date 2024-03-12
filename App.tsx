@@ -5,6 +5,8 @@ import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {Provider} from 'react-redux'
 import store, {persistor} from 'src/store'
 import {PersistGate} from 'redux-persist/integration/react'
+import 'react-native-gesture-handler';
+
 
 export default function App() {
   return (
