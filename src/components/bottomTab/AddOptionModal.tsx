@@ -15,7 +15,6 @@ import i18next from 'i18next';
 import * as Colors from 'src/utils/constants/colors';
 import * as Typography from 'src/utils/constants/typography';
 
-import GradientText from '../common/GradientText';
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabParamList } from 'src/types/type/navigation';
@@ -87,7 +86,7 @@ const AddOptionModal=(props:Props)=>{
             <View>
               <Text style={styles.text}>{i18next.t(option.title)}</Text>
               {option.coming_soon && (
-                <GradientText style={styles.coming_soon}>Coming Soon</GradientText>
+                <Text style={styles.coming_soon}>Coming Soon</Text>
               )}
             </View>
           </View>
