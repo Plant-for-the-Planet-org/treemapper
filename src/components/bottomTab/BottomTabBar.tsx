@@ -20,7 +20,7 @@ const TabBar = ({state, descriptors, navigation}: BottomTabBarProps) => {
           const isFocused = state.index === index
 
           const onPress = () => {
-            navigation.navigate('')
+            navigation.navigate('Interventions')
           }
 
           return (

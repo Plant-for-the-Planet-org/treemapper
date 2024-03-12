@@ -4,6 +4,7 @@ import {BottomTabParamList} from 'src/types/type/navigation'
 import Dummy from 'src/components/Dummy'
 import TabBar from 'src/components/bottomTab/BottomTabBar'
 import MainMapView from 'src/screens/MainMapView'
+import Interventions from 'src/screens/InterventionView'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -17,7 +18,7 @@ const BottomStack = () => {
         headerShown: false
       }}>
       <BottomTabStack.Screen name="Map" component={MainMapView} />
-      <BottomTabStack.Screen name="Interventions" component={Dummy} />
+      <BottomTabStack.Screen name="Interventions" component={Interventions} />
       <BottomTabStack.Screen name="Plots" component={Dummy} />
       <BottomTabStack.Screen name="Add" component={Dummy} />
     </BottomTabStack.Navigator>
