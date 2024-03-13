@@ -7,19 +7,24 @@ import store, {persistor} from 'src/store'
 import {PersistGate} from 'redux-persist/integration/react'
 import 'react-native-gesture-handler'
 import MapLibreGL from '@maplibre/maplibre-react-native'
+import {Auth0Provider} from 'react-native-auth0'
 
 MapLibreGL.setAccessToken(null)
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </PersistGate>
-      </Provider>
+      <Auth0Provider
+        domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
+        clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </PersistGate>
+        </Provider>
+      </Auth0Provider>
     </SafeAreaProvider>
   )
 }
