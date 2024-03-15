@@ -149,7 +149,7 @@ android {
         applicationId "org.pftp.treemapper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 32
+        versionCode 35
         versionName "1.0.9"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
