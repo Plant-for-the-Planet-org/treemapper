@@ -12,7 +12,6 @@ import { Colors, Typography } from '../../styles';
 import { readJsonFileAndAddAdditionalData } from '../../utils/additionalData/functions';
 import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
-import { askExternalStoragePermission } from '../../utils/permissions';
 import { AlertModal, Header, LargeButton } from '../Common';
 
 const AdditionalDataSettings = () => {
@@ -22,14 +21,8 @@ const AdditionalDataSettings = () => {
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [showSecondaryButton, setShowSecondaryButton] = useState<boolean>(false);
 
-  const {
-    forms,
-    metadata,
-    addFormsToState,
-    addMetadataInState,
-    setTreeType,
-    setRegistrationType,
-  } = useContext(AdditionalDataContext);
+  const { forms, metadata, addFormsToState, addMetadataInState, setTreeType, setRegistrationType } =
+    useContext(AdditionalDataContext);
 
   const exportAdditionalData = () => {
     const exportData = {
@@ -44,10 +37,12 @@ const AdditionalDataSettings = () => {
       filename: `TreeMapper-Additional-Data`,
       saveToFiles: true,
       failOnCancel: false,
+      useInternalStorage: true,
     };
 
-    Share.open(options).catch((err) => {
-      if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
+    Share.open(options).catch(err => {
+      if (err?.error?.code != 'ECANCELLED500') {
+        // iOS cancel button pressed
         setAlertHeading(i18next.t('label.something_went_wrong'));
         setAlertMessage(i18next.t('label.share_additional_data_error'));
         setShowSecondaryButton(false);
@@ -64,10 +59,7 @@ const AdditionalDataSettings = () => {
 
   const handleImportExport = async (option: 'import' | 'export') => {
     if (option === 'export') {
-      const permissionResult = await askExternalStoragePermission();
-      if (permissionResult) {
-        exportAdditionalData();
-      }
+      exportAdditionalData();
     } else if (option === 'import') {
       if ((forms && forms.length > 0) || (metadata && metadata.length > 0)) {
         setAlertHeading(i18next.t('label.confirm_wipe_additional_data_import'));
