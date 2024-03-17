@@ -19,7 +19,8 @@
       "expo-localization"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "org.pftp.treemapper"
     },
     "android": {
       "adaptiveIcon": {

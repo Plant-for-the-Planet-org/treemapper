@@ -1,10 +1,8 @@
 import React from 'react'
-import {View, Dimensions, StyleSheet} from 'react-native'
+import {View, StyleSheet} from 'react-native'
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs'
 import CurveTab from 'assets/images/svg/CurveTab.svg'
 import BottomTabIcon from './BottomTabIcon'
-
-const totalWidth = Dimensions.get('window').width
 
 const TabBar = ({state, descriptors, navigation}: BottomTabBarProps) => {
   return (
@@ -46,11 +44,9 @@ const styles = StyleSheet.create({
     height: 60,
   },
   wrapper: {
-    width: totalWidth + 8,
-    height: 80,
+    width: '100%',
+    height: '100%',
     position: 'absolute',
-    top: -10,
-    left: -7,
   },
   tabIconContainer: {
     flexDirection: 'row',
