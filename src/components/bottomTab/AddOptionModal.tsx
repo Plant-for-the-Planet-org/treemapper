@@ -29,6 +29,7 @@ interface Props{
 
 
 const AddOptionModal=(props:Props)=>{
+
   const heightValue = useDerivedValue(() => {
     return withTiming(props.visible ? 0 : 600, { duration: 500 });
   }, [props.visible]);
@@ -113,15 +114,15 @@ const AddOptionModal=(props:Props)=>{
           {
             overflow: 'hidden',
             position: 'absolute',
-            right: 0,
-            bottom: scaleSize(60),
+            right: 10,
+            bottom: scaleSize(110),
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,
             paddingLeft: scaleSize(18),
             paddingRight: scaleSize(18),
             paddingVertical: scaleSize(10),
-            width: scaleSize(220),
+            width: scaleSize(210),
             zIndex: 10,
           },
           animatedStyles,
@@ -144,8 +145,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY + '1A',
     flexDirection: 'row',
     alignItems: 'center',
-    // width: scaleSize(180),
-    // height: scaleSize(40),
     paddingVertical: scaleFont(3),
     paddingHorizontal: scaleFont(5),
     borderRadius: 8,
