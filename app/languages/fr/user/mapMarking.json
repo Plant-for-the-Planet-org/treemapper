@@ -21,5 +21,6 @@
   "continue": "Pousuivre",
   "location_service": "Service de localisation",
   "location_service_message": "Les paramètres de localisation ne sont pas satisfaits. Assurez-vous d'avoir donné l'autorisation de localisation à l'application et d'avoir activé le GPS",
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+  "need_location_permission_to_continue": "Vous devez autoriser l'emplacement à continuer."
 }

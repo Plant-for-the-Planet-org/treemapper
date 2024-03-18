@@ -33,6 +33,7 @@
   "select_species_done": "Hecho",
   "select_species_add_name": "Añadir nombre",
   "select_species_my_species": "Mis especies",
+  "search_result": "Resultado de la búsqueda",
   "select_species_diameter_more_than_error": "El diámetro debe estar entre {{minValue}} y {{maxValue}}",
   "select_species_height_more_than_error": "La altura debe estar entre {{minValue}} y {{maxValue}}",
   "select_species_diameter_invalid": "El diámetro no es válido",
@@ -60,5 +61,10 @@
   "not_optimal_ratio_message": "La relación altura-diámetro no se encuentra entre el rango de relación óptima que está entre 2:1 (altura-diámetro mínimo) y 160:1 (altura-diámetro máximo). ¿Está seguro de que desea continuar?",
   "delete_species": "¿Borrar especies?",
   "delete_species_delete_sample_tree_warning": "Si elimina esta especie, también se eliminarán los árboles de muestra relacionados con esta especie. ¿Está seguro de que quiere borrarla?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Esta especie se eliminará si el recuento de árboles se establece en 0 y el árbol o árboles de muestra relacionados con esta especie también se eliminarán. ¿Está seguro de que quiere poner el número de árboles en cero?"
+  "zero_tree_count_species_delete_sample_tree_warning": "Esta especie se eliminará si el recuento de árboles se establece en 0 y el árbol o árboles de muestra relacionados con esta especie también se eliminarán. ¿Está seguro de que quiere poner el número de árboles en cero?",
+  "tree_is_still_alive": "El árbol sigue vivo",
+  "select_intensity_for_remeasurement": "Seleccione el porcentaje de árboles que volverá a medir del número total de árboles de muestra plantados",
+  "select_frequency_for_remeasurement": "Seleccione la frecuencia tras la cual volverá a medir los árboles de muestra.",
+  "cant_change_frequency": "Por ahora no puedes cambiar la frecuencia.",
+  "cant_change_intensity": "Por ahora no puedes cambiar la intensidad."
 }

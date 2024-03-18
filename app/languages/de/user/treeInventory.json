@@ -1,10 +1,12 @@
 {
   "tree_inventory_loading_modal": "Hochladen ...........",
   "tree_inventory_left_text": "Ausstehender Upload",
+  "pending_remeasurement_upload": "Ausstehender Upload der Neuvermessung",
   "tree_inventory_left_text_uploading": "Upload läuft",
   "tree_inventory_right_text": "Jetzt hochladen",
   "tree_inventory_view_upload": "Zeige hochgeladene Elemente",
   "tree_inventory_incomplete_registrations": "Unvollständige Registrierungen",
+  "incomplete_remeasurement": "Unvollständige Neuvermessung",
   "tree_inventory_list_header": "Baumbestand",
   "tree_inventory_list_sub_header": "Hier ist es leer, bitte registriere einige Bäume, um etwas zu sehen.",
   "tree_inventory_empty_list_header": "Baumbestand",
@@ -38,5 +40,12 @@
   "missing_data_found_registration": "Fehlende Daten in Registrierungen gefunden",
   "tree_inventory_fix_needed": "Fehlende Daten in Registrierungen gefunden.",
   "tree_inventory_fix_needed_sample": "Prüfe in der nachstehenden Karte die rot markierten Musterbäume, um die fehlenden Daten (falls vorhanden) zu sehen.",
-  "fix_before_uploading": "Bitte ergänze die fehlenden Daten vor dem Hochladen."
+  "fix_before_uploading": "Bitte ergänze die fehlenden Daten vor dem Hochladen.",
+  "flood": "Hochwasser",
+  "fire": "Feuer",
+  "drought": "Dürre",
+  "other": "Sonstiges",
+  "cause_of_mortality": "Wahrscheinliche Ursache der Sterblichkeit",
+  "status": "Status",
+  "dead": "Tod"
 }

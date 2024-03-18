@@ -44,5 +44,13 @@
   "planting_density": "Dichte der Pflanzung",
   "planting_density_value": "{{plantingDensity}} per ha",
   "missing_data_found": "Fehlende Daten!",
-  "missing_data_found_message": "In dieser Registrierung fehlen einige Daten. Bitte überprüfe die Registrierung inklusive aller Musterbäume noch einmal."
+  "missing_data_found_message": "In dieser Registrierung fehlen einige Daten. Bitte überprüfe die Registrierung inklusive aller Musterbäume noch einmal.",
+  "remeasure": "Neu messen",
+  "view_remeasurement": "Ansicht Neuvermessung",
+  "view_status": "Status anzeigen",
+  "view_plant_location": "Standort der Pflanzung anzeigen",
+  "you_are_far_to_remeasure": "Du bist zu weit vom Standort des Baumes entfernt, um den Baum neu zu vermessen.",
+  "go_to_inventory": "Inventar anzeigen",
+  "dead_reason_required": "Grund des Todes ist erforderlich",
+  "dead_reason_required_message": "Bitte wähle den Grund des Todes, um fortzufahren."
 }

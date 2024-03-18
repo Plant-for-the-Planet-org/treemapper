@@ -4,5 +4,9 @@
   "select_project": "Selecione o projeto",
   "select_project_desc": "As árvores que você cadastra podem ser associadas a um projeto específico.",
   "continue_without_project": "Continuar sem um projeto",
-  "continue_without_project_desc": "As árvores não serão associadas a um projeto."
+  "continue_without_project_desc": "As árvores não serão associadas a um projeto.",
+  "dropdownpicker_placeholder": "Seleccione um item",
+  "dropdownpicker_search_placeholder": "Procurar por ...",
+  "dropdownpicker_selected_items_count": "{count} itens foram selecionados",
+  "dropdownpicker_nothing_to_show": "Nenhum item encontrado!"
 }

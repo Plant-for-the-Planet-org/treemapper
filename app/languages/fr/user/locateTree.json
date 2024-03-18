@@ -21,5 +21,9 @@
   "locate_tree_location": "Emplacement",
   "locate_tree_cannot_record_tree": "Impossible d'enregistrer l'arbre échantillon.",
   "locate_tree_cannot_record_tree_outside_polygon": "L'arbre échantillon ne peut être enregistré qu'à l'intérieur du site marqué.",
-  "locate_tree_unable_to_retrieve_location": "Impossible de récupérer l'emplacement."
+  "locate_tree_unable_to_retrieve_location": "Impossible de récupérer l'emplacement.",
+  "distance_more_than_100_meter": "La position actuelle du marqueur est à plus de 100 mètres de la position originale des coordonnées.",
+  "cannot_update_polygon": "Impossible de mettre à jour le polygone !",
+  "sample_trees_outside_polygon": "Les arbres de l'échantillon tombent en dehors du polygone. Veuillez vérifier et mettre à jour le polygone.",
+  "cannot_mark_sample_tree_under_distance": "Il n'est pas possible de marquer un arbre échantillon à moins de 30 cm d'un autre arbre échantillon."
 }

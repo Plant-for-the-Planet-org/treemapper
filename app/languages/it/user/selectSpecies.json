@@ -25,7 +25,7 @@
   "select_species_enter_valid_input": "Inserisci un input valido",
   "select_species_ok": "OK",
   "select_species_already_added": "Hai già aggiunto {{scientificName}}.",
-  "select_species_adding_species": "Aggiungere specie...",
+  "select_species_adding_species": "Aggiunta di specie...",
   "select_species_add_species": "Aggiungi specie",
   "select_species_subheading": "L'elenco delle specie si aggiornerà man mano che digiti. Clicca per aggiungerla al tuo profilo.",
   "select_species_species_selected": "{{length}} specie selezionate",
@@ -33,6 +33,7 @@
   "select_species_done": "Fatto",
   "select_species_add_name": "Aggiungi nome",
   "select_species_my_species": "La mia specie",
+  "search_result": "Risultato della ricerca",
   "select_species_diameter_more_than_error": "Il diametro dovrebbe essere compreso tra {{minValue}} e {{maxValue}} .",
   "select_species_height_more_than_error": "L'altezza dovrebbe essere compresa tra {{minValue}} e {{maxValue}} .",
   "select_species_diameter_invalid": "Il diametro non è valido",
@@ -60,5 +61,10 @@
   "not_optimal_ratio_message": "Il rapporto altezza/diametro non rientra nell'intervallo di rapporti ottimali che è compreso tra 2:1 (altezza/diametro minimo) e 160:1 (altezza/diametro massimo). Sei sicuro di voler continuare?",
   "delete_species": "Cancellare le specie?",
   "delete_species_delete_sample_tree_warning": "Se cancelli questa specie, anche gli alberi campione relativi a questa specie saranno cancellati. Sei sicuro di voler cancellare?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Questa specie sarà cancellata se il conteggio degli alberi è impostato a 0 e anche gli alberi campione relativi a questa specie saranno cancellati. Sei sicuro di voler impostare il conteggio degli alberi a zero?"
+  "zero_tree_count_species_delete_sample_tree_warning": "Questa specie sarà cancellata se il conteggio degli alberi è impostato a 0 e anche gli alberi campione relativi a questa specie saranno cancellati. Sei sicuro di voler impostare il conteggio degli alberi a zero?",
+  "tree_is_still_alive": "L'albero è ancora vivo",
+  "select_intensity_for_remeasurement": "Selezionare la percentuale di alberi da rimisurare rispetto al numero totale di alberi campione piantati",
+  "select_frequency_for_remeasurement": "Selezionare la frequenza dopo la quale misurare nuovamente le Alberi campione.",
+  "cant_change_frequency": "Per ora non è possibile cambiare la frequenza.",
+  "cant_change_intensity": "Per ora non è possibile cambiare l'intensità."
 }

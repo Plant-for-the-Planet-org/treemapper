@@ -1,5 +1,7 @@
 {
   "login": "Se connecter / S'inscrire",
+  "fetch_all_items": "Récupérer tous les éléments",
+  "fetch_necessary_items": "Aller chercher les objets nécessaires",
   "tree_mapper": "TreeMapper",
   "tree_inventory": "Inventaire forestier",
   "tree_inventory_sub_header": "Inscriptions en projet et en attente",
