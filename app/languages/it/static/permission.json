@@ -4,7 +4,7 @@
   "permission_camera_ok": "OK",
   "permission_camera_cancel": "Cancella",
   "storage_permission_android_title": "Permesso di stoccaggio",
-  "storage_permission_android_message": "L'app ha bisogno di accedere alla memoria per scaricare il file",
+  "storage_permission_android_message": "L'applicazione deve accedere alla memoria per scaricare il file",
   "storage_permission_denied_header": "Permesso negato!",
-  "storage_permission_denied_sub_header": "È necessario dare il permesso di memorizzazione per salvare il file geoJSON"
+  "storage_permission_denied_sub_header": "Per salvare il file geoJSON è necessario concedere i permessi di memorizzazione"
 }

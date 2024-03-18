@@ -21,5 +21,9 @@
   "locate_tree_location": "Ubicación",
   "locate_tree_cannot_record_tree": "No se puede registrar el árbol de muestra",
   "locate_tree_cannot_record_tree_outside_polygon": "El árbol de muestra sólo puede registrarse dentro del lugar marcado.",
-  "locate_tree_unable_to_retrieve_location": "No se puede encontrar la ubicación."
+  "locate_tree_unable_to_retrieve_location": "No se puede encontrar la ubicación.",
+  "distance_more_than_100_meter": "La posición actual del marcador está a más de 100 metros de la posición original de las coordenadas.",
+  "cannot_update_polygon": "No se puede actualizar el polígono",
+  "sample_trees_outside_polygon": "Los árboles de muestra caen fuera del polígono. Por favor, compruebe y actualice el polígono.",
+  "cannot_mark_sample_tree_under_distance": "No se puede marcar el árbol de muestra a menos de 30 cm de otro árbol de muestra."
 }

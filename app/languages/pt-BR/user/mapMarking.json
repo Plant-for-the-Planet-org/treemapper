@@ -21,5 +21,6 @@
   "continue": "Continuar",
   "location_service": "Localização",
   "location_service_message": "As configurações de localização não são suficientes. Por favor, certifique-se de ter dado permissão de localização ao aplicativo e ligado o GPS",
-  "cancel": "Cancelar"
+  "cancel": "Cancelar",
+  "need_location_permission_to_continue": "É necessário dar permissão de localização para continuar."
 }

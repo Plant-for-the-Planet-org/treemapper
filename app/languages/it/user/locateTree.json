@@ -21,5 +21,9 @@
   "locate_tree_location": "Posizione",
   "locate_tree_cannot_record_tree": "Impossibile registrare l'albero dei campioni.",
   "locate_tree_cannot_record_tree_outside_polygon": "L'albero campione può essere registrato solo all'interno del sito segnato.",
-  "locate_tree_unable_to_retrieve_location": "Impossibile recuperare la posizione."
+  "locate_tree_unable_to_retrieve_location": "Impossibile recuperare la posizione.",
+  "distance_more_than_100_meter": "La posizione attuale del marker è a più di 100 metri dalla posizione delle coordinate originali.",
+  "cannot_update_polygon": "Impossibile aggiornare il poligono!",
+  "sample_trees_outside_polygon": "Gli alberi campione cadono al di fuori del poligono. Controllare e aggiornare il poligono.",
+  "cannot_mark_sample_tree_under_distance": "Non è possibile contrassegnare un albero campione a meno di 30 cm da un altro albero campione."
 }

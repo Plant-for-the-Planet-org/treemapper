@@ -1,5 +1,7 @@
 {
   "login": "Iniciar Sessão / Registar",
+  "fetch_all_items": "Buscar todos os itens",
+  "fetch_necessary_items": "Buscar itens necessários",
   "tree_mapper": "TreeMapper",
   "tree_inventory": "Inventário de Árvores",
   "tree_inventory_sub_header": "de rascunhos e inscrições pendentes",

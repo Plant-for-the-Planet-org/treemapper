@@ -1,5 +1,7 @@
 {
   "login": "Ingresar / Registrarse",
+  "fetch_all_items": "Buscar todos los artículos",
+  "fetch_necessary_items": "Recoger los artículos necesarios",
   "tree_mapper": "TreeMapper",
   "tree_inventory": "Inventario de arboles",
   "tree_inventory_sub_header": "de los proyectos y registros pendientes",

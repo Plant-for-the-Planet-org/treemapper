@@ -4,5 +4,9 @@
   "select_project": "Sélectionner un Projet",
   "select_project_desc": "Les arbres que vous pouvez enregistrer peuvent être associés à un projet spécifique.",
   "continue_without_project": "Continuer sans projet",
-  "continue_without_project_desc": "Les arbres ne seront pas associés à un projet."
+  "continue_without_project_desc": "Les arbres ne seront pas associés à un projet.",
+  "dropdownpicker_placeholder": "Sélectionner un élément",
+  "dropdownpicker_search_placeholder": "Recherche de ...",
+  "dropdownpicker_selected_items_count": "{count} éléments ont été sélectionnés",
+  "dropdownpicker_nothing_to_show": "Aucun article n'a été trouvé !"
 }

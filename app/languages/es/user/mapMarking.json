@@ -21,5 +21,6 @@
   "continue": "Continuar",
   "location_service": "Servicio de ubicación",
   "location_service_message": "La configuración de la ubicación no es correcta. Por favor, asegúrate de que has dado permiso de localización a la aplicación y has activado el GPS",
-  "cancel": "Cancelar"
+  "cancel": "Cancelar",
+  "need_location_permission_to_continue": "Tienes que dar permiso de localización para continuar."
 }

@@ -61,5 +61,10 @@
   "not_optimal_ratio_message": "Das Verhältnis von Höhe zu Durchmesser fällt nicht in den optimalen Verhältnisbereich, der zwischen 2:1 (minimale Höhe:Durchmesser) und 160:1 (maximale Höhe:Durchmesser) liegt. Bist du sicher, dass du fortfahren möchtest?",
   "delete_species": "Spezies löschen?",
   "delete_species_delete_sample_tree_warning": "Wenn du diese Art löscht, werden auch die mit dieser Art verbundenen Musterbäume gelöscht. Bist du sicher, dass du sie löschen möchtest?",
-  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, und die mit dieser Art verbundenen Musterbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?"
+  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, und die mit dieser Art verbundenen Musterbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?",
+  "tree_is_still_alive": "Der Baum lebt noch",
+  "select_intensity_for_remeasurement": "Wähle den prozentualen Anteil der Bäume, die du von der Gesamtzahl der gepflanzten Probebäume neu vermessen willst",
+  "select_frequency_for_remeasurement": "Wähle die Frequenz, in der Du die Beispielbäume erneut messen willst.",
+  "cant_change_frequency": "Du kannst die Frequenz im Moment nicht ändern.",
+  "cant_change_intensity": "Du kannst die Intensität im Moment nicht ändern."
 }

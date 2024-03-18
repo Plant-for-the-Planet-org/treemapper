@@ -18,5 +18,6 @@
   "support": "Ayuda",
   "complete_signup": "Registro completo",
   "manage_projects": "Administrar los proyectos",
-  "additional_data": "Datos adicionales"
+  "additional_data": "Datos adicionales",
+  "project_config": "Configuración del proyecto"
 }
