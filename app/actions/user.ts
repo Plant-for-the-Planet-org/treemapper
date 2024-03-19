@@ -42,9 +42,9 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           prompt: 'login',
           audience: 'urn:plant-for-the-planet',
         },
-        { ephemeralSession: false },
+        { ephemeralSession: false, customScheme: 'org.pftp.treemapper' },
       )
-      .then((credentials) => {
+      .then(credentials => {
         const expirationTime = getExpirationTimeStamp(credentials.accessToken);
 
         // logs success info in DB
@@ -62,7 +62,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
 
         // fetches the user details from server by passing the accessToken which is used while requesting the API
         getUserDetailsFromServer(dispatch)
-          .then((userDetails) => {
+          .then(userDetails => {
             // destructured and modified variable names which is used to set user state
             const {
               email,
@@ -90,11 +90,11 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
             });
             resolve(true);
           })
-          .catch((err) => {
+          .catch(err => {
             reject(err);
           });
       })
-      .catch((err) => {
+      .catch(err => {
         if (err?.error !== 'a0.session.user_cancelled') {
           dbLog.error({
             logType: LogTypes.USER,
@@ -126,17 +126,17 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
 export const auth0Logout = async (userDispatch = null) => {
   const isConnected = await isInternetConnected();
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (!isConnected) {
       resolve(false);
       return;
     }
     auth0.webAuth
-      .clearSession()
+      .clearSession({}, { customScheme: 'org.pftp.treemapper' })
       .then(async () => {
         // deletes the user from DB
         await deleteUser();
-        await deleteAllProjects()
+        await deleteAllProjects();
 
         await resetAllSpecies();
 
@@ -154,7 +154,7 @@ export const auth0Logout = async (userDispatch = null) => {
         });
         resolve(true);
       })
-      .catch((err) => {
+      .catch(err => {
         if (err?.error !== 'a0.session.user_cancelled') {
           console.error('Error at /actions/user/auth0Logout', err);
           dbLog.error({
@@ -183,7 +183,7 @@ export const auth0Logout = async (userDispatch = null) => {
  */
 export const getNewAccessToken = async (refreshToken: string) => {
   const isConnected = await isInternetConnected();
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (!isConnected) {
       resolve(false);
       return;
@@ -192,7 +192,7 @@ export const getNewAccessToken = async (refreshToken: string) => {
       // calls the refreshToken function of auth0 by passing the refreshToken
       auth0.auth
         .refreshToken({ refreshToken })
-        .then((data) => {
+        .then(data => {
           const expirationTime = getExpirationTimeStamp(data.accessToken);
           // calls the repo function which modifies the accessToken, idToken and refreshToken from the fetched data
           createOrModifyUserToken({ ...data, expirationTime });
@@ -204,7 +204,7 @@ export const getNewAccessToken = async (refreshToken: string) => {
           // resolves the access token
           resolve(data.accessToken);
         })
-        .catch((err) => {
+        .catch(err => {
           auth0Logout();
           // logs the error in Db and notifies the same to bugsnag
           console.error('Error at /actions/user/getNewAccessToken', err);
@@ -290,7 +290,7 @@ export const getUserDetailsFromServer = (userDispatch: any) => {
         });
         resolve(data?.data);
       })
-      .catch(async (err) => {
+      .catch(async err => {
         // calls this function to check for the error code and either logout the user or ask to signup
         await checkErrorCode(err, userDispatch);
         console.error(
@@ -314,7 +314,7 @@ export const SignupService = (payload: any, dispatch: any) => {
   // try {
   return new Promise((resolve, reject) => {
     postRequest('/app/profile', payload)
-      .then(async (res) => {
+      .then(async res => {
         const { status, data }: any = res;
         if (status === 200) {
           await modifyUserDetails({
@@ -336,7 +336,7 @@ export const SignupService = (payload: any, dispatch: any) => {
           resolve(data);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(
           `Error at /actions/user/SignupService: POST - /app/profile, ${JSON.stringify(
             err.response,
@@ -363,7 +363,7 @@ export const SignupService = (payload: any, dispatch: any) => {
 export const getAllProjects = () => {
   return new Promise((resolve, reject) => {
     getAuthenticatedRequest('/app/profile/projects?_scope=extended')
-      .then(async (res) => {
+      .then(async res => {
         const { status, data }: any = res;
         if (status === 200) {
           await addProjects(data);
@@ -376,7 +376,7 @@ export const getAllProjects = () => {
           resolve(true);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(
           'Error at /actions/user/getAllProjects: GET - /app/profile/projects,',
           err.response ? err.response : err,
