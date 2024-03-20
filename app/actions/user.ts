@@ -104,7 +104,6 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           // if any error is found then deletes the user and clear the user app state
           deleteUser();
           clearUserDetails()(dispatch);
-          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
@@ -112,6 +111,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
             logStack: JSON.stringify(err),
           });
         }
+        bugsnag.notify(err);
         reject(err);
       });
   });
@@ -163,7 +163,6 @@ export const auth0Logout = async (userDispatch = null) => {
             logStack: JSON.stringify(err),
           });
           resolve(false);
-          bugsnag.notify(err);
         } else {
           dbLog.info({
             logType: LogTypes.USER,
@@ -172,6 +171,7 @@ export const auth0Logout = async (userDispatch = null) => {
           });
           resolve(false);
         }
+        bugsnag.notify(err);
       });
   });
 };
@@ -293,6 +293,7 @@ export const getUserDetailsFromServer = (userDispatch: any) => {
       .catch(async err => {
         // calls this function to check for the error code and either logout the user or ask to signup
         await checkErrorCode(err, userDispatch);
+        bugsnag.notify(err);
         console.error(
           'Error at /actions/user/getUserDetailsFromServer: GET - /app/profile,',
           err.response,
@@ -337,6 +338,7 @@ export const SignupService = (payload: any, dispatch: any) => {
         }
       })
       .catch(err => {
+        bugsnag.notify(err);
         console.error(
           `Error at /actions/user/SignupService: POST - /app/profile, ${JSON.stringify(
             err.response,
@@ -377,6 +379,7 @@ export const getAllProjects = () => {
         }
       })
       .catch(err => {
+        bugsnag.notify(err);
         console.error(
           'Error at /actions/user/getAllProjects: GET - /app/profile/projects,',
           err.response ? err.response : err,

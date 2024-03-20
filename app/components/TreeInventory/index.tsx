@@ -47,6 +47,7 @@ import {
 } from '../Common';
 import VerifyEmailAlert from '../Common/EmailAlert';
 import { setInventoryId } from '../../actions/inventory';
+import { bugsnag } from '../../utils';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -156,6 +157,7 @@ const TreeInventory = () => {
           // handleBackPress();
         })
         .catch(err => {
+          bugsnag.notify(err);
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (err?.message === 'blocked') {

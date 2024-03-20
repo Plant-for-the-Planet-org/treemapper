@@ -12,6 +12,7 @@ import dbLog from '../../../repositories/logs';
 import { LogTypes } from '../../../utils/constants';
 import { useNetInfo } from '@react-native-community/netinfo';
 import AlertModal from '../AlertModal';
+import { bugsnag } from '../../../utils';
 
 interface ISyncingProps {
   uploadCount: number;
@@ -70,6 +71,7 @@ export default function Syncing({
   const onPressUploadNow = () => {
     if (netInfo.isConnected && netInfo.isInternetReachable) {
       uploadInventoryData(dispatch, userDispatch).catch(err => {
+        bugsnag.notify(err);
         dbLog.error({
           logType: LogTypes.INVENTORY,
           message: 'Failed to upload Inventories',
