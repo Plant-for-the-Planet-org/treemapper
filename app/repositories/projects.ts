@@ -94,8 +94,8 @@ export const addProjects = (projects: any) => {
 
             const projectData: any = {
               allowDonations: properties.allowDonations,
-              countPlanted: properties.countPlanted,
-              countTarget: properties.countTarget,
+              countPlanted: properties.countPlanted || 0,
+              countTarget: properties.countTarget || 1,
               country: properties.country,
               currency: properties.currency,
               id: properties.id,
