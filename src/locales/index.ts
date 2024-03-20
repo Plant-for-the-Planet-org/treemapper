@@ -4,11 +4,11 @@ import moment from 'moment/min/moment-with-locales';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 
-import delabels from './de';
-import enlabels from './en';
-import eslabels from './es';
-import frlabels from './fr';
-import ptBRlabels from './pt-BR';
+import delabels from './languages/de';
+import enlabels from './languages/en';
+import eslabels from './languages/es';
+import frlabels from './languages/fr';
+import ptBRlabels from './languages/pt-BR';
 
 let userLang = undefined;
 const lang = getLocales()[0];
@@ -16,6 +16,7 @@ userLang = lang && lang.languageCode;
 
 
 i18next.init({
+  compatibilityJSON: 'v3',
   interpolation: {
     // React already does escaping
     escapeValue: false,
