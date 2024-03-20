@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   SafeAreaView,
@@ -17,7 +18,6 @@ import dbLog, { getLogs } from '../../repositories/logs';
 import { Colors, Typography } from '../../styles';
 import { toBase64 } from '../../utils/base64';
 import { LogTypes } from '../../utils/constants';
-import { askExternalStoragePermission } from '../../utils/permissions';
 import { AlertModal, Loader } from '../Common';
 import CustomTabBar from '../Common/CustomTabBar';
 import Header from '../Common/Header';
@@ -54,7 +54,7 @@ const AllLogs = ({ allData, setAllData }: { allData: any; setAllData: any }) => 
         style={{ flex: 1 }}
         data={allData}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -71,7 +71,7 @@ const ErrorLogs = ({ errorData, setErrorData }: { errorData: any; setErrorData: 
         style={{ flex: 1 }}
         data={errorData}
         renderItem={renderLog}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -103,33 +103,33 @@ export default function Logs() {
   };
 
   const handleSharePress = async () => {
-    const permissionResult = await askExternalStoragePermission();
-    if (permissionResult) {
-      setCreatingLogsFile(true);
-      const options = {
-        url: 'data:application/json;base64,' + toBase64(JSON.stringify(allData)),
-        title: i18next.t('label.share_activity_logs_title'),
-        filename: i18next.t('label.share_logs_file_name', { version }),
-        saveToFiles: true,
-        failOnCancel: false,
-        email: 'support@plant-for-the-planet.org',
-        subject: i18next.t('label.share_logs_file_name', { version }),
-      };
+    setCreatingLogsFile(true);
+    const options = {
+      url: 'data:application/json;base64,' + toBase64(JSON.stringify(allData)),
+      title: i18next.t('label.share_activity_logs_title'),
+      filename: i18next.t('label.share_logs_file_name', { version }),
+      saveToFiles: true,
+      failOnCancel: false,
+      email: 'support@plant-for-the-planet.org',
+      subject: i18next.t('label.share_logs_file_name', { version }),
+    };
 
-      Share.open(options)
-        .then(() => setCreatingLogsFile(false))
-        .catch((err) => {
-          if (err?.error?.code != 'ECANCELLED500') { // iOS cancel button pressed
-            setShowAlert(true);
-            dbLog.error({
-              logType: LogTypes.OTHER,
-              message: `Error while sharing logs`,
-              logStack: JSON.stringify(err),
-            });
-          }
-          setCreatingLogsFile(false);
-        });
-    }
+    Share.open(options)
+      .then(() => setCreatingLogsFile(false))
+      .catch(err => {
+        if (err?.error?.code != 'ECANCELLED500') {
+          setShowAlert(true);
+          dbLog.error({
+            logType: LogTypes.OTHER,
+            message: `Error while sharing logs`,
+            logStack: JSON.stringify(err),
+          });
+        }
+        setCreatingLogsFile(false);
+      })
+      .finally(() => {
+        setCreatingLogsFile(false);
+      });
   };
 
   return (
@@ -164,7 +164,7 @@ export default function Logs() {
               renderScene={renderScene}
               onIndexChange={setRouteIndex}
               initialLayout={initialLayout}
-              renderTabBar={(props) => (
+              renderTabBar={props => (
                 <CustomTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
               )}
             />

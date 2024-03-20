@@ -149,8 +149,8 @@ android {
         applicationId "org.pftp.treemapper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 25
-        versionName "1.0.8"
+        versionCode 37
+        versionName "1.0.9"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general'
@@ -160,7 +160,7 @@ android {
         abi {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
+            universalApk true
             include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
         }
     }

@@ -28,6 +28,7 @@ import BottomBar from './BottomBar';
 import LoginButton from './LoginButton';
 import MainMap from './MainMap';
 import ProjectAndSiteSelector from './ProjectAndSiteSelector';
+import { bugsnag } from '../../utils';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -216,6 +217,7 @@ export default function MainScreen() {
           fetchInventoryCount();
         })
         .catch(err => {
+          bugsnag.notify(err);
           if (err?.response?.status === 303) {
             navigation.navigate('SignUp');
           } else if (

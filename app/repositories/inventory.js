@@ -1018,8 +1018,12 @@ export const addInventoryToDB = inventoryFromServer => {
             }
             const latitude = coordinate[1];
             const longitude = coordinate[0];
-            const currentloclat = inventoryFromServer.deviceLocation.coordinates[1];
-            const currentloclong = inventoryFromServer.deviceLocation.coordinates[0];
+            const currentloclat = inventoryFromServer.deviceLocation
+              ? inventoryFromServer.deviceLocation.coordinates[1]
+              : 0;
+            const currentloclong = inventoryFromServer.deviceLocation
+              ? inventoryFromServer.deviceLocation.coordinates[0]
+              : 0;
             const cdnImageUrl =
               inventoryFromServer.geometry.coordinates[0].length - 1
                 ? inventoryFromServer.coordinates[0].image
