@@ -1,3 +1,4 @@
-export interface AppInitialState{
-    last_open: number;
+export interface Coordinates{
+    lat: number;
+    long: number
 }

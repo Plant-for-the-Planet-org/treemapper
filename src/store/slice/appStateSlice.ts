@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {AppInitialState} from 'src/types/interface/app.interface'
+import {AppInitialState} from 'src/types/interface/slice.interface'
 
 const initialState: AppInitialState = {
   last_open: 0,

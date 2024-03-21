@@ -12,15 +12,17 @@ import {
   REGISTER,
 } from 'redux-persist';
 import appStateSlice from './slice/appStateSlice';
+import gpsStateSlice from './slice/gpsStateSlice';
 
 const appReducer = combineReducers({
   appState: appStateSlice,
+  gpsState: gpsStateSlice
 });
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState'],
+  whitelist: ['appState','gpsStateSlice'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

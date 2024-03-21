@@ -1,31 +1,80 @@
-import React from 'react'
-import {StyleSheet, View} from 'react-native'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import {StyleSheet} from 'react-native'
+import React, {useEffect, useRef, useState} from 'react'
+import MapLibreGL, {Camera, Location} from '@maplibre/maplibre-react-native'
+import useLocationPermission from 'src/hooks/useLocationPermission'
+import {PermissionStatus} from 'expo-location'
+import {useDispatch, useSelector} from 'react-redux'
+import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
+import {RootState} from 'src/store'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
-const MainMapView = () => {
+const MapMarkingView = () => {
+  const permissionStatus = useLocationPermission()
+  const currentUserLocation = useSelector(
+    (state: RootState) => state.gpsState.user_location,
+  )
+  const [showPermissionAlert, setPermissionAlert] = useState(false)
+  const dispatch = useDispatch()
+  const cameraRef = useRef<Camera>(null)
+
+  useEffect(() => {
+    if (PermissionStatus.DENIED === permissionStatus) {
+      setPermissionAlert(true)
+    } else {
+      setPermissionAlert(false)
+    }
+  }, [permissionStatus])
+
+  const handleLocationChange = (location: Location) => {
+    if (location) {
+      dispatch(
+        updateUserLocation({
+          lat: location.coords.latitude,
+          long: location.coords.longitude,
+        }),
+      )
+    }
+  }
+
+  useEffect(() => {
+    if (currentUserLocation && cameraRef.current!==null) {
+      handleCamera()
+    }
+  }, [currentUserLocation])
+
+  const handleCamera = () => {
+    cameraRef.current.setCamera({
+      centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
+      zoomLevel: 15,
+      animationDuration: 1000,
+    })
+  }
+
+  if(showPermissionAlert){
+    return null;
+  }
+
   return (
-    <View style={styles.page}>
-      <MapLibreGL.MapView
-        style={styles.map}
-        logoEnabled={false}
-        styleURL={JSON.stringify(MapStyle)}>
-        <MapLibreGL.Camera />
-      </MapLibreGL.MapView>
-    </View>
+    <MapLibreGL.MapView
+      style={styles.map}
+      logoEnabled={false}
+      styleURL={JSON.stringify(MapStyle)}>
+      <MapLibreGL.Camera ref={cameraRef} />
+      <MapLibreGL.UserLocation
+        onUpdate={handleLocationChange}
+        minDisplacement={5}
+      />
+    </MapLibreGL.MapView>
   )
 }
 
-export default MainMapView
+export default MapMarkingView
 
 const styles = StyleSheet.create({
-  page: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
   map: {
     flex: 1,
