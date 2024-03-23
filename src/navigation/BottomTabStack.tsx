@@ -1,9 +1,7 @@
 import * as React from 'react'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {BottomTabParamList} from 'src/types/type/navigation'
-import MainMapView from 'src/screens/MainMapView'
-import Interventions from 'src/screens/InterventionView'
-import ComingSoon from 'src/screens/ComingSoonView'
+import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
 import {View, StyleSheet} from 'react-native'
 import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
@@ -27,7 +25,7 @@ const BottomStack = () => {
       }}>
       <BottomTabStack.Screen
         name="Map"
-        component={MainMapView}
+        component={Screens.HomeMapView}
         options={{
           tabBarIcon: ({focused}) => {
             return <BottomTabIcon label={'Map'} index={0} isFocused={focused} />
@@ -36,7 +34,7 @@ const BottomStack = () => {
       />
       <BottomTabStack.Screen
         name="Interventions"
-        component={Interventions}
+        component={Screens.Interventions}
         options={{
           tabBarIcon: ({focused}) => {
             return (
@@ -51,7 +49,7 @@ const BottomStack = () => {
       />
       <BottomTabStack.Screen
         name="Plots"
-        component={ComingSoon}
+        component={Screens.PlotView}
         options={{
           tabBarIcon: ({focused}) => {
             return (
@@ -83,7 +81,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     height: 70,
     position: 'absolute',
-    elevation:0,
-
+    elevation: 0,
   },
 })

@@ -10,7 +10,7 @@ import {RootState} from 'src/store'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
-const MapMarkingView = () => {
+const DisplayMap = () => {
   const permissionStatus = useLocationPermission()
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -70,7 +70,7 @@ const MapMarkingView = () => {
   )
 }
 
-export default MapMarkingView
+export default DisplayMap
 
 const styles = StyleSheet.create({
   container: {
