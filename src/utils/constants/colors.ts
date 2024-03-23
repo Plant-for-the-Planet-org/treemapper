@@ -9,7 +9,7 @@ export const PLANET_BLACK = '#2F3336';
 export const PLANET_CHOCOLATE = '#6D4230';
 export const PLANET_CHOCOLATE_GRADIENT_1 = '#83583A';
 export const PLANET_CHOCOLATE_GRADIENT_2 = '#432918';
-
+export const LINEAR_INTERMEDIATE = '#348F39';
 // export export const SECONDARY = '#767676';
 export const WHITE = '#FFFFFF';
 export const BLACK = '#000000';
