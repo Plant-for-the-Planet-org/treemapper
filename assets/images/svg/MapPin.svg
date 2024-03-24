@@ -1,16 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="38" height="91" viewBox="0 0 38 91">
-  <g id="Group_2286" data-name="Group 2286" transform="translate(-101 -368)">
-    <g id="Group_1661" data-name="Group 1661" transform="translate(-38 -63.09)">
-      <rect id="Rectangle_906" data-name="Rectangle 906" width="38" height="38" transform="translate(139 448.09)" fill="none"/>
-      <g id="Group_1583" data-name="Group 1583" transform="translate(143.761 431.174)">
-        <ellipse id="Ellipse_172" data-name="Ellipse 172" cx="14" cy="14.5" rx="14" ry="14.5" transform="translate(0.239 -0.084)" fill="#68B030"/>
-        <path id="Polygon_1" data-name="Polygon 1" d="M5,0l5,5H0Z" transform="translate(19.239 31.916) rotate(180)" fill="#68B030"/>
-        <g id="Group_1584" data-name="Group 1584" transform="translate(1.587 3.174)">
-          <rect id="Rectangle_625" data-name="Rectangle 625" width="26" height="26" transform="translate(-0.348 -0.258)" fill="none"/>
-         </g>
-      </g>
-      <line id="Line_38" data-name="Line 38" y2="60" transform="translate(158 460.59)" fill="none" stroke="#87b738" stroke-width="1"/>
-      <circle id="Ellipse_184" data-name="Ellipse 184" cx="2" cy="2" r="2" transform="translate(156 518.09)" fill="#87b738"/>
-    </g>
-  </g>
+<svg width="32" height="53" viewBox="0 0 32 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M16 0.523926C7.16344 0.523926 0 7.68747 0 16.5241C0 24.8469 6.35439 31.6854 14.4762 32.4527V49.2865C14.4762 50.1281 15.1584 50.8103 16 50.8103C16.8416 50.8103 17.5238 50.1281 17.5238 49.2865V32.4527C25.6456 31.6854 32 24.8469 32 16.5241C32 7.68747 24.8366 0.523926 16 0.523926Z" fill="#007A49"/>
+<path d="M4.38412 16.2894C4.38412 10.0302 9.45822 4.95605 15.7174 4.95605C21.9767 4.95605 27.0508 10.0302 27.0508 16.2894C27.0508 22.5486 21.9767 27.6227 15.7174 27.6227C9.45822 27.6227 4.38412 22.5486 4.38412 16.2894Z" fill="white"/>
+<path opacity="0.3" d="M16.0004 52.334C13.8964 52.334 12.1908 51.4812 12.1908 50.4292C12.1908 49.3772 13.8964 48.5244 16.0004 48.5244C18.1043 48.5244 19.8099 49.3772 19.8099 50.4292C19.8099 51.4812 18.1043 52.334 16.0004 52.334Z" fill="#007A49"/>
 </svg>

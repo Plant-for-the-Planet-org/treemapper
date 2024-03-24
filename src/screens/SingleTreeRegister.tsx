@@ -1,11 +1,13 @@
 import {StyleSheet, View} from 'react-native'
 import React from 'react'
-// import Map from 'src/components/map/Map'
+import Header from 'src/components/common/Header'
+import MarkerMap from 'src/components/map/MarkerMap'
 
 const SingleTreeRegister = () => {
   return (
     <View style={styles.container}>
-      {/* <Map/> */}
+      <Header label="Tree Location" />
+      <MarkerMap />
     </View>
   )
 }
@@ -13,7 +15,7 @@ const SingleTreeRegister = () => {
 export default SingleTreeRegister
 
 const styles = StyleSheet.create({
-    container:{
-        flex:1
-    }
+  container: {
+    flex: 1,
+  },
 })
