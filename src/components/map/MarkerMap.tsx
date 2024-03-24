@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import React, {useEffect, useRef, useState} from 'react'
 import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
@@ -8,8 +8,11 @@ import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
 import {RootState} from 'src/store'
 import userCurrentLocation from 'src/utils/mapHelper/userCurrentLocation'
 import CustomButton from '../common/CustomButton'
-import { scaleSize } from 'src/utils/constants/mixins'
+import {scaleSize} from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
+import { useNavigation } from '@react-navigation/native'
+import { RootStackParamList } from 'src/types/type/navigation'
+import { StackNavigationProp } from '@react-navigation/stack'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -21,7 +24,9 @@ const MarkerMap = () => {
   )
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const dispatch = useDispatch()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const cameraRef = useRef<Camera>(null)
+  const mapRef = useRef<MapLibreGL.MapView>(null)
 
   useEffect(() => {
     if (PermissionStatus.DENIED === permissionStatus) {
@@ -56,25 +61,32 @@ const MarkerMap = () => {
     })
   }
 
+  const onSelectLocation = async () => {
+    const centerCoordinates = await mapRef.current.getCenter()
+    console.log('Location coordinates', centerCoordinates)
+    navigation.navigate('TakePicture')
+  }
+
   if (showPermissionAlert) {
     return null
   }
 
   return (
-    <>
+    <View style={styles.container}>
       <MapLibreGL.MapView
         style={styles.map}
+        ref={mapRef}
         logoEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
-        <MapLibreGL.UserLocation minDisplacement={5} />
       </MapLibreGL.MapView>
       <CustomButton
         label="Select location & continue"
         containerStyle={styles.btnContainer}
+        pressHandler={onSelectLocation}
       />
-      <ActiveMarkerIcon/>
-    </>
+      <ActiveMarkerIcon />
+    </View>
   )
 }
 
@@ -83,6 +95,8 @@ export default MarkerMap
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent:'center',
+    alignItems:'center'
   },
   map: {
     flex: 1,

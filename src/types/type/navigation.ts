@@ -6,6 +6,7 @@ export type BottomTabParamList = {
 }
 
 export type RootStackParamList = {
-  Home: undefined,
+  Home: undefined
   SingleTreeRegister: undefined
+  TakePicture: undefined
 }

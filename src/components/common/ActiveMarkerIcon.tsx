@@ -14,13 +14,9 @@ export default ActiveMarkerIcon
 
 const styles = StyleSheet.create({
   container: {
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
     alignItems: 'center',
-    top: '48%',
-    left: '48%',
     zIndex: 1,
     position: 'absolute',
+    top:"44%",
   },
 })

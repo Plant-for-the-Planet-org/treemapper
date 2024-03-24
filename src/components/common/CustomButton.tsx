@@ -12,15 +12,16 @@ import {Colors} from 'src/utils/constants'
 
 interface Props {
   label: string
+  pressHandler:()=>void
   containerStyle?: ViewStyle
   labelStyle?: TextStyle
-  wrapperStyle?: ViewStyle
+  wrapperStyle?: ViewStyle,
 }
 
 const CustomButton = (props: Props) => {
-  const {label, containerStyle = {}, labelStyle = {}, wrapperStyle = {}} = props
+  const {label, containerStyle = {}, labelStyle = {}, wrapperStyle = {},pressHandler} = props
   return (
-    <TouchableOpacity style={[styles.container, {...containerStyle}]}>
+    <TouchableOpacity style={[styles.container, {...containerStyle}]} onPress={pressHandler}>
       <View style={[styles.wrapper, {...wrapperStyle}]}>
         <Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>
       </View>
