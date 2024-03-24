@@ -10,6 +10,7 @@ import MapLibreGL from '@maplibre/maplibre-react-native'
 import {Auth0Provider} from 'react-native-auth0'
 import {RealmProvider} from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger';
+import 'react-native-gesture-handler';
 
 MapLibreGL.setAccessToken(null)
 

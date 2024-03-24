@@ -1,10 +1,9 @@
-import React, { useRef, useState } from 'react';
-import { Modalize } from 'react-native-modalize';
+import React, { useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Text, View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 
 import MultipleTreeIconBackdrop from 'assets/images/svg/MultipleTreeIconBackdrop.svg';
-import FolderIcon from 'assets/images/svg/Folder.svg';
+// import FolderIcon from 'assets/images/svg/Folder.svg';
 import Exclamation from 'assets/images/svg/Exclamation.svg';
 import SyncFail from 'assets/images/svg/SyncFail.svg';
 import SyncSuccess from 'assets/images/svg/SyncSuccess.svg';
@@ -15,6 +14,111 @@ import {LinearGradient} from 'expo-linear-gradient';
 
 const FILTER_TYPES = ['All', 'Incomplete', 'Synced', 'Unsynced'];
 const INTERVENTION_DATA = [
+  {
+    title: '1 Apple Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '24 Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '136 m',
+    type: ['Fire Break', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '8 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '12 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: true,
+  },
+  {
+    title: '1 Apple Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '24 Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '136 m',
+    type: ['Fire Break', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '8 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '12 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: true,
+  },
+  {
+    title: '1 Apple Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '24 Tree',
+    type: ['On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '136 m',
+    type: ['Fire Break', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: false,
+  },
+  {
+    title: '8 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: true,
+    complete: true,
+  },
+  {
+    title: '12 m2',
+    type: ['Invasive Grass Removal', 'On Site', 'Point'],
+    createdAt: 'Feb 18, 2020',
+    synced: false,
+    complete: true,
+  },
   {
     title: '1 Apple Tree',
     type: ['On Site', 'Point'],
@@ -70,15 +174,15 @@ const Interventions = () => {
   const [interventionsList, setInterventionsList] = useState<Array<unknown>>(INTERVENTION_DATA);
   const [selectedFilter, setSelectedFilter] = useState<string>(FILTER_TYPES[0]);
 
-  const modalizeRef = useRef<Modalize>(null);
+  // const modalizeRef = useRef<Modalize>(null);
 
   const handleEdit = () => {};
   const onOpen = () => {
-    modalizeRef.current?.open();
+    // modalizeRef.current?.open();
   };
-  const onClose = () => {
-    modalizeRef.current?.close();
-  };
+  // const onClose = () => {
+  //   // modalizeRef.current?.close();
+  // };
 
   const _handleSelectFilter = (item: string) => () => {
     setSelectedFilter(item);
@@ -208,7 +312,7 @@ const Interventions = () => {
         />
       </LinearGradient>
 
-      <Modalize
+      {/* <Modalize
         withReactModal
         ref={modalizeRef}
         withHandle={false}
@@ -225,7 +329,7 @@ const Interventions = () => {
             <Text style={styles.btnFreeSpace}>Free up space</Text>
           </TouchableOpacity>
         </View>
-      </Modalize>
+      </Modalize> */}
     </SafeAreaView>
   );
 };
