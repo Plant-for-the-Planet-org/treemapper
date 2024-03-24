@@ -1,11 +1,12 @@
 import {StyleSheet} from 'react-native'
 import React, {useEffect, useRef, useState} from 'react'
-import MapLibreGL, {Camera, Location} from '@maplibre/maplibre-react-native'
+import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 import {PermissionStatus} from 'expo-location'
 import {useDispatch, useSelector} from 'react-redux'
 import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
 import {RootState} from 'src/store'
+import userCurrentLocation from 'src/utils/mapHelper/userCurrentLocation'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -23,23 +24,23 @@ const DisplayMap = () => {
     if (PermissionStatus.DENIED === permissionStatus) {
       setPermissionAlert(true)
     } else {
+      getInitalLocation()
       setPermissionAlert(false)
     }
   }, [permissionStatus])
 
-  const handleLocationChange = (location: Location) => {
-    if (location) {
-      dispatch(
-        updateUserLocation({
-          lat: location.coords.latitude,
-          long: location.coords.longitude,
-        }),
-      )
-    }
+  const getInitalLocation = async () => {
+    const {lat, long} = await userCurrentLocation()
+    dispatch(
+      updateUserLocation({
+        lat: lat,
+        long: long,
+      }),
+    )
   }
 
   useEffect(() => {
-    if (currentUserLocation && cameraRef.current!==null) {
+    if (currentUserLocation && cameraRef.current !== null) {
       handleCamera()
     }
   }, [currentUserLocation])
@@ -52,8 +53,8 @@ const DisplayMap = () => {
     })
   }
 
-  if(showPermissionAlert){
-    return null;
+  if (showPermissionAlert) {
+    return null
   }
 
   return (
@@ -62,10 +63,7 @@ const DisplayMap = () => {
       logoEnabled={false}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
-      <MapLibreGL.UserLocation
-        onUpdate={handleLocationChange}
-        minDisplacement={5}
-      />
+      <MapLibreGL.UserLocation minDisplacement={5} />
     </MapLibreGL.MapView>
   )
 }
