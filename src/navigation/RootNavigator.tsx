@@ -12,6 +12,7 @@ const RootNavigator = () => {
       <Stack.Screen name="Home" component={BottomTabStack} />
       <Stack.Screen name="SingleTreeRegister" component={Screens.SingleTreeRegister} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
+      <Stack.Screen name="CreatePolygon" component={Screens.CreatePolygon} />
     </Stack.Navigator>
   )
 }

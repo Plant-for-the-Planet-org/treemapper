@@ -9,4 +9,5 @@ export type RootStackParamList = {
   Home: undefined
   SingleTreeRegister: undefined
   TakePicture: undefined
+  CreatePolygon: undefined
 }
