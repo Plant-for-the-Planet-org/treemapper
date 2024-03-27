@@ -1,7 +1,7 @@
-import { ObjectSchema } from 'realm';
+import Realm from 'realm'
 import { RealmSchema } from 'src/types/enum/db.enum';
 
-export const ScientificSpecies: ObjectSchema = {
+export const ScientificSpecies: Realm.ObjectSchema = {
   name: RealmSchema.ScientificSpecies,
   primaryKey: 'guid',
   properties: {
