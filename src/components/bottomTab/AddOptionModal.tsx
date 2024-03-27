@@ -63,7 +63,7 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <Intervention width={25} height={25} />,
       title: 'Intervention',
-      coming_soon: true,
+      coming_soon: false,
       onPress: () => navigation.navigate('SingleTreeRegister'),
       disabled: false,
     },
