@@ -2,20 +2,28 @@ import {StyleSheet, View} from 'react-native'
 import React, {useState} from 'react'
 import DisplayMap from 'src/components/map/DisplayMap'
 import HomeHeader from 'src/components/home/HomeHeader'
-import AppModal from 'src/components/home/HomeModal'
+import FilterModal from 'src/components/home/FilterModal'
+import ProjectModal from 'src/components/home/ProjectModal'
 
 const HomeMapView = () => {
   const [showFilterModal, setFileterModal] = useState(false)
+  const [showProjectModal, setProjectModal] = useState(false)
 
   const toogleFilterModal = () => {
     setFileterModal(!showFilterModal)
   }
 
+  const toogleProjectModal = () => {
+    setProjectModal(!showFilterModal)
+  }
+
+
   return (
     <View style={styles.contaner}>
-      <HomeHeader toogleFilterModal={toogleFilterModal} />
+      <HomeHeader toogleFilterModal={toogleFilterModal} toogleProjectModal={toogleProjectModal}/>
       <DisplayMap />
-      <AppModal isVisible={showFilterModal} toogleModal={toogleFilterModal}/>
+      <FilterModal isVisible={showFilterModal} toogleModal={toogleFilterModal}/>
+      <ProjectModal isVisible={showProjectModal} toogleModal={toogleProjectModal}/>
     </View>
   )
 }

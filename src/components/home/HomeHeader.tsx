@@ -9,10 +9,11 @@ import {RootStackParamList} from 'src/types/type/navigation'
 
 interface Props {
   toogleFilterModal: () => void
+  toogleProjectModal: () => void
 }
 
 const HomeHeader = (props: Props) => {
-  const {toogleFilterModal} = props
+  const {toogleFilterModal, toogleProjectModal} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const openHomeDrawer = () => {
@@ -23,7 +24,7 @@ const HomeHeader = (props: Props) => {
       <HamburgerIcon onPress={openHomeDrawer} style={styles.iconWrapper} />
       <View style={styles.sectionWrapper} />
       <HomeMapIcon onPress={toogleFilterModal} style={styles.iconWrapper} />
-      <FilterMapIcon onPress={toogleFilterModal} style={styles.iconWrapper} />
+      <FilterMapIcon onPress={toogleProjectModal} style={styles.iconWrapper} />
     </View>
   )
 }
