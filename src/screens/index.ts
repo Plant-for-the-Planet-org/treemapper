@@ -4,7 +4,8 @@ import Interventions from './InterventionView'
 import PlotView from './PlotView'
 import TakePicture from './TakePicture'
 import CreatePolygon from './CreatePolygon'
-import SyncSpeices from './SyncSpeices'
+import SyncSpecies from './SyncSpecies'
+import HomeSideDrawer from './HomeSideDrawer'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -13,5 +14,6 @@ export default {
   PlotView: PlotView,
   TakePicture: TakePicture,
   CreatePolygon: CreatePolygon,
-  SyncSpeices: SyncSpeices,
+  SyncSpecies: SyncSpecies,
+  HomeSideDrawer: HomeSideDrawer,
 }
