@@ -26,19 +26,6 @@ const ProjectModal = (props: Props) => {
             <CloseIcon style={styles.iconWrapper} onPress={toogleModal} />
           </View>
           <CustomDropDownPicker />
-          <View style={styles.header}>
-            <FilterMapIcon onPress={() => {}} style={styles.iconWrapper} />
-            <Text style={styles.headerLable}>Filters</Text>
-            <View style={styles.divider} />
-            <CloseIcon style={styles.iconWrapper} onPress={toogleModal} />
-          </View>
-          <View style={styles.header}>
-            <FilterMapIcon onPress={() => {}} style={styles.iconWrapper} />
-            <Text style={styles.headerLable}>Filters</Text>
-            <View style={styles.divider} />
-            <CloseIcon style={styles.iconWrapper} onPress={toogleModal} />
-          </View>
-          <View />
         </View>
       </View>
     </Modal>

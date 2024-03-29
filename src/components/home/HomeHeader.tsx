@@ -23,8 +23,8 @@ const HomeHeader = (props: Props) => {
     <View style={styles.container}>
       <HamburgerIcon onPress={openHomeDrawer} style={styles.iconWrapper} />
       <View style={styles.sectionWrapper} />
-      <HomeMapIcon onPress={toogleFilterModal} style={styles.iconWrapper} />
-      <FilterMapIcon onPress={toogleProjectModal} style={styles.iconWrapper} />
+      <HomeMapIcon onPress={toogleProjectModal} style={styles.iconWrapper} />
+      <FilterMapIcon onPress={toogleFilterModal} style={styles.iconWrapper} />
     </View>
   )
 }

@@ -14,7 +14,7 @@ const HomeMapView = () => {
   }
 
   const toogleProjectModal = () => {
-    setProjectModal(!showFilterModal)
+    setProjectModal(!showProjectModal)
   }
 
 
