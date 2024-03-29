@@ -13,7 +13,7 @@ const ComingSoon = () => {
         alignItems: 'center',
         paddingHorizontal: 18,
       }}>
-      <SingleTree style={{flex: 1}} />
+      <SingleTree style={styles.backDrop} width={"100%"} height={300}/>
       <View style={styles.container}>
         <GradientText style={{textAlign:'center'}}>
           We're working hard to bring you exciting new features. Stay tuned for
@@ -28,6 +28,11 @@ export default ComingSoon
 
 const styles = StyleSheet.create({
   container: {
-    flex: 3,
+    flex: 1,
   },
+  backDrop:{
+    width:'100%',
+    height:200,
+    marginTop:100
+  }
 })
