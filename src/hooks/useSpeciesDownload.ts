@@ -5,7 +5,7 @@ import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 
 const useDownloadFile = () => {
   const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
-  const [finalURL, setFinalURL] = useState('')
+  const [finalURL, setFinalURL] = useState<string | null>(null)
 
   const API_ENDPOINT = process.env.EXPO_PUBLIC_API_ENDPOINT
   const fileUrl = `https://${API_ENDPOINT}/treemapper/scientificSpeciesArchive`

@@ -17,20 +17,37 @@ import {Typography} from 'src/utils/constants'
 import DownloadBackdrop from 'assets/images/svg/DownloadBackdrop.svg'
 import OnboardingNotes from 'src/components/onboarding/OnboardingNotes'
 import i18next from 'src/locales/index'
+import {getLocalSpeciesSync, updateLocalSpeciesSync} from 'src/utils/helpers/asyncStorageHelper'
+import {isWithin90Days} from 'src/utils/helpers/timeHelper'
 
 const SyncSpecies = () => {
   const {downloadFile, finalURL, currentState} = useDownloadFile()
   const {writeBulkSpecies} = useManageScientificSpecies()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   useEffect(() => {
-    downloadFile()
+    isSpeciesUpdateRequried()
   }, [])
 
   useEffect(() => {
-    if (finalURL !== '') {
+    if (finalURL !== null) {
       readAndWriteSpecies(finalURL)
     }
   }, [finalURL])
+
+  const isSpeciesUpdateRequried = async () => {
+    const localSyncTimeStamp = await getLocalSpeciesSync()
+    if (localSyncTimeStamp) {
+      const skipSpeciesSync = isWithin90Days(Number(localSyncTimeStamp))
+      if (skipSpeciesSync) {
+        navigation.replace('Home')
+      } else {
+        downloadFile()
+      }
+    } else {
+      downloadFile()
+    }
+  }
 
   const readAndWriteSpecies = async (finalURL: string) => {
     try {
@@ -39,11 +56,11 @@ const SyncSpecies = () => {
         {encoding: 'utf8'},
       )
       const parsedData = JSON.parse(speciesContent)
-      const result = await writeBulkSpecies(parsedData)
-      console.log('result try', result)
+      await writeBulkSpecies(parsedData)
+      await updateLocalSpeciesSync();
       navigation.replace('Home')
     } catch (error) {
-      console.log('result error', error)
+      console.log('error', error)
     }
   }
 
