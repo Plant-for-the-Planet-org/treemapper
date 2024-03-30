@@ -1,6 +1,6 @@
 import * as Location from 'expo-location'
 
-const userCurrentLocation = async () => {
+const getUserLocation = async () => {
   const {coords} = await Location.getCurrentPositionAsync()
 
   if (coords) {
@@ -10,4 +10,4 @@ const userCurrentLocation = async () => {
   }
 }
 
-export default userCurrentLocation
+export default getUserLocation

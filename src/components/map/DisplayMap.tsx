@@ -6,7 +6,7 @@ import {PermissionStatus} from 'expo-location'
 import {useDispatch, useSelector} from 'react-redux'
 import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
 import {RootState} from 'src/store'
-import userCurrentLocation from 'src/utils/mapHelper/userCurrentLocation'
+import getUserLocation from 'src/utils/helpers/getUserLocation'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -24,13 +24,15 @@ const DisplayMap = () => {
     if (PermissionStatus.DENIED === permissionStatus) {
       setPermissionAlert(true)
     } else {
-      getInitalLocation()
+      setTimeout(()=>{
+        getInitalLocation()
+      },300)
       setPermissionAlert(false)
     }
   }, [permissionStatus])
 
   const getInitalLocation = async () => {
-    const {lat, long} = await userCurrentLocation()
+    const {lat, long} = await getUserLocation()
     dispatch(
       updateUserLocation({
         lat: lat,
