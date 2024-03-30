@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {NavigationContainer} from '@react-navigation/native'
 import RootNavigator from './src/navigation/RootNavigator'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
@@ -9,17 +9,12 @@ import 'react-native-gesture-handler'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import {Auth0Provider} from 'react-native-auth0'
 import {RealmProvider} from 'src/db/RealmProvider'
-import 'src/utils/constants/mapboxLogger';
-import 'react-native-gesture-handler';
-import dbManager from 'src/db/dbManager'
+import 'src/utils/constants/mapboxLogger'
+import 'react-native-gesture-handler'
 
 MapLibreGL.setAccessToken(null)
 
 export default function App() {
-  useEffect(() => {
-    dbManager.initializeRealm()
-  }, [])
-  
   return (
     <SafeAreaProvider>
       <Auth0Provider

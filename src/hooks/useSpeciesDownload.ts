@@ -1,11 +1,12 @@
 import {useState} from 'react'
 import * as FileSystem from 'expo-file-system'
 import {unzip} from 'react-native-zip-archive'
+import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 
 const useDownloadFile = () => {
-  const [downloadError, setDownloadError] = useState(null)
-  const [unzipError, setUnzipError] = useState(null)
+  const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
   const [finalURL, setFinalURL] = useState('')
+
   const API_ENDPOINT = process.env.EXPO_PUBLIC_API_ENDPOINT
   const fileUrl = `https://${API_ENDPOINT}/treemapper/scientificSpeciesArchive`
   const zipFilePath = `${FileSystem.documentDirectory}archive.zip`
@@ -13,36 +14,31 @@ const useDownloadFile = () => {
 
   const downloadFile = async () => {
     try {
+      setCurrentState(SPECIES_SYNC_STATE.DOWNLOADING)
       const downloadResumable = FileSystem.createDownloadResumable(
         fileUrl,
         zipFilePath,
         {},
       )
-
-      const {uri} = await downloadResumable.downloadAsync()
-      console.log('File downloaded successfully:', uri)
-      setDownloadError(null)
-      // Unzip the downloaded file
+      await downloadResumable.downloadAsync()
+      setCurrentState(SPECIES_SYNC_STATE.UNZIPPING_FILE)
       await unzipFile(zipFilePath, targetFilePath)
     } catch (error) {
-      console.error('Error downloading file:', error)
-      setDownloadError(error)
+      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURED)
     }
   }
 
   const unzipFile = async (zipFilePath, targetFilePath) => {
     try {
-      const unzipResult = await unzip(zipFilePath, targetFilePath)
-      console.log('File unzipped successfully:', unzipResult)
+      await unzip(zipFilePath, targetFilePath)
+      setCurrentState(SPECIES_SYNC_STATE.READING_FILE)
       setFinalURL(targetFilePath)
-      setUnzipError(null)
     } catch (error) {
-      console.error('Error unzipping file:', error)
-      setUnzipError(error)
+      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURED)
     }
   }
 
-  return {downloadFile, finalURL, downloadError, unzipError}
+  return {downloadFile, finalURL, currentState}
 }
 
 export default useDownloadFile

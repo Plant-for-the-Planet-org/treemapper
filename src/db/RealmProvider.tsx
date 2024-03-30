@@ -1,21 +1,18 @@
 import React from 'react'
 import {RealmProvider as Provider} from '@realm/react'
-import {RealmDatabase} from './realm'
 import schema from './schema'
+import {runRealmMigrations} from './migrations'
 
-export const realmConfig = () => ({
-  path: RealmDatabase.file,
-  schema,
-  schemaVersion: RealmDatabase.schemaVersion,
-})
+const schemaVersion = 1
 
-
-export function RealmProvider({children}:{children:React.ReactNode}) {
+export function RealmProvider({children}: {children: React.ReactNode}) {
   return (
     <Provider
-      path={RealmDatabase.file}
       schema={schema}
-      schemaVersion={RealmDatabase.schemaVersion}>
+      schemaVersion={schemaVersion}
+      onMigration={(oldRealm, newRealm) => {
+        runRealmMigrations({oldRealm, newRealm})
+      }}>
       {children}
     </Provider>
   )
