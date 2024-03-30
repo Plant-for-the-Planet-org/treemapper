@@ -6,6 +6,9 @@ import TakePicture from './TakePicture'
 import CreatePolygon from './CreatePolygon'
 import SyncSpecies from './SyncSpecies'
 import HomeSideDrawer from './HomeSideDrawer'
+import SelectSpecies from './SelectSpecies'
+import AddMeasurment from './AddMeasurment'
+import PreviewFormData from './PreviewFormData'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -16,4 +19,7 @@ export default {
   CreatePolygon: CreatePolygon,
   SyncSpecies: SyncSpecies,
   HomeSideDrawer: HomeSideDrawer,
+  SelectSpecies: SelectSpecies,
+  AddMeasurment: AddMeasurment,
+  PreviewFormData: PreviewFormData,
 }

@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from 'react'
 import {Camera, CameraCapturedPicture, CameraType, PermissionStatus} from 'expo-camera'
 import {scaleSize} from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
+import { Colors } from 'src/utils/constants'
 
 interface Props{
   takePicture:(metaData: CameraCapturedPicture)=>void;
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '92%',
     height: '70%',
-    backgroundColor: 'blue',
+    borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: scaleSize(50),

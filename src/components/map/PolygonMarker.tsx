@@ -12,6 +12,9 @@ import {scaleSize} from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import LineMarker from './LineMarker'
 import AlphabetMarkers from './AlphabetMarkers'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -22,10 +25,12 @@ const MarkerMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const [showPermissionAlert, setPermissionAlert] = useState(false)
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const [coordinates, setCoordinates] = useState([])
+  const [polygonComplete, setPolygonComplete] = useState(false)
 
   useEffect(() => {
     if (PermissionStatus.DENIED === permissionStatus) {
@@ -62,8 +67,17 @@ const MarkerMap = () => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    // navigation.navigate('TakePicture')
     setCoordinates([...coordinates, centerCoordinates])
+    if (coordinates.length > 2) {
+      setPolygonComplete(true)
+    }
+  }
+
+  const makeComplete = async () => {
+    setCoordinates([...coordinates, coordinates[0]])
+    setTimeout(() => {
+      navigation.navigate('TakePicture')
+    }, 2000)
   }
 
   if (showPermissionAlert) {
@@ -81,12 +95,20 @@ const MarkerMap = () => {
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>
-      <CustomButton
-        label="Select location & continue"
-        containerStyle={styles.btnContainer}
-        pressHandler={onSelectLocation}
-      />
-      <ActiveMarkerIcon />
+      {polygonComplete ? (
+        <CustomButton
+          label="Complete"
+          containerStyle={styles.btnContainer}
+          pressHandler={makeComplete}
+        />
+      ) : (
+        <CustomButton
+          label="Select location & continue"
+          containerStyle={styles.btnContainer}
+          pressHandler={onSelectLocation}
+        />
+      )}
+      {!polygonComplete && <ActiveMarkerIcon />}
     </View>
   )
 }

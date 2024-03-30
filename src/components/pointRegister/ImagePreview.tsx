@@ -4,6 +4,10 @@ import {CameraCapturedPicture} from 'expo-camera'
 import {scaleSize} from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
 import {Image} from 'expo-image'
+import { Colors } from 'src/utils/constants'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation'
 
 interface Props {
   imageData: CameraCapturedPicture
@@ -11,6 +15,10 @@ interface Props {
 
 const ImagePreview = (props: Props) => {
   const {imageData} = props
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const navigateToNext = () => {
+    navigation.navigate('SelectSpecies')
+  }
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -29,7 +37,7 @@ const ImagePreview = (props: Props) => {
         <CustomButton
           label="Continue"
           containerStyle={styles.btnWrapper}
-          pressHandler={() => {}}
+          pressHandler={navigateToNext}
         />
       </View>
     </View>
@@ -46,7 +54,7 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '92%',
     height: '70%',
-    backgroundColor: 'blue',
+    borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: scaleSize(50),

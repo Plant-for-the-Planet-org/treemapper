@@ -12,4 +12,7 @@ export type RootStackParamList = {
   CreatePolygon: undefined
   SyncSpecies: undefined
   HomeSideDrawer: undefined
+  SelectSpecies: undefined
+  AddMeasurment: undefined
+  PreviewFormData: undefined
 }

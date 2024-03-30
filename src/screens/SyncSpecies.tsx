@@ -14,7 +14,7 @@ const SyncSpecies = () => {
   useEffect(() => {
     // downloadFile()
     setTimeout(() => {
-      navigation.navigate('Home')
+      navigation.replace('Home')
     }, 2000)
   }, [])
 
