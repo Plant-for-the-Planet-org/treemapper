@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {BottomTabParamList} from 'src/types/type/navigation'
+import {BottomTabParamList} from 'src/types/type/navigation.type'
 import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
 import {View, StyleSheet} from 'react-native'

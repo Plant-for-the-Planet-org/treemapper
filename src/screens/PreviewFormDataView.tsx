@@ -3,7 +3,7 @@ import React from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import CustomButton from 'src/components/common/CustomButton'
-import { RootStackParamList } from 'src/types/type/navigation'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import { scaleSize } from 'src/utils/constants/mixins'
 
 const PreviewFormData = () => {

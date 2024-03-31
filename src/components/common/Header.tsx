@@ -5,7 +5,7 @@ import BackIcon from 'assets/images/svg/BackIcon.svg'
 import {Colors} from 'src/utils/constants'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 interface Props {
   label: string

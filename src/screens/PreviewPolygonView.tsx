@@ -4,7 +4,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const PreviewPolygon = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()

@@ -4,16 +4,16 @@ import CustomButton from 'src/components/common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
-const AddMeasurment = () => {
+const SelectSpecies = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const navigateToNext = () => {
-    navigation.navigate('PreviewFormData')
+    navigation.navigate('AddMeasurment')
   }
   return (
     <View style={styles.container}>
-      <Text>AddMeasurment Form</Text>
+      <Text>SelectSpecies</Text>
       <CustomButton
         label="Continue"
         containerStyle={styles.btnContainer}
@@ -23,7 +23,7 @@ const AddMeasurment = () => {
   )
 }
 
-export default AddMeasurment
+export default SelectSpecies
 
 const styles = StyleSheet.create({
   container: {

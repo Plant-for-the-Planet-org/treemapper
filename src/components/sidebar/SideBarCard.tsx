@@ -1,17 +1,27 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {Pressable, StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
+import {SideDrawerItem} from 'src/types/interface/app.interface'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
-  label: string
+  item: SideDrawerItem
 }
 
 const SideBarCard = (props: Props) => {
-  const {label} = props
+  const {label,screen, icon} = props.item
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const handleNavigaiton=()=>{
+    navigation.replace(screen)
+  }
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={handleNavigaiton}>
       <View style={styles.wrapper}>
-        <View style={styles.iconWrapper}></View>
+        <View style={styles.iconWrapper}>
+          {icon}
+        </View>
         <View style={styles.labelWrapper}>
           <Text>{label}</Text>
         </View>
@@ -19,7 +29,7 @@ const SideBarCard = (props: Props) => {
           <CtaArrow />
         </View>
       </View>
-    </View>
+    </Pressable>
   )
 }
 
@@ -46,7 +56,6 @@ const styles = StyleSheet.create({
     height: 25,
     width: 25,
     marginLeft: 10,
-    backgroundColor: 'green',
     borderRadius: 5,
   },
   labelWrapper: {
@@ -58,7 +67,7 @@ const styles = StyleSheet.create({
     height: 25,
     width: 25,
     borderRadius: 5,
-    justifyContent:'center',
-    alignItems:'center'
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

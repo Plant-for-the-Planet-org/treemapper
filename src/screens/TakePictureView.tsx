@@ -6,6 +6,8 @@ import CameraView from 'src/components/common/CameraView'
 import {Colors} from 'src/utils/constants'
 import {CameraCapturedPicture} from 'expo-camera'
 import ImagePreview from 'src/components/pointRegister/ImagePreview'
+import {useRoute, RouteProp} from '@react-navigation/native'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const TakePicture = () => {
   const [imageMetaData, setImageMetaData] = useState<CameraCapturedPicture>({
@@ -13,7 +15,7 @@ const TakePicture = () => {
     height: 0,
     uri: '',
   })
-
+  const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
   const takePicture = (data: CameraCapturedPicture) => {
     setImageMetaData(data)
   }
@@ -27,9 +29,15 @@ const TakePicture = () => {
         </Text>
       </View>
       <View style={styles.backDropWrapper} />
-       {
-        imageMetaData.uri?<ImagePreview imageData={imageMetaData}/>:<CameraView takePicture={takePicture} />
-       }
+      {imageMetaData.uri ? (
+        <ImagePreview
+          imageData={imageMetaData}
+          id={route.params.id}
+          screen={route.params.screen}
+        />
+      ) : (
+        <CameraView takePicture={takePicture} />
+      )}
     </View>
   )
 }
@@ -49,7 +57,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    marginVertical: 10,
   },
   headerLable: {
     textAlign: 'center',

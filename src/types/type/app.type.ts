@@ -1,0 +1,1 @@
+export type AFTER_CAPTURE = 'SPECIES_INFO'

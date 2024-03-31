@@ -1,15 +1,20 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React, {useEffect, useRef} from 'react'
-import {Camera, CameraCapturedPicture, CameraType, PermissionStatus} from 'expo-camera'
+import {
+  Camera,
+  CameraCapturedPicture,
+  CameraType,
+  PermissionStatus,
+} from 'expo-camera'
 import {scaleSize} from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
-import { Colors } from 'src/utils/constants'
+import {Colors} from 'src/utils/constants'
 
-interface Props{
-  takePicture:(metaData: CameraCapturedPicture)=>void;
+interface Props {
+  takePicture: (metaData: CameraCapturedPicture) => void
 }
 
-const CameraView = (props:Props) => {
+const CameraView = (props: Props) => {
   const [permission, requestPermission] = Camera.useCameraPermissions()
   const cameraRef = useRef<Camera>(null)
   useEffect(() => {
@@ -18,7 +23,7 @@ const CameraView = (props:Props) => {
 
   const captureImage = async () => {
     const data = await cameraRef.current.takePictureAsync()
-    if(data){
+    if (data) {
       props.takePicture(data)
     }
   }
@@ -27,9 +32,13 @@ const CameraView = (props:Props) => {
     <View style={styles.container}>
       <View style={styles.wrapper}>
         {permission && permission.status !== PermissionStatus.GRANTED ? (
-          <Text>Please provide camera permission</Text>
+          <Text style={styles.centerText}>Please provide camera permission</Text>
         ) : (
-          <Camera type={CameraType.back} style={styles.cameraWrapper} ref={cameraRef}/>
+          <Camera
+            type={CameraType.back}
+            style={styles.cameraWrapper}
+            ref={cameraRef}
+          />
         )}
       </View>
       <CustomButton
@@ -59,6 +68,12 @@ const styles = StyleSheet.create({
   tempLable: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  centerText:{
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign:'center',
+    width:'100%'
   },
   cameraWrapper: {
     width: '100%',

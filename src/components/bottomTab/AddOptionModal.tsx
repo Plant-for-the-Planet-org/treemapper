@@ -25,7 +25,7 @@ import * as Typography from 'src/utils/constants/typography'
 
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const {width, height} = Dimensions.get('screen')
 

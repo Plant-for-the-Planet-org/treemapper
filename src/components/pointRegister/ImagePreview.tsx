@@ -4,20 +4,37 @@ import {CameraCapturedPicture} from 'expo-camera'
 import {scaleSize} from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
 import {Image} from 'expo-image'
-import { Colors } from 'src/utils/constants'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { RootStackParamList } from 'src/types/type/navigation'
-
+import {Colors} from 'src/utils/constants'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation.type'
+import {useDispatch} from 'react-redux'
+import {updateImageDetails} from 'src/store/slice/takePictureSlice'
+import {AFTER_CAPTURE} from 'src/types/type/app.type'
+import { copyImageAndGetData } from 'src/utils/helpers/fileSystemHelper'
 interface Props {
   imageData: CameraCapturedPicture
+  id: string
+  screen: AFTER_CAPTURE
 }
 
 const ImagePreview = (props: Props) => {
-  const {imageData} = props
+  const {imageData, id, screen} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const navigateToNext = () => {
-    navigation.navigate('SelectSpecies')
+  const dispatch = useDispatch()
+  const navigateToNext = async () => {
+    const finalURL = await copyImageAndGetData(imageData.uri)
+    dispatch(
+      updateImageDetails({
+        id: id,
+        url: finalURL,
+      }),
+    )
+    if (screen === 'SPECIES_INFO') {
+      navigation.goBack()
+    } else {
+      navigation.navigate('SelectSpecies')
+    }
   }
   return (
     <View style={styles.container}>
@@ -69,7 +86,7 @@ const styles = StyleSheet.create({
   },
   btnWrapper: {
     flex: 1,
-    width:'90%'
+    width: '90%',
   },
   imageContainer: {
     widht: '100%',

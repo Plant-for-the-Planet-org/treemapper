@@ -11,7 +11,7 @@ import CustomButton from '../common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import { useNavigation } from '@react-navigation/native'
-import { RootStackParamList } from 'src/types/type/navigation'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StackNavigationProp } from '@react-navigation/stack'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

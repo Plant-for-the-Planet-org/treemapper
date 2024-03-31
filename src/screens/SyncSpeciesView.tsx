@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import React, {useEffect} from 'react'
 import {useNavigation} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 import {StackNavigationProp} from '@react-navigation/stack'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
 import * as FileSystem from 'expo-file-system'

@@ -2,7 +2,7 @@ import React from 'react'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import BottomTabStack from './BottomTabStack'
 import Screens from 'src/screens'
-import {RootStackParamList} from 'src/types/type/navigation'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -19,15 +19,20 @@ const RootNavigator = () => {
       <Stack.Screen name="CreatePolygon" component={Screens.CreatePolygon} />
       <Stack.Screen name="SelectSpecies" component={Screens.SelectSpecies} />
       <Stack.Screen name="AddMeasurment" component={Screens.AddMeasurment} />
-      <Stack.Screen name="PreviewFormData" component={Screens.PreviewFormData} />
-
+      <Stack.Screen
+        name="PreviewFormData"
+        component={Screens.PreviewFormData}
+      />
+      <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />
+      <Stack.Screen name="SpeciesInfo" component={Screens.SpeciesInfo} />
+      <Stack.Screen name="SpeciesSearch" component={Screens.SpeciesSearch} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}
         options={{
           gestureEnabled: true,
           gestureDirection: 'horizontal',
-          animation:'slide_from_left'
+          animation: 'slide_from_left',
         }}
       />
     </Stack.Navigator>

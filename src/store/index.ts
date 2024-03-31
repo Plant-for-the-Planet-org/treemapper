@@ -13,16 +13,19 @@ import {
 } from 'redux-persist';
 import appStateSlice from './slice/appStateSlice';
 import gpsStateSlice from './slice/gpsStateSlice';
+import takePictureSlice from './slice/takePictureSlice';
+
 
 const appReducer = combineReducers({
   appState: appStateSlice,
-  gpsState: gpsStateSlice
+  gpsState: gpsStateSlice,
+  cameraState:takePictureSlice
 });
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState','gpsStateSlice'],
+  whitelist: ['appState','gpsStateSlice','takePicture'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);
