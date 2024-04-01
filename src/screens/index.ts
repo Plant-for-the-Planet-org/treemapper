@@ -12,6 +12,9 @@ import PreviewFormData from './PreviewFormDataView'
 import ManageSpeciesView from './ManageSpeciesView'
 import SpeciesInfoView from './SpeciesInfoView'
 import SpeciesSearchView from './SpeciesSearchView'
+import FormIntermediateView from './FormIntermediateView'
+import PointMarkerView from './PointMarkerView'
+import DynamicFormView from './DynamiFormView'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -27,5 +30,8 @@ export default {
   PreviewFormData: PreviewFormData,
   ManageSpecies: ManageSpeciesView,
   SpeciesInfo: SpeciesInfoView,
-  SpeciesSearch: SpeciesSearchView
+  SpeciesSearch: SpeciesSearchView,
+  FormIntermediate: FormIntermediateView,
+  PointMarker: PointMarkerView,
+  DynamicForm: DynamicFormView,
 }

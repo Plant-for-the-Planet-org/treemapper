@@ -20,6 +20,8 @@ export const DARK_TEXT_COLOR = '#4F4F4F';
 export const LIGHT_BORDER_COLOR = '#D5D5D5';
 export const DISABLE = '#CCCCCC';
 export const TEXT_LIGHT = '#828282';
+export const GRAY_TEXT = '#c4c4c4';
+
 
 // ACTIONS
 export const SUCCESS = '#2ecc71';

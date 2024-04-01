@@ -42,7 +42,7 @@ const CameraView = (props: Props) => {
         )}
       </View>
       <CustomButton
-        label="Select location & continue"
+        label="Take Picture"
         containerStyle={styles.btnContainer}
         pressHandler={captureImage}
       />

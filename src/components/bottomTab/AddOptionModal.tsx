@@ -71,7 +71,8 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <SingleTreeIcon width={25} height={25} />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
-      onPress: () => navigation.navigate('SingleTreeRegister'),
+      onPress: () =>
+        navigation.navigate('FormIntermediate',{id:'SINGLE_TREE'}),
       disabled: false,
     },
     {

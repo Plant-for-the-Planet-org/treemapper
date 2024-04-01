@@ -14,12 +14,13 @@ import {
 import appStateSlice from './slice/appStateSlice';
 import gpsStateSlice from './slice/gpsStateSlice';
 import takePictureSlice from './slice/takePictureSlice';
-
+import registerFormSlice from './slice/registerFormSlice'
 
 const appReducer = combineReducers({
   appState: appStateSlice,
   gpsState: gpsStateSlice,
-  cameraState:takePictureSlice
+  cameraState:takePictureSlice,
+  formFlowState: registerFormSlice
 });
 
 const persistConfig = {

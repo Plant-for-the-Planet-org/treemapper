@@ -11,7 +11,8 @@ import {RootStackParamList} from 'src/types/type/navigation.type'
 import {useDispatch} from 'react-redux'
 import {updateImageDetails} from 'src/store/slice/takePictureSlice'
 import {AFTER_CAPTURE} from 'src/types/type/app.type'
-import { copyImageAndGetData } from 'src/utils/helpers/fileSystemHelper'
+import {copyImageAndGetData} from 'src/utils/helpers/fileSystemHelper'
+import {updateCoverImageURL} from 'src/store/slice/registerFormSlice'
 interface Props {
   imageData: CameraCapturedPicture
   id: string
@@ -22,6 +23,7 @@ const ImagePreview = (props: Props) => {
   const {imageData, id, screen} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
+
   const navigateToNext = async () => {
     const finalURL = await copyImageAndGetData(imageData.uri)
     dispatch(
@@ -30,12 +32,16 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
+    if (screen === 'POINT_REGISTER') {
+      dispatch(updateCoverImageURL(finalURL))
+    }
     if (screen === 'SPECIES_INFO') {
       navigation.goBack()
     } else {
-      navigation.navigate('SelectSpecies')
+      navigation.navigate('ManageSpecies', {isSelectSpecies: true})
     }
   }
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>

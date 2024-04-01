@@ -1,4 +1,4 @@
-import { AFTER_CAPTURE } from "./app.type"
+import {AFTER_CAPTURE, INTERVENTION_TYPE} from './app.type'
 
 export type BottomTabParamList = {
   Map: undefined
@@ -17,9 +17,12 @@ export type RootStackParamList = {
   SelectSpecies: undefined
   AddMeasurment: undefined
   PreviewFormData: undefined
-  ManageSpecies: undefined
+  ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
   SpeciesSearch: undefined
+  FormIntermediate: FormIntermediateView
+  PointMarker: undefined
+  DynamicForm: undefined
 }
 
 type SpeciesInfoView = {
@@ -29,4 +32,12 @@ type SpeciesInfoView = {
 type TakePictureView = {
   id: string
   screen: AFTER_CAPTURE
+}
+
+type FormIntermediateView = {
+  id: INTERVENTION_TYPE
+}
+
+type ManageSpeciesView = {
+  isSelectSpecies: boolean
 }

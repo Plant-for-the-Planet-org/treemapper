@@ -10,14 +10,25 @@ import userCurrentLocation from 'src/utils/helpers/getUserLocation'
 import CustomButton from '../common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
-import { useNavigation } from '@react-navigation/native'
-import { RootStackParamList } from 'src/types/type/navigation.type'
-import { StackNavigationProp } from '@react-navigation/stack'
+import {useNavigation} from '@react-navigation/native'
+import {RootStackParamList} from 'src/types/type/navigation.type'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {
+  updateCoverImageId,
+  updateFormCoordinates,
+} from 'src/store/slice/registerFormSlice'
+import {Coordinates} from 'src/types/interface/app.interface'
+import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
-const MarkerMap = () => {
+interface Props {
+  formData: RegisterFormSliceInitalState
+}
+
+const MarkerMap = (props: Props) => {
+  const {coordinates, cover_image_required} = props.formData
   const permissionStatus = useLocationPermission()
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -63,8 +74,21 @@ const MarkerMap = () => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    console.log('Location coordinates', centerCoordinates)
-    navigation.navigate('TakePicture')
+    const formCoordinates: Coordinates = {
+      lat: centerCoordinates[0],
+      long: centerCoordinates[1],
+      id: 'A',
+    }
+    const allCordinates = [...coordinates, formCoordinates]
+    dispatch(updateFormCoordinates(allCordinates))
+    if (cover_image_required) {
+      const imageId = String(new Date().getTime())
+      dispatch(updateCoverImageId(imageId))
+      navigation.navigate('TakePicture', {
+        id: imageId,
+        screen: 'POINT_REGISTER',
+      })
+    }
   }
 
   if (showPermissionAlert) {
@@ -95,8 +119,8 @@ export default MarkerMap
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent:'center',
-    alignItems:'center'
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   map: {
     flex: 1,

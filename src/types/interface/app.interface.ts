@@ -1,6 +1,7 @@
 export interface Coordinates {
   lat: number
   long: number
+  id?: string
 }
 
 export interface SideDrawerItem {
@@ -20,3 +21,5 @@ export interface IScientificSpecies {
   description?: string
   is_updated?: boolean
 }
+
+
