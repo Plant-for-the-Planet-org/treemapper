@@ -16,9 +16,7 @@ const RootNavigator = () => {
         component={Screens.SingleTreeRegister}
       />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
-      <Stack.Screen name="CreatePolygon" component={Screens.CreatePolygon} />
-      <Stack.Screen name="SelectSpecies" component={Screens.SelectSpecies} />
-      <Stack.Screen name="AddMeasurment" component={Screens.AddMeasurment} />
+      <Stack.Screen name="PolygonMarker" component={Screens.PolygonMarker} />
       <Stack.Screen
         name="PreviewFormData"
         component={Screens.PreviewFormData}
@@ -29,7 +27,7 @@ const RootNavigator = () => {
       <Stack.Screen name="FormIntermediate" component={Screens.FormIntermediate} />
       <Stack.Screen name="PointMarker" component={Screens.PointMarker} />
       <Stack.Screen name="DynamicForm" component={Screens.DynamicForm} />
-
+      <Stack.Screen name="InterventionForm" component={Screens.InterventionForm} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

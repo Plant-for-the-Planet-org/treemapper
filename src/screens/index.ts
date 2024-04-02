@@ -3,11 +3,9 @@ import HomeMapView from './HomeMapView'
 import Interventions from './InterventionView'
 import PlotView from './PlotView'
 import TakePicture from './TakePictureView'
-import CreatePolygon from './CreatePolygonView'
+import PolygonMarker from './PolygonMarkerView'
 import SyncSpecies from './SyncSpeciesView'
 import HomeSideDrawer from './HomeSideDrawer'
-import SelectSpecies from './SelectSpeciesView'
-import AddMeasurment from './AddMeasurmentView'
 import PreviewFormData from './PreviewFormDataView'
 import ManageSpeciesView from './ManageSpeciesView'
 import SpeciesInfoView from './SpeciesInfoView'
@@ -15,6 +13,7 @@ import SpeciesSearchView from './SpeciesSearchView'
 import FormIntermediateView from './FormIntermediateView'
 import PointMarkerView from './PointMarkerView'
 import DynamicFormView from './DynamiFormView'
+import InterventionFormView from './InterventionFormView'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -22,11 +21,9 @@ export default {
   Interventions: Interventions,
   PlotView: PlotView,
   TakePicture: TakePicture,
-  CreatePolygon: CreatePolygon,
+  PolygonMarker: PolygonMarker,
   SyncSpecies: SyncSpecies,
   HomeSideDrawer: HomeSideDrawer,
-  SelectSpecies: SelectSpecies,
-  AddMeasurment: AddMeasurment,
   PreviewFormData: PreviewFormData,
   ManageSpecies: ManageSpeciesView,
   SpeciesInfo: SpeciesInfoView,
@@ -34,4 +31,5 @@ export default {
   FormIntermediate: FormIntermediateView,
   PointMarker: PointMarkerView,
   DynamicForm: DynamicFormView,
+  InterventionForm: InterventionFormView,
 }

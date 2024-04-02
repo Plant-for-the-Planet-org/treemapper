@@ -21,9 +21,9 @@ const FormIntermediateView = () => {
     dispatch(initiateForm({...formFlowData}))
     setTimeout(() => {
       if (formFlowData.location_type === 'Point') {
-        navigation.navigate('PointMarker')
+        navigation.replace('PointMarker')
       } else {
-        navigation.navigate('CreatePolygon')
+        navigation.replace('PolygonMarker')
       }
     }, 500)
   }

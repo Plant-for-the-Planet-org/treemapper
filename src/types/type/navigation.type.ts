@@ -11,11 +11,9 @@ export type RootStackParamList = {
   Home: undefined
   SingleTreeRegister: undefined
   TakePicture: TakePictureView
-  CreatePolygon: undefined
+  PolygonMarker: undefined
   SyncSpecies: undefined
   HomeSideDrawer: undefined
-  SelectSpecies: undefined
-  AddMeasurment: undefined
   PreviewFormData: undefined
   ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
@@ -23,6 +21,7 @@ export type RootStackParamList = {
   FormIntermediate: FormIntermediateView
   PointMarker: undefined
   DynamicForm: undefined
+  InterventionForm: undefined
 }
 
 type SpeciesInfoView = {

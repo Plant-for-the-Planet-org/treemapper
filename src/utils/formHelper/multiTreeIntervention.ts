@@ -14,7 +14,7 @@ const HeightElement: FormElement = {
   data_type: 'number',
   keyboard_type: 'numeric',
   sub_form: undefined,
-  editable: true,
+  editable: true
 }
 
 const DiamterElement: FormElement = {
@@ -30,7 +30,7 @@ const DiamterElement: FormElement = {
   data_type: 'number',
   keyboard_type: 'numeric',
   sub_form: undefined,
-  editable: true,
+  editable: true
 }
 
 const TagIdSwitch: FormElement = {
@@ -46,7 +46,7 @@ const TagIdSwitch: FormElement = {
   data_type: 'boolean',
   keyboard_type: 'default',
   sub_form: undefined,
-  editable: true,
+  editable: true
 }
 
 const TagId: FormElement = {
@@ -64,27 +64,27 @@ const TagId: FormElement = {
   data_type: 'number',
   keyboard_type: 'default',
   sub_form: undefined,
-  editable: true,
+  editable: true
 }
 
-const singleTreeMainForm: MainForm = {
+const multiTreeMainForm: MainForm = {
   title: 'Add Measurments',
   key: '',
   elements: [HeightElement, DiamterElement, TagIdSwitch, TagId],
 }
 
-export const SingleTreeFormData: RegisterFormSliceInitalState = {
+export const MultiTreeFormData: RegisterFormSliceInitalState = {
   form_id: '',
   key: '',
-  location_title: 'Tree Location',
-  location_type: 'Point',
-  title: '',
+  location_title: 'Select Location',
+  location_type: 'Polygon',
+  title: 'Multi Tree Plantation',
   coordinates: [],
   cover_image_required: true,
   cover_image_url: '',
   cover_image_id: '',
   species_required: true,
   tree_details: [],
-  form_details: [singleTreeMainForm],
+  form_details: [multiTreeMainForm],
   has_sample_trees: false,
 }

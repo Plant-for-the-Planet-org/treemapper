@@ -17,12 +17,10 @@ import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 import {StackNavigationProp} from '@react-navigation/stack'
-
 import React, {useMemo} from 'react'
 import i18next from 'src/locales'
 import * as Colors from 'src/utils/constants/colors'
 import * as Typography from 'src/utils/constants/typography'
-
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
@@ -64,7 +62,7 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <Intervention width={25} height={25} />,
       title: 'Intervention',
       coming_soon: false,
-      onPress: () => navigation.navigate('SingleTreeRegister'),
+      onPress: () => navigation.navigate('InterventionForm'),
       disabled: false,
     },
     {
@@ -72,14 +70,15 @@ const AddOptionModal = (props: Props) => {
       title: 'label.tree_registration_type_1',
       coming_soon: false,
       onPress: () =>
-        navigation.navigate('FormIntermediate',{id:'SINGLE_TREE'}),
+        navigation.navigate('FormIntermediate', {id: 'SINGLE_TREE'}),
       disabled: false,
     },
     {
       svgIcon: <MultipleTreeIcon width={25} height={25} />,
       title: 'label.tree_registration_type_2',
       coming_soon: false,
-      onPress: () => navigation.navigate('CreatePolygon'),
+      onPress: () =>
+        navigation.navigate('FormIntermediate', {id: 'MULTI_TREE'}),
       disabled: false,
     },
   ]

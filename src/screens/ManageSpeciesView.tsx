@@ -14,7 +14,6 @@ const ManageSpeciesView = () => {
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const isSelectSpecies = route.params && route.params.isSelectSpecies
-
   const {updateUserFavSpecies} = useManageScientificSpecies()
 
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {

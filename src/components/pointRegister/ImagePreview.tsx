@@ -32,13 +32,13 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
-    if (screen === 'POINT_REGISTER') {
+    if (screen === 'POINT_REGISTER' || screen === 'POLYGON_REGISTER') {
       dispatch(updateCoverImageURL(finalURL))
     }
     if (screen === 'SPECIES_INFO') {
       navigation.goBack()
     } else {
-      navigation.navigate('ManageSpecies', {isSelectSpecies: true})
+      navigation.replace('ManageSpecies', {isSelectSpecies: true})
     }
   }
 
