@@ -22,6 +22,7 @@ export type RootStackParamList = {
   PointMarker: undefined
   DynamicForm: undefined
   InterventionForm: undefined
+  AddMeasurment: undefined
 }
 
 type SpeciesInfoView = {
