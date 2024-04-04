@@ -4,6 +4,7 @@ import DisplayMap from 'src/components/map/DisplayMap'
 import HomeHeader from 'src/components/home/HomeHeader'
 import FilterModal from 'src/components/home/FilterModal'
 import ProjectModal from 'src/components/home/ProjectModal'
+import UserlocationMarker from 'src/components/map/UserlocationMarker'
 
 const HomeMapView = () => {
   const [showFilterModal, setFileterModal] = useState(false)
@@ -17,13 +18,22 @@ const HomeMapView = () => {
     setProjectModal(!showProjectModal)
   }
 
-
   return (
     <View style={styles.contaner}>
-      <HomeHeader toogleFilterModal={toogleFilterModal} toogleProjectModal={toogleProjectModal}/>
+      <HomeHeader
+        toogleFilterModal={toogleFilterModal}
+        toogleProjectModal={toogleProjectModal}
+      />
       <DisplayMap />
-      <FilterModal isVisible={showFilterModal} toogleModal={toogleFilterModal}/>
-      <ProjectModal isVisible={showProjectModal} toogleModal={toogleProjectModal}/>
+      <UserlocationMarker />
+      <FilterModal
+        isVisible={showFilterModal}
+        toogleModal={toogleFilterModal}
+      />
+      <ProjectModal
+        isVisible={showProjectModal}
+        toogleModal={toogleProjectModal}
+      />
     </View>
   )
 }
