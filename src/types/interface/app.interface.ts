@@ -15,7 +15,6 @@ export interface IScientificSpecies {
   scientific_name: string
   is_user_species: boolean
   is_uploaded?: boolean
-  species_id?: string
   aliases: string
   image?: string
   description?: string

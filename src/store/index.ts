@@ -1,6 +1,6 @@
-import {configureStore, combineReducers} from '@reduxjs/toolkit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch} from 'react-redux';
+import {configureStore, combineReducers} from '@reduxjs/toolkit'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import {useDispatch} from 'react-redux'
 import {
   persistReducer,
   persistStore,
@@ -10,26 +10,28 @@ import {
   PERSIST,
   PURGE,
   REGISTER,
-} from 'redux-persist';
-import appStateSlice from './slice/appStateSlice';
-import gpsStateSlice from './slice/gpsStateSlice';
-import takePictureSlice from './slice/takePictureSlice';
+} from 'redux-persist'
+import appStateSlice from './slice/appStateSlice'
+import gpsStateSlice from './slice/gpsStateSlice'
+import takePictureSlice from './slice/takePictureSlice'
 import registerFormSlice from './slice/registerFormSlice'
+import sampleTreeSlice from './slice/sampleTreeSlice'
 
 const appReducer = combineReducers({
   appState: appStateSlice,
   gpsState: gpsStateSlice,
-  cameraState:takePictureSlice,
-  formFlowState: registerFormSlice
-});
+  cameraState: takePictureSlice,
+  formFlowState: registerFormSlice,
+  sampleTree: sampleTreeSlice,
+})
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState','gpsStateSlice','takePicture'],
-};
+  whitelist: ['appState', 'gpsState', 'takePicture', 'sampleTree'],
+}
 
-const persistedReducer = persistReducer(persistConfig, appReducer);
+const persistedReducer = persistReducer(persistConfig, appReducer)
 
 const store = configureStore({
   reducer: persistedReducer,
@@ -39,11 +41,11 @@ const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
-});
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-export const useAppDispatch = () => useDispatch<AppDispatch>();
+})
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+export const useAppDispatch = () => useDispatch<AppDispatch>()
 
-export const persistor = persistStore(store);
+export const persistor = persistStore(store)
 
-export default store;
+export default store

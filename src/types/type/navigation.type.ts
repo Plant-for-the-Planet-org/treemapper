@@ -18,11 +18,11 @@ export type RootStackParamList = {
   ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
   SpeciesSearch: undefined
-  FormIntermediate: FormIntermediateView
   PointMarker: undefined
   DynamicForm: undefined
-  InterventionForm: undefined
+  InterventionForm: IntermediateFormView
   AddMeasurment: undefined
+  ReviewSampleTree: undefined
 }
 
 type SpeciesInfoView = {
@@ -34,7 +34,7 @@ type TakePictureView = {
   screen: AFTER_CAPTURE
 }
 
-type FormIntermediateView = {
+type IntermediateFormView = {
   id: INTERVENTION_TYPE
 }
 

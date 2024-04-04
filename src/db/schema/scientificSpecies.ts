@@ -9,7 +9,6 @@ export const ScientificSpecies: Realm.ObjectSchema = {
     scientific_name: { type: 'string', indexed: true },
     is_user_species: { type: 'bool', default: false },
     is_uploaded: { type: 'bool', default: false },
-    species_id: { type: 'string', optional: true },
     aliases: { type: 'string', default: '' },
     image: { type: 'string', default: '' },
     description: { type: 'string', default: '' },

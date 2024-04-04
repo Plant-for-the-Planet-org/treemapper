@@ -6,7 +6,7 @@ import {Colors} from 'src/utils/constants'
 
 interface Props {
   placeholder: string
-  changeHandler: () => void
+  changeHandler: (h:string) => void
   keyboardType: KeyboardTypeOptions
   trailingtext: string
 }

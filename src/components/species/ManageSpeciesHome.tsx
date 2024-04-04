@@ -10,6 +10,7 @@ import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {useDispatch} from 'react-redux'
 import {updateFormSpecies} from 'src/store/slice/registerFormSlice'
+import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 const cardSize = scaleSize(60)
 
@@ -17,27 +18,31 @@ interface Props {
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[] | any
   isSelectSpecies: boolean
+  formData: RegisterFormSliceInitalState | undefined
 }
 
 const ManageSpeciesHome = (props: Props) => {
-  const {toogleFavSpecies, userFavSpecies, isSelectSpecies} = props
+  const {toogleFavSpecies, userFavSpecies, isSelectSpecies, formData} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const dummy = () => {
     return null
   }
 
-  const handleSpeciesPress = (guid: string) => {
+  const handleSpeciesPress = (item: IScientificSpecies) => {
     if (isSelectSpecies) {
-      dispatch(
-        updateFormSpecies({
-          species_guid: guid,
-          tree_id: String(new Date().getTime()),
-        }),
-      )
-      navigation.navigate('DynamicForm')
+      if (formData.is_multi_species) {
+        //multi
+      } else {
+        dispatch(updateFormSpecies(item.guid))
+        if (formData.tree_details_required) {
+          navigation.navigate('AddMeasurment')
+        } else {
+          //direct to Dynamic form
+        }
+      }
     } else {
-      navigation.navigate('SpeciesInfo', {guid})
+      navigation.navigate('SpeciesInfo', {guid: item.guid})
     }
   }
 

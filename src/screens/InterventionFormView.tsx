@@ -1,5 +1,5 @@
 import {StyleSheet, View} from 'react-native'
-import React from 'react'
+import React, {useEffect} from 'react'
 import Header from 'src/components/common/Header'
 import CustomDropDown from 'src/components/common/CustomDropDown'
 import {Colors} from 'src/utils/constants'
@@ -7,8 +7,36 @@ import CustomTextInput from 'src/components/common/CustomTextInput'
 import CustomButton from 'src/components/common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
+import {useRoute, RouteProp, useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {useDispatch} from 'react-redux'
+import {initiateForm} from 'src/store/slice/registerFormSlice'
+import {RootStackParamList} from 'src/types/type/navigation.type'
+import {setUpIntervention} from 'src/utils/formHelper/selectIntervention'
+import { v4 as uuidv4 } from 'uuid';
 
 const InterventionFormView = () => {
+  const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    setUpRegisterFlow()
+  }, [route.params])
+
+  const setUpRegisterFlow = () => {
+    const formFlowData = setUpIntervention(route.params.id)
+    formFlowData.form_id = uuidv4();
+    formFlowData.intervention_date = String(new Date())
+    dispatch(initiateForm({...formFlowData}))
+    if (formFlowData.skip_intervention_form) {
+      if (formFlowData.location_type === 'Point') {
+        navigation.replace('PointMarker')
+      } else {
+        navigation.replace('PolygonMarker')
+      }
+    }
+  }
   return (
     <View style={styles.container}>
       <Header label="Itervention" />

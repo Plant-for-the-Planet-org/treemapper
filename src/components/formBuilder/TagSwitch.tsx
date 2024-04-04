@@ -8,12 +8,12 @@ import Switch from '../common/Switch'
 
 interface Props {
   placeholder: string
-  changeHandler: () => void
+  changeHandler: (t:string) => void
   keyboardType: KeyboardTypeOptions
   trailingtext: string
   switchEnable: boolean
   description: string
-  switchHandler: () => void
+  switchHandler: (b:boolean) => void
 }
 
 const TagSwitch = (props: Props) => {
@@ -42,11 +42,11 @@ const TagSwitch = (props: Props) => {
           <View style={styles.divider} />
           <Switch
             value={switchEnable}
-            onValueChange={switchHandler}
+            onValueChange={()=>{switchHandler(!switchEnable)}}
             disabled={false}
           />
         </View>
-        <View style={styles.inputContainer}>
+        {switchEnable && <View style={styles.inputContainer}>
           <InputOutline
             style={styles.inputWrapper}
             keyboardType={keyboardType}
@@ -60,7 +60,7 @@ const TagSwitch = (props: Props) => {
               <Text style={styles.unitLabel}>{trailingtext}</Text>
             )}
           />
-        </View>
+        </View>}
       </View>
     </View>
   )

@@ -6,6 +6,7 @@ export enum RealmSchema {
   AdditionalDetail = 'AdditionalDetail',
   SampleTree = 'SampleTree',
   Inventory = 'Inventory',
+  Intervention = 'Intervention',
   User = 'User',
   ActivityLog = 'ActivityLog',
   ScientificSpecies = 'ScientificSpecies',

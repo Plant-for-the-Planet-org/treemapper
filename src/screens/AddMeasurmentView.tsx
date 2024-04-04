@@ -1,49 +1,60 @@
 import {StyleSheet, View} from 'react-native'
-import React from 'react'
+import React, {useState} from 'react'
 import Header from 'src/components/common/Header'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import TagSwitch from 'src/components/formBuilder/TagSwitch'
 import CustomButton from 'src/components/common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
+import {RootState} from 'src/store'
+import {useSelector} from 'react-redux'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const AddMeasurment = () => {
+  const [height, setHeight] = useState('')
+  const [weight, setWeight] = useState('')
+  const [tagEnable, setTagEnabled] = useState(false)
+  const [tagId, setTagId] = useState('')
+  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  const onSubmit = () => {
+    if (formFlowData.form_details.length === 0) {
+      console.log('formdata', height, weight, tagEnable, tagId)
+      navigation.navigate('PreviewFormData')
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Header label="Add Measurment" />
       <View style={styles.wrapper}>
         <OutlinedTextInput
           placeholder={'Height'}
-          changeHandler={function (): void {
-            throw new Error('Function not implemented.')
-          }}
+          changeHandler={setHeight}
           keyboardType={'numeric'}
           trailingtext={'m'}
         />
         <OutlinedTextInput
           placeholder={'Basal Diameter'}
-          changeHandler={function (): void {
-            throw new Error('Function not implemented.')
-          }}
+          changeHandler={setWeight}
           keyboardType={'numeric'}
           trailingtext={'cm'}
         />
         <TagSwitch
           placeholder={'Tag Tree'}
-          changeHandler={function (): void {
-            throw new Error('Function not implemented.')
-          }}
+          changeHandler={setTagId}
           keyboardType={'numeric'}
           trailingtext={''}
-          switchEnable={true}
+          switchEnable={tagEnable}
           description={'This tree has been tagged for identificaiton'}
-          switchHandler={function (): void {
-            throw new Error('Function not implemented.')
-          }}
+          switchHandler={setTagEnabled}
         />
         <CustomButton
           label="Continue"
           containerStyle={styles.btnContainer}
-          pressHandler={null}
+          pressHandler={onSubmit}
         />
       </View>
     </View>
@@ -59,7 +70,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '95%',
-    flex:1
+    flex: 1,
   },
   btnContainer: {
     width: '100%',

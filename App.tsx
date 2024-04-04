@@ -11,6 +11,8 @@ import {Auth0Provider} from 'react-native-auth0'
 import {RealmProvider} from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger'
 import 'react-native-gesture-handler'
+import 'react-native-get-random-values';
+
 
 MapLibreGL.setAccessToken(null)
 

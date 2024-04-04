@@ -62,7 +62,7 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <Intervention width={25} height={25} />,
       title: 'Intervention',
       coming_soon: false,
-      onPress: () => navigation.navigate('InterventionForm'),
+      onPress: () => navigation.navigate('InterventionForm', {id: 'UNKOWN'}),
       disabled: false,
     },
     {
@@ -70,7 +70,7 @@ const AddOptionModal = (props: Props) => {
       title: 'label.tree_registration_type_1',
       coming_soon: false,
       onPress: () =>
-        navigation.navigate('FormIntermediate', {id: 'SINGLE_TREE'}),
+        navigation.navigate('InterventionForm', {id: 'SINGLE_TREE'}),
       disabled: false,
     },
     {
@@ -78,7 +78,7 @@ const AddOptionModal = (props: Props) => {
       title: 'label.tree_registration_type_2',
       coming_soon: false,
       onPress: () =>
-        navigation.navigate('FormIntermediate', {id: 'MULTI_TREE'}),
+        navigation.navigate('InterventionForm', {id: 'MULTI_TREE'}),
       disabled: false,
     },
   ]

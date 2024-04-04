@@ -1,4 +1,4 @@
-import {Coordinates} from './app.interface'
+import {Coordinates, IScientificSpecies} from './app.interface'
 import {MainForm} from './form.interface'
 
 export interface AppInitialState {
@@ -20,16 +20,29 @@ export interface RegisterFormSliceInitalState {
   form_id: string
   key: string
   title: string
+  intervention_date: string
+  skip_intervention_form: boolean
+  project_id: string
+  site_id: string
+  entire_site_intervention: boolean
   location_type: 'Point' | 'Polygon'
   location_title: string
   coordinates: Coordinates[]
+  preview_blank_polygon: boolean
   cover_image_required: boolean
   cover_image_url: string
   cover_image_id: string
   species_required: boolean
+  is_multi_species: boolean
+  species_count_required: boolean
+  species_modal_message: string
+  species_modal_unit: string
+  species: string[]
+  tree_details_required: boolean
+  has_sample_trees: boolean
+  tree_image_required: boolean
   tree_details: SampleTree[]
   form_details: MainForm[]
-  has_sample_trees: boolean
 }
 
 export interface SampleTree {
@@ -63,3 +76,14 @@ export interface AdditionalDetail {
   access_type: string
 }
 
+export interface SampleTreeSlice {
+  form_id: string
+  tree_details: SampleTree[]
+  species: Array<{
+    info: IScientificSpecies
+    count: number
+  }>
+  sample_tree_count: number
+  move_next_primary: string
+  move_next_secondary: string
+}

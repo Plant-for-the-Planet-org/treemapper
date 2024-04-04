@@ -12,7 +12,7 @@ interface SpecieCardProps {
   item: IScientificSpecies
   index: number
   registrationType?: any
-  onPressSpecies: any
+  onPressSpecies: (item: IScientificSpecies) => void
   addSpecieToInventory?: (specie: ScientificSpeciesType) => void
   editOnlySpecieName?: any
   onPressBack?: any
@@ -38,7 +38,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   handleRemoveFavourite,
 }) => {
   const handlePress = () => {
-    onPressSpecies(item.guid)
+    onPressSpecies(item)
     console.log(
       'Will remove',
       registrationType,

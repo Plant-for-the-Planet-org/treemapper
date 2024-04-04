@@ -19,6 +19,7 @@ import {
 } from 'src/store/slice/registerFormSlice'
 import {Coordinates} from 'src/types/interface/app.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import { v4 as uuidv4 } from 'uuid';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -28,7 +29,7 @@ interface Props {
 }
 
 const MarkerMap = (props: Props) => {
-  const {coordinates, cover_image_required} = props.formData
+  const {cover_image_required} = props.formData
   const permissionStatus = useLocationPermission()
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -79,10 +80,10 @@ const MarkerMap = (props: Props) => {
       long: centerCoordinates[1],
       id: 'A',
     }
-    const allCordinates = [...coordinates, formCoordinates]
+    const allCordinates = [formCoordinates]
     dispatch(updateFormCoordinates(allCordinates))
     if (cover_image_required) {
-      const imageId = String(new Date().getTime())
+      const imageId = uuidv4()
       dispatch(updateCoverImageId(imageId))
       navigation.navigate('TakePicture', {
         id: imageId,

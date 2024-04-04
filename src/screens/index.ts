@@ -15,6 +15,7 @@ import PointMarkerView from './PointMarkerView'
 import DynamicFormView from './DynamiFormView'
 import InterventionFormView from './InterventionFormView'
 import AddMeasurmentView from './AddMeasurmentView'
+import ReviewSampleTreeView from './ReviewSampleTreeView'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -34,4 +35,5 @@ export default {
   DynamicForm: DynamicFormView,
   InterventionForm: InterventionFormView,
   AddMeasurment: AddMeasurmentView,
+  ReviewSampleTree: ReviewSampleTreeView,
 }

@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import React from 'react'
 import {scaleFont} from 'src/utils/constants/mixins'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 
 interface Props {
   label: string
@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 5,
-    width:'80%',
+    width:'90%',
     height:'70%',
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 10,
   },
   lableStyle: {
     fontSize: scaleFont(16),
-    fontWeight: '400',
     color: Colors.WHITE,
+    fontFamily:Typography.FONT_FAMILY_BOLD
   },
 })

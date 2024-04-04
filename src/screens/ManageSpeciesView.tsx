@@ -8,12 +8,17 @@ import {useQuery} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
+  
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const isSelectSpecies = route.params && route.params.isSelectSpecies
+  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+
   const {updateUserFavSpecies} = useManageScientificSpecies()
 
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
@@ -42,6 +47,7 @@ const ManageSpeciesView = () => {
         toogleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={userFavSpecies}
         isSelectSpecies={isSelectSpecies}
+        formData={formFlowData}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
