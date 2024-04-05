@@ -10,12 +10,15 @@ const UserlocationMarker = () => {
   const dispatch = useDispatch()
   const getInitalLocation = async () => {
     const {lat, long} = await getUserLocation()
-    dispatch(
-      updateUserLocation({
-        lat: lat,
-        long: long,
-      }),
-    )
+    if(lat && long){
+      dispatch(
+        updateUserLocation({
+          lat: lat,
+          long: long,
+        }),
+      )
+    }
+
   }
   return (
     <TouchableOpacity style={styles.container} onPress={getInitalLocation}>
