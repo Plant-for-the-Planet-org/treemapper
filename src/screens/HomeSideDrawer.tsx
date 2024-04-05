@@ -3,6 +3,7 @@ import React from 'react'
 import Header from 'src/components/common/Header'
 import SideBarList from 'src/components/sidebar/SideBarList'
 import SidebarHeader from 'src/components/sidebar/SidebarHeader'
+import SideBarFooter from 'src/components/sidebar/SideBarFooter'
 
 const HomeSideDrawer = () => {
   return (
@@ -10,6 +11,7 @@ const HomeSideDrawer = () => {
       <Header label={''} />
       <SidebarHeader />
       <SideBarList />
+      <SideBarFooter/>
     </View>
   )
 }

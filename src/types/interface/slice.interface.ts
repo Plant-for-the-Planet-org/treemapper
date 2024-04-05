@@ -2,7 +2,7 @@ import {Coordinates, IScientificSpecies} from './app.interface'
 import {MainForm} from './form.interface'
 
 export interface AppInitialState {
-  last_open: number
+  isLogedIn: boolean
 }
 
 export interface GpsSliceInitalState {
@@ -86,4 +86,19 @@ export interface SampleTreeSlice {
   sample_tree_count: number
   move_next_primary: string
   move_next_secondary: string
+}
+
+
+export interface UserInterface{
+  accessToken: string
+  idToken: string
+  email: string
+  firstName: string
+  lastName: string
+  image: string
+  country: string
+  idLogEnabled: boolean
+  userId: string
+  type: string
+  lastUpdatedAt: string
 }

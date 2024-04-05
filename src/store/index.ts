@@ -16,6 +16,7 @@ import gpsStateSlice from './slice/gpsStateSlice'
 import takePictureSlice from './slice/takePictureSlice'
 import registerFormSlice from './slice/registerFormSlice'
 import sampleTreeSlice from './slice/sampleTreeSlice'
+import userStateSlice from './slice/userStateSlice'
 
 const appReducer = combineReducers({
   appState: appStateSlice,
@@ -23,12 +24,13 @@ const appReducer = combineReducers({
   cameraState: takePictureSlice,
   formFlowState: registerFormSlice,
   sampleTree: sampleTreeSlice,
+  userState: userStateSlice,
 })
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState', 'gpsState', 'takePicture', 'sampleTree'],
+  whitelist: ['appState', 'gpsState', 'takePicture', 'sampleTree', 'userState'],
 }
 
 const persistedReducer = persistReducer(persistConfig, appReducer)
