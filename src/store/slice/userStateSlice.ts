@@ -1,29 +1,31 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {UserInterface} from 'src/types/interface/slice.interface'
 
-const initialState: UserInterface = {
-  accessToken: '',
-  idToken: '',
-  email: '',
-  firstName: '',
-  lastName: '',
-  image: '',
+export const initialUserState: UserInterface = {
   country: '',
-  idLogEnabled: false,
-  userId: '',
+  created: '',
+  displayName: '',
+  email: '',
+  firstname: '',
+  id: '',
+  image: '',
+  isPrivate: false,
+  lastname: '',
+  locale: '',
+  name: '',
+  slug: '',
   type: '',
-  lastUpdatedAt: '',
 }
 
 const userStateSlice = createSlice({
   name: 'userStateSlice',
-  initialState,
+  initialState: initialUserState,
   reducers: {
     updateUserDetails(_state, action: PayloadAction<UserInterface>) {
       return {...action.payload}
     },
     resetUserDetails() {
-      return {...initialState}
+      return {...initialUserState}
     },
   },
 })

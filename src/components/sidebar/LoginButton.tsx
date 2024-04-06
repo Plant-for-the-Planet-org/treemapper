@@ -1,43 +1,35 @@
 import {StyleSheet, View} from 'react-native'
-import React, {useEffect} from 'react'
+import React from 'react'
 import CustomButton from '../common/CustomButton'
-import {User, useAuth0} from 'react-native-auth0'
-import {UserInterface} from 'src/types/interface/slice.interface'
 import {useDispatch} from 'react-redux'
 import {updateUserDetails} from 'src/store/slice/userStateSlice'
-import {updateUserLogin} from 'src/store/slice/appStateSlice'
+import {updateUserLogin, updateUserToken} from 'src/store/slice/appStateSlice'
+import useAuthentication from 'src/hooks/useAuthentication'
+import {getUserDetails} from 'src/api/api.fetch'
 
 const LoginButton = () => {
-  const {authorize, user, isLoading, error} = useAuth0()
+  const {authorizeUser} = useAuthentication()
   const dispatch = useDispatch()
-  const hadleLogin = async () => {
-    await authorize(
-      {},
-      {
-        customScheme: process.env.EXPO_PUBLIC_APP_SCHEMA,
-      },
-    )
-  }
-  useEffect(() => {
-    if (user) {
-      loginAndUpdateDetails(user)
-    }
-  }, [user, isLoading, error])
 
-  const loginAndUpdateDetails = async (details: User) => {
-    const finalDetails: UserInterface = {
-      accessToken: '',
-      idToken: '',
-      email: details.email || '',
-      firstName: details.givenName || '',
-      lastName: details.familyName || '',
-      image: details.picture || '',
-      country: details.locale || '',
-      idLogEnabled: false,
-      userId: '',
-      type: '',
-      lastUpdatedAt: details.updatedAt,
+  const hadleLogin = async () => {
+    const result = await authorizeUser()
+    if (result) {
+      dispatch(
+        updateUserToken({
+          idToken: result.credentials.idToken,
+          accessToken: result.credentials.accessToken,
+          expiringAt: result.credentials.expiresAt,
+        }),
+      )
+      const userDetails = await getUserDetails()
+      if (userDetails) {
+        loginAndUpdateDetails(userDetails)
+      }
     }
+  }
+
+  const loginAndUpdateDetails = async data => {
+    const finalDetails = {...data}
     dispatch(updateUserLogin(true))
     dispatch(updateUserDetails(finalDetails))
   }

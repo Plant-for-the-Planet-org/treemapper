@@ -5,7 +5,7 @@ import {RootState} from 'src/store'
 import SingleTreeImage from 'assets/images/svg/SingleTreeIcon.svg'
 
 const SidebarHeader = () => {
-  const {image, firstName, lastName} = useSelector(
+  const {image, displayName} = useSelector(
     (state: RootState) => state.userState,
   )
   return (
@@ -18,7 +18,7 @@ const SidebarHeader = () => {
         )}
       </View>
       <Text style={styles.userName}>
-        {firstName ? `${firstName} ${lastName}` : 'Guest User'}
+        {displayName ? `${displayName}` : 'Guest User'}
       </Text>
     </View>
   )

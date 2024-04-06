@@ -3,6 +3,9 @@ import {MainForm} from './form.interface'
 
 export interface AppInitialState {
   isLogedIn: boolean
+  accessToken: string
+  idToken: string
+  expiringAt: number
 }
 
 export interface GpsSliceInitalState {
@@ -88,17 +91,55 @@ export interface SampleTreeSlice {
   move_next_secondary: string
 }
 
+// export interface UserInterface {
+//     address: {
+//       address: null | string;
+//       city: null | string;
+//       country: string;
+//       zipCode: null | string;
+//     };
+//     bio: null | string;
+//     country: string;
+//     created: string;
+//     currency: null | string;
+//     displayName: string;
+//     email: string;
+//     firstname: string;
+//     getNews: boolean;
+//     hasLogoLicense: boolean;
+//     id: string;
+//     image: null | string;
+//     isPrivate: boolean;
+//     lastname: string;
+//     locale: null | string;
+//     name: null | string;
+//     planetCash: null | number;
+//     score: {
+//       personal: number;
+//       received: number;
+//       target: number;
+//     };
+//     slug: string;
+//     supportPin: string;
+//     supportedProfile: null | string;
+//     tin: null | string;
+//     type: string;
+//     url: null | string;
+//     urlText: null | string;
+//   }
 
-export interface UserInterface{
-  accessToken: string
-  idToken: string
-  email: string
-  firstName: string
-  lastName: string
-  image: string
+export interface UserInterface {
   country: string
-  idLogEnabled: boolean
-  userId: string
+  created: string
+  displayName: string
+  email: string
+  firstname: string
+  id: string
+  image: null | string
+  isPrivate: boolean
+  lastname: string
+  locale: null | string
+  name: null | string
+  slug: string
   type: string
-  lastUpdatedAt: string
 }
