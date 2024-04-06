@@ -6,6 +6,8 @@ import HomeMapIcon from 'assets/images/svg/HomeMapIcon.svg'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
+import {useSelector} from 'react-redux'
+import {RootState} from 'src/store'
 
 interface Props {
   toogleFilterModal: () => void
@@ -15,7 +17,7 @@ interface Props {
 const HomeHeader = (props: Props) => {
   const {toogleFilterModal, toogleProjectModal} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const userType = useSelector((state: RootState) => state.userState.type)
   const openHomeDrawer = () => {
     navigation.navigate('HomeSideDrawer')
   }
@@ -23,8 +25,18 @@ const HomeHeader = (props: Props) => {
     <View style={styles.container}>
       <HamburgerIcon onPress={openHomeDrawer} style={styles.iconWrapper} />
       <View style={styles.sectionWrapper} />
-      <HomeMapIcon onPress={toogleProjectModal} style={styles.iconWrapper} />
-      <FilterMapIcon onPress={toogleFilterModal} style={styles.iconWrapper} />
+      {userType && userType === 'tpo'? (
+        <>
+          <HomeMapIcon
+            onPress={toogleProjectModal}
+            style={styles.iconWrapper}
+          />
+          <FilterMapIcon
+            onPress={toogleFilterModal}
+            style={styles.iconWrapper}
+          />
+        </>
+      ) : null}
     </View>
   )
 }

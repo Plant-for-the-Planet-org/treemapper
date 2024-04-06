@@ -8,11 +8,13 @@ const SidebarHeader = () => {
   const {image, displayName} = useSelector(
     (state: RootState) => state.userState,
   )
+  const avatar = `https://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/profile/avatar/${image}`
+
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
         {image ? (
-          <Image source={{uri: image}} style={styles.imageWrapper} />
+          <Image source={{uri: avatar}} style={styles.imageWrapper} />
         ) : (
           <SingleTreeImage style={styles.imageWrapper} />
         )}
