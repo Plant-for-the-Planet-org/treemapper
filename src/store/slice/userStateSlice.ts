@@ -22,9 +22,12 @@ const userStateSlice = createSlice({
     updateUserDetails(_state, action: PayloadAction<UserInterface>) {
       return {...action.payload}
     },
+    resetUserDetails() {
+      return {...initialState}
+    },
   },
 })
 
-export const {updateUserDetails} = userStateSlice.actions
+export const {updateUserDetails, resetUserDetails} = userStateSlice.actions
 
 export default userStateSlice.reducer

@@ -2,26 +2,48 @@ import {Pressable, StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import {SideDrawerItem} from 'src/types/interface/app.interface'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { RootStackParamList } from 'src/types/type/navigation.type'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation.type'
+import {useDispatch} from 'react-redux'
+import {updateUserLogin} from 'src/store/slice/appStateSlice'
+import {resetUserDetails} from 'src/store/slice/userStateSlice'
+import {useAuth0} from 'react-native-auth0'
 
 interface Props {
   item: SideDrawerItem
 }
 
 const SideBarCard = (props: Props) => {
-  const {label,screen, icon} = props.item
+  const {clearSession} = useAuth0()
+  const {label, screen, icon, visible, key} = props.item
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const handleNavigaiton=()=>{
+  const dispatch = useDispatch()
+
+  const handleNavigaiton = () => {
+    if (key === 'logout') {
+      handleLogout()
+      return
+    }
     navigation.replace(screen)
   }
+  const handleLogout = async () => {
+    await clearSession(
+      {},
+      {customScheme: process.env.EXPO_PUBLIC_APP_SCHEMA},
+    )
+    dispatch(updateUserLogin(false))
+    dispatch(resetUserDetails())
+  }
+
+  if (!visible) {
+    return null
+  }
+
   return (
     <Pressable style={styles.container} onPress={handleNavigaiton}>
       <View style={styles.wrapper}>
-        <View style={styles.iconWrapper}>
-          {icon}
-        </View>
+        <View style={styles.iconWrapper}>{icon}</View>
         <View style={styles.labelWrapper}>
           <Text>{label}</Text>
         </View>

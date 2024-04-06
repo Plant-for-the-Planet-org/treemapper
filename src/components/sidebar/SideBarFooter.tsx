@@ -4,16 +4,17 @@ import i18next from 'src/locales/index'
 import {Spacing, Typography, Colors} from 'src/utils/constants'
 import {scaleSize} from 'src/utils/constants/mixins'
 import LoginButton from './LoginButton'
-import {RootState} from 'src/store'
-import {useSelector} from 'react-redux'
 
-const SideBarFooter = () => {
-  const isLogedIn = useSelector((state: RootState) => state.appState.isLogedIn)
+interface Props {
+  isLogedIn: boolean
+}
 
+const SideBarFooter = (props: Props) => {
+  const {isLogedIn} = props
   const onPressHandler = () => {}
   return (
     <View style={[styles.versionContainer]}>
-      {isLogedIn && <LoginButton />}
+      {!isLogedIn && <LoginButton />}
       <View key="version" style={styles.version}>
         <Text style={styles.itemText}>{version}</Text>
       </View>

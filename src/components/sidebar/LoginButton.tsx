@@ -8,15 +8,12 @@ import {updateUserDetails} from 'src/store/slice/userStateSlice'
 import {updateUserLogin} from 'src/store/slice/appStateSlice'
 
 const LoginButton = () => {
-  const {authorize, user, isLoading, error, getCredentials} = useAuth0()
+  const {authorize, user, isLoading, error} = useAuth0()
   const dispatch = useDispatch()
   const hadleLogin = async () => {
     await authorize(
+      {},
       {
-        audience: 'urn:plant-for-the-planet',
-      },
-      {
-        ephemeralSession: false,
         customScheme: process.env.EXPO_PUBLIC_APP_SCHEMA,
       },
     )
@@ -28,7 +25,6 @@ const LoginButton = () => {
   }, [user, isLoading, error])
 
   const loginAndUpdateDetails = async (details: User) => {
-    await getCredentials()
     const finalDetails: UserInterface = {
       accessToken: '',
       idToken: '',

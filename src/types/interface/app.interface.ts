@@ -1,3 +1,6 @@
+import { SIDE_DRAWER_ELEMENTS } from "../type/app.type"
+import { RootStackParamList } from "../type/navigation.type"
+
 export interface Coordinates {
   lat: number
   long: number
@@ -6,8 +9,10 @@ export interface Coordinates {
 
 export interface SideDrawerItem {
   label: string
-  screen: 'ManageSpecies'
+  screen: keyof RootStackParamList
   icon: React.ReactNode
+  visible: boolean
+  key:  SIDE_DRAWER_ELEMENTS
 }
 
 export interface IScientificSpecies {
