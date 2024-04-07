@@ -44,7 +44,7 @@ const ProjectModal = (props: Props) => {
     })
     setProjectData(ProjectData)
     setSelectedProject(ProjectData[0])
-    if (data[0].sites) {
+    if (data.length && data[0].sites) {
       setProjectSites(data[0].sites)
     }
   }
