@@ -3,5 +3,6 @@ export const postUrlApi = {
   };
   
   export const getUrlApi = {
-    getUserDetails: 'app/profile'
+    getUserDetails: 'app/profile',
+    getAllProjects:'app/profile/projects?_scope=extended'
   };

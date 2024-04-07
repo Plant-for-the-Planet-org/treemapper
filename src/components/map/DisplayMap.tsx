@@ -24,9 +24,9 @@ const DisplayMap = () => {
     if (PermissionStatus.DENIED === permissionStatus) {
       setPermissionAlert(true)
     } else {
-      setTimeout(()=>{
+      setTimeout(() => {
         getInitalLocation()
-      },300)
+      }, 300)
       setPermissionAlert(false)
     }
   }, [permissionStatus])
@@ -54,6 +54,15 @@ const DisplayMap = () => {
       animationDuration: 1000,
     })
   }
+
+  // const abc = () => {
+  //   cameraRef.current.fitBounds(
+  //     [-90.1572346345325, 18.754657188433],
+  //     [-90.108707013427, 18.7934231781247],
+  //     40,
+  //     1000,
+  //   )
+  // }
 
   if (showPermissionAlert) {
     return null

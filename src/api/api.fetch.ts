@@ -14,3 +14,10 @@ export const getUserDetails = async () => {
   return result;
 };
 
+
+export const getAllProjects = async () => {
+  const uri = `${getUrlApi.getAllProjects}`;
+  const result = await fetchGetCall(uri);
+  return result;
+};
+

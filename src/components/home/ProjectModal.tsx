@@ -1,10 +1,15 @@
-import {StyleSheet, Text, View} from 'react-native'
-import React from 'react'
+import {FlatList, StyleSheet, Text, View, TouchableOpacity} from 'react-native'
+import React, {useEffect, useState} from 'react'
 import Modal from 'react-native-modal'
-import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
+import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 import CustomDropDownPicker from '../common/CustomDropDown'
+import {useQuery} from '@realm/react'
+import {RealmSchema} from 'src/types/enum/db.enum'
+import {Entypo} from '@expo/vector-icons'
+import bbox from '@turf/bbox';
+
 interface Props {
   isVisible: boolean
   toogleModal: () => void
@@ -12,6 +17,62 @@ interface Props {
 
 const ProjectModal = (props: Props) => {
   const {isVisible, toogleModal} = props
+  const [projectData, setProjectData] = useState<any>([])
+  const [projectSies, setProjectSites] = useState<any>([])
+  const [selectedSite, setSelectedSite] = useState('')
+  const [selectedProject, setSelectedProject] = useState<{
+    label: string
+    value: string
+    index: number
+  }>({
+    label: '',
+    value: '',
+    index: 0,
+  })
+
+  const allProjects = useQuery(RealmSchema.Projects, data => {
+    return data
+  })
+
+  const projectDataDropDown = (data: any) => {
+    const ProjectData = data.map((el, i) => {
+      return {
+        label: el.name,
+        value: el.id,
+        index: i,
+      }
+    })
+    setProjectData(ProjectData)
+    setSelectedProject(ProjectData[0])
+    if (data[0].sites) {
+      setProjectSites(data[0].sites)
+    }
+  }
+
+  useEffect(() => {
+    if (allProjects && projectData.length === 0) {
+      projectDataDropDown(allProjects)
+    }
+  }, [allProjects])
+
+  const handlSiteSelection = (id: string, item: any) => {
+    setSelectedSite(id)
+    const geometry = JSON.parse(item?.geometry);
+    console.log("geometry",bbox(geometry))
+  }
+
+  const handleProjectSelction = (data: {
+    label: string
+    value: string
+    index: number
+  }) => {
+    setSelectedProject(data)
+    setSelectedSite('')
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
+    setProjectSites(allProjects[data.index].sites)
+  }
+
   return (
     <Modal
       style={styles.container}
@@ -20,12 +81,58 @@ const ProjectModal = (props: Props) => {
       <View style={styles.sectionWrapper}>
         <View style={styles.contnetWrapper}>
           <View style={styles.header}>
-            <FilterMapIcon onPress={() => {}} style={styles.iconWrapper} />
+            <ZoomSiteIcon style={styles.iconWrapper} />
             <Text style={styles.headerLable}>Zoom To Site</Text>
             <View style={styles.divider} />
             <CloseIcon style={styles.iconWrapper} onPress={toogleModal} />
           </View>
-          <CustomDropDownPicker />
+          <Text style={styles.projectLabel}>Select Project</Text>
+          <CustomDropDownPicker
+            label={'Project'}
+            data={projectData}
+            onSelect={handleProjectSelction}
+            selectedValue={selectedProject}
+          />
+
+          <Text style={styles.projectLabel}>Select Site</Text>
+          <View style={styles.siteContainer}>
+            <FlatList
+              data={projectSies}
+              renderItem={({item, index}) => {
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.siteCard,
+                      {
+                        borderBottomWidth:
+                          index < projectSies.length - 1 ? 1 : 0,
+                      },
+                    ]}
+                    key={index}
+                    onPress={() => {
+                      handlSiteSelection(item.id,item)
+                    }}>
+                    <Text style={styles.siteCardLabel}>{item.name}</Text>
+                    <View style={styles.divider} />
+                    {selectedSite === item.id && (
+                      <Entypo size={16} name="check" color={Colors.PRIMARY} />
+                    )}
+                  </TouchableOpacity>
+                )
+              }}
+              style={styles.siteWrapper}
+              ListEmptyComponent={() => {
+                return (
+                  <View style={styles.siteCard}>
+                    <Text style={styles.siteCardLabel}>
+                      No Sites found for this project
+                    </Text>
+                    <View style={styles.divider} />
+                  </View>
+                )
+              }}
+            />
+          </View>
         </View>
       </View>
     </Modal>
@@ -47,6 +154,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
+    height: '70%',
   },
   contnetWrapper: {
     width: '95%',
@@ -80,5 +188,33 @@ const styles = StyleSheet.create({
   },
   divider: {
     flex: 1,
+  },
+  projectLabel: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: Typography.FONT_SIZE_16,
+    marginHorizontal: 20,
+  },
+  siteContainer: {
+    width: '100%',
+    marginTop: 20,
+    marginLeft: '5%',
+  },
+  siteWrapper: {
+    width: '90%',
+    backgroundColor: Colors.GRAY_BACKDROP,
+    borderRadius: 10,
+    maxHeight: 200,
+    paddingVertical: 5,
+  },
+  siteCard: {
+    width: '90%',
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomColor: Colors.GRAY_BORDER,
+    marginLeft: 10,
+  },
+  siteCardLabel: {
+    fontSize: Typography.FONT_SIZE_16,
   },
 })

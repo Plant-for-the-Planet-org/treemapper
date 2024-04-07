@@ -1,13 +1,16 @@
 import {StyleSheet, View} from 'react-native'
-import React from 'react'
+import React, {useEffect} from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
 import HomeMapIcon from 'assets/images/svg/HomeMapIcon.svg'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {RootState} from 'src/store'
+import useProjectMangement from 'src/hooks/realm/useProjectMangement'
+import {getAllProjects} from 'src/api/api.fetch'
+import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
 
 interface Props {
   toogleFilterModal: () => void
@@ -15,17 +18,44 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
+  const {addAllProjects} = useProjectMangement()
   const {toogleFilterModal, toogleProjectModal} = props
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
+  const {projectAdded} = useSelector(
+    (state: RootState) => state.projectState,
+  )
+
+  const dispatch = useDispatch()
+
   const openHomeDrawer = () => {
     navigation.navigate('HomeSideDrawer')
   }
+
+  useEffect(() => {
+    if (userType === 'tpo' && !projectAdded) {
+      handleProjects()
+    }
+  }, [userType, projectAdded])
+
+  const handleProjects = async () => {
+    const response = await getAllProjects()
+    if (response) {
+      const result = await addAllProjects(response)
+      if(result){
+        dispatch(updateProjectState(true))
+      }else{
+        dispatch(updateProjectError(true))
+      }
+    }
+  }
+
   return (
     <View style={styles.container}>
       <HamburgerIcon onPress={openHomeDrawer} style={styles.iconWrapper} />
       <View style={styles.sectionWrapper} />
-      {userType && userType === 'tpo'? (
+      {userType && userType === 'tpo' ? (
         <>
           <HomeMapIcon
             onPress={toogleProjectModal}

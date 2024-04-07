@@ -8,6 +8,11 @@ export interface AppInitialState {
   expiringAt: number
 }
 
+export interface ProjectStateSlice {
+  projectAdded: boolean
+  errorOccured: boolean
+}
+
 export interface GpsSliceInitalState {
   user_location: Coordinates
 }

@@ -4,41 +4,42 @@ import {Dropdown} from 'react-native-element-dropdown'
 import {Colors} from 'src/utils/constants'
 import SelectIcon from 'assets/images/svg/SelectIcon.svg'
 
-const data = [
-  {label: 'Item 1', value: '1', search: 'Item 1'},
-  {label: 'Item 2', value: '2', search: 'Item 2'},
-  {label: 'Item 3', value: '3', search: 'Item 3'},
-  {label: 'Item 4', value: '4', search: 'Item 4'},
-  {label: 'Item 5', value: '5', search: 'Item 5'},
-  {label: 'Item 6', value: '6', search: 'Item 6'},
-  {label: 'Item 7', value: '7', search: 'Item 7'},
-  {label: 'Item 8', value: '8', search: 'Item 8'},
-]
+interface DropDownData {
+  label: string
+  value: string
+  index: number
+}
 
 interface Props {
   label: string
+  data: DropDownData[]
+  onSelect: (data: {label: string; value: string; index: number}) => void
+  selectedValue: DropDownData
 }
 
 const DropdownComponent = (props: Props) => {
-  const [value, setValue] = useState<string>()
+  const {label, data, onSelect, selectedValue} = props
   const [isFocus, setIsFocus] = useState(false)
 
   const renderLabel = () => {
-    if (value || isFocus) {
+    if (selectedValue) {
       return (
-        <Text style={[styles.label, isFocus && {color: 'blue'}]}>
-          {props.label}
-        </Text>
+        <Text style={[styles.label, isFocus && {color: Colors.PRIMARY}]}>{label}</Text>
       )
     }
     return null
+  }
+
+  const handleSelect=(item:DropDownData)=>{
+    setIsFocus(false)
+    onSelect(item)
   }
 
   return (
     <View style={styles.container}>
       {renderLabel()}
       <Dropdown
-        style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}
+        style={[styles.dropdown, isFocus && {borderColor: Colors.PRIMARY}]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
         inputSearchStyle={styles.inputSearchStyle}
@@ -49,15 +50,11 @@ const DropdownComponent = (props: Props) => {
         minHeight={100}
         labelField="label"
         valueField="value"
-        searchField="search"
         placeholder={!isFocus ? props.label : '...'}
-        value={value}
+        value={selectedValue}
         onFocus={() => setIsFocus(true)}
         onBlur={() => setIsFocus(false)}
-        onChange={item => {
-          setValue(item.value)
-          setIsFocus(false)
-        }}
+        onChange={handleSelect}
         renderRightIcon={() => <SelectIcon />}
       />
     </View>
@@ -82,7 +79,7 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: Colors.WHITE,
     left: 22,
     top: 8,
     zIndex: 999,
