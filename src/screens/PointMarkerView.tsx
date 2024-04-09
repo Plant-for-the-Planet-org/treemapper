@@ -4,6 +4,7 @@ import Header from 'src/components/common/Header'
 import MarkerMap from 'src/components/map/MarkerMap'
 import {useSelector} from 'react-redux'
 import {RootState} from 'src/store'
+import UserlocationMarker from 'src/components/map/UserlocationMarker'
 
 const PointMarkerView = () => {
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
@@ -11,6 +12,7 @@ const PointMarkerView = () => {
     <View style={styles.container}>
       <Header label={formFlowData.location_title} />
       <MarkerMap formData={formFlowData}/>
+      <UserlocationMarker />
     </View>
   )
 }

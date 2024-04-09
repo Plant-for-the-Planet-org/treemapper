@@ -1,12 +1,12 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {Coordinates} from 'src/types/interface/app.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitalState, SampleTree} from 'src/types/interface/slice.interface'
 
 export const initialState: RegisterFormSliceInitalState = {
   form_id: '',
   key: '',
   title: '',
-  intervention_date: '',
+  intervention_date: 0,
   skip_intervention_form: false,
   project_id: '',
   site_id: '',
@@ -14,7 +14,7 @@ export const initialState: RegisterFormSliceInitalState = {
   location_type: 'Point',
   location_title: '',
   coordinates: [],
-  preview_blank_polygon:false,
+  preview_blank_polygon: false,
   cover_image_required: false,
   cover_image_url: '',
   cover_image_id: '',
@@ -29,6 +29,10 @@ export const initialState: RegisterFormSliceInitalState = {
   tree_image_required: false,
   tree_details: [],
   form_details: [],
+  user_type: 'tpo',
+  project_name: '',
+  site_name: '',
+  tree_image_url: ''
 }
 
 const registerFormSlice = createSlice({
@@ -50,6 +54,9 @@ const registerFormSlice = createSlice({
     updateFormSpecies(state, action: PayloadAction<string>) {
       state.species = [...state.species, action.payload]
     },
+    updateTree_details(state, action: PayloadAction<SampleTree>) {
+      state.tree_details = [...state.tree_details, action.payload]
+    },
   },
 })
 
@@ -59,6 +66,7 @@ export const {
   updateCoverImageId,
   updateCoverImageURL,
   updateFormSpecies,
+  updateTree_details
 } = registerFormSlice.actions
 
 export default registerFormSlice.reducer

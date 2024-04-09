@@ -19,7 +19,13 @@ const TakePicture = () => {
   const takePicture = (data: CameraCapturedPicture) => {
     setImageMetaData(data)
   }
-
+  const retakePicture = () => {
+    setImageMetaData({
+      width: 0,
+      height: 0,
+      uri: '',
+    })
+  }
   return (
     <View style={styles.container}>
       <Header label="Take picture" />
@@ -34,6 +40,7 @@ const TakePicture = () => {
           imageData={imageMetaData}
           id={route.params.id}
           screen={route.params.screen}
+          retakePicture={retakePicture}
         />
       ) : (
         <CameraView takePicture={takePicture} />

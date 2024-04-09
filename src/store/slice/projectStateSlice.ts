@@ -4,6 +4,14 @@ import {ProjectStateSlice} from 'src/types/interface/slice.interface'
 const initialState: ProjectStateSlice = {
   projectAdded: false,
   errorOccured: false,
+  currentProject: {
+    projectName: '',
+    projectId: '',
+  },
+  projectSite: {
+    siteName: '',
+    siteId: '',
+  },
 }
 
 const projectStateSlice = createSlice({
@@ -16,9 +24,28 @@ const projectStateSlice = createSlice({
     updateProjectError(state, action: PayloadAction<boolean>) {
       state.projectAdded = action.payload
     },
+    updateCurrentProject(
+      state,
+      action: PayloadAction<{name: string; id: string}>,
+    ) {
+      state.currentProject = {
+        projectName: action.payload.name,
+        projectId: action.payload.id,
+      }
+    },
+    updateProjectSite(
+      state,
+      action: PayloadAction<{name: string; id: string}>,
+    ) {
+      state.projectSite = {
+        siteName: action.payload.name,
+        siteId: action.payload.id,
+      }
+    },
   },
 })
 
-export const {updateProjectError, updateProjectState} = projectStateSlice.actions
+export const {updateProjectError, updateProjectState, updateProjectSite, updateCurrentProject} =
+  projectStateSlice.actions
 
 export default projectStateSlice.reducer

@@ -19,7 +19,7 @@ import {
 } from 'src/store/slice/registerFormSlice'
 import {Coordinates} from 'src/types/interface/app.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')

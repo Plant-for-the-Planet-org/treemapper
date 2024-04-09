@@ -1,7 +1,7 @@
 import {StyleSheet, View} from 'react-native'
 import React from 'react'
 import {CameraCapturedPicture} from 'expo-camera'
-import {scaleSize} from 'src/utils/constants/mixins'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
 import {Image} from 'expo-image'
 import {Colors} from 'src/utils/constants'
@@ -17,10 +17,11 @@ interface Props {
   imageData: CameraCapturedPicture
   id: string
   screen: AFTER_CAPTURE
+  retakePicture: () => void
 }
 
 const ImagePreview = (props: Props) => {
-  const {imageData, id, screen} = props
+  const {imageData, id, screen, retakePicture} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
@@ -32,7 +33,7 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
-    
+
     if (screen === 'POINT_REGISTER' || screen === 'POLYGON_REGISTER') {
       dispatch(updateCoverImageURL(finalURL))
     }
@@ -57,7 +58,9 @@ const ImagePreview = (props: Props) => {
         <CustomButton
           label="Retake"
           containerStyle={styles.btnWrapper}
-          pressHandler={() => {}}
+          pressHandler={retakePicture}
+          wrapperStyle={styles.borderWrapper}
+          labelStyle={styles.highlightLabel}
         />
         <CustomButton
           label="Continue"
@@ -99,5 +102,40 @@ const styles = StyleSheet.create({
   imageContainer: {
     widht: '100%',
     height: '100%',
+  },
+  borderWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: '90%',
+    height: '70%',
+    backgroundColor: Colors.WHITE,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.PRIMARY_DARK,
+  },
+  opaqueWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: '90%',
+    height: '70%',
+    backgroundColor: Colors.PRIMARY_DARK,
+    borderRadius: 10,
+  },
+  highlightLabel: {
+    fontSize: scaleFont(16),
+    fontWeight: '400',
+    color: Colors.PRIMARY_DARK,
+  },
+  normalLable: {
+    fontSize: scaleFont(14),
+    fontWeight: '400',
+    color: Colors.WHITE,
+    textAlign: 'center',
   },
 })

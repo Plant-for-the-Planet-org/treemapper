@@ -14,8 +14,9 @@ import {ProjectSite} from './projectSites'
 import {Projects} from './projects'
 import {SampleTree} from './sampleTree'
 import {ScientificSpecies} from './scientificSpecies'
-import {Species} from './species'
+import {InterventionSpecies} from './interventionSpecies'
 import {User} from './user'
+import {Intervention} from './intervention' 
 import {YesNo} from './yesOrNo'
 
 export default [
@@ -35,7 +36,8 @@ export default [
   ProjectSite,
   SampleTree,
   ScientificSpecies,
-  Species,
+  InterventionSpecies,
   User,
   YesNo,
+  Intervention
 ]

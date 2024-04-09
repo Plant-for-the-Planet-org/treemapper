@@ -7,6 +7,11 @@ import {useDispatch, useSelector} from 'react-redux'
 import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
 import {RootState} from 'src/store'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
+import {useQuery} from '@realm/react'
+import {RealmSchema} from 'src/types/enum/db.enum'
+import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
+import {Colors} from 'src/utils/constants'
+import {InterventionData} from 'src/types/interface/slice.interface'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -19,6 +24,28 @@ const DisplayMap = () => {
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
+  const userFavSpecies = useQuery<InterventionData>(
+    RealmSchema.Intervention,
+    data => {
+      return data
+    },
+  )
+
+  const feature = userFavSpecies.map((el: InterventionData) => {
+    const asc = makeInterventionGeoJson(
+      el.location.type,
+      JSON.parse(el.location.coordinates),
+      true,
+    )
+    return asc.geoJSON
+  })
+
+  const geoJSON = {
+    type: 'FeatureCollection',
+    features: feature.length ? [...feature] : [],
+  }
+
+  console.log(JSON.stringify(geoJSON, null, 2))
 
   useEffect(() => {
     if (PermissionStatus.DENIED === permissionStatus) {
@@ -75,11 +102,47 @@ const DisplayMap = () => {
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
+      {geoJSON.features.map((feature, index) => {
+        const id = `feature-${index}`
+        switch (feature.geometry.type) {
+          case 'Point':
+            return (
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-expect-error
+              <MapLibreGL.ShapeSource key={id} id={id} shape={feature}>
+                <MapLibreGL.CircleLayer
+                  id={'singleSelectedPolyCircle' + index}
+                  style={circleStyle}
+                />
+              </MapLibreGL.ShapeSource>
+            )
+          case 'Polygon':
+            return (
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-expect-error
+              <MapLibreGL.ShapeSource key={id} id={id} shape={feature}>
+                <MapLibreGL.FillLayer id={`${id}-layer`} />
+              </MapLibreGL.ShapeSource>
+            )
+          case 'LineString':
+            return (
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-expect-error
+              <MapLibreGL.ShapeSource key={id} id={id} shape={feature}>
+                <MapLibreGL.LineLayer id={`${id}-layer`} />
+              </MapLibreGL.ShapeSource>
+            )
+          default:
+            return null
+        }
+      })}
     </MapLibreGL.MapView>
   )
 }
 
 export default DisplayMap
+
+const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
 
 const styles = StyleSheet.create({
   container: {

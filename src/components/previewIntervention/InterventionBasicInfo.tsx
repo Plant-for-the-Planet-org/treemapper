@@ -1,27 +1,42 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
-import { Colors } from 'src/utils/constants'
+import {Colors} from 'src/utils/constants'
+import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
 
-const InterventionBasicInfo = () => {
+interface Props {
+  data: {
+    title: string
+    intervention_date: number
+    project_name: string
+    site_name: string
+  }
+}
+
+const InterventionBasicInfo = (props: Props) => {
+  const {title, intervention_date, project_name, site_name} = props.data
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Intervention Date</Text>
-          <Text style={styles.cardLabel}>26 Jan, 2012</Text>
+          <Text style={styles.cardLabel}>
+            {timestampToBasicDate(intervention_date)}
+          </Text>
         </View>
         <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Type</Text>
-          <Text style={styles.cardLabel}>Direct Seeding</Text>
+          <Text style={styles.cardLabel}>{title}</Text>
         </View>
-        <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>Project</Text>
-          <Text style={styles.cardLabel}>Yucatan Reforestaiton</Text>
-        </View>
-        <View style={styles.cardWrapper}>
+        {project_name && (
+          <View style={styles.cardWrapper}>
+            <Text style={styles.cardTitle}>Project</Text>
+            <Text style={styles.cardLabel}>{project_name}</Text>
+          </View>
+        )}
+        {site_name && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Site</Text>
-          <Text style={styles.cardLabel}>Las Americas 7</Text>
-        </View>
+          <Text style={styles.cardLabel}>{site_name}</Text>
+        </View>}
       </View>
     </View>
   )
@@ -40,12 +55,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'white',
     paddingVertical: 20,
-    borderColor:Colors.GRAY_BACKDROP,
+    borderColor: Colors.GRAY_BACKDROP,
   },
   cardWrapper: {
     width: '100%',
     height: 55,
-    paddingHorizontal:20
+    paddingHorizontal: 20,
   },
   cardTitle: {
     fontSize: 16,
@@ -54,6 +69,6 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 14,
     color: 'gray',
-    fontWeight:'500'
+    fontWeight: '500',
   },
 })

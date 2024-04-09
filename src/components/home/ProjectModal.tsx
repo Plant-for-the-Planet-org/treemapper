@@ -8,7 +8,13 @@ import CustomDropDownPicker from '../common/CustomDropDown'
 import {useQuery} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
 import {Entypo} from '@expo/vector-icons'
-import bbox from '@turf/bbox';
+import bbox from '@turf/bbox'
+import {RootState} from 'src/store'
+import {useDispatch, useSelector} from 'react-redux'
+import {
+  updateCurrentProject,
+  updateProjectSite,
+} from 'src/store/slice/projectStateSlice'
 
 interface Props {
   isVisible: boolean
@@ -19,7 +25,6 @@ const ProjectModal = (props: Props) => {
   const {isVisible, toogleModal} = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSies, setProjectSites] = useState<any>([])
-  const [selectedSite, setSelectedSite] = useState('')
   const [selectedProject, setSelectedProject] = useState<{
     label: string
     value: string
@@ -29,10 +34,14 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
-
+  const {currentProject, projectSite} = useSelector(
+    (state: RootState) => state.projectState,
+  )
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
+
+  const dispatch = useDispatch()
 
   const projectDataDropDown = (data: any) => {
     const ProjectData = data.map((el, i) => {
@@ -42,10 +51,25 @@ const ProjectModal = (props: Props) => {
         index: i,
       }
     })
-    setProjectData(ProjectData)
-    setSelectedProject(ProjectData[0])
-    if (data.length && data[0].sites) {
-      setProjectSites(data[0].sites)
+    if (ProjectData.length > 0) {
+      setProjectData({
+        label: currentProject.projectName || ProjectData[0].label,
+        value: currentProject.projectId || ProjectData[0].value,
+        index: 0,
+      })
+      setSelectedProject(ProjectData[0])
+
+      if (data.length && data[0].sites) {
+        setProjectSites(data[0].sites)
+      }
+      if (currentProject.projectId === '') {
+        dispatch(
+          updateCurrentProject({
+            name: ProjectData[0].label,
+            id: ProjectData[0].value,
+          }),
+        )
+      }
     }
   }
 
@@ -56,9 +80,14 @@ const ProjectModal = (props: Props) => {
   }, [allProjects])
 
   const handlSiteSelection = (id: string, item: any) => {
-    setSelectedSite(id)
-    const geometry = JSON.parse(item?.geometry);
-    console.log("geometry",bbox(geometry))
+    dispatch(
+      updateProjectSite({
+        name: item.name,
+        id,
+      }),
+    )
+    const geometry = JSON.parse(item?.geometry)
+    console.log('geometry', bbox(geometry))
   }
 
   const handleProjectSelction = (data: {
@@ -67,7 +96,18 @@ const ProjectModal = (props: Props) => {
     index: number
   }) => {
     setSelectedProject(data)
-    setSelectedSite('')
+    dispatch(
+      updateCurrentProject({
+        name: data.label,
+        id: data.value,
+      }),
+    )
+    dispatch(
+      updateProjectSite({
+        name: '',
+        id: '',
+      }),
+    )
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-expect-error
     setProjectSites(allProjects[data.index].sites)
@@ -110,11 +150,11 @@ const ProjectModal = (props: Props) => {
                     ]}
                     key={index}
                     onPress={() => {
-                      handlSiteSelection(item.id,item)
+                      handlSiteSelection(item.id, item)
                     }}>
                     <Text style={styles.siteCardLabel}>{item.name}</Text>
                     <View style={styles.divider} />
-                    {selectedSite === item.id && (
+                    {projectSite.siteId === item.id && (
                       <Entypo size={16} name="check" color={Colors.PRIMARY} />
                     )}
                   </TouchableOpacity>

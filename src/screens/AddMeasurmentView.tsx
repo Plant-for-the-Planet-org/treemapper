@@ -6,24 +6,78 @@ import TagSwitch from 'src/components/formBuilder/TagSwitch'
 import CustomButton from 'src/components/common/CustomButton'
 import {scaleSize} from 'src/utils/constants/mixins'
 import {RootState} from 'src/store'
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
+import {SampleTree} from 'src/types/interface/slice.interface'
+import {v4 as uuidv4} from 'uuid'
+import {
+  extractCoverImageUrl,
+  extractSpecies,
+  extractTreeCount,
+  extractTreeImageUrl,
+} from 'src/utils/helpers/interventionFormHelper'
+import {useRealm} from '@realm/react'
+import {RealmSchema} from 'src/types/enum/db.enum'
+import {IScientificSpecies} from 'src/types/interface/app.interface'
+import {updateTree_details} from 'src/store/slice/registerFormSlice'
 
 const AddMeasurment = () => {
   const [height, setHeight] = useState('')
-  const [weight, setWeight] = useState('')
+  const [witdth, setWeight] = useState('')
   const [tagEnable, setTagEnabled] = useState(false)
   const [tagId, setTagId] = useState('')
+
+  const realm = useRealm()
+  const dispatch = useDispatch()
+  // const [heightErrorMessage, setHeightErrorMessgae] = useState('')
+  // const [widthErrorMessage, setWidthErrorMessage] = useState('')
+
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const {lat, long} = useSelector(
+    (state: RootState) => state.gpsState.user_location,
+  )
+  const species_guid = extractSpecies(formFlowData)
+  const speciesDetails = realm.objectForPrimaryKey<IScientificSpecies>(
+    RealmSchema.ScientificSpecies,
+    species_guid,
+  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const onSubmit = () => {
     if (formFlowData.form_details.length === 0) {
-      console.log('formdata', height, weight, tagEnable, tagId)
-      navigation.navigate('PreviewFormData')
+      submitDetails()
     }
+  }
+
+  const submitDetails = () => {
+    const treeDetails: SampleTree = {
+      tree_id: uuidv4(),
+      species_guid: extractSpecies(formFlowData),
+      intervention_id: formFlowData.form_id,
+      count: extractTreeCount(formFlowData),
+      latitude: formFlowData.coordinates[0].lat,
+      longitude: formFlowData.coordinates[0].long,
+      device_latitude: lat,
+      device_longitude: long,
+      location_accuracy: '',
+      image_url: extractTreeImageUrl(formFlowData),
+      cdn_image_url: extractCoverImageUrl(formFlowData),
+      specie_name: speciesDetails.scientific_name,
+      specie_diameter: Number(witdth),
+      specie_height: Number(height),
+      tag_id: tagId,
+      plantation_date: new Date().getTime(),
+      status_complete: false,
+      location_id: '',
+      tree_type: 'single',
+      additional_details: '',
+      app_meta_data: '',
+      hid: '',
+    }
+    dispatch(updateTree_details(treeDetails))
+    navigation.navigate('PreviewFormData')
   }
 
   return (

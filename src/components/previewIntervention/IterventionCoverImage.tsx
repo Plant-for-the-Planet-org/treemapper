@@ -2,10 +2,15 @@ import {Image, StyleSheet, View} from 'react-native'
 import React from 'react'
 import {scaleSize} from 'src/utils/constants/mixins'
 
-const IterventionCoverImage = () => {
+interface Props {
+  image: string
+}
+
+const IterventionCoverImage = (props: Props) => {
+  const {image} = props
   return (
     <View style={styles.container}>
-      <Image source={{uri: ''}} style={styles.imageWrapper} />
+      <Image source={{uri: image}} style={styles.imageWrapper} />
     </View>
   )
 }

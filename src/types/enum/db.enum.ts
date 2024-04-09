@@ -1,7 +1,6 @@
 export enum RealmSchema {
   Coordinates = 'Coordinates',
   Polygon = 'Polygon',
-  Species = 'Species',
   OfflineMap = 'OfflineMap',
   AdditionalDetail = 'AdditionalDetail',
   SampleTree = 'SampleTree',
@@ -18,5 +17,6 @@ export enum RealmSchema {
   YesNo = 'YesNo',
   Element = 'Element',
   Form = 'Form',
-  Metadata = 'Metadata'
+  Metadata = 'Metadata',
+  InterventionSpecies = 'InterventionSpecies'
 }

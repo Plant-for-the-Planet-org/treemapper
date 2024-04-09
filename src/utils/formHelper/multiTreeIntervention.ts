@@ -77,7 +77,7 @@ export const MultiTreeFormData: RegisterFormSliceInitalState = {
   form_id: '',
   key: '',
   title: 'Multi Tree Registeration',
-  intervention_date: '',
+  intervention_date: 0,
   skip_intervention_form: true,
   project_id: '',
   site_id: '',
@@ -100,4 +100,8 @@ export const MultiTreeFormData: RegisterFormSliceInitalState = {
   tree_image_required: true,
   tree_details: [],
   form_details: [],
+  user_type: '',
+  project_name: '',
+  site_name: '',
+  tree_image_url: ''
 }

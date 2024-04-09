@@ -13,7 +13,6 @@ export const Inventory: ObjectSchema = {
     donationType: 'string?',
     locateTree: 'string?',
     lastScreen: 'string?',
-    species: `${RealmSchema.Species}[]`,
     polygons: `${RealmSchema.Polygon}[]`,
     specieDiameter: 'double?',
     specieHeight: 'double?', // <*IMPORTANT*> ONLY FOR SINGLE TREE

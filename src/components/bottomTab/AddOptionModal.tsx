@@ -48,37 +48,50 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <ChartIcon width={25} height={25} />,
       title: 'Monitoring Plot',
       coming_soon: true,
-      onPress: () => navigation.navigate('SingleTreeRegister'),
+      onPress: () => {
+        navigation.navigate('SingleTreeRegister')
+        props.setVisible(false)
+      },
       disabled: false,
     },
     {
       svgIcon: <CrossArrow width={25} height={25} />,
       title: 'Project Site',
       coming_soon: true,
-      onPress: () => navigation.navigate('SingleTreeRegister'),
+      onPress: () => {
+        navigation.navigate('SingleTreeRegister')
+        props.setVisible(false)
+      },
       disabled: true,
     },
     {
       svgIcon: <Intervention width={25} height={25} />,
       title: 'Intervention',
       coming_soon: false,
-      onPress: () => navigation.navigate('InterventionForm', {id: 'UNKOWN'}),
+      onPress: () => {
+        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
+        props.setVisible(false)
+      },
       disabled: false,
     },
     {
       svgIcon: <SingleTreeIcon width={25} height={25} />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
-      onPress: () =>
-        navigation.navigate('InterventionForm', {id: 'SINGLE_TREE'}),
+      onPress: () => {
+        navigation.navigate('InterventionForm', {id: 'SINGLE_TREE'})
+        props.setVisible(false)
+      },
       disabled: false,
     },
     {
       svgIcon: <MultipleTreeIcon width={25} height={25} />,
       title: 'label.tree_registration_type_2',
       coming_soon: false,
-      onPress: () =>
-        navigation.navigate('InterventionForm', {id: 'MULTI_TREE'}),
+      onPress: () => {
+        navigation.navigate('InterventionForm', {id: 'MULTI_TREE'})
+        props.setVisible(false)
+      },
       disabled: false,
     },
   ]

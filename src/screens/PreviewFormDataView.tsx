@@ -9,20 +9,36 @@ import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
+import {useSelector} from 'react-redux'
+import {RootState} from 'src/store'
+import {
+  getPreviewData,
+  interventionFinalData,
+} from 'src/utils/helpers/interventionFormHelper'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 const PreviewFormData = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const navigateToNext = () => {
-    navigation.popToTop()
+  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const {addNewIntervention} = useInterventionManagement()
+  const navigateToNext = async () => {
+    const finalData = interventionFinalData(formFlowData)
+    const result = await addNewIntervention(finalData)
+    if (result) {
+      navigation.popToTop()
+    }
   }
+
+  const {previewImage, basicInfo} = getPreviewData(formFlowData)
+
   return (
     <View style={styles.container}>
       <ScrollView>
         <View>
           <Header label="Review" />
-          <IterventionCoverImage />
-          <InterventionBasicInfo />
-          <InterventionArea />
+          <IterventionCoverImage image={previewImage} />
+          <InterventionBasicInfo data={basicInfo} />
+          <InterventionArea formData={formFlowData} />
           <CustomButton
             label={'Done'}
             pressHandler={navigateToNext}
