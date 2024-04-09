@@ -6,6 +6,7 @@ import {Typography, Colors} from 'src/utils/constants'
 import {ScientificSpeciesType} from 'src/utils/constants/scientificSpeciesTypes'
 import SingleTreeIcon from 'assets/images/svg/SingleTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
+import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
 
 interface SpecieCardProps {
@@ -114,7 +115,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             []
           )}
           <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
-            <PinkHeart />
+            {editOnlySpecieName !== 'remove' ? (
+              <PinkHeart />
+            ) : (
+              <RemoveSpeciesIcon />
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </View>

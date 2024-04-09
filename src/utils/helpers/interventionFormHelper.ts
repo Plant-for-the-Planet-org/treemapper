@@ -1,6 +1,7 @@
 import {
   InterventionData,
   RegisterFormSliceInitalState,
+  SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
 
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
@@ -97,28 +98,49 @@ export const makeInterventionGeoJson = (
   }
 }
 
-export const extractSpecies = (data: RegisterFormSliceInitalState) => {
-  if (!data.is_multi_species) {
-    return data.species[0]
+export const extractSpecies = (
+  data: RegisterFormSliceInitalState,
+  sampleTree: string | undefined,
+) => {
+  if (sampleTree) {
+    return sampleTree
   }
-  return ''
+  return data.species[0]
 }
 
-export const extractTreeCount = (data: RegisterFormSliceInitalState) => {
-  if (!data.is_multi_species) {
-    return 1
+export const extractTreeCount = (
+  sampleTree: SampleTreeSlice | null,
+  current_species: string,
+) => {
+  if (sampleTree) {
+    const matchingItem = sampleTree.species.find(
+      item => item.info.guid === current_species,
+    )
+    return matchingItem.count
   }
   return 1
 }
 
-export const extractCoverImageUrl = (data: RegisterFormSliceInitalState) => {
+export const extractCoverImageUrl = (
+  data: RegisterFormSliceInitalState,
+  sampleTree?: SampleTreeSlice,
+) => {
+  if (sampleTree && sampleTree.image_url) {
+    return sampleTree.image_url
+  }
   if (data.cover_image_required) {
     return data.cover_image_url
   }
-  return ''
+  return data.cover_image_url
 }
 
-export const extractTreeImageUrl = (data: RegisterFormSliceInitalState) => {
+export const extractTreeImageUrl = (
+  data: RegisterFormSliceInitalState,
+  sampleTree: SampleTreeSlice,
+) => {
+  if (sampleTree && sampleTree.image_url) {
+    return sampleTree.image_url
+  }
   if (data.tree_image_required) {
     return data.tree_image_url
   }

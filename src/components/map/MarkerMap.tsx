@@ -20,6 +20,8 @@ import {
 import {Coordinates} from 'src/types/interface/app.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 import {v4 as uuidv4} from 'uuid'
+import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
+import {updateSampleTreeCoordinates} from 'src/store/slice/sampleTreeSlice'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -29,6 +31,8 @@ interface Props {
 }
 
 const MarkerMap = (props: Props) => {
+  const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
+  const [geoJSON, setGeoJSON] = useState(null)
   const {cover_image_required} = props.formData
   const permissionStatus = useLocationPermission()
   const currentUserLocation = useSelector(
@@ -60,6 +64,17 @@ const MarkerMap = (props: Props) => {
   }
 
   useEffect(() => {
+    if (form_id.length) {
+      getMarkerJSON()
+    }
+  }, [form_id])
+
+  const getMarkerJSON = () => {
+    const data = makeInterventionGeoJson('Polygon', boundry)
+    setGeoJSON(data.geoJSON)
+  }
+
+  useEffect(() => {
     if (currentUserLocation && cameraRef.current !== null) {
       handleCamera()
     }
@@ -81,13 +96,17 @@ const MarkerMap = (props: Props) => {
       id: 'A',
     }
     const allCordinates = [formCoordinates]
-    dispatch(updateFormCoordinates(allCordinates))
+    if (form_id.length > 0) {
+      dispatch(updateSampleTreeCoordinates(allCordinates))
+    } else {
+      dispatch(updateFormCoordinates(allCordinates))
+    }
     if (cover_image_required) {
       const imageId = uuidv4()
       dispatch(updateCoverImageId(imageId))
       navigation.navigate('TakePicture', {
         id: imageId,
-        screen: 'POINT_REGISTER',
+        screen: form_id.length ? 'SAMPLE_TREE' : 'POINT_REGISTER',
       })
     }
   }
@@ -104,6 +123,11 @@ const MarkerMap = (props: Props) => {
         logoEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
+        {geoJSON && (
+          <MapLibreGL.ShapeSource key={'dsc'} id={'id'} shape={geoJSON}>
+            <MapLibreGL.FillLayer id={`${2}-layer`} />
+          </MapLibreGL.ShapeSource>
+        )}
       </MapLibreGL.MapView>
       <CustomButton
         label="Select location & continue"

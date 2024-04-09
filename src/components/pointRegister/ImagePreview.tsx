@@ -13,6 +13,7 @@ import {updateImageDetails} from 'src/store/slice/takePictureSlice'
 import {AFTER_CAPTURE} from 'src/types/type/app.type'
 import {copyImageAndGetData} from 'src/utils/helpers/fileSystemHelper'
 import {updateCoverImageURL} from 'src/store/slice/registerFormSlice'
+import {updateSampleImageUrl} from 'src/store/slice/sampleTreeSlice'
 interface Props {
   imageData: CameraCapturedPicture
   id: string
@@ -36,6 +37,12 @@ const ImagePreview = (props: Props) => {
 
     if (screen === 'POINT_REGISTER' || screen === 'POLYGON_REGISTER') {
       dispatch(updateCoverImageURL(finalURL))
+    }
+
+    if (screen === 'SAMPLE_TREE') {
+      dispatch(updateSampleImageUrl(finalURL))
+      navigation.replace('TotalTrees', {isSelectSpecies: true})
+      return
     }
 
     if (screen === 'SPECIES_INFO') {

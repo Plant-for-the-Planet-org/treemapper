@@ -45,7 +45,7 @@ const DisplayMap = () => {
     features: feature.length ? [...feature] : [],
   }
 
-  console.log(JSON.stringify(geoJSON, null, 2))
+  // console.log(JSON.stringify(geoJSON, null, 2))
 
   useEffect(() => {
     if (PermissionStatus.DENIED === permissionStatus) {

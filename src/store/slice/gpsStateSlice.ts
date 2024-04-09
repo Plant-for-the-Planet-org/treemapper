@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import { Coordinates } from 'src/types/interface/app.interface'
+import {Coordinates} from 'src/types/interface/app.interface'
 import {GpsSliceInitalState} from 'src/types/interface/slice.interface'
 
 const initialState: GpsSliceInitalState = {
@@ -14,7 +14,7 @@ const gpsStateSlice = createSlice({
   initialState,
   reducers: {
     updateUserLocation(state, action: PayloadAction<Coordinates>) {
-      state.user_location ={...action.payload}
+      state.user_location = {...action.payload}
     },
   },
 })

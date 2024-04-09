@@ -98,7 +98,6 @@ export interface AdditionalDetail {
 
 export interface SampleTreeSlice {
   form_id: string
-  tree_details: SampleTree[]
   species: Array<{
     info: IScientificSpecies
     count: number
@@ -106,6 +105,10 @@ export interface SampleTreeSlice {
   sample_tree_count: number
   move_next_primary: string
   move_next_secondary: string
+  boundry: Coordinates[]
+  coordinates:Coordinates[]
+  image_url: string
+  current_species: string
 }
 
 // export interface UserInterface {

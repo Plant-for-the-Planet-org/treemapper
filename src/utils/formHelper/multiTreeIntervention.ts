@@ -75,7 +75,7 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 export const MultiTreeFormData: RegisterFormSliceInitalState = {
   form_id: '',
-  key: '',
+  key: 'multi-tree-registeration',
   title: 'Multi Tree Registeration',
   intervention_date: 0,
   skip_intervention_form: true,

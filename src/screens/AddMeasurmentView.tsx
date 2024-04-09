@@ -24,8 +24,10 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 import {updateTree_details} from 'src/store/slice/registerFormSlice'
 
 const AddMeasurment = () => {
+  const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
+  const is_sampleTree = SampleTreeData.form_id.length > 0
   const [height, setHeight] = useState('')
-  const [witdth, setWeight] = useState('')
+  const [width, setWidth] = useState('')
   const [tagEnable, setTagEnabled] = useState(false)
   const [tagId, setTagId] = useState('')
 
@@ -38,7 +40,10 @@ const AddMeasurment = () => {
   const {lat, long} = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const species_guid = extractSpecies(formFlowData)
+  const species_guid = extractSpecies(
+    formFlowData,
+    is_sampleTree ? SampleTreeData.current_species : '',
+  )
   const speciesDetails = realm.objectForPrimaryKey<IScientificSpecies>(
     RealmSchema.ScientificSpecies,
     species_guid,
@@ -54,29 +59,36 @@ const AddMeasurment = () => {
   const submitDetails = () => {
     const treeDetails: SampleTree = {
       tree_id: uuidv4(),
-      species_guid: extractSpecies(formFlowData),
+      species_guid: speciesDetails.guid,
       intervention_id: formFlowData.form_id,
-      count: extractTreeCount(formFlowData),
-      latitude: formFlowData.coordinates[0].lat,
-      longitude: formFlowData.coordinates[0].long,
-      device_latitude: lat,
-      device_longitude: long,
+      count: is_sampleTree
+        ? extractTreeCount(SampleTreeData, speciesDetails.guid)
+        : 1,
+      latitude: is_sampleTree
+        ? SampleTreeData.coordinates[0].lat
+        : formFlowData.coordinates[0].lat,
+      longitude: is_sampleTree
+        ? SampleTreeData.coordinates[0].long
+        : formFlowData.coordinates[0].long,
+      device_latitude: lat || 0,
+      device_longitude: long || 0,
       location_accuracy: '',
-      image_url: extractTreeImageUrl(formFlowData),
-      cdn_image_url: extractCoverImageUrl(formFlowData),
+      image_url: extractTreeImageUrl(formFlowData, SampleTreeData),
+      cdn_image_url: extractCoverImageUrl(formFlowData, SampleTreeData),
       specie_name: speciesDetails.scientific_name,
-      specie_diameter: Number(witdth),
+      specie_diameter: Number(width),
       specie_height: Number(height),
       tag_id: tagId,
       plantation_date: new Date().getTime(),
       status_complete: false,
       location_id: '',
-      tree_type: 'single',
+      tree_type: is_sampleTree ? 'sample' : 'single',
       additional_details: '',
       app_meta_data: '',
       hid: '',
     }
     dispatch(updateTree_details(treeDetails))
+
     navigation.navigate('PreviewFormData')
   }
 
@@ -92,7 +104,7 @@ const AddMeasurment = () => {
         />
         <OutlinedTextInput
           placeholder={'Basal Diameter'}
-          changeHandler={setWeight}
+          changeHandler={setWidth}
           keyboardType={'numeric'}
           trailingtext={'cm'}
         />

@@ -20,36 +20,31 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 interface TreeCountModalProps {
   showTreeCountModal: boolean
   setShowTreeCountModal: any
-  activeSpecie: any
-  setTreeCount: any
-  treeCount: string
+  activeSpecie: IScientificSpecies
   onPressTreeCountNextBtn: any
-  speciesInfo: IScientificSpecies
 }
 
 const TreeCountModal: React.FC<TreeCountModalProps> = ({
   showTreeCountModal,
   setShowTreeCountModal,
   activeSpecie,
-  setTreeCount,
-  treeCount,
   onPressTreeCountNextBtn,
-  speciesInfo
 }) => {
-  const specieName = showTreeCountModal ? activeSpecie?.aliases : ''
-  const [specie, setSpecie] = useState<IScientificSpecies>()
-
+  const [treeCount, setTreeCount] = useState('')
   const inputRef = React.useRef(null)
 
   useEffect(() => {
-    setTimeout(() => {
-      inputRef?.current?.focus()
-    }, 400)
-    if (activeSpecie?.id && showTreeCountModal) {
-      setSpecie(speciesInfo)
-      setTreeCount(activeSpecie.treeCount)
+    setTreeCount('')
+    if (showTreeCountModal) {
+      setTimeout(() => {
+        inputRef?.current?.focus()
+      }, 400)
     }
-  }, [activeSpecie, showTreeCountModal])
+  }, [showTreeCountModal])
+
+  const handlePressNext = () => {
+    onPressTreeCountNextBtn(treeCount)
+  }
 
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
@@ -60,7 +55,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             size={30}
             color={Colors.TEXT_COLOR}
             onPress={() => {
-              setShowTreeCountModal(false)
+              setShowTreeCountModal(null)
             }}
           />
           {activeSpecie?.image ? (
@@ -68,8 +63,11 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               source={{uri: `${activeSpecie?.image}`}}
               style={styles.image}
             />
-          ) : specie?.image ? (
-            <Image source={{uri: `${specie?.image}`}} style={styles.image} />
+          ) : activeSpecie?.image ? (
+            <Image
+              source={{uri: `${activeSpecie?.image}`}}
+              style={styles.image}
+            />
           ) : (
             <View style={styles.iconContainer}>
               <MultipleTreeIcon width={150} height={120} />
@@ -79,8 +77,13 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             <Text style={styles.speciesText}>
               {i18next.t('label.select_species_tree_count_modal_header')}
             </Text>
-            {i18next.t('label.select_species_tree_count_modal_sub_header')}
-            {specieName}
+            {activeSpecie && (
+              <Text style={styles.speciesName}>
+                {activeSpecie.aliases.length
+                  ? activeSpecie.aliases
+                  : activeSpecie.scientific_name}
+              </Text>
+            )}
             <Text style={styles.speciesText}>
               {i18next.t('label.select_species_tree_count_modal_sub_header_2')}
             </Text>
@@ -96,14 +99,15 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
           </Text>
           <TextInput
             ref={inputRef}
-            value={treeCount?.toString()}
+            value={treeCount}
             style={CommonStyles.bottomInputText}
             placeholderTextColor={Colors.TEXT_COLOR}
             onChangeText={text => setTreeCount(text.replace(/[^0-9]/g, ''))}
             keyboardType={'number-pad'}
+            onEndEditing={handlePressNext}
           />
           <MCIcon
-            onPress={onPressTreeCountNextBtn}
+            onPress={handlePressNext}
             name={'arrow-right'}
             size={30}
             color={Colors.PRIMARY}

@@ -9,21 +9,30 @@ import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {RootState} from 'src/store'
 import {
   getPreviewData,
   interventionFinalData,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import {updateSampleTreeForNextTree} from 'src/store/slice/sampleTreeSlice'
 
 const PreviewFormData = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
+  const dispatch = useDispatch()
+  const is_sampleTree = SampleTreeData.form_id.length > 0
   const {addNewIntervention} = useInterventionManagement()
   const navigateToNext = async () => {
     const finalData = interventionFinalData(formFlowData)
     const result = await addNewIntervention(finalData)
+    if (result && is_sampleTree && SampleTreeData.sample_tree_count > 1) {
+      dispatch(updateSampleTreeForNextTree())
+      navigation.navigate('PointMarker')
+      return
+    }
     if (result) {
       navigation.popToTop()
     }
@@ -40,7 +49,11 @@ const PreviewFormData = () => {
           <InterventionBasicInfo data={basicInfo} />
           <InterventionArea formData={formFlowData} />
           <CustomButton
-            label={'Done'}
+            label={
+              is_sampleTree && SampleTreeData.sample_tree_count > 1
+                ? 'Next Tree'
+                : 'Done'
+            }
             pressHandler={navigateToNext}
             containerStyle={styles.btnContainer}
           />

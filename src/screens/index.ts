@@ -16,6 +16,7 @@ import DynamicFormView from './DynamiFormView'
 import InterventionFormView from './InterventionFormView'
 import AddMeasurmentView from './AddMeasurmentView'
 import ReviewSampleTreeView from './ReviewSampleTreeView'
+import TotalTreesView from './TotalTreesView'
 
 export default {
   SingleTreeRegister: SingleTreeRegister,
@@ -36,4 +37,5 @@ export default {
   InterventionForm: InterventionFormView,
   AddMeasurment: AddMeasurmentView,
   ReviewSampleTree: ReviewSampleTreeView,
+  TotalTrees: TotalTreesView
 }

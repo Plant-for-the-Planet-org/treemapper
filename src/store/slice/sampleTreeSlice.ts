@@ -1,23 +1,26 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import {
+  Coordinates,
+  IScientificSpecies,
+} from 'src/types/interface/app.interface'
 import {SampleTreeSlice} from 'src/types/interface/slice.interface'
 
 const initialState: SampleTreeSlice = {
   form_id: '',
-  tree_details: [],
   species: [],
-  sample_tree_count: 0,
+  sample_tree_count: 5,
   move_next_primary: '',
   move_next_secondary: '',
+  boundry: [],
+  coordinates: [],
+  image_url: '',
+  current_species: '',
 }
 
 const sampleTreeSlice = createSlice({
   name: 'sampleTreeSlice',
   initialState,
   reducers: {
-    updateSampleTreeFormId(state, action: PayloadAction<string>) {
-      state.form_id = action.payload
-    },
     addSampleTreeSpecies(
       state,
       action: PayloadAction<{item: IScientificSpecies; count: number}>,
@@ -30,9 +33,35 @@ const sampleTreeSlice = createSlice({
         },
       ]
     },
+    updateBoundry(
+      state,
+      action: PayloadAction<{coord: Coordinates[]; id: string}>,
+    ) {
+      state.boundry = action.payload.coord
+      state.form_id = action.payload.id
+    },
+    updateSampleTreeCoordinates(state, action: PayloadAction<Coordinates[]>) {
+      state.coordinates = action.payload
+    },
+    updateSampleImageUrl(state, action: PayloadAction<string>) {
+      state.image_url = action.payload
+    },
+    updateCurrentSpecies(state, action: PayloadAction<string>) {
+      state.current_species = action.payload
+    },
+    updateSampleTreeForNextTree(state) {
+      state.sample_tree_count = state.sample_tree_count - 1
+    },
   },
 })
 
-export const {updateSampleTreeFormId, addSampleTreeSpecies} = sampleTreeSlice.actions
+export const {
+  addSampleTreeSpecies,
+  updateBoundry,
+  updateSampleTreeCoordinates,
+  updateSampleImageUrl,
+  updateCurrentSpecies,
+  updateSampleTreeForNextTree,
+} = sampleTreeSlice.actions
 
 export default sampleTreeSlice.reducer
