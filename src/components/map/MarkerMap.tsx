@@ -31,16 +31,19 @@ interface Props {
 }
 
 const MarkerMap = (props: Props) => {
-  const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
-  const [geoJSON, setGeoJSON] = useState(null)
   const {cover_image_required} = props.formData
-  const permissionStatus = useLocationPermission()
+  const [geoJSON, setGeoJSON] = useState(null)
+  const [showPermissionAlert, setPermissionAlert] = useState(false)
+
+  const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const [showPermissionAlert, setPermissionAlert] = useState(false)
+
   const dispatch = useDispatch()
+  const permissionStatus = useLocationPermission()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
@@ -53,6 +56,20 @@ const MarkerMap = (props: Props) => {
     }
   }, [permissionStatus])
 
+  useEffect(() => {
+    if (form_id.length) {
+      getMarkerJSON()
+    }
+  }, [form_id])
+
+  useEffect(() => {
+    if (currentUserLocation && cameraRef.current !== null) {
+      handleCamera()
+    }
+  }, [currentUserLocation])
+
+
+
   const getInitalLocation = async () => {
     const {lat, long} = await userCurrentLocation()
     dispatch(
@@ -63,22 +80,11 @@ const MarkerMap = (props: Props) => {
     )
   }
 
-  useEffect(() => {
-    if (form_id.length) {
-      getMarkerJSON()
-    }
-  }, [form_id])
-
   const getMarkerJSON = () => {
     const data = makeInterventionGeoJson('Polygon', boundry)
     setGeoJSON(data.geoJSON)
   }
 
-  useEffect(() => {
-    if (currentUserLocation && cameraRef.current !== null) {
-      handleCamera()
-    }
-  }, [currentUserLocation])
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
@@ -104,7 +110,7 @@ const MarkerMap = (props: Props) => {
     if (cover_image_required) {
       const imageId = uuidv4()
       dispatch(updateCoverImageId(imageId))
-      navigation.navigate('TakePicture', {
+      navigation.replace('TakePicture', {
         id: imageId,
         screen: form_id.length ? 'SAMPLE_TREE' : 'POINT_REGISTER',
       })

@@ -45,7 +45,7 @@ export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
     cover_image_url: extractCoverImageUrl(data),
     has_species: data.species_required,
     species: data.species,
-    has_sample_trees: false,
+    has_sample_trees: data.has_sample_trees,
     sample_trees: data.tree_details,
     is_complete: false,
     site_id: data.site_id,

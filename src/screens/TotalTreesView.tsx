@@ -16,26 +16,24 @@ const TotalTreesView = () => {
   const sampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
-  console.log('dlk', route)
   const dispatch = useDispatch()
   const goBack = () => {
     navigation.goBack()
   }
 
   const navigationToNext = () => {
-    navigation.navigate('PointMarker')
+    navigation.replace('PointMarker')
   }
 
   const removeSpecies = (item: IScientificSpecies) => {
     if (route.params.isSelectSpecies) {
       dispatch(updateCurrentSpecies(item.guid))
-      navigation.navigate('AddMeasurment')
+      navigation.replace('AddMeasurment')
       return
     }
-    const filterArray = sampleTreeData.species.filter(
+   sampleTreeData.species.filter(
       el => el.info.guid !== item.guid,
     )
-    console.log('jkdl', filterArray)
   }
 
   const renderSpecieCard = (

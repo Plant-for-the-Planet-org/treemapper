@@ -22,7 +22,21 @@ const useInterventionManagement = () => {
     }
   }
 
-  return {addNewIntervention}
+
+  const addSampleTrees = async (finalData: InterventionData): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, finalData.intervention_id);
+        intervention.sample_trees = finalData.sample_trees
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  return {addNewIntervention, addSampleTrees}
 }
 
 export default useInterventionManagement

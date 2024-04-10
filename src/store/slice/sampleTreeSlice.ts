@@ -8,7 +8,7 @@ import {SampleTreeSlice} from 'src/types/interface/slice.interface'
 const initialState: SampleTreeSlice = {
   form_id: '',
   species: [],
-  sample_tree_count: 5,
+  sample_tree_count: 2,
   move_next_primary: '',
   move_next_secondary: '',
   boundry: [],

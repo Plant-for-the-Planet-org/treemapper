@@ -88,8 +88,7 @@ const AddMeasurment = () => {
       hid: '',
     }
     dispatch(updateTree_details(treeDetails))
-
-    navigation.navigate('PreviewFormData')
+    navigation.replace('PreviewFormData')
   }
 
   return (

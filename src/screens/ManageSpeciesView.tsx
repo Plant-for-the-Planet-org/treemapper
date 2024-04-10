@@ -55,9 +55,15 @@ const ManageSpeciesView = () => {
         id: formFlowData.form_id,
       }),
     )
+    const speciesDetails:IScientificSpecies ={
+      guid: treeModalDetails.guid,
+      scientific_name: treeModalDetails.scientific_name,
+      is_user_species: treeModalDetails.is_user_species,
+      aliases: treeModalDetails.aliases
+    } 
     dispatch(
       addSampleTreeSpecies({
-        item: JSON.parse(JSON.stringify(treeModalDetails)),
+        item: {...speciesDetails},
         count: Number(count),
       }),
     )

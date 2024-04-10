@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native'
+import {StyleProp, StyleSheet} from 'react-native'
 import React, {useEffect, useRef, useState} from 'react'
-import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
+import MapLibreGL, {Camera, LineLayerStyle} from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 import {PermissionStatus} from 'expo-location'
 import {useDispatch, useSelector} from 'react-redux'
@@ -16,6 +16,15 @@ import {InterventionData} from 'src/types/interface/slice.interface'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
+  // console.log(JSON.stringify(geoJSON, null, 2))
+const polyline: StyleProp<LineLayerStyle> = {
+  lineWidth: 2,
+  lineColor: Colors.PRIMARY,
+  lineOpacity: 0.5,
+  lineJoin: 'bevel',
+}
+const fillStyle = {fillColor: Colors.PRIMARY, fillOpacity: 0.3}
+
 const DisplayMap = () => {
   const permissionStatus = useLocationPermission()
   const currentUserLocation = useSelector(
@@ -24,6 +33,8 @@ const DisplayMap = () => {
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
+
+  
   const userFavSpecies = useQuery<InterventionData>(
     RealmSchema.Intervention,
     data => {
@@ -31,7 +42,10 @@ const DisplayMap = () => {
     },
   )
 
-  const feature = userFavSpecies.map((el: InterventionData) => {
+    // console.log(JSON.stringify(userFavSpecies, null, 2))
+
+
+    const feature = userFavSpecies.map((el: InterventionData) => {
     const asc = makeInterventionGeoJson(
       el.location.type,
       JSON.parse(el.location.coordinates),
@@ -45,7 +59,6 @@ const DisplayMap = () => {
     features: feature.length ? [...feature] : [],
   }
 
-  // console.log(JSON.stringify(geoJSON, null, 2))
 
   useEffect(() => {
     if (PermissionStatus.DENIED === permissionStatus) {
@@ -121,7 +134,8 @@ const DisplayMap = () => {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               //@ts-expect-error
               <MapLibreGL.ShapeSource key={id} id={id} shape={feature}>
-                <MapLibreGL.FillLayer id={`${id}-layer`} />
+                <MapLibreGL.FillLayer id={'polyFill'} style={fillStyle} />
+                <MapLibreGL.LineLayer id={'polyline'} style={polyline} />
               </MapLibreGL.ShapeSource>
             )
           case 'LineString':

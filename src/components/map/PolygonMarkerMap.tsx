@@ -109,7 +109,7 @@ const PolygonMarkerMap = (props: Props) => {
     if (cover_image_required) {
       const imageId = String(new Date().getTime())
       dispatch(updateCoverImageId(imageId))
-      navigation.navigate('TakePicture', {
+      navigation.replace('TakePicture', {
         id: imageId,
         screen: 'POLYGON_REGISTER',
       })

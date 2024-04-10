@@ -33,7 +33,7 @@ const ManageSpeciesHome = (props: Props) => {
   const handleSpeciesPress = (item: IScientificSpecies) => {
     if (isSelectSpecies) {
       if (formData.is_multi_species) {
-        //multi
+        dispatch(updateFormSpecies(item.guid))
         showTreeModal(item)
       } else {
         dispatch(updateFormSpecies(item.guid))
