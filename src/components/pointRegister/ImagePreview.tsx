@@ -24,7 +24,7 @@ interface Props {
 
 const ImagePreview = (props: Props) => {
   const {imageData, id, screen, retakePicture} = props
-  const {species_required} = useSelector((state: RootState) => state.formFlowState.species_required)
+  const species_required = useSelector((state: RootState) => state.formFlowState.species_required)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()

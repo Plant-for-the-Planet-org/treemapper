@@ -22,6 +22,7 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 import {v4 as uuidv4} from 'uuid'
 import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
 import {updateSampleTreeCoordinates} from 'src/store/slice/sampleTreeSlice'
+import MapShapeSource from './MapShapeSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -129,11 +130,7 @@ const MarkerMap = (props: Props) => {
         logoEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
-        {geoJSON && (
-          <MapLibreGL.ShapeSource key={'dsc'} id={'id'} shape={geoJSON}>
-            <MapLibreGL.FillLayer id={`${2}-layer`} />
-          </MapLibreGL.ShapeSource>
-        )}
+        {geoJSON && <MapShapeSource geoJSON={[geoJSON]}/>}
       </MapLibreGL.MapView>
       <CustomButton
         label="Select location & continue"

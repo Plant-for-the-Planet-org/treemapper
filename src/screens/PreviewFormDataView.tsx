@@ -33,7 +33,7 @@ const PreviewFormData = () => {
     }else{
       await addSampleTrees(finalData)
     }
-    if(!is_sampleTree || SampleTreeData.sample_tree_count === finalData.sample_trees.length-1){
+    if(!is_sampleTree || SampleTreeData.sample_tree_count === formFlowData.tree_details.length){
       navigation.popToTop()
     }else{
       navigation.reset({
@@ -58,7 +58,7 @@ const PreviewFormData = () => {
           <InterventionArea formData={formFlowData} />
           <CustomButton
             label={
-              is_sampleTree && SampleTreeData.sample_tree_count > 1
+              is_sampleTree && SampleTreeData.sample_tree_count !== formFlowData.tree_details.length
                 ? 'Next Tree'
                 : 'Done'
             }
