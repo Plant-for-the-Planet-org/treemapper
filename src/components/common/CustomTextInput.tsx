@@ -19,7 +19,7 @@ const CustomTextInput = (props: Props) => {
         inactiveColor={Colors.GRAY_TEXT}
         placeholderTextColor={Colors.GRAY_TEXT}
         fontSize={16}
-        backgroundColor={Colors.GRAY_BACKDROP}
+        backgroundColor={Colors.WHITE}
       />
     </View>
   )
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
     flexDirection: 'row',
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: Colors.WHITE,
   },
   inputWrapper: {
     borderRadius: 10,
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: Colors.WHITE,
   },
   unitLabel: {
     color: Colors.GRAY_TEXT,

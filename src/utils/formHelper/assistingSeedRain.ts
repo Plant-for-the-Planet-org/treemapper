@@ -4,11 +4,11 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 const HeightElement: FormElement = {
   index: 0,
-  key: 'tree-height',
-  label: 'Height',
+  key: 'bird-pearch',
+  label: 'Bird Pearch Tag',
   default: '',
   type: 'INPUT',
-  placeholder: 'Height',
+  placeholder: 'Bird Pearch Tag',
   unit: 'm',
   visibility: 'public',
   condition: null,

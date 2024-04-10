@@ -40,7 +40,7 @@ const ManageSpeciesHome = (props: Props) => {
         if (formData.tree_details_required) {
           navigation.navigate('AddMeasurment')
         } else {
-          //direct to Dynamic form
+          navigation.navigate('DynamicForm')
         }
       }
     } else {

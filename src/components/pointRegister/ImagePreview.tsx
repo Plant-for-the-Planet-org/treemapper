@@ -8,12 +8,13 @@ import {Colors} from 'src/utils/constants'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {updateImageDetails} from 'src/store/slice/takePictureSlice'
 import {AFTER_CAPTURE} from 'src/types/type/app.type'
 import {copyImageAndGetData} from 'src/utils/helpers/fileSystemHelper'
 import {updateCoverImageURL} from 'src/store/slice/registerFormSlice'
 import {updateSampleImageUrl} from 'src/store/slice/sampleTreeSlice'
+import { RootState } from 'src/store'
 interface Props {
   imageData: CameraCapturedPicture
   id: string
@@ -23,6 +24,8 @@ interface Props {
 
 const ImagePreview = (props: Props) => {
   const {imageData, id, screen, retakePicture} = props
+  const {species_required} = useSelector((state: RootState) => state.formFlowState.species_required)
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
@@ -37,6 +40,11 @@ const ImagePreview = (props: Props) => {
 
     if (screen === 'POINT_REGISTER' || screen === 'POLYGON_REGISTER') {
       dispatch(updateCoverImageURL(finalURL))
+    }
+
+    if(!species_required){
+      navigation.replace('DynamicForm')
+      return
     }
 
     if (screen === 'SAMPLE_TREE') {

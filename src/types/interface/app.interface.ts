@@ -27,3 +27,17 @@ export interface IScientificSpecies {
 }
 
 
+export interface ProjectInterface{
+  allowDonations: boolean,
+  countPlanted:number,
+  countTarget:number
+  country:string
+  currency: string
+  id:string
+  image:string
+  name: string
+  slug: string
+  treeCost: number
+  sites: any[],
+  geometry: string
+}
