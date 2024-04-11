@@ -37,7 +37,11 @@ const OnboardingNotes = (props: Props) => {
         </Text>
       )
     default:
-      return <Text>{i18next.t('label.species_data_loaded')}</Text>
+      return (
+        <Text style={styles.descriptionText}>
+          {i18next.t('label.species_data_loaded')}
+        </Text>
+      )
   }
 }
 

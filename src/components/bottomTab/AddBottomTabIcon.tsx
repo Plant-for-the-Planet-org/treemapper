@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 100,
     top: '-45%',
-    left: '9%',
+    left: '8%',
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,

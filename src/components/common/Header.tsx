@@ -9,17 +9,22 @@ import {RootStackParamList} from 'src/types/type/navigation.type'
 
 interface Props {
   label: string
+  rightComponet?: React.ReactNode | null
+  showBackIcon?: boolean
 }
 
 const Header = (props: Props) => {
+  const {rightComponet, label, showBackIcon = true} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
     navigation.goBack()
   }
   return (
     <View style={styles.container}>
-      <BackIcon style={styles.backIcon} onPress={goBack}/>
-      <Text style={styles.title}>{props.label}</Text>
+      {showBackIcon && <BackIcon style={styles.backIcon} onPress={goBack} />}
+      <Text style={styles.title}>{label}</Text>
+      <View style={styles.divider} />
+      {rightComponet}
     </View>
   )
 }
@@ -33,7 +38,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    marginTop:20
+    marginTop: 25,
   },
   backIcon: {
     width: 20,
@@ -46,5 +51,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 15,
     letterSpacing: 0.4,
+  },
+  divider: {
+    flex: 1,
   },
 })

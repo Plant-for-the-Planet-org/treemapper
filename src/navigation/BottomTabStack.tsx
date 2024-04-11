@@ -16,7 +16,7 @@ const BottomStack = () => {
   return (
     <BottomTabStack.Navigator
       backBehavior="none"
-      initialRouteName="Map"
+      initialRouteName="Interventions"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,

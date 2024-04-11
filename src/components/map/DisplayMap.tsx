@@ -34,7 +34,7 @@ const DisplayMap = () => {
     },
   )
 
-    // console.log(JSON.stringify(userFavSpecies, null, 2))
+    console.log(JSON.stringify(userFavSpecies, null, 2))
 
 
     const feature = userFavSpecies.map((el: InterventionData) => {
