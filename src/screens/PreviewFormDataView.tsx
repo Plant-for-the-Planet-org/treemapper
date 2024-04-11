@@ -9,13 +9,14 @@ import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {RootState} from 'src/store'
 import {
   getPreviewData,
   interventionFinalData,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 
 const PreviewFormData = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -23,7 +24,7 @@ const PreviewFormData = () => {
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const is_sampleTree = SampleTreeData.form_id.length > 0
   const {addNewIntervention, addSampleTrees} = useInterventionManagement()
-
+  const dispatch = useDispatch()
 
   
   const navigateToNext = async () => {
@@ -34,6 +35,7 @@ const PreviewFormData = () => {
       await addSampleTrees(finalData)
     }
     if(!is_sampleTree || SampleTreeData.sample_tree_count === formFlowData.tree_details.length){
+      dispatch(resetSampleTreeform())
       navigation.popToTop()
     }else{
       navigation.reset({

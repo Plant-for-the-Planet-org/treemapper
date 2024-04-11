@@ -52,6 +52,9 @@ const sampleTreeSlice = createSlice({
     updateSampleTreeForNextTree(state) {
       state.sample_tree_count = state.sample_tree_count - 1
     },
+    resetSampleTreeform(){
+      return {...initialState}
+    }
   },
 })
 
@@ -62,6 +65,7 @@ export const {
   updateSampleImageUrl,
   updateCurrentSpecies,
   updateSampleTreeForNextTree,
+  resetSampleTreeform
 } = sampleTreeSlice.actions
 
 export default sampleTreeSlice.reducer

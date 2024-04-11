@@ -37,10 +37,8 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
+    dispatch(updateCoverImageURL(finalURL))
 
-    if (screen === 'POINT_REGISTER' || screen === 'POLYGON_REGISTER') {
-      dispatch(updateCoverImageURL(finalURL))
-    }
 
     if(!species_required){
       navigation.replace('DynamicForm')
