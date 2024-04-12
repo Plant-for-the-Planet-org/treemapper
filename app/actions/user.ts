@@ -42,7 +42,7 @@ export const auth0Login = (dispatch: any, inventoryDispatch: any) => {
           prompt: 'login',
           audience: 'urn:plant-for-the-planet',
         },
-        { ephemeralSession: false, customScheme: 'org.pftp.treemapper' },
+        { ephemeralSession: false },
       )
       .then(credentials => {
         const expirationTime = getExpirationTimeStamp(credentials.accessToken);
@@ -132,7 +132,7 @@ export const auth0Logout = async (userDispatch = null) => {
       return;
     }
     auth0.webAuth
-      .clearSession({}, { customScheme: 'org.pftp.treemapper' })
+      .clearSession()
       .then(async () => {
         // deletes the user from DB
         await deleteUser();
