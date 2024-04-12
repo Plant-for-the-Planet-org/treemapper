@@ -149,8 +149,8 @@ android {
         applicationId "org.pftp.treemapper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 35
-        versionName "1.0.9"
+        versionCode 38
+        versionName "1.0.11"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general'
