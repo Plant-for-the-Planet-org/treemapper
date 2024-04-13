@@ -39,7 +39,7 @@ const AddOptionModal = (props: Props) => {
 
   const opacity = useDerivedValue(() => {
     return withTiming(props.visible ? 1 : 0, {
-      duration: props.visible ? 900 : 100,
+      duration: props.visible ? 700 : 100,
     })
   }, [props.visible])
 
