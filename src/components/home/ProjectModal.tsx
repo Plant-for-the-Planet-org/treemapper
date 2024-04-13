@@ -52,11 +52,7 @@ const ProjectModal = (props: Props) => {
       }
     })
     if (ProjectData.length > 0) {
-      setProjectData({
-        label: currentProject.projectName || ProjectData[0].label,
-        value: currentProject.projectId || ProjectData[0].value,
-        index: 0,
-      })
+      setProjectData(ProjectData)
       setSelectedProject(ProjectData[0])
 
       if (data.length && data[0].sites) {

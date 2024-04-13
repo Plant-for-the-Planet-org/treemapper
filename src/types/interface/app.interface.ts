@@ -41,3 +41,10 @@ export interface ProjectInterface{
   sites: any[],
   geometry: string
 }
+
+export interface CarouselInterventionData{
+  image: string
+  id: string
+  // id: string
+  // species_name: string
+}

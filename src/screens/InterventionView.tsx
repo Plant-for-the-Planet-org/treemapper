@@ -3,8 +3,19 @@ import React from 'react'
 import Header from 'src/components/common/Header'
 import FreeUpSaceButton from 'src/components/intervention/FreeUpSaceButton'
 import InterventionList from 'src/components/intervention/InterventionList'
+import {useQuery} from '@realm/react'
+import {RealmSchema} from 'src/types/enum/db.enum'
+import {InterventionData} from 'src/types/interface/slice.interface'
 
 const InterventionFormView = () => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-expect-error
+  const interventionData: InterventionData[] = useQuery<InterventionData[]>(
+    RealmSchema.Intervention,
+    data => {
+      return data
+    },
+  )
   return (
     <View style={styles.cotnainer}>
       <Header
@@ -12,7 +23,7 @@ const InterventionFormView = () => {
         showBackIcon={false}
         rightComponet={<FreeUpSaceButton />}
       />
-      <InterventionList />
+      <InterventionList interventionData={interventionData} />
     </View>
   )
 }

@@ -8,7 +8,7 @@ interface Props {
 
 const PreviewInterventionMap = (props: Props) => {
   const {geoJSON} = props
-  console.log('skd', geoJSON)
+  console.log(PreviewInterventionMap,geoJSON)
   return (
     <View style={styles.container}>
       <DisplayMap />

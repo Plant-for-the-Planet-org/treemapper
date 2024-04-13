@@ -28,6 +28,8 @@ export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
   const interventionLocation = makeInterventionGeoJson(
     data.location_type,
     data.coordinates,
+    data.form_id,
+    false,
   )
   const finalData: InterventionData = {
     intervention_id: data.form_id,
@@ -56,9 +58,10 @@ export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
 export const makeInterventionGeoJson = (
   type: string,
   coordinates: any,
-  isDisplay?: boolean,
+  id: string,
+  notMap: boolean,
 ) => {
-  const coord: Array<[number, number]> = isDisplay
+  const coord: Array<[number, number]> = notMap
     ? coordinates
     : coordinates.map(({lat, long}) => [lat, long])
 
@@ -67,7 +70,9 @@ export const makeInterventionGeoJson = (
       return {
         geoJSON: {
           type: 'Feature',
-          properties: {},
+          properties: {
+            id,
+          },
           geometry: {
             type: 'Point',
             coordinates: coord[0],
@@ -80,7 +85,9 @@ export const makeInterventionGeoJson = (
       return {
         geoJSON: {
           type: 'Feature',
-          properties: {},
+          properties: {
+            id,
+          },
           geometry: {
             type: 'Polygon',
             coordinates: [coord],

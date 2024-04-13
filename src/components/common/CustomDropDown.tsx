@@ -24,17 +24,18 @@ const DropdownComponent = (props: Props) => {
   const renderLabel = () => {
     if (selectedValue) {
       return (
-        <Text style={[styles.label, isFocus && {color: Colors.PRIMARY}]}>{label}</Text>
+        <Text style={[styles.label, isFocus && {color: Colors.PRIMARY}]}>
+          {label}
+        </Text>
       )
     }
     return null
   }
 
-  const handleSelect=(item:DropDownData)=>{
+  const handleSelect = (item: DropDownData) => {
     setIsFocus(false)
     onSelect(item)
   }
-
   return (
     <View style={styles.container}>
       {renderLabel()}

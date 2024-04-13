@@ -13,6 +13,8 @@ const InterventionArea = (props: Props) => {
   const {geoJSON} = makeInterventionGeoJson(
     formData.location_type,
     formData.coordinates,
+    '',
+    false
   )
   return (
     <View style={styles.container}>

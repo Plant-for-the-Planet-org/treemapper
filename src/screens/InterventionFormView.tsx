@@ -159,7 +159,7 @@ const InterventionData:Array<{
     value: string
     index: number
   }) => {
-    console.log('kaljsc', data)
+    console.log('handleDropDownSelect', data)
     
   }
 

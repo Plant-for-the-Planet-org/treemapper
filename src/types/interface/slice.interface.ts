@@ -8,6 +8,11 @@ export interface AppInitialState {
   expiringAt: number
 }
 
+export interface DisplayMapSlice {
+  selectedIntervention: string
+  showCarousel: boolean
+}
+
 export interface ProjectStateSlice {
   projectAdded: boolean
   errorOccured: boolean
@@ -106,7 +111,7 @@ export interface SampleTreeSlice {
   move_next_primary: string
   move_next_secondary: string
   boundry: Coordinates[]
-  coordinates:Coordinates[]
+  coordinates: Coordinates[]
   image_url: string
   current_species: string
 }

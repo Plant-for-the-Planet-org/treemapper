@@ -49,7 +49,7 @@ const AddOptionModal = (props: Props) => {
       title: 'Monitoring Plot',
       coming_soon: true,
       onPress: () => {
-        navigation.navigate('SingleTreeRegister')
+        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
         props.setVisible(false)
       },
       disabled: false,
@@ -59,7 +59,7 @@ const AddOptionModal = (props: Props) => {
       title: 'Project Site',
       coming_soon: true,
       onPress: () => {
-        navigation.navigate('SingleTreeRegister')
+        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
         props.setVisible(false)
       },
       disabled: true,
