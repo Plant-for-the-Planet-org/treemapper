@@ -69,8 +69,6 @@ const PointMarkerMap = (props: Props) => {
     }
   }, [currentUserLocation])
 
-
-
   const getInitalLocation = async () => {
     const {lat, long} = await userCurrentLocation()
     dispatch(
@@ -82,10 +80,9 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, '',false)
+    const data = makeInterventionGeoJson('Polygon', boundry, '', false)
     setGeoJSON(data.geoJSON)
   }
-
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
@@ -118,9 +115,7 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
-  const handleShapeSource=()=>{
-
-  }
+  const handleShapeSource = () => {}
 
   if (showPermissionAlert) {
     return null
@@ -134,10 +129,19 @@ const PointMarkerMap = (props: Props) => {
         logoEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
-        {geoJSON && <MapShapeSource geoJSON={[geoJSON]} onShapeSourcePress={handleShapeSource} />}
+        <MapLibreGL.UserLocation
+          showsUserHeadingIndicator
+          androidRenderMode="gps"
+        />
+        {geoJSON && (
+          <MapShapeSource
+            geoJSON={[geoJSON]}
+            onShapeSourcePress={handleShapeSource}
+          />
+        )}
       </MapLibreGL.MapView>
       <CustomButton
-        label="Select location & continue"
+        label="Select location & Continue"
         containerStyle={styles.btnContainer}
         pressHandler={onSelectLocation}
       />

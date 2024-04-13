@@ -9,19 +9,29 @@ import {
 import React from 'react'
 import {scaleFont} from 'src/utils/constants/mixins'
 import {Colors, Typography} from 'src/utils/constants'
+import FadeBackground from './FadeBackground'
 
 interface Props {
   label: string
-  pressHandler:()=>void
+  pressHandler: () => void
   containerStyle?: ViewStyle
   labelStyle?: TextStyle
-  wrapperStyle?: ViewStyle,
+  wrapperStyle?: ViewStyle
 }
 
 const CustomButton = (props: Props) => {
-  const {label, containerStyle = {}, labelStyle = {}, wrapperStyle = {},pressHandler} = props
+  const {
+    label,
+    containerStyle = {},
+    labelStyle = {},
+    wrapperStyle = {},
+    pressHandler,
+  } = props
   return (
-    <TouchableOpacity style={[styles.container, {...containerStyle}]} onPress={pressHandler}>
+    <TouchableOpacity
+      style={[styles.container, {...containerStyle}]}
+      onPress={pressHandler}>
+      <FadeBackground />
       <View style={[styles.wrapper, {...wrapperStyle}]}>
         <Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>
       </View>
@@ -38,22 +48,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     height: '100%',
-    marginBottom:10
   },
   wrapper: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    width:'90%',
-    height:'70%',
+    width: '85%',
+    height: '80%',
     backgroundColor: Colors.PRIMARY_DARK,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   lableStyle: {
-    fontSize: scaleFont(16),
+    fontSize: scaleFont(15),
     color: Colors.WHITE,
-    fontFamily:Typography.FONT_FAMILY_BOLD
+    letterSpacing: 0.2,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
 })

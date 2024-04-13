@@ -22,6 +22,7 @@ export const LIGHT_BORDER_COLOR = '#D5D5D5'
 export const DISABLE = '#CCCCCC'
 export const TEXT_LIGHT = '#828282'
 export const GRAY_TEXT = '#c4c4c4'
+export const LIGHT_AMBER = '#FDD015'
 
 // ACTIONS
 export const SUCCESS = '#2ecc71'

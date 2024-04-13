@@ -79,6 +79,7 @@ const ImagePreview = (props: Props) => {
           label="Continue"
           containerStyle={styles.btnWrapper}
           pressHandler={navigateToNext}
+          wrapperStyle={styles.noBorderWrapper}
         />
       </View>
     </View>
@@ -93,12 +94,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wrapper: {
-    width: '92%',
-    height: '70%',
+    width: '95%',
+    height: '85%',
     borderTopColor: Colors.GRAY_BACKDROP,
-    borderRadius: 20,
+    borderRadius: 15,
     overflow: 'hidden',
-    marginTop: scaleSize(50),
+    marginTop:"5%"
   },
   btnContainer: {
     width: '100%',
@@ -123,11 +124,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 5,
     width: '90%',
-    height: '70%',
+    height: '80%',
     backgroundColor: Colors.WHITE,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: Colors.PRIMARY_DARK,
+  },
+  noBorderWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: '90%',
+    height: '80%',
+    backgroundColor:Colors.PRIMARY_DARK,
+    borderRadius: 12,
   },
   opaqueWrapper: {
     flexDirection: 'row',

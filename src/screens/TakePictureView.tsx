@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import React, {useState} from 'react'
 import Header from 'src/components/common/Header'
 import {scaleSize} from 'src/utils/constants/mixins'
@@ -28,13 +28,10 @@ const TakePicture = () => {
   }
   return (
     <View style={styles.container}>
-      <Header label="Take picture" />
-      <View style={styles.headerNoteWrapper}>
-        <Text style={styles.headerLable}>
-          Please take a picture in which {'\n'} the tree is visible
-        </Text>
-      </View>
-      <View style={styles.backDropWrapper} />
+      <Header
+        label="Take picture"
+        note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}
+      />
       {imageMetaData.uri ? (
         <ImagePreview
           imageData={imageMetaData}

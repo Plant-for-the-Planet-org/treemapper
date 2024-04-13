@@ -58,12 +58,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wrapper: {
-    width: '92%',
-    height: '70%',
+    width: '95%',
+    height: '85%',
     borderTopColor: Colors.GRAY_BACKDROP,
-    borderRadius: 20,
+    borderRadius: 15,
     overflow: 'hidden',
-    marginTop: scaleSize(50),
+    marginTop:"5%"
   },
   tempLable: {
     justifyContent: 'center',
