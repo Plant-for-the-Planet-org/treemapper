@@ -9,7 +9,6 @@ export type BottomTabParamList = {
 
 export type RootStackParamList = {
   Home: undefined
-  SingleTreeRegister: undefined
   TakePicture: TakePictureView
   PolygonMarker: undefined
   SyncSpecies: undefined

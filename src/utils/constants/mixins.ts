@@ -1,6 +1,7 @@
 import { Dimensions, PixelRatio, Platform } from 'react-native';
 
-const WINDOW_WIDTH = Dimensions.get('window').width;
+export const WINDOW_WIDTH = Dimensions.get('window').width;
+export const WINDOW_HEIGHT = Dimensions.get('window').height;
 
 // This is the base width Sagar uses for designs
 const guidelineBaseWidth = 360;

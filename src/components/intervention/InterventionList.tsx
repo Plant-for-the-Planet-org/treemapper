@@ -4,12 +4,18 @@ import {FlashList} from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
 import {scaleSize} from 'src/utils/constants/mixins'
 import InterventionHeaderSelector from 'src/components/intervention/InterventionHeaderList'
+import { InterventionData } from 'src/types/interface/slice.interface'
 
-const InterventionList = () => {
+interface Props{
+  interventionData: InterventionData[] | any[]
+}
+
+const InterventionList = (props:Props) => {
+  const {interventionData} = props;
   return (
     <FlashList
-      data={[1, 2, 3, 4, 5, 5]}
-      renderItem={() => <InterventionCard />}
+      data={interventionData}
+      renderItem={({item}) => <InterventionCard item={item} key={item.intervention_id}/>}
       estimatedItemSize={scaleSize(100)}
       ListFooterComponent={<View style={styles.footerWrapper} />}
       ListHeaderComponent={<InterventionHeaderSelector />}

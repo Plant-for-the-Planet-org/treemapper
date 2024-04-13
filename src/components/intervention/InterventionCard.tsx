@@ -7,10 +7,16 @@ import EditInterventionIcon from 'assets/images/svg/EditInterventionIcon.svg'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg'
 import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
+import { InterventionData } from 'src/types/interface/slice.interface'
 
 const newDate = new Date().getTime()
 
-const InterventionCard = () => {
+interface Props{
+  item: InterventionData | any
+}
+
+const InterventionCard = (props:Props) => {
+  const {item} = props;
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -28,9 +34,9 @@ const InterventionCard = () => {
                 <SyncIcon width={15} height={15} />
               )}
             </View>
-            <Text style={styles.metaLable}>Point</Text>
+            <Text style={styles.metaLable}>{item.location_type}</Text>
             <Text style={styles.metaLable}>
-              {timestampToBasicDate(Date.now())}
+              {timestampToBasicDate(item.intervention_date)}
             </Text>
           </View>
         </View>
@@ -94,7 +100,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   syncIconWrapper: {
-    margin: 5,
+    marginRight: 5,
   },
   metaWrapper: {
     width: '100%',

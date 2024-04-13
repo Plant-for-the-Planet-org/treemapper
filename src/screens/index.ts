@@ -1,4 +1,3 @@
-import SingleTreeRegister from './SingleTreeRegisterView'
 import HomeMapView from './HomeMapView'
 import Interventions from './InterventionView'
 import PlotView from './PlotView'
@@ -19,7 +18,6 @@ import ReviewSampleTreeView from './ReviewSampleTreeView'
 import TotalTreesView from './TotalTreesView'
 
 export default {
-  SingleTreeRegister: SingleTreeRegister,
   HomeMapView: HomeMapView,
   Interventions: Interventions,
   PlotView: PlotView,

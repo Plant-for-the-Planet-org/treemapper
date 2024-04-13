@@ -31,7 +31,7 @@ interface Props {
   formData: RegisterFormSliceInitalState
 }
 
-const MarkerMap = (props: Props) => {
+const PointMarkerMap = (props: Props) => {
   const {cover_image_required} = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [showPermissionAlert, setPermissionAlert] = useState(false)
@@ -82,7 +82,7 @@ const MarkerMap = (props: Props) => {
   }
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry)
+    const data = makeInterventionGeoJson('Polygon', boundry, '',false)
     setGeoJSON(data.geoJSON)
   }
 
@@ -118,6 +118,10 @@ const MarkerMap = (props: Props) => {
     }
   }
 
+  const handleShapeSource=()=>{
+
+  }
+
   if (showPermissionAlert) {
     return null
   }
@@ -130,7 +134,7 @@ const MarkerMap = (props: Props) => {
         logoEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
-        {geoJSON && <MapShapeSource geoJSON={[geoJSON]}/>}
+        {geoJSON && <MapShapeSource geoJSON={[geoJSON]} onShapeSourcePress={handleShapeSource} />}
       </MapLibreGL.MapView>
       <CustomButton
         label="Select location & continue"
@@ -142,7 +146,7 @@ const MarkerMap = (props: Props) => {
   )
 }
 
-export default MarkerMap
+export default PointMarkerMap
 
 const styles = StyleSheet.create({
   container: {

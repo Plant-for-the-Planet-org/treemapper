@@ -9,8 +9,8 @@ import MultiTreePlantaion from 'assets/images/svg/MultiTreeIcon.svg'
 
 type InterventionCardType =
   | 'SoilRemoval'
-  | 'SingleTreePlantaion'
-  | 'MultiTreePlantation'
+  | 'SINGLE_TREE'
+  | 'MULTI_TREE'
   | 'FireBreak'
   | 'Invasive Species Removal'
   | 'Invasive Grass Removal'
@@ -31,11 +31,11 @@ const InterventionIconSwitch = (props: Props) => {
       return (
         <SpeciesRemoval style={styles.iconWrapper} width={50} height={50} />
       )
-    case 'MultiTreePlantation':
+    case 'MULTI_TREE':
       return (
         <MultiTreePlantaion style={styles.iconWrapper} width={50} height={50} />
       )
-    case 'SingleTreePlantaion':
+    case 'SINGLE_TREE':
       return (
         <SingleTreePlantation
           style={styles.iconWrapper}
