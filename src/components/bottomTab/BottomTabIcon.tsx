@@ -5,6 +5,9 @@ import MapTabIcon from 'assets/images/svg/MapTabIcon.svg'
 import InterventionTabIcon from 'assets/images/svg/InterventionTabIcon.svg'
 import PlotTabIcon from 'assets/images/svg/PlotTabIcon.svg'
 import * as Colors from 'src/utils/constants/colors'
+import {Typography} from 'src/utils/constants'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import {SCALE_26} from 'src/utils/constants/spacing'
 
 interface Props {
   label: string
@@ -20,24 +23,30 @@ const BottomTabIcon = (props: Props) => {
       <View style={styles.iconWrapper}>
         {index === 0 && (
           <MapTabIcon
-            fill={props.isFocused ? Colors.PRIMARY_DARK : Colors.TEXT_LIGHT}
+            height={SCALE_26}
+            width={SCALE_26}
+            fill={props.isFocused ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT}
           />
         )}
         {index === 1 && (
           <InterventionTabIcon
-            fill={props.isFocused ? Colors.PRIMARY_DARK : Colors.TEXT_LIGHT}
+            height={SCALE_26}
+            width={SCALE_26}
+            fill={props.isFocused ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT}
           />
         )}
         {index === 2 && (
           <PlotTabIcon
-            fill={props.isFocused ? Colors.PRIMARY_DARK : Colors.TEXT_LIGHT}
+            height={SCALE_26}
+            width={SCALE_26}
+            fill={props.isFocused ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT}
           />
         )}
       </View>
       <Text
         style={[
           styles.labelStyle,
-          {color: props.isFocused ? Colors.PRIMARY_DARK : Colors.TEXT_LIGHT},
+          {color: props.isFocused ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT},
         ]}>
         {label}
       </Text>
@@ -49,13 +58,18 @@ export default BottomTabIcon
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
+    height: scaleSize(60),
     width: '100%',
-    justifyContent: 'space-evenly',
     alignItems: 'center',
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.WHITE,
   },
-  iconWrapper: {},
-  labelStyle: {},
+  iconWrapper:{
+    marginTop:scaleSize(15),
+    marginBottom:scaleSize(5)
+  },
+  labelStyle: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: scaleFont(13),
+  },
 })

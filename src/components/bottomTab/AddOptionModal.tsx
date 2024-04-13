@@ -37,8 +37,15 @@ const AddOptionModal = (props: Props) => {
     return withTiming(props.visible ? 0 : 600, {duration: 500})
   }, [props.visible])
 
+  const opacity = useDerivedValue(() => {
+    return withTiming(props.visible ? 1 : 0, {
+      duration: props.visible ? 900 : 100,
+    })
+  }, [props.visible])
+
   const animatedStyles = useAnimatedStyle(() => ({
     transform: [{translateY: heightValue.value}],
+    opacity: opacity.value,
   }))
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()

@@ -5,6 +5,7 @@ import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
 import {View, StyleSheet} from 'react-native'
 import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -79,7 +80,8 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     borderTopWidth: 0,
-    height: 70,
+    width:'100%',
+    height: scaleSize(70),
     position: 'absolute',
     elevation: 0,
   },

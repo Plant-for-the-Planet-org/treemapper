@@ -10,7 +10,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 
 const AddBottomTabIcon = () => {
   const [open, setOpen] = useState(false)
@@ -44,7 +45,7 @@ const AddBottomTabIcon = () => {
         <Text
           style={[
             styles.labelStyle,
-            {color: open ? Colors.PRIMARY_DARK : Colors.TEXT_LIGHT},
+            {color: open ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT},
           ]}>
           Add
         </Text>
@@ -65,14 +66,14 @@ const styles = StyleSheet.create({
   iconWrapper: {
     position: 'absolute',
     backgroundColor: 'white',
-    height: 60,
-    width: 60,
+    height: scaleSize(55),
+    width: scaleSize(55),
     zIndex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 100,
     top: '-45%',
-    left: '8%',
+    left: '11.5%',
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
@@ -84,8 +85,11 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     position: 'absolute',
-    bottom: '18%',
+    bottom: '11%',
     left: '28%',
   },
-  labelStyle: {},
+  labelStyle: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: scaleFont(13),
+  },
 })
