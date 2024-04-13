@@ -29,7 +29,7 @@ const TakePicture = () => {
   return (
     <View style={styles.container}>
       <Header
-        label="Take picture"
+        label="Take Picture"
         note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}
       />
       {imageMetaData.uri ? (
