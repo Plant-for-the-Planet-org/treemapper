@@ -11,11 +11,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import SingleTreeIcon from 'assets/images/svg/SingleTreeIcon.svg'
-import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
-import Intervention from 'assets/images/svg/InterventionIcon.svg'
-import ChartIcon from 'assets/images/svg/ChartIcon.svg'
-import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 import {StackNavigationProp} from '@react-navigation/stack'
 import React, {useMemo} from 'react'
 import i18next from 'src/locales'
@@ -24,6 +19,13 @@ import * as Typography from 'src/utils/constants/typography'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
+import {SCALE_24} from 'src/utils/constants/spacing'
+
+import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
+import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
+import Intervention from 'assets/images/svg/InterventionIcon.svg'
+import ChartIcon from 'assets/images/svg/ChartIcon.svg'
+import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 
 const {width, height} = Dimensions.get('screen')
 
@@ -52,7 +54,7 @@ const AddOptionModal = (props: Props) => {
 
   const addOptions = [
     {
-      svgIcon: <ChartIcon width={25} height={25} />,
+      svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: 'Monitoring Plot',
       coming_soon: true,
       onPress: () => {
@@ -62,7 +64,7 @@ const AddOptionModal = (props: Props) => {
       disabled: false,
     },
     {
-      svgIcon: <CrossArrow width={25} height={25} />,
+      svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: 'Project Site',
       coming_soon: true,
       onPress: () => {
@@ -72,7 +74,7 @@ const AddOptionModal = (props: Props) => {
       disabled: true,
     },
     {
-      svgIcon: <Intervention width={25} height={25} />,
+      svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
       title: 'Intervention',
       coming_soon: false,
       onPress: () => {
@@ -82,7 +84,7 @@ const AddOptionModal = (props: Props) => {
       disabled: false,
     },
     {
-      svgIcon: <SingleTreeIcon width={25} height={25} />,
+      svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
       onPress: () => {
@@ -92,7 +94,7 @@ const AddOptionModal = (props: Props) => {
       disabled: false,
     },
     {
-      svgIcon: <MultipleTreeIcon width={25} height={25} />,
+      svgIcon: <MultipleTreeIcon width={SCALE_24} height={SCALE_24} />,
       title: 'label.tree_registration_type_2',
       coming_soon: false,
       onPress: () => {
@@ -141,7 +143,7 @@ const AddOptionModal = (props: Props) => {
           {
             overflow: 'hidden',
             position: 'absolute',
-            right: 10,
+            right: scaleSize(20),
             bottom: scaleSize(110),
             backgroundColor: 'white',
             borderRadius: 12,
@@ -149,12 +151,12 @@ const AddOptionModal = (props: Props) => {
             paddingLeft: scaleSize(15),
             paddingRight: scaleSize(15),
             paddingVertical: scaleSize(10),
-            width: scaleSize(210),
+            width: scaleSize(220),
             zIndex: 10,
           },
           animatedStyles,
         ]}>
-        <Animated.View style={{zIndex: 100}}>{calcComponents}</Animated.View>
+        <Animated.View style={{zIndex: 10}}>{calcComponents}</Animated.View>
       </Animated.View>
     </>
   )
@@ -170,29 +172,25 @@ const styles = StyleSheet.create({
   addButtonOption: {
     backgroundColor: Colors.PRIMARY + '1A',
     flexDirection: 'row',
-    height: 40,
+    height: scaleSize(45),
     alignItems: 'center',
-    paddingVertical: scaleFont(3),
-    paddingHorizontal: scaleFont(5),
     borderRadius: 8,
-    borderWidth: 1,
-    paddingLeft: scaleFont(6),
-    borderColor: Colors.PRIMARY + '1A',
-    flexWrap: 'wrap',
   },
   icon: {
-    marginRight: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    marginLeft:15,
+    marginRight:10
   },
   text: {
-    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     fontSize: scaleFont(14),
     color: Colors.TEXT_COLOR,
   },
   coming_soon: {
     fontSize: scaleFont(8),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.NEW_PRIMARY,
+
   },
 })
