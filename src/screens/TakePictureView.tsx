@@ -5,7 +5,7 @@ import {scaleSize} from 'src/utils/constants/mixins'
 import CameraView from 'src/components/common/CameraView'
 import {Colors} from 'src/utils/constants'
 import {CameraCapturedPicture} from 'expo-camera'
-import ImagePreview from 'src/components/pointRegister/ImagePreview'
+import ImagePreview from 'src/components/takePicture/ImagePreview'
 import {useRoute, RouteProp} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 

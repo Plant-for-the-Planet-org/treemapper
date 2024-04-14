@@ -21,7 +21,6 @@ export type RootStackParamList = {
   DynamicForm: undefined
   InterventionForm: IntermediateFormView
   AddMeasurment: undefined
-  ReviewSampleTree: undefined
   TotalTrees: TotalTreesView
 }
 

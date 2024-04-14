@@ -20,7 +20,6 @@ const RootNavigator = () => {
       <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />
       <Stack.Screen name="SpeciesInfo" component={Screens.SpeciesInfo} />
       <Stack.Screen name="SpeciesSearch" component={Screens.SpeciesSearch} />
-      <Stack.Screen name="ReviewSampleTree" component={Screens.ReviewSampleTree} />
       <Stack.Screen name="PointMarker" component={Screens.PointMarker} />
       <Stack.Screen name="DynamicForm" component={Screens.DynamicForm} />
       <Stack.Screen name="InterventionForm" component={Screens.InterventionForm} />
