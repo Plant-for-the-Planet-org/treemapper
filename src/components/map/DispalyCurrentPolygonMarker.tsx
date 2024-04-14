@@ -1,7 +1,7 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
-import { scaleSize } from 'src/utils/constants/mixins'
-import { Colors } from 'src/utils/constants'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
 
 interface Props {
   lat: number
@@ -14,7 +14,7 @@ const DispalyCurrentPolygonMarker = (props: Props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Corner {id}</Text>
-      <Text>Please select the next corner</Text>
+      <Text style={styles.note}>Please select the next corner</Text>
     </View>
   )
 }
@@ -29,7 +29,11 @@ const styles = StyleSheet.create({
         paddingHorizontal:20
     },
     label:{
-        fontSize: 18,
-        fontWeight:'600'
+        fontSize:scaleFont(18),
+        fontFamily:Typography.FONT_FAMILY_BOLD
+    },
+    note:{
+      fontSize:scaleFont(14),
+      fontFamily:Typography.FONT_FAMILY_REGULAR
     }
 })

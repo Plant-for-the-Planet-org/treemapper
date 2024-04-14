@@ -147,7 +147,7 @@ const PolygonMarkerMap = (props: Props) => {
             labelStyle={styles.highlightLabel}
           />
           <CustomButton
-            label="Select location & continue"
+            label="Continue"
             containerStyle={styles.btnWrapper}
             pressHandler={onSelectLocation}
             wrapperStyle={styles.opaqueWrapper}
