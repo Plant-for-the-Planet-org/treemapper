@@ -7,11 +7,14 @@ import {RootState} from 'src/store'
 import {SpecieCard} from 'src/components/species/ManageSpeciesCard'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
 import CustomButton from 'src/components/common/CustomButton'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {updateCurrentSpecies} from 'src/store/slice/sampleTreeSlice'
+import {
+  removeSpeciesFromFlow,
+  updateCurrentSpecies,
+} from 'src/store/slice/sampleTreeSlice'
 const TotalTreesView = () => {
   const sampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -25,15 +28,19 @@ const TotalTreesView = () => {
     navigation.replace('PointMarker')
   }
 
-  const removeSpecies = (item: IScientificSpecies) => {
+  const cardpress = (item: IScientificSpecies) => {
     if (route.params.isSelectSpecies) {
       dispatch(updateCurrentSpecies(item.guid))
       navigation.replace('AddMeasurment')
       return
     }
-   sampleTreeData.species.filter(
+  }
+
+  const removeHandler = (item: IScientificSpecies) => {
+    const filterdData = sampleTreeData.species.filter(
       el => el.info.guid !== item.guid,
     )
+    dispatch(removeSpeciesFromFlow(filterdData))
   }
 
   const renderSpecieCard = (
@@ -45,14 +52,14 @@ const TotalTreesView = () => {
         item={item.info}
         index={index}
         registrationType={null}
-        onPressSpecies={removeSpecies}
+        onPressSpecies={cardpress}
         addSpecieToInventory={null}
         editOnlySpecieName={'remove'}
         onPressBack={null}
         isSampleTree={false}
         navigateToSpecieInfo={null}
         screen={'ManageSpecies'}
-        handleRemoveFavourite={removeSpecies}
+        handleRemoveFavourite={removeHandler}
       />
     )
   }
@@ -105,6 +112,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 20,
     marginTop: 20,
+    marginBottom: 10,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_LIGHT,
   },
   btnContainer: {
     width: '100%',

@@ -8,8 +8,8 @@ import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
-import { SCALE_30 } from 'src/utils/constants/spacing'
-import { scaleSize } from 'src/utils/constants/mixins'
+import {SCALE_30} from 'src/utils/constants/spacing'
+import {scaleSize} from 'src/utils/constants/mixins'
 
 interface SpecieCardProps {
   item: IScientificSpecies

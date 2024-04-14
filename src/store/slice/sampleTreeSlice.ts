@@ -23,15 +23,9 @@ const sampleTreeSlice = createSlice({
   reducers: {
     addSampleTreeSpecies(
       state,
-      action: PayloadAction<{item: IScientificSpecies; count: number}>,
+      action: PayloadAction<Array<{info: IScientificSpecies; count: number}>>,
     ) {
-      state.species = [
-        ...state.species,
-        {
-          info: action.payload.item,
-          count: action.payload.count,
-        },
-      ]
+      state.species = [...action.payload]
     },
     updateBoundry(
       state,
@@ -52,6 +46,12 @@ const sampleTreeSlice = createSlice({
     updateSampleTreeForNextTree(state) {
       state.sample_tree_count = state.sample_tree_count - 1
     },
+    removeSpeciesFromFlow(
+      state,
+      action: PayloadAction<Array<{info: IScientificSpecies; count: number}>>,
+    ) {
+      state.species = [...action.payload]
+    },
     resetSampleTreeform(){
       return {...initialState}
     }
@@ -65,7 +65,8 @@ export const {
   updateSampleImageUrl,
   updateCurrentSpecies,
   updateSampleTreeForNextTree,
-  resetSampleTreeform
+  resetSampleTreeform,
+  removeSpeciesFromFlow
 } = sampleTreeSlice.actions
 
 export default sampleTreeSlice.reducer

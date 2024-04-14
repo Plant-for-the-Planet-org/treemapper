@@ -25,6 +25,8 @@ const ManageSpeciesView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const isSelectSpecies = route.params && route.params.isSelectSpecies
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const SampleTreeSpecies = useSelector((state: RootState) => state.sampleTree.species)
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const {updateUserFavSpecies} = useManageScientificSpecies()
@@ -59,13 +61,16 @@ const ManageSpeciesView = () => {
       guid: treeModalDetails.guid,
       scientific_name: treeModalDetails.scientific_name,
       is_user_species: treeModalDetails.is_user_species,
-      aliases: treeModalDetails.aliases
+      aliases: treeModalDetails.aliases,
+      image: treeModalDetails.image
     } 
+    const filteredData = SampleTreeSpecies.filter(el=>el.info.guid!==treeModalDetails.guid)
+    filteredData.push({
+      info: {...speciesDetails},
+      count: Number(count),
+    })
     dispatch(
-      addSampleTreeSpecies({
-        item: {...speciesDetails},
-        count: Number(count),
-      }),
+      addSampleTreeSpecies(filteredData),
     )
     setTreeModalDetails(null)
     navigation.navigate('TotalTrees', {isSelectSpecies: false})

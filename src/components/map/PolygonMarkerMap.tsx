@@ -95,7 +95,11 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const makeComplete = async () => {
-    const finalCoordinates = coordinates.map((el, i) => {
+    const latestCoordinates = [...coordinates];
+    if(coordinates.length === 3){
+      latestCoordinates.push(coordinates[0])
+    }
+    const finalCoordinates = latestCoordinates.map((el, i) => {
       return {
         lat: el[0],
         long: el[1],
@@ -234,6 +238,6 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,
-    textAlign:'center'
+    textAlign: 'center',
   },
 })
