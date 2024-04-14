@@ -12,7 +12,7 @@ import {RootState} from 'src/store'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import {updateImageDetails} from 'src/store/slice/takePictureSlice'
-import {SCALE_36} from 'src/utils/constants/spacing'
+import { SCALE_36, SCALE_26} from 'src/utils/constants/spacing'
 import {scaleSize} from 'src/utils/constants/mixins'
 
 interface Props {
@@ -67,14 +67,14 @@ const SpecieInfoImageSection = (props: Props) => {
           />
           <View style={styles.imageControls}>
             <TouchableOpacity onPress={takePicture}>
-              <View style={[styles.iconContainer, {marginRight: 10}]}>
-                <PenIcon width={20} height={20} />
+              <View style={[styles.iconContainer]}>
+                <PenIcon  width={SCALE_26} height={SCALE_26}/>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={deleteImage}
               style={styles.iconContainer}>
-              <BinIcon width={20} height={20} />
+              <BinIcon  width={SCALE_26} height={SCALE_26} />
             </TouchableOpacity>
           </View>
         </View>
@@ -115,16 +115,17 @@ const styles = StyleSheet.create({
   },
   imageControls: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
+    bottom: 10,
+    right:10,
+
   },
   iconContainer: {
     backgroundColor: Colors.WHITE,
-    borderRadius: 20,
+    borderRadius: 8,
     width: SCALE_36,
     height: SCALE_36,
     justifyContent: 'center',
     alignItems: 'center',
+    marginVertical:8
   },
 })
