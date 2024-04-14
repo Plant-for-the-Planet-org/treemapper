@@ -1,5 +1,5 @@
 import {Dimensions, StyleSheet, Text, TextInput, View} from 'react-native'
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import i18next from 'src/locales/index'
 import {scaleSize} from 'src/utils/constants/mixins'
 import {Typography, Colors} from 'src/utils/constants'
@@ -11,23 +11,34 @@ interface Props {
 }
 
 const SpecieInfoDetailSection = (props: Props) => {
+  const [localName, setLocalName] = useState('')
+  const [details, setDetails] = useState('')
+
   const {description, aliases} = props.item
   const {updateSpeciesDetails} = useManageScientificSpecies()
+
+  useEffect(() => {
+    setLocalName(aliases)
+    setDetails(description)
+  }, [])
+
   const updateAlias = (text: string) => {
+    setLocalName(text)
     updateSpeciesDetails({...props.item, aliases: text})
   }
 
   const updateDescription = (text: string) => {
+    setDetails(text)
     updateSpeciesDetails({...props.item, description: text})
   }
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.infoCardHeading, {color: Colors.DARK_TEXT_COLOR}]}>
+      <Text style={[styles.infoCardHeading]}>
         {i18next.t('label.species_name')}
       </Text>
       <TextInput
-        value={aliases}
+        value={localName}
         onChangeText={updateAlias}
         style={styles.input}
       />
@@ -36,9 +47,9 @@ const SpecieInfoDetailSection = (props: Props) => {
       </Text>
       <TextInput
         multiline
-        value={description}
+        value={details}
         onChangeText={updateDescription}
-        style={[styles.input, {height: scaleSize(105), paddingTop: 8}]}
+        style={[styles.textArea]}
       />
     </View>
   )
@@ -77,6 +88,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     paddingTop: 25,
+    color: Colors.TEXT_LIGHT,
   },
   infoCardText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -119,7 +131,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     borderColor: Colors.GRAY_DARK,
-    height: scaleSize(40),
+    height: scaleSize(50),
+    padding: scaleSize(10),
+    color: Colors.DARK_TEXT_COLOR,
+    fontSize: Typography.FONT_SIZE_16,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginTop: 8,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: Colors.GRAY_DARK,
+    height: scaleSize(100),
     padding: scaleSize(10),
     color: Colors.DARK_TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_16,

@@ -10,7 +10,8 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 }
 const fillStyle = {fillColor: Colors.PRIMARY, fillOpacity: 0.3}
-const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
+// const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
+const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
 
 interface Props {
   geoJSON: any
@@ -38,7 +39,7 @@ const MapShapeSource = (props: Props) => {
                 }}>
                 <MapLibreGL.CircleLayer
                   id={'singleSelectedPolyCircle' + index}
-                  style={circleStyle}
+                  style={bigCircleStyle}
                 />
               </MapLibreGL.ShapeSource>
             )

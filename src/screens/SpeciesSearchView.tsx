@@ -7,9 +7,9 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 import SpeciesSearchCard from 'src/components/species/SpeciesSearchCard'
 import {FlashList} from '@shopify/flash-list'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { RootStackParamList } from 'src/types/type/navigation.type'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation.type'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
@@ -34,12 +34,26 @@ const SpeciesSearchView = () => {
     updateUserFavSpecies(item.guid, status)
   }
 
+  const handleCardPress = async (
+    item: IScientificSpecies,
+    status: boolean,
+  ) => {
+    setSpciesList(prevSpecies => {
+      return prevSpecies.map(species =>
+        species.guid === item.guid
+          ? {...species, is_user_species: status}
+          : species,
+      )
+    })
+    updateUserFavSpecies(item.guid, status)
+  }
+
   return (
     <View style={styles.contnetWrapper}>
       <FlashList
         data={specieList}
         renderItem={({item}) => (
-          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} />
+          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} handleCardPress={handleCardPress}/>
         )}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"
@@ -52,7 +66,7 @@ const SpeciesSearchView = () => {
             setSpciesList={setSpciesList}
           />
         }
-        ListEmptyComponent={EmptySpeciesSearchList}
+        ListEmptyComponent={<EmptySpeciesSearchList />}
       />
     </View>
   )

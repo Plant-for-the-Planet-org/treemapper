@@ -1,6 +1,6 @@
 import {Image, StyleSheet, TouchableOpacity, View} from 'react-native'
 import React, {useEffect, useState} from 'react'
-import {Typography, Colors} from 'src/utils/constants'
+import {Colors} from 'src/utils/constants'
 import UploadSpecieIcon from 'assets/images/svg/UploadSpecieIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
@@ -12,6 +12,8 @@ import {RootState} from 'src/store'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import {updateImageDetails} from 'src/store/slice/takePictureSlice'
+import {SCALE_36} from 'src/utils/constants/spacing'
+import {scaleSize} from 'src/utils/constants/mixins'
 
 interface Props {
   item: IScientificSpecies
@@ -69,10 +71,10 @@ const SpecieInfoImageSection = (props: Props) => {
                 <PenIcon width={20} height={20} />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={deleteImage}>
-              <View style={styles.iconContainer}>
-                <BinIcon width={20} height={20} />
-              </View>
+            <TouchableOpacity
+              onPress={deleteImage}
+              style={styles.iconContainer}>
+              <BinIcon width={20} height={20} />
             </TouchableOpacity>
           </View>
         </View>
@@ -85,48 +87,27 @@ export default SpecieInfoImageSection
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'center',
   },
-  cont: {
-    flex: 1,
-  },
-  bgWhite: {
-    backgroundColor: Colors.WHITE,
-  },
   emptyImageContainer: {
-    marginTop: 16,
-    height: 180,
+    height: scaleSize(200),
     backgroundColor: '#EBF3E6',
-    borderRadius: 8,
+    borderRadius: 12,
     borderColor: '#86C059',
     borderWidth: 2,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: scaleSize(10),
   },
-  addImage: {
-    marginTop: 12,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-  },
-  infoCardHeading: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_12,
-    paddingTop: 25,
-  },
-  infoCardText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    paddingTop: 5,
-  },
+
   imageContainer: {
-    position: 'relative',
+    height: scaleSize(280),
     borderRadius: 50,
   },
   imageView: {
-    borderRadius: 8,
+    borderRadius: 12,
     resizeMode: 'cover',
     width: '100%',
     height: '100%',
@@ -141,8 +122,8 @@ const styles = StyleSheet.create({
   iconContainer: {
     backgroundColor: Colors.WHITE,
     borderRadius: 20,
-    width: 36,
-    height: 36,
+    width: SCALE_36,
+    height: SCALE_36,
     justifyContent: 'center',
     alignItems: 'center',
   },

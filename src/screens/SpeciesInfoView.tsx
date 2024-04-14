@@ -1,4 +1,4 @@
-import {StyleSheet, KeyboardAvoidingView} from 'react-native'
+import {StyleSheet, KeyboardAvoidingView, ScrollView} from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
@@ -18,11 +18,13 @@ const SpeciesInfoView = () => {
   )
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <Header label="" />
-      <SpeciesInfoHeader item={specieData} />
-      <SpecieInfoImageSection  item={specieData} />
-      <SpecieInfoDetailSection  item={specieData} />
+    <KeyboardAvoidingView style={styles.container}>
+      <ScrollView>
+        <Header label="" />
+        <SpeciesInfoHeader item={specieData} />
+        <SpecieInfoImageSection item={specieData} />
+        <SpecieInfoDetailSection item={specieData} />
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }

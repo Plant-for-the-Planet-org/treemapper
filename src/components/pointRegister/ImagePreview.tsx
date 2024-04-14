@@ -40,6 +40,11 @@ const ImagePreview = (props: Props) => {
     dispatch(updateCoverImageURL(finalURL))
 
 
+    if (screen === 'SPECIES_INFO') {
+      navigation.goBack()
+      return;
+    } 
+
     if(!species_required){
       navigation.replace('DynamicForm')
       return
@@ -51,11 +56,7 @@ const ImagePreview = (props: Props) => {
       return
     }
 
-    if (screen === 'SPECIES_INFO') {
-      navigation.goBack()
-    } else {
-      navigation.replace('ManageSpecies', {isSelectSpecies: true})
-    }
+    navigation.replace('ManageSpecies', {isSelectSpecies: true})
   }
 
   return (

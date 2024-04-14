@@ -4,10 +4,12 @@ import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native'
 import {Ionicons} from '@expo/vector-icons'
 import {Typography, Colors} from 'src/utils/constants'
 import {ScientificSpeciesType} from 'src/utils/constants/scientificSpeciesTypes'
-import SingleTreeIcon from 'assets/images/svg/SingleTreeIcon.svg'
+import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { SCALE_30 } from 'src/utils/constants/spacing'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 interface SpecieCardProps {
   item: IScientificSpecies
@@ -64,7 +66,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
       <View
         style={{
           backgroundColor: 'white',
-          borderRadius: 8,
+          borderRadius: 12,
           elevation: 5,
         }}>
         <TouchableOpacity
@@ -84,12 +86,12 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 style={{
                   backgroundColor: '#82828210',
                   borderRadius: 8,
-                  width: 74,
-                  height: 74,
+                  width: scaleSize(75),
+                  height: scaleSize(75),
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <SingleTreeIcon width={30} height={30} />
+                <SingleTreeIcon width={SCALE_30} height={SCALE_30} />
               </View>
             )}
           </View>
@@ -138,8 +140,8 @@ const styles = StyleSheet.create({
   imageView: {
     borderRadius: 8,
     resizeMode: 'cover',
-    width: 80,
-    height: 80,
+    width: scaleSize(75),
+    height: scaleSize(75),
     backgroundColor: Colors.TEXT_COLOR,
   },
   mySpecies: {

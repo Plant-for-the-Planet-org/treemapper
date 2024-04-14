@@ -9,6 +9,7 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 interface Props {
   item: IScientificSpecies
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
+  handleCardPress:(item: IScientificSpecies, status: boolean) => void
 }
 
 const SpeciesSearchCard = (props: Props) => {
@@ -16,14 +17,17 @@ const SpeciesSearchCard = (props: Props) => {
   const handleIconPress = () => {
     toogleFavSpecies(item, !item.is_user_species)
   }
+  const handleCardPress=()=>{
+    toogleFavSpecies(item, !item.is_user_species)
+  }
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={handleCardPress}>
       <Text style={styles.scientificName}>{item.scientific_name}</Text>
       <View style={styles.divider} />
       <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
         {item.is_user_species ? <PinkHeart /> : <GreyHeart />}
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   )
 }
 

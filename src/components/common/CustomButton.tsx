@@ -5,6 +5,7 @@ import {
   ViewStyle,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native'
 import React from 'react'
 import {scaleFont} from 'src/utils/constants/mixins'
@@ -17,6 +18,7 @@ interface Props {
   containerStyle?: ViewStyle
   labelStyle?: TextStyle
   wrapperStyle?: ViewStyle
+  loading?: boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -26,14 +28,23 @@ const CustomButton = (props: Props) => {
     labelStyle = {},
     wrapperStyle = {},
     pressHandler,
+    loading
   } = props
+
+
+  const handlePress=()=>{
+    if(!loading){
+      pressHandler()
+    }
+  }
+
   return (
     <TouchableOpacity
       style={[styles.container, {...containerStyle}]}
-      onPress={pressHandler}>
+      onPress={handlePress}>
       <FadeBackground />
       <View style={[styles.wrapper, {...wrapperStyle}]}>
-        <Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>
+        {loading?<ActivityIndicator color={Colors.WHITE} size='small'/>:<Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>}
       </View>
     </TouchableOpacity>
   )

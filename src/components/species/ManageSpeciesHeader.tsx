@@ -8,6 +8,7 @@ import {scaleSize} from 'src/utils/constants/mixins'
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
+import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
 
 const ManageSpeciesHeader = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -43,9 +44,6 @@ const ManageSpeciesHeader = () => {
         <Text
           style={[
             styles.listTitle,
-            {
-              fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-            },
           ]}>
           {i18next.t('label.select_species_my_species')}
         </Text>
@@ -61,22 +59,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   wrapper: {
-    backgroundColor: 'rgba(104, 176, 48, 0.10)',
-    padding: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    backgroundColor: Colors.NEW_PRIMARY + '1A',
+    padding: SCALE_24,
+    borderBottomLeftRadius: SCALE_30,
+    borderBottomRightRadius: SCALE_30,
     flex: 1,
-    paddingHorizontal: 25,
   },
   labelNote: {
-    marginTop: 4,
     textAlign: 'center',
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   speciesNote: {
-    marginTop: 4,
     textAlign: 'center',
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
@@ -92,9 +87,9 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 48,
+    height: scaleSize(45),
     borderRadius: 100,
-    marginTop: 24,
+    marginTop: '10%',
     backgroundColor: Colors.WHITE,
     shadowColor: '#000000',
     shadowOffset: {
@@ -105,36 +100,21 @@ const styles = StyleSheet.create({
     shadowRadius: 3.3,
     elevation: 1,
   },
-  searchBarMain: {
-    width: '80%',
-    height: 48,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: Colors.GRAY_LIGHT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-  },
   searchIcon: {
-    color: 'rgb(104, 176, 48)',
     paddingLeft: scaleSize(50),
-  },
-  searchIconMain: {
-    color: Colors.TEXT_COLOR,
-    paddingLeft: 19,
   },
   searchText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontWeight: Typography.FONT_WEIGHT_MEDIUM,
     fontSize: Typography.FONT_SIZE_14,
-    paddingLeft: 12,
+    paddingLeft: '1%',
     flex: 1,
     color: Colors.PLANET_BLACK,
   },
   listTitle: {
-    paddingTop: 25,
-    paddingBottom: 15,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
+    paddingTop: scaleSize(20),
+    paddingBottom: scaleSize(20),
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.PLANET_BLACK,
   },
