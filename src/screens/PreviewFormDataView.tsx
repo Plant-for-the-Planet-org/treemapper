@@ -16,7 +16,9 @@ import {
   interventionFinalData,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
+import {resetSampleTreeform} from 'src/store/slice/sampleTreeSlice'
+import {Colors} from 'src/utils/constants'
+import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 
 const PreviewFormData = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -26,25 +28,24 @@ const PreviewFormData = () => {
   const {addNewIntervention, addSampleTrees} = useInterventionManagement()
   const dispatch = useDispatch()
 
-  
   const navigateToNext = async () => {
     const finalData = interventionFinalData(formFlowData)
-    if(!is_sampleTree || finalData.sample_trees.length===1){
+    if (!is_sampleTree || finalData.sample_trees.length === 1) {
       await addNewIntervention(finalData)
-    }else{
+    } else {
       await addSampleTrees(finalData)
     }
-    if(!is_sampleTree || SampleTreeData.sample_tree_count === formFlowData.tree_details.length){
+    if (
+      !is_sampleTree ||
+      SampleTreeData.sample_tree_count === formFlowData.tree_details.length
+    ) {
       dispatch(resetSampleTreeform())
       navigation.popToTop()
-    }else{
+    } else {
       navigation.reset({
         index: 1,
-        routes: [
-          { name: 'Home' },
-          { name: 'PointMarker' },
-        ],
-      });
+        routes: [{name: 'Home'}, {name: 'PointMarker'}],
+      })
     }
   }
 
@@ -58,9 +59,12 @@ const PreviewFormData = () => {
           <IterventionCoverImage image={previewImage} />
           <InterventionBasicInfo data={basicInfo} />
           <InterventionArea formData={formFlowData} />
+          <SampleTreePreviewList sampleTress={formFlowData.tree_details} />
           <CustomButton
             label={
-              is_sampleTree && SampleTreeData.sample_tree_count !== formFlowData.tree_details.length
+              is_sampleTree &&
+              SampleTreeData.sample_tree_count !==
+                formFlowData.tree_details.length
                 ? 'Next Tree'
                 : 'Done'
             }
@@ -78,6 +82,7 @@ export default PreviewFormData
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.WHITE,
   },
   btnContainer: {
     width: '100%',

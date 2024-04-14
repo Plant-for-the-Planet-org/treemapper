@@ -5,6 +5,7 @@ import {SampleTree} from 'src/types/interface/slice.interface'
 import MapMarkers from './MapMarkers'
 import MapShapeSource from './MapShapeSource'
 import bbox from '@turf/bbox'
+import { Colors } from 'src/utils/constants'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('../../../assets/mapStyle/mapStyleOutput.json')
@@ -45,6 +46,8 @@ const PreviewMap = (props: Props) => {
       <View style={styles.wrapper}>
         <MapLibreGL.MapView
           style={styles.map}
+          attributionEnabled={false}
+          logoEnabled={false}
           styleURL={JSON.stringify(MapStyle)}>
           <MapLibreGL.Camera ref={cameraRef} />
           <MapShapeSource
@@ -70,9 +73,10 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '90%',
     height: '100%',
-    backgroundColor: 'green',
     borderRadius: 20,
     overflow: 'hidden',
+    borderWidth:0.5,
+    borderColor:Colors.GRAY_TEXT
   },
   map: {
     flex: 1,

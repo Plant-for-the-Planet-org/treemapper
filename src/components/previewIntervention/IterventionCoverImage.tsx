@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '90%',
     height: '95%',
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'black',
   },
 })

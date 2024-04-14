@@ -127,6 +127,7 @@ const PointMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
+        attributionEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation

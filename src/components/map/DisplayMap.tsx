@@ -14,6 +14,7 @@ import {InterventionData} from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 import MapMarkers from './MapMarkers'
 import {updateSelectedIntervention} from 'src/store/slice/displayMapSlice'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -115,6 +116,9 @@ const DisplayMap = () => {
     <MapLibreGL.MapView
       style={styles.map}
       logoEnabled={false}
+      compassViewPosition={3}
+      attributionEnabled={false}
+      compassViewMargins={{x: scaleSize(26), y: scaleSize(200)}}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
@@ -122,9 +126,11 @@ const DisplayMap = () => {
         geoJSON={geoJSON.features}
         onShapeSourcePress={setSelectedGeoJson}
       />
-      {selectedIntervention && <MapMarkers
-        sampleTreeData={JSON.parse(selectedIntervention).sample_trees}
-      />}
+      {selectedIntervention && (
+        <MapMarkers
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees}
+        />
+      )}
     </MapLibreGL.MapView>
   )
 }

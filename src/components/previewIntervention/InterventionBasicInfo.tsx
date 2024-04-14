@@ -1,7 +1,8 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 interface Props {
   data: {
@@ -52,23 +53,26 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '90%',
-    borderRadius: 20,
-    backgroundColor: 'white',
+    borderRadius: 12,
+    backgroundColor: Colors.GRAY_BACKDROP+'1A',
     paddingVertical: 20,
-    borderColor: Colors.GRAY_BACKDROP,
+    borderWidth:0.5,
+    borderColor:Colors.GRAY_TEXT
   },
   cardWrapper: {
     width: '100%',
-    height: 55,
     paddingHorizontal: 20,
+    marginVertical:10
   },
   cardTitle: {
-    fontSize: 16,
-    color: 'lightgray',
+    fontFamily:Typography.FONT_FAMILY_REGULAR,
+    fontSize: scaleSize(14),
+    marginBottom:5,
+    color: Colors.TEXT_LIGHT
   },
   cardLabel: {
-    fontSize: 14,
-    color: 'gray',
-    fontWeight: '500',
+    fontFamily:Typography.FONT_FAMILY_REGULAR,
+    fontSize: scaleSize(14),
+    color: Colors.TEXT_COLOR
   },
 })
