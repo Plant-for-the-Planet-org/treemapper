@@ -80,7 +80,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, '', false)
+    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), false)
     setGeoJSON(data.geoJSON)
   }
 

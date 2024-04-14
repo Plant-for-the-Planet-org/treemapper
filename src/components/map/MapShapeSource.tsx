@@ -25,20 +25,20 @@ const MapShapeSource = (props: Props) => {
   }
   return (
     <>
-      {geoJSON.map((feature, index) => {
-        const id = `feature-${index}`
+      {geoJSON.map((feature) => {
+        const id = `feature-${feature.properties.id}`
         switch (feature.geometry.type) {
           case 'Point':
             return (
               <MapLibreGL.ShapeSource
-                key={index}
+                key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
                 <MapLibreGL.CircleLayer
-                  id={'singleSelectedPolyCircle' + index}
+                  id={'singleSelectedPolyCircle' + feature.properties.id}
                   style={bigCircleStyle}
                 />
               </MapLibreGL.ShapeSource>
@@ -46,18 +46,18 @@ const MapShapeSource = (props: Props) => {
           case 'Polygon':
             return (
               <MapLibreGL.ShapeSource
-                key={index}
+                key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
                 <MapLibreGL.FillLayer
-                  id={'polyFill' + index}
+                  id={'polyFill' + feature.properties.id}
                   style={fillStyle}
                 />
                 <MapLibreGL.LineLayer
-                  id={'polyline' + index}
+                  id={'polyline' + feature.properties.id}
                   style={polyline}
                 />
               </MapLibreGL.ShapeSource>
@@ -65,13 +65,13 @@ const MapShapeSource = (props: Props) => {
           case 'LineString':
             return (
               <MapLibreGL.ShapeSource
-                key={index}
+                key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.LineLayer id={`${index}-layer`} />
+                <MapLibreGL.LineLayer id={`${feature.properties.id}-layer`} />
               </MapLibreGL.ShapeSource>
             )
           default:

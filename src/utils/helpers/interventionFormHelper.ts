@@ -3,9 +3,10 @@ import {
   RegisterFormSliceInitalState,
   SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
-
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const {intervention_date, title, project_name, site_name} = data
+
+
   let previewImage
   const basicInfo = {
     title,
