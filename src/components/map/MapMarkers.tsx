@@ -12,12 +12,12 @@ const MapMarkers = (props: Props) => {
   console.log("MapMarkers sampletree data",sampleTreeData)
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
-      <Maplibre.PointAnnotation
+      <Maplibre.MarkerView
         coordinate={[el.latitude, el.longitude]}
         id={String(i)}
         key={i}>
         <MapPin />
-      </Maplibre.PointAnnotation>
+      </Maplibre.MarkerView>
     ))
   }
   return renderMarkers()
