@@ -70,8 +70,15 @@ const InterventionData:Array<{
     value: '',
     index: 0,
   })
-  // const [selectedSite, setSelectedProjectSite] = useState('')
-
+  const [selectedProjectSite] = useState<{
+    label: string
+    value: string
+    index: number
+  }>({
+    label: '',
+    value: '',
+    index: 0,
+  })
   const {currentProject, projectSite} = useSelector(
     (state: RootState) => state.projectState,
   )
@@ -189,7 +196,7 @@ const InterventionData:Array<{
           label={'Site'}
           data={projectSies}
           onSelect={handleDropDownSelect}
-          selectedValue={undefined}
+          selectedValue={selectedProjectSite}
         />
         <CustomDropDown
           label={'Intervention Type'}

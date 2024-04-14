@@ -25,7 +25,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.divider} />
             <CloseIcon style={styles.iconWrapper} onPress={toogleModal}/>
           </View>
-          <View style={[styles.card,{backgroundColor:Colors.NEW_PRIMARY}]}>
+          <View style={[styles.card,{backgroundColor:Colors.NEW_PRIMARY + '1A'}]}>
             <Text style={styles.cardLable}>Interventions</Text>
             <View style={styles.divider} />
             <Switch value={true} onValueChange={() => {}} disabled={false} />
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 5,
     borderRadius: 10,
-    backgroundColor: Colors.GRAY_BACKDROP
+    backgroundColor: Colors.GRAY_LIGHT
   },
   header: {
     height: 50,

@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
         marginRight:15,
     },
     wrapper:{
-        backgroundColor:Colors.NEW_PRIMARY,
+        backgroundColor:Colors.NEW_PRIMARY + '1A',
         height:'70%',
         width:'100%',
         borderRadius:8,

@@ -9,6 +9,8 @@ import {useDispatch} from 'react-redux'
 import {updateUserLogin} from 'src/store/slice/appStateSlice'
 import {resetUserDetails} from 'src/store/slice/userStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import {Typography} from 'src/utils/constants'
 
 interface Props {
   item: SideDrawerItem
@@ -27,7 +29,7 @@ const SideBarCard = (props: Props) => {
     }
     navigation.replace(screen)
   }
-  
+
   const handleLogout = async () => {
     await logoutUser()
     dispatch(updateUserLogin(false))
@@ -43,7 +45,7 @@ const SideBarCard = (props: Props) => {
       <View style={styles.wrapper}>
         <View style={styles.iconWrapper}>{icon}</View>
         <View style={styles.labelWrapper}>
-          <Text>{label}</Text>
+          <Text style={styles.label}>{label}</Text>
         </View>
         <View style={styles.arrowWrapper}>
           <CtaArrow />
@@ -58,14 +60,14 @@ export default SideBarCard
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 70,
+    height: scaleSize(60),
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 5,
+    marginVertical: 8,
   },
   wrapper: {
     width: '90%',
-    height: 60,
+    height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -89,5 +91,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  label: {
+    fontSize: scaleFont(14),
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
 })

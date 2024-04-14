@@ -1,7 +1,7 @@
 import {StyleSheet, Switch, Text, View} from 'react-native'
 import React, {useState} from 'react'
 import {scaleFont} from 'src/utils/constants/mixins'
-import { Colors } from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 interface Props {
   description: string
 }
@@ -18,7 +18,7 @@ const PlaceHolderSwitch = (props: Props) => {
           styles.inputWrapper,
           {
             backgroundColor: isSelected
-              ? Colors.NEW_PRIMARY
+              ? Colors.NEW_PRIMARY + '1A'
               : Colors.GRAY_LIGHT,
           },
         ]}>
@@ -39,10 +39,10 @@ export default PlaceHolderSwitch
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 60,
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical:10
+    marginVertical: 10,
   },
   inputWrapper: {
     borderRadius: 10,
@@ -53,9 +53,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   inputLabel: {
-    color: 'gray',
+    color: Colors.TEXT_LIGHT,
     fontSize: scaleFont(15),
     marginLeft: 10,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   divider: {
     flex: 1,

@@ -11,6 +11,7 @@ import {RootState} from 'src/store'
 import useProjectMangement from 'src/hooks/realm/useProjectMangement'
 import {getAllProjects} from 'src/api/api.fetch'
 import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 interface Props {
   toogleFilterModal: () => void
@@ -76,7 +77,7 @@ export default HomeHeader
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    height: 60,
+    height: scaleSize(70),
     width: '100%',
     zIndex: 1,
     flexDirection: 'row',

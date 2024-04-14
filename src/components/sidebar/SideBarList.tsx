@@ -8,6 +8,7 @@ import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
 import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
 import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
+import DataExpolrerIcon from 'assets/images/svg/DataExplorerIcon.svg'
 
 interface Props {
   isLogedIn: boolean
@@ -43,6 +44,13 @@ const SideBarList = (props: Props) => {
       icon: <OfflineMapIcon />,
       visible: true,
       key: 'offline_map'
+    },
+    {
+      label: 'Data Explorer',
+      screen: 'ManageSpecies',
+      icon: <DataExpolrerIcon />,
+      visible: true,
+      key: 'data_explorer'
     },
     {
       label: 'Logout',

@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 import Switch from '../common/Switch'
 import {FormElement} from 'src/types/interface/form.interface'
 import {scaleFont} from 'src/utils/constants/mixins'
@@ -20,7 +20,7 @@ const FormSwitchElement = (props: Props) => {
           styles.inputWrapper,
           {
             backgroundColor: formValues[data.key]
-              ? Colors.NEW_PRIMARY
+              ? Colors.NEW_PRIMARY + '1A'
               : Colors.GRAY_LIGHT,
           },
         ]}>
@@ -29,7 +29,10 @@ const FormSwitchElement = (props: Props) => {
         <Switch
           value={formValues[data.key] === 'true'}
           onValueChange={() => {
-            changeHandler(data.key, String(`${formValues[data.key]==='false'? 'true':'false'}`))
+            changeHandler(
+              data.key,
+              String(`${formValues[data.key] === 'false' ? 'true' : 'false'}`),
+            )
           }}
           disabled={false}
         />
@@ -58,9 +61,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   inputLabel: {
-    color: 'gray',
+    color: Colors.TEXT_LIGHT,
     fontSize: scaleFont(15),
     letterSpacing: 0.5,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   divider: {
     flex: 1,

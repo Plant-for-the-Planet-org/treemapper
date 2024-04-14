@@ -3,6 +3,7 @@ import React from 'react'
 import {useSelector} from 'react-redux'
 import {RootState} from 'src/store'
 import SingleTreeImage from 'assets/images/svg/SingleTreeIcon.svg'
+import {Typography} from 'src/utils/constants'
 
 const SidebarHeader = () => {
   const {image, displayName} = useSelector(
@@ -45,6 +46,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     marginLeft: 20,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   imageWrapper: {
     width: '100%',

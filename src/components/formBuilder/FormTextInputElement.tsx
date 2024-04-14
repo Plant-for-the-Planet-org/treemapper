@@ -3,7 +3,7 @@ import React from 'react'
 import {FormElement} from 'src/types/interface/form.interface'
 import {InputOutline} from 'react-native-input-outline'
 import {Text} from 'react-native'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 
 interface Props {
   data: FormElement
@@ -16,7 +16,6 @@ const FormTextInputElement = (props: Props) => {
     let result = true
     if (data.condition !== null) {
       for (const [key, value] of Object.entries(data.condition)) {
-
         if (formValues[key] !== String(value)) {
           result = false
         }
@@ -35,10 +34,11 @@ const FormTextInputElement = (props: Props) => {
         style={styles.inputWrapper}
         keyboardType={data.keyboard_type}
         placeholder={data.placeholder}
-        activeColor={Colors.PRIMARY}
-        inactiveColor={Colors.GRAY_TEXT}
-        placeholderTextColor={Colors.GRAY_TEXT}
+        activeColor={Colors.NEW_PRIMARY}
+        inactiveColor={Colors.TEXT_LIGHT}
+        placeholderTextColor={Colors.TEXT_LIGHT}
         fontSize={18}
+        fontFamily={Typography.FONT_FAMILY_REGULAR}
         trailingIcon={() => <Text style={styles.unitLabel}>{data.unit}</Text>}
       />
     </View>
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
     marginHorizontal: '5%',
   },
   unitLabel: {
-    color: Colors.GRAY_TEXT,
+    color: Colors.TEXT_LIGHT,
   },
 })

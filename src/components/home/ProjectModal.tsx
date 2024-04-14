@@ -15,6 +15,7 @@ import {
   updateCurrentProject,
   updateProjectSite,
 } from 'src/store/slice/projectStateSlice'
+import { scaleFont } from 'src/utils/constants/mixins'
 
 interface Props {
   isVisible: boolean
@@ -186,11 +187,11 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'absolute',
     bottom: 0,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.WHITE,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
-    height: '70%',
+    height: '60%',
   },
   contnetWrapper: {
     width: '95%',
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 5,
     borderRadius: 10,
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: Colors.GRAY_LIGHT,
   },
   header: {
     height: 50,
@@ -216,7 +217,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   headerLable: {
-    fontSize: 18,
+    fontSize: scaleFont(16),
+    fontFamily: Typography.FONT_FAMILY_BOLD
   },
   cardLable: {
     fontSize: 16,
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
   },
   projectLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_14,
     marginHorizontal: 20,
   },
   siteContainer: {
@@ -237,17 +239,17 @@ const styles = StyleSheet.create({
   },
   siteWrapper: {
     width: '90%',
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: Colors.GRAY_LIGHTEST + '1A',
     borderRadius: 10,
     maxHeight: 200,
     paddingVertical: 5,
   },
   siteCard: {
     width: '90%',
-    height: 40,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomColor: Colors.GRAY_BORDER,
+    borderBottomColor: Colors.GRAY_BACKDROP,
     marginLeft: 10,
   },
   siteCardLabel: {
