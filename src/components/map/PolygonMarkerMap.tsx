@@ -89,7 +89,7 @@ const PolygonMarkerMap = (props: Props) => {
       id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
       index: prevState.index++,
     }))
-    if (coordinates.length > 2) {
+    if (coordinates.length >= 2) {
       setPolygonComplete(true)
     }
   }
