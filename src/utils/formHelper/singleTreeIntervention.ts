@@ -78,6 +78,7 @@ export const SingleTreeFormData: RegisterFormSliceInitalState = {
   key: 'single-tree-plantation',
   title: 'Single Tree Plantation',
   intervention_date: 0,
+  intervention_type: 'SINGLE_TREE',
   skip_intervention_form: true,
   user_type: 'normal',
   project_id: '',
@@ -103,5 +104,7 @@ export const SingleTreeFormData: RegisterFormSliceInitalState = {
   form_details: [],
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  form_data: []
 }

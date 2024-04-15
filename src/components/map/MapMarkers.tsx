@@ -9,7 +9,6 @@ interface Props {
 
 const MapMarkers = (props: Props) => {
   const {sampleTreeData} = props
-  console.log("MapMarkers sampletree data",sampleTreeData)
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
       <Maplibre.MarkerView

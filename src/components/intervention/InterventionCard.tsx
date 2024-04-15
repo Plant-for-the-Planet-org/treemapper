@@ -7,34 +7,39 @@ import EditInterventionIcon from 'assets/images/svg/EditInterventionIcon.svg'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg'
 import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
-import { InterventionData } from 'src/types/interface/slice.interface'
+import {InterventionData} from 'src/types/interface/slice.interface'
+import InterventionCardHeader from './InterventionCardHeader'
+import InterventionMetaInfo from './InterventionMetaInfo'
 
 const newDate = new Date().getTime()
 
-interface Props{
+interface Props {
   item: InterventionData | any
 }
 
-const InterventionCard = (props:Props) => {
-  const {item} = props;
+const InterventionCard = (props: Props) => {
+  const {item} = props
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <InterventionIconSwitch icon="FireBreak" />
-        <View style={styles.incompleteTagWrapper}>
-          <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
-        </View>
+        <InterventionIconSwitch icon={item.intervention_type} />
+        {item.is_complete && (
+          <View style={styles.incompleteTagWrapper}>
+            <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
+          </View>
+        )}
         <View style={styles.sectionWrapper}>
-          <Text style={styles.label}>8 Trees Planted</Text>
+          <InterventionCardHeader item={item} />
           <View style={styles.metaWrapper}>
             <View style={styles.syncIconWrapper}>
-              { newDate ? (
+              {newDate ? (
                 <UnSyncIcon width={15} height={15} />
               ) : (
                 <SyncIcon width={15} height={15} />
               )}
             </View>
             <Text style={styles.metaLable}>{item.location_type}</Text>
+            <InterventionMetaInfo item={item}/>
             <Text style={styles.metaLable}>
               {timestampToBasicDate(item.intervention_date)}
             </Text>
@@ -109,7 +114,7 @@ const styles = StyleSheet.create({
   },
   metaLable: {
     fontSize: scaleFont(12),
-    marginHorizontal: 5,
+    marginHorizontal: 3,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 })

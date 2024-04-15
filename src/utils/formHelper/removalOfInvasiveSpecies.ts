@@ -82,7 +82,7 @@ export const removalOfInvasiveSpeciesData: RegisterFormSliceInitalState = {
   user_type: 'normal',
   project_id: '',
   site_id: '',
-  entire_site_intervention: false,
+  entire_site_intervention: true,
   location_type: 'Polygon',
   location_title: 'Select Area',
   coordinates: [],
@@ -103,5 +103,8 @@ export const removalOfInvasiveSpeciesData: RegisterFormSliceInitalState = {
   form_details: [],
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  intervention_type: 'REMOVAL_INVASIVE_SPEICES',
+  form_data: []
 }

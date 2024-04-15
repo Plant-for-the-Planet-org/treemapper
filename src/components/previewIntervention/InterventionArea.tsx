@@ -26,8 +26,6 @@ const InterventionArea = (props: Props) => {
     features: [geoJSON],
   }
 
-  console.log(JSON.stringify(FeatureCollectionGeoJSON, null, 2))
-
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Intervention Area</Text>

@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {Coordinates} from 'src/types/interface/app.interface'
-import {RegisterFormSliceInitalState, SampleTree} from 'src/types/interface/slice.interface'
+import {FormValues, RegisterFormSliceInitalState, SampleTree} from 'src/types/interface/slice.interface'
 
 export const initialState: RegisterFormSliceInitalState = {
   form_id: '',
@@ -32,7 +32,10 @@ export const initialState: RegisterFormSliceInitalState = {
   user_type: 'tpo',
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  intervention_type: 'UNKOWN',
+  form_data: []
 }
 
 const registerFormSlice = createSlice({
@@ -56,6 +59,9 @@ const registerFormSlice = createSlice({
     },
     updateTree_details(state, action: PayloadAction<SampleTree>) {
       state.tree_details = [...state.tree_details, action.payload]
+    },
+    updateFormDataValue(state, action: PayloadAction<FormValues[]>) {
+      state.form_data = [...state.form_data, ...action.payload]
     },
   },
 })

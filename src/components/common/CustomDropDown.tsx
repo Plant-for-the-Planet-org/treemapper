@@ -1,8 +1,9 @@
 import React, {useState} from 'react'
 import {StyleSheet, Text, View} from 'react-native'
 import {Dropdown} from 'react-native-element-dropdown'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 import SelectIcon from 'assets/images/svg/SelectIcon.svg'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 interface DropDownData {
   label: string
@@ -40,7 +41,7 @@ const DropdownComponent = (props: Props) => {
     <View style={styles.container}>
       {renderLabel()}
       <Dropdown
-        style={[styles.dropdown, isFocus && {borderColor: Colors.PRIMARY}]}
+        style={[styles.dropdown, isFocus && {borderColor: Colors.NEW_PRIMARY}]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
         inputSearchStyle={styles.inputSearchStyle}
@@ -69,8 +70,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   dropdown: {
-    height: 50,
-    borderColor: 'gray',
+    height: scaleSize(50),
+    borderColor: Colors.GRAY_BORDER,
     borderWidth: 0.5,
     borderRadius: 8,
     paddingHorizontal: 8,
@@ -89,9 +90,12 @@ const styles = StyleSheet.create({
   },
   placeholderStyle: {
     fontSize: 16,
+    fontFamily:Typography.FONT_FAMILY_REGULAR,
+    paddingHorizontal:3,
   },
   selectedTextStyle: {
     fontSize: 16,
+    fontFamily:Typography.FONT_FAMILY_REGULAR
   },
   iconStyle: {
     width: 20,

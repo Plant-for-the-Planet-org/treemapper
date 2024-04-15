@@ -83,7 +83,7 @@ export const assistingSeedRainData: RegisterFormSliceInitalState = {
   user_type: 'normal',
   project_id: '',
   site_id: '',
-  entire_site_intervention: false,
+  entire_site_intervention: true,
   location_type: 'Point',
   location_title: 'Bird Perche Location',
   coordinates: [],
@@ -104,5 +104,8 @@ export const assistingSeedRainData: RegisterFormSliceInitalState = {
   form_details: [assistingSeedRainMainForm],
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  intervention_type: 'SEED_RAIN',
+  form_data: []
 }

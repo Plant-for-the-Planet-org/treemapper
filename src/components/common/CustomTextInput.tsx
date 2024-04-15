@@ -5,10 +5,11 @@ import {Colors} from 'src/utils/constants'
 
 interface Props {
   label: string
+  onChangeHandler: (v:string)=>void
 }
 
 const CustomTextInput = (props: Props) => {
-  const {label} = props
+  const {label, onChangeHandler} = props
 
   return (
     <View style={styles.container}>
@@ -19,6 +20,7 @@ const CustomTextInput = (props: Props) => {
         inactiveColor={Colors.GRAY_TEXT}
         placeholderTextColor={Colors.GRAY_TEXT}
         fontSize={16}
+        onChangeText={onChangeHandler}
         backgroundColor={Colors.WHITE}
       />
     </View>

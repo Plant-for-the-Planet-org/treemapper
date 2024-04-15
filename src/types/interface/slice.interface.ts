@@ -1,3 +1,4 @@
+import { INTERVENTION_TYPE } from '../type/app.type'
 import {Coordinates, IScientificSpecies} from './app.interface'
 import {MainForm} from './form.interface'
 
@@ -37,10 +38,19 @@ export interface TakePictureInitialState {
   height: number
 }
 
+export interface FormValues{
+  key:string,
+  value: string,
+  display: boolean,
+  unit: string,
+  priority: 'low' | 'medium' | 'high' 
+}
+
 export interface RegisterFormSliceInitalState {
   form_id: string
   key: string
   title: string
+  intervention_type: INTERVENTION_TYPE
   intervention_date: number
   skip_intervention_form: boolean
   user_type: string
@@ -68,6 +78,8 @@ export interface RegisterFormSliceInitalState {
   tree_image_url: string
   tree_details: SampleTree[]
   form_details: MainForm[]
+  meta_data: string
+  form_data: FormValues[]
 }
 
 export interface SampleTree {
@@ -191,4 +203,8 @@ export interface InterventionData {
   sample_trees: SampleTree[]
   is_complete: boolean
   site_id: string
+  intervention_type: INTERVENTION_TYPE
+  form_data: string
+  additional_data: string
+  meta_data: string
 }

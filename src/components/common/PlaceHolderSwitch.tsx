@@ -1,15 +1,17 @@
 import {StyleSheet, Switch, Text, View} from 'react-native'
-import React, {useState} from 'react'
+import React from 'react'
 import {scaleFont} from 'src/utils/constants/mixins'
 import {Colors, Typography} from 'src/utils/constants'
 interface Props {
   description: string
+  selectHandler:(v:boolean)=>void
+  value: boolean
 }
 
 const PlaceHolderSwitch = (props: Props) => {
-  const [isSelected, setIsSelected] = useState(false)
+  const {description,selectHandler,value} = props;
   const changeHandler = () => {
-    setIsSelected(!isSelected)
+    selectHandler(!value)
   }
   return (
     <View style={styles.container}>
@@ -17,15 +19,15 @@ const PlaceHolderSwitch = (props: Props) => {
         style={[
           styles.inputWrapper,
           {
-            backgroundColor: isSelected
+            backgroundColor: value
               ? Colors.NEW_PRIMARY + '1A'
               : Colors.GRAY_LIGHT,
           },
         ]}>
-        <Text style={styles.inputLabel}>{props.description}</Text>
+        <Text style={styles.inputLabel}>{description}</Text>
         <View style={styles.divider} />
         <Switch
-          value={isSelected}
+          value={value}
           onValueChange={changeHandler}
           disabled={false}
         />

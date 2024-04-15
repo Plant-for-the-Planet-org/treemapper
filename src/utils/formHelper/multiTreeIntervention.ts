@@ -103,5 +103,8 @@ export const MultiTreeFormData: RegisterFormSliceInitalState = {
   user_type: '',
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  intervention_type: 'MULTI_TREE',
+  form_data: []
 }

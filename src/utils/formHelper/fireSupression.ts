@@ -104,5 +104,8 @@ export const fireSupressionFormData: RegisterFormSliceInitalState = {
   user_type: '',
   project_name: '',
   site_name: '',
-  tree_image_url: ''
+  tree_image_url: '',
+  meta_data: '',
+  intervention_type: 'FIRESUPRESSION_TEAM',
+  form_data: []
 }

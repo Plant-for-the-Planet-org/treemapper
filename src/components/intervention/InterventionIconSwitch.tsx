@@ -4,49 +4,44 @@ import FireBreakIcon from 'assets/images/svg/FireBreakIcon.svg'
 import GrassRemoval from 'assets/images/svg/GrassRemovalIcon.svg'
 import SpeciesRemoval from 'assets/images/svg/SpeciesRemovalIcon.svg'
 import SoilRemoval from 'assets/images/svg/SoilRemovalIcon.svg'
-import SingleTreePlantation from 'assets/images/svg/SingleTreeIcon.svg'
-import MultiTreePlantaion from 'assets/images/svg/MultiTreeIcon.svg'
+import SingleTreePlantation from 'assets/images/svg/SingleTreeInterventionIcon.svg'
+import MultiTreePlantaion from 'assets/images/svg/MultiTreeInterventionIcon.svg'
+import { INTERVENTION_TYPE } from 'src/types/type/app.type'
+import { SCALE_40, SCALE_50 } from 'src/utils/constants/spacing'
 
-type InterventionCardType =
-  | 'SoilRemoval'
-  | 'SINGLE_TREE'
-  | 'MULTI_TREE'
-  | 'FireBreak'
-  | 'Invasive Species Removal'
-  | 'Invasive Grass Removal'
 
 interface Props {
-  icon: InterventionCardType
+  icon: INTERVENTION_TYPE
 }
 
 const InterventionIconSwitch = (props: Props) => {
   const {icon} = props
 
   switch (icon) {
-    case 'FireBreak':
-      return <FireBreakIcon style={styles.iconWrapper} width={50} height={50} />
-    case 'Invasive Grass Removal':
-      return <GrassRemoval style={styles.iconWrapper} width={50} height={50} />
-    case 'Invasive Species Removal':
+    case 'FIRE_BREAK':
+      return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+    case 'GRASS_REMOVAL':
+      return <GrassRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+    case 'SEPCIES_REMOVAL':
       return (
-        <SpeciesRemoval style={styles.iconWrapper} width={50} height={50} />
+        <SpeciesRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
     case 'MULTI_TREE':
       return (
-        <MultiTreePlantaion style={styles.iconWrapper} width={50} height={50} />
+        <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
     case 'SINGLE_TREE':
       return (
         <SingleTreePlantation
           style={styles.iconWrapper}
-          width={50}
-          height={50}
+          width={SCALE_40}
+          height={SCALE_40}
         />
       )
-    case 'SoilRemoval':
-      return <SoilRemoval style={styles.iconWrapper} width={50} height={50} />
+    case 'SOIL_REMOVAL':
+      return <SoilRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     default:
-      return <FireBreakIcon style={styles.iconWrapper} width={50} height={50} />
+      return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
   }
 }
 
@@ -56,5 +51,9 @@ const styles = StyleSheet.create({
   iconWrapper: {
     borderRadius: 10,
     marginLeft: 10,
+    width:SCALE_50,
+    height:SCALE_50,
+    justifyContent:"center",
+    alignItems:'center'
   },
 })

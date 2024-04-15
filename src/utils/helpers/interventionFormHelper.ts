@@ -52,6 +52,10 @@ export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
     sample_trees: data.tree_details,
     is_complete: false,
     site_id: data.site_id,
+    intervention_type: data.intervention_type,
+    form_data: '',
+    additional_data: '',
+    meta_data: ''
   }
   return finalData
 }
