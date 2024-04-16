@@ -26,7 +26,7 @@ const SideBarList = (props: Props) => {
     },
     {
       label: 'Manage Projects',
-      screen: 'ManageSpecies',
+      screen: 'ManageProjects',
       icon: <ManageProjectIcon />,
       visible: true,
       key: 'manage_projects'

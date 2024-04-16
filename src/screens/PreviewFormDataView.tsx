@@ -14,11 +14,14 @@ import {RootState} from 'src/store'
 import {
   getPreviewData,
   interventionFinalData,
+  makeInterventionGeoJson,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import {resetSampleTreeform} from 'src/store/slice/sampleTreeSlice'
 import {Colors} from 'src/utils/constants'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
+import bbox from '@turf/bbox'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 const PreviewFormData = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -40,6 +43,19 @@ const PreviewFormData = () => {
       SampleTreeData.sample_tree_count === formFlowData.tree_details.length
     ) {
       dispatch(resetSampleTreeform())
+      const {geoJSON} = makeInterventionGeoJson(
+        formFlowData.location_type,
+        formFlowData.coordinates,
+        finalData.intervention_id,
+        false,
+      )
+      const bounds = bbox(geoJSON)
+      dispatch(
+        updateMapBounds({
+          bodunds: bounds,
+          key: 'DISPLAY_MAP',
+        }),
+      )
       navigation.popToTop()
     } else {
       navigation.reset({

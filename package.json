@@ -40,6 +40,7 @@
     "expo-location": "~16.1.0",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
+    "expo-web-browser": "~12.3.2",
     "i18next": "^23.10.1",
     "moment": "^2.30.1",
     "react": "18.2.0",

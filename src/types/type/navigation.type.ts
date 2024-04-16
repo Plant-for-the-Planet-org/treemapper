@@ -22,6 +22,7 @@ export type RootStackParamList = {
   InterventionForm: IntermediateFormView
   AddMeasurment: undefined
   TotalTrees: TotalTreesView
+  ManageProjects: undefined
 }
 
 type SpeciesInfoView = {

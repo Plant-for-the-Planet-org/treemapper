@@ -14,6 +14,7 @@ import SpeciesSearchView from './SpeciesSearchView'
 import TotalTreesView from './TotalTreesView'
 import AddMeasurmentView from './AddMeasurmentView'
 import DynamicFormView from './DynamiFormView'
+import ManageProjectsView from './ManageProjectsView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -31,5 +32,6 @@ export default {
   DynamicForm: DynamicFormView,
   InterventionForm: InterventionFormView,
   AddMeasurment: AddMeasurmentView,
-  TotalTrees: TotalTreesView
+  TotalTrees: TotalTreesView,
+  ManageProjects: ManageProjectsView
 }
