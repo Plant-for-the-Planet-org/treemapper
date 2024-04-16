@@ -15,6 +15,7 @@ import TotalTreesView from './TotalTreesView'
 import AddMeasurmentView from './AddMeasurmentView'
 import DynamicFormView from './DynamiFormView'
 import ManageProjectsView from './ManageProjectsView'
+import DataExplorerView from './DataExplorerView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -33,5 +34,6 @@ export default {
   InterventionForm: InterventionFormView,
   AddMeasurment: AddMeasurmentView,
   TotalTrees: TotalTreesView,
-  ManageProjects: ManageProjectsView
+  ManageProjects: ManageProjectsView,
+  DataExplore: DataExplorerView,
 }

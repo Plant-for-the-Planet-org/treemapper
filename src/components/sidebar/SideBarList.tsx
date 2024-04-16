@@ -47,7 +47,7 @@ const SideBarList = (props: Props) => {
     },
     {
       label: 'Data Explorer',
-      screen: 'ManageSpecies',
+      screen: 'DataExplorer',
       icon: <DataExpolrerIcon />,
       visible: true,
       key: 'data_explorer'

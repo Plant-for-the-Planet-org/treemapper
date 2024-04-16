@@ -23,6 +23,7 @@ export type RootStackParamList = {
   AddMeasurment: undefined
   TotalTrees: TotalTreesView
   ManageProjects: undefined
+  DataExplorer:undefined
 }
 
 type SpeciesInfoView = {

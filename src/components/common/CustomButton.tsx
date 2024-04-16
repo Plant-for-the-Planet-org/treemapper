@@ -19,6 +19,7 @@ interface Props {
   labelStyle?: TextStyle
   wrapperStyle?: ViewStyle
   loading?: boolean
+  leftIcon?: React.ReactNode
 }
 
 const CustomButton = (props: Props) => {
@@ -28,12 +29,12 @@ const CustomButton = (props: Props) => {
     labelStyle = {},
     wrapperStyle = {},
     pressHandler,
-    loading
+    loading,
+    leftIcon,
   } = props
 
-
-  const handlePress=()=>{
-    if(!loading){
+  const handlePress = () => {
+    if (!loading) {
       pressHandler()
     }
   }
@@ -44,7 +45,12 @@ const CustomButton = (props: Props) => {
       onPress={handlePress}>
       <FadeBackground />
       <View style={[styles.wrapper, {...wrapperStyle}]}>
-        {loading?<ActivityIndicator color={Colors.WHITE} size='small'/>:<Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>}
+        {loading ? (
+          <ActivityIndicator color={Colors.WHITE} size="small" />
+        ) : (
+          <Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>
+        )}
+        {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
       </View>
     </TouchableOpacity>
   )
@@ -74,5 +80,9 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     letterSpacing: 0.2,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  leftIconWrapper: {
+    position: 'absolute',
+    left: 20,
   },
 })
