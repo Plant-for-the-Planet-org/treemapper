@@ -15,7 +15,8 @@ import {
   updateCurrentProject,
   updateProjectSite,
 } from 'src/store/slice/projectStateSlice'
-import { scaleFont } from 'src/utils/constants/mixins'
+import {scaleFont} from 'src/utils/constants/mixins'
+import {updateMapBounds} from 'src/store/slice/mapBoundSlice'
 
 interface Props {
   isVisible: boolean
@@ -83,8 +84,16 @@ const ProjectModal = (props: Props) => {
         id,
       }),
     )
+
     const geometry = JSON.parse(item?.geometry)
-    console.log('geometry', bbox(geometry))
+    const bounds = bbox(geometry)
+    dispatch(
+      updateMapBounds({
+        bodunds: bounds,
+        key: 'DISPLAY_MAP',
+      }),
+    )
+    toogleModal()
   }
 
   const handleProjectSelction = (data: {
@@ -218,7 +227,7 @@ const styles = StyleSheet.create({
   },
   headerLable: {
     fontSize: scaleFont(16),
-    fontFamily: Typography.FONT_FAMILY_BOLD
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   cardLable: {
     fontSize: 16,

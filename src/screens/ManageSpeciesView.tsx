@@ -16,6 +16,9 @@ import {
   updateBoundry,
 } from 'src/store/slice/sampleTreeSlice'
 import {StackNavigationProp} from '@react-navigation/stack'
+import bbox from '@turf/bbox'
+import {updateMapBounds} from 'src/store/slice/mapBoundSlice'
+import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
 
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
@@ -25,7 +28,9 @@ const ManageSpeciesView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const isSelectSpecies = route.params && route.params.isSelectSpecies
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
-  const SampleTreeSpecies = useSelector((state: RootState) => state.sampleTree.species)
+  const SampleTreeSpecies = useSelector(
+    (state: RootState) => state.sampleTree.species,
+  )
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -57,21 +62,34 @@ const ManageSpeciesView = () => {
         id: formFlowData.form_id,
       }),
     )
-    const speciesDetails:IScientificSpecies ={
+    const {geoJSON} = makeInterventionGeoJson(
+      'Polygon',
+      formFlowData.coordinates,
+      formFlowData.form_id,
+      false,
+    )
+    const bounds = bbox(geoJSON)
+    dispatch(
+      updateMapBounds({
+        bodunds: bounds,
+        key: 'POINT_MAP',
+      }),
+    )
+    const speciesDetails: IScientificSpecies = {
       guid: treeModalDetails.guid,
       scientific_name: treeModalDetails.scientific_name,
       is_user_species: treeModalDetails.is_user_species,
       aliases: treeModalDetails.aliases,
-      image: treeModalDetails.image
-    } 
-    const filteredData = SampleTreeSpecies.filter(el=>el.info.guid!==treeModalDetails.guid)
+      image: treeModalDetails.image,
+    }
+    const filteredData = SampleTreeSpecies.filter(
+      el => el.info.guid !== treeModalDetails.guid,
+    )
     filteredData.push({
       info: {...speciesDetails},
       count: Number(count),
     })
-    dispatch(
-      addSampleTreeSpecies(filteredData),
-    )
+    dispatch(addSampleTreeSpecies(filteredData))
     setTreeModalDetails(null)
     navigation.navigate('TotalTrees', {isSelectSpecies: false})
   }

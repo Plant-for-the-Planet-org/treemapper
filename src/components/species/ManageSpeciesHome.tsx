@@ -23,7 +23,13 @@ interface Props {
 }
 
 const ManageSpeciesHome = (props: Props) => {
-  const {toogleFavSpecies, userFavSpecies, isSelectSpecies, formData, showTreeModal} = props
+  const {
+    toogleFavSpecies,
+    userFavSpecies,
+    isSelectSpecies,
+    formData,
+    showTreeModal,
+  } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const dummy = () => {
@@ -34,7 +40,11 @@ const ManageSpeciesHome = (props: Props) => {
     if (isSelectSpecies) {
       if (formData.is_multi_species) {
         dispatch(updateFormSpecies(item.guid))
-        showTreeModal(item)
+        if (formData.species_count_required) {
+          showTreeModal(item)
+        }else{
+          //
+        }
       } else {
         dispatch(updateFormSpecies(item.guid))
         if (formData.tree_details_required) {
@@ -75,7 +85,7 @@ const ManageSpeciesHome = (props: Props) => {
       renderItem={({item, index}) => renderSpecieCard(item, index)}
       estimatedItemSize={cardSize}
       ListHeaderComponent={<ManageSpeciesHeader />}
-      ListEmptyComponent={<EmptyManageSpeciesList/>}
+      ListEmptyComponent={<EmptyManageSpeciesList />}
     />
   )
 }

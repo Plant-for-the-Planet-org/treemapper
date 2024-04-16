@@ -1,4 +1,4 @@
-import { INTERVENTION_TYPE } from '../type/app.type'
+import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
 import {Coordinates, IScientificSpecies} from './app.interface'
 import {MainForm} from './form.interface'
 
@@ -8,6 +8,12 @@ export interface AppInitialState {
   idToken: string
   expiringAt: number
 }
+
+export interface MapBoundSlice {
+  bounds: number[]
+  key:MAP_BOUNDS
+}
+
 
 export interface DisplayMapSlice {
   selectedIntervention: string

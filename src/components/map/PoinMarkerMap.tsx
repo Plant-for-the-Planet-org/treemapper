@@ -35,7 +35,7 @@ const PointMarkerMap = (props: Props) => {
   const {cover_image_required} = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [showPermissionAlert, setPermissionAlert] = useState(false)
-
+  const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -56,6 +56,29 @@ const PointMarkerMap = (props: Props) => {
       setPermissionAlert(false)
     }
   }, [permissionStatus])
+
+  useEffect(() => {
+   setTimeout(() => {
+    if (cameraRef && cameraRef.current) {
+      handleCameraViewChange()
+    }
+   }, 500);
+  }, [MapBounds])
+
+  const handleCameraViewChange = () => {
+    const {bounds, key} = MapBounds
+    if (bounds.length === 0) {
+      return
+    }
+    if (key === 'POINT_MAP') {
+      cameraRef.current.fitBounds(
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+        40,
+        1000,
+      )
+    }
+  }
 
   useEffect(() => {
     if (form_id.length) {

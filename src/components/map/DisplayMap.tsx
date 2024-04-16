@@ -14,7 +14,8 @@ import {InterventionData} from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 import MapMarkers from './MapMarkers'
 import {updateSelectedIntervention} from 'src/store/slice/displayMapSlice'
-import { scaleSize } from 'src/utils/constants/mixins'
+import {scaleSize} from 'src/utils/constants/mixins'
+// import SiteMapSource from './SiteMapSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -25,6 +26,7 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const {selectedIntervention} = useSelector(
     (state: RootState) => state.displayMapState,
   )
@@ -68,6 +70,12 @@ const DisplayMap = () => {
     }
   }, [permissionStatus])
 
+  useEffect(() => {
+    if (cameraRef && cameraRef.current) {
+      handleCameraViewChange()
+    }
+  }, [MapBounds])
+
   const getInitalLocation = async () => {
     const {lat, long} = await getUserLocation()
     dispatch(
@@ -92,14 +100,20 @@ const DisplayMap = () => {
     })
   }
 
-  // const abc = () => {
-  //   cameraRef.current.fitBounds(
-  //     [-90.1572346345325, 18.754657188433],
-  //     [-90.108707013427, 18.7934231781247],
-  //     40,
-  //     1000,
-  //   )
-  // }
+  const handleCameraViewChange = () => {
+    const {bounds, key} = MapBounds
+    if (bounds.length === 0) {
+      return
+    }
+    if (key === 'DISPLAY_MAP') {
+      cameraRef.current.fitBounds(
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+        40,
+        1000,
+      )
+    }
+  }
 
   const setSelectedGeoJson = (id: string) => {
     const intervention = realm.objectForPrimaryKey<InterventionData>(
@@ -126,6 +140,7 @@ const DisplayMap = () => {
         geoJSON={geoJSON.features}
         onShapeSourcePress={setSelectedGeoJson}
       />
+      {/* <SiteMapSource /> */}
       {selectedIntervention && (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees}
