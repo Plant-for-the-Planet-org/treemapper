@@ -119,34 +119,16 @@ export const deleteOldLogs = () => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let logs = realm.objects('ActivityLogs');
-          const currentDate: any = new Date();
-          // Milliseconds in one day
-          const oneDay = 1000 * 60 * 60 * 24;
-
-          // calculates the old date for n days
-          let oldDate: any = currentDate - oneDay * 14;
-
-          oldDate = new Date(oldDate);
-
-          // sets the date hours, mins, seconds and nanoseconds to zero
-          oldDate.setUTCHours(0, 0, 0, 0);
-
-          // converts to ISO string and removes the Z characters from last
-          oldDate = oldDate.toISOString().slice(0, -1);
-
-          // filters and stores all the logs before 14 days
-          let deleteLogs = logs.filtered(`timestamp < ${oldDate}`);
-
-          // deletes the filtered logs from DB
-          realm.delete(deleteLogs);
-          // logging the success in to the db
-          dbLog.info({
-            logType: LogTypes.OTHER,
-            message: 'Deleted older logs',
-          });
-          resolve(true);
+          const oldLogs = realm.objects('ActivityLogs');
+          const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+          const logsTobeDeleted = oldLogs.filtered('timestamp < $0', fourteenDaysAgo);
+          realm.delete(logsTobeDeleted);
         });
+        dbLog.info({
+          logType: LogTypes.OTHER,
+          message: 'Deleted older logs',
+        });
+        resolve(true);
       })
       .catch((err) => {
         // logs the error

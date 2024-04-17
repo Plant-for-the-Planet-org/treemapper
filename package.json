@@ -1,6 +1,6 @@
 {
   "name": "treemapper",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "private": true,
   "scripts": {
     "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
@@ -46,7 +46,7 @@
     "moment": "^2.29.1",
     "react": "17.0.2",
     "react-native": "0.66.5",
-    "react-native-auth0": "^3.1.0",
+    "react-native-auth0": "^2.17.4",
     "react-native-camera": "^3.43.9",
     "react-native-config": "1.4.1",
     "react-native-device-info": "^8.4.3",
