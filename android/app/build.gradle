@@ -89,7 +89,7 @@ android {
         versionCode 1
         versionName "1.0.0"
         buildConfigField("boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString())
-        manifestPlaceholders = [auth0Domain:  "@string/AUTH0_DOMAIN", auth0Scheme:"${applicationId}"]
+        manifestPlaceholders = [auth0Domain:  "@string/AUTH0_DOMAIN", auth0Scheme:"${applicationId}.auth0"]
     }
     signingConfigs {
         debug {

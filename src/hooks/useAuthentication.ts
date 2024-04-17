@@ -1,8 +1,7 @@
 import {Credentials, useAuth0} from 'react-native-auth0'
 
 const useAuthentication = () => {
-  const {authorize, getCredentials, clearSession, clearCredentials} =
-    useAuth0()
+  const {authorize, getCredentials, clearSession, clearCredentials} = useAuth0()
 
   const getUserCredentials = async () => {
     const result = await getCredentials()
@@ -11,7 +10,7 @@ const useAuthentication = () => {
 
   const logoutUser = () => {
     return new Promise((resolve, reject) => {
-      clearSession({}, {customScheme: process.env.EXPO_PUBLIC_APP_SCHEMA})
+      clearSession()
         .then(() => clearCredentials())
         .then(() => {
           resolve(true)
@@ -28,12 +27,7 @@ const useAuthentication = () => {
     success: boolean
   }> => {
     try {
-      const authCreds = await authorize(
-        {},
-        {
-          customScheme: process.env.EXPO_PUBLIC_APP_SCHEMA,
-        },
-      )
+      const authCreds = await authorize({audience: 'urn:plant-for-the-planet'})
 
       if (!authCreds) {
         throw 'No token found'
