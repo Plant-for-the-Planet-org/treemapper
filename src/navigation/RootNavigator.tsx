@@ -13,10 +13,6 @@ const RootNavigator = () => {
       <Stack.Screen name="Home" component={BottomTabStack} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
       <Stack.Screen name="PolygonMarker" component={Screens.PolygonMarker} />
-      <Stack.Screen
-        name="PreviewFormData"
-        component={Screens.PreviewFormData}
-      />
       <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />
       <Stack.Screen name="SpeciesInfo" component={Screens.SpeciesInfo} />
       <Stack.Screen name="SpeciesSearch" component={Screens.SpeciesSearch} />
@@ -30,7 +26,7 @@ const RootNavigator = () => {
       <Stack.Screen name="TotalTrees" component={Screens.TotalTrees} />
       <Stack.Screen name="ManageProjects" component={Screens.ManageProjects} />
       <Stack.Screen name="DataExplorer" component={Screens.DataExplore} />
-
+      <Stack.Screen name="InterventionPreview" component={Screens.InterventionPreview} />
       
       <Stack.Screen
         name="HomeSideDrawer"

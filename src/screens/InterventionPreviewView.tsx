@@ -1,6 +1,6 @@
 import {ScrollView, StyleSheet, View} from 'react-native'
-import React from 'react'
-import {useNavigation} from '@react-navigation/native'
+import React, {useEffect} from 'react'
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import CustomButton from 'src/components/common/CustomButton'
 import {RootStackParamList} from 'src/types/type/navigation.type'
@@ -12,8 +12,7 @@ import InterventionArea from 'src/components/previewIntervention/InterventionAre
 import {useDispatch, useSelector} from 'react-redux'
 import {RootState} from 'src/store'
 import {
-  getPreviewData,
-  interventionFinalData,
+  convertFormDataToIntervention,
   makeInterventionGeoJson,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -21,18 +20,37 @@ import {resetSampleTreeform} from 'src/store/slice/sampleTreeSlice'
 import {Colors} from 'src/utils/constants'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 import bbox from '@turf/bbox'
-import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
+import {updateMapBounds} from 'src/store/slice/mapBoundSlice'
+import {InterventionData} from 'src/types/interface/slice.interface'
+import {updateInerventionData} from 'src/store/slice/interventionSlice'
 
-const PreviewFormData = () => {
+const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
+  const InterventionData = useSelector(
+    (state: RootState) => state.interventionState,
+  )
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const is_sampleTree = SampleTreeData.form_id.length > 0
   const {addNewIntervention, addSampleTrees} = useInterventionManagement()
   const dispatch = useDispatch()
+  const isPreview = route.params.id === 'preview'
+
+  useEffect(() => {
+    if (route.params.id === 'review') {
+      const finalData: InterventionData =
+        convertFormDataToIntervention(formFlowData)
+      dispatch(updateInerventionData(finalData))
+    }
+  }, [])
 
   const navigateToNext = async () => {
-    const finalData = interventionFinalData(formFlowData)
+    if (isPreview) {
+      navigation.goBack()
+      return
+    }
+    const finalData = convertFormDataToIntervention(formFlowData)
     if (!is_sampleTree || finalData.sample_trees.length === 1) {
       await addNewIntervention(finalData)
     } else {
@@ -65,17 +83,24 @@ const PreviewFormData = () => {
     }
   }
 
-  const {previewImage, basicInfo} = getPreviewData(formFlowData)
+  if (InterventionData.intervention_id.length === 0) {
+    return null
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView>
         <View>
           <Header label="Review" />
-          <IterventionCoverImage image={previewImage} />
-          <InterventionBasicInfo data={basicInfo} />
-          <InterventionArea formData={formFlowData} />
-          <SampleTreePreviewList sampleTress={formFlowData.tree_details} />
+          <IterventionCoverImage image={InterventionData.cover_image_url} />
+          <InterventionBasicInfo
+            title={InterventionData.intervention_title}
+            intervention_date={InterventionData.intervention_date}
+            project_name={InterventionData.project_name}
+            site_name={InterventionData.site_name}
+          />
+          <InterventionArea data={InterventionData} />
+          <SampleTreePreviewList sampleTress={InterventionData.sample_trees} />
           <CustomButton
             label={
               is_sampleTree &&
@@ -93,7 +118,7 @@ const PreviewFormData = () => {
   )
 }
 
-export default PreviewFormData
+export default InterventionPreviewView
 
 const styles = StyleSheet.create({
   container: {

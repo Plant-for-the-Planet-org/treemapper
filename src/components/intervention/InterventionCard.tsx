@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
 import React from 'react'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import InterventionIconSwitch from './InterventionIconSwitch'
@@ -14,13 +14,18 @@ import InterventionMetaInfo from './InterventionMetaInfo'
 const newDate = new Date().getTime()
 
 interface Props {
-  item: InterventionData | any
+  item: InterventionData
+  openIntervention: (item: InterventionData) => void
 }
 
 const InterventionCard = (props: Props) => {
-  const {item} = props
+  const {item, openIntervention} = props
+  const handleIntervention = () => {
+    const finalItem = {...JSON.parse(JSON.stringify(item))}
+    openIntervention({...finalItem})
+  }
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
         <InterventionIconSwitch icon={item.intervention_type} />
         {item.is_complete && (
@@ -39,7 +44,7 @@ const InterventionCard = (props: Props) => {
               )}
             </View>
             <Text style={styles.metaLable}>{item.location_type}</Text>
-            <InterventionMetaInfo item={item}/>
+            <InterventionMetaInfo item={item} />
             <Text style={styles.metaLable}>
               {timestampToBasicDate(item.intervention_date)}
             </Text>
@@ -49,7 +54,7 @@ const InterventionCard = (props: Props) => {
           <EditInterventionIcon height={25} width={25} />
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 

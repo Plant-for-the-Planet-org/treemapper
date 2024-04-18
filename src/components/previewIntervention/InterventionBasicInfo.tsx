@@ -2,19 +2,17 @@ import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import {Colors, Typography} from 'src/utils/constants'
 import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
-import { scaleSize } from 'src/utils/constants/mixins'
+import {scaleSize} from 'src/utils/constants/mixins'
 
 interface Props {
-  data: {
-    title: string
-    intervention_date: number
-    project_name: string
-    site_name: string
-  }
+  title: string
+  intervention_date: number
+  project_name: string
+  site_name: string
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const {title, intervention_date, project_name, site_name} = props.data
+  const {title, intervention_date, project_name, site_name} = props
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -34,10 +32,12 @@ const InterventionBasicInfo = (props: Props) => {
             <Text style={styles.cardLabel}>{project_name}</Text>
           </View>
         )}
-        {site_name && <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>Site</Text>
-          <Text style={styles.cardLabel}>{site_name}</Text>
-        </View>}
+        {site_name && (
+          <View style={styles.cardWrapper}>
+            <Text style={styles.cardTitle}>Site</Text>
+            <Text style={styles.cardLabel}>{site_name}</Text>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -54,25 +54,25 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '90%',
     borderRadius: 12,
-    backgroundColor: Colors.GRAY_BACKDROP+'1A',
+    backgroundColor: Colors.GRAY_BACKDROP + '1A',
     paddingVertical: 20,
-    borderWidth:0.5,
-    borderColor:Colors.GRAY_TEXT
+    borderWidth: 0.5,
+    borderColor: Colors.GRAY_TEXT,
   },
   cardWrapper: {
     width: '100%',
     paddingHorizontal: 20,
-    marginVertical:10
+    marginVertical: 10,
   },
   cardTitle: {
-    fontFamily:Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
-    marginBottom:5,
-    color: Colors.TEXT_LIGHT
+    marginBottom: 5,
+    color: Colors.TEXT_LIGHT,
   },
   cardLabel: {
-    fontFamily:Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
-    color: Colors.TEXT_COLOR
+    color: Colors.TEXT_COLOR,
   },
 })

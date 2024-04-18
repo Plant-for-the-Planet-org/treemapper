@@ -7,7 +7,7 @@ import InterventionFormView from './InterventionFormView'
 import PolygonMarker from './PolygonMarkerView'
 import PointMarkerView from './PointMarkerView'
 import TakePicture from './TakePictureView'
-import PreviewFormData from './PreviewFormDataView'
+import InterventionPreview from './InterventionPreviewView'
 import ManageSpeciesView from './ManageSpeciesView'
 import SpeciesInfoView from './SpeciesInfoView'
 import SpeciesSearchView from './SpeciesSearchView'
@@ -25,7 +25,6 @@ export default {
   PolygonMarker: PolygonMarker,
   SyncSpecies: SyncSpecies,
   HomeSideDrawer: HomeSideDrawer,
-  PreviewFormData: PreviewFormData,
   ManageSpecies: ManageSpeciesView,
   SpeciesInfo: SpeciesInfoView,
   SpeciesSearch: SpeciesSearchView,
@@ -36,4 +35,5 @@ export default {
   TotalTrees: TotalTreesView,
   ManageProjects: ManageProjectsView,
   DataExplore: DataExplorerView,
+  InterventionPreview: InterventionPreview,
 }

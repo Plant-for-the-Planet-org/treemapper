@@ -17,9 +17,10 @@ import takePictureSlice from './slice/takePictureSlice'
 import registerFormSlice from './slice/registerFormSlice'
 import sampleTreeSlice from './slice/sampleTreeSlice'
 import userStateSlice from './slice/userStateSlice'
-import projectStateSlice from './slice/projectStateSlice';
+import projectStateSlice from './slice/projectStateSlice'
 import displayMapSlice from './slice/displayMapSlice'
 import mapBoundSlice from './slice/mapBoundSlice'
+import interventionSlice from './slice/interventionSlice'
 
 const appReducer = combineReducers({
   appState: appStateSlice,
@@ -30,13 +31,14 @@ const appReducer = combineReducers({
   userState: userStateSlice,
   projectState: projectStateSlice,
   displayMapState: displayMapSlice,
-  mapBoundState: mapBoundSlice
+  mapBoundState: mapBoundSlice,
+  interventionState: interventionSlice,
 })
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState', 'gpsState', 'userState', 'projectState','displayMapState','mapBoundState'],
+  whitelist: ['appState', 'gpsState', 'userState', 'projectState'],
 }
 
 const persistedReducer = persistReducer(persistConfig, appReducer)

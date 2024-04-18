@@ -7,7 +7,7 @@ import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
-import { timestampToBasicDate } from 'src/utils/appHelper/dataAndTimeHelper'
+import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -15,6 +15,7 @@ interface Props {
 
 const SampleTreePreviewList = (props: Props) => {
   const {sampleTress} = props
+  const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
       return (
@@ -29,7 +30,9 @@ const SampleTreePreviewList = (props: Props) => {
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
-            <Text style={styles.valueLable}>{timestampToBasicDate(details.plantation_date)}</Text>
+            <Text style={styles.valueLable}>
+              {timestampToBasicDate(details.plantation_date)}
+            </Text>
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Species</Text>
@@ -55,17 +58,23 @@ const SampleTreePreviewList = (props: Props) => {
               </View>
             </View>
           </View>
-          <View style={styles.metaWrapper}>
-            <Text style={styles.title}>Tag Id</Text>
-            <Text style={styles.valueLable}>{details.tag_id}</Text>
-          </View>
+          {details.tag_id && (
+            <View style={styles.metaWrapper}>
+              <Text style={styles.title}>Tag Id</Text>
+              <Text style={styles.valueLable}>{details.tag_id}</Text>
+            </View>
+          )}
         </View>
       )
     })
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Sample Trees</Text>
+      <Text style={styles.header}>
+        {hasDetails && sampleTress[0].tree_type === 'sample'
+          ? 'Sample Trees'
+          : 'Tree Details'}
+      </Text>
       {renderCard()}
     </View>
   )

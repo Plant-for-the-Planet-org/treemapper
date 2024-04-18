@@ -88,7 +88,7 @@ const AddMeasurment = () => {
       hid: '',
     }
     dispatch(updateTree_details(treeDetails))
-    navigation.replace('PreviewFormData')
+    navigation.replace('InterventionPreview', {id: 'review'})
   }
 
   return (

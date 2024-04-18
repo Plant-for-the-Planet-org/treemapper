@@ -13,7 +13,7 @@ export type RootStackParamList = {
   PolygonMarker: undefined
   SyncSpecies: undefined
   HomeSideDrawer: undefined
-  PreviewFormData: undefined
+  InterventionPreview: InterventionPreviewView
   ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
   SpeciesSearch: undefined
@@ -38,6 +38,11 @@ type TakePictureView = {
 type IntermediateFormView = {
   id: INTERVENTION_TYPE
 }
+
+type InterventionPreviewView = {
+  id: 'preview' | 'review'
+}
+
 
 type ManageSpeciesView = {
   isSelectSpecies: boolean

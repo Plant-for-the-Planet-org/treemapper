@@ -12,6 +12,8 @@ interface Props {
 
 const CoordinatesList = (props: Props) => {
   const {coordinates} = props
+  console.log("kajsc",coordinates)
+  return null
   const renderCard = () => {
     return coordinates.map((el, i) => {
       return (

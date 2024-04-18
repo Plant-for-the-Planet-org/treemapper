@@ -6,7 +6,6 @@ import {
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const {intervention_date, title, project_name, site_name} = data
 
-
   let previewImage
   const basicInfo = {
     title,
@@ -25,7 +24,9 @@ export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   return {previewImage, basicInfo}
 }
 
-export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
+export const convertFormDataToIntervention = (
+  data: RegisterFormSliceInitalState,
+) => {
   const interventionLocation = makeInterventionGeoJson(
     data.location_type,
     data.coordinates,
@@ -55,7 +56,7 @@ export const interventionFinalData = (data: RegisterFormSliceInitalState) => {
     intervention_type: data.intervention_type,
     form_data: '',
     additional_data: '',
-    meta_data: ''
+    meta_data: '',
   }
   return finalData
 }

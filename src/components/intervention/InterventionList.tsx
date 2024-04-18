@@ -4,18 +4,35 @@ import {FlashList} from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
 import {scaleSize} from 'src/utils/constants/mixins'
 import InterventionHeaderSelector from 'src/components/intervention/InterventionHeaderList'
-import { InterventionData } from 'src/types/interface/slice.interface'
+import {InterventionData} from 'src/types/interface/slice.interface'
+import {useNavigation} from '@react-navigation/native'
+import {StackNavigationProp} from '@react-navigation/stack'
+import {RootStackParamList} from 'src/types/type/navigation.type'
+import {useDispatch} from 'react-redux'
+import {updateInerventionData} from 'src/store/slice/interventionSlice'
 
-interface Props{
+interface Props {
   interventionData: InterventionData[] | any[]
 }
 
-const InterventionList = (props:Props) => {
-  const {interventionData} = props;
+const InterventionList = (props: Props) => {
+  const {interventionData} = props
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const dispatch = useDispatch()
+  const handleNavigation = (item: InterventionData) => {
+    dispatch(updateInerventionData(item))
+    navigation.navigate('InterventionPreview', {id: 'preview'})
+  }
   return (
     <FlashList
       data={interventionData}
-      renderItem={({item}) => <InterventionCard item={item} key={item.intervention_id}/>}
+      renderItem={({item}) => (
+        <InterventionCard
+          item={item}
+          key={item.intervention_id}
+          openIntervention={handleNavigation}
+        />
+      )}
       estimatedItemSize={scaleSize(100)}
       ListFooterComponent={<View style={styles.footerWrapper} />}
       ListHeaderComponent={<InterventionHeaderSelector />}
