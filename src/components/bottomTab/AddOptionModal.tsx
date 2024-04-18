@@ -26,6 +26,8 @@ import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
 import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
+import {useSelector} from 'react-redux'
+import {RootState} from 'src/store'
 
 const {width, height} = Dimensions.get('screen')
 
@@ -38,6 +40,7 @@ const AddOptionModal = (props: Props) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(props.visible ? 0 : 600, {duration: 500})
   }, [props.visible])
+  const userType = useSelector((state: RootState) => state.userState.type)
 
   const opacity = useDerivedValue(() => {
     return withTiming(props.visible ? 1 : 0, {
@@ -61,7 +64,7 @@ const AddOptionModal = (props: Props) => {
         navigation.navigate('InterventionForm', {id: 'UNKOWN'})
         props.setVisible(false)
       },
-      disabled: false,
+      disabled: true,
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
@@ -81,7 +84,7 @@ const AddOptionModal = (props: Props) => {
         navigation.navigate('InterventionForm', {id: 'UNKOWN'})
         props.setVisible(false)
       },
-      disabled: false,
+      disabled: userType !== 'tpo',
     },
     {
       svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
@@ -179,8 +182,8 @@ const styles = StyleSheet.create({
   icon: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft:15,
-    marginRight:10
+    marginLeft: 15,
+    marginRight: 10,
   },
   text: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
@@ -191,6 +194,5 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(8),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
-
   },
 })

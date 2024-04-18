@@ -7,7 +7,7 @@ import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
-import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
+import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 
 interface Props {
   sampleTress: SampleTree[]

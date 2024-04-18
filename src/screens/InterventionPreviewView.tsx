@@ -100,7 +100,11 @@ const InterventionPreviewView = () => {
             site_name={InterventionData.site_name}
           />
           <InterventionArea data={InterventionData} />
-          <SampleTreePreviewList sampleTress={InterventionData.sample_trees} />
+          {InterventionData.sample_trees.length > 0 && (
+            <SampleTreePreviewList
+              sampleTress={InterventionData.sample_trees}
+            />
+          )}
           <CustomButton
             label={
               is_sampleTree &&

@@ -1,7 +1,7 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import {Colors, Typography} from 'src/utils/constants'
-import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
+import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import {scaleSize} from 'src/utils/constants/mixins'
 
 interface Props {

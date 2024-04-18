@@ -18,9 +18,9 @@ const InterventionIconSwitch = (props: Props) => {
   const {icon} = props
 
   switch (icon) {
-    case 'FIRE_BREAK':
+    case 'FIRESUPRESSION_TEAM':
       return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
-    case 'GRASS_REMOVAL':
+    case 'SEED_RAIN':
       return <GrassRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     case 'SEPCIES_REMOVAL':
       return (

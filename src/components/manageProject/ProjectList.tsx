@@ -11,7 +11,7 @@ import {
 import PlantProjectBackfrop from 'assets/images/svg/PlantProjectIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {handleFilter} from 'src/utils/constants/countryDataFilter'
-import openWebView from 'src/utils/appHelper/openWebView'
+import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import LargeButton from 'src/components/common/LargeButton'
 import {useQuery} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'

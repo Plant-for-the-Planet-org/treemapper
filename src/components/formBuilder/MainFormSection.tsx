@@ -44,7 +44,7 @@ const MainFormSection = (props: Props) => {
   }
 
   const submitHandler = () => {
-    navigation.navigate('PreviewFormData')
+    navigation.navigate('InterventionPreview',{id:'review'})
   }
 
   const renderElement = (formElements: FormElement[]) => {

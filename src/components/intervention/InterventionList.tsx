@@ -1,5 +1,5 @@
 import {StyleSheet, View} from 'react-native'
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {FlashList} from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
 import {scaleSize} from 'src/utils/constants/mixins'
@@ -10,12 +10,22 @@ import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {useDispatch} from 'react-redux'
 import {updateInerventionData} from 'src/store/slice/interventionSlice'
+import {groupInterventionList} from 'src/utils/helpers/interventionHelper/groupInterventions'
 
 interface Props {
   interventionData: InterventionData[] | any[]
 }
 
 const InterventionList = (props: Props) => {
+  const [selectedList, setSelectedList] = useState<InterventionData[]>([])
+  const [selectedLabel, setSlectedLabel] = useState('all')
+
+  useEffect(() => {
+    const finalData = groupInterventionList(interventionData, selectedLabel)
+    console.log('aslkcj', finalData)
+    setSelectedList(finalData)
+  }, [selectedLabel])
+
   const {interventionData} = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
@@ -23,9 +33,10 @@ const InterventionList = (props: Props) => {
     dispatch(updateInerventionData(item))
     navigation.navigate('InterventionPreview', {id: 'preview'})
   }
+
   return (
     <FlashList
-      data={interventionData}
+      data={selectedList}
       renderItem={({item}) => (
         <InterventionCard
           item={item}
@@ -35,7 +46,13 @@ const InterventionList = (props: Props) => {
       )}
       estimatedItemSize={scaleSize(100)}
       ListFooterComponent={<View style={styles.footerWrapper} />}
-      ListHeaderComponent={<InterventionHeaderSelector />}
+      ListHeaderComponent={
+        <InterventionHeaderSelector
+          data={interventionData}
+          selectedLabel={selectedLabel}
+          setSlectedLabel={setSlectedLabel}
+        />
+      }
     />
   )
 }

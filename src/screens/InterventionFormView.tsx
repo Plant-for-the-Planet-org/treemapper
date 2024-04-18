@@ -22,7 +22,7 @@ import {
   updateCoverImageId,
 } from 'src/store/slice/registerFormSlice'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {setUpIntervention} from 'src/utils/formHelper/selectIntervention'
+import {setUpIntervention} from 'src/utils/helpers/formHelper/selectIntervention'
 import {v4 as uuidv4} from 'uuid'
 import {RootState} from 'src/store'
 import {useRealm} from '@realm/react'

@@ -3,7 +3,7 @@ import React from 'react'
 import {SampleTree} from 'src/types/interface/slice.interface'
 import {scaleFont} from 'src/utils/constants/mixins'
 import {Colors, Typography} from 'src/utils/constants'
-import {timestampToBasicDate} from 'src/utils/appHelper/dataAndTimeHelper'
+import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import {SCALE_36} from 'src/utils/constants/spacing'
 

@@ -1,30 +1,49 @@
-import {FlatList, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {
+  FlatList,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import React from 'react'
 import {Text} from 'react-native'
 import {scaleFont} from 'src/utils/constants/mixins'
 import {Colors} from 'src/utils/constants'
+import {InterventionData} from 'src/types/interface/slice.interface'
+import {groupIntervention} from 'src/utils/helpers/interventionHelper/groupInterventions'
 
-const DummyData = [
-  'All 15',
-  '5 Incomplete',
-  '4 unsynced',
-  '3 Fire Breaks',
-  '2 Inasive species Removal',
-  '1 Planted Tree',
-]
+interface Props {
+  data: InterventionData[]
+  selectedLabel: string
+  setSlectedLabel: (t: string) => void
+}
 
-const InterventionHeaderList = () => {
-  const headerChip = (label: string) => {
+const InterventionHeaderList = (props: Props) => {
+  const {data, selectedLabel, setSlectedLabel} = props
+  const FinalData = groupIntervention(data)
+  const headerChip = (item: any) => {
+    const isSelected = item.key === selectedLabel
+    const selectedStyle: TextStyle = {
+      color: isSelected ? Colors.WHITE : Colors.TEXT_COLOR,
+      backgroundColor: isSelected ? Colors.NEW_PRIMARY : Colors.WHITE,
+    }
+    const handlePress = () => {
+      setSlectedLabel(item.key)
+    }
     return (
-      <TouchableOpacity>
-        <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity key={item.key} onPress={handlePress}>
+        <Text
+          style={[
+            styles.label,
+            selectedStyle,
+          ]}>{`${item.label} (${item.count})`}</Text>
       </TouchableOpacity>
     )
   }
   return (
     <View>
       <FlatList
-        data={DummyData}
+        data={FinalData}
         renderItem={({item}) => headerChip(item)}
         horizontal
         contentContainerStyle={styles.container}
@@ -47,7 +66,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: Colors.WHITE,
     borderWidth: 0.5,
     borderColor: Colors.GRAY_BORDER,
     marginHorizontal: 5,

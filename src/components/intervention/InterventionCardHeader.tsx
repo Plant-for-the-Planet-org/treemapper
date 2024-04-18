@@ -22,10 +22,12 @@ const InterventionCardHeader = (props: Props) => {
   }
 
   switch (item.intervention_type) {
-    case 'FIRE_BREAK':
-      return <Text style={styles.label}>8 Trees Planted</Text>
+    case 'FIRESUPRESSION_TEAM':
+      return <Text style={styles.label}>Fire Supression Team</Text>
     case 'GRASS_REMOVAL':
       return <Text style={styles.label}>8 Trees Planted</Text>
+    case 'SEED_RAIN':
+      return <Text style={styles.label}>Assited Seed Rain</Text>
     case 'SEPCIES_REMOVAL':
       return <Text style={styles.label}>8 Trees Planted</Text>
     case 'MULTI_TREE':
