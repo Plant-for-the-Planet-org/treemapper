@@ -12,8 +12,6 @@ interface Props {
 
 const CoordinatesList = (props: Props) => {
   const {coordinates} = props
-  console.log("kajsc",coordinates)
-  return null
   const renderCard = () => {
     return coordinates.map((el, i) => {
       return (
@@ -22,7 +20,7 @@ const CoordinatesList = (props: Props) => {
             <View style={styles.metaWrapper}>
               <Text style={styles.coordinateTitle}>Coordinate</Text>
               <Text style={styles.coordinatesLabel}>
-                {`${el.lat.toFixed(6)}`},{`${el.long.toFixed(6)}`}
+                {`${el[0].toFixed(6)}`},{`${el[1].toFixed(6)}`}
               </Text>
             </View>
             <View style={styles.divider} />
@@ -54,7 +52,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 10,
     flexDirection: 'row',
-    marginVertical:5
+    marginVertical: 5,
   },
   card: {
     width: '75%',
