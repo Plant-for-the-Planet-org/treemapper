@@ -5,10 +5,8 @@ import * as Location from 'expo-location'
 import {Text} from 'react-native'
 import GPSICON from 'assets/images/svg/GPSIcon.svg'
 
-type AccuracyType = 'high' | 'medium' | 'low'
-
 const GpsAccuracyTile = () => {
-  const [accuracy, setAccuracy] = useState<AccuracyType>('high')
+  const [accuracy, setAccuracy] = useState(0)
   useEffect(() => {
     (async () => {
       const watcher = await Location.watchPositionAsync(
@@ -18,16 +16,8 @@ const GpsAccuracyTile = () => {
           distanceInterval: 10, // Minimum distance between updates in meters
         },
         location => {
-          if (location && location.coords && location.coords.accuracy < 10) {
-            setAccuracy('high')
-          } else if (
-            location &&
-            location.coords &&
-            location.coords.accuracy < 30
-          ) {
-            setAccuracy('medium')
-          } else {
-            setAccuracy('low')
+          if (location && location.coords && location.coords.accuracy) {
+            setAccuracy(location.coords.accuracy)
           }
         },
       )
@@ -40,15 +30,15 @@ const GpsAccuracyTile = () => {
 
   const activeStyle = {
     bgColor:
-      accuracy === 'high'
+      accuracy < 10
         ? Colors.NEW_PRIMARY + '1A'
-        : accuracy === 'medium'
+        : accuracy < 30
           ? Colors.LIGHT_AMBER + '1A'
           : Colors.LIGHT_RED + '1A',
     iconColor:
-      accuracy === 'high'
+      accuracy < 10
         ? Colors.NEW_PRIMARY
-        : accuracy === 'medium'
+        : accuracy < 30
           ? Colors.LIGHT_AMBER
           : Colors.LIGHT_RED,
   }
@@ -56,9 +46,9 @@ const GpsAccuracyTile = () => {
   return (
     <View style={styles.container}>
       <View style={[styles.wrapper, {backgroundColor: activeStyle.bgColor}]}>
-        <GPSICON style={styles.iconWrapper} fill={Colors.NEW_PRIMARY}/>
+        <GPSICON style={styles.iconWrapper} fill={activeStyle.iconColor} />
         <Text style={styles.boldText}>
-          GPS <Text style={styles.lightText}>5.8m</Text>
+          GPS <Text style={styles.lightText}>{accuracy.toFixed(0)} m</Text>
         </Text>
       </View>
     </View>
