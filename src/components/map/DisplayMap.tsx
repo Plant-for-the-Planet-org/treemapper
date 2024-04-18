@@ -15,7 +15,7 @@ import MapShapeSource from './MapShapeSource'
 import MapMarkers from './MapMarkers'
 import {updateSelectedIntervention} from 'src/store/slice/displayMapSlice'
 import {scaleSize} from 'src/utils/constants/mixins'
-import SiteMapSource from './SiteMapSource'
+// import SiteMapSource from './SiteMapSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -140,7 +140,7 @@ const DisplayMap = () => {
         geoJSON={geoJSON.features}
         onShapeSourcePress={setSelectedGeoJson}
       />
-      <SiteMapSource />
+      {/* <SiteMapSource /> */}
       {selectedIntervention && (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees}

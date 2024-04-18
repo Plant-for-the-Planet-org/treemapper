@@ -110,7 +110,7 @@ const PointMarkerMap = (props: Props) => {
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
-      zoomLevel: 18,
+      zoomLevel: 17,
       animationDuration: 1000,
     })
   }
