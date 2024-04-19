@@ -65,26 +65,24 @@ export interface RegisterFormSliceInitalState {
   site_id: string
   site_name: string
   entire_site_intervention: boolean
+  register_location: boolean,
   location_type: 'Point' | 'Polygon'
   location_title: string
   coordinates: Coordinates[]
   preview_blank_polygon: boolean
-  cover_image_required: boolean
   cover_image_url: string
-  cover_image_id: string
   species_required: boolean
   is_multi_species: boolean
   species_count_required: boolean
   species_modal_message: string
   species_modal_unit: string
   species: string[]
-  tree_details_required: boolean
   has_sample_trees: boolean
-  tree_image_required: boolean
-  tree_image_url: string
+  tree_details_required: boolean
   tree_details: SampleTree[]
   form_details: MainForm[]
   meta_data: string
+  additional_data: string
   form_data: FormValues[]
 }
 
