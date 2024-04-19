@@ -1,7 +1,6 @@
 import {Text, StyleSheet} from 'react-native'
 import React from 'react'
-import {Colors} from 'react-native/Libraries/NewAppScreen'
-import {Typography} from 'src/utils/constants'
+import {Typography,Colors} from 'src/utils/constants'
 import i18next from 'src/locales/index'
 import {SPECIES_SYNC_STATE} from 'src/types/enum/app.enum'
 
@@ -50,9 +49,9 @@ export default OnboardingNotes
 const styles = StyleSheet.create({
   descriptionText: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
 })

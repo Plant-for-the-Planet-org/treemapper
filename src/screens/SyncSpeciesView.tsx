@@ -12,8 +12,7 @@ import {StackNavigationProp} from '@react-navigation/stack'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
 import * as FileSystem from 'expo-file-system'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import {Colors} from 'react-native/Libraries/NewAppScreen'
-import {Typography} from 'src/utils/constants'
+import {Typography,Colors} from 'src/utils/constants'
 import DownloadBackdrop from 'assets/images/svg/DownloadBackdrop.svg'
 import OnboardingNotes from 'src/components/onboarding/OnboardingNotes'
 import i18next from 'src/locales/index'
@@ -104,14 +103,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
   },
-  descriptionText: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_16,
-    color: Colors.TEXT_COLOR,
-    textAlign: 'center',
-    marginTop: 20,
-  },
   activityIndicator: {
-    paddingVertical: 20,
+    paddingVertical: 30,
   },
 })
