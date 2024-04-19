@@ -33,7 +33,7 @@ const SideBarList = (props: Props) => {
     },
     {
       label: 'Additional Data',
-      screen: 'ManageSpecies',
+      screen: 'AdditionalData',
       icon: <AdditionalDataIcon />,
       visible: true,
       key: 'additional_data'

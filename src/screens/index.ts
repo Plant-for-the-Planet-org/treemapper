@@ -16,6 +16,7 @@ import AddMeasurmentView from './AddMeasurmentView'
 import DynamicFormView from './DynamiFormView'
 import ManageProjectsView from './ManageProjectsView'
 import DataExplorerView from './DataExplorerView'
+import AdditionalDataView from './AdditionalDataView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -36,4 +37,5 @@ export default {
   ManageProjects: ManageProjectsView,
   DataExplore: DataExplorerView,
   InterventionPreview: InterventionPreview,
+  AdditionalData: AdditionalDataView
 }

@@ -23,7 +23,8 @@ export type RootStackParamList = {
   AddMeasurment: undefined
   TotalTrees: TotalTreesView
   ManageProjects: undefined
-  DataExplorer:undefined
+  DataExplorer: undefined
+  AdditionalData: undefined
 }
 
 type SpeciesInfoView = {
@@ -42,7 +43,6 @@ type IntermediateFormView = {
 type InterventionPreviewView = {
   id: 'preview' | 'review'
 }
-
 
 type ManageSpeciesView = {
   isSelectSpecies: boolean
