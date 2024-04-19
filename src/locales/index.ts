@@ -1,7 +1,6 @@
 import i18next from 'i18next';
 import { getLocales } from 'expo-localization';
 import moment from 'moment/min/moment-with-locales';
-import DropDownPicker from 'react-native-dropdown-picker';
 
 
 import delabels from './languages/de';
@@ -25,7 +24,7 @@ i18next.init({
       return value;
     },
   },
-  lng: userLang, // 'en' | 'es',
+  lng: userLang,
   fallbackLng: 'en', // If language detector fails
   resources: {
     de: {
@@ -55,15 +54,7 @@ i18next.init({
     },
   },
 });
-i18next.on('languageChanged', function (lng) {
-  moment.locale(lng);
-  DropDownPicker.addTranslation(lng.toUpperCase(), {
-    PLACEHOLDER: i18next.t('label.dropdownpicker_placeholder', { lng: lng }),
-    SEARCH_PLACEHOLDER: i18next.t('label.dropdownpicker_search_placeholder', { lng: lng }),
-    SELECTED_ITEMS_COUNT_TEXT: i18next.t('label.dropdownpicker_selected_items_count', { lng: lng }),
-    NOTHING_TO_SHOW: i18next.t('label.dropdownpicker_nothing_to_show', { lng: lng }),
-  });
-});
+
 i18next.changeLanguage(userLang);
 
 export default i18next;
