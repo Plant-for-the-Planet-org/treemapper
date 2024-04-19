@@ -1,36 +1,30 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import LayerBackDrop from 'assets/images/svg/LayerBackdrop.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont} from 'src/utils/constants/mixins'
-import AddIcon from 'assets/images/svg/Addicon.svg'
 
-const OfflineMapHeader = () => {
+const OfflineSelectionMapHeader = () => {
   return (
     <View style={styles.container}>
       <View style={styles.backdrop}>
         <LayerBackDrop />
       </View>
-      <Text style={styles.headerLabel}>Add Area to Offline Maps</Text>
       <Text style={styles.note}>
-        Add & Save your Area to Offline Maps {'\n'}
-        Anytime, Anywhere {'\n'}
+        Pan and zoom to select area {'\n'}{'\n'}
+        for download {'\n'}
       </Text>
-      <TouchableOpacity style={styles.btnContainer}>
-        <AddIcon style={styles.btnIcon}/>
-        <Text style={styles.btnLable}>Add Area</Text>
-      </TouchableOpacity>
     </View>
   )
 }
 
-export default OfflineMapHeader
+export default OfflineSelectionMapHeader
 
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: '30%',
+    height: '20%',
   },
   backdrop: {
     position: 'absolute',
@@ -41,8 +35,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 40,
     width: '100%',
     justifyContent: 'flex-end',
-    height: '100%',
     paddingBottom:12,
+    height:'100%'
   },
   headerLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
@@ -52,9 +46,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   note: {
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.BLACK,
-    fontSize: scaleFont(14),
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.TEXT_COLOR,
+    fontSize: scaleFont(16),
     lineHeight: 20,
     textAlign: 'center',
   },

@@ -1,10 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import React from 'react'
+import Header from 'src/components/common/Header'
+import OfflineMapDisplay from 'src/components/offlineMap/OfflineMapDisplay'
+import OfflineSelectionMapHeader from 'src/components/offlineMap/OfflineSelectionMapHeader'
 
 const OfflineMapSelectionView = () => {
   return (
     <View style={styles.cotainer}>
-      <Text>OfflineMapSelectionView</Text>
+      <Header label="Confirm Area Selection" />
+      <OfflineSelectionMapHeader />
+      <OfflineMapDisplay/>
     </View>
   )
 }
@@ -12,7 +17,7 @@ const OfflineMapSelectionView = () => {
 export default OfflineMapSelectionView
 
 const styles = StyleSheet.create({
-    cotainer:{
-        flex:1
-    }
+  cotainer: {
+    flex: 1,
+  },
 })
