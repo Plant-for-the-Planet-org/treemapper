@@ -23,6 +23,10 @@ import {v4 as uuidv4} from 'uuid'
 import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
 import {updateSampleTreeCoordinates} from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
+import {
+  isPointInPolygon,
+  validateMarkerForSampleTree,
+} from 'src/utils/helpers/turfHelpers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -32,11 +36,12 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const {cover_image_required} = props.formData
+  const {cover_image_required, tree_details} = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
+  const [outOfBoundry, setOutOfBoundry] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -58,11 +63,11 @@ const PointMarkerMap = (props: Props) => {
   }, [permissionStatus])
 
   useEffect(() => {
-   setTimeout(() => {
-    if (cameraRef && cameraRef.current) {
-      handleCameraViewChange()
-    }
-   }, 500);
+    setTimeout(() => {
+      if (cameraRef && cameraRef.current) {
+        handleCameraViewChange()
+      }
+    }, 500)
   }, [MapBounds])
 
   const handleCameraViewChange = () => {
@@ -117,6 +122,7 @@ const PointMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
+    handleMarkerValidation(centerCoordinates)
     const formCoordinates: Coordinates = {
       lat: centerCoordinates[0],
       long: centerCoordinates[1],
@@ -138,10 +144,27 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
+  const handleMarkerValidation = (coords: number[]) => {
+    if (form_id.length) {
+      const isValidPoint = validateMarkerForSampleTree(
+        coords,
+        geoJSON,
+        tree_details,
+      )
+      console.log("HasvalidPoints",isValidPoint)
+    }
+  }
+
   const handleShapeSource = () => {}
 
   if (showPermissionAlert) {
     return null
+  }
+
+  const handleDrag = async () => {
+    const centerCoordinates = await mapRef.current.getCenter()
+    const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
+    setOutOfBoundry(!validMarker)
   }
 
   return (
@@ -151,6 +174,7 @@ const PointMarkerMap = (props: Props) => {
         ref={mapRef}
         logoEnabled={false}
         attributionEnabled={false}
+        onRegionDidChange={handleDrag}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
@@ -161,6 +185,7 @@ const PointMarkerMap = (props: Props) => {
           <MapShapeSource
             geoJSON={[geoJSON]}
             onShapeSourcePress={handleShapeSource}
+            showError={outOfBoundry}
           />
         )}
       </MapLibreGL.MapView>

@@ -5,27 +5,31 @@ import {Colors} from 'src/utils/constants'
 
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineColor: Colors.PRIMARY,
   lineOpacity: 0.5,
   lineJoin: 'bevel',
 }
-const fillStyle = {fillColor: Colors.PRIMARY, fillOpacity: 0.3}
+const fillStyle = {fillOpacity: 0.3}
 // const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
-const bigCircleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.5, circleRadius: 12 };
+const bigCircleStyle = {
+  circleColor: Colors.PRIMARY_DARK,
+  circleOpacity: 0.5,
+  circleRadius: 12,
+}
 
 interface Props {
   geoJSON: any
   onShapeSourcePress: (id: string) => void
+  showError?: boolean
 }
 
 const MapShapeSource = (props: Props) => {
-  const {geoJSON, onShapeSourcePress} = props
+  const {geoJSON, onShapeSourcePress, showError} = props
   const pressHandle = (el: any) => {
     onShapeSourcePress(el.properties.id)
   }
   return (
     <>
-      {geoJSON.map((feature) => {
+      {geoJSON.map(feature => {
         const id = `feature-${feature.properties.id}`
         switch (feature.geometry.type) {
           case 'Point':
@@ -54,11 +58,17 @@ const MapShapeSource = (props: Props) => {
                 }}>
                 <MapLibreGL.FillLayer
                   id={'polyFill' + feature.properties.id}
-                  style={fillStyle}
+                  style={{
+                    ...fillStyle,
+                    fillColor: showError ? Colors.LIGHT_RED : Colors.PRIMARY,
+                  }}
                 />
                 <MapLibreGL.LineLayer
                   id={'polyline' + feature.properties.id}
-                  style={polyline}
+                  style={{
+                    ...polyline,
+                    lineColor: showError ? Colors.LIGHT_RED : Colors.PRIMARY,
+                  }}
                 />
               </MapLibreGL.ShapeSource>
             )
