@@ -40,7 +40,7 @@ const SideBarList = (props: Props) => {
     },
     {
       label: 'Offline Maps',
-      screen: 'ManageSpecies',
+      screen: 'OfflineMap',
       icon: <OfflineMapIcon />,
       visible: true,
       key: 'offline_map'

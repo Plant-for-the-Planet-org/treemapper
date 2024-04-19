@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    top: 25,
+    top: 15,
   },
   iconWrapper: {
     width: 40,

@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    marginTop: 25,
   },
   backIcon: {
     width: 20,

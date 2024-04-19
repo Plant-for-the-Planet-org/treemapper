@@ -25,6 +25,8 @@ export const TEXT_LIGHT = '#828282'
 export const GRAY_TEXT = '#c4c4c4'
 export const LIGHT_AMBER = '#FDD015'
 export const LIGHT_RED = '#FD0B0B'
+export const BACKDROP_RED = '#EB5757'
+
 
 // ACTIONS
 export const SUCCESS = '#2ecc71'

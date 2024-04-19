@@ -17,6 +17,8 @@ import DynamicFormView from './DynamiFormView'
 import ManageProjectsView from './ManageProjectsView'
 import DataExplorerView from './DataExplorerView'
 import AdditionalDataView from './AdditionalDataView'
+import OfflineMapSelectionView from './OfflineMapSelectionView'
+import OfflineMapView from './OfflineMapView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -37,5 +39,7 @@ export default {
   ManageProjects: ManageProjectsView,
   DataExplore: DataExplorerView,
   InterventionPreview: InterventionPreview,
-  AdditionalData: AdditionalDataView
+  AdditionalData: AdditionalDataView,
+  OfflineMap: OfflineMapView,
+  OfflineMapSelection: OfflineMapSelectionView,
 }

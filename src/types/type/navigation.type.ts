@@ -25,6 +25,8 @@ export type RootStackParamList = {
   ManageProjects: undefined
   DataExplorer: undefined
   AdditionalData: undefined
+  OfflineMap: undefined
+  OfflineMapSelection: undefined
 }
 
 type SpeciesInfoView = {
