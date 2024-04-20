@@ -1,39 +1,36 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {StyleSheet, Text, View} from 'react-native'
 import {Dropdown} from 'react-native-element-dropdown'
 import {Colors, Typography} from 'src/utils/constants'
 import SelectIcon from 'assets/images/svg/SelectIcon.svg'
-import { scaleSize } from 'src/utils/constants/mixins'
-
-interface DropDownData {
-  label: string
-  value: string
-  index: number
-}
+import {scaleSize} from 'src/utils/constants/mixins'
+import {DropdownData} from 'src/types/interface/app.interface'
 
 interface Props {
   label: string
-  data: DropDownData[]
-  onSelect: (data: {label: string; value: string; index: number}) => void
-  selectedValue: DropDownData
+  data: DropdownData[]
+  onSelect: (data: DropdownData) => void
+  selectedValue: DropdownData
 }
 
 const DropdownComponent = (props: Props) => {
   const {label, data, onSelect, selectedValue} = props
   const [isFocus, setIsFocus] = useState(false)
+  const [value, setSelectedValue] = useState(selectedValue)
+
+  useEffect(() => {
+    setSelectedValue(selectedValue)
+  }, [selectedValue])
 
   const renderLabel = () => {
-    if (selectedValue) {
-      return (
-        <Text style={[styles.label, isFocus && {color: Colors.PRIMARY}]}>
-          {label}
-        </Text>
-      )
-    }
-    return null
+    return (
+      <Text style={[styles.label, isFocus && {color: Colors.PRIMARY}]}>
+        {label}
+      </Text>
+    )
   }
 
-  const handleSelect = (item: DropDownData) => {
+  const handleSelect = (item: DropdownData) => {
     setIsFocus(false)
     onSelect(item)
   }
@@ -44,7 +41,6 @@ const DropdownComponent = (props: Props) => {
         style={[styles.dropdown, isFocus && {borderColor: Colors.NEW_PRIMARY}]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
         iconStyle={styles.iconStyle}
         data={data}
         autoScroll
@@ -53,7 +49,7 @@ const DropdownComponent = (props: Props) => {
         labelField="label"
         valueField="value"
         placeholder={!isFocus ? props.label : '...'}
-        value={selectedValue}
+        value={value}
         onFocus={() => setIsFocus(true)}
         onBlur={() => setIsFocus(false)}
         onChange={handleSelect}
@@ -70,10 +66,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   dropdown: {
-    height: scaleSize(50),
+    height: scaleSize(55),
     borderColor: Colors.GRAY_BORDER,
     borderWidth: 0.5,
-    borderRadius: 8,
+    borderRadius: 5,
+    width: '100%',
     paddingHorizontal: 8,
   },
   icon: {
@@ -81,21 +78,23 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.BACKDROP_COLOR,
     left: 22,
     top: 8,
-    zIndex: 999,
+    zIndex: 1,
     paddingHorizontal: 8,
     fontSize: 14,
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   placeholderStyle: {
     fontSize: 16,
-    fontFamily:Typography.FONT_FAMILY_REGULAR,
-    paddingHorizontal:3,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    paddingHorizontal: 3,
   },
   selectedTextStyle: {
     fontSize: 16,
-    fontFamily:Typography.FONT_FAMILY_REGULAR
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   iconStyle: {
     width: 20,

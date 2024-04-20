@@ -15,6 +15,7 @@
     "@expo/vector-icons": "^13.0.0",
     "@maplibre/maplibre-react-native": "^10.0.0-alpha.2",
     "@react-native-async-storage/async-storage": "1.18.2",
+    "@react-native-community/datetimepicker": "7.2.0",
     "@react-native-masked-view/masked-view": "0.2.9",
     "@react-navigation/bottom-tabs": "^6.5.17",
     "@react-navigation/native": "^6.1.15",

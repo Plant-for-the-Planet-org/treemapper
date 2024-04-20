@@ -26,8 +26,6 @@ import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
 import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
-import {useSelector} from 'react-redux'
-import {RootState} from 'src/store'
 
 const {width, height} = Dimensions.get('screen')
 
@@ -40,7 +38,6 @@ const AddOptionModal = (props: Props) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(props.visible ? 0 : 600, {duration: 500})
   }, [props.visible])
-  const userType = useSelector((state: RootState) => state.userState.type)
 
   const opacity = useDerivedValue(() => {
     return withTiming(props.visible ? 1 : 0, {
@@ -61,7 +58,7 @@ const AddOptionModal = (props: Props) => {
       title: 'Monitoring Plot',
       coming_soon: true,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
+        // navigation.navigate('InterventionForm')
         props.setVisible(false)
       },
       disabled: true,
@@ -71,7 +68,7 @@ const AddOptionModal = (props: Props) => {
       title: 'Project Site',
       coming_soon: true,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
+        // navigation.navigate('InterventionForm', {id: 'UNKOWN'})
         props.setVisible(false)
       },
       disabled: true,
@@ -81,17 +78,19 @@ const AddOptionModal = (props: Props) => {
       title: 'Intervention',
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'UNKOWN'})
+        navigation.navigate('InterventionForm')
         props.setVisible(false)
       },
-      disabled: userType !== 'tpo',
+      disabled: false,
     },
     {
       svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
       title: 'label.tree_registration_type_1',
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'SINGLE_TREE'})
+        navigation.navigate('InterventionForm', {
+          id: 'single-tree-registration',
+        })
         props.setVisible(false)
       },
       disabled: false,
@@ -101,7 +100,7 @@ const AddOptionModal = (props: Props) => {
       title: 'label.tree_registration_type_2',
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'MULTI_TREE'})
+        navigation.navigate('InterventionForm', {id: 'multi-tree-registration'})
         props.setVisible(false)
       },
       disabled: false,

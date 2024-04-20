@@ -48,3 +48,9 @@ export interface CarouselInterventionData{
   // id: string
   // species_name: string
 }
+
+export interface DropdownData {
+  label: string
+  value: string
+  index?: number
+}

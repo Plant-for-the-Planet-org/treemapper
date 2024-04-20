@@ -1,29 +1,32 @@
-import {StyleSheet, View} from 'react-native'
+import {Pressable, StyleSheet} from 'react-native'
 import React from 'react'
 import {InputOutline} from 'react-native-input-outline'
-import {Colors} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 
 interface Props {
   label: string
-  onChangeHandler: (v:string)=>void
+  value: string
+  onChangeHandler: (t: string) => void
 }
 
 const CustomTextInput = (props: Props) => {
-  const {label, onChangeHandler} = props
-
+  const {label, onChangeHandler,value} = props
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container}>
       <InputOutline
         style={styles.inputWrapper}
+        value={value}
         placeholder={label}
-        activeColor={Colors.PRIMARY}
+        activeColor={Colors.NEW_PRIMARY}
         inactiveColor={Colors.GRAY_TEXT}
         placeholderTextColor={Colors.GRAY_TEXT}
-        fontSize={16}
+        fontSize={scaleFont(16)}
         onChangeText={onChangeHandler}
         backgroundColor={Colors.WHITE}
+        fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
       />
-    </View>
+    </Pressable>
   )
 }
 
@@ -32,9 +35,9 @@ export default CustomTextInput
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 50,
+    height: scaleSize(55),
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
     flexDirection: 'row',
     backgroundColor: Colors.WHITE,
   },

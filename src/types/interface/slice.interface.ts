@@ -1,4 +1,4 @@
-import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
+import {INTERVENTION_TYPE, MAP_BOUNDS} from '../type/app.type'
 import {Coordinates, IScientificSpecies} from './app.interface'
 import {MainForm} from './form.interface'
 
@@ -11,9 +11,8 @@ export interface AppInitialState {
 
 export interface MapBoundSlice {
   bounds: number[]
-  key:MAP_BOUNDS
+  key: MAP_BOUNDS
 }
-
 
 export interface DisplayMapSlice {
   selectedIntervention: string
@@ -44,12 +43,12 @@ export interface TakePictureInitialState {
   height: number
 }
 
-export interface FormValues{
-  key:string,
-  value: string,
-  display: boolean,
-  unit: string,
-  priority: 'low' | 'medium' | 'high' 
+export interface FormValues {
+  key: string
+  value: string
+  display: boolean
+  unit: string
+  priority: 'low' | 'medium' | 'high'
 }
 
 export interface RegisterFormSliceInitalState {
@@ -64,11 +63,12 @@ export interface RegisterFormSliceInitalState {
   project_name: string
   site_id: string
   site_name: string
-  entire_site_intervention: boolean
-  register_location: boolean,
+  can_be_entire_site: boolean
+  entire_site_selected: boolean
+  register_location: boolean
   location_type: 'Point' | 'Polygon'
   location_title: string
-  coordinates: Coordinates[]
+  coordinates: Array<number[]>
   preview_blank_polygon: boolean
   cover_image_url: string
   species_required: boolean

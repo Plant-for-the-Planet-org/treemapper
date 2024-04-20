@@ -22,7 +22,6 @@ const InterventionList = (props: Props) => {
 
   useEffect(() => {
     const finalData = groupInterventionList(interventionData, selectedLabel)
-    console.log('aslkcj', finalData)
     setSelectedList(finalData)
   }, [selectedLabel])
 

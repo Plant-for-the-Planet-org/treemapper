@@ -75,7 +75,7 @@ const SyncSpecies = () => {
         <OnboardingNotes updatingSpeciesState={currentState} />
         <ActivityIndicator
           size="large"
-          color={Colors.PRIMARY}
+          color={Colors.NEW_PRIMARY}
           style={styles.activityIndicator}
         />
       </View>

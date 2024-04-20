@@ -19,7 +19,10 @@ import {StackNavigationProp} from '@react-navigation/stack'
 import {useDispatch, useSelector} from 'react-redux'
 import {
   initiateForm,
-  updateCoverImageId,
+  updateEntireSiteIntervention,
+  updateFormProject,
+  updateFormProjectSite,
+  updteInterventionDate,
 } from 'src/store/slice/registerFormSlice'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {setUpIntervention} from 'src/utils/helpers/formHelper/selectIntervention'
@@ -27,182 +30,192 @@ import {v4 as uuidv4} from 'uuid'
 import {RootState} from 'src/store'
 import {useRealm} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
-import {ProjectInterface} from 'src/types/interface/app.interface'
+import {DropdownData, ProjectInterface} from 'src/types/interface/app.interface'
+import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
+import {AllIntervention} from 'src/utils/constants/knownIntervention'
 import {INTERVENTION_TYPE} from 'src/types/type/app.type'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
-
-interface DropdownData {
-  label: string
-  value: string
-  index: number
-}
 
 const InterventionFormView = () => {
   const realm = useRealm()
+  const dispatch = useDispatch()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
-  const [loading, setLoading] = useState(false)
-  const [interventionForm, setInterventionFormData] =
-    useState<RegisterFormSliceInitalState>(null)
-  const InterventionData: Array<{
-    label: string
-    value: INTERVENTION_TYPE
-    index: number
-  }> = [
-    {
-      label: 'Fire Supression team',
-      value: 'FIRESUPRESSION_TEAM',
-      index: 0,
-    },
-    {
-      label: 'Assisting Seed Rain',
-      value: 'SEED_RAIN',
-      index: 0,
-    },
-    {
-      label: 'Removal of Invasive Species',
-      value: 'REMOVAL_INVASIVE_SPEICES',
-      index: 1,
-    },
-  ]
-
-  const [projectStateData, setProjectData] = useState<any>([])
-  const [projectSies, setProjectSites] = useState<any>([])
-  const [entireSiteSelected, setEntireSiteSelected] = useState(false)
-  const [locationName, setLocationName] = useState('')
-  const [furtherInfo, setFurtherInfo] = useState('')
-
-  const [interventionType, setInterventionType] = useState<{
-    label: string
-    value: INTERVENTION_TYPE
-    index: number
-  }>({
-    label: 'UNKOWN',
-    value: 'UNKOWN',
-    index: 0,
-  })
-  const [selectedProject, setSelectedProject] = useState<DropdownData>({
-    label: '',
-    value: '',
-    index: 0,
-  })
-  const [selectedProjectSite, setSelectedProjectSite] = useState<DropdownData>({
-    label: '',
-    value: '',
-    index: 0,
-  })
+  const InterventionFormData = useSelector(
+    (state: RootState) => state.formFlowState,
+  )
   const {currentProject, projectSite} = useSelector(
     (state: RootState) => state.projectState,
   )
 
-  const dispatch = useDispatch()
+  const [loading, setLoading] = useState(true)
+  const [projectStateData, setProjectData] = useState<any>([])
+  const [projectSies, setProjectSites] = useState<any>([])
+  const [locationName, setLocationName] = useState('')
+  const [furtherInfo, setFurtherInfo] = useState('')
+  const [allIntervention] = useState([...AllIntervention])
+  const [interventionType, setInterventionType] = useState<DropdownData>({
+    label: '',
+    value: '',
+    index: 0,
+  })
+
+  const isTpoUser = userType === 'tpo'
+  const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
     setUpRegisterFlow()
-  }, [route.params])
+  }, [])
 
   const setUpRegisterFlow = () => {
-    const formFlowData = setUpIntervention(route.params.id)
-    formFlowData.form_id = uuidv4()
-    formFlowData.intervention_date = new Date().getTime()
-    formFlowData.user_type = userType
-    if (formFlowData.skip_intervention_form) {
-      if (userType === 'tpo' && formFlowData.skip_intervention_form) {
-        formFlowData.project_name = currentProject.projectName
-        formFlowData.project_id = currentProject.projectId
-        formFlowData.site_name = projectSite.siteName
-        formFlowData.site_id = projectSite.siteId
-      }
-      dispatch(initiateForm({...formFlowData}))
-      if (formFlowData.location_type === 'Point') {
-        navigation.replace('PointMarker')
-      } else {
-        navigation.replace('PolygonMarker')
-      }
+    if (paramId) {
+      disptachFormDetails(paramId, true, true)
     } else {
-      setupProjectData()
+      if (isTpoUser) {
+        setupProjectAndSiteDropDown()
+      }
       setLoading(false)
     }
   }
 
-  const setupProjectData = () => {
+  const disptachFormDetails = (
+    key: INTERVENTION_TYPE,
+    skip: boolean,
+    defaultProject: boolean,
+  ) => {
+    const InterventionJSON = setUpIntervention(key)
+    InterventionJSON.form_id = uuidv4()
+    InterventionJSON.intervention_date = new Date().getTime()
+    InterventionJSON.user_type = userType
+    if (defaultProject) {
+      InterventionJSON.project_name = currentProject.projectName
+      InterventionJSON.project_id = currentProject.projectId
+      InterventionJSON.site_name = projectSite.siteName
+      InterventionJSON.site_id = projectSite.siteId
+    } else {
+      InterventionJSON.project_name = InterventionFormData.project_name
+      InterventionJSON.project_id = InterventionFormData.project_id
+      InterventionJSON.site_name = InterventionFormData.site_name
+      InterventionJSON.site_id = InterventionFormData.site_id
+    }
+    dispatch(initiateForm({...InterventionJSON}))
+    if (skip && InterventionJSON.skip_intervention_form) {
+      if (InterventionJSON.location_type === 'Point') {
+        navigation.replace('PointMarker')
+      } else {
+        navigation.replace('PolygonMarker')
+      }
+    }
+  }
+
+  const setupProjectAndSiteDropDown = () => {
     const projectData = realm.objects<ProjectInterface>(RealmSchema.Projects)
-    const validatedData = projectData.map((el, i) => {
+    const mapedData = projectData.map((el, i) => {
       return {
         label: el.name,
         value: el.id,
         index: i,
       }
     })
-    if (validatedData) {
-      setProjectData(validatedData)
-      setSelectedProject(validatedData[0])
-      const siteValidate = projectData[0].sites.map((el, i) => {
+    if (mapedData && mapedData.length) {
+      setProjectData(mapedData)
+      const siteMapedData = projectData[0].sites.map((el, i) => {
         return {
           label: el.name,
           value: el.id,
           index: i,
         }
       })
-      setProjectSites(siteValidate)
-      setSelectedProjectSite(siteValidate[0])
+      setProjectSites(siteMapedData)
+      dispatch(
+        updateFormProject({name: mapedData[0].label, id: mapedData[0].value}),
+      )
+      dispatch(
+        updateFormProjectSite({
+          name: siteMapedData[0].label,
+          id: siteMapedData[0].value,
+        }),
+      )
     }
   }
 
   const handleProjectSelect = (item: DropdownData) => {
-    setSelectedProject(item)
-    const projectData = realm.objects<ProjectInterface>(RealmSchema.Projects)
-    const filtererdData = projectData.filter(el => el.id === item.value)
-    const siteValidate = filtererdData[0].sites.map((el, i) => {
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      item.value,
+    )
+    const siteValidate = ProjectData.sites.map((el, i) => {
       return {
         label: el.name,
         value: el.id,
         index: i,
       }
     })
-    setProjectSites(siteValidate)
-    setSelectedProjectSite(siteValidate[0])
+    dispatch(updateFormProject({name: ProjectData.name, id: ProjectData.id}))
+    if (siteValidate && siteValidate.length > 0) {
+      setProjectSites(siteValidate)
+      dispatch(
+        updateFormProjectSite({
+          name: siteValidate[0].label,
+          id: siteValidate[0].value,
+        }),
+      )
+    } else {
+      setProjectSites([
+        {
+          label: 'Project has no site',
+          value: '',
+          index: 0,
+        },
+      ])
+      dispatch(
+        updateFormProjectSite({
+          name: '',
+          id: '',
+        }),
+      )
+    }
+  }
+
+  const handleSiteSelect = (item: DropdownData) => {
+    if (item.value) {
+      dispatch(
+        updateFormProjectSite({
+          name: item.label,
+          id: item.value,
+        }),
+      )
+    }
   }
 
   const handleInterventionType = (item: any) => {
-    const result = setUpIntervention(item.value)
-    setInterventionFormData(result)
-    setInterventionType({
-      label: item.label,
-      value: item.value,
-      index: 0,
-    })
+    disptachFormDetails(item.value, false, false)
+    setInterventionType(item)
   }
 
   const pressContinue = () => {
-    const formFlowData = setUpIntervention(interventionType.value)
-    formFlowData.form_id = uuidv4()
-    formFlowData.intervention_date = new Date().getTime()
-    formFlowData.user_type = userType
-    formFlowData.project_name = selectedProject.label
-    formFlowData.project_id = selectedProject.value
-    formFlowData.site_name = selectedProjectSite.label
-    formFlowData.site_id = selectedProjectSite.value
+    const finalData = {...InterventionFormData}
+    if (InterventionFormData.entire_site_selected) {
+      finalData.coordinates = siteCoordinatesSelect()
+    }
     const metaData = {
       location_name: locationName,
       further_info: furtherInfo,
     }
-    formFlowData.meta_data = JSON.stringify(metaData)
-    if (entireSiteSelected) {
-      const coords = siteCoordinatesSelect()
-      formFlowData.coordinates = coords
+    finalData.meta_data = JSON.stringify(metaData)
+    dispatch(initiateForm({...finalData}))
+    console.log('AKlcj', finalData)
+    return
+    if (finalData.entire_site_selected) {
       const imageId = String(new Date().getTime())
-      dispatch(initiateForm({...formFlowData}))
-      dispatch(updateCoverImageId(imageId))
       navigation.replace('TakePicture', {
         id: imageId,
         screen: 'POLYGON_REGISTER',
       })
       return
     }
-    dispatch(initiateForm({...formFlowData}))
-    if (formFlowData.location_type === 'Point') {
+
+    if (finalData.location_type === 'Point') {
       navigation.replace('PointMarker')
     } else {
       navigation.replace('PolygonMarker')
@@ -210,29 +223,23 @@ const InterventionFormView = () => {
   }
 
   const siteCoordinatesSelect = () => {
-    const projectData = realm.objects<ProjectInterface>(RealmSchema.Projects)
-    const filtererdData = projectData.filter(
-      el => el.id === selectedProject.value,
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      InterventionFormData.project_id,
     )
-    const currentSiteData = filtererdData[0].sites.filter(
-      el => el.id === selectedProjectSite.value,
+    const currentSiteData = ProjectData.sites.filter(
+      el => el.id === InterventionFormData.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const extractCoordinates = parsedGeometry.coordinates[0].map((el) => {
-      return {
-        lat: el[1],
-        long: el[0],
-      }
-    })
-    return extractCoordinates
+    return parsedGeometry.coordinates[0]
   }
 
-  const handleDropDownSelect = (data: {
-    label: string
-    value: string
-    index: number
-  }) => {
-    console.log('handleDropDownSelect', data)
+  const handleDateSelection = (n: number) => {
+    dispatch(updteInterventionDate(n))
+  }
+
+  const handleEntireSiteArea = (b: boolean) => {
+    dispatch(updateEntireSiteIntervention(b))
   }
 
   if (loading) {
@@ -249,49 +256,70 @@ const InterventionFormView = () => {
       style={styles.container}>
       <ScrollView>
         <View style={styles.container}>
-          <Header label="Itervention" />
+          <Header label="Intervention" />
           <View style={styles.wrapper}>
-            <CustomDropDown
-              label={'Project'}
-              data={projectStateData}
-              onSelect={handleProjectSelect}
-              selectedValue={selectedProject}
-            />
-            <CustomDropDown
-              label={'Site'}
-              data={projectSies}
-              onSelect={handleDropDownSelect}
-              selectedValue={selectedProjectSite}
-            />
+            {isTpoUser && (
+              <CustomDropDown
+                label={'Project'}
+                data={projectStateData}
+                onSelect={handleProjectSelect}
+                selectedValue={{
+                  label: InterventionFormData.project_name,
+                  value: InterventionFormData.project_id,
+                  index: 0,
+                }}
+              />
+            )}
+            {isTpoUser && (
+              <CustomDropDown
+                label={'Site'}
+                data={projectSies}
+                onSelect={handleSiteSelect}
+                selectedValue={{
+                  label: InterventionFormData.site_name,
+                  value: InterventionFormData.site_id,
+                  index: 0,
+                }}
+              />
+            )}
+            {isTpoUser && <View style={styles.divider} />}
             <CustomDropDown
               label={'Intervention Type'}
-              data={InterventionData}
+              data={allIntervention}
               onSelect={handleInterventionType}
               selectedValue={interventionType}
             />
-            {interventionForm && interventionForm.entire_site_intervention ? (
+            {InterventionFormData.can_be_entire_site && isTpoUser ? (
               <PlaceHolderSwitch
                 description={'Apply Intervention to entire site'}
-                selectHandler={setEntireSiteSelected}
-                value={entireSiteSelected}
+                selectHandler={handleEntireSiteArea}
+                value={InterventionFormData.entire_site_selected}
               />
             ) : null}
-            <CustomTextInput
-              label={'Location name(Optional)'}
-              onChangeHandler={setLocationName}
+            <InterventionDatePicker
+              placeHolder={'Intervention Date'}
+              value={InterventionFormData.intervention_date || Date.now()}
+              callBack={handleDateSelection}
             />
             <CustomTextInput
-              label={'Further Information(Optional)'}
+              label={'Location Name [Optional]'}
+              onChangeHandler={setLocationName}
+              value={locationName}
+            />
+            <CustomTextInput
+              label={'Further Information [Optional]'}
               onChangeHandler={setFurtherInfo}
+              value={furtherInfo}
             />
           </View>
         </View>
       </ScrollView>
       <CustomButton
-        label={'continue'}
+        label={'Continue'}
         pressHandler={pressContinue}
         containerStyle={styles.btnContainer}
         wrapperStyle={styles.btnWrapper}
+        disable={interventionType.value===''}
       />
     </KeyboardAvoidingView>
   )
@@ -303,10 +331,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.BACKDROP_COLOR,
   },
   wrapper: {
-    width: '95%',
+    width: '98%',
     marginTop: 10,
     flex: 1,
   },
@@ -317,6 +345,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   btnWrapper: {
-    width: '95%',
+    width: '90%',
+  },
+  divider: {
+    width: '90%',
+    height: 1,
+    backgroundColor: Colors.GRAY_LIGHT,
+    marginBottom: 20,
+    marginTop: 10,
+    marginHorizontal: '5%',
   },
 })

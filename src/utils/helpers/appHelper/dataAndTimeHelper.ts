@@ -6,3 +6,8 @@ export const timestampToBasicDate = (t: number) => {
   const year = date.getFullYear()
   return `${day} ${month} ${year}`
 }
+
+
+export const convertDateToTimestamp=(d:Date)=>{
+  return new Date(d).getTime()
+}

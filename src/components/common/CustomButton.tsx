@@ -20,6 +20,7 @@ interface Props {
   wrapperStyle?: ViewStyle
   loading?: boolean
   leftIcon?: React.ReactNode
+  disable?: boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -31,6 +32,7 @@ const CustomButton = (props: Props) => {
     pressHandler,
     loading,
     leftIcon,
+    disable,
   } = props
 
   const handlePress = () => {
@@ -44,7 +46,12 @@ const CustomButton = (props: Props) => {
       style={[styles.container, {...containerStyle}]}
       onPress={handlePress}>
       <FadeBackground />
-      <View style={[styles.wrapper, {...wrapperStyle}]}>
+      <View
+        style={[
+          styles.wrapper,
+          {...wrapperStyle},
+          {backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY},
+        ]}>
         {loading ? (
           <ActivityIndicator color={Colors.WHITE} size="small" />
         ) : (

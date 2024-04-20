@@ -39,7 +39,7 @@ type TakePictureView = {
 }
 
 type IntermediateFormView = {
-  id: INTERVENTION_TYPE
+  id?: INTERVENTION_TYPE
 }
 
 type InterventionPreviewView = {

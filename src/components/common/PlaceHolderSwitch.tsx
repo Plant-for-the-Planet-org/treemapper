@@ -1,6 +1,6 @@
 import {StyleSheet, Switch, Text, View} from 'react-native'
 import React from 'react'
-import {scaleFont} from 'src/utils/constants/mixins'
+import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import {Colors, Typography} from 'src/utils/constants'
 interface Props {
   description: string
@@ -25,7 +25,6 @@ const PlaceHolderSwitch = (props: Props) => {
           },
         ]}>
         <Text style={styles.inputLabel}>{description}</Text>
-        <View style={styles.divider} />
         <Switch
           value={value}
           onValueChange={changeHandler}
@@ -41,26 +40,25 @@ export default PlaceHolderSwitch
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 50,
+    height: scaleSize(55),
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
+
   },
   inputWrapper: {
-    borderRadius: 10,
-    width: '95%',
+    borderRadius: 12,
+    width: '94%',
+    paddingHorizontal:10,
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:'space-around',
     paddingVertical: 7,
   },
   inputLabel: {
     color: Colors.TEXT_LIGHT,
     fontSize: scaleFont(15),
-    marginLeft: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-  },
-  divider: {
-    flex: 1,
   },
 })

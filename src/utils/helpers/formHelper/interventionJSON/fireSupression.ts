@@ -1,5 +1,5 @@
 // import {FormElement, MainForm} from 'src/types/interface/form.interface'
-import { FormElement, MainForm } from 'src/types/interface/form.interface'
+import {FormElement, MainForm} from 'src/types/interface/form.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 const TeamName: FormElement = {
@@ -15,7 +15,7 @@ const TeamName: FormElement = {
   data_type: 'string',
   keyboard_type: 'default',
   sub_form: undefined,
-  editable: true
+  editable: true,
 }
 
 const NumberOfMembers: FormElement = {
@@ -31,7 +31,7 @@ const NumberOfMembers: FormElement = {
   data_type: 'number',
   keyboard_type: 'numeric',
   sub_form: undefined,
-  editable: true
+  editable: true,
 }
 
 // const TagIdSwitch: FormElement = {
@@ -71,41 +71,40 @@ const NumberOfMembers: FormElement = {
 const fireSupressionForm: MainForm = {
   title: 'Team Details',
   key: '',
-  elements: [TeamName, NumberOfMembers],
+  elements: [TeamName, NumberOfMembers, ],
 }
 
 export const fireSupressionFormData: RegisterFormSliceInitalState = {
   form_id: '',
-  key: 'fire-suppression',
-  title: 'Fire Suppression',
+  key: '',
+  title: '',
+  intervention_type: 'single-tree-registration',
   intervention_date: 0,
   skip_intervention_form: false,
+  user_type: '',
   project_id: '',
+  project_name: '',
   site_id: '',
-  entire_site_intervention: false,
+  site_name: '',
+  can_be_entire_site: false,
+  entire_site_selected: false,
+  register_location: false,
   location_type: 'Point',
-  location_title: 'Team Location',
+  location_title: '',
   coordinates: [],
   preview_blank_polygon: false,
-  cover_image_required: true,
   cover_image_url: '',
-  cover_image_id: '',
   species_required: false,
   is_multi_species: false,
   species_count_required: false,
-  species_modal_message: 'did you plant?',
-  species_modal_unit: 'Tree Count',
+  species_modal_message: '',
+  species_modal_unit: '',
   species: [],
   has_sample_trees: false,
   tree_details_required: false,
-  tree_image_required: false,
   tree_details: [],
   form_details: [fireSupressionForm],
-  user_type: '',
-  project_name: '',
-  site_name: '',
-  tree_image_url: '',
   meta_data: '',
-  intervention_type: 'FIRESUPRESSION_TEAM',
-  form_data: []
+  additional_data: '',
+  form_data: [],
 }
