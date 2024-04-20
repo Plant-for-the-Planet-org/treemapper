@@ -65,7 +65,6 @@ export interface RegisterFormSliceInitalState {
   site_name: string
   can_be_entire_site: boolean
   entire_site_selected: boolean
-  register_location: boolean
   location_type: 'Point' | 'Polygon'
   location_title: string
   coordinates: Array<number[]>

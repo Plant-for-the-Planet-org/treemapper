@@ -34,7 +34,6 @@ export const initialState: RegisterFormSliceInitalState = {
   meta_data: '',
   intervention_type: 'single-tree-registration',
   form_data: [],
-  register_location: false,
   additional_data: '',
   can_be_entire_site: false,
   entire_site_selected: false,

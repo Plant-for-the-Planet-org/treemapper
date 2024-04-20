@@ -13,10 +13,7 @@ import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import {useNavigation} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {StackNavigationProp} from '@react-navigation/stack'
-import {
-  updateCoverImageId,
-  updateFormCoordinates,
-} from 'src/store/slice/registerFormSlice'
+import {updateFormCoordinates} from 'src/store/slice/registerFormSlice'
 import {Coordinates} from 'src/types/interface/app.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 import {v4 as uuidv4} from 'uuid'
@@ -36,7 +33,7 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const {cover_image_required, tree_details} = props.formData
+  const {tree_details} = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
@@ -136,7 +133,6 @@ const PointMarkerMap = (props: Props) => {
     }
     if (cover_image_required) {
       const imageId = uuidv4()
-      dispatch(updateCoverImageId(imageId))
       navigation.replace('TakePicture', {
         id: imageId,
         screen: form_id.length ? 'SAMPLE_TREE' : 'POINT_REGISTER',
@@ -151,7 +147,7 @@ const PointMarkerMap = (props: Props) => {
         geoJSON,
         tree_details,
       )
-      console.log("HasvalidPoints",isValidPoint)
+      console.log('HasvalidPoints', isValidPoint)
     }
   }
 

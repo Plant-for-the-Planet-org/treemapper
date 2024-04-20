@@ -12,7 +12,6 @@ export const SingleTreeFormData: RegisterFormSliceInitalState = {
   site_id: '',
   site_name: '',
   project_name: '',
-  register_location: false,
   location_type: 'Point',
   location_title: 'Tree Location',
   coordinates: [],

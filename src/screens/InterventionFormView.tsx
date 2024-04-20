@@ -204,8 +204,7 @@ const InterventionFormView = () => {
     }
     finalData.meta_data = JSON.stringify(metaData)
     dispatch(initiateForm({...finalData}))
-    console.log('AKlcj', finalData)
-    return
+    
     if (finalData.entire_site_selected) {
       const imageId = String(new Date().getTime())
       navigation.replace('TakePicture', {
