@@ -53,9 +53,8 @@ export interface FormValues {
 
 export interface RegisterFormSliceInitalState {
   form_id: string
-  key: string
+  key: INTERVENTION_TYPE
   title: string
-  intervention_type: INTERVENTION_TYPE
   intervention_date: number
   skip_intervention_form: boolean
   user_type: string

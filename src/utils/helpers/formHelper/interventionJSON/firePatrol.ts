@@ -1,9 +1,9 @@
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 
-export const RemovalOfInvasiveSpecies: RegisterFormSliceInitalState = {
+export const FirePatrol: RegisterFormSliceInitalState = {
     form_id: '',
-    title: 'Removal of Invasive Species',
+    title: 'Fire Patrol',
     intervention_date: 0,
     skip_intervention_form: false,
     user_type: 'normal',
@@ -12,7 +12,7 @@ export const RemovalOfInvasiveSpecies: RegisterFormSliceInitalState = {
     site_name: '',
     project_name: '',
     location_type: 'Polygon',
-    location_title: 'Select Location',
+    location_title: 'Selcect Location',
     coordinates: [],
     preview_blank_polygon: true,
     cover_image_url: '',
@@ -22,14 +22,14 @@ export const RemovalOfInvasiveSpecies: RegisterFormSliceInitalState = {
     species_modal_message: '',
     species_modal_unit: '',
     species: [],
-    tree_details_required: true,
+    tree_details_required: false,
     has_sample_trees: false,
     tree_details: [],
     form_details: [],
     meta_data: '',
     form_data: [],
     additional_data: '',
-    can_be_entire_site: true,
+    can_be_entire_site: false,
     entire_site_selected: false,
-    key: 'removal-invasive-species'
+    key: 'fire-patrol',
 }

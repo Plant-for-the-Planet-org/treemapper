@@ -7,7 +7,7 @@ import {
 
 export const initialState: RegisterFormSliceInitalState = {
   form_id: '',
-  key: '',
+  key: 'single-tree-registration',
   title: '',
   intervention_date: 0,
   skip_intervention_form: false,
@@ -32,7 +32,6 @@ export const initialState: RegisterFormSliceInitalState = {
   project_name: '',
   site_name: '',
   meta_data: '',
-  intervention_type: 'single-tree-registration',
   form_data: [],
   additional_data: '',
   can_be_entire_site: false,
