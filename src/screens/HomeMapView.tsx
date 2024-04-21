@@ -1,16 +1,19 @@
-import {StyleSheet, View} from 'react-native'
-import React, {useState} from 'react'
+import { StyleSheet } from 'react-native'
+import React, { useState } from 'react'
 import DisplayMap from 'src/components/map/DisplayMap'
 import HomeHeader from 'src/components/home/HomeHeader'
 import FilterModal from 'src/components/home/FilterModal'
 import ProjectModal from 'src/components/home/ProjectModal'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import CarouselModal from 'src/components/carousel/CarouselModal'
-import {useSelector} from 'react-redux'
-import {RootState} from 'src/store'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import CarouselHeader from 'src/components/carousel/CarouselHeader'
-
+import {
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 const HomeMapView = () => {
+
   const [showFilterModal, setFileterModal] = useState(false)
   const [showProjectModal, setProjectModal] = useState(false)
   const showCarousel = useSelector(
@@ -24,8 +27,9 @@ const HomeMapView = () => {
     setProjectModal(!showProjectModal)
   }
 
+
   return (
-    <View style={styles.contaner}>
+    <SafeAreaView style={[styles.contaner]}>
       {showCarousel ? (
         <CarouselHeader />
       ) : (
@@ -45,7 +49,7 @@ const HomeMapView = () => {
         toogleModal={toogleProjectModal}
       />
       {showCarousel && <CarouselModal />}
-    </View>
+    </SafeAreaView>
   )
 }
 

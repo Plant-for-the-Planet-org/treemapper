@@ -3,9 +3,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {BottomTabParamList} from 'src/types/type/navigation.type'
 import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
-import {View, StyleSheet} from 'react-native'
+import {StyleSheet} from 'react-native'
 import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
-import { scaleSize } from 'src/utils/constants/mixins'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -22,7 +21,6 @@ const BottomStack = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {...styles.container},
-        tabBarIcon: () => <View />,
       }}>
       <BottomTabStack.Screen
         name="Map"
@@ -81,7 +79,7 @@ const styles = StyleSheet.create({
     padding: 0,
     borderTopWidth: 0,
     width:'100%',
-    height: scaleSize(70),
+    height: 100,
     position: 'absolute',
     elevation: 0,
   },

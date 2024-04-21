@@ -18,7 +18,7 @@ export default FadeBackground
 const styles = StyleSheet.create({
   container: {
     height: '100%',
-    width: '100%',
+  width: '100%',
     position: 'absolute',
     zIndex: -1,
   },

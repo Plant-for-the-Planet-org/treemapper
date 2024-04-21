@@ -1,6 +1,5 @@
 import {StyleSheet, Text, View} from 'react-native'
 import React, {useState} from 'react'
-import CurveTabPlaceholder from 'assets/images/svg/CurveTab.svg'
 import AddOptionModal from './AddOptionModal'
 import {TouchableOpacity} from 'react-native'
 import Animated, {
@@ -12,6 +11,12 @@ import Animated, {
 import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import TabsShape from '../CurveIcon'
+import { Dimensions } from 'react-native'
+
+const windowWidth = Dimensions.get('screen').width
+const width = windowWidth/4
+
 
 const AddBottomTabIcon = () => {
   const [open, setOpen] = useState(false)
@@ -40,7 +45,7 @@ const AddBottomTabIcon = () => {
         </Animated.View>
       </View>
       <AddOptionModal setVisible={setOpen} visible={open} />
-      <CurveTabPlaceholder />
+      <TabsShape/>
       <View style={styles.labelContainer}>
         <Text
           style={[
@@ -50,6 +55,8 @@ const AddBottomTabIcon = () => {
           Add
         </Text>
       </View>
+      <View style={styles.bottomBar}/>
+
     </TouchableOpacity>
   )
 }
@@ -58,7 +65,7 @@ export default AddBottomTabIcon
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    height: 80,
     width: '100%',
     justifyContent: 'space-evenly',
     alignItems: 'center',
@@ -73,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 100,
     top: '-45%',
-    left: '11.5%',
+    left: width/5,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
@@ -85,11 +92,18 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     position: 'absolute',
-    bottom: '11%',
-    left: '28%',
+    bottom:16,
+    left: '40%',
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleFont(13),
   },
+  bottomBar:{
+    position:'absolute',
+    bottom:-30,
+    height:30,
+    width:'100%',
+    backgroundColor:Colors.WHITE
+  }
 })
