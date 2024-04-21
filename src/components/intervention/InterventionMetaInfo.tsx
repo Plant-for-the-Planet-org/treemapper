@@ -14,17 +14,17 @@ const InterventionMetaInfo = (props: Props) => {
 
 
   switch (item.intervention_type) {
-    case 'FIRE_BREAK':
+    case 'fire-patrol':
       return <Text style={styles.label}>8 Trees Planted</Text>
-    case 'GRASS_REMOVAL':
+    case 'assisting-seed-rain':
       return <Text style={styles.label}>8 Trees Planted</Text>
-    case 'SEPCIES_REMOVAL':
+    case 'direct-seeding':
       return <Text style={styles.label}>8 Trees Planted</Text>
-    case 'MULTI_TREE':
+    case 'multi-tree-registration':
       return <Text style={styles.label}>{item.species.length} Species</Text>
-    case 'SINGLE_TREE':
+    case 'stop-tree-harvesting':
       return null
-    case 'SOIL_REMOVAL':
+    case 'soil-improvement':
       return (
         <Text style={styles.label}>
           Single Tree Planted({item.sample_trees[0].specie_name})

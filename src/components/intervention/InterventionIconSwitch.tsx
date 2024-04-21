@@ -18,19 +18,19 @@ const InterventionIconSwitch = (props: Props) => {
   const {icon} = props
 
   switch (icon) {
-    case 'FIRESUPRESSION_TEAM':
+    case 'fire-suppression':
       return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
-    case 'SEED_RAIN':
+    case 'direct-seeding':
       return <GrassRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
-    case 'SEPCIES_REMOVAL':
+    case 'removal-invasive-species':
       return (
         <SpeciesRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
-    case 'MULTI_TREE':
+    case 'multi-tree-registration':
       return (
         <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
-    case 'SINGLE_TREE':
+    case 'single-tree-registration':
       return (
         <SingleTreePlantation
           style={styles.iconWrapper}
@@ -38,7 +38,7 @@ const InterventionIconSwitch = (props: Props) => {
           height={SCALE_40}
         />
       )
-    case 'SOIL_REMOVAL':
+    case 'soil-improvement':
       return <SoilRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     default:
       return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />

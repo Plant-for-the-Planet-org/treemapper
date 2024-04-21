@@ -44,7 +44,7 @@ export const convertFormDataToIntervention = (
     species: data.species,
     has_sample_trees: data.has_sample_trees,
     sample_trees: data.tree_details,
-    is_complete: false,
+    is_complete: true,
     site_id: data.site_id,
     intervention_type: data.key,
     form_data: '',
