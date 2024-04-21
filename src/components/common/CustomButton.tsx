@@ -49,8 +49,8 @@ const CustomButton = (props: Props) => {
       <View
         style={[
           styles.wrapper,
-          {...wrapperStyle},
           {backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY},
+          {...wrapperStyle},
         ]}>
         {loading ? (
           <ActivityIndicator color={Colors.WHITE} size="small" />

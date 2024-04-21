@@ -1,38 +1,33 @@
-import {StyleSheet, View} from 'react-native'
-import React, {useEffect, useRef, useState} from 'react'
-import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
-import useLocationPermission from 'src/hooks/useLocationPermission'
-import {PermissionStatus} from 'expo-location'
-import {useDispatch, useSelector} from 'react-redux'
-import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
-import {RootState} from 'src/store'
-import userCurrentLocation from 'src/utils/helpers/getUserLocation'
+import { StyleSheet, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import LineMarker from './LineMarker'
 import AlphabetMarkers from './AlphabetMarkers'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import {
-  updateCoverImageId,
   updateFormCoordinates,
 } from 'src/store/slice/registerFormSlice'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
-import {Colors} from 'src/utils/constants'
+import { Colors } from 'src/utils/constants'
+import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
+
 interface Props {
-  formData: RegisterFormSliceInitalState
+  species_required: boolean
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const {cover_image_required} = props.formData
-  const permissionStatus = useLocationPermission()
+  const { species_required } = props
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
@@ -41,49 +36,51 @@ const PolygonMarkerMap = (props: Props) => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const [showPermissionAlert, setPermissionAlert] = useState(false)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const [coordinates, setCoordinates] = useState([])
   const [polygonComplete, setPolygonComplete] = useState(false)
 
-  useEffect(() => {
-    if (PermissionStatus.DENIED === permissionStatus) {
-      setPermissionAlert(true)
-    } else {
-      getInitalLocation()
-      setPermissionAlert(false)
-    }
-  }, [permissionStatus])
 
-  const getInitalLocation = async () => {
-    const {lat, long} = await userCurrentLocation()
-    dispatch(
-      updateUserLocation({
-        lat: lat,
-        long: long,
-      }),
-    )
-  }
 
   useEffect(() => {
-    if (currentUserLocation && cameraRef.current !== null) {
-      handleCamera()
-    }
+    setTimeout(() => {
+      if (currentUserLocation && cameraRef.current !== null) {
+        handleCamera()
+      }
+    }, 500);
   }, [currentUserLocation])
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
-      zoomLevel: 18,
+      zoomLevel: 17,
       animationDuration: 1000,
     })
   }
 
+  const handlePreviousPoint = () => {
+    const updatedCordinates = [...coordinates];
+    updatedCordinates.pop()
+    setCoordinates(updatedCordinates)
+    setCurrentCoordinate(prevState => ({
+      id: String.fromCharCode(prevState.id.charCodeAt(0) - 1),
+      index: prevState.index - 1,
+    }))
+    if (updatedCordinates.length <= 2) {
+      setPolygonComplete(false)
+    }
+  }
+
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
+    if (coordinates.length !== 0) {
+      const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates[coordinates.length - 1])
+      console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
+    }
     setCoordinates([...coordinates, centerCoordinates])
     setCurrentCoordinate(prevState => ({
       id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
@@ -95,33 +92,19 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const makeComplete = async () => {
-    const latestCoordinates = [...coordinates];
-    if(coordinates.length === 3){
-      latestCoordinates.push(coordinates[0])
+    const finalCoordinates = [...coordinates];
+    if (coordinates.length === 3) {
+      finalCoordinates.push(coordinates[0])
     }
-    const finalCoordinates = latestCoordinates.map((el, i) => {
-      return {
-        lat: el[0],
-        long: el[1],
-        id: String.fromCharCode(i + 65),
-      }
-    })
-
-    setCoordinates([...coordinates, coordinates[0]])
-    const allCordinates = [...finalCoordinates]
-    dispatch(updateFormCoordinates(allCordinates))
-    if (cover_image_required) {
-      const imageId = String(new Date().getTime())
-      dispatch(updateCoverImageId(imageId))
-      navigation.replace('TakePicture', {
-        id: imageId,
-        screen: 'POLYGON_REGISTER',
-      })
+    setCoordinates([...finalCoordinates])
+    dispatch(updateFormCoordinates(finalCoordinates))
+    if (!species_required) {
+      navigation.replace('DynamicForm')
+    } else {
+      navigation.replace('ManageSpecies', { manageSpecies: false })
     }
-  }
 
-  if (showPermissionAlert) {
-    return null
+
   }
 
   return (
@@ -130,6 +113,7 @@ const PolygonMarkerMap = (props: Props) => {
         lat={coordinates[currentCoordinate.index[0]]}
         long={coordinates[currentCoordinate.index[1]]}
         id={currentCoordinate.id}
+        undo={handlePreviousPoint}
       />
       <MapLibreGL.MapView
         style={styles.map}

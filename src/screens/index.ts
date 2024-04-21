@@ -19,6 +19,7 @@ import DataExplorerView from './DataExplorerView'
 import AdditionalDataView from './AdditionalDataView'
 import OfflineMapSelectionView from './OfflineMapSelectionView'
 import OfflineMapView from './OfflineMapView'
+import ReviewTreeDetails from './ReviewTreeDetails'
 
 export default {
   HomeMapView: HomeMapView,
@@ -42,4 +43,5 @@ export default {
   AdditionalData: AdditionalDataView,
   OfflineMap: OfflineMapView,
   OfflineMapSelection: OfflineMapSelectionView,
+  ReviewTreeDetails:ReviewTreeDetails
 }

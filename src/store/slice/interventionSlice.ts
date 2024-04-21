@@ -21,10 +21,10 @@ const initialState: InterventionData = {
   sample_trees: [],
   is_complete: false,
   site_id: '',
-  intervention_type: 'SINGLE_TREE',
   form_data: '',
   additional_data: '',
   meta_data: '',
+  intervention_type: 'single-tree-registration'
 }
 
 const interventionSlice = createSlice({

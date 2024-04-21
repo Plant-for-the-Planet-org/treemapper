@@ -28,25 +28,24 @@ export default function distanceCalculator(
   }
 }
 
-// const checkIsValidPolygonMarker = async (
-//   centerCoordinates: number[],
-//   geoJSONCoords,
-//   activeIndex,
-// ) => {
-//   let isValidMarkers = true
+export const checkIsValidPolygonMarker = async (
+  centerCoordinates: number[],
+  geoJSONCoords,
+) => {
+  let isValidMarkers = true
 
-//   const distanceInMeters = distanceCalculator(
-//     [centerCoordinates[1], centerCoordinates[0]],
-//     [geoJSONCoords[activeIndex][1], geoJSONCoords[activeIndex][0]],
-//     'meters',
-//   )
-//   // if the current marker position is less than one meter to already present markers nearby,
-//   // then makes the current marker position invalid
-//   if (distanceInMeters < 1) {
-//     isValidMarkers = false
-//   }
-//   return isValidMarkers
-// }
+  const distanceInMeters = distanceCalculator(
+    [centerCoordinates[1], centerCoordinates[0]],
+    [geoJSONCoords[1], geoJSONCoords[0]],
+    'meters',
+  )
+  // if the current marker position is less than one meter to already present markers nearby,
+  // then makes the current marker position invalid
+  if (distanceInMeters < 1) {
+    isValidMarkers = false
+  }
+  return isValidMarkers
+}
 
 const checkIsSampleMarkerValid = (
   centerCoordinates: number[],

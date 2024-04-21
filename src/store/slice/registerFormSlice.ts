@@ -1,4 +1,4 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import {
   FormValues,
   RegisterFormSliceInitalState,
@@ -36,6 +36,7 @@ export const initialState: RegisterFormSliceInitalState = {
   additional_data: '',
   can_be_entire_site: false,
   entire_site_selected: false,
+  should_register_location: true
 }
 
 const registerFormSlice = createSlice({
@@ -43,10 +44,10 @@ const registerFormSlice = createSlice({
   initialState,
   reducers: {
     initiateForm(_state, action: PayloadAction<RegisterFormSliceInitalState>) {
-      return {...action.payload}
+      return { ...action.payload }
     },
-    updateFormCoordinates(state, action: PayloadAction<Array<number[]>>) {
-      state.coordinates = action.payload
+    updateFormCoordinates(state, action: PayloadAction<number[]>) {
+      state.coordinates = [...state.coordinates, action.payload]
     },
     updateCoverImageURL(state, action: PayloadAction<string>) {
       state.cover_image_url = action.payload
@@ -62,14 +63,14 @@ const registerFormSlice = createSlice({
     },
     updateFormProject(
       state,
-      action: PayloadAction<{name: string; id: string}>,
+      action: PayloadAction<{ name: string; id: string }>,
     ) {
       state.project_name = action.payload.name
       state.project_id = action.payload.id
     },
     updateFormProjectSite(
       state,
-      action: PayloadAction<{name: string; id: string}>,
+      action: PayloadAction<{ name: string; id: string }>,
     ) {
       state.site_name = action.payload.name
       state.site_id = action.payload.id

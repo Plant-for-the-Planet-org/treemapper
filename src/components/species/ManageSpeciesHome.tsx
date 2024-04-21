@@ -17,7 +17,7 @@ const cardSize = scaleSize(60)
 interface Props {
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[] | any
-  isSelectSpecies: boolean
+  isManageSpecies: boolean
   formData: RegisterFormSliceInitalState | undefined
   showTreeModal: (item: IScientificSpecies) => void
 }
@@ -26,29 +26,22 @@ const ManageSpeciesHome = (props: Props) => {
   const {
     toogleFavSpecies,
     userFavSpecies,
-    isSelectSpecies,
+    isManageSpecies,
     formData,
     showTreeModal,
   } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
-  const dummy = () => {
-    return null
-  }
+
 
   const handleSpeciesPress = (item: IScientificSpecies) => {
-    if (isSelectSpecies) {
+    if (!isManageSpecies) {
+      dispatch(updateFormSpecies(item.guid))
       if (formData.is_multi_species) {
-        dispatch(updateFormSpecies(item.guid))
-        if (formData.species_count_required) {
           showTreeModal(item)
-        }else{
-          //
-        }
       } else {
-        dispatch(updateFormSpecies(item.guid))
         if (formData.tree_details_required) {
-          navigation.navigate('AddMeasurment')
+          navigation.replace('ReviewTreeDetails')
         } else {
           navigation.navigate('DynamicForm')
         }
@@ -67,14 +60,8 @@ const ManageSpeciesHome = (props: Props) => {
       <SpecieCard
         item={item}
         index={index}
-        registrationType={null}
         onPressSpecies={handleSpeciesPress}
-        addSpecieToInventory={dummy}
-        editOnlySpecieName={'editOnlySpecieName'}
-        onPressBack={dummy}
-        isSampleTree={false}
-        navigateToSpecieInfo={dummy}
-        screen={'ManageSpecies'}
+        actionName={''}
         handleRemoveFavourite={handleRemoveFav}
       />
     )

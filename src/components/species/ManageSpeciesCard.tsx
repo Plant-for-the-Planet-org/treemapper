@@ -1,9 +1,7 @@
 import React from 'react'
 import i18next from 'src/locales/index'
 import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native'
-import {Ionicons} from '@expo/vector-icons'
 import {Typography, Colors} from 'src/utils/constants'
-import {ScientificSpeciesType} from 'src/utils/constants/scientificSpeciesTypes'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
@@ -14,43 +12,24 @@ import {scaleSize} from 'src/utils/constants/mixins'
 interface SpecieCardProps {
   item: IScientificSpecies
   index: number
-  registrationType?: any
   onPressSpecies: (item: IScientificSpecies) => void
-  addSpecieToInventory?: (specie: ScientificSpeciesType) => void
-  editOnlySpecieName?: any
-  onPressBack?: any
-  isSampleTree: any
-  navigateToSpecieInfo?: (specie: ScientificSpeciesType) => void
-  screen?: string
   isSampleTreeSpecies?: boolean
+  actionName: string
   handleRemoveFavourite?: any
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
   item,
   index,
-  registrationType,
   onPressSpecies,
-  addSpecieToInventory,
-  editOnlySpecieName,
-  onPressBack,
-  isSampleTree,
-  navigateToSpecieInfo,
-  screen,
-  isSampleTreeSpecies,
   handleRemoveFavourite,
+  actionName
 }) => {
   const handlePress = () => {
     onPressSpecies(item)
     console.log(
       'Will remove',
-      registrationType,
       onPressSpecies,
-      addSpecieToInventory,
-      editOnlySpecieName,
-      onPressBack,
-      isSampleTree,
-      isSampleTreeSpecies,
     )
   }
   return (
@@ -107,17 +86,8 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {item.guid !== 'unknown' &&
-          screen === 'SelectSpecies' &&
-          navigateToSpecieInfo ? (
-            <TouchableOpacity style={styles.infoIcon}>
-              <Ionicons name="information-circle-outline" size={20} />
-            </TouchableOpacity>
-          ) : (
-            []
-          )}
           <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
-            {editOnlySpecieName !== 'remove' ? (
+            {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (
               <RemoveSpeciesIcon />

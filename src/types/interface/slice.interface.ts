@@ -1,6 +1,6 @@
-import {INTERVENTION_TYPE, MAP_BOUNDS} from '../type/app.type'
-import {Coordinates, IScientificSpecies} from './app.interface'
-import {MainForm} from './form.interface'
+import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
+import { Coordinates, IScientificSpecies } from './app.interface'
+import { MainForm } from './form.interface'
 
 export interface AppInitialState {
   isLogedIn: boolean
@@ -64,6 +64,7 @@ export interface RegisterFormSliceInitalState {
   site_name: string
   can_be_entire_site: boolean
   entire_site_selected: boolean
+  should_register_location: boolean
   location_type: 'Point' | 'Polygon'
   location_title: string
   coordinates: Array<number[]>
@@ -124,8 +125,8 @@ export interface SampleTreeSlice {
   sample_tree_count: number
   move_next_primary: string
   move_next_secondary: string
-  boundry: Coordinates[]
-  coordinates: Coordinates[]
+  boundry:   Array<number[]>
+  coordinates: Array<number[]>
   image_url: string
   current_species: string
 }

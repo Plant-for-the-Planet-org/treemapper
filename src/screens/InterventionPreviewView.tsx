@@ -1,28 +1,28 @@
-import {ScrollView, StyleSheet, View} from 'react-native'
-import React, {useEffect} from 'react'
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import React, { useEffect } from 'react'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
 import CustomButton from 'src/components/common/CustomButton'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { scaleSize } from 'src/utils/constants/mixins'
 import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
-import {useDispatch, useSelector} from 'react-redux'
-import {RootState} from 'src/store'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import {
   convertFormDataToIntervention,
   makeInterventionGeoJson,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import {resetSampleTreeform} from 'src/store/slice/sampleTreeSlice'
-import {Colors} from 'src/utils/constants'
+import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
+import { Colors } from 'src/utils/constants'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 import bbox from '@turf/bbox'
-import {updateMapBounds} from 'src/store/slice/mapBoundSlice'
-import {InterventionData} from 'src/types/interface/slice.interface'
-import {updateInerventionData} from 'src/store/slice/interventionSlice'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { updateInerventionData } from 'src/store/slice/interventionSlice'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -33,7 +33,7 @@ const InterventionPreviewView = () => {
   )
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const is_sampleTree = SampleTreeData.form_id.length > 0
-  const {addNewIntervention, addSampleTrees} = useInterventionManagement()
+  const { addNewIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
   const isPreview = route.params.id === 'preview'
 
@@ -51,36 +51,21 @@ const InterventionPreviewView = () => {
       return
     }
     const finalData = convertFormDataToIntervention(formFlowData)
-    if (!is_sampleTree || finalData.sample_trees.length === 1) {
-      await addNewIntervention(finalData)
-    } else {
-      await addSampleTrees(finalData)
-    }
-    if (
-      !is_sampleTree ||
-      SampleTreeData.sample_tree_count === formFlowData.tree_details.length
-    ) {
-      dispatch(resetSampleTreeform())
-      const {geoJSON} = makeInterventionGeoJson(
-        formFlowData.location_type,
-        formFlowData.coordinates,
-        finalData.intervention_id,
-        false,
-      )
-      const bounds = bbox(geoJSON)
-      dispatch(
-        updateMapBounds({
-          bodunds: bounds,
-          key: 'DISPLAY_MAP',
-        }),
-      )
-      navigation.popToTop()
-    } else {
-      navigation.reset({
-        index: 1,
-        routes: [{name: 'Home'}, {name: 'PointMarker'}],
-      })
-    }
+    await addNewIntervention(finalData)
+    dispatch(resetSampleTreeform())
+    const { geoJSON } = makeInterventionGeoJson(
+      formFlowData.location_type,
+      formFlowData.coordinates,
+      finalData.intervention_id,
+    )
+    const bounds = bbox(geoJSON)
+    dispatch(
+      updateMapBounds({
+        bodunds: bounds,
+        key: 'DISPLAY_MAP',
+      }),
+    )
+    navigation.popToTop()
   }
 
   if (InterventionData.intervention_id.length === 0) {
@@ -108,7 +93,7 @@ const InterventionPreviewView = () => {
           <CustomButton
             label={
               is_sampleTree &&
-              SampleTreeData.sample_tree_count !==
+                SampleTreeData.sample_tree_count !==
                 formFlowData.tree_details.length
                 ? 'Next Tree'
                 : 'Done'

@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   HeaderWrapper: {
-    paddingLeft: '8%',
+    paddingLeft: '4%',
     justifyContent: 'center',
   },
   title: {

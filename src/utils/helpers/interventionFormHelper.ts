@@ -4,9 +4,8 @@ import {
   SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
-  const {intervention_date, title, project_name, site_name} = data
+  const { intervention_date, title, project_name, site_name } = data
 
-  let previewImage
   const basicInfo = {
     title,
     intervention_date,
@@ -14,14 +13,9 @@ export const getPreviewData = (data: RegisterFormSliceInitalState) => {
     site_name,
   }
   //Preview Image
-  if (data.cover_image_required) {
-    previewImage = data.cover_image_url
-  } else {
-    previewImage = ''
-  }
-
+  const previewImage = ''
   //Intervention Date
-  return {previewImage, basicInfo}
+  return { previewImage, basicInfo }
 }
 
 export const convertFormDataToIntervention = (
@@ -31,7 +25,6 @@ export const convertFormDataToIntervention = (
     data.location_type,
     data.coordinates,
     data.form_id,
-    false,
   )
   const finalData: InterventionData = {
     intervention_id: data.form_id,
@@ -46,14 +39,14 @@ export const convertFormDataToIntervention = (
       type: interventionLocation.type,
       coordinates: interventionLocation.coordinates,
     },
-    cover_image_url: extractCoverImageUrl(data),
+    cover_image_url: '',
     has_species: data.species_required,
     species: data.species,
     has_sample_trees: data.has_sample_trees,
     sample_trees: data.tree_details,
     is_complete: false,
     site_id: data.site_id,
-    intervention_type: data.intervention_type,
+    intervention_type: data.key,
     form_data: '',
     additional_data: '',
     meta_data: '',
@@ -63,14 +56,11 @@ export const convertFormDataToIntervention = (
 
 export const makeInterventionGeoJson = (
   type: string,
-  coordinates: any,
+  coordinates: Array<number[]>,
   id: string,
-  notMap: boolean,
 ) => {
-  const coord: Array<[number, number]> = notMap
-    ? coordinates
-    : coordinates.map(({lat, long}) => [lat, long])
-
+  const coord: Array<number[]> = coordinates
+console.log("LAIJC",type,coordinates)
   switch (type) {
     case 'Point':
       return {
@@ -81,7 +71,7 @@ export const makeInterventionGeoJson = (
           },
           geometry: {
             type: 'Point',
-            coordinates: coord[0],
+            coordinates: [...coord[0]],
           },
         },
         coordinates: JSON.stringify(coord),
@@ -96,7 +86,7 @@ export const makeInterventionGeoJson = (
           },
           geometry: {
             type: 'Polygon',
-            coordinates: [coord],
+            coordinates: coord,
           },
         },
         coordinates: JSON.stringify(coord),
@@ -112,13 +102,10 @@ export const makeInterventionGeoJson = (
 }
 
 export const extractSpecies = (
-  data: RegisterFormSliceInitalState,
-  sampleTree: string | undefined,
+  data: SampleTreeSlice,
 ) => {
-  if (sampleTree) {
-    return sampleTree
-  }
-  return data.species[0]
+  const speciesDetails = data.species.filter(el => el.info.guid === data.current_species)
+  return { species_details: speciesDetails[0].info, treeCount: speciesDetails[0].count }
 }
 
 export const extractTreeCount = (
@@ -134,28 +121,4 @@ export const extractTreeCount = (
   return 1
 }
 
-export const extractCoverImageUrl = (
-  data: RegisterFormSliceInitalState,
-  sampleTree?: SampleTreeSlice,
-) => {
-  if (sampleTree && sampleTree.image_url) {
-    return sampleTree.image_url
-  }
-  if (data.cover_image_required) {
-    return data.cover_image_url
-  }
-  return data.cover_image_url
-}
 
-export const extractTreeImageUrl = (
-  data: RegisterFormSliceInitalState,
-  sampleTree: SampleTreeSlice,
-) => {
-  if (sampleTree && sampleTree.image_url) {
-    return sampleTree.image_url
-  }
-  if (data.tree_image_required) {
-    return data.tree_image_url
-  }
-  return data.cover_image_url
-}

@@ -13,11 +13,10 @@ interface Props {
 
 const InterventionArea = (props: Props) => {
   const {data} = props
-  const {geoJSON} = makeInterventionGeoJson(
+  const {geoJSON, type} = makeInterventionGeoJson(
     data.location.type,
     JSON.parse(data.location.coordinates),
     data.intervention_id,
-    true,
   )
 
   const FeatureCollectionGeoJSON = {
@@ -34,7 +33,7 @@ const InterventionArea = (props: Props) => {
         sampleTrees={data.sample_trees}
         has_sample_trees={data.has_sample_trees}
       />
-      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} />
+      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type}/>
     </View>
   )
 }

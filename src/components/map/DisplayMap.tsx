@@ -49,7 +49,6 @@ const DisplayMap = () => {
       el.location.type,
       JSON.parse(el.location.coordinates),
       el.intervention_id,
-      true,
     )
     return result.geoJSON
   })

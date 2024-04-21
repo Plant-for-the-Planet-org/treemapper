@@ -1,29 +1,24 @@
-import {StyleSheet, View} from 'react-native'
-import React, {useEffect, useRef, useState} from 'react'
-import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
-import useLocationPermission from 'src/hooks/useLocationPermission'
-import {PermissionStatus} from 'expo-location'
-import {useDispatch, useSelector} from 'react-redux'
-import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
-import {RootState} from 'src/store'
-import userCurrentLocation from 'src/utils/helpers/getUserLocation'
+import { StyleSheet, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { scaleSize } from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
-import {useNavigation} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {updateFormCoordinates} from 'src/store/slice/registerFormSlice'
-import {Coordinates} from 'src/types/interface/app.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
-import {v4 as uuidv4} from 'uuid'
-import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
-import {updateSampleTreeCoordinates} from 'src/store/slice/sampleTreeSlice'
+import { useNavigation } from '@react-navigation/native'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { updateFormCoordinates } from 'src/store/slice/registerFormSlice'
+import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { v4 as uuidv4 } from 'uuid'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
-import {
-  isPointInPolygon,
-  validateMarkerForSampleTree,
-} from 'src/utils/helpers/turfHelpers'
+// import {
+//   isPointInPolygon,
+//   validateMarkerForSampleTree,
+// } from 'src/utils/helpers/turfHelpers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -33,31 +28,21 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const {tree_details} = props.formData
+  const { species_required, is_multi_species } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
-  const [showPermissionAlert, setPermissionAlert] = useState(false)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const {form_id, boundry} = useSelector((state: RootState) => state.sampleTree)
-  const [outOfBoundry, setOutOfBoundry] = useState(false)
+  const { form_id, boundry } = useSelector((state: RootState) => state.sampleTree)
+  const [outOfBoundry] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
 
   const dispatch = useDispatch()
-  const permissionStatus = useLocationPermission()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
-  useEffect(() => {
-    if (PermissionStatus.DENIED === permissionStatus) {
-      setPermissionAlert(true)
-    } else {
-      getInitalLocation()
-      setPermissionAlert(false)
-    }
-  }, [permissionStatus])
 
   useEffect(() => {
     setTimeout(() => {
@@ -68,10 +53,7 @@ const PointMarkerMap = (props: Props) => {
   }, [MapBounds])
 
   const handleCameraViewChange = () => {
-    const {bounds, key} = MapBounds
-    if (bounds.length === 0) {
-      return
-    }
+    const { bounds, key } = MapBounds
     if (key === 'POINT_MAP') {
       cameraRef.current.fitBounds(
         [bounds[0], bounds[1]],
@@ -79,6 +61,8 @@ const PointMarkerMap = (props: Props) => {
         40,
         1000,
       )
+    } else {
+      handleCamera()
     }
   }
 
@@ -88,24 +72,10 @@ const PointMarkerMap = (props: Props) => {
     }
   }, [form_id])
 
-  useEffect(() => {
-    if (currentUserLocation && cameraRef.current !== null) {
-      handleCamera()
-    }
-  }, [currentUserLocation])
 
-  const getInitalLocation = async () => {
-    const {lat, long} = await userCurrentLocation()
-    dispatch(
-      updateUserLocation({
-        lat: lat,
-        long: long,
-      }),
-    )
-  }
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), false)
+    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4())
     setGeoJSON(data.geoJSON)
   }
 
@@ -119,48 +89,38 @@ const PointMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    handleMarkerValidation(centerCoordinates)
-    const formCoordinates: Coordinates = {
-      lat: centerCoordinates[0],
-      long: centerCoordinates[1],
-      id: 'A',
-    }
-    const allCordinates = [formCoordinates]
     if (form_id.length > 0) {
-      dispatch(updateSampleTreeCoordinates(allCordinates))
+      dispatch(updateSampleTreeCoordinates([centerCoordinates]))
     } else {
-      dispatch(updateFormCoordinates(allCordinates))
+      dispatch(updateFormCoordinates(centerCoordinates))
     }
-    if (cover_image_required) {
-      const imageId = uuidv4()
-      navigation.replace('TakePicture', {
-        id: imageId,
-        screen: form_id.length ? 'SAMPLE_TREE' : 'POINT_REGISTER',
-      })
-    }
-  }
-
-  const handleMarkerValidation = (coords: number[]) => {
-    if (form_id.length) {
-      const isValidPoint = validateMarkerForSampleTree(
-        coords,
-        geoJSON,
-        tree_details,
-      )
-      console.log('HasvalidPoints', isValidPoint)
+    if(species_required){
+      if(is_multi_species){
+        navigation.replace('TotalTrees', { isSelectSpecies: true })
+      }else{
+        navigation.replace('ManageSpecies',{manageSpecies:false})
+      }
+    }else{
+      navigation.replace('DynamicForm')
     }
   }
 
-  const handleShapeSource = () => {}
+  // const handleMarkerValidation = (coords: number[]) => {
+  //   if (form_id.length) {
+  //     const isValidPoint = validateMarkerForSampleTree(
+  //       coords,
+  //       geoJSON,
+  //       tree_details,
+  //     )
+  //     console.log('HasvalidPoints', isValidPoint)
+  //   }
+  // }
 
-  if (showPermissionAlert) {
-    return null
-  }
 
   const handleDrag = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
-    const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
-    setOutOfBoundry(!validMarker)
+    // const centerCoordinates = await mapRef.current.getCenter()
+    // const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
+    // setOutOfBoundry(!validMarker)
   }
 
   return (
@@ -180,7 +140,7 @@ const PointMarkerMap = (props: Props) => {
         {geoJSON && (
           <MapShapeSource
             geoJSON={[geoJSON]}
-            onShapeSourcePress={handleShapeSource}
+            onShapeSourcePress={null}
             showError={outOfBoundry}
           />
         )}

@@ -1,9 +1,8 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import {
-  Coordinates,
   IScientificSpecies,
 } from 'src/types/interface/app.interface'
-import {SampleTreeSlice} from 'src/types/interface/slice.interface'
+import { SampleTreeSlice } from 'src/types/interface/slice.interface'
 
 const initialState: SampleTreeSlice = {
   form_id: '',
@@ -23,18 +22,18 @@ const sampleTreeSlice = createSlice({
   reducers: {
     addSampleTreeSpecies(
       state,
-      action: PayloadAction<Array<{info: IScientificSpecies; count: number}>>,
+      action: PayloadAction<Array<{ info: IScientificSpecies; count: number }>>,
     ) {
       state.species = [...action.payload]
     },
     updateBoundry(
       state,
-      action: PayloadAction<{coord: Coordinates[]; id: string}>,
+      action: PayloadAction<{ coord: Array<number[]>; id: string }>,
     ) {
       state.boundry = action.payload.coord
       state.form_id = action.payload.id
     },
-    updateSampleTreeCoordinates(state, action: PayloadAction<Coordinates[]>) {
+    updateSampleTreeCoordinates(state, action: PayloadAction<Array<number[]>>) {
       state.coordinates = action.payload
     },
     updateSampleImageUrl(state, action: PayloadAction<string>) {
@@ -46,14 +45,17 @@ const sampleTreeSlice = createSlice({
     updateSampleTreeForNextTree(state) {
       state.sample_tree_count = state.sample_tree_count - 1
     },
+    updateSingleTreeDetails(_state, action: PayloadAction<SampleTreeSlice>) {
+      return {...action.payload}
+    },
     removeSpeciesFromFlow(
       state,
-      action: PayloadAction<Array<{info: IScientificSpecies; count: number}>>,
+      action: PayloadAction<Array<{ info: IScientificSpecies; count: number }>>,
     ) {
       state.species = [...action.payload]
     },
-    resetSampleTreeform(){
-      return {...initialState}
+    resetSampleTreeform() {
+      return { ...initialState }
     }
   },
 })
@@ -66,7 +68,8 @@ export const {
   updateCurrentSpecies,
   updateSampleTreeForNextTree,
   resetSampleTreeform,
-  removeSpeciesFromFlow
+  removeSpeciesFromFlow,
+  updateSingleTreeDetails
 } = sampleTreeSlice.actions
 
 export default sampleTreeSlice.reducer

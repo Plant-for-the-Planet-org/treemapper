@@ -2,18 +2,19 @@ import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import {Colors, Typography} from 'src/utils/constants'
-import {Coordinates} from 'src/types/interface/app.interface'
 import {scaleSize} from 'src/utils/constants/mixins'
 import CopyIcon from 'assets/images/svg/CopyIcon.svg'
 
 interface Props {
-  coordinates: Coordinates[]
+  coordinates: Array<number[]>
+  type: string
 }
 
 const CoordinatesList = (props: Props) => {
-  const {coordinates} = props
+  const {coordinates, type} = props
   const renderCard = () => {
-    return coordinates.map((el, i) => {
+    const listCoord = type==='Polygon'?  coordinates[0] : coordinates
+    return listCoord.map((el, i) => {
       return (
         <View style={styles.wrapper} key={i}>
           <View style={styles.card}>

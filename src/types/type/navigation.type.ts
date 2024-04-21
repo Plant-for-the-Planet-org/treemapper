@@ -27,6 +27,7 @@ export type RootStackParamList = {
   AdditionalData: undefined
   OfflineMap: undefined
   OfflineMapSelection: undefined
+  ReviewTreeDetails: ReviewTreeDetailsView
 }
 
 type SpeciesInfoView = {
@@ -47,8 +48,12 @@ type InterventionPreviewView = {
 }
 
 type ManageSpeciesView = {
-  isSelectSpecies: boolean
+  manageSpecies: boolean
 }
 type TotalTreesView = {
   isSelectSpecies: boolean
+}
+
+type ReviewTreeDetailsView={
+  detailsCompleted: boolean
 }

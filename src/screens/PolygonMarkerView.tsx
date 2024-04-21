@@ -7,12 +7,12 @@ import {RootState} from 'src/store'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 
 const PolygonMarker = () => {
-  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const {species_required,location_title} = useSelector((state: RootState) => state.formFlowState)
 
   return (
     <View style={styles.container}>
-      <Header label={formFlowData.location_title} />
-      <PolygonMarkerMap formData={formFlowData} />
+      <Header label={location_title} />
+      <PolygonMarkerMap species_required={species_required}/>
       <UserlocationMarker />
     </View>
   )

@@ -30,6 +30,7 @@ const RootNavigator = () => {
       <Stack.Screen name="AdditionalData" component={Screens.AdditionalData} />
       <Stack.Screen name="OfflineMap" component={Screens.OfflineMap} />
       <Stack.Screen name="OfflineMapSelection" component={Screens.OfflineMapSelection} />
+      <Stack.Screen name='ReviewTreeDetails' component={Screens.ReviewTreeDetails} />
 
       <Stack.Screen
         name="HomeSideDrawer"

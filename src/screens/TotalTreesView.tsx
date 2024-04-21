@@ -1,16 +1,16 @@
-import {FlatList, StyleSheet, Text, View} from 'react-native'
+import { FlatList, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
-import {useDispatch, useSelector} from 'react-redux'
-import {RootState} from 'src/store'
-import {SpecieCard} from 'src/components/species/ManageSpeciesCard'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { SpecieCard } from 'src/components/species/ManageSpeciesCard'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import CustomButton from 'src/components/common/CustomButton'
-import {Colors, Typography} from 'src/utils/constants'
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { Colors, Typography } from 'src/utils/constants'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import {
   removeSpeciesFromFlow,
   updateCurrentSpecies,
@@ -25,13 +25,14 @@ const TotalTreesView = () => {
   }
 
   const navigationToNext = () => {
-    navigation.replace('PointMarker')
+    navigation.replace('ReviewTreeDetails', { detailsCompleted: false })
   }
 
   const cardpress = (item: IScientificSpecies) => {
     if (route.params.isSelectSpecies) {
       dispatch(updateCurrentSpecies(item.guid))
-      navigation.replace('AddMeasurment')
+      const newID = String(new Date().getTime())
+      navigation.replace('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
       return
     }
   }
@@ -44,21 +45,15 @@ const TotalTreesView = () => {
   }
 
   const renderSpecieCard = (
-    item: {info: IScientificSpecies; count: number} | any,
+    item: { info: IScientificSpecies; count: number } | any,
     index: number,
   ) => {
     return (
       <SpecieCard
         item={item.info}
         index={index}
-        registrationType={null}
         onPressSpecies={cardpress}
-        addSpecieToInventory={null}
-        editOnlySpecieName={'remove'}
-        onPressBack={null}
-        isSampleTree={false}
-        navigateToSpecieInfo={null}
-        screen={'ManageSpecies'}
+        actionName={'remove'}
         handleRemoveFavourite={removeHandler}
       />
     )
@@ -69,7 +64,7 @@ const TotalTreesView = () => {
       <Header label="Total Trees" />
       <FlatList
         data={sampleTreeData.species}
-        renderItem={({item, index}) => renderSpecieCard(item, index)}
+        renderItem={({ item, index }) => renderSpecieCard(item, index)}
         ListHeaderComponent={() => (
           <Text style={styles.textLable}>
             List all trees planted at the site
