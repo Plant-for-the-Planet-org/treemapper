@@ -1,22 +1,22 @@
-import {FlatList, StyleSheet, Text, View, TouchableOpacity} from 'react-native'
-import React, {useEffect, useState} from 'react'
+import { FlatList, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import Modal from 'react-native-modal'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
-import {Colors, Typography} from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import CustomDropDownPicker from '../common/CustomDropDown'
-import {useQuery} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
-import {Entypo} from '@expo/vector-icons'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { Entypo } from '@expo/vector-icons'
 import bbox from '@turf/bbox'
-import {RootState} from 'src/store'
-import {useDispatch, useSelector} from 'react-redux'
+import { RootState } from 'src/store'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   updateCurrentProject,
   updateProjectSite,
 } from 'src/store/slice/projectStateSlice'
-import {scaleFont} from 'src/utils/constants/mixins'
-import {updateMapBounds} from 'src/store/slice/mapBoundSlice'
+import { scaleFont } from 'src/utils/constants/mixins'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 interface Props {
   isVisible: boolean
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const ProjectModal = (props: Props) => {
-  const {isVisible, toogleModal} = props
+  const { isVisible, toogleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSies, setProjectSites] = useState<any>([])
   const [selectedProject, setSelectedProject] = useState<{
@@ -36,7 +36,7 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
-  const {currentProject, projectSite} = useSelector(
+  const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
   )
   const allProjects = useQuery(RealmSchema.Projects, data => {
@@ -130,7 +130,9 @@ const ProjectModal = (props: Props) => {
             <ZoomSiteIcon style={styles.iconWrapper} />
             <Text style={styles.headerLable}>Zoom To Site</Text>
             <View style={styles.divider} />
-            <CloseIcon style={styles.iconWrapper} onPress={toogleModal} />
+            <TouchableOpacity style={styles.iconWrapper} onPress={toogleModal} >
+              <CloseIcon />
+            </TouchableOpacity>
           </View>
           <Text style={styles.projectLabel}>Select Project</Text>
           <CustomDropDownPicker
@@ -144,7 +146,7 @@ const ProjectModal = (props: Props) => {
           <View style={styles.siteContainer}>
             <FlatList
               data={projectSies}
-              renderItem={({item, index}) => {
+              renderItem={({ item, index }) => {
                 return (
                   <TouchableOpacity
                     style={[

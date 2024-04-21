@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import ManageSpeciesHome from 'src/components/species/ManageSpeciesHome'
 import RemoveSpeciesModal from 'src/components/species/RemoveSpeciesModal'
@@ -15,7 +15,8 @@ import {
   addSampleTreeSpecies,
 } from 'src/store/slice/sampleTreeSlice'
 import { StackNavigationProp } from '@react-navigation/stack'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Colors } from 'src/utils/constants'
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
@@ -76,7 +77,7 @@ const ManageSpeciesView = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ManageSpeciesHome
         toogleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={userFavSpecies}
@@ -95,7 +96,7 @@ const ManageSpeciesView = () => {
         activeSpecie={treeModalDetails}
         onPressTreeCountNextBtn={closeSpeciesModal}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -104,5 +105,6 @@ export default ManageSpeciesView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.WHITE
   },
 })

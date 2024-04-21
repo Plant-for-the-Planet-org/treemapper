@@ -21,6 +21,7 @@ import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHel
 import CustomButton from 'src/components/common/CustomButton'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 
 const ReviewTreeDetails = () => {
@@ -97,7 +98,7 @@ const ReviewTreeDetails = () => {
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={`Review of Tree ${currentTreeIndex} of ${totalSampleTress}`} />
@@ -169,7 +170,7 @@ const ReviewTreeDetails = () => {
                 containerStyle={styles.btnContainer}
                 pressHandler={nextTreeButton}
             />
-        </View >
+        </SafeAreaView >
     )
 }
 
@@ -178,6 +179,7 @@ export default ReviewTreeDetails
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: Colors.WHITE
     }, metaWrapper: {
         width: '100%',
         paddingVertical: 5,
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom: 0,
+        bottom: 20,
     },
     iconwrapper: {
         marginLeft: 10

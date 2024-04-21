@@ -1,13 +1,14 @@
-import {StyleSheet, View} from 'react-native'
-import React, {useState} from 'react'
+import { StyleSheet } from 'react-native'
+import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { scaleSize } from 'src/utils/constants/mixins'
 import CameraView from 'src/components/common/CameraView'
-import {Colors} from 'src/utils/constants'
-import {CameraCapturedPicture} from 'expo-camera'
+import { Colors } from 'src/utils/constants'
+import { CameraCapturedPicture } from 'expo-camera'
 import ImagePreview from 'src/components/takePicture/ImagePreview'
-import {useRoute, RouteProp} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { useRoute, RouteProp } from '@react-navigation/native'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const TakePicture = () => {
   const [imageMetaData, setImageMetaData] = useState<CameraCapturedPicture>({
@@ -27,7 +28,7 @@ const TakePicture = () => {
     })
   }
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header
         label="Take Picture"
         note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}
@@ -42,7 +43,7 @@ const TakePicture = () => {
       ) : (
         <CameraView takePicture={takePicture} />
       )}
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -51,6 +52,7 @@ export default TakePicture
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.WHITE
   },
   section: {
     flex: 1,

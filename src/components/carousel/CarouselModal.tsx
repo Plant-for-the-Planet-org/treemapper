@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   container: {
     height: 150,
     position: 'absolute',
-    bottom: 100,
+    bottom: 150,
     zIndex:9
   },
 })

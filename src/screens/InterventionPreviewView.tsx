@@ -23,6 +23,7 @@ import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { updateInerventionData } from 'src/store/slice/interventionSlice'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -73,7 +74,7 @@ const InterventionPreviewView = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView>
         <View>
           <Header label="Review" />
@@ -103,7 +104,7 @@ const InterventionPreviewView = () => {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   )
 }
 

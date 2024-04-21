@@ -15,6 +15,7 @@ import {
   removeSpeciesFromFlow,
   updateCurrentSpecies,
 } from 'src/store/slice/sampleTreeSlice'
+import { SafeAreaView } from 'react-native-safe-area-context'
 const TotalTreesView = () => {
   const sampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -60,35 +61,37 @@ const TotalTreesView = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header label="Total Trees" />
-      <FlatList
-        data={sampleTreeData.species}
-        renderItem={({ item, index }) => renderSpecieCard(item, index)}
-        ListHeaderComponent={() => (
-          <Text style={styles.textLable}>
-            List all trees planted at the site
-          </Text>
+      <View style={styles.wrapper}>
+        <FlatList
+          data={sampleTreeData.species}
+          renderItem={({ item, index }) => renderSpecieCard(item, index)}
+          ListHeaderComponent={() => (
+            <Text style={styles.textLable}>
+              List all trees planted at the site
+            </Text>
+          )}
+          ListFooterComponent={() => <View style={styles.footerWrapper} />}
+        />
+        {!route.params.isSelectSpecies && (
+          <View style={styles.btnContainer}>
+            <CustomButton
+              label="Add Species"
+              containerStyle={styles.btnWrapper}
+              pressHandler={goBack}
+              wrapperStyle={styles.borderWrapper}
+              labelStyle={styles.highlightLabel}
+            />
+            <CustomButton
+              label="Continue"
+              containerStyle={styles.btnWrapper}
+              pressHandler={navigationToNext}
+            />
+          </View>
         )}
-        ListFooterComponent={() => <View style={styles.footerWrapper} />}
-      />
-      {!route.params.isSelectSpecies && (
-        <View style={styles.btnContainer}>
-          <CustomButton
-            label="Add Species"
-            containerStyle={styles.btnWrapper}
-            pressHandler={goBack}
-            wrapperStyle={styles.borderWrapper}
-            labelStyle={styles.highlightLabel}
-          />
-          <CustomButton
-            label="Continue"
-            containerStyle={styles.btnWrapper}
-            pressHandler={navigationToNext}
-          />
-        </View>
-      )}
-    </View>
+      </View>
+    </SafeAreaView>
   )
 }
 
@@ -97,6 +100,11 @@ export default TotalTreesView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.WHITE
+  },
+  wrapper: {
+    flex: 1,
+    backgroundColor: Colors.BACKDROP_COLOR
   },
   noteWrapper: {
     width: '100%',

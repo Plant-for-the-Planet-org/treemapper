@@ -21,6 +21,7 @@ const OutlinedTextInput = (props: Props) => {
         keyboardType={keyboardType}
         placeholder={placeholder}
         activeColor={Colors.PRIMARY}
+        returnKeyType="done"
         inactiveColor={Colors.GRAY_BORDER}
         placeholderTextColor={Colors.GRAY_BORDER}
         onChangeText={changeHandler}

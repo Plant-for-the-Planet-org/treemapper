@@ -12,9 +12,10 @@ import {RealmSchema} from 'src/types/enum/db.enum'
 import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
 import {InterventionData} from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
-import MapMarkers from './MapMarkers'
+// import MapMarkers from './MapMarkers'
 import {updateSelectedIntervention} from 'src/store/slice/displayMapSlice'
 import {scaleSize} from 'src/utils/constants/mixins'
+// import { Colors } from 'src/utils/constants'
 // import SiteMapSource from './SiteMapSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -27,9 +28,9 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const {selectedIntervention} = useSelector(
-    (state: RootState) => state.displayMapState,
-  )
+  // const {selectedIntervention} = useSelector(
+  //   (state: RootState) => state.displayMapState,
+  // )
 
   const [showPermissionAlert, setPermissionAlert] = useState(false)
   const dispatch = useDispatch()
@@ -140,11 +141,11 @@ const DisplayMap = () => {
         onShapeSourcePress={setSelectedGeoJson}
       />
       {/* <SiteMapSource /> */}
-      {selectedIntervention && (
+      {/* {selectedIntervention && (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees}
         />
-      )}
+      )} */}
     </MapLibreGL.MapView>
   )
 }

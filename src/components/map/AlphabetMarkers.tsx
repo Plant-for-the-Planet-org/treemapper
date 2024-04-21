@@ -17,14 +17,14 @@ const AlphabetMarkers = (props: Props) => {
       return String.fromCharCode(i + 65)
     }
     return props.coordinates.map((d, i) => (
-      <Maplibre.PointAnnotation coordinate={d} id={String(i)} key={i}>
+      <Maplibre.MarkerView coordinate={d} id={String(i)} key={i}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
             <MapPin />
           </View>
           <Text style={styles.labelText}>{alphabet(i)}</Text>
         </View>
-      </Maplibre.PointAnnotation>
+      </Maplibre.MarkerView>
     ))
   }
   return renderMarkers()

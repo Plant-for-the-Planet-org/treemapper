@@ -1,19 +1,19 @@
-import {KeyboardTypeOptions, StyleSheet, View} from 'react-native'
+import { KeyboardTypeOptions, StyleSheet, View } from 'react-native'
 import React from 'react'
-import {InputOutline} from 'react-native-input-outline'
-import {Text} from 'react-native'
-import {Colors} from 'src/utils/constants'
-import {scaleFont} from 'src/utils/constants/mixins'
+import { InputOutline } from 'react-native-input-outline'
+import { Text } from 'react-native'
+import { Colors } from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
 import Switch from '../common/Switch'
 
 interface Props {
   placeholder: string
-  changeHandler: (t:string) => void
+  changeHandler: (t: string) => void
   keyboardType: KeyboardTypeOptions
   trailingtext: string
   switchEnable: boolean
   description: string
-  switchHandler: (b:boolean) => void
+  switchHandler: (b: boolean) => void
 }
 
 const TagSwitch = (props: Props) => {
@@ -39,12 +39,13 @@ const TagSwitch = (props: Props) => {
         ]}>
         <View style={[styles.switchWrapper]}>
           <Text style={styles.inputLabel}>{description}</Text>
-          <View style={styles.divider} />
-          <Switch
-            value={switchEnable}
-            onValueChange={()=>{switchHandler(!switchEnable)}}
-            disabled={false}
-          />
+          <View style={styles.switchContainer}>
+            <Switch
+              value={switchEnable}
+              onValueChange={() => { switchHandler(!switchEnable) }}
+              disabled={false}
+            />
+          </View>
         </View>
         {switchEnable && <View style={styles.inputContainer}>
           <InputOutline
@@ -56,6 +57,7 @@ const TagSwitch = (props: Props) => {
             placeholderTextColor={Colors.GRAY_BORDER}
             onChangeText={changeHandler}
             fontSize={18}
+            returnKeyType="done"
             trailingIcon={() => (
               <Text style={styles.unitLabel}>{trailingtext}</Text>
             )}
@@ -82,13 +84,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
   },
-  inputContainer:{
-    width:'100%',
-    height:50,
-    justifyContent:'center',
-    alignItems:'center',
-    flexDirection:'row',
-    marginVertical:20
+  inputContainer: {
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginVertical: 20
   },
   inputWrapper: {
     borderRadius: 10,
@@ -104,12 +106,20 @@ const styles = StyleSheet.create({
     height: 60,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:'space-around',
+  },
+  switchContainer: {
+    width: 50,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputLabel: {
     color: 'gray',
     fontSize: scaleFont(14),
     letterSpacing: 0.5,
     paddingHorizontal: 20,
+    width:'80%'
   },
   divider: {
     flex: 1,

@@ -8,7 +8,6 @@ import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import {useRealm} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
 import {IScientificSpecies} from 'src/types/interface/app.interface'
-import { SCALE_22 } from 'src/utils/constants/spacing'
 
 interface Props {
   backPress: () => void
@@ -92,8 +91,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    marginTop:SCALE_22
+    paddingHorizontal: 16,
+    paddingBottom:10
   },
   backArrowCon: {
     flexDirection: 'row',

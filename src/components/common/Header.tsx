@@ -1,11 +1,11 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
-import {Colors, Typography} from 'src/utils/constants'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { Colors, Typography } from 'src/utils/constants'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   label: string
@@ -15,20 +15,21 @@ interface Props {
 }
 
 const Header = (props: Props) => {
-  const {rightComponet, label, showBackIcon = true, note} = props
+  const { rightComponet, label, showBackIcon = true, note } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
     navigation.goBack()
   }
   return (
     <View style={styles.container}>
-      {showBackIcon && <BackIcon style={styles.backIcon} onPress={goBack} />}
+      {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon /></TouchableOpacity>}
       <View style={styles.HeaderWrapper}>
         <Text style={styles.title}>{label}</Text>
         {note && <Text style={styles.note}>{note}</Text>}
       </View>
       <View style={styles.divider} />
       {rightComponet}
+      {/* <View style={styles.overlay}/> */}
     </View>
   )
 }
@@ -68,4 +69,11 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
+  overlay:{
+    width:'100%',
+    height:50,
+    position:'absolute',
+    top:-50,
+    backgroundColor:Colors.WHITE
+  }
 })

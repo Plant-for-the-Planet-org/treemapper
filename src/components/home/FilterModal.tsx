@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const FilterModal = (props: Props) => {
-  const {isVisible, toogleModal} = props
+  const { isVisible, toogleModal } = props
   return (
     <Modal
       style={styles.container}
@@ -20,25 +20,27 @@ const FilterModal = (props: Props) => {
       <View style={styles.sectionWrapper}>
         <View style={styles.contnetWrapper}>
           <View style={styles.header}>
-            <FilterMapIcon onPress={() => {}} style={styles.iconWrapper} />
+            <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
             <Text style={styles.headerLable}>Filters</Text>
             <View style={styles.divider} />
-            <CloseIcon style={styles.iconWrapper} onPress={toogleModal}/>
+            <TouchableOpacity style={styles.iconWrapper} onPress={toogleModal}>
+              <CloseIcon />
+            </TouchableOpacity>
           </View>
-          <View style={[styles.card,{backgroundColor:Colors.NEW_PRIMARY + '1A'}]}>
+          <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
             <Text style={styles.cardLable}>Interventions</Text>
             <View style={styles.divider} />
-            <Switch value={true} onValueChange={() => {}} disabled={false} />
+            <Switch value={true} onValueChange={() => { }} disabled={false} />
           </View>
           <View style={styles.card}>
             <Text style={styles.cardLable}>Monitoring Plots</Text>
             <View style={styles.divider} />
-            <Switch value={false} onValueChange={() => {}} disabled={false} />
+            <Switch value={false} onValueChange={() => { }} disabled={false} />
           </View>
           <View style={styles.card}>
             <Text style={styles.cardLable}>Only Interverntion that need {'\n'} remeasurment</Text>
             <View style={styles.divider} />
-            <Switch value={false} onValueChange={() => {}} disabled={false} />
+            <Switch value={false} onValueChange={() => { }} disabled={false} />
           </View>
           <View />
         </View>
@@ -66,6 +68,7 @@ const styles = StyleSheet.create({
   contnetWrapper: {
     width: '95%',
     paddingTop: 10,
+    paddingBottom: 50
   },
   card: {
     height: 50,

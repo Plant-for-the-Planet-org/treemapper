@@ -1,26 +1,21 @@
 import React from 'react'
-import {StyleSheet, View} from 'react-native'
+import { StyleSheet, Text } from 'react-native'
 
 import SingleTree from 'assets/images/svg/roundTree.svg'
-import GradientText from 'src/components/common/GradientText'
+import { Colors, Typography } from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const ComingSoon = () => {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 18,
-      }}>
-      <SingleTree style={styles.backDrop} width={"100%"} height={300}/>
-      <View style={styles.container}>
-        <GradientText style={{textAlign:'center'}}>
-          We're working hard to bring you exciting new features. Stay tuned for
-          updates !
-        </GradientText>
-      </View>
-    </View>
+    <SafeAreaView
+      style={styles.container}>
+      <SingleTree width={"100%"} height={'20%'} />
+      <Text style={styles.sectionLabel}>
+        We're working hard to bring you exciting new features. Stay tuned for
+        updates !
+      </Text>
+    </SafeAreaView>
   )
 }
 
@@ -29,10 +24,15 @@ export default ComingSoon
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backDrop:{
-    width:'100%',
-    height:200,
-    marginTop:100
+  sectionLabel: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.NEW_PRIMARY,
+    fontSize: scaleFont(22),
+    textAlign: 'center',
+    paddingHorizontal:20,
+    marginTop:50
   }
 })

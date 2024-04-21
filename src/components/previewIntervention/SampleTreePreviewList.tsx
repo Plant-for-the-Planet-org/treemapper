@@ -25,7 +25,7 @@ const SampleTreePreviewList = (props: Props) => {
               <PenIcon width={30} height={30} />
             </View>
             <View style={styles.deleteWrapperIcon}>
-              <BinIcon width={30} height={30} />
+              <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR}/>
             </View>
           </View>
           <View style={styles.metaWrapper}>

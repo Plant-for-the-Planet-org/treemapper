@@ -16,6 +16,8 @@ import {
   extractSpecies,
 } from 'src/utils/helpers/interventionFormHelper'
 import { updateTree_details } from 'src/store/slice/registerFormSlice'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Colors } from 'src/utils/constants'
 
 const AddMeasurment = () => {
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
@@ -73,7 +75,7 @@ const AddMeasurment = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header label="Add Measurment" />
       <View style={styles.wrapper}>
         <OutlinedTextInput
@@ -103,7 +105,7 @@ const AddMeasurment = () => {
           pressHandler={onSubmit}
         />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -113,6 +115,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    backgroundColor: Colors.WHITE
   },
   wrapper: {
     width: '95%',

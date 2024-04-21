@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native'
+import {StyleSheet} from 'react-native'
 import React, {useState} from 'react'
 import {Colors} from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
@@ -10,6 +10,7 @@ import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpeci
 import {useNavigation} from '@react-navigation/native'
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RootStackParamList} from 'src/types/type/navigation.type'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
@@ -49,7 +50,7 @@ const SpeciesSearchView = () => {
   }
 
   return (
-    <View style={styles.contnetWrapper}>
+    <SafeAreaView style={styles.contnetWrapper}>
       <FlashList
         data={specieList}
         renderItem={({item}) => (
@@ -68,20 +69,15 @@ const SpeciesSearchView = () => {
         }
         ListEmptyComponent={<EmptySpeciesSearchList />}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 
 export default SpeciesSearchView
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    margin: 0,
-    backgroundColor: Colors.WHITE,
-  },
   contnetWrapper: {
     flex: 1,
-    paddingTop: 10,
+    backgroundColor: Colors.WHITE,
   },
 })

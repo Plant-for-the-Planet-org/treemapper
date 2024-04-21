@@ -6,11 +6,11 @@ import {
   View,
 } from 'react-native'
 import React from 'react'
-import {Text} from 'react-native'
-import {scaleFont} from 'src/utils/constants/mixins'
-import {Colors} from 'src/utils/constants'
-import {InterventionData} from 'src/types/interface/slice.interface'
-import {groupIntervention} from 'src/utils/helpers/interventionHelper/groupInterventions'
+import { Text } from 'react-native'
+import { scaleFont } from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { groupIntervention } from 'src/utils/helpers/interventionHelper/groupInterventions'
 
 interface Props {
   data: InterventionData[]
@@ -19,9 +19,12 @@ interface Props {
 }
 
 const InterventionHeaderList = (props: Props) => {
-  const {data, selectedLabel, setSlectedLabel} = props
+  const { data, selectedLabel, setSlectedLabel } = props
   const FinalData = groupIntervention(data)
   const headerChip = (item: any) => {
+    if (item.count === 0) {
+      return null
+    }
     const isSelected = item.key === selectedLabel
     const selectedStyle: TextStyle = {
       color: isSelected ? Colors.WHITE : Colors.TEXT_COLOR,
@@ -31,11 +34,11 @@ const InterventionHeaderList = (props: Props) => {
       setSlectedLabel(item.key)
     }
     return (
-      <TouchableOpacity key={item.key} onPress={handlePress}>
+      <TouchableOpacity key={item.key} onPress={handlePress} style={[styles.labelWrapper, selectedStyle]}>
         <Text
           style={[
             styles.label,
-            selectedStyle,
+            { color: selectedStyle.color },
           ]}>{`${item.label} (${item.count})`}</Text>
       </TouchableOpacity>
     )
@@ -44,7 +47,7 @@ const InterventionHeaderList = (props: Props) => {
     <View>
       <FlatList
         data={FinalData}
-        renderItem={({item}) => headerChip(item)}
+        renderItem={({ item }) => headerChip(item)}
         horizontal
         contentContainerStyle={styles.container}
         showsHorizontalScrollIndicator={false}
@@ -64,10 +67,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: scaleFont(15),
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 7,
     borderRadius: 20,
-    borderWidth: 0.5,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
+  },
+  labelWrapper: {
     borderColor: Colors.GRAY_BORDER,
     marginHorizontal: 5,
-  },
+    borderRadius: 20,
+    borderWidth: 0.5,
+  }
 })

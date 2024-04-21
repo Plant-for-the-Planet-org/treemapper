@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   versionContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
     width: '100%',
   },
   termsContainer: {
