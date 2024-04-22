@@ -4,8 +4,15 @@ import LayerBackDrop from 'assets/images/svg/LayerBackdrop.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont} from 'src/utils/constants/mixins'
 import AddIcon from 'assets/images/svg/Addicon.svg'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 const OfflineMapHeader = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const addNewMap=()=>{
+    navigation.navigate('OfflineMapSelection')
+  }
   return (
     <View style={styles.container}>
       <View style={styles.backdrop}>
@@ -16,7 +23,7 @@ const OfflineMapHeader = () => {
         Add & Save your Area to Offline Maps {'\n'}
         Anytime, Anywhere {'\n'}
       </Text>
-      <TouchableOpacity style={styles.btnContainer}>
+      <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
         <AddIcon style={styles.btnIcon}/>
         <Text style={styles.btnLable}>Add Area</Text>
       </TouchableOpacity>

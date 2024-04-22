@@ -21,3 +21,19 @@ export const getAllProjects = async () => {
   return result;
 };
 
+
+export const getAreaName=async(coords:number[],)=>{
+  const uri = `${getUrlApi.getAreaName}/${coords[0]},${coords[1]}.json?types=place&access_token=${process.env.EXPO_PUBLIC_MAPBOX_TOKEN}`
+  try {
+    const response = await fetch(`${uri}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    const responseJson = await response.json()
+    return responseJson
+  } catch (err) {
+    return false
+  }
+}
