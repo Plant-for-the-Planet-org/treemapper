@@ -7,7 +7,7 @@ import {scaleFont} from 'src/utils/constants/mixins'
 
 interface Props {
   data: FormElement
-  formValues: {[key: string]: string}
+  formValues: {[key: string]: any}
   changeHandler: (key: string, value: string) => void
 }
 
@@ -19,7 +19,7 @@ const FormSwitchElement = (props: Props) => {
         style={[
           styles.inputWrapper,
           {
-            backgroundColor: formValues[data.key]
+            backgroundColor: formValues[data.key].value
               ? Colors.NEW_PRIMARY + '1A'
               : Colors.GRAY_LIGHT,
           },
@@ -27,11 +27,11 @@ const FormSwitchElement = (props: Props) => {
         <Text style={styles.inputLabel}>{data.label}</Text>
         <View style={styles.divider} />
         <Switch
-          value={formValues[data.key] === 'true'}
+          value={formValues[data.key].value === 'true'}
           onValueChange={() => {
             changeHandler(
               data.key,
-              String(`${formValues[data.key] === 'false' ? 'true' : 'false'}`),
+              String(`${formValues[data.key].value === 'false' ? 'true' : 'false'}`),
             )
           }}
           disabled={false}

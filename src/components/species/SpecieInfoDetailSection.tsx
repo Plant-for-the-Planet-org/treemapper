@@ -41,6 +41,7 @@ const SpecieInfoDetailSection = (props: Props) => {
         value={localName}
         onChangeText={updateAlias}
         style={styles.input}
+        returnKeyType='done'
       />
       <Text style={styles.infoCardHeading}>
         {i18next.t('label.species_description')}
@@ -50,6 +51,7 @@ const SpecieInfoDetailSection = (props: Props) => {
         value={details}
         onChangeText={updateDescription}
         style={[styles.textArea]}
+        returnKeyType='done'
       />
     </View>
   )

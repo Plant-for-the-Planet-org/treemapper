@@ -7,21 +7,29 @@ import {Colors, Typography} from 'src/utils/constants'
 
 interface Props {
   data: FormElement
-  formValues: {[key: string]: string}
+  formValues: {[key: string]: any}
+  changeHandler: (key: string, value: string) => void
 }
 
 const FormTextInputElement = (props: Props) => {
-  const {data, formValues} = props
+  const {data, formValues, changeHandler} = props
   const shouldRender = () => {
     let result = true
     if (data.condition !== null) {
       for (const [key, value] of Object.entries(data.condition)) {
-        if (formValues[key] !== String(value)) {
+        if (formValues[key].value !== String(value)) {
           result = false
         }
       }
     }
     return result
+  }
+
+  const handleChange=(t:string)=>{
+    changeHandler(
+      data.key,
+      t,
+    )
   }
 
   if (!shouldRender()) {
@@ -38,7 +46,10 @@ const FormTextInputElement = (props: Props) => {
         inactiveColor={Colors.TEXT_LIGHT}
         placeholderTextColor={Colors.TEXT_LIGHT}
         fontSize={18}
-        fontFamily={Typography.FONT_FAMILY_REGULAR}
+        value={formValues[data.key].value}
+        onChangeText={handleChange}
+        returnKeyType='done'
+        fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         trailingIcon={() => <Text style={styles.unitLabel}>{data.unit}</Text>}
       />
     </View>
@@ -50,7 +61,7 @@ export default FormTextInputElement
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 50,
+    height: 60,
     alignItems: 'center',
     marginVertical: 20,
     flexDirection: 'row',

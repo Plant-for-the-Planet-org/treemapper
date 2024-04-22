@@ -1,13 +1,13 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import InterventionIconSwitch from './InterventionIconSwitch'
-import {Colors, Typography} from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import EditInterventionIcon from 'assets/images/svg/EditInterventionIcon.svg'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg'
-import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import {InterventionData} from 'src/types/interface/slice.interface'
+import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { InterventionData } from 'src/types/interface/slice.interface'
 import InterventionCardHeader from './InterventionCardHeader'
 import InterventionMetaInfo from './InterventionMetaInfo'
 
@@ -19,10 +19,10 @@ interface Props {
 }
 
 const InterventionCard = (props: Props) => {
-  const {item, openIntervention} = props
+  const { item, openIntervention } = props
   const handleIntervention = () => {
-    const finalItem = {...JSON.parse(JSON.stringify(item))}
-    openIntervention({...finalItem})
+    const finalItem = { ...JSON.parse(JSON.stringify(item)) }
+    openIntervention({ ...finalItem })
   }
   return (
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>

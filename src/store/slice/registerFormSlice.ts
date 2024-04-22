@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { FormElement } from 'src/types/interface/form.interface'
 import {
-  FormValues,
   RegisterFormSliceInitalState,
   SampleTree,
 } from 'src/types/interface/slice.interface'
@@ -58,7 +58,7 @@ const registerFormSlice = createSlice({
     updateTree_details(state, action: PayloadAction<SampleTree>) {
       state.tree_details = [...state.tree_details, action.payload]
     },
-    updateFormDataValue(state, action: PayloadAction<FormValues[]>) {
+    updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
       state.form_data = [...state.form_data, ...action.payload]
     },
     updateFormProject(
@@ -93,7 +93,8 @@ export const {
   updateFormProject,
   updateFormProjectSite,
   updteInterventionDate,
-  updateEntireSiteIntervention
+  updateEntireSiteIntervention,
+  updateFormDataValue
 } = registerFormSlice.actions
 
 export default registerFormSlice.reducer

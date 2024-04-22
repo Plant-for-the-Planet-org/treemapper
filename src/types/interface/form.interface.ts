@@ -4,6 +4,7 @@ import {DATA_VISIBLITY, FORM_TYPE} from '../type/app.type'
 export interface FormElement {
   index: number
   key: string
+  value: string
   label: string
   default: string
   type: FORM_TYPE

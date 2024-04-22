@@ -24,6 +24,7 @@ import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import InterventionFormData from 'src/components/previewIntervention/InterventionFormData'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -91,6 +92,7 @@ const InterventionPreviewView = () => {
               sampleTress={InterventionData.sample_trees}
             />
           )}
+          <InterventionFormData formData={InterventionData.form_data} />
           <CustomButton
             label={
               is_sampleTree &&

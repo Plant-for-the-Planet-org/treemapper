@@ -27,10 +27,6 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
 }) => {
   const handlePress = () => {
     onPressSpecies(item)
-    console.log(
-      'Will remove',
-      onPressSpecies,
-    )
   }
   return (
     <View
@@ -76,12 +72,12 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
           </View>
           <View style={styles.flex1}>
             <Text style={styles.unknownText} ellipsizeMode="tail">
-              {item.guid
-                ? item.scientific_name
-                : i18next.t('label.select_species_unknown')}
+              {item.aliases
+                ? item.aliases
+                : item.scientific_name}
             </Text>
             <Text style={styles.unknownTextVal}>
-              {item.guid
+              {item.scientific_name
                 ? item.scientific_name
                 : i18next.t('label.select_species_unknown')}
             </Text>

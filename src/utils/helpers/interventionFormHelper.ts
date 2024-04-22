@@ -47,7 +47,7 @@ export const convertFormDataToIntervention = (
     is_complete: true,
     site_id: data.site_id,
     intervention_type: data.key,
-    form_data: '',
+    form_data: JSON.stringify(data.form_data),
     additional_data: '',
     meta_data: '',
   }
@@ -60,7 +60,6 @@ export const makeInterventionGeoJson = (
   id: string,
 ) => {
   const coord: Array<number[]> = coordinates
-console.log("LAIJC",type,coordinates)
   switch (type) {
     case 'Point':
       return {

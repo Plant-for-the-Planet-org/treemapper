@@ -1,6 +1,6 @@
 import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
 import { Coordinates, IScientificSpecies } from './app.interface'
-import { MainForm } from './form.interface'
+import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
   isLogedIn: boolean
@@ -82,7 +82,7 @@ export interface RegisterFormSliceInitalState {
   form_details: MainForm[]
   meta_data: string
   additional_data: string
-  form_data: FormValues[]
+  form_data: FormElement[]
 }
 
 export interface SampleTree {

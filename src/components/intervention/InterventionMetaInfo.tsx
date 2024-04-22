@@ -15,7 +15,7 @@ const InterventionMetaInfo = (props: Props) => {
 
   switch (item.intervention_type) {
     case 'fire-patrol':
-      return <Text style={styles.label}>8 Trees Planted</Text>
+      return <Text style={styles.label}></Text>
     case 'assisting-seed-rain':
       return <Text style={styles.label}>8 Trees Planted</Text>
     case 'direct-seeding':

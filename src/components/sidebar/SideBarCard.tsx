@@ -23,11 +23,15 @@ const SideBarCard = (props: Props) => {
   const dispatch = useDispatch()
 
   const handleNavigaiton = () => {
+    let params = {}
     if (key === 'logout') {
       handleLogout()
       return
     }
-    navigation.replace(screen)
+    if(key === 'manage_species'){
+      params = {manageSpecies:true}
+    }
+    navigation.replace(screen,params)
   }
 
   const handleLogout = async () => {

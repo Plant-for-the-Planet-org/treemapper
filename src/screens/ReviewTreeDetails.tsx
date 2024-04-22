@@ -30,6 +30,7 @@ const ReviewTreeDetails = () => {
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
     const totalSampleTress = SampleTreeSliceData.sample_tree_count
     const currentTreeIndex = FormData.tree_details.length
+    const allSampleTreeRegisterd = currentTreeIndex !== totalSampleTress
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
@@ -51,7 +52,7 @@ const ReviewTreeDetails = () => {
     }, [detailsCompleted])
 
     const nextTreeButton = () => {
-        if (FormData.tree_details.length !== SampleTreeSliceData.sample_tree_count) {
+        if (allSampleTreeRegisterd) {
             navigation.navigate('PointMarker')
         } else {
             navigation.replace('InterventionPreview', { id: 'review' })
@@ -87,8 +88,6 @@ const ReviewTreeDetails = () => {
             const bounds = bbox(geoJSON)
             dispatch(updateBoundry({ coord: FormData.coordinates, id: FormData.form_id }))
             dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
-            console.log("iojcs FormData", FormData.tree_details.length)
-            console.log("iojcs SampleTreeSliceData", SampleTreeSliceData.sample_tree_count)
             navigation.navigate('PointMarker')
         }
     }
@@ -166,7 +165,7 @@ const ReviewTreeDetails = () => {
                 <View style={styles.footer} />
             </ScrollView >
             <CustomButton
-                label="Next Tree"
+                label={!allSampleTreeRegisterd ? "Continue" : "Next Tree"}
                 containerStyle={styles.btnContainer}
                 pressHandler={nextTreeButton}
             />

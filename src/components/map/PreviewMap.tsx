@@ -1,8 +1,8 @@
 import {StyleSheet, View} from 'react-native'
-import React, {useEffect, useRef} from 'react'
+import React, { useRef} from 'react'
 import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
 import {SampleTree} from 'src/types/interface/slice.interface'
-import MapMarkers from './MapMarkers'
+// import MapMarkers from './MapMarkers'
 import MapShapeSource from './MapShapeSource'
 import bbox from '@turf/bbox'
 import { Colors } from 'src/utils/constants'
@@ -17,16 +17,9 @@ interface Props {
 }
 
 const PreviewMap = (props: Props) => {
-  const {geoJSON, sampleTrees, has_sample_trees} = props
+  const {geoJSON} = props
   const cameraRef = useRef<Camera>(null)
 
-  useEffect(() => {
-    if (cameraRef) {
-      setTimeout(() => {
-        handleCamera()
-      }, 1000)
-    }
-  }, [])
 
   const handleCamera = () => {
     const bounds = bbox(geoJSON.features[0].geometry)
@@ -48,13 +41,14 @@ const PreviewMap = (props: Props) => {
           style={styles.map}
           attributionEnabled={false}
           logoEnabled={false}
+          onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
           <MapLibreGL.Camera ref={cameraRef} />
           <MapShapeSource
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} />}
+          {/* {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} />} */}
         </MapLibreGL.MapView>
       </View>
     </View>

@@ -1,16 +1,17 @@
-import {Image, StyleSheet, View} from 'react-native'
+import { Image, StyleSheet, View } from 'react-native'
 import React from 'react'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { scaleSize } from 'src/utils/constants/mixins'
+import { Colors } from 'src/utils/constants'
 
 interface Props {
   image: string
 }
 
 const IterventionCoverImage = (props: Props) => {
-  const {image} = props
+  const { image } = props
   return (
     <View style={styles.container}>
-      <Image source={{uri: image}} style={styles.imageWrapper} />
+      {image.length !== 0 ? <Image source={{ uri: image }} style={styles.imageWrapper} /> : <View  style={styles.svgWrapper}/>}
     </View>
   )
 }
@@ -30,5 +31,11 @@ const styles = StyleSheet.create({
     height: '95%',
     borderRadius: 12,
     backgroundColor: 'black',
+  },
+  svgWrapper: {
+    width: '90%',
+    height: '95%',
+    borderRadius: 12,
+    backgroundColor: Colors.BLACK,
   },
 })

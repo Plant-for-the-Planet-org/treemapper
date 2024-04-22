@@ -17,6 +17,7 @@ const TeamName: FormElement = {
   keyboard_type: 'default',
   sub_form: undefined,
   editable: true,
+  value: ''
 }
 
 const NumberOfMembers: FormElement = {
@@ -33,6 +34,7 @@ const NumberOfMembers: FormElement = {
   keyboard_type: 'numeric',
   sub_form: undefined,
   editable: true,
+  value: ''
 }
 
 // const TagIdSwitch: FormElement = {
@@ -77,34 +79,35 @@ const fireSupressionForm: MainForm = {
 
 
 export const FireSupresionTeam: RegisterFormSliceInitalState = {
-    form_id: '',
-    title: 'Fire Supression Team',
-    intervention_date: 0,
-    skip_intervention_form: false,
-    user_type: 'normal',
-    project_id: '',
-    site_id: '',
-    site_name: '',
-    project_name: '',
-    location_type: 'Point',
-    location_title: 'Mark Location',
-    coordinates: [],
-    preview_blank_polygon: true,
-    cover_image_url: '',
-    species_required: false,
-    is_multi_species: false,
-    species_count_required: false,
-    species_modal_message: '',
-    species_modal_unit: '',
-    species: [],
-    tree_details_required: false,
-    has_sample_trees: false,
-    tree_details: [],
-    form_details: [fireSupressionForm],
-    meta_data: '',
-    form_data: [],
-    additional_data: '',
-    can_be_entire_site: false,
-    entire_site_selected: false,
-    key: 'fire-suppression',
+  form_id: '',
+  key:'fire-suppression',
+  title: 'Fire Suppression Team',
+  intervention_date: 0,
+  skip_intervention_form: false,
+  user_type: '',
+  project_id: '',
+  project_name: '',
+  site_id: '',
+  site_name: '',
+  can_be_entire_site: false,
+  entire_site_selected: false,
+  should_register_location: false,
+  location_type: 'Point',
+  location_title: 'Select Location',
+  coordinates: [],
+  preview_blank_polygon: false,
+  cover_image_url: '',
+  species_required: false,
+  is_multi_species: false,
+  species_count_required: false,
+  species_modal_message: '',
+  species_modal_unit: '',
+  species: [],
+  has_sample_trees: false,
+  tree_details_required: false,
+  tree_details: [],
+  form_details: [fireSupressionForm],
+  meta_data: '',
+  additional_data: '',
+  form_data: []
 }

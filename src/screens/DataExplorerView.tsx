@@ -7,10 +7,11 @@ import {Colors, Typography} from 'src/utils/constants'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import ExternalLinkIcon from 'assets/images/svg/ExternalLinkIcon.svg'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const DataExplorerView = () => {
   return (
-    <>
+    <SafeAreaView style={styles.wrapper}>
       <Header label="Data Explorer" />
       <View style={styles.container}>
         <ExploreBackDrop />
@@ -34,17 +35,22 @@ const DataExplorerView = () => {
         leftIcon={<ExternalLinkIcon width={25} height={25}/>}
       />
       </View>
-    </>
+    </SafeAreaView>
   )
 }
 
 export default DataExplorerView
 
 const styles = StyleSheet.create({
+  wrapper:{
+    flex:1,
+    backgroundColor:Colors.WHITE
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor:Colors.BACKDROP_COLOR
   },
   header: {
     fontSize: SCALE_18,

@@ -6,17 +6,17 @@ import {
   StyleSheet,
   View,
 } from 'react-native'
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import CustomDropDown from 'src/components/common/CustomDropDown'
-import {Colors} from 'src/utils/constants'
+import { Colors } from 'src/utils/constants'
 import CustomTextInput from 'src/components/common/CustomTextInput'
 import CustomButton from 'src/components/common/CustomButton'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { scaleSize } from 'src/utils/constants/mixins'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
-import {useRoute, RouteProp, useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {useDispatch, useSelector} from 'react-redux'
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   initiateForm,
   updateEntireSiteIntervention,
@@ -24,16 +24,17 @@ import {
   updateFormProjectSite,
   updteInterventionDate,
 } from 'src/store/slice/registerFormSlice'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {setUpIntervention} from 'src/utils/helpers/formHelper/selectIntervention'
-import {v4 as uuidv4} from 'uuid'
-import {RootState} from 'src/store'
-import {useRealm} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
-import {DropdownData, ProjectInterface} from 'src/types/interface/app.interface'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { v4 as uuidv4 } from 'uuid'
+import { RootState } from 'src/store'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { DropdownData, ProjectInterface } from 'src/types/interface/app.interface'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
-import {AllIntervention} from 'src/utils/constants/knownIntervention'
-import {INTERVENTION_TYPE} from 'src/types/type/app.type'
+import { AllIntervention } from 'src/utils/constants/knownIntervention'
+import { INTERVENTION_TYPE } from 'src/types/type/app.type'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -44,7 +45,7 @@ const InterventionFormView = () => {
   const InterventionFormData = useSelector(
     (state: RootState) => state.formFlowState,
   )
-  const {currentProject, projectSite} = useSelector(
+  const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
   )
 
@@ -98,7 +99,7 @@ const InterventionFormView = () => {
       InterventionJSON.site_name = InterventionFormData.site_name
       InterventionJSON.site_id = InterventionFormData.site_id
     }
-    dispatch(initiateForm({...InterventionJSON}))
+    dispatch(initiateForm({ ...InterventionJSON }))
     if (skip && InterventionJSON.skip_intervention_form) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker')
@@ -128,7 +129,7 @@ const InterventionFormView = () => {
       })
       setProjectSites(siteMapedData)
       dispatch(
-        updateFormProject({name: mapedData[0].label, id: mapedData[0].value}),
+        updateFormProject({ name: mapedData[0].label, id: mapedData[0].value }),
       )
       dispatch(
         updateFormProjectSite({
@@ -151,7 +152,7 @@ const InterventionFormView = () => {
         index: i,
       }
     })
-    dispatch(updateFormProject({name: ProjectData.name, id: ProjectData.id}))
+    dispatch(updateFormProject({ name: ProjectData.name, id: ProjectData.id }))
     if (siteValidate && siteValidate.length > 0) {
       setProjectSites(siteValidate)
       dispatch(
@@ -194,7 +195,7 @@ const InterventionFormView = () => {
   }
 
   const pressContinue = () => {
-    const finalData = {...InterventionFormData}
+    const finalData = { ...InterventionFormData }
     if (InterventionFormData.entire_site_selected) {
       finalData.coordinates = siteCoordinatesSelect()
     }
@@ -203,14 +204,16 @@ const InterventionFormView = () => {
       further_info: furtherInfo,
     }
     finalData.meta_data = JSON.stringify(metaData)
-    dispatch(initiateForm({...finalData}))
-    
+    dispatch(initiateForm({ ...finalData }))
+
     if (finalData.entire_site_selected) {
-      const imageId = String(new Date().getTime())
-      navigation.replace('TakePicture', {
-        id: imageId,
-        screen: 'POLYGON_REGISTER',
-      })
+      if (!finalData.species_required) {
+        
+        navigation.replace('DynamicForm')
+      } else {
+        navigation.replace('ManageSpecies', { manageSpecies: false })
+
+      }
       return
     }
 
@@ -230,7 +233,7 @@ const InterventionFormView = () => {
       el => el.id === InterventionFormData.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    return parsedGeometry.coordinates[0]
+    return parsedGeometry.coordinates
   }
 
   const handleDateSelection = (n: number) => {
@@ -250,83 +253,89 @@ const InterventionFormView = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <ScrollView>
-        <View style={styles.container}>
-          <Header label="Intervention" />
-          <View style={styles.wrapper}>
-            {isTpoUser && (
+    <SafeAreaView style={styles.mainContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+        style={styles.container}>
+        <ScrollView>
+          <View style={styles.container}>
+            <Header label="Intervention" />
+            <View style={styles.wrapper}>
+              {isTpoUser && (
+                <CustomDropDown
+                  label={'Project'}
+                  data={projectStateData}
+                  onSelect={handleProjectSelect}
+                  selectedValue={{
+                    label: InterventionFormData.project_name,
+                    value: InterventionFormData.project_id,
+                    index: 0,
+                  }}
+                />
+              )}
+              {isTpoUser && (
+                <CustomDropDown
+                  label={'Site'}
+                  data={projectSies}
+                  onSelect={handleSiteSelect}
+                  selectedValue={{
+                    label: InterventionFormData.site_name,
+                    value: InterventionFormData.site_id,
+                    index: 0,
+                  }}
+                />
+              )}
+              {isTpoUser && <View style={styles.divider} />}
               <CustomDropDown
-                label={'Project'}
-                data={projectStateData}
-                onSelect={handleProjectSelect}
-                selectedValue={{
-                  label: InterventionFormData.project_name,
-                  value: InterventionFormData.project_id,
-                  index: 0,
-                }}
+                label={'Intervention Type'}
+                data={allIntervention}
+                onSelect={handleInterventionType}
+                selectedValue={interventionType}
               />
-            )}
-            {isTpoUser && (
-              <CustomDropDown
-                label={'Site'}
-                data={projectSies}
-                onSelect={handleSiteSelect}
-                selectedValue={{
-                  label: InterventionFormData.site_name,
-                  value: InterventionFormData.site_id,
-                  index: 0,
-                }}
+              {InterventionFormData.can_be_entire_site && isTpoUser ? (
+                <PlaceHolderSwitch
+                  description={'Apply Intervention to entire site'}
+                  selectHandler={handleEntireSiteArea}
+                  value={InterventionFormData.entire_site_selected}
+                />
+              ) : null}
+              <InterventionDatePicker
+                placeHolder={'Intervention Date'}
+                value={InterventionFormData.intervention_date || Date.now()}
+                callBack={handleDateSelection}
               />
-            )}
-            {isTpoUser && <View style={styles.divider} />}
-            <CustomDropDown
-              label={'Intervention Type'}
-              data={allIntervention}
-              onSelect={handleInterventionType}
-              selectedValue={interventionType}
-            />
-            {InterventionFormData.can_be_entire_site && isTpoUser ? (
-              <PlaceHolderSwitch
-                description={'Apply Intervention to entire site'}
-                selectHandler={handleEntireSiteArea}
-                value={InterventionFormData.entire_site_selected}
+              <CustomTextInput
+                label={'Location Name [Optional]'}
+                onChangeHandler={setLocationName}
+                value={locationName}
               />
-            ) : null}
-            <InterventionDatePicker
-              placeHolder={'Intervention Date'}
-              value={InterventionFormData.intervention_date || Date.now()}
-              callBack={handleDateSelection}
-            />
-            <CustomTextInput
-              label={'Location Name [Optional]'}
-              onChangeHandler={setLocationName}
-              value={locationName}
-            />
-            <CustomTextInput
-              label={'Further Information [Optional]'}
-              onChangeHandler={setFurtherInfo}
-              value={furtherInfo}
-            />
+              <CustomTextInput
+                label={'Further Information [Optional]'}
+                onChangeHandler={setFurtherInfo}
+                value={furtherInfo}
+              />
+            </View>
           </View>
-        </View>
-      </ScrollView>
-      <CustomButton
-        label={'Continue'}
-        pressHandler={pressContinue}
-        containerStyle={styles.btnContainer}
-        wrapperStyle={styles.btnWrapper}
-        disable={interventionType.value===''}
-      />
-    </KeyboardAvoidingView>
+        </ScrollView>
+        <CustomButton
+          label={'Continue'}
+          pressHandler={pressContinue}
+          containerStyle={styles.btnContainer}
+          wrapperStyle={styles.btnWrapper}
+          disable={interventionType.value === ''}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }
 
 export default InterventionFormView
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
   container: {
     flex: 1,
     alignItems: 'center',

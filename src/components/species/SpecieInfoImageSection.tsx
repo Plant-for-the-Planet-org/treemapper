@@ -74,7 +74,7 @@ const SpecieInfoImageSection = (props: Props) => {
             <TouchableOpacity
               onPress={deleteImage}
               style={styles.iconContainer}>
-              <BinIcon  width={SCALE_26} height={SCALE_26} />
+              <BinIcon  width={18} height={18} fill={Colors.TEXT_COLOR}/>
             </TouchableOpacity>
           </View>
         </View>
