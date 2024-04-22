@@ -18,6 +18,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 const TotalTreesView = () => {
   const sampleTreeData = useSelector((state: RootState) => state.sampleTree)
+  const has_sample_trees = useSelector((state: RootState) => state.formFlowState.has_sample_trees)
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
   const dispatch = useDispatch()
@@ -26,7 +28,7 @@ const TotalTreesView = () => {
   }
 
   const navigationToNext = () => {
-    navigation.replace('ReviewTreeDetails', { detailsCompleted: false })
+      navigation.replace('ReviewTreeDetails', { detailsCompleted: !has_sample_trees })
   }
 
   const cardpress = (item: IScientificSpecies) => {
@@ -87,6 +89,7 @@ const TotalTreesView = () => {
               label="Continue"
               containerStyle={styles.btnWrapper}
               pressHandler={navigationToNext}
+              disable={sampleTreeData.species.length===0}
             />
           </View>
         )}

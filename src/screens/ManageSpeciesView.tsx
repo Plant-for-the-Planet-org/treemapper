@@ -28,8 +28,8 @@ const ManageSpeciesView = () => {
 
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
 
-  const SampleTreeSpecies = useSelector(
-    (state: RootState) => state.sampleTree.species,
+  const {species} = useSelector(
+    (state: RootState) => state.sampleTree,
   )
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -64,7 +64,7 @@ const ManageSpeciesView = () => {
       aliases: treeModalDetails.aliases,
       image: treeModalDetails.image,
     }
-    const filteredData = SampleTreeSpecies.filter(
+    const filteredData = species.filter(
       el => el.info.guid !== treeModalDetails.guid,
     )
     filteredData.push({
@@ -76,6 +76,30 @@ const ManageSpeciesView = () => {
     navigation.navigate('TotalTrees', { isSelectSpecies: false })
   }
 
+  const handleSelecteMultiSpecies=(item:IScientificSpecies)=>{
+    const finalData = JSON.parse(JSON.stringify(item))
+    if(formFlowData.species_count_required){
+      setTreeModalDetails(finalData)
+    }else{
+      const speciesDetails: IScientificSpecies = {
+        guid: finalData.guid,
+        scientific_name: finalData.scientific_name,
+        is_user_species: finalData.is_user_species,
+        aliases: finalData.aliases,
+        image: finalData.image,
+      }
+      const filteredData = species.filter(
+        el => el.info.guid !== finalData.guid,
+      )
+      filteredData.push({
+        info: { ...speciesDetails },
+        count: 0,
+      })
+      dispatch(addSampleTreeSpecies(filteredData))
+      navigation.navigate('TotalTrees', { isSelectSpecies: false })
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ManageSpeciesHome
@@ -83,7 +107,7 @@ const ManageSpeciesView = () => {
         userFavSpecies={userFavSpecies}
         isManageSpecies={isManageSpecies}
         formData={formFlowData}
-        showTreeModal={setTreeModalDetails}
+        showTreeModal={handleSelecteMultiSpecies}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}

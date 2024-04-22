@@ -208,7 +208,6 @@ const InterventionFormView = () => {
 
     if (finalData.entire_site_selected) {
       if (!finalData.species_required) {
-        
         navigation.replace('DynamicForm')
       } else {
         navigation.replace('ManageSpecies', { manageSpecies: false })

@@ -41,8 +41,10 @@ const ReviewTreeDetails = () => {
 
     useEffect(() => {
         if (detailsCompleted) {
-            if (!FormData.has_sample_trees) {
+            if (!FormData.has_sample_trees && FormData.form_details.length===0) {
                 navigation.replace('InterventionPreview', { id: 'review' })
+            }else if(FormData.form_details.length>0){
+                navigation.replace('DynamicForm')
             } else {
                 setTreeDetails(FormData.tree_details[currentTreeIndex - 1])
             }
