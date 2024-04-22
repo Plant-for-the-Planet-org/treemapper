@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native'
+import {Platform, StyleSheet, View} from 'react-native'
 import React, {useEffect} from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    top: 50,
+    top: Platform.OS==='android'?25:40,
   },
   iconWrapper: {
     width: 40,

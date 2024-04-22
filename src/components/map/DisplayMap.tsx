@@ -132,7 +132,7 @@ const DisplayMap = () => {
       logoEnabled={false}
       compassViewPosition={3}
       attributionEnabled={false}
-      compassViewMargins={{x: scaleSize(26), y: scaleSize(200)}}
+      compassViewMargins={{x: scaleSize(28), y: scaleSize(300)}}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />

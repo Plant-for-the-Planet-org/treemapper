@@ -41,15 +41,16 @@ export default PlaceHolderSwitch
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: scaleSize(55),
+    height: scaleSize(50),
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
+    marginBottom:15
 
   },
   inputWrapper: {
     borderRadius: 12,
-    width: '94%',
+    width: '90%',
     paddingHorizontal: 10,
     height: '100%',
     flexDirection: 'row',
@@ -65,6 +66,5 @@ const styles = StyleSheet.create({
   switchWrapper: {
     width: 50,
     height: 30,
-    backgroundColor:'red'
   }
 })

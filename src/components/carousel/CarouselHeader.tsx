@@ -1,11 +1,11 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
-import React, {useEffect, useState} from 'react'
-import {useDispatch, useSelector} from 'react-redux'
-import {clearCarouselData} from 'src/store/slice/displayMapSlice'
-import {RootState} from 'src/store'
-import {InterventionData} from 'src/types/interface/slice.interface'
-import {scaleFont} from 'src/utils/constants/mixins'
-import {Colors, Typography} from 'src/utils/constants'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { clearCarouselData } from 'src/store/slice/displayMapSlice'
+import { RootState } from 'src/store'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { scaleFont } from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
 import BackIcon from 'assets/images/svg/SimpleBack.svg'
 
 const CarouselHeader = () => {
@@ -34,9 +34,9 @@ const CarouselHeader = () => {
       </TouchableOpacity>
       <View style={styles.sectionWrapper}>
         <Text style={styles.title}>{data.intervention_title}</Text>
-        <Text style={styles.sectionLabel}>
+        {data.has_sample_trees && <Text style={styles.sectionLabel}>
           {data.sample_trees.length} Sample Trees
-        </Text>
+        </Text>}
       </View>
     </View>
   )

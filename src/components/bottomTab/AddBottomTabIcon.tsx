@@ -73,14 +73,14 @@ const styles = StyleSheet.create({
   iconWrapper: {
     position: 'absolute',
     backgroundColor: 'white',
-    height: scaleSize(55),
-    width: scaleSize(55),
+    height: scaleSize(60),
+    width: scaleSize(60),
     zIndex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 100,
     top: '-45%',
-    left: width/5,
+    left: width/5-8,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   labelContainer: {
     position: 'absolute',
     bottom:16,
-    left: '40%',
+    left: '30%',
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,

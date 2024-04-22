@@ -15,7 +15,7 @@ import {
   updateFormCoordinates,
 } from 'src/store/slice/registerFormSlice'
 import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -218,11 +218,13 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
+    fontFamily:Typography.FONT_FAMILY_BOLD
   },
   normalLable: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,
     textAlign: 'center',
+    fontFamily:Typography.FONT_FAMILY_BOLD
   },
 })

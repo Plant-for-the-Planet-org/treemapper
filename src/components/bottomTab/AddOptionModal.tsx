@@ -146,7 +146,7 @@ const AddOptionModal = (props: Props) => {
             overflow: 'hidden',
             position: 'absolute',
             right: scaleSize(20),
-            bottom: scaleSize(110),
+            bottom: scaleSize(120),
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,

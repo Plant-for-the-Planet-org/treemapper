@@ -9,6 +9,7 @@ import {useRoute, RouteProp} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {useObject} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const SpeciesInfoView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'SpeciesInfo'>>()
@@ -18,6 +19,7 @@ const SpeciesInfoView = () => {
   )
 
   return (
+    <SafeAreaView  style={styles.container}>
     <KeyboardAvoidingView style={styles.container}>
       <ScrollView>
         <Header label="" />
@@ -26,6 +28,7 @@ const SpeciesInfoView = () => {
         <SpecieInfoDetailSection item={specieData} />
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }
 

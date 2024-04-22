@@ -1,6 +1,6 @@
 import * as shape from 'd3-shape';
 import React from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 
@@ -8,14 +8,14 @@ import { Colors } from 'src/utils/constants';
 
 const windowWidth = Dimensions.get('screen').width
 
-let width = windowWidth/4
-const buttonWidth = 75;
+let width = windowWidth/4-10
+const buttonWidth = 65;
 const buttonGutter = 10;
 const tabbarHeight = 80;
 
 const tabWidth = buttonWidth + buttonGutter * 2;
 width = (width - tabWidth) / 2;
-const curveHeight = 40;
+const curveHeight = 38;
 
 const getPath = (): string => {
   const left = shape
@@ -61,16 +61,31 @@ const d = getPath();
 
 const BottomBar = () => {
   return (
-    <>
+    <View style={style.container}>
       <Svg
         width={'100%'}
         height={tabbarHeight}>
         <Path {...{ d }} fill={Colors.WHITE} />
       </Svg>
-    </>
+    <View style={style.rightPadding}/>
+    </View>
   );
 };
 
 export default BottomBar;
+
+const style=StyleSheet.create({
+  container:{
+    width:"100%",
+    height:'100%'
+  },
+  rightPadding:{
+    width:20,
+    height:'100%',
+    backgroundColor:Colors.WHITE,
+    position:'absolute',
+    right:-10
+  }
+})
 
 
