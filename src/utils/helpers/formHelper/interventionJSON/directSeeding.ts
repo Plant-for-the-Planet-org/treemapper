@@ -3,7 +3,7 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 export const DirectSeeding: RegisterFormSliceInitalState = {
     form_id: '',
-    title:'Direct Seeding',
+    title: 'Direct Seeding',
     intervention_date: 0,
     skip_intervention_form: false,
     user_type: 'normal',
@@ -22,14 +22,15 @@ export const DirectSeeding: RegisterFormSliceInitalState = {
     species_modal_message: '',
     species_modal_unit: '',
     species: [],
-    tree_details_required: true,
-    has_sample_trees: true,
+    tree_details_required: false,
+    has_sample_trees: false,
     tree_details: [],
     form_details: [],
     meta_data: '',
     form_data: [],
     additional_data: '',
-    can_be_entire_site: false,
+    can_be_entire_site: true,
     entire_site_selected: false,
-    key: 'direct-seeding'
+    key: 'direct-seeding',
+    should_register_location: false
 }

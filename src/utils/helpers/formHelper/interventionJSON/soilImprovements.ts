@@ -1,5 +1,51 @@
+// import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
 
+
+// const FertilizerQuanity: FormElement = {
+//     index: 0,
+//     key: 'fertilizer-quantity',
+//     label: 'Fertilizer Quantity',
+//     default: '',
+//     type: 'INPUT',
+//     placeholder: 'Fertilizer Quantity',
+//     unit: 'kg',
+//     visibility: 'public',
+//     condition: null,
+//     data_type: 'number',
+//     keyboard_type: 'number-pad',
+//     sub_form: undefined,
+//     editable: true,
+//     value: '',
+//     required: true,
+//     dropDownData: []
+// }
+
+// const heightOfBirdPerche: FormElement = {
+//     index: 0,
+//     key: 'height-of-bird-perche',
+//     label: 'Height of bird perche',
+//     default: '',
+//     type: 'INPUT',
+//     placeholder: 'Height of bird perche',
+//     unit: '',
+//     visibility: 'public',
+//     condition: null,
+//     data_type: 'number',
+//     keyboard_type: 'number-pad',
+//     sub_form: undefined,
+//     editable: true,
+//     value: '',
+//     required: true,
+//     dropDownData: []
+// }
+
+
+// const soildImprovementForm: MainForm = {
+//   title: 'Dettails',
+//   key: '',
+//   elements: [NumberOfBirdPerche, heightOfBirdPerche ],
+// }
 
 export const SoilImprovements: RegisterFormSliceInitalState = {
     form_id: '',
@@ -11,8 +57,8 @@ export const SoilImprovements: RegisterFormSliceInitalState = {
     site_id: '',
     site_name: '',
     project_name: '',
-    location_type: 'Point',
-    location_title: 'Mark Location',
+    location_type: 'Polygon',
+    location_title: 'Select Location',
     coordinates: [],
     preview_blank_polygon: true,
     cover_image_url: '',
@@ -31,5 +77,6 @@ export const SoilImprovements: RegisterFormSliceInitalState = {
     additional_data: '',
     can_be_entire_site: false,
     entire_site_selected: false,
-    key: 'soil-improvement'
+    key: 'soil-improvement',
+    should_register_location: false
 }

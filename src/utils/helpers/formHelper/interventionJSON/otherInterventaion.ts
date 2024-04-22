@@ -1,9 +1,70 @@
+import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 
+const Description: FormElement = {
+    index: 0,
+    key: 'description',
+    label: 'Description',
+    default: '',
+    type: 'TEXTAREA',
+    placeholder: 'Description',
+    unit: '',
+    visibility: 'public',
+    condition: null,
+    data_type: 'string',
+    keyboard_type: 'default',
+    sub_form: undefined,
+    editable: true,
+    value: '',
+    required: false
+  }
+  
+
+  
+  // const TagIdSwitch: FormElement = {
+  //   index: 0,
+  //   key: 'is-tree-tagged',
+  //   label: 'This tree has been tagged for identification',
+  //   default: 'false',
+  //   type: 'SWITCH',
+  //   placeholder: '',
+  //   unit: '',
+  //   visibility: 'public',
+  //   condition: null,
+  //   data_type: 'boolean',
+  //   keyboard_type: 'default',
+  //   sub_form: undefined,
+  //   editable: true
+  // }
+  
+  // const TagId: FormElement = {
+  //   index: 0,
+  //   key: 'tag-id',
+  //   label: 'Tag Id',
+  //   default: '',
+  //   type: 'INPUT',
+  //   placeholder: 'Tag id',
+  //   unit: '',
+  //   visibility: 'public',
+  //   condition: {
+  //     'is-tree-tagged': true,
+  //   },
+  //   data_type: 'number',
+  //   keyboard_type: 'default',
+  //   sub_form: undefined,
+  //   editable: true
+  // }
+  
+  const otherIntervetnionForm: MainForm = {
+    title: 'Details',
+    key: '',
+    elements: [Description],
+  }
+
 export const OtherIntervention: RegisterFormSliceInitalState = {
     form_id: '',
-    title:'Other Intervention',
+    title: 'Other Intervention',
     intervention_date: 0,
     skip_intervention_form: false,
     user_type: 'normal',
@@ -25,11 +86,12 @@ export const OtherIntervention: RegisterFormSliceInitalState = {
     tree_details_required: true,
     has_sample_trees: true,
     tree_details: [],
-    form_details: [],
+    form_details: [otherIntervetnionForm],
     meta_data: '',
     form_data: [],
     additional_data: '',
     can_be_entire_site: false,
     entire_site_selected: false,
-    key: 'other-intervention'
+    key: 'other-intervention',
+    should_register_location: false
 }

@@ -33,7 +33,6 @@ const ManageSpeciesHome = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
-
   const handleSpeciesPress = (item: IScientificSpecies) => {
     if (!isManageSpecies) {
       dispatch(updateFormSpecies(item.guid))

@@ -16,8 +16,8 @@ export const RemovalOfInvasiveSpecies: RegisterFormSliceInitalState = {
     coordinates: [],
     preview_blank_polygon: true,
     cover_image_url: '',
-    species_required: false,
-    is_multi_species: false,
+    species_required: true,
+    is_multi_species: true,
     species_count_required: false,
     species_modal_message: '',
     species_modal_unit: '',
@@ -31,5 +31,6 @@ export const RemovalOfInvasiveSpecies: RegisterFormSliceInitalState = {
     additional_data: '',
     can_be_entire_site: true,
     entire_site_selected: false,
-    key: 'removal-invasive-species'
+    key: 'removal-invasive-species',
+    should_register_location: false
 }

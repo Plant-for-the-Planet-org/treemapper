@@ -17,7 +17,8 @@ const TeamName: FormElement = {
   keyboard_type: 'default',
   sub_form: undefined,
   editable: true,
-  value: ''
+  value: '',
+  required: false
 }
 
 const NumberOfMembers: FormElement = {
@@ -34,7 +35,8 @@ const NumberOfMembers: FormElement = {
   keyboard_type: 'numeric',
   sub_form: undefined,
   editable: true,
-  value: ''
+  value: '',
+  required: false
 }
 
 // const TagIdSwitch: FormElement = {

@@ -3,21 +3,22 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 
 const NumberOfPeople: FormElement = {
-    index: 0,
-    key: 'number-of-people-involved',
-    label: 'Number Of People Involved',
-    default: '',
-    type: 'INPUT',
-    placeholder: 'Number of People Involved',
-    unit: '',
-    visibility: 'public',
-    condition: null,
-    data_type: 'number',
-    keyboard_type: 'numeric',
-    sub_form: undefined,
-    editable: true,
-    value: ''
-  }
+  index: 0,
+  key: 'number-of-people-involved',
+  label: 'Number Of People Involved',
+  default: '',
+  type: 'INPUT',
+  placeholder: 'Number of People Involved',
+  unit: '',
+  visibility: 'public',
+  condition: null,
+  data_type: 'number',
+  keyboard_type: 'numeric',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: true
+}
   
   const WorkingHours: FormElement = {
     index: 0,
@@ -33,42 +34,10 @@ const NumberOfPeople: FormElement = {
     keyboard_type: 'numeric',
     sub_form: undefined,
     editable: true,
-    value: ''
+    value: '',
+    required: true
   }
   
-//   const TagIdSwitch: FormElement = {
-//     index: 0,
-//     key: 'is-tree-tagged',
-//     label: 'This tree has been tagged for identification',
-//     default: 'false',
-//     type: 'SWITCH',
-//     placeholder: '',
-//     unit: '',
-//     visibility: 'public',
-//     condition: null,
-//     data_type: 'boolean',
-//     keyboard_type: 'default',
-//     sub_form: undefined,
-//     editable: true
-//   }
-  
-//   const TagId: FormElement = {
-//     index: 0,
-//     key: 'tag-id',
-//     label: 'Tag Id',
-//     default: '',
-//     type: 'INPUT',
-//     placeholder: 'Tag id',
-//     unit: '',
-//     visibility: 'public',
-//     condition: {
-//       'is-tree-tagged': true,
-//     },
-//     data_type: 'number',
-//     keyboard_type: 'default',
-//     sub_form: undefined,
-//     editable: true
-//   }
   
 
 const firePatrolForm: MainForm = {

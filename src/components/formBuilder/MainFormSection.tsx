@@ -11,6 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch } from 'react-redux'
 import { updateFormDataValue } from 'src/store/slice/registerFormSlice'
+import FormTextAreaElement from './FormTextAreaElement'
 
 interface Props {
   formData: MainForm
@@ -57,10 +58,10 @@ const MainFormSection = (props: Props) => {
   const submitHandler = () => {
     const finalData: FormElement[] = [];
     for (const [key] of Object.entries(formValues)) {
-      finalData.push({...formValues[key]})
+      finalData.push({ ...formValues[key] })
     }
     dispatch(updateFormDataValue(finalData))
-    navigation.navigate('InterventionPreview', { id: 'review' })
+    navigation.replace('InterventionPreview', { id: 'review' })
   }
 
   const renderElement = (formElements: FormElement[]) => {
@@ -69,6 +70,15 @@ const MainFormSection = (props: Props) => {
         case 'INPUT':
           return (
             <FormTextInputElement
+              data={element}
+              key={element.key}
+              formValues={formValues}
+              changeHandler={updateFormValues}
+            />
+          )
+        case 'TEXTAREA':
+          return (
+            <FormTextAreaElement
               data={element}
               key={element.key}
               formValues={formValues}
