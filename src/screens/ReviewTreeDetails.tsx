@@ -32,32 +32,49 @@ const ReviewTreeDetails = () => {
     const currentTreeIndex = FormData.tree_details.length
     const allSampleTreeRegisterd = currentTreeIndex !== totalSampleTress
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const InterventionData = useSelector(
+        (state: RootState) => state.interventionState,
+    )
 
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
     const detailsCompleted = route.params && route.params.detailsCompleted
+    const editTree = route.params && route.params.interventionID
 
     const dispatch = useDispatch();
     const realm = useRealm()
 
     useEffect(() => {
-        if (detailsCompleted) {
-            if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
-                navigation.replace('InterventionPreview', { id: 'review', intervention:'' })
-            } else if (FormData.form_details.length > 0) {
-                navigation.replace('DynamicForm')
+        if (!editTree) {
+            if (detailsCompleted) {
+                if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
+                    navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+                } else if (FormData.form_details.length > 0) {
+                    navigation.replace('DynamicForm')
+                } else {
+                    setTreeDetails(FormData.tree_details[currentTreeIndex - 1])
+                }
             } else {
-                setTreeDetails(FormData.tree_details[currentTreeIndex - 1])
+                setupTreeDetailsFlow()
             }
-        } else {
-            setupTreeDetailsFlow()
         }
     }, [detailsCompleted])
+
+
+    useEffect(() => {
+        if (editTree) {
+            const filterdData = InterventionData.sample_trees.filter(el=>el.tree_id=== route.params.interventionID)
+            setTreeDetails(filterdData[0])
+        }
+    }, [InterventionData.last_updated_at])
+
+
+
 
     const nextTreeButton = () => {
         if (allSampleTreeRegisterd) {
             navigation.navigate('PointMarker')
         } else {
-            navigation.replace('InterventionPreview', { id: 'review', intervention:'' })
+            navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
         }
     }
 
@@ -98,12 +115,14 @@ const ReviewTreeDetails = () => {
         return null
     }
 
+    const headerLabel = editTree?"Edit Tree Details":`Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
                 <View style={styles.container}>
-                    <Header label={`Review of Tree ${currentTreeIndex} of ${totalSampleTress}`} />
-                    <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.tree_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} />
+                    <Header label={headerLabel} />
+                    <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <View style={styles.metaSectionWrapper}>
@@ -166,11 +185,11 @@ const ReviewTreeDetails = () => {
                 </View>
                 <View style={styles.footer} />
             </ScrollView >
-            <CustomButton
+            {!editTree && <CustomButton
                 label={!allSampleTreeRegisterd ? "Continue" : "Next Tree"}
                 containerStyle={styles.btnContainer}
                 pressHandler={nextTreeButton}
-            />
+            />}
         </SafeAreaView >
     )
 }

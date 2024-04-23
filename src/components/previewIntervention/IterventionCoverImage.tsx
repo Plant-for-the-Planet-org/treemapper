@@ -8,22 +8,23 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { updateCoverImageURL, updateSampleTreeImage } from 'src/store/slice/registerFormSlice'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
+import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 
 interface Props {
   image: string
   interventionID: string
   tag: 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
-  isRegistered: boolean
+  isRegistered?: boolean
+  treeId?: string
 }
 
 const IterventionCoverImage = (props: Props) => {
-  const { image, tag, isRegistered, interventionID } = props
+  const { image, tag, interventionID, treeId } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
-  const { updateInterventionCoverImage } = useInterventionManagement()
+  const { updateInterventionCoverImage, updateSampleTreeImage } = useInterventionManagement()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch();
 
@@ -31,17 +32,11 @@ const IterventionCoverImage = (props: Props) => {
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
       if (tag === 'EDIT_INTERVENTION') {
-        if (!isRegistered) {
-          dispatch(updateCoverImageURL(imageDetails.url))
-        } else {
-          updateInterventionCoverImage(imageDetails.url, interventionID)
-        }
+        updateInterventionCoverImage(imageDetails.url, interventionID)
+        dispatch(updateLastUpdatedAt())
       } else {
-        if (!isRegistered) {
-          dispatch(updateSampleTreeImage({ id: interventionID, image: imageDetails.url }))
-        } else {
-          updateInterventionCoverImage(imageDetails.url, interventionID)
-        }
+        updateSampleTreeImage(interventionID, treeId, imageDetails.url)
+        dispatch(updateLastUpdatedAt())
       }
       dispatch(updateImageDetails({
         id: '',

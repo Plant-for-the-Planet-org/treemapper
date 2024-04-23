@@ -1,32 +1,57 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import {Colors, Typography} from 'src/utils/constants'
-import {scaleSize} from 'src/utils/constants/mixins'
-import {SampleTree} from 'src/types/interface/slice.interface'
+import { Colors, Typography } from 'src/utils/constants'
+import { scaleSize } from 'src/utils/constants/mixins'
+import { SampleTree } from 'src/types/interface/slice.interface'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
-import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { useDispatch } from 'react-redux'
+import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   sampleTress: SampleTree[]
+  interventionId: string
+  hasSampleTress: boolean
 }
 
 const SampleTreePreviewList = (props: Props) => {
-  const {sampleTress} = props
+  const { sampleTress, interventionId, hasSampleTress } = props
+  const { deleteSampleTreeIntervention } = useInterventionManagement()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const dispatch = useDispatch()
+  const deleteTreeDetails = async (id: string) => {
+    await deleteSampleTreeIntervention(id, interventionId)
+    dispatch(updateLastUpdatedAt())
+  }
+
+  const editTreeDetails = async (id: string) => {
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id })
+  }
+
+
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
       return (
         <View style={styles.wrapper} key={i}>
           <View style={styles.deleteWrapper}>
-            <View style={styles.deleteWrapperIcon}>
+            <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+              editTreeDetails(details.tree_id)
+            }}>
               <PenIcon width={30} height={30} />
-            </View>
-            <View style={styles.deleteWrapperIcon}>
-              <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR}/>
-            </View>
+            </TouchableOpacity>
+            {hasSampleTress && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+              deleteTreeDetails(details.tree_id)
+            }}>
+              <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
+            </TouchableOpacity>}
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
@@ -168,6 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     right: 10,
     top: 10,
+    zIndex: 1
   },
   deleteWrapperIcon: {
     width: 35,

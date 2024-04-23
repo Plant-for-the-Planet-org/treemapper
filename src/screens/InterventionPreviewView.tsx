@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, View } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import CustomButton from 'src/components/common/CustomButton'
@@ -25,58 +25,55 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InterventionFormData from 'src/components/previewIntervention/InterventionFormData'
-import { useObject } from '@realm/react'
+import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
-
+  const [interventionId, setInterventoinId] = useState('')
+  const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const InterventionData = useSelector(
     (state: RootState) => state.interventionState,
   )
 
-const selectedIntervention = useObject<InterventionData>(
-    RealmSchema.Intervention,
-    route.params.intervention,
-  )
-console.log("selectedIntervention",selectedIntervention)
 
-  const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
-  const is_sampleTree = SampleTreeData.form_id.length > 0
-  const { addNewIntervention } = useInterventionManagement()
+  const { addNewIntervention, saveIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
-  const isPreview = route.params.id === 'preview'
 
   useEffect(() => {
     if (route.params.id === 'review') {
       const finalData: InterventionData =
         convertFormDataToIntervention(formFlowData)
-      dispatch(updateInerventionData(finalData))
-    } else {
+        addNewIntervention(finalData)
+        setInterventoinId(finalData.intervention_id)
+    }else{
+      setInterventoinId(route.params.intervention)
+    }
+  }, [])
+
+  useEffect(() => {
+    if(interventionId){
       getAndSetIntervention()
     }
-  }, [formFlowData, selectedIntervention])
-
-
+  }, [InterventionData.last_updated_at, interventionId])
+  
   const getAndSetIntervention = () => {
+    const selectedIntervention = realm.objectForPrimaryKey(
+      RealmSchema.Intervention,
+      interventionId,
+    )
     const finalData = JSON.parse(JSON.stringify(selectedIntervention))
     dispatch(updateInerventionData(finalData))
   }
 
   const navigateToNext = async () => {
-    if (isPreview) {
-      navigation.goBack()
-      return
-    }
-    const finalData = convertFormDataToIntervention(formFlowData)
-    await addNewIntervention(finalData)
+    await saveIntervention(InterventionData.intervention_id)
     dispatch(resetSampleTreeform())
     const { geoJSON } = makeInterventionGeoJson(
-      formFlowData.location_type,
-      formFlowData.coordinates,
-      finalData.intervention_id,
+      InterventionData.location_type,
+      JSON.parse(InterventionData.location.coordinates),
+      InterventionData.intervention_id,
     )
     const bounds = bbox(geoJSON)
     dispatch(
@@ -99,7 +96,7 @@ console.log("selectedIntervention",selectedIntervention)
       <ScrollView>
         <View>
           <Header label="Review" />
-          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} isRegistered={isPreview} />
+          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'}  />
           <InterventionBasicInfo
             title={InterventionData.intervention_title}
             intervention_date={InterventionData.intervention_date}
@@ -110,20 +107,16 @@ console.log("selectedIntervention",selectedIntervention)
           {InterventionData.sample_trees.length > 0 && (
             <SampleTreePreviewList
               sampleTress={InterventionData.sample_trees}
+              interventionId={InterventionData.intervention_id}
+              hasSampleTress={InterventionData.has_sample_trees}
             />
           )}
           <InterventionFormData formData={InterventionData.form_data} />
-          <CustomButton
-            label={
-              is_sampleTree &&
-                SampleTreeData.sample_tree_count !==
-                formFlowData.tree_details.length
-                ? 'Next Tree'
-                : 'Done'
-            }
+          {!InterventionData.is_complete && <CustomButton
+            label={"Done"}
             pressHandler={navigateToNext}
             containerStyle={styles.btnContainer}
-          />
+          />}
         </View>
       </ScrollView>
     </SafeAreaView>
