@@ -5,9 +5,12 @@ import { RootState } from 'src/store'
 import SingleTreeImage from 'assets/images/svg/SingleTreeIcon.svg'
 import { Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
+import { Skeleton } from 'moti/skeleton'
+
+
 
 const SidebarHeader = () => {
-  const { image, displayName } = useSelector(
+  const { image, displayName, loading } = useSelector(
     (state: RootState) => state.userState,
   )
   const avatar = `https://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/profile/avatar/${image}`
@@ -15,15 +18,21 @@ const SidebarHeader = () => {
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
-        {image ? (
-          <Image source={{ uri: avatar }} style={styles.imageWrapper} />
-        ) : (
-          <SingleTreeImage style={styles.imageWrapper} />
-        )}
+        <Skeleton show={loading} colorMode="light" radius={12}>
+          {image ? (
+            <Image source={{ uri: avatar }} style={styles.imageWrapper} />
+          ) : (
+            <SingleTreeImage style={styles.imageWrapper} />
+          )}
+        </Skeleton>
       </View>
-      <Text style={styles.userName}>
-        {displayName ? `${displayName}` : 'Guest User'}
-      </Text>
+      <View style={styles.loaderView}>
+        <Skeleton show={loading} colorMode="light" radius={12}>
+          <Text style={styles.userName}>
+            {displayName ? `${displayName}` : 'Guest User'}
+          </Text>
+        </Skeleton>
+      </View>
     </View>
   )
 }
@@ -45,13 +54,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   userName: {
-    marginLeft: 20,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleFont(20)
+    fontSize: scaleFont(20),
   },
   imageWrapper: {
     width: '100%',
     height: '100%',
     borderRadius: 10,
   },
+  loaderView: {
+    justifyContent: "center",
+    height: '100%',
+    paddingHorizontal: 10,
+    width: '70%'
+  }
 })

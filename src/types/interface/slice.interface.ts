@@ -184,6 +184,7 @@ export interface UserInterface {
   name: null | string
   slug: string
   type: string
+  loading?: boolean
 }
 
 export interface InterventionLocation {

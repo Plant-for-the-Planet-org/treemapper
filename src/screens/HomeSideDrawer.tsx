@@ -11,15 +11,14 @@ import { Colors } from 'src/utils/constants'
 
 const HomeSideDrawer = () => {
   const isLogedIn = useSelector((state: RootState) => state.appState.isLogedIn)
-
   return (
     <SafeAreaView style={styles.container}>
       <Header label={''} />
-      <SidebarHeader />
+      <SidebarHeader/>
       <View style={styles.wrapper}>
         <SideBarList isLogedIn={isLogedIn} />
       </View>
-      <SideBarFooter isLogedIn={isLogedIn} />
+      <SideBarFooter isLogedIn={isLogedIn}/>
     </SafeAreaView>
   )
 }

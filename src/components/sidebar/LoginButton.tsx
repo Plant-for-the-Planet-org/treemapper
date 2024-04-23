@@ -1,37 +1,48 @@
-import {StyleSheet, View} from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import CustomButton from '../common/CustomButton'
-import {useDispatch} from 'react-redux'
-import {updateUserDetails} from 'src/store/slice/userStateSlice'
-import {updateUserLogin, updateUserToken} from 'src/store/slice/appStateSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateLoadingUser, updateUserDetails } from 'src/store/slice/userStateSlice'
+import { updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
-import {getUserDetails} from 'src/api/api.fetch'
+import { getUserDetails } from 'src/api/api.fetch'
+import { RootState } from 'src/store'
 
 const LoginButton = () => {
-  const {authorizeUser} = useAuthentication()
+  const { loading } = useSelector(
+    (state: RootState) => state.userState)
+
+  const { authorizeUser } = useAuthentication()
   const dispatch = useDispatch()
 
   const hadleLogin = async () => {
-    const result = await authorizeUser()
-    if (result) {
-      dispatch(
-        updateUserToken({
-          idToken: result.credentials.idToken,
-          accessToken: result.credentials.accessToken,
-          expiringAt: result.credentials.expiresAt,
-        }),
-      )
-      const userDetails = await getUserDetails()
-      if (userDetails) {
-        loginAndUpdateDetails(userDetails)
+    try {
+      dispatch(updateLoadingUser(true))
+      const result = await authorizeUser()
+      if (result) {
+        dispatch(
+          updateUserToken({
+            idToken: result.credentials.idToken,
+            accessToken: result.credentials.accessToken,
+            expiringAt: result.credentials.expiresAt,
+          }),
+        )
+        const userDetails = await getUserDetails()
+        if (userDetails) {
+          loginAndUpdateDetails(userDetails)
+        }
       }
+    } catch (err) {
+      dispatch(updateLoadingUser(false))
+
     }
   }
 
   const loginAndUpdateDetails = async data => {
-    const finalDetails = {...data}
+    const finalDetails = { ...data }
     dispatch(updateUserLogin(true))
     dispatch(updateUserDetails(finalDetails))
+    dispatch(updateLoadingUser(false))
   }
 
   return (
@@ -40,6 +51,7 @@ const LoginButton = () => {
         label={'Login/Signup'}
         pressHandler={hadleLogin}
         containerStyle={styles.wrapper}
+        disable={loading}
       />
     </View>
   )
