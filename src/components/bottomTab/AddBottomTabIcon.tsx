@@ -12,10 +12,8 @@ import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'
-import { Dimensions } from 'react-native'
 
-const windowWidth = Dimensions.get('screen').width
-const width = windowWidth/4
+
 
 
 const AddBottomTabIcon = () => {
@@ -73,14 +71,14 @@ const styles = StyleSheet.create({
   iconWrapper: {
     position: 'absolute',
     backgroundColor: 'white',
-    height: scaleSize(60),
-    width: scaleSize(60),
+    height: scaleSize(58),
+    width: scaleSize(58),
     zIndex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 100,
-    top: '-45%',
-    left: width/5-8,
+    top: -scaleSize(38),
+    left: scaleSize(11) ,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,

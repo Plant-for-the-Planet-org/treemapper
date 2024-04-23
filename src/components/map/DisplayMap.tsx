@@ -63,15 +63,12 @@ const DisplayMap = () => {
     if (PermissionStatus.DENIED === permissionStatus) {
       setPermissionAlert(true)
     } else {
-      setTimeout(() => {
-        getInitalLocation()
-      }, 300)
       setPermissionAlert(false)
     }
   }, [permissionStatus])
 
   useEffect(() => {
-    if (cameraRef && cameraRef.current) {
+    if (cameraRef && cameraRef.current!==null) {
       handleCameraViewChange()
     }
   }, [MapBounds])
@@ -130,6 +127,7 @@ const DisplayMap = () => {
     <MapLibreGL.MapView
       style={styles.map}
       logoEnabled={false}
+      onDidFinishLoadingMap={getInitalLocation}
       compassViewPosition={3}
       attributionEnabled={false}
       compassViewMargins={{x: scaleSize(28), y: scaleSize(300)}}

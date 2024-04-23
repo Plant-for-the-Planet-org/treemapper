@@ -5,17 +5,18 @@ import Svg, { Path } from 'react-native-svg';
 
 
 import { Colors } from 'src/utils/constants';
+import { scaleSize } from 'src/utils/constants/mixins';
 
 const windowWidth = Dimensions.get('screen').width
 
 let width = windowWidth/4-10
-const buttonWidth = 65;
-const buttonGutter = 10;
-const tabbarHeight = 80;
+const buttonWidth = scaleSize(56);
+const buttonGutter = scaleSize(10);
+const tabbarHeight =scaleSize(100);
 
 const tabWidth = buttonWidth + buttonGutter * 2;
 width = (width - tabWidth) / 2;
-const curveHeight = 38;
+const curveHeight = scaleSize(32);
 
 const getPath = (): string => {
   const left = shape
