@@ -20,7 +20,7 @@ MapLibreGL.setAccessToken(null)
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar backgroundColor={Colors.WHITE}/>
+      <StatusBar backgroundColor={Colors.WHITE} />
       <Auth0Provider
         domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>
