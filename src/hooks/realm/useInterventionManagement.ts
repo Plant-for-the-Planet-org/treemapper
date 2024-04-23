@@ -36,7 +36,21 @@ const useInterventionManagement = () => {
     }
   };
 
-  return {addNewIntervention, addSampleTrees}
+  const updateInterventionCoverImage = async (imageURL: string, intervnetionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        intervention.cover_image_url = imageURL
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+
+  return {addNewIntervention, addSampleTrees, updateInterventionCoverImage}
 }
 
 export default useInterventionManagement

@@ -39,7 +39,7 @@ export const convertFormDataToIntervention = (
       type: interventionLocation.type,
       coordinates: interventionLocation.coordinates,
     },
-    cover_image_url: '',
+    cover_image_url: data.cover_image_url,
     has_species: data.species_required,
     species: data.species,
     has_sample_trees: data.has_sample_trees,

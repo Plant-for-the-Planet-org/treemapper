@@ -41,9 +41,9 @@ const ReviewTreeDetails = () => {
 
     useEffect(() => {
         if (detailsCompleted) {
-            if (!FormData.has_sample_trees && FormData.form_details.length===0) {
-                navigation.replace('InterventionPreview', { id: 'review' })
-            }else if(FormData.form_details.length>0){
+            if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
+                navigation.replace('InterventionPreview', { id: 'review', intervention:'' })
+            } else if (FormData.form_details.length > 0) {
                 navigation.replace('DynamicForm')
             } else {
                 setTreeDetails(FormData.tree_details[currentTreeIndex - 1])
@@ -57,7 +57,7 @@ const ReviewTreeDetails = () => {
         if (allSampleTreeRegisterd) {
             navigation.navigate('PointMarker')
         } else {
-            navigation.replace('InterventionPreview', { id: 'review' })
+            navigation.replace('InterventionPreview', { id: 'review', intervention:'' })
         }
     }
 
@@ -103,7 +103,7 @@ const ReviewTreeDetails = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={`Review of Tree ${currentTreeIndex} of ${totalSampleTress}`} />
-                    <IterventionCoverImage image={treeDetails.image_url} />
+                    <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.tree_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <View style={styles.metaSectionWrapper}>

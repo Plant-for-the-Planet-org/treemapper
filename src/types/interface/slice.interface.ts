@@ -210,4 +210,5 @@ export interface InterventionData {
   form_data: string
   additional_data: string
   meta_data: string
+  last_updated_at?: number
 }

@@ -1,9 +1,9 @@
 import * as Location from 'expo-location'
 
 const getUserLocation = async () => {
-  const {coords} = await Location.getCurrentPositionAsync()
-  if (coords) {
-    return {lat: coords.latitude, long: coords.longitude}
+  const Data= await Location.getCurrentPositionAsync()
+  if (Data.coords) {
+    return {lat: Data.coords.latitude, long: Data.coords.longitude}
   } else {
     return {lat: 0, long: 0}
   }

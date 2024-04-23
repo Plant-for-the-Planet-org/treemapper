@@ -61,7 +61,7 @@ const MainFormSection = (props: Props) => {
       finalData.push({ ...formValues[key] })
     }
     dispatch(updateFormDataValue(finalData))
-    navigation.replace('InterventionPreview', { id: 'review' })
+    navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
   }
 
   const renderElement = (formElements: FormElement[]) => {

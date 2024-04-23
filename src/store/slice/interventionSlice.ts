@@ -24,7 +24,8 @@ const initialState: InterventionData = {
   form_data: '',
   additional_data: '',
   meta_data: '',
-  intervention_type: 'single-tree-registration'
+  intervention_type: 'single-tree-registration',
+  last_updated_at: 0
 }
 
 const interventionSlice = createSlice({
@@ -34,9 +35,12 @@ const interventionSlice = createSlice({
     updateInerventionData(_state, action: PayloadAction<InterventionData>) {
       return {...action.payload}
     },
+    updateLastUpdatedAt(state){
+      state.last_updated_at =  Date.now()
+    }
   },
 })
 
-export const {updateInerventionData} = interventionSlice.actions
+export const {updateInerventionData, updateLastUpdatedAt} = interventionSlice.actions
 
 export default interventionSlice.reducer

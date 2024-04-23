@@ -1,4 +1,4 @@
-export type AFTER_CAPTURE = 'SPECIES_INFO' | 'POINT_REGISTER' | 'POLYGON_REGISTER' | 'SAMPLE_TREE'
+export type AFTER_CAPTURE = 'SPECIES_INFO' | 'POINT_REGISTER' | 'POLYGON_REGISTER' | 'SAMPLE_TREE' | 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
 
 export type INTERVENTION_TYPE = 'single-tree-registration' | 'multi-tree-registration' | 'removal-invasive-species' | 'fire-suppression' | 'fire-patrol' | 'fencing' | 'marking-regenerant' | 'liberating-regenerant' | 'grass-suppression' | 'firebreaks' | 'assisting-seed-rain' | 'soil-improvement' | 'stop-tree-harvesting' | 'direct-seeding' | 'enrichement-planting' | 'other-intervention' | 'maintenance'
 

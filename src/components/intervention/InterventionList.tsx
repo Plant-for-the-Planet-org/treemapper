@@ -8,8 +8,6 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { useDispatch } from 'react-redux'
-import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { groupInterventionList } from 'src/utils/helpers/interventionHelper/groupInterventions'
 
 interface Props {
@@ -35,10 +33,8 @@ const InterventionList = (props: Props) => {
 
   const { interventionData } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const dispatch = useDispatch()
   const handleNavigation = (item: InterventionData) => {
-    dispatch(updateInerventionData(item))
-    navigation.navigate('InterventionPreview', { id: 'preview' })
+    navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id })
   }
 
   return (

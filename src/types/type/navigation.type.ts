@@ -45,6 +45,7 @@ type IntermediateFormView = {
 
 type InterventionPreviewView = {
   id: 'preview' | 'review'
+  intervention: string
 }
 
 type ManageSpeciesView = {

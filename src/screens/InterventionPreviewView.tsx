@@ -25,14 +25,24 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InterventionFormData from 'src/components/previewIntervention/InterventionFormData'
+import { useObject } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
-  const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
+
+  const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const InterventionData = useSelector(
     (state: RootState) => state.interventionState,
   )
+
+const selectedIntervention = useObject<InterventionData>(
+    RealmSchema.Intervention,
+    route.params.intervention,
+  )
+console.log("selectedIntervention",selectedIntervention)
+
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const is_sampleTree = SampleTreeData.form_id.length > 0
   const { addNewIntervention } = useInterventionManagement()
@@ -44,8 +54,16 @@ const InterventionPreviewView = () => {
       const finalData: InterventionData =
         convertFormDataToIntervention(formFlowData)
       dispatch(updateInerventionData(finalData))
+    } else {
+      getAndSetIntervention()
     }
-  }, [])
+  }, [formFlowData, selectedIntervention])
+
+
+  const getAndSetIntervention = () => {
+    const finalData = JSON.parse(JSON.stringify(selectedIntervention))
+    dispatch(updateInerventionData(finalData))
+  }
 
   const navigateToNext = async () => {
     if (isPreview) {
@@ -70,6 +88,8 @@ const InterventionPreviewView = () => {
     navigation.popToTop()
   }
 
+
+
   if (InterventionData.intervention_id.length === 0) {
     return null
   }
@@ -79,7 +99,7 @@ const InterventionPreviewView = () => {
       <ScrollView>
         <View>
           <Header label="Review" />
-          <IterventionCoverImage image={InterventionData.cover_image_url} />
+          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} isRegistered={isPreview} />
           <InterventionBasicInfo
             title={InterventionData.intervention_title}
             intervention_date={InterventionData.intervention_date}

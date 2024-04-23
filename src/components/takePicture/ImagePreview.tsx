@@ -1,18 +1,18 @@
-import {StyleSheet, View} from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
-import {CameraCapturedPicture} from 'expo-camera'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
+import { CameraCapturedPicture } from 'expo-camera'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
-import {Image} from 'expo-image'
-import {Colors} from 'src/utils/constants'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useDispatch} from 'react-redux'
-import {updateImageDetails} from 'src/store/slice/takePictureSlice'
-import {AFTER_CAPTURE} from 'src/types/type/app.type'
-import {copyImageAndGetData} from 'src/utils/helpers/fileSystemHelper'
-import {updateSampleImageUrl} from 'src/store/slice/sampleTreeSlice'
+import { Image } from 'expo-image'
+import { Colors } from 'src/utils/constants'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useDispatch } from 'react-redux'
+import { updateImageDetails } from 'src/store/slice/takePictureSlice'
+import { AFTER_CAPTURE } from 'src/types/type/app.type'
+import { copyImageAndGetData } from 'src/utils/helpers/fileSystemHelper'
+import { updateSampleImageUrl } from 'src/store/slice/sampleTreeSlice'
 
 interface Props {
   imageData: CameraCapturedPicture
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const ImagePreview = (props: Props) => {
-  const {imageData, id, screen, retakePicture} = props
+  const { imageData, id, screen, retakePicture } = props
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
@@ -35,12 +35,10 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
-
-
-    if (screen === 'SPECIES_INFO') {
+    if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE') {
       navigation.goBack()
       return;
-    } 
+    }
 
     if (screen === 'SAMPLE_TREE') {
       dispatch(updateSampleImageUrl(finalURL))
@@ -91,7 +89,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 15,
     overflow: 'hidden',
-    marginTop:"5%"
+    marginTop: "5%"
   },
   btnContainer: {
     width: '100%',
@@ -130,7 +128,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     width: '90%',
     height: '80%',
-    backgroundColor:Colors.PRIMARY_DARK,
+    backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 12,
   },
   opaqueWrapper: {
