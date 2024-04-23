@@ -41,6 +41,8 @@ const PreviewMap = (props: Props) => {
           style={styles.map}
           attributionEnabled={false}
           logoEnabled={false}
+          scrollEnabled={false}
+          pitchEnabled={false}
           onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
           <MapLibreGL.Camera ref={cameraRef} />

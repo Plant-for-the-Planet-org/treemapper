@@ -78,7 +78,7 @@ const DisplayMap = () => {
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
+      zoomLevel: 17,
       animationDuration: 1000,
     })
   }

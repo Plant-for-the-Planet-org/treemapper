@@ -1,4 +1,4 @@
-import { RefreshControl, StyleSheet, View } from 'react-native'
+import { RefreshControl, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { groupInterventionList } from 'src/utils/helpers/interventionHelper/groupInterventions'
+import { Typography } from 'src/utils/constants'
 
 interface Props {
   interventionData: InterventionData[] | any[]
@@ -20,7 +21,7 @@ const InterventionList = (props: Props) => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    
+
     getAllInterventions()
   }, [selectedLabel])
 
@@ -35,6 +36,14 @@ const InterventionList = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const handleNavigation = (item: InterventionData) => {
     navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id })
+  }
+
+  const emptyInterventoin = () => {
+    return (
+      <View style={styles.emptyBox}>
+        <Text style={styles.emptyLable}>Start adding intervention</Text>
+      </View>
+    )
   }
 
   return (
@@ -54,6 +63,7 @@ const InterventionList = (props: Props) => {
           onRefresh={getAllInterventions}
         />}
       ListFooterComponent={<View style={styles.footerWrapper} />}
+      ListEmptyComponent={() => (emptyInterventoin())}
       ListHeaderComponent={
         <InterventionHeaderSelector
           data={interventionData}
@@ -72,4 +82,13 @@ const styles = StyleSheet.create({
     height: scaleSize(100),
     width: '100%',
   },
+  emptyBox: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  emptyLable: {
+    fontSize: 18,
+    fontFamily: Typography.FONT_FAMILY_BOLD
+  }
 })

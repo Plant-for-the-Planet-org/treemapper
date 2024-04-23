@@ -14,6 +14,8 @@ import 'react-native-gesture-handler'
 import 'react-native-get-random-values'
 import { StatusBar } from 'expo-status-bar'
 import { Colors } from 'src/utils/constants'
+import { ToastProvider } from 'react-native-toast-notifications'
+
 
 MapLibreGL.setAccessToken(null)
 
@@ -27,9 +29,11 @@ export default function App() {
         <RealmProvider>
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-              <NavigationContainer>
-                <RootNavigator />
-              </NavigationContainer>
+              <ToastProvider>
+                <NavigationContainer>
+                  <RootNavigator />
+                </NavigationContainer>
+              </ToastProvider>
             </PersistGate>
           </Provider>
         </RealmProvider>

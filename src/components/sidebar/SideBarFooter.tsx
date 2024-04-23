@@ -1,9 +1,10 @@
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
-import React, {version} from 'react'
+import React from 'react'
 import i18next from 'src/locales/index'
 import {Spacing, Typography, Colors} from 'src/utils/constants'
 import {scaleSize} from 'src/utils/constants/mixins'
 import LoginButton from './LoginButton'
+import openWebView from 'src/utils/helpers/appHelper/openWebView'
 
 interface Props {
   isLogedIn: boolean
@@ -11,25 +12,33 @@ interface Props {
 
 const SideBarFooter = (props: Props) => {
   const {isLogedIn} = props
-  const onPressHandler = () => {}
+  const onPressImprint = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
+  };
+  const onPressPolicy = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
+  };
+  const onPressTerms = () => {
+    openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
+  };
   return (
     <View style={[styles.versionContainer]}>
       {!isLogedIn && <LoginButton />}
       <View key="version" style={styles.version}>
-        <Text style={styles.itemText}>{version}</Text>
+        <Text style={styles.itemText}>2.0.1</Text>
       </View>
       <View style={styles.termsContainer}>
-        <TouchableOpacity key="privacy_policy" onPress={onPressHandler}>
+        <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>
           <Text style={styles.itemText}>
             {i18next.t('label.privacy_policy')}
           </Text>
         </TouchableOpacity>
         <View style={styles.dot} />
-        <TouchableOpacity key="imprint" onPress={onPressHandler}>
+        <TouchableOpacity key="imprint" onPress={onPressImprint}>
           <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
         </TouchableOpacity>
         <View style={styles.dot} />
-        <TouchableOpacity key="terms_of_service" onPress={onPressHandler}>
+        <TouchableOpacity key="terms_of_service" onPress={onPressTerms}>
           <Text style={styles.itemText}>
             {i18next.t('label.terms_of_service')}
           </Text>

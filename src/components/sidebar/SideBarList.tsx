@@ -9,6 +9,8 @@ import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
 import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
 import DataExpolrerIcon from 'assets/images/svg/DataExplorerIcon.svg'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 
 interface Props {
   isLogedIn: boolean
@@ -16,6 +18,9 @@ interface Props {
 
 const SideBarList = (props: Props) => {
   const {isLogedIn} = props
+  const UserType = useSelector(
+    (state: RootState) => state.userState.type
+  )
   const data: SideDrawerItem[] = [
     {
       label: 'Manage Species',
@@ -28,14 +33,14 @@ const SideBarList = (props: Props) => {
       label: 'Manage Projects',
       screen: 'ManageProjects',
       icon: <ManageProjectIcon />,
-      visible: true,
+      visible: UserType==='tpo',
       key: 'manage_projects'
     },
     {
       label: 'Additional Data',
       screen: 'AdditionalData',
       icon: <AdditionalDataIcon />,
-      visible: true,
+      visible: false,
       key: 'additional_data'
     },
     {

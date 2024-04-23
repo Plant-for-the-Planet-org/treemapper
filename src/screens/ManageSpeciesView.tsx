@@ -38,7 +38,7 @@ const ManageSpeciesView = () => {
 
   const dispatch = useDispatch()
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
-    return data.filtered('is_user_species == true').sorted('guid', false)
+    return data.filtered('is_user_species == true')
   })
 
   const toogleRemoveFavModal = () => {

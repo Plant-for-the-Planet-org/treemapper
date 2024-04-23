@@ -1,7 +1,7 @@
-import { Image, StyleSheet, View, TouchableOpacity } from 'react-native'
+import { Image, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -58,7 +58,8 @@ const IterventionCoverImage = (props: Props) => {
       <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
         <PenIcon width={30} height={30} />
       </TouchableOpacity>
-      {image.length !== 0 ? <Image source={{ uri: image }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} />}
+      {image.length !== 0 ? <Image source={{ uri: image }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} >
+        <Text style={styles.label}>Default Image {'\n'} For Intervention</Text></View>}
     </View>
   )
 }
@@ -84,6 +85,8 @@ const styles = StyleSheet.create({
     height: '95%',
     borderRadius: 12,
     backgroundColor: Colors.BLACK,
+    justifyContent:'center',
+    alignItems:'center'
   },
   editIconWrapper: {
     width: 30, height: 30,
@@ -95,5 +98,11 @@ const styles = StyleSheet.create({
     top: '6%',
     right: '8%',
     zIndex: 1
+  },
+  label: {
+    fontSize: 18,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.WHITE,
+    textAlign:'center'
   }
 })

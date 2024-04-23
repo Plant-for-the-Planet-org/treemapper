@@ -65,7 +65,6 @@ export default GpsAccuracyInfoContent
 const styles = StyleSheet.create({
     contentContainer: {
         backgroundColor: Colors.WHITE,
-        width: 300,
         justifyContent: 'center',
         alignItems: 'flex-start',
         borderRadius: 10,

@@ -1,9 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import CopyIcon from 'assets/images/svg/CopyIcon.svg'
+import * as Clipboard from 'expo-clipboard';
+import { useToast } from "react-native-toast-notifications";
+
 
 interface Props {
   coordinates: Array<number[]>
@@ -11,11 +14,26 @@ interface Props {
 }
 
 const CoordinatesList = (props: Props) => {
+  const toast = useToast();
+
   const { coordinates, type } = props
   const listCoord = type === 'Polygon' ? coordinates[0] : coordinates
-  if(listCoord.length>10){
+  if (listCoord.length > 10) {
     return null
   }
+
+  const copyToClipboard = async (el: string) => {
+    await Clipboard.setStringAsync(el);
+    toast.show("Coordinates Copied", {
+      type: "normal",
+      placement: "bottom",
+      duration: 2000,
+      animationType: "slide-in",
+      
+    })
+  };
+
+
   const renderCard = () => {
     return listCoord.map((el, i) => {
       return (
@@ -30,9 +48,11 @@ const CoordinatesList = (props: Props) => {
             <View style={styles.divider} />
             <CtaArrow style={styles.ctaWrapper} />
           </View>
-          <View style={styles.copyIconWrapper}>
+          <TouchableOpacity style={styles.copyIconWrapper} onPress={() => {
+            copyToClipboard(`${el[0].toFixed(6)},${el[1].toFixed(6)}`)
+          }}>
             <CopyIcon />
-          </View>
+          </TouchableOpacity>
         </View>
       )
     })
