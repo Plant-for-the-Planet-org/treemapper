@@ -11,7 +11,7 @@ export type RootStackParamList = {
   Home: undefined
   TakePicture: TakePictureView
   PolygonMarker: undefined
-  SyncSpecies: undefined
+  SyncSpecies: SyncSpeciesView
   HomeSideDrawer: undefined
   InterventionPreview: InterventionPreviewView
   ManageSpecies: ManageSpeciesView
@@ -47,6 +47,12 @@ type InterventionPreviewView = {
   id: 'preview' | 'review'
   intervention: string
 }
+
+
+type SyncSpeciesView = {
+  inApp?: boolean
+}
+
 
 type ManageSpeciesView = {
   manageSpecies: boolean

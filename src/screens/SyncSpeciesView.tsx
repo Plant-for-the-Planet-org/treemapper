@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native'
 import React, {useEffect} from 'react'
-import {useNavigation} from '@react-navigation/native'
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {StackNavigationProp} from '@react-navigation/stack'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
@@ -23,6 +23,7 @@ const SyncSpecies = () => {
   const {downloadFile, finalURL, currentState} = useDownloadFile()
   const {writeBulkSpecies} = useManageScientificSpecies()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
 
   useEffect(() => {
     isSpeciesUpdateRequried()
@@ -37,6 +38,10 @@ const SyncSpecies = () => {
   const isSpeciesUpdateRequried = async () => {
     const localSyncTimeStamp = await getLocalSpeciesSync()
     if (localSyncTimeStamp) {
+      if(route.params && route.params.inApp){
+        downloadFile()
+        return
+      }
       const skipSpeciesSync = isWithin90Days(Number(localSyncTimeStamp))
       if (skipSpeciesSync) {
         navigation.replace('Home')
@@ -57,7 +62,11 @@ const SyncSpecies = () => {
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
-      navigation.replace('Home')
+      if(route.params && route.params.inApp){
+        navigation.popToTop()
+      }else{
+        navigation.replace('Home')
+      }
     } catch (error) {
       console.log('error', error)
     }

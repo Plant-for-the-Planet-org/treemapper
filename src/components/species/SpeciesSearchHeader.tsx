@@ -11,7 +11,7 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 
 interface Props {
   backPress: () => void
-  toogleSyncModal: () => void
+  toogleSyncModal: (b:boolean) => void
   setSpciesList: (d: IScientificSpecies[]) => void
 }
 
@@ -77,7 +77,7 @@ const SpeciesSearchHeader = (props: Props) => {
           )}
         </View>
       </View>
-      <TouchableOpacity onPress={toogleSyncModal}>
+      <TouchableOpacity onPress={()=>{toogleSyncModal(true)}}>
         <SyncIcon width={20} height={20} />
       </TouchableOpacity>
     </View>

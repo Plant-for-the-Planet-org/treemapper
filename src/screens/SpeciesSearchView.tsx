@@ -7,17 +7,18 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 import SpeciesSearchCard from 'src/components/species/SpeciesSearchCard'
 import { FlashList } from '@shopify/flash-list'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import i18next from 'i18next'
+import AlertModal from 'src/components/common/AlertModal'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
   const { updateUserFavSpecies } = useManageScientificSpecies()
+  const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const route = useRoute<RouteProp<RootStackParamList, 'SpeciesSearch'>>()
-  console.log("ro",route.params.manageSpecies)
   const handleBackPress = () => {
     navigation.goBack()
   }
@@ -41,19 +42,11 @@ const SpeciesSearchView = () => {
     item: IScientificSpecies,
     status: boolean,
   ) => {
-    handleFavSpecies(item,status)
-    // if (route.params && !route.params.manageSpecies) {
-    //   navigation.goBack()
-    // }else{
-    //   setSpciesList(prevSpecies => {
-    //     return prevSpecies.map(species =>
-    //       species.guid === item.guid
-    //         ? { ...species, is_user_species: status }
-    //         : species,
-    //     )
-    //   })
-    //   updateUserFavSpecies(item.guid, status)
-    // }
+    handleFavSpecies(item, status)
+  }
+
+  const handleSpeciesSyncPress = async () => {
+    navigation.navigate('SyncSpecies', { inApp: true })
   }
 
   return (
@@ -70,11 +63,21 @@ const SpeciesSearchView = () => {
         ListHeaderComponent={
           <SpeciesSearchHeader
             backPress={handleBackPress}
-            toogleSyncModal={null}
+            toogleSyncModal={setShowSpeciesSyncAlert}
             setSpciesList={setSpciesList}
           />
         }
         ListEmptyComponent={<EmptySpeciesSearchList />}
+      />
+      <AlertModal
+        visible={showSpeciesSyncAlert}
+        heading={i18next.t('label.species_sync_update_alert_title')}
+        message={i18next.t('label.species_sync_update_alert_message')}
+        showSecondaryButton={true}
+        primaryBtnText={i18next.t('label.yes')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={handleSpeciesSyncPress}
+        onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
       />
     </SafeAreaView>
   )
