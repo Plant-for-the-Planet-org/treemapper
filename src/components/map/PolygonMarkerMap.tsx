@@ -56,7 +56,7 @@ const PolygonMarkerMap = (props: Props) => {
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
-      centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
+      centerCoordinate: [...currentUserLocation],
       zoomLevel: 17,
       animationDuration: 1000,
     })

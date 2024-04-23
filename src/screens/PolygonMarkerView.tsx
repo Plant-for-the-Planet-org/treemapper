@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import { Colors } from 'src/utils/constants'
+import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 
 const PolygonMarker = () => {
   const { species_required, location_title } = useSelector((state: RootState) => state.formFlowState)
@@ -15,6 +16,7 @@ const PolygonMarker = () => {
       <Header label={location_title} />
       <PolygonMarkerMap species_required={species_required} />
       <UserlocationMarker />
+      <LocationPermissionModal required/>
     </SafeAreaView>
   )
 }

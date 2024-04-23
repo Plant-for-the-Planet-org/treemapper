@@ -8,11 +8,11 @@ import GpsAccuracyTile from 'src/components/map/GpsAccuracyTile'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import InfoModal from 'src/components/common/InfoModal'
+import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 
 const PointMarkerView = () => {
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const [showInfoModal, setShowInfoModal] = useState(false)
-
   return (
     <SafeAreaView style={styles.container}>
       <Header
@@ -21,6 +21,7 @@ const PointMarkerView = () => {
       />
       <PointMarkerMap formData={formFlowData} />
       <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />
+      <LocationPermissionModal required />
     </SafeAreaView>
   )
 }

@@ -1,26 +1,44 @@
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
+import { useDispatch } from 'react-redux';
+import { updaeBlockerModal, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 
 const useLocationPermission = () => {
-  const [isPermissionGranted, setIsPermissionGranted] = useState(
-    Location.PermissionStatus.UNDETERMINED,
-  )
+  const [status, requestPermission] = Location.useForegroundPermissions();
+  const [permissionStatus, setPermissionStatus] = useState('undetermined')
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    const requestLocationPermission = async () => {
-      const {status} = await Location.requestForegroundPermissionsAsync()
-
-      if (status === Location.PermissionStatus.GRANTED) {
-        setIsPermissionGranted(Location.PermissionStatus.GRANTED)
-      } else {
-        setIsPermissionGranted(Location.PermissionStatus.DENIED)
-      }
+    if (status && status.granted) {
+      setPermissionStatus('granted')
+      dispatch(updaeBlockerModal(false))
+      userCurrentLocation()
+    }
+    if (status && status.status === Location.PermissionStatus.DENIED) {
+      setPermissionStatus('denied')
+      dispatch(updaeBlockerModal(true))
     }
 
-    requestLocationPermission()
-  }, [])
+  }, [status])
 
-  return isPermissionGranted
+
+  const userCurrentLocation = async () => {
+    if(permissionStatus!=='granted'){
+      requestPermission();
+      return;
+    }
+    const Data= await Location.getCurrentPositionAsync()
+    if (Data.coords) {
+      dispatch(updateUserLocation([Data.coords.longitude, Data.coords.latitude]))
+    }
+  }
+
+  const requestLocationPermission = async () => {
+    await requestPermission()
+  }
+
+
+  return { requestLocationPermission, permissionStatus , userCurrentLocation}
 }
 
 export default useLocationPermission

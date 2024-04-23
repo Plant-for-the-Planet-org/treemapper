@@ -1,20 +1,17 @@
-import {StyleSheet} from 'react-native'
-import React, {useEffect, useRef, useState} from 'react'
-import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
+import { StyleSheet } from 'react-native'
+import React, { useEffect, useRef } from 'react'
+import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
-import {PermissionStatus} from 'expo-location'
-import {useDispatch, useSelector} from 'react-redux'
-import {updateUserLocation} from 'src/store/slice/gpsStateSlice'
-import {RootState} from 'src/store'
-import getUserLocation from 'src/utils/helpers/getUserLocation'
-import {useQuery, useRealm} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
-import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
-import {InterventionData} from 'src/types/interface/slice.interface'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { useQuery, useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import { InterventionData } from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 // import MapMarkers from './MapMarkers'
-import {updateSelectedIntervention} from 'src/store/slice/displayMapSlice'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
+import { scaleSize } from 'src/utils/constants/mixins'
 // import { Colors } from 'src/utils/constants'
 // import SiteMapSource from './SiteMapSource'
 
@@ -23,7 +20,8 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
   const realm = useRealm()
-  const permissionStatus = useLocationPermission()
+  const { requestLocationPermission } = useLocationPermission()
+
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -32,7 +30,6 @@ const DisplayMap = () => {
   //   (state: RootState) => state.displayMapState,
   // )
 
-  const [showPermissionAlert, setPermissionAlert] = useState(false)
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
 
@@ -60,28 +57,17 @@ const DisplayMap = () => {
   }
 
   useEffect(() => {
-    if (PermissionStatus.DENIED === permissionStatus) {
-      setPermissionAlert(true)
-    } else {
-      setPermissionAlert(false)
-    }
-  }, [permissionStatus])
+    requestLocationPermission()
+  }, [])
+
+
 
   useEffect(() => {
-    if (cameraRef && cameraRef.current!==null) {
+    if (cameraRef && cameraRef.current !== null) {
       handleCameraViewChange()
     }
   }, [MapBounds])
 
-  const getInitalLocation = async () => {
-    const {lat, long} = await getUserLocation()
-    dispatch(
-      updateUserLocation({
-        lat: lat,
-        long: long,
-      }),
-    )
-  }
 
   useEffect(() => {
     if (currentUserLocation && cameraRef.current !== null) {
@@ -91,14 +77,14 @@ const DisplayMap = () => {
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
-      centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
+      centerCoordinate: [...currentUserLocation],
       zoomLevel: 20,
       animationDuration: 1000,
     })
   }
 
   const handleCameraViewChange = () => {
-    const {bounds, key} = MapBounds
+    const { bounds, key } = MapBounds
     if (bounds.length === 0) {
       return
     }
@@ -120,17 +106,13 @@ const DisplayMap = () => {
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }
 
-  if (showPermissionAlert) {
-    return null
-  }
   return (
     <MapLibreGL.MapView
       style={styles.map}
       logoEnabled={false}
-      onDidFinishLoadingMap={getInitalLocation}
       compassViewPosition={3}
       attributionEnabled={false}
-      compassViewMargins={{x: scaleSize(28), y: scaleSize(300)}}
+      compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />

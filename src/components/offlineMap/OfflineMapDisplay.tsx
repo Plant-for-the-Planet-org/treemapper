@@ -4,9 +4,7 @@ import { Colors } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import { updateUserLocation } from 'src/store/slice/gpsStateSlice'
-import getUserLocation from 'src/utils/helpers/getUserLocation'
-import { useDispatch, useSelector } from 'react-redux'
+import {  useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { getAreaName } from 'src/api/api.fetch'
 
@@ -23,19 +21,7 @@ const OfflineMapDisplay = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const dispatch = useDispatch()
 
-
-
-  const getInitalLocation = async () => {
-    const { lat, long } = await getUserLocation()
-    dispatch(
-      updateUserLocation({
-        lat: lat,
-        long: long,
-      }),
-    )
-  }
 
   useEffect(() => {
     if (currentUserLocation && cameraRef.current !== null) {
@@ -45,7 +31,7 @@ const OfflineMapDisplay = () => {
 
   const handleCamera = () => {
     cameraRef.current.setCamera({
-      centerCoordinate: [currentUserLocation.long, currentUserLocation.lat],
+      centerCoordinate: [...currentUserLocation],
       zoomLevel: 15,
       animationDuration: 1000,
     })
@@ -97,7 +83,6 @@ const OfflineMapDisplay = () => {
             logoEnabled={false}
             compassViewPosition={3}
             attributionEnabled={false}
-            onDidFinishLoadingMap={getInitalLocation}
             compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
             styleURL={JSON.stringify(MapStyle)}>
             <Camera ref={cameraRef} />

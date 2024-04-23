@@ -1,5 +1,5 @@
 import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
-import { Coordinates, IScientificSpecies } from './app.interface'
+import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -33,7 +33,9 @@ export interface ProjectStateSlice {
 }
 
 export interface GpsSliceInitalState {
-  user_location: Coordinates
+  user_location: number[],
+  showBlockerModal: boolean
+
 }
 
 export interface TakePictureInitialState {
@@ -125,7 +127,7 @@ export interface SampleTreeSlice {
   sample_tree_count: number
   move_next_primary: string
   move_next_secondary: string
-  boundry:   Array<number[]>
+  boundry: Array<number[]>
   coordinates: Array<number[]>
   image_url: string
   current_species: string

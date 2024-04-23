@@ -12,10 +12,12 @@ import CarouselHeader from 'src/components/carousel/CarouselHeader'
 import {
   SafeAreaView,
 } from 'react-native-safe-area-context';
+import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 const HomeMapView = () => {
 
   const [showFilterModal, setFileterModal] = useState(false)
   const [showProjectModal, setProjectModal] = useState(false)
+  
   const showCarousel = useSelector(
     (state: RootState) => state.displayMapState.showCarousel,
   )
@@ -49,6 +51,7 @@ const HomeMapView = () => {
         toogleModal={toogleProjectModal}
       />
       {showCarousel && <CarouselModal />}
+      <LocationPermissionModal/>
     </SafeAreaView>
   )
 }
