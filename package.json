@@ -48,7 +48,7 @@
     "moment": "^2.29.2",
     "nanoid": "^4.0.0",
     "react": "18.2.0",
-    "react-native": "0.72.3",
+    "react-native": "0.74.0",
     "react-native-auth0": "^2.16.0",
     "react-native-camera": "^3.43.9",
     "react-native-config": "^1.4.11",
