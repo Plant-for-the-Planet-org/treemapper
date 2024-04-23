@@ -1,22 +1,23 @@
-import {StyleSheet} from 'react-native'
-import React, {useState} from 'react'
-import {Colors} from 'src/utils/constants'
+import { StyleSheet } from 'react-native'
+import React, { useState } from 'react'
+import { Colors } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
 import EmptySpeciesSearchList from 'src/components/species/EmptySpeciesSearchList'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import SpeciesSearchCard from 'src/components/species/SpeciesSearchCard'
-import {FlashList} from '@shopify/flash-list'
+import { FlashList } from '@shopify/flash-list'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
-  const {updateUserFavSpecies} = useManageScientificSpecies()
+  const { updateUserFavSpecies } = useManageScientificSpecies()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const route = useRoute<RouteProp<RootStackParamList, 'SpeciesSearch'>>()
+  console.log("ro",route.params.manageSpecies)
   const handleBackPress = () => {
     navigation.goBack()
   }
@@ -28,33 +29,39 @@ const SpeciesSearchView = () => {
     setSpciesList(prevSpecies => {
       return prevSpecies.map(species =>
         species.guid === item.guid
-          ? {...species, is_user_species: status}
+          ? { ...species, is_user_species: status }
           : species,
       )
     })
     updateUserFavSpecies(item.guid, status)
+
   }
 
   const handleCardPress = async (
     item: IScientificSpecies,
     status: boolean,
   ) => {
-    setSpciesList(prevSpecies => {
-      return prevSpecies.map(species =>
-        species.guid === item.guid
-          ? {...species, is_user_species: status}
-          : species,
-      )
-    })
-    updateUserFavSpecies(item.guid, status)
+    handleFavSpecies(item,status)
+    // if (route.params && !route.params.manageSpecies) {
+    //   navigation.goBack()
+    // }else{
+    //   setSpciesList(prevSpecies => {
+    //     return prevSpecies.map(species =>
+    //       species.guid === item.guid
+    //         ? { ...species, is_user_species: status }
+    //         : species,
+    //     )
+    //   })
+    //   updateUserFavSpecies(item.guid, status)
+    // }
   }
 
   return (
     <SafeAreaView style={styles.contnetWrapper}>
       <FlashList
         data={specieList}
-        renderItem={({item}) => (
-          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} handleCardPress={handleCardPress}/>
+        renderItem={({ item }) => (
+          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
         )}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"

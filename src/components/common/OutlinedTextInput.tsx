@@ -1,18 +1,19 @@
-import {KeyboardTypeOptions, StyleSheet, View} from 'react-native'
+import { KeyboardTypeOptions, StyleSheet, View } from 'react-native'
 import React from 'react'
-import {InputOutline} from 'react-native-input-outline'
-import {Text} from 'react-native'
-import {Colors} from 'src/utils/constants'
+import { InputOutline } from 'react-native-input-outline'
+import { Text } from 'react-native'
+import { Colors } from 'src/utils/constants'
 
 interface Props {
   placeholder: string
-  changeHandler: (h:string) => void
+  changeHandler: (h: string) => void
   keyboardType: KeyboardTypeOptions
   trailingtext: string
+  errMsg: string
 }
 
 const OutlinedTextInput = (props: Props) => {
-  const {placeholder, changeHandler, keyboardType, trailingtext} = props
+  const { placeholder, changeHandler, keyboardType, trailingtext, errMsg } = props
 
   return (
     <View style={styles.container}>
@@ -26,6 +27,7 @@ const OutlinedTextInput = (props: Props) => {
         placeholderTextColor={Colors.GRAY_BORDER}
         onChangeText={changeHandler}
         fontSize={18}
+        error={errMsg.length ? errMsg : undefined}
         trailingIcon={() => (
           <Text style={styles.unitLabel}>{trailingtext}</Text>
         )}
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
     flexDirection: 'row',
-    justifyContent:'center'
+    justifyContent: 'center'
   },
   inputWrapper: {
     borderRadius: 10,

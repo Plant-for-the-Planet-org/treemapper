@@ -18,34 +18,62 @@ import {
 import { updateTree_details } from 'src/store/slice/registerFormSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
+import getUserLocation from 'src/utils/helpers/getUserLocation'
+import { diameterValidation } from 'src/utils/constants/measurmentValidation'
+import i18next from 'i18next'
+import AlertModal from 'src/components/common/AlertModal'
 
 const AddMeasurment = () => {
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
+  const [showOptimalAlert, setOptimalAlert] = useState(false)
   const [height, setHeight] = useState('')
   const [width, setWidth] = useState('')
   const [tagEnable, setTagEnabled] = useState(false)
   const [tagId, setTagId] = useState('')
 
   const dispatch = useDispatch()
-  // const [heightErrorMessage, setHeightErrorMessgae] = useState('')
-  // const [widthErrorMessage, setWidthErrorMessage] = useState('')
-
+  const [heightErrorMessage, setHeightErrorMessgae] = useState('')
+  const [widthErrorMessage, setWidthErrorMessage] = useState('')
+  const [tagIdErrorMessage, settagIdErrorMessage] = useState('')
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
-  const { lat, long } = useSelector(
-    (state: RootState) => state.gpsState.user_location,
-  )
 
   const { species_details, treeCount } = extractSpecies(SampleTreeData)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const onSubmit = () => {
-    if (formFlowData.form_details.length === 0) {
-      submitDetails()
+    const heightValidation = validateNumber(height, 'Height', 'height')
+    const widthValidation = validateNumber(width, 'Diameter', 'width')
+    if (heightValidation.hasError || widthValidation.errorMessage) {
+      setHeightErrorMessgae(heightValidation.errorMessage)
+      setWidthErrorMessage(widthValidation.errorMessage)
+      return;
+    }
+    if (tagEnable && tagId.length === 0) {
+      settagIdErrorMessage('Tag Id can not be empty')
+      return
+    }
+    const diameterError = diameterValidation(width,false)
+    if(diameterError){
+      setOptimalAlert(true)
+    }else{
+      submitDetails();
     }
   }
 
-  const submitDetails = () => {
+
+  const handleOptimalalert=(p:boolean)=>{
+    if(p){
+      setOptimalAlert(false)
+    }else{
+      submitDetails();
+    }
+  }
+
+
+  const submitDetails = async () => {
+    const {lat,long} = await getUserLocation()
     const treeDetails: SampleTree = {
       tree_id: uuidv4(),
       species_guid: species_details.guid,
@@ -82,22 +110,22 @@ const AddMeasurment = () => {
           placeholder={'Height'}
           changeHandler={setHeight}
           keyboardType={'numeric'}
-          trailingtext={'m'}
-        />
+          trailingtext={'m'} errMsg={heightErrorMessage} />
         <OutlinedTextInput
           placeholder={'Basal Diameter'}
           changeHandler={setWidth}
           keyboardType={'numeric'}
-          trailingtext={'cm'}
+          trailingtext={'cm'} errMsg={widthErrorMessage}
         />
         <TagSwitch
           placeholder={'Tag Tree'}
           changeHandler={setTagId}
-          keyboardType={'numeric'}
+          keyboardType={'default'}
           trailingtext={''}
           switchEnable={tagEnable}
           description={'This tree has been tagged for identificaiton'}
           switchHandler={setTagEnabled}
+          errMsg={tagIdErrorMessage}
         />
         <CustomButton
           label="Continue"
@@ -105,6 +133,16 @@ const AddMeasurment = () => {
           pressHandler={onSubmit}
         />
       </View>
+      <AlertModal
+          showSecondaryButton
+          visible={showOptimalAlert}
+          onPressPrimaryBtn={handleOptimalalert}
+          onPressSecondaryBtn={handleOptimalalert}
+          heading={i18next.t('label.not_optimal_ratio')}
+          secondaryBtnText={i18next.t('label.continue')}
+          primaryBtnText={i18next.t('label.check_again')}
+          message={i18next.t('label.not_optimal_ratio_message')}
+        />
     </SafeAreaView>
   )
 }

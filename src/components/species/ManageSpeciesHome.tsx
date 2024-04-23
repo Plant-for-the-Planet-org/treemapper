@@ -70,7 +70,7 @@ const ManageSpeciesHome = (props: Props) => {
       data={userFavSpecies}
       renderItem={({item, index}) => renderSpecieCard(item, index)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader />}
+      ListHeaderComponent={<ManageSpeciesHeader isManageSecies={isManageSpecies}/>}
       ListEmptyComponent={<EmptyManageSpeciesList />}
     />
   )

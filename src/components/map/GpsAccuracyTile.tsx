@@ -1,33 +1,29 @@
-import {StyleSheet, TouchableOpacity, View} from 'react-native'
-import React, {useEffect, useState} from 'react'
-import {Colors, Typography} from 'src/utils/constants'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Colors, Typography } from 'src/utils/constants'
 import * as Location from 'expo-location'
-import {Text} from 'react-native'
+import { Text } from 'react-native'
 import GPSICON from 'assets/images/svg/GPSIcon.svg'
 
-interface Props{
-  showModalInfo: (b:boolean)=>void
+interface Props {
+  showModalInfo: (b: boolean) => void
 }
 
-const GpsAccuracyTile = (props:Props) => {
-  const {showModalInfo} = props;
+const GpsAccuracyTile = (props: Props) => {
+  const { showModalInfo } = props;
   const [accuracy, setAccuracy] = useState(0)
-  const showModal=()=>{
+  const showModal = () => {
     showModalInfo(true)
   }
   useEffect(() => {
     (async () => {
       const watcher = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.Highest,
+          accuracy: Location.Accuracy.BestForNavigation,
           timeInterval: 5000, // Time between each update in milliseconds (5000 = 5 seconds)
-          distanceInterval: 10, // Minimum distance between updates in meters
+          distanceInterval: 1, // Minimum distance between updates in meters
         },
-        location => {
-          if (location && location.coords && location.coords.accuracy) {
-            setAccuracy(location.coords.accuracy)
-          }
-        },
+        callBackForlocation
       )
 
       return () => {
@@ -35,6 +31,12 @@ const GpsAccuracyTile = (props:Props) => {
       }
     })()
   }, [])
+
+  const callBackForlocation = (location: Location.LocationObject) => {
+    if (location && location.coords && location.coords.accuracy) {
+      setAccuracy(location.coords.accuracy)
+    }
+  }
 
   const activeStyle = {
     bgColor:
@@ -53,7 +55,7 @@ const GpsAccuracyTile = (props:Props) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={[styles.wrapper, {backgroundColor: activeStyle.bgColor}]} onPress={showModal}>
+      <TouchableOpacity style={[styles.wrapper, { backgroundColor: activeStyle.bgColor }]} onPress={showModal}>
         <GPSICON style={styles.iconWrapper} fill={activeStyle.iconColor} />
         <Text style={styles.boldText}>
           GPS <Text style={styles.lightText}>{accuracy.toFixed(0)} m</Text>

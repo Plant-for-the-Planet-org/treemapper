@@ -9,16 +9,16 @@ import {IScientificSpecies} from 'src/types/interface/app.interface'
 interface Props {
   item: IScientificSpecies
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
-  handleCardPress:(item: IScientificSpecies, status: boolean) => void
+  handleCard:(item: IScientificSpecies, status: boolean) => void
 }
 
 const SpeciesSearchCard = (props: Props) => {
-  const {item, toogleFavSpecies} = props
+  const {item, toogleFavSpecies,handleCard} = props
   const handleIconPress = () => {
     toogleFavSpecies(item, !item.is_user_species)
   }
   const handleCardPress=()=>{
-    toogleFavSpecies(item, !item.is_user_species)
+    handleCard(item, !item.is_user_species)
   }
   return (
     <TouchableOpacity style={styles.container} onPress={handleCardPress}>

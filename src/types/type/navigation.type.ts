@@ -16,7 +16,7 @@ export type RootStackParamList = {
   InterventionPreview: InterventionPreviewView
   ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
-  SpeciesSearch: undefined
+  SpeciesSearch: SearchSpeciesView
   PointMarker: undefined
   DynamicForm: undefined
   InterventionForm: IntermediateFormView
@@ -56,4 +56,8 @@ type TotalTreesView = {
 
 type ReviewTreeDetailsView={
   detailsCompleted: boolean
+}
+
+type SearchSpeciesView = {
+  manageSpecies: boolean
 }

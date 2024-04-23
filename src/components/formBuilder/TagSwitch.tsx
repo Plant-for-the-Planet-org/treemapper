@@ -14,6 +14,7 @@ interface Props {
   switchEnable: boolean
   description: string
   switchHandler: (b: boolean) => void
+  errMsg: string
 }
 
 const TagSwitch = (props: Props) => {
@@ -25,6 +26,7 @@ const TagSwitch = (props: Props) => {
     switchEnable,
     description,
     switchHandler,
+  errMsg
   } = props
   return (
     <View style={styles.container}>
@@ -58,6 +60,7 @@ const TagSwitch = (props: Props) => {
             onChangeText={changeHandler}
             fontSize={18}
             returnKeyType="done"
+            error={errMsg.length?errMsg:undefined}
             trailingIcon={() => (
               <Text style={styles.unitLabel}>{trailingtext}</Text>
             )}

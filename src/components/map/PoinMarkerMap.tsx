@@ -15,8 +15,11 @@ import { v4 as uuidv4 } from 'uuid'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
+import i18next from 'i18next'
+import * as Location from 'expo-location';
+import AlertModal from '../common/AlertModal'
 // import {
-//   isPointInPolygon,
+//   // isPointInPolygon,
 //   validateMarkerForSampleTree,
 // } from 'src/utils/helpers/turfHelpers'
 
@@ -30,6 +33,8 @@ interface Props {
 const PointMarkerMap = (props: Props) => {
   const { species_required, is_multi_species } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
+  const [alertModal, setAlertModal] = useState(false)
+
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { form_id, boundry } = useSelector((state: RootState) => state.sampleTree)
   const [outOfBoundry] = useState(false)
@@ -105,6 +110,23 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
+  const handleAccuracyAlert=(b:boolean)=>{
+    if(b){
+      setAlertModal(false)
+    }else{
+      onSelectLocation()
+    }
+  }
+
+  const checkForAccuracy=async()=>{
+    const {coords} = await Location.getCurrentPositionAsync()
+    if(coords && coords.accuracy && coords.accuracy>=30){
+      setAlertModal(true)
+    }else{
+      onSelectLocation()
+    }
+  }
+
   // const handleMarkerValidation = (coords: number[]) => {
   //   if (form_id.length) {
   //     const isValidPoint = validateMarkerForSampleTree(
@@ -148,9 +170,19 @@ const PointMarkerMap = (props: Props) => {
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}
-        pressHandler={onSelectLocation}
+        pressHandler={checkForAccuracy}
       />
       <ActiveMarkerIcon />
+      <AlertModal
+        visible={alertModal}
+        heading={i18next.t('label.poor_accuracy')}
+        message={i18next.t('label.poor_accuracy_message')}
+        primaryBtnText={i18next.t('label.try_again')}
+        secondaryBtnText={i18next.t('label.continue')}
+        onPressPrimaryBtn={handleAccuracyAlert}
+        onPressSecondaryBtn={handleAccuracyAlert}
+        showSecondaryButton={true}
+      />
     </View>
   )
 }

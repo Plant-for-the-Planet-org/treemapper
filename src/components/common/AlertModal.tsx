@@ -25,6 +25,12 @@ const AlertModal = ({
   secondaryBtnText,
   onPressSecondaryBtn,
 }: IAlertModalProps) => {
+  const closeModal=()=>{
+    onPressSecondaryBtn(false)
+  }
+  const goNext=()=>{
+    onPressPrimaryBtn(true)
+  }
   return (
     <Modal isVisible={visible} style={styles.container}>
       <View style={styles.subContainer}>
@@ -33,13 +39,13 @@ const AlertModal = ({
         <View style={styles.bottomBtnContainer}>
           {showSecondaryButton && (
             <FlatButton
-              onPress={onPressSecondaryBtn}
+              onPress={closeModal}
               text={secondaryBtnText}
               style={styles.secondaryButtonStyle}
             />
           )}
           <FlatButton
-            onPress={onPressPrimaryBtn}
+            onPress={goNext}
             text={primaryBtnText}
             style={styles.primaryButtonStyle}
           />

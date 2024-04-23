@@ -1,19 +1,24 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Header from '../common/Header'
 import i18next from 'src/locales/index'
-import {Typography, Colors} from 'src/utils/constants'
+import { Typography, Colors } from 'src/utils/constants'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
-import {scaleSize} from 'src/utils/constants/mixins'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
+import { scaleSize } from 'src/utils/constants/mixins'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
 
-const ManageSpeciesHeader = () => {
+interface Props {
+  isManageSecies: boolean
+}
+
+const ManageSpeciesHeader = (props: Props) => {
+  const { isManageSecies } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const openSearchModal = () => {
-    navigation.navigate('SpeciesSearch')
+    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSecies })
   }
   return (
     <View style={styles.container}>
@@ -31,7 +36,7 @@ const ManageSpeciesHeader = () => {
         </Text>
         <TouchableOpacity style={styles.searchBar} onPress={openSearchModal}>
           <SearchIcon style={styles.searchIcon} width={20} height={20} />
-          <Text style={[styles.searchText, {color: Colors.GRAY_LIGHTEST}]}>
+          <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
             {i18next.t('label.select_species_search_species')}
           </Text>
         </TouchableOpacity>
