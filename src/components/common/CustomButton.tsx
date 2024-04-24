@@ -21,6 +21,7 @@ interface Props {
   loading?: boolean
   leftIcon?: React.ReactNode
   disable?: boolean
+  hideFadein?: boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -33,6 +34,7 @@ const CustomButton = (props: Props) => {
     loading,
     leftIcon,
     disable,
+    hideFadein
   } = props
 
   const handlePress = () => {
@@ -45,7 +47,7 @@ const CustomButton = (props: Props) => {
     <TouchableOpacity
       style={[styles.container, {...containerStyle}]}
       onPress={handlePress}>
-      <FadeBackground />
+      {!hideFadein && <FadeBackground />}
       <View
         style={[
           styles.wrapper,

@@ -52,6 +52,7 @@ const LoginButton = () => {
         pressHandler={hadleLogin}
         containerStyle={styles.wrapper}
         disable={loading}
+        hideFadein
       />
     </View>
   )
