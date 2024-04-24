@@ -4,6 +4,7 @@ import {DisplayMapSlice} from 'src/types/interface/slice.interface'
 const initialState: DisplayMapSlice = {
   selectedIntervention: '',
   showCarousel: false,
+  activeIndex: 0
 }
 
 const displayMapSlice = createSlice({
@@ -17,10 +18,14 @@ const displayMapSlice = createSlice({
     clearCarouselData(state) {
       state.selectedIntervention = ''
       state.showCarousel = false
+      state.activeIndex = 0
+    },
+    updateActiveIndex(state, action: PayloadAction<number>) {
+      state.activeIndex = action.payload
     },
   },
 })
 
-export const {updateSelectedIntervention, clearCarouselData} = displayMapSlice.actions
+export const {updateSelectedIntervention, clearCarouselData, updateActiveIndex} = displayMapSlice.actions
 
 export default displayMapSlice.reducer

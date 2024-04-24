@@ -17,6 +17,7 @@ export interface MapBoundSlice {
 export interface DisplayMapSlice {
   selectedIntervention: string
   showCarousel: boolean
+  activeIndex: number
 }
 
 export interface ProjectStateSlice {

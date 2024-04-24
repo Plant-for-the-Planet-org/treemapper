@@ -10,7 +10,7 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import { InterventionData } from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 import MapMarkers from './MapMarkers'
-import { updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
+import { updateActiveIndex, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import bbox from '@turf/bbox'
@@ -27,7 +27,7 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { selectedIntervention } = useSelector(
+  const { selectedIntervention, activeIndex } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
@@ -110,6 +110,10 @@ const DisplayMap = () => {
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }
 
+  const handleMarkerPress = (i: number) => {
+    dispatch(updateActiveIndex(i))
+  }
+
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -127,7 +131,7 @@ const DisplayMap = () => {
       {/* <SiteMapSource /> */}
       {selectedIntervention && (
         <MapMarkers
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} />
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} />
       )}
     </MapLibreGL.MapView>
   )
