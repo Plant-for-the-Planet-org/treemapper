@@ -27,6 +27,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import InterventionFormData from 'src/components/previewIntervention/InterventionFormData'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
@@ -47,6 +48,8 @@ const InterventionPreviewView = () => {
         convertFormDataToIntervention(formFlowData)
         addNewIntervention(finalData)
         setInterventoinId(finalData.intervention_id)
+        dispatch(resetRegisterationForm())
+        dispatch(resetSampleTreeform())
     }else{
       setInterventoinId(route.params.intervention)
     }

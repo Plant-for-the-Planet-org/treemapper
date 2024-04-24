@@ -72,24 +72,10 @@ const checkIsSampleMarkerValid = (
 
 export const validateMarkerForSampleTree = (
   activeCoords: number[],
-  polygonCoords: any,
   sampleTrees: SampleTree[],
 ) => {
-  console.log('Params', activeCoords, polygonCoords, sampleTrees)
-  const isPointInPolygon = booleanPointInPolygon(activeCoords, polygonCoords)
-  console.log('isPointInPolygon', isPointInPolygon)
-
-  if (!isPointInPolygon) {
-    return false
-  }
   const validDistance = checkIsSampleMarkerValid(activeCoords, sampleTrees)
-  console.log('validDistance', validDistance)
-
-  if (!validDistance) {
-    return false
-  }
-
-  return true
+  return validDistance
 }
 
 export const isPointInPolygon = (activeCoords,polygonCoords) => {

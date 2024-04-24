@@ -30,23 +30,39 @@ const InterventionCardHeader = (props: Props) => {
   switch (item.intervention_type) {
     case 'fire-suppression':
       return <Text style={styles.label}>Fire Supression Team</Text>
-      case 'fire-patrol':
-        return <Text style={styles.label}>Fire Patrol</Text>
+    case 'fire-patrol':
+      return <Text style={styles.label}>Fire Patrol</Text>
+    case 'firebreaks':
+      return <Text style={styles.label}>Fire Breaks</Text>
     case 'grass-suppression':
-      return <Text style={styles.label}>8 Trees Planted</Text>
+      return <Text style={styles.label}>Grass Supression</Text>
     case 'fencing':
-      return <Text style={styles.label}>Assited Seed Rain</Text>
+      return <Text style={styles.label}>Fencing</Text>
+    case 'removal-invasive-species':
+      return <Text style={styles.label}>Removal of invasive species</Text>
     case 'direct-seeding':
-      return <Text style={styles.label}>8 Trees Planted</Text>
+      return <Text style={styles.label}>Direct Seeding</Text>
     case 'multi-tree-registration':
       return <Text style={styles.label}>{totalTressCount()} Trees Planted</Text>
+    case 'enrichement-planting':
+      return <Text style={styles.label}>{totalTressCount()} Trees Planted (Enrichement)</Text>
     case 'single-tree-registration':
       return <Text style={styles.label}>Single Tree Planted</Text>
+    case 'assisting-seed-rain':
+      return <Text style={styles.label}>Assisting Seed Rain</Text>
+    case 'liberating-regenerant':
+      return <Text style={styles.label}>Liberating Regenerant</Text>
+    case 'marking-regenerant':
+      return <Text style={styles.label}>Marking Regenerant</Text>
+    case 'stop-tree-harvesting':
+      return <Text style={styles.label}>Stop Harvesting</Text>
+    case 'maintenance':
+      return <Text style={styles.label}>Maintenance</Text>
+      case 'other-intervention':
+        return <Text style={styles.label}>Other Intervention</Text>
     case 'soil-improvement':
       return (
-        <Text style={styles.label}>
-          Single Tree Planted({item.sample_trees[0].specie_name})
-        </Text>
+        <Text style={styles.label}>Soil improvement</Text>
       )
     default:
       return <Text style={styles.label}></Text>

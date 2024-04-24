@@ -19,7 +19,7 @@ const InterventionFormData = (props: Props) => {
     if(parsedData.length!==0){
       setFormValues(parsedData)
     }
-  }, [])
+  }, [formData])
 
   if(formValues.length==0){
     return null

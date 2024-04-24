@@ -44,10 +44,10 @@ import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interfac
   const heightOfBirdPerche: FormElement = {
       index: 0,
       key: 'height-of-bird-perche',
-      label: 'Height of bird perche',
+      label: 'Average Height of bird perche',
       default: '',
       type: 'INPUT',
-      placeholder: 'Height of bird perche',
+      placeholder: 'Average Height of bird perche',
       unit: '',
       visibility: 'public',
       condition: null,

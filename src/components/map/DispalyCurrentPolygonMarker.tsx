@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: scaleSize(50),
     backgroundColor: Colors.WHITE,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
+    zIndex:1
   },
   label: {
     fontSize: scaleFont(18),

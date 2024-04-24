@@ -207,11 +207,13 @@ const InterventionFormView = () => {
     dispatch(initiateForm({ ...finalData }))
 
     if (finalData.entire_site_selected) {
-      if (!finalData.species_required) {
-        navigation.replace('DynamicForm')
-      } else {
+      if (finalData.species_required) {
         navigation.replace('ManageSpecies', { manageSpecies: false })
+      } else if (finalData.form_details.length > 0) {
+        navigation.replace('DynamicForm')
 
+      } else {
+        navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
       }
       return
     }
@@ -232,7 +234,7 @@ const InterventionFormView = () => {
       el => el.id === InterventionFormData.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    return parsedGeometry.coordinates
+    return parsedGeometry.coordinates[0]
   }
 
   const handleDateSelection = (n: number) => {

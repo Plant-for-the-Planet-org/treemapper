@@ -59,7 +59,7 @@ const registerFormSlice = createSlice({
       state.tree_details = [...state.tree_details, action.payload]
     },
     updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
-      state.form_data = [ ...action.payload]
+      state.form_data = action.payload
     },
     updateFormProject(
       state,
@@ -87,6 +87,9 @@ const registerFormSlice = createSlice({
       updateTrees[index].image_url = action.payload.image
       state.tree_details = [...updateTrees]
     },
+    resetRegisterationForm(){
+      return {...initialState}
+    }
   },
 })
 
@@ -101,7 +104,8 @@ export const {
   updteInterventionDate,
   updateEntireSiteIntervention,
   updateFormDataValue,
-  updateSampleTreeImage
+  updateSampleTreeImage,
+  resetRegisterationForm
 } = registerFormSlice.actions
 
 export default registerFormSlice.reducer

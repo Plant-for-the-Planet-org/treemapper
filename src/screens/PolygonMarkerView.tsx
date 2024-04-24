@@ -12,7 +12,7 @@ import GpsAccuracyTile from 'src/components/map/GpsAccuracyTile'
 import InfoModal from 'src/components/common/InfoModal'
 
 const PolygonMarker = () => {
-  const { species_required, location_title } = useSelector((state: RootState) => state.formFlowState)
+  const { species_required, location_title , form_details} = useSelector((state: RootState) => state.formFlowState)
   const [showInfoModal, setShowInfoModal] = useState(false)
 
   return (
@@ -20,7 +20,7 @@ const PolygonMarker = () => {
       <Header label={location_title}
         rightComponet={<GpsAccuracyTile showModalInfo={setShowInfoModal}/>}/>
 
-      <PolygonMarkerMap species_required={species_required} />
+      <PolygonMarkerMap species_required={species_required} has_dynamic_form={form_details.length>0} />
       <UserlocationMarker />
       <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />
       <LocationPermissionModal required />

@@ -21,7 +21,7 @@ import AlertModal from '../common/AlertModal'
 import {
   isPointInPolygon,
   // isPointInPolygon,
-  // validateMarkerForSampleTree,
+  validateMarkerForSampleTree,
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
 
@@ -129,16 +129,17 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
-  // const handleMarkerValidation = (coords: number[]) => {
-  //   if (has_sample_trees) {
-  //     const isValidPoint = validateMarkerForSampleTree(
-  //       coords,
-  //       geoJSON,
-  //       tree_details,
-  //     )
-  //     console.log('HasvalidPoints', isValidPoint)
-  //   }
-  // }
+  const handleMarkerValidation = (coords: number[]) => {
+    if (has_sample_trees) {
+      const isValidPoint = validateMarkerForSampleTree(
+        coords,
+        tree_details,
+      )
+      return isValidPoint;
+    } else {
+      return true;
+    }
+  }
 
 
   const handleDrag = async () => {
@@ -146,7 +147,12 @@ const PointMarkerMap = (props: Props) => {
     if (has_sample_trees) {
       const centerCoordinates = await mapRef.current.getCenter()
       const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
-      setOutOfBoundry(!validMarker)
+      const validSampleTree = handleMarkerValidation(centerCoordinates)
+      if (!validSampleTree || !validMarker) {
+        setOutOfBoundry(true)
+      } else {
+        setOutOfBoundry(false)
+      }
     }
   }
 
@@ -158,7 +164,7 @@ const PointMarkerMap = (props: Props) => {
         logoEnabled={false}
         attributionEnabled={false}
         onRegionDidChange={handleDrag}
-        onRegionIsChanging={()=>{
+        onRegionIsChanging={() => {
           setLoading(true)
         }}
         styleURL={JSON.stringify(MapStyle)}>
@@ -171,7 +177,7 @@ const PointMarkerMap = (props: Props) => {
           <MapShapeSource
             geoJSON={[geoJSON]}
             onShapeSourcePress={() => { }}
-        showError={outOfBoundry}
+            showError={outOfBoundry}
           />
         )}
         {has_sample_trees && <MapMarkers

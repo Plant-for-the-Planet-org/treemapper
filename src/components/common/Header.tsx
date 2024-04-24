@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
+    zIndex:1
   },
   backIcon: {
     width: 20,

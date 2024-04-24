@@ -17,6 +17,7 @@ import {
 import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
 import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
+import { useToast } from 'react-native-toast-notifications'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -24,15 +25,18 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 interface Props {
   species_required: boolean
+  has_dynamic_form: boolean
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const { species_required } = props
+  const { species_required, has_dynamic_form } = props
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
   })
+  const [loading, setLoading] = useState(false)
 
+  const [lineError, setLineErorr] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -43,6 +47,7 @@ const PolygonMarkerMap = (props: Props) => {
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const [coordinates, setCoordinates] = useState([])
   const [polygonComplete, setPolygonComplete] = useState(false)
+  const toast = useToast();
 
 
 
@@ -77,10 +82,6 @@ const PolygonMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    if (coordinates.length !== 0) {
-      const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates[coordinates.length - 1])
-      console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
-    }
     setCoordinates([...coordinates, centerCoordinates])
     setCurrentCoordinate(prevState => ({
       id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
@@ -96,15 +97,34 @@ const PolygonMarkerMap = (props: Props) => {
     if (coordinates.length === 3) {
       finalCoordinates.push(coordinates[0])
     }
-    setCoordinates([...finalCoordinates,finalCoordinates[0]])
+    setCoordinates([...finalCoordinates, finalCoordinates[0]])
     dispatch(updateFormCoordinates(finalCoordinates))
-    if (!species_required) {
+    if (species_required) {
+      navigation.replace('ManageSpecies', { manageSpecies: false })
+    } else if (has_dynamic_form) {
       navigation.replace('DynamicForm')
     } else {
-      navigation.replace('ManageSpecies', { manageSpecies: false })
+      navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+
     }
+  }
 
-
+  const handleDrag = async () => {
+    setLoading(false)
+      const centerCoordinates = await mapRef.current.getCenter()
+      if (coordinates.length !== 0) {
+        const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates)
+        console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
+        setLineErorr(!checkValidDistance)
+        if(!checkValidDistance){
+          toast.show("Point is too close to other mark", {
+            type: "normal",
+            placement: "bottom",
+            duration: 1000,
+            animationType: "slide-in",
+          })
+        }
+      }
   }
 
   return (
@@ -119,6 +139,10 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
+        onRegionDidChange={handleDrag}
+        onRegionIsChanging={()=>{
+          setLoading(true)
+        }}
         attributionEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
@@ -150,6 +174,8 @@ const PolygonMarkerMap = (props: Props) => {
           label="Select location & continue"
           containerStyle={styles.btnContainer}
           pressHandler={onSelectLocation}
+          disable={loading || lineError}
+          loading={loading}
         />
       )}
       <ActiveMarkerIcon />
@@ -218,13 +244,13 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
-    fontFamily:Typography.FONT_FAMILY_BOLD
+    fontFamily: Typography.FONT_FAMILY_BOLD
   },
   normalLable: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,
     textAlign: 'center',
-    fontFamily:Typography.FONT_FAMILY_BOLD
+    fontFamily: Typography.FONT_FAMILY_BOLD
   },
 })

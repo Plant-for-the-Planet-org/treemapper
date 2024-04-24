@@ -1,16 +1,16 @@
-import {StyleSheet, Text} from 'react-native'
+import { StyleSheet, Text } from 'react-native'
 import React from 'react'
 
-import {InterventionData} from 'src/types/interface/slice.interface'
-import {Typography} from 'src/utils/constants'
-import {scaleFont} from 'src/utils/constants/mixins'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { Typography } from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
 
 interface Props {
   item: InterventionData
 }
 
 const InterventionMetaInfo = (props: Props) => {
-  const {item} = props
+  const { item } = props
 
 
   switch (item.intervention_type) {
@@ -19,16 +19,18 @@ const InterventionMetaInfo = (props: Props) => {
     case 'assisting-seed-rain':
       return <Text style={styles.label}>8 Trees Planted</Text>
     case 'direct-seeding':
-      return <Text style={styles.label}>8 Trees Planted</Text>
+      return <Text style={styles.label}>{item.species.length} Species</Text>
     case 'multi-tree-registration':
+      return <Text style={styles.label}>{item.species.length} Species</Text>
+    case 'removal-invasive-species':
+      return <Text style={styles.label}>{item.species.length} Species</Text>
+    case 'enrichement-planting':
       return <Text style={styles.label}>{item.species.length} Species</Text>
     case 'stop-tree-harvesting':
       return null
     case 'soil-improvement':
       return (
-        <Text style={styles.label}>
-          Single Tree Planted({item.sample_trees[0].specie_name})
-        </Text>
+        <Text style={styles.label}></Text>
       )
     default:
       return <Text style={styles.label}></Text>

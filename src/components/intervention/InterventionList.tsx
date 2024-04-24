@@ -79,7 +79,7 @@ export default InterventionList
 
 const styles = StyleSheet.create({
   footerWrapper: {
-    height: scaleSize(100),
+    height: scaleSize(140),
     width: '100%',
   },
   emptyBox: {

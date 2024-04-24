@@ -29,7 +29,6 @@ const CoordinatesList = (props: Props) => {
       placement: "bottom",
       duration: 2000,
       animationType: "slide-in",
-
     })
   };
 

@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    paddingRight:10
   },
   sectionLabel: {
     fontSize: scaleFont(12),

@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native'
+import { StyleSheet } from 'react-native'
 import React from 'react'
 import FireBreakIcon from 'assets/images/svg/FireBreakIcon.svg'
 import GrassRemoval from 'assets/images/svg/GrassRemovalIcon.svg'
@@ -15,18 +15,36 @@ interface Props {
 }
 
 const InterventionIconSwitch = (props: Props) => {
-  const {icon} = props
+  const { icon } = props
 
   switch (icon) {
     case 'fire-suppression':
       return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     case 'direct-seeding':
       return <GrassRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+    case 'grass-suppression':
+      return <GrassRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     case 'removal-invasive-species':
       return (
         <SpeciesRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
+    case 'liberating-regenerant':
+      return (
+        <SpeciesRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+      )
     case 'multi-tree-registration':
+      return (
+        <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+      )
+    case 'stop-tree-harvesting':
+      return (
+        <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+      )
+    case 'assisting-seed-rain':
+      return (
+        <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+      )
+    case 'enrichement-planting':
       return (
         <MultiTreePlantaion style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
       )
@@ -38,7 +56,20 @@ const InterventionIconSwitch = (props: Props) => {
           height={SCALE_40}
         />
       )
+    case 'marking-regenerant':
+      return (
+        <SingleTreePlantation
+          style={styles.iconWrapper}
+          width={SCALE_40}
+          height={SCALE_40}
+        />
+      )
+
     case 'soil-improvement':
+      return <SoilRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+    case 'maintenance':
+      return <SoilRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
+    case 'other-intervention':
       return <SoilRemoval style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
     default:
       return <FireBreakIcon style={styles.iconWrapper} width={SCALE_40} height={SCALE_40} />
@@ -51,9 +82,9 @@ const styles = StyleSheet.create({
   iconWrapper: {
     borderRadius: 10,
     marginLeft: 10,
-    width:SCALE_50,
-    height:SCALE_50,
-    justifyContent:"center",
-    alignItems:'center'
+    width: SCALE_50,
+    height: SCALE_50,
+    justifyContent: "center",
+    alignItems: 'center'
   },
 })

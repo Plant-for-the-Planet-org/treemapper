@@ -136,6 +136,7 @@ const AddOptionModal = (props: Props) => {
             height,
             width,
             position: 'absolute',
+            zIndex:10
           }}
           activeOpacity={1}
         />
