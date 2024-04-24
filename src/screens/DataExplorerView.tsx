@@ -8,8 +8,15 @@ import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import ExternalLinkIcon from 'assets/images/svg/ExternalLinkIcon.svg'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import openWebView from 'src/utils/helpers/appHelper/openWebView'
 
 const DataExplorerView = () => {
+
+  const openLink=()=>{
+    openWebView(`https://pp.eco/explore`);
+
+  }
+
   return (
     <SafeAreaView style={styles.wrapper}>
       <Header label="Data Explorer" />
@@ -30,7 +37,7 @@ const DataExplorerView = () => {
         <CustomButton
         label="Explore Now"
         containerStyle={styles.btnContainer}
-        pressHandler={()=>null}
+        pressHandler={openLink}
         loading={false}
         leftIcon={<ExternalLinkIcon width={25} height={25}/>}
       />

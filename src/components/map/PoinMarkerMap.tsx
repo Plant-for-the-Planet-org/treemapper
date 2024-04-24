@@ -18,10 +18,12 @@ import MapShapeSource from './MapShapeSource'
 import i18next from 'i18next'
 import * as Location from 'expo-location';
 import AlertModal from '../common/AlertModal'
-// import {
-//   // isPointInPolygon,
-//   validateMarkerForSampleTree,
-// } from 'src/utils/helpers/turfHelpers'
+import {
+  isPointInPolygon,
+  // isPointInPolygon,
+  // validateMarkerForSampleTree,
+} from 'src/utils/helpers/turfHelpers'
+import MapMarkers from './MapMarkers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -31,13 +33,13 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { species_required, is_multi_species } = props.formData
+  const { species_required, is_multi_species, has_sample_trees, tree_details } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
-
+  const [loading, setLoading] = useState(false)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { form_id, boundry } = useSelector((state: RootState) => state.sampleTree)
-  const [outOfBoundry] = useState(false)
+  const { boundry } = useSelector((state: RootState) => state.sampleTree)
+  const [outOfBoundry, setOutOfBoundry] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -72,10 +74,10 @@ const PointMarkerMap = (props: Props) => {
   }
 
   useEffect(() => {
-    if (form_id.length) {
+    if (has_sample_trees) {
       getMarkerJSON()
     }
-  }, [form_id])
+  }, [boundry])
 
 
 
@@ -94,41 +96,41 @@ const PointMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    if (form_id.length > 0) {
+    if (has_sample_trees) {
       dispatch(updateSampleTreeCoordinates([centerCoordinates]))
     } else {
-      dispatch(updateFormCoordinates(centerCoordinates))
+      dispatch(updateFormCoordinates([centerCoordinates]))
     }
-    if(species_required){
-      if(is_multi_species){
+    if (species_required) {
+      if (is_multi_species) {
         navigation.replace('TotalTrees', { isSelectSpecies: true })
-      }else{
-        navigation.replace('ManageSpecies',{manageSpecies:false})
+      } else {
+        navigation.replace('ManageSpecies', { manageSpecies: false })
       }
-    }else{
+    } else {
       navigation.replace('DynamicForm')
     }
   }
 
-  const handleAccuracyAlert=(b:boolean)=>{
-    if(b){
+  const handleAccuracyAlert = (b: boolean) => {
+    if (b) {
       setAlertModal(false)
-    }else{
+    } else {
       onSelectLocation()
     }
   }
 
-  const checkForAccuracy=async()=>{
-    const {coords} = await Location.getCurrentPositionAsync()
-    if(coords && coords.accuracy && coords.accuracy>=30){
+  const checkForAccuracy = async () => {
+    const { coords } = await Location.getCurrentPositionAsync()
+    if (coords && coords.accuracy && coords.accuracy >= 30) {
       setAlertModal(true)
-    }else{
+    } else {
       onSelectLocation()
     }
   }
 
   // const handleMarkerValidation = (coords: number[]) => {
-  //   if (form_id.length) {
+  //   if (has_sample_trees) {
   //     const isValidPoint = validateMarkerForSampleTree(
   //       coords,
   //       geoJSON,
@@ -140,9 +142,12 @@ const PointMarkerMap = (props: Props) => {
 
 
   const handleDrag = async () => {
-    // const centerCoordinates = await mapRef.current.getCenter()
-    // const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
-    // setOutOfBoundry(!validMarker)
+    setLoading(false)
+    if (has_sample_trees) {
+      const centerCoordinates = await mapRef.current.getCenter()
+      const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
+      setOutOfBoundry(!validMarker)
+    }
   }
 
   return (
@@ -153,6 +158,9 @@ const PointMarkerMap = (props: Props) => {
         logoEnabled={false}
         attributionEnabled={false}
         onRegionDidChange={handleDrag}
+        onRegionIsChanging={()=>{
+          setLoading(true)
+        }}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
@@ -162,15 +170,20 @@ const PointMarkerMap = (props: Props) => {
         {geoJSON && (
           <MapShapeSource
             geoJSON={[geoJSON]}
-            onShapeSourcePress={null}
-            showError={outOfBoundry}
+            onShapeSourcePress={() => { }}
+        showError={outOfBoundry}
           />
         )}
+        {has_sample_trees && <MapMarkers
+          hasSampleTree={has_sample_trees}
+          sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}
         pressHandler={checkForAccuracy}
+        loading={loading}
+        disable={loading || outOfBoundry}
       />
       <ActiveMarkerIcon />
       <AlertModal

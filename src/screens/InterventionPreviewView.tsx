@@ -118,6 +118,7 @@ const InterventionPreviewView = () => {
             containerStyle={styles.btnContainer}
           />}
         </View>
+        <View style={styles.footer}/>
       </ScrollView>
     </SafeAreaView>
   )
@@ -136,4 +137,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  footer:{
+    width:'100%',
+    height:50
+  }
 })

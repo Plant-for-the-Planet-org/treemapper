@@ -17,7 +17,7 @@ const CoordinatesList = (props: Props) => {
   const toast = useToast();
 
   const { coordinates, type } = props
-  const listCoord = type === 'Polygon' ? coordinates[0] : coordinates
+  const listCoord = type === 'Polygon' ? coordinates : coordinates
   if (listCoord.length > 10) {
     return null
   }
@@ -29,13 +29,16 @@ const CoordinatesList = (props: Props) => {
       placement: "bottom",
       duration: 2000,
       animationType: "slide-in",
-      
+
     })
   };
 
 
   const renderCard = () => {
     return listCoord.map((el, i) => {
+      if (type === 'Polygon' && i === listCoord.length-1) {
+        return null
+      }
       return (
         <View style={styles.wrapper} key={i}>
           <View style={styles.card}>

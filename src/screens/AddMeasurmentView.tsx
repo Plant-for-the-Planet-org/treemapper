@@ -73,17 +73,17 @@ const AddMeasurment = () => {
 
 
   const submitDetails = async () => {
-    const {lat,long} = await getUserLocation()
+    const {lat,long, accuracy} = await getUserLocation()
     const treeDetails: SampleTree = {
       tree_id: uuidv4(),
       species_guid: species_details.guid,
       intervention_id: formFlowData.form_id,
       count: treeCount,
-      latitude:0,
-      longitude: 0,
+      latitude:SampleTreeData.coordinates[0][0],
+      longitude: SampleTreeData.coordinates[0][1],
       device_latitude: lat?lat: 0,
       device_longitude: long?long: 0,
-      location_accuracy: '',
+      location_accuracy: String(accuracy),
       image_url: SampleTreeData.image_url,
       cdn_image_url: '',
       specie_name: species_details.scientific_name,

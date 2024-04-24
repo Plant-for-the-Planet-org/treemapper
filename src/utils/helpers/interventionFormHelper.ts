@@ -85,7 +85,7 @@ export const makeInterventionGeoJson = (
           },
           geometry: {
             type: 'Polygon',
-            coordinates: coord,
+            coordinates: [coord],
           },
         },
         coordinates: JSON.stringify(coord),

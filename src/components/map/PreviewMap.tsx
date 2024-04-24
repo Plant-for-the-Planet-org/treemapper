@@ -6,6 +6,7 @@ import {SampleTree} from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 import bbox from '@turf/bbox'
 import { Colors } from 'src/utils/constants'
+import MapMarkers from './MapMarkers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('../../../assets/mapStyle/mapStyleOutput.json')
@@ -17,7 +18,7 @@ interface Props {
 }
 
 const PreviewMap = (props: Props) => {
-  const {geoJSON} = props
+  const {geoJSON, has_sample_trees, sampleTrees} = props
   const cameraRef = useRef<Camera>(null)
 
 
@@ -26,7 +27,7 @@ const PreviewMap = (props: Props) => {
     cameraRef.current.fitBounds(
       [bounds[0], bounds[1]],
       [bounds[2], bounds[3]],
-      40,
+      20,
       1000,
     )
   }
@@ -42,7 +43,6 @@ const PreviewMap = (props: Props) => {
           attributionEnabled={false}
           logoEnabled={false}
           scrollEnabled={false}
-          pitchEnabled={false}
           onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
           <MapLibreGL.Camera ref={cameraRef} />
@@ -50,7 +50,7 @@ const PreviewMap = (props: Props) => {
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {/* {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} />} */}
+          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees}/>}
         </MapLibreGL.MapView>
       </View>
     </View>

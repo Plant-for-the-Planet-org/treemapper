@@ -86,7 +86,6 @@ const useInterventionManagement = () => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        console.log("Alijkk",intervention)
         intervention.is_complete = true
       });
       return Promise.resolve(true);

@@ -46,8 +46,8 @@ const registerFormSlice = createSlice({
     initiateForm(_state, action: PayloadAction<RegisterFormSliceInitalState>) {
       return { ...action.payload }
     },
-    updateFormCoordinates(state, action: PayloadAction<number[]>) {
-      state.coordinates = [...state.coordinates, action.payload]
+    updateFormCoordinates(state, action: PayloadAction<Array<number[]>>) {
+      state.coordinates = action.payload
     },
     updateCoverImageURL(state, action: PayloadAction<string>) {
       state.cover_image_url = action.payload
@@ -59,7 +59,7 @@ const registerFormSlice = createSlice({
       state.tree_details = [...state.tree_details, action.payload]
     },
     updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
-      state.form_data = [...state.form_data, ...action.payload]
+      state.form_data = [ ...action.payload]
     },
     updateFormProject(
       state,

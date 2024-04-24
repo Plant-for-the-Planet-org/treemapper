@@ -1,8 +1,8 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import {Colors, Typography} from 'src/utils/constants'
-import {timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
+import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 interface Props {
   title: string
@@ -12,14 +12,21 @@ interface Props {
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const {title, intervention_date, project_name, site_name} = props
+  const { title, intervention_date, project_name, site_name } = props
+  const dateFormated = () => {
+    if (intervention_date) {
+      return timestampToBasicDate(intervention_date)
+    } else {
+      return 0
+    }
+  }
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Intervention Date</Text>
           <Text style={styles.cardLabel}>
-            {timestampToBasicDate(intervention_date)}
+            {dateFormated()}
           </Text>
         </View>
         <View style={styles.cardWrapper}>

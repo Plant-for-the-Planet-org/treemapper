@@ -92,11 +92,11 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const makeComplete = async () => {
-    const finalCoordinates = [...coordinates];
+    const finalCoordinates = [...coordinates, coordinates[0]];
     if (coordinates.length === 3) {
       finalCoordinates.push(coordinates[0])
     }
-    setCoordinates([...finalCoordinates])
+    setCoordinates([...finalCoordinates,finalCoordinates[0]])
     dispatch(updateFormCoordinates(finalCoordinates))
     if (!species_required) {
       navigation.replace('DynamicForm')

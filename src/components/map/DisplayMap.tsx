@@ -9,10 +9,11 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
-// import MapMarkers from './MapMarkers'
+import MapMarkers from './MapMarkers'
 import { updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
-// import { Colors } from 'src/utils/constants'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
+import bbox from '@turf/bbox'
 // import SiteMapSource from './SiteMapSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -26,9 +27,9 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  // const {selectedIntervention} = useSelector(
-  //   (state: RootState) => state.displayMapState,
-  // )
+  const { selectedIntervention } = useSelector(
+    (state: RootState) => state.displayMapState,
+  )
 
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
@@ -78,7 +79,7 @@ const DisplayMap = () => {
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
-      zoomLevel: 17,
+      zoomLevel: 16,
       animationDuration: 1000,
     })
   }
@@ -92,7 +93,7 @@ const DisplayMap = () => {
       cameraRef.current.fitBounds(
         [bounds[0], bounds[1]],
         [bounds[2], bounds[3]],
-        40,
+        30,
         1000,
       )
     }
@@ -103,6 +104,9 @@ const DisplayMap = () => {
       RealmSchema.Intervention,
       id,
     )
+    const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
+    const bounds = bbox(geoJSON)
+    dispatch(updateMapBounds({ bodunds: bounds, key: 'DISPLAY_MAP' }))
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }
 
@@ -121,11 +125,10 @@ const DisplayMap = () => {
         onShapeSourcePress={setSelectedGeoJson}
       />
       {/* <SiteMapSource /> */}
-      {/* {selectedIntervention && (
+      {selectedIntervention && (
         <MapMarkers
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees}
-        />
-      )} */}
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} />
+      )}
     </MapLibreGL.MapView>
   )
 }
