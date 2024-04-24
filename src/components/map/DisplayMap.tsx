@@ -14,7 +14,7 @@ import { updateActiveIndex, updateSelectedIntervention } from 'src/store/slice/d
 import { scaleSize } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import bbox from '@turf/bbox'
-// import SiteMapSource from './SiteMapSource'
+import SiteMapSource from './SiteMapSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -128,7 +128,7 @@ const DisplayMap = () => {
         geoJSON={geoJSON.features}
         onShapeSourcePress={setSelectedGeoJson}
       />
-      {/* <SiteMapSource /> */}
+      <SiteMapSource />
       {selectedIntervention && (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} />
