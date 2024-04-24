@@ -4,6 +4,7 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
+
   const addNewIntervention = async (
     interventoin: InterventionData,
   ): Promise<boolean> => {
@@ -21,8 +22,6 @@ const useInterventionManagement = () => {
       return Promise.reject(false)
     }
   }
-
-
   const addSampleTrees = async (finalData: InterventionData): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -64,7 +63,6 @@ const useInterventionManagement = () => {
     }
   };
 
-
   const updateSampleTreeImage = async (intervnetionID: string, treeId: string,imageUrl: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -81,7 +79,6 @@ const useInterventionManagement = () => {
     }
   };
 
-
   const saveIntervention = async (intervnetionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -94,7 +91,21 @@ const useInterventionManagement = () => {
       return Promise.reject(false);
     }
   };
-  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage }
+
+  const deleteIntervention = async (intervnetionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        realm.delete(intervention);
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention }
 }
 
 export default useInterventionManagement

@@ -28,6 +28,8 @@ import InterventionFormData from 'src/components/previewIntervention/Interventio
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
+import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
+
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
@@ -46,21 +48,21 @@ const InterventionPreviewView = () => {
     if (route.params.id === 'review') {
       const finalData: InterventionData =
         convertFormDataToIntervention(formFlowData)
-        addNewIntervention(finalData)
-        setInterventoinId(finalData.intervention_id)
-        dispatch(resetRegisterationForm())
-        dispatch(resetSampleTreeform())
-    }else{
+      addNewIntervention(finalData)
+      setInterventoinId(finalData.intervention_id)
+      dispatch(resetRegisterationForm())
+      dispatch(resetSampleTreeform())
+    } else {
       setInterventoinId(route.params.intervention)
     }
   }, [])
 
   useEffect(() => {
-    if(interventionId){
+    if (interventionId) {
       getAndSetIntervention()
     }
   }, [InterventionData.last_updated_at, interventionId])
-  
+
   const getAndSetIntervention = () => {
     const selectedIntervention = realm.objectForPrimaryKey(
       RealmSchema.Intervention,
@@ -88,6 +90,10 @@ const InterventionPreviewView = () => {
     navigation.popToTop()
   }
 
+  const resetData=()=>{
+    navigation.popToTop()
+  }
+
 
 
   if (InterventionData.intervention_id.length === 0) {
@@ -98,8 +104,8 @@ const InterventionPreviewView = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View>
-          <Header label="Review" />
-          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'}  />
+          <Header label="Review" rightComponet={<InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData}/>} />
+          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} />
           <InterventionBasicInfo
             title={InterventionData.intervention_title}
             intervention_date={InterventionData.intervention_date}
@@ -121,7 +127,7 @@ const InterventionPreviewView = () => {
             containerStyle={styles.btnContainer}
           />}
         </View>
-        <View style={styles.footer}/>
+        <View style={styles.footer} />
       </ScrollView>
     </SafeAreaView>
   )
@@ -140,8 +146,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  footer:{
-    width:'100%',
-    height:50
+  footer: {
+    width: '100%',
+    height: 50
   }
 })

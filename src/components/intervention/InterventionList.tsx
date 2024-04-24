@@ -16,23 +16,22 @@ interface Props {
 }
 
 const InterventionList = (props: Props) => {
+  const { interventionData } = props
   const [selectedList, setSelectedList] = useState<InterventionData[]>([])
   const [selectedLabel, setSlectedLabel] = useState('all')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-
     getAllInterventions()
-  }, [selectedLabel])
+  }, [selectedLabel,interventionData ])
 
   const getAllInterventions = () => {
     setLoading(true)
     const finalData = groupInterventionList(interventionData, selectedLabel)
-    setSelectedList(finalData)
+    setSelectedList(JSON.parse(JSON.stringify(finalData)))
     setLoading(false)
   }
 
-  const { interventionData } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const handleNavigation = (item: InterventionData) => {
     navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id })
