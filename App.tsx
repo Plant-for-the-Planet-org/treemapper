@@ -17,7 +17,7 @@ import { Colors } from 'src/utils/constants'
 import { ToastProvider } from 'react-native-toast-notifications'
 
 
-MapLibreGL.setAccessToken(null)
+MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
 
 export default function App() {
   return (

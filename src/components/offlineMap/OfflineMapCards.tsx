@@ -1,22 +1,31 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import OfflineMapTile from 'assets/images/svg/MapTileIcon.svg'
-import {Colors, Typography} from 'src/utils/constants'
-import {scaleFont} from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 
-const OfflineMapCars = () => {
+interface Props {
+  data: any,
+  index: number
+  delete: (item: any) => void
+}
+
+const OfflineMapCars = (props: Props) => {
+  const handleDelete = () => {
+    props.delete(props.data)
+  }
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <OfflineMapTile height={50} width={50} />
         <View style={styles.sectionWrapper}>
-          <Text style={styles.mapLabel}>Kota Rajastan India</Text>
-          <Text style={styles.metaLabel}>123 mb</Text>
+          <Text style={styles.mapLabel}>{props.data.areaName}</Text>
+          <Text style={styles.metaLabel}>Size: {props.data.size / 1000} mb</Text>
         </View>
-        <View style={styles.binIconWrapper}>
+        <TouchableOpacity style={styles.binIconWrapper} onPress={handleDelete}>
           <BinIcon height={20} width={20} fill={'tomato'} />
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   )
@@ -41,6 +50,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   sectionWrapper: {
+    flex: 1,
+    marginHorizontal: 10
   },
   iconWrapper: {
     marginLeft: 10,

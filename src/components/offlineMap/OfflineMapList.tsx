@@ -3,13 +3,23 @@ import React from 'react'
 import OfflineMapCards from './OfflineMapCards'
 import {scaleFont} from 'src/utils/constants/mixins'
 import {Colors, Typography} from 'src/utils/constants'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import useOfflineMapManager from 'src/hooks/realm/useOfflineMapManger'
 
 const OfflineMapList = () => {
+  const {deleteOfflineMap} = useOfflineMapManager()
+  const allData = useQuery(RealmSchema.OfflineMap, data => {
+    return data
+  })
+  const handleDelte=async(item:any)=>{
+    await deleteOfflineMap(item)
+  }
   return (
     <View style={styles.container}>
       <FlatList
-        data={[1,2,3]}
-        renderItem={() => <OfflineMapCards />}
+        data={allData}
+        renderItem={({item,index}) => <OfflineMapCards data={item} index={index} delete={handleDelte}/>}
         ListHeaderComponent={() => (
           <Text style={styles.header}>Saved Offline Areas</Text>
         )}

@@ -1,12 +1,18 @@
-import { StyleSheet, View } from 'react-native'
-import React, { useEffect, useRef } from 'react'
+import { Alert, StyleSheet, View } from 'react-native'
+import React, {useRef, useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import {  useSelector } from 'react-redux'
+import MapLibreGL from '@maplibre/maplibre-react-native'
+import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { getAreaName } from 'src/api/api.fetch'
+import LoaderModal from './LoaderModal'
+import useOfflineMapManager from 'src/hooks/realm/useOfflineMapManger'
+import i18next from 'src/locales'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 
 
@@ -16,37 +22,58 @@ import { getAreaName } from 'src/api/api.fetch'
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const OfflineMapDisplay = () => {
+  const [isLoaderShow, setIsLoaderShow] = useState(false);
+  const [areaName, setAreaName] = useState('');
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   const cameraRef = useRef(null);
   const mapRef = useRef(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
 
+  const { createNewOfflineMap } = useOfflineMapManager()
 
-  useEffect(() => {
-    if (currentUserLocation && cameraRef.current !== null) {
-      handleCamera()
-    }
-  }, [currentUserLocation])
 
   const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 15,
-      animationDuration: 1000,
-    })
+    if (currentUserLocation && cameraRef.current !== null) {
+
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        zoomLevel: 15,
+        animationDuration: 1000,
+      })
+    }
   }
 
   const errorListener = async (offlineRegion, status) => {
     console.log("Error", offlineRegion, status)
   }
 
+  const alert = (message: string) => {
+    Alert.alert(message)
+  }
 
-  const progressListener = async (offlineRegion, status) => {
-    console.log("progressListener", offlineRegion, status)
+  const progressListener = async (_offlineRegion, status, areaName, mapID) => {
+    if (status.percentage == 100) {
+      setIsLoaderShow(false)
+      const writeData = {
+        name: mapID,
+        areaName: areaName,
+        size:status.completedTileSize,
+      }
+      const result = createNewOfflineMap(writeData)
+      if (result) {
+        alert(i18next.t('label.download_map_complete'));
+        navigation.goBack()
+      }else{
+        alert(i18next.t('label.download_map_area_failed'));
+      }
+    }
   }
 
   const onPressDownloadArea = async () => {
+    setIsLoaderShow(true);
     try {
       const offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
       const coords = await mapRef.current.getCenter();
@@ -55,20 +82,21 @@ const OfflineMapDisplay = () => {
       const LocationDetails = await getAreaName(coords)
       if (LocationDetails && LocationDetails.features && LocationDetails.features[0] && LocationDetails.features[0].place_name) {
         areaName = LocationDetails.features[0].place_name
-        console.log("areaName",areaName)
+        setAreaName(areaName)
       }
       await MapLibreGL.offlineManager.createPack(
         {
           name: offlineMapId,
-          styleURL: JSON.stringify(MapStyle),
+          styleURL: 'mapbox://styles/mapbox/streets-v12',
           minZoom: 14,
           maxZoom: 20,
           bounds: bounds,
         },
-        progressListener,
+        (o,s)=>{progressListener(o,s,areaName,offlineMapId)},
         errorListener,
       );
     } catch (err) {
+      setIsLoaderShow(false);
       console.log("err", err)
     }
   };
@@ -83,9 +111,10 @@ const OfflineMapDisplay = () => {
             logoEnabled={false}
             compassViewPosition={3}
             attributionEnabled={false}
+            onDidFinishLoadingMap={handleCamera}
             compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
             styleURL={JSON.stringify(MapStyle)}>
-            <Camera ref={cameraRef} />
+            <MapLibreGL.Camera ref={cameraRef} />
           </MapLibreGL.MapView>
         </View>
         <CustomButton
@@ -94,6 +123,7 @@ const OfflineMapDisplay = () => {
           pressHandler={onPressDownloadArea}
         />
       </View>
+      <LoaderModal isLoaderShow={isLoaderShow} areaName={areaName} />
     </View>
   )
 }
