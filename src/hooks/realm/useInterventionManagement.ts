@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { InterventionData } from 'src/types/interface/slice.interface'
+import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -54,7 +54,6 @@ const useInterventionManagement = () => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         const filterTress = intervention.sample_trees.filter(el => el.tree_id !== treeId)
         intervention.sample_trees = filterTress
-        console.log('slkdcjhk', intervention.sample_trees )
       });
       return Promise.resolve(true);
     } catch (error) {
@@ -63,15 +62,28 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateSampleTreeImage = async (intervnetionID: string, treeId: string,imageUrl: string): Promise<boolean> => {
+  const updateSampleTreeImage = async (intervnetionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        const filterTress = intervention.sample_trees.filter(el => el.tree_id === treeId)
-        filterTress[0].image_url = imageUrl
-        intervention.sample_trees = filterTress
+        const index = intervention.sample_trees.findIndex(el => el.tree_id === treeId)
+        intervention.sample_trees[index].image_url = imageUrl
       });
       console.log("done writing")
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  const updateSampleTreeDetails = async (details: SampleTree): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, details.intervention_id);
+        const index = intervention.sample_trees.findIndex(el => el.tree_id === details.tree_id)
+        intervention.sample_trees[index] = { ...details }
+      });
       return Promise.resolve(true);
     } catch (error) {
       console.error('Error during update:', error);
@@ -105,7 +117,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention }
+  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails }
 }
 
 export default useInterventionManagement

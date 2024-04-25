@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -23,6 +23,13 @@ import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
+import EditInputModal from 'src/components/intervention/EditInputModal'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
+
+
+type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
 
 
 const ReviewTreeDetails = () => {
@@ -33,14 +40,14 @@ const ReviewTreeDetails = () => {
     const currentTreeIndex = FormData.tree_details.length
     const allSampleTreeRegisterd = currentTreeIndex !== totalSampleTress
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const {updateSampleTreeDetails} = useInterventionManagement()
     const InterventionData = useSelector(
         (state: RootState) => state.interventionState,
     )
-
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
     const detailsCompleted = route.params && route.params.detailsCompleted
     const editTree = route.params && route.params.interventionID
-
+    const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
     const realm = useRealm()
 
@@ -112,6 +119,38 @@ const ReviewTreeDetails = () => {
         }
     }
 
+    const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
+        if (!editTree) {
+            return null;
+        }
+        setEditModal({ label, value: currentValue, type, open: true });
+    }
+
+
+    const closeModal = async () => {
+        const finalDetails = {...treeDetails}
+        if (openEditModal.label === 'height') {
+            finalDetails.specie_height = Number(openEditModal.value)
+        }
+        if (openEditModal.label === 'diameter') {
+            finalDetails.specie_diameter = Number(openEditModal.value)
+        }
+        if (openEditModal.label === 'treetag') {
+            finalDetails.tag_id = openEditModal.value
+        }
+        await updateSampleTreeDetails(finalDetails)
+        dispatch(updateLastUpdatedAt())
+        setTreeDetails({...finalDetails})
+        setEditModal({ label: '', value: '', type: 'default', open: false });
+    }
+
+
+    const setCurrentValue = (d: any) => {
+        setEditModal({ ...openEditModal, value: d })
+    }
+
+
+
     if (!treeDetails) {
         return null
     }
@@ -126,45 +165,56 @@ const ReviewTreeDetails = () => {
                     <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
-                        <View style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper}>
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
-                        </View>
+                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                        </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Height</Text>
-                        <View style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            openEdit('height', String(treeDetails.specie_height), 'number-pad')
+                        }}>
                             <HeightIcon width={20} height={20} style={styles.iconwrapper} />
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_height}
                             </Text>
-                        </View>
+                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                        </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Width</Text>
-                        <View style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
+                        }}>
                             <WidthIcon width={20} height={20} style={styles.iconwrapper} />
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_diameter}
                             </Text>
-                        </View>
+                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                        </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Plantation Date</Text>
-                        <View style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLable}>
                                 {timestampToBasicDate(treeDetails.plantation_date)}
                             </Text>
-                        </View>
+                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                        </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Tree Tag</Text>
-                        <View style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            openEdit('treetag', String(treeDetails.tag_id), 'default')
+                        }}>
                             <Text style={styles.valueLable}>
                                 {treeDetails.tag_id || 'Not Tagged'}
                             </Text>
-                        </View>
+                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                        </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Location</Text>
@@ -186,12 +236,14 @@ const ReviewTreeDetails = () => {
                 </View>
                 <ExportGeoJSONButton details={treeDetails} type='treedetails' />
                 <View style={styles.footer} />
+
             </ScrollView >
             {!editTree && <CustomButton
                 label={!allSampleTreeRegisterd ? "Continue" : "Next Tree"}
                 containerStyle={styles.btnContainer}
                 pressHandler={nextTreeButton}
             />}
+            <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={closeModal} isOpenModal={openEditModal.open} setIsOpenModal={closeModal} inputType={openEditModal.type} />
         </SafeAreaView >
     )
 }
@@ -251,5 +303,9 @@ const styles = StyleSheet.create({
     footer: {
         width: '100%',
         height: 100
+    },
+    editIconWrapper: {
+        marginLeft: 10,
+        marginTop: 10
     }
 })

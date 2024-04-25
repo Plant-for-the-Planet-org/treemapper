@@ -27,10 +27,12 @@ const LoginButton = () => {
             expiringAt: result.credentials.expiresAt,
           }),
         )
-        const userDetails = await getUserDetails()
-        if (userDetails) {
-          loginAndUpdateDetails(userDetails)
-        }
+        setTimeout(async () => {
+          const userDetails = await getUserDetails()
+          if (userDetails) {
+            loginAndUpdateDetails(userDetails)
+          }
+        }, 1000);
       }
     } catch (err) {
       dispatch(updateLoadingUser(false))
@@ -40,9 +42,10 @@ const LoginButton = () => {
 
   const loginAndUpdateDetails = async data => {
     const finalDetails = { ...data }
-    dispatch(updateUserLogin(true))
     dispatch(updateUserDetails(finalDetails))
+    dispatch(updateUserLogin(true))
     dispatch(updateLoadingUser(false))
+
   }
 
   return (
