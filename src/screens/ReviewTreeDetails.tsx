@@ -22,6 +22,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 
 
 const ReviewTreeDetails = () => {
@@ -62,7 +63,7 @@ const ReviewTreeDetails = () => {
 
     useEffect(() => {
         if (editTree) {
-            const filterdData = InterventionData.sample_trees.filter(el=>el.tree_id=== route.params.interventionID)
+            const filterdData = InterventionData.sample_trees.filter(el => el.tree_id === route.params.interventionID)
             setTreeDetails(filterdData[0])
         }
     }, [InterventionData.last_updated_at])
@@ -115,7 +116,7 @@ const ReviewTreeDetails = () => {
         return null
     }
 
-    const headerLabel = editTree?"Edit Tree Details":`Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
+    const headerLabel = editTree ? "Edit Tree Details" : `Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
 
     return (
         <SafeAreaView style={styles.container}>
@@ -183,6 +184,7 @@ const ReviewTreeDetails = () => {
                         </View>
                     </View>
                 </View>
+                <ExportGeoJSONButton details={treeDetails} type='treedetails' />
                 <View style={styles.footer} />
             </ScrollView >
             {!editTree && <CustomButton
@@ -248,6 +250,6 @@ const styles = StyleSheet.create({
     },
     footer: {
         width: '100%',
-        height: 80
+        height: 100
     }
 })

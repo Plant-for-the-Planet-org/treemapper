@@ -29,6 +29,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
+import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -90,7 +91,7 @@ const InterventionPreviewView = () => {
     navigation.popToTop()
   }
 
-  const resetData=()=>{
+  const resetData = () => {
     navigation.popToTop()
   }
 
@@ -103,32 +104,31 @@ const InterventionPreviewView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <View>
-          <Header label="Review" rightComponet={<InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData}/>} />
-          <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} />
-          <InterventionBasicInfo
-            title={InterventionData.intervention_title}
-            intervention_date={InterventionData.intervention_date}
-            project_name={InterventionData.project_name}
-            site_name={InterventionData.site_name}
+        <Header label="Review" rightComponet={<InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />} />
+        <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} />
+        <InterventionBasicInfo
+          title={InterventionData.intervention_title}
+          intervention_date={InterventionData.intervention_date}
+          project_name={InterventionData.project_name}
+          site_name={InterventionData.site_name}
+        />
+        <InterventionArea data={InterventionData} />
+        {InterventionData.sample_trees.length > 0 && (
+          <SampleTreePreviewList
+            sampleTress={InterventionData.sample_trees}
+            interventionId={InterventionData.intervention_id}
+            hasSampleTress={InterventionData.has_sample_trees}
           />
-          <InterventionArea data={InterventionData} />
-          {InterventionData.sample_trees.length > 0 && (
-            <SampleTreePreviewList
-              sampleTress={InterventionData.sample_trees}
-              interventionId={InterventionData.intervention_id}
-              hasSampleTress={InterventionData.has_sample_trees}
-            />
-          )}
-          <InterventionFormData formData={InterventionData.form_data} />
-          {!InterventionData.is_complete && <CustomButton
-            label={"Done"}
-            pressHandler={navigateToNext}
-            containerStyle={styles.btnContainer}
-          />}
-        </View>
+        )}
+        <InterventionFormData formData={InterventionData.form_data} />
+        <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />
       </ScrollView>
+      {!InterventionData.is_complete && <CustomButton
+          label={"Save"}
+          pressHandler={navigateToNext}
+          containerStyle={styles.btnContainer}
+        />}
     </SafeAreaView>
   )
 }
@@ -145,9 +145,11 @@ const styles = StyleSheet.create({
     height: scaleSize(70),
     flexDirection: 'row',
     alignItems: 'center',
+    position:'absolute',
+    bottom:0
   },
   footer: {
     width: '100%',
-    height: 50
+    height: 100
   }
 })
