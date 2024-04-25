@@ -2,7 +2,7 @@ import React from 'react'
 import Maplibre from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import {StyleSheet, Text, View} from 'react-native'
-import {Typography} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 
 interface Props {
   coordinates: Array<number[]>
@@ -20,7 +20,7 @@ const AlphabetMarkers = (props: Props) => {
       <Maplibre.MarkerView coordinate={d} id={String(i)} key={i}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
-            <MapPin />
+            <MapPin fill={Colors.NEW_PRIMARY}/>
           </View>
           <Text style={styles.labelText}>{alphabet(i)}</Text>
         </View>

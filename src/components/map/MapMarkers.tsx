@@ -31,7 +31,7 @@ const MapMarkers = (props: Props) => {
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
       <Maplibre.MarkerView
-        coordinate={[el.latitude, el.longitude]}
+        coordinate={[el.longitude, el.latitude]}
         anchor={
           { x: 0.5, y: 0.6 }
         }
@@ -41,7 +41,7 @@ const MapMarkers = (props: Props) => {
           handleMarkerPress(i)
         }}>
           <View style={styles.mapPinContainer}>
-            <MapPin />
+            <MapPin fill={showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.NEW_PRIMARY }/>
           </View>
           <Text style={[styles.labelText, { color: showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.DARK_TEXT_COLOR }]}>{alphabet(i)}</Text>
         </TouchableOpacity>

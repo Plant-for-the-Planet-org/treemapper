@@ -11,7 +11,7 @@ const polyline: StyleProp<LineLayerStyle> = {
 const fillStyle = {fillOpacity: 0.3}
 // const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
 const bigCircleStyle = {
-  circleColor: Colors.PRIMARY_DARK,
+  circleColor: Colors.NEW_PRIMARY,
   circleOpacity: 0.5,
   circleRadius: 12,
 }
@@ -67,7 +67,7 @@ const MapShapeSource = (props: Props) => {
                   id={'polyline' + feature.properties.id}
                   style={{
                     ...polyline,
-                    lineColor: showError ? Colors.LIGHT_RED : Colors.PRIMARY,
+                    lineColor: showError ? Colors.LIGHT_RED : Colors.NEW_PRIMARY,
                   }}
                 />
               </MapLibreGL.ShapeSource>
