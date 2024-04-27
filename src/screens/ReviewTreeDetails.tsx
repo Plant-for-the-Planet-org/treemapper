@@ -28,6 +28,7 @@ import EditInputModal from 'src/components/intervention/EditInputModal'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
+import { updateSampleTreeReviewTree } from 'src/store/slice/registerFormSlice'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
@@ -126,9 +127,6 @@ const ReviewTreeDetails = () => {
     }
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
-        if (!editTree) {
-            return null;
-        }
         if (label === 'sepcies') {
             navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id })
             return;
@@ -152,9 +150,14 @@ const ReviewTreeDetails = () => {
         if (openEditModal.label === 'treetag') {
             finalDetails.tag_id = openEditModal.value
         }
-        await updateSampleTreeDetails(finalDetails)
-        dispatch(updateLastUpdatedAt())
+        if (editTree) {
+            await updateSampleTreeDetails(finalDetails)
+            dispatch(updateLastUpdatedAt())
+        } else {
+            dispatch(updateSampleTreeReviewTree(treeDetails))
+        }
         setTreeDetails({ ...finalDetails })
+
         setEditModal({ label: '', value: '', type: 'default', open: false });
     }
 
@@ -166,10 +169,15 @@ const ReviewTreeDetails = () => {
     const onDateSelect = async (_event, date: Date) => {
         const finalDetails = { ...treeDetails }
         setDatePicker(false)
-        finalDetails.plantation_date =  convertDateToTimestamp(date)
-        await updateSampleTreeDetails(finalDetails)
-        dispatch(updateLastUpdatedAt())
-        setTreeDetails({...finalDetails})
+        finalDetails.plantation_date = convertDateToTimestamp(date)
+        if (editTree) {
+            await updateSampleTreeDetails(finalDetails)
+            dispatch(updateLastUpdatedAt())
+        } else {
+            dispatch(updateSampleTreeReviewTree(treeDetails))
+        }
+
+        setTreeDetails({ ...finalDetails })
     }
 
 
@@ -178,7 +186,7 @@ const ReviewTreeDetails = () => {
     }
 
     const headerLabel = editTree ? "Edit Tree Details" : `Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
-
+    const showEdit = editTree || treeDetails.tree_id
     return (
         <SafeAreaView style={styles.container}>
             {showDatePicker && <DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} />}
@@ -206,7 +214,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_height}
                             </Text>
-                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -218,7 +226,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_diameter}
                             </Text>
-                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -229,7 +237,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {timestampToBasicDate(treeDetails.plantation_date)}
                             </Text>
-                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -240,7 +248,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.tag_id || 'Not Tagged'}
                             </Text>
-                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
