@@ -1,5 +1,6 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {InterventionData} from 'src/types/interface/slice.interface'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { InterventionData } from 'src/types/interface/slice.interface'
 
 const initialState: InterventionData = {
   intervention_id: '',
@@ -33,14 +34,23 @@ const interventionSlice = createSlice({
   initialState,
   reducers: {
     updateInerventionData(_state, action: PayloadAction<InterventionData>) {
-      return {...action.payload}
+      return { ...action.payload }
     },
-    updateLastUpdatedAt(state){
+    updateLastUpdatedAt(state) {
+      console.log("Updareed")
+      state.last_updated_at = Date.now()
+    },
+    updateTreesSpecies(state, action: PayloadAction<{ treeId: string, data: IScientificSpecies }>) {
+      const allTress = [...state.sample_trees]
+      const index = allTress.findIndex(el => el.tree_id === action.payload.treeId);
+      allTress[index].specie_name = action.payload.data.scientific_name;
+      allTress[index].species_guid = action.payload.data.guid;
+      state.sample_trees = [...allTress]
       state.last_updated_at =  Date.now()
-    }
+    },
   },
 })
 
-export const {updateInerventionData, updateLastUpdatedAt} = interventionSlice.actions
+export const { updateInerventionData, updateLastUpdatedAt, updateTreesSpecies } = interventionSlice.actions
 
 export default interventionSlice.reducer

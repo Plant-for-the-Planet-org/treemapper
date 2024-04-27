@@ -1,4 +1,4 @@
-import {AFTER_CAPTURE, INTERVENTION_TYPE} from './app.type'
+import { AFTER_CAPTURE, INTERVENTION_TYPE } from './app.type'
 
 export type BottomTabParamList = {
   Map: undefined
@@ -56,14 +56,15 @@ type SyncSpeciesView = {
 
 type ManageSpeciesView = {
   manageSpecies: boolean
+  reviewTreeSpecies?: string
 }
 type TotalTreesView = {
   isSelectSpecies: boolean
 }
 
-type ReviewTreeDetailsView={
+type ReviewTreeDetailsView = {
   detailsCompleted: boolean
-  interventionID?:string
+  interventionID?: string
 }
 
 type SearchSpeciesView = {

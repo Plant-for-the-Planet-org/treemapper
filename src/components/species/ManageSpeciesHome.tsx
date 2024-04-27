@@ -20,6 +20,7 @@ interface Props {
   isManageSpecies: boolean
   formData: RegisterFormSliceInitalState | undefined
   showTreeModal: (item: IScientificSpecies) => void
+  interventionEdit: string
 }
 
 const ManageSpeciesHome = (props: Props) => {
@@ -28,12 +29,17 @@ const ManageSpeciesHome = (props: Props) => {
     userFavSpecies,
     isManageSpecies,
     formData,
+    interventionEdit,
     showTreeModal,
   } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
   const handleSpeciesPress = (item: IScientificSpecies) => {
+    if(interventionEdit){
+      showTreeModal(item);
+      return;
+    }
     if (!isManageSpecies) {
       dispatch(updateFormSpecies(item.guid))
       if (formData.is_multi_species) {

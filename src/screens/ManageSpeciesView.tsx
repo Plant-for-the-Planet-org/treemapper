@@ -17,6 +17,8 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { updateTreesSpecies } from 'src/store/slice/interventionSlice'
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
@@ -25,16 +27,21 @@ const ManageSpeciesView = () => {
 
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const isManageSpecies = route.params && route.params.manageSpecies
+  const EditInterventionSpecies = route.params && route.params.reviewTreeSpecies
 
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const InterventionState = useSelector((state: RootState) => state.interventionState)
 
-  const {species} = useSelector(
+
+  const { species } = useSelector(
     (state: RootState) => state.sampleTree,
   )
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const { updateUserFavSpecies } = useManageScientificSpecies()
+  const { updateSampleTreeSpecies } = useInterventionManagement()
+
 
   const dispatch = useDispatch()
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
@@ -48,6 +55,12 @@ const ManageSpeciesView = () => {
   const addRemoveUserFavSpecies = (item: IScientificSpecies) => {
     setDeleteSpecieID(item.guid)
     toogleRemoveFavModal()
+  }
+
+  const editInterventionSpecies = async (item: IScientificSpecies) => {
+    await updateSampleTreeSpecies(InterventionState.intervention_id, EditInterventionSpecies, item)
+    dispatch(updateTreesSpecies({ treeId: EditInterventionSpecies, data: item }))
+    navigation.goBack()
   }
 
   const removeSpecies = () => {
@@ -76,11 +89,15 @@ const ManageSpeciesView = () => {
     navigation.navigate('TotalTrees', { isSelectSpecies: false })
   }
 
-  const handleSelecteMultiSpecies=(item:IScientificSpecies)=>{
+  const handleSelecteMultiSpecies = (item: IScientificSpecies) => {
     const finalData = JSON.parse(JSON.stringify(item))
-    if(formFlowData.species_count_required){
+    if (EditInterventionSpecies) {
+      editInterventionSpecies(finalData);
+      return;
+    }
+    if (formFlowData.species_count_required) {
       setTreeModalDetails(finalData)
-    }else{
+    } else {
       const speciesDetails: IScientificSpecies = {
         guid: finalData.guid,
         scientific_name: finalData.scientific_name,
@@ -108,6 +125,7 @@ const ManageSpeciesView = () => {
         isManageSpecies={isManageSpecies}
         formData={formFlowData}
         showTreeModal={handleSelecteMultiSpecies}
+        interventionEdit={EditInterventionSpecies}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}

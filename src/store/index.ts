@@ -1,6 +1,6 @@
-import {configureStore, combineReducers} from '@reduxjs/toolkit'
+import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import {useDispatch} from 'react-redux'
+import { useDispatch } from 'react-redux'
 import {
   persistReducer,
   persistStore,

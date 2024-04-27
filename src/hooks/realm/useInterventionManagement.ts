@@ -1,5 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 
 const useInterventionManagement = () => {
@@ -117,7 +118,28 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails }
+
+  const updateSampleTreeSpecies = async (interventionID: string, treeId: string, speciesDetails: IScientificSpecies): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        const index = intervention.sample_trees.findIndex(el => el.tree_id === treeId)
+        intervention.sample_trees[index] = {
+          ...intervention.sample_trees[index],
+          specie_name: speciesDetails.scientific_name,
+          species_guid: speciesDetails.guid
+        }
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+
+
+  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies }
 }
 
 export default useInterventionManagement

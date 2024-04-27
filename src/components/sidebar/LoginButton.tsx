@@ -20,19 +20,19 @@ const LoginButton = () => {
       dispatch(updateLoadingUser(true))
       const result = await authorizeUser()
       if (result) {
-        dispatch(
-          updateUserToken({
-            idToken: result.credentials.idToken,
-            accessToken: result.credentials.accessToken,
-            expiringAt: result.credentials.expiresAt,
-          }),
-        )
         setTimeout(async () => {
+          dispatch(
+            updateUserToken({
+              idToken: result.credentials.idToken,
+              accessToken: result.credentials.accessToken,
+              expiringAt: result.credentials.expiresAt,
+            }),
+          )
           const userDetails = await getUserDetails()
           if (userDetails) {
             loginAndUpdateDetails(userDetails)
           }
-        }, 1000);
+        }, 2000);
       }
     } catch (err) {
       dispatch(updateLoadingUser(false))

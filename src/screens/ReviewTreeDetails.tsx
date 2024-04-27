@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { updateBoundry, updateSingleTreeDetails } from 'src/store/slice/sampleTreeSlice'
 import { SampleTree, SampleTreeSlice } from 'src/types/interface/slice.interface'
@@ -17,7 +18,7 @@ import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import CustomButton from 'src/components/common/CustomButton'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
@@ -40,7 +41,8 @@ const ReviewTreeDetails = () => {
     const currentTreeIndex = FormData.tree_details.length
     const allSampleTreeRegisterd = currentTreeIndex !== totalSampleTress
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const {updateSampleTreeDetails} = useInterventionManagement()
+    const [showDatePicker, setDatePicker] = useState(false)
+    const { updateSampleTreeDetails } = useInterventionManagement()
     const InterventionData = useSelector(
         (state: RootState) => state.interventionState,
     )
@@ -68,12 +70,16 @@ const ReviewTreeDetails = () => {
     }, [detailsCompleted])
 
 
+
+
+
+
     useEffect(() => {
         if (editTree) {
             const filterdData = InterventionData.sample_trees.filter(el => el.tree_id === route.params.interventionID)
             setTreeDetails(filterdData[0])
         }
-    }, [InterventionData.last_updated_at])
+    }, [InterventionData])
 
 
 
@@ -123,12 +129,20 @@ const ReviewTreeDetails = () => {
         if (!editTree) {
             return null;
         }
+        if (label === 'sepcies') {
+            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id })
+            return;
+        }
+        if (label === 'date') {
+            setDatePicker(true)
+            return;
+        }
         setEditModal({ label, value: currentValue, type, open: true });
     }
 
 
     const closeModal = async () => {
-        const finalDetails = {...treeDetails}
+        const finalDetails = { ...treeDetails }
         if (openEditModal.label === 'height') {
             finalDetails.specie_height = Number(openEditModal.value)
         }
@@ -140,7 +154,7 @@ const ReviewTreeDetails = () => {
         }
         await updateSampleTreeDetails(finalDetails)
         dispatch(updateLastUpdatedAt())
-        setTreeDetails({...finalDetails})
+        setTreeDetails({ ...finalDetails })
         setEditModal({ label: '', value: '', type: 'default', open: false });
     }
 
@@ -149,6 +163,14 @@ const ReviewTreeDetails = () => {
         setEditModal({ ...openEditModal, value: d })
     }
 
+    const onDateSelect = async (_event, date: Date) => {
+        const finalDetails = { ...treeDetails }
+        setDatePicker(false)
+        finalDetails.plantation_date =  convertDateToTimestamp(date)
+        await updateSampleTreeDetails(finalDetails)
+        dispatch(updateLastUpdatedAt())
+        setTreeDetails({...finalDetails})
+    }
 
 
     if (!treeDetails) {
@@ -159,13 +181,16 @@ const ReviewTreeDetails = () => {
 
     return (
         <SafeAreaView style={styles.container}>
+            {showDatePicker && <DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} />}
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={headerLabel} />
                     <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
-                        <Pressable style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            openEdit('sepcies', String(treeDetails.specie_height), 'number-pad')
+                        }}>
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
@@ -198,7 +223,9 @@ const ReviewTreeDetails = () => {
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Plantation Date</Text>
-                        <Pressable style={styles.metaSectionWrapper}>
+                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            openEdit('date', String(treeDetails.specie_height), 'number-pad')
+                        }}>
                             <Text style={styles.valueLable}>
                                 {timestampToBasicDate(treeDetails.plantation_date)}
                             </Text>
