@@ -5,34 +5,37 @@ import {
   Text,
   View,
 } from 'react-native'
-import React, {useEffect} from 'react'
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {StackNavigationProp} from '@react-navigation/stack'
+import React, { useEffect } from 'react'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { StackNavigationProp } from '@react-navigation/stack'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
 import * as FileSystem from 'expo-file-system'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import {Typography,Colors} from 'src/utils/constants'
+import { Typography, Colors } from 'src/utils/constants'
 import DownloadBackdrop from 'assets/images/svg/DownloadBackdrop.svg'
 import OnboardingNotes from 'src/components/onboarding/OnboardingNotes'
 import i18next from 'src/locales/index'
-import {getLocalSpeciesSync, updateLocalSpeciesSync} from 'src/utils/helpers/asyncStorageHelper'
-import {isWithin90Days} from 'src/utils/helpers/timeHelper'
+import { getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
+import { isWithin90Days } from 'src/utils/helpers/timeHelper'
 import { useNetInfo } from '@react-native-community/netinfo';
 import Snackbar from 'react-native-snackbar';
 import { useDispatch } from 'react-redux'
 import { updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
 
 const SyncSpecies = () => {
-  const {downloadFile, finalURL, currentState} = useDownloadFile()
-  const {writeBulkSpecies} = useManageScientificSpecies()
+  const { downloadFile, finalURL, currentState } = useDownloadFile()
+  const { writeBulkSpecies } = useManageScientificSpecies()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
   const { isConnected } = useNetInfo();
   const dispatch = useDispatch()
   useEffect(() => {
+    if (isConnected === null) {
+      return
+    }
     isSpeciesUpdateRequried()
-  }, [])
+  }, [isConnected])
 
   useEffect(() => {
     if (finalURL !== null) {
@@ -48,9 +51,9 @@ const SyncSpecies = () => {
         backgroundColor: '#e74c3c',
       });
       setTimeout(() => {
-        if(route.params && route.params.inApp){
+        if (route.params && route.params.inApp) {
           navigation.replace('Home')
-        }else{
+        } else {
           dispatch(updateSpeciesSyncStatus(false))
           navigation.replace('Home')
         }
@@ -59,7 +62,7 @@ const SyncSpecies = () => {
     }
     const localSyncTimeStamp = await getLocalSpeciesSync()
     if (localSyncTimeStamp) {
-      if(route.params && route.params.inApp){
+      if (route.params && route.params.inApp) {
         downloadFile()
         return
       }
@@ -78,15 +81,15 @@ const SyncSpecies = () => {
     try {
       const speciesContent = await FileSystem.readAsStringAsync(
         finalURL + '/scientific_species.json',
-        {encoding: 'utf8'},
+        { encoding: 'utf8' },
       )
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
       dispatch(updateSpeciesSyncStatus(true))
-      if(route.params && route.params.inApp){
+      if (route.params && route.params.inApp) {
         navigation.popToTop()
-      }else{
+      } else {
         navigation.replace('Home')
       }
     } catch (error) {

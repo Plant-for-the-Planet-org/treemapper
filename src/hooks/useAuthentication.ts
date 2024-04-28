@@ -1,7 +1,7 @@
 import {Credentials, useAuth0} from 'react-native-auth0'
 
 const useAuthentication = () => {
-  const {authorize, getCredentials, clearSession, clearCredentials} = useAuth0()
+  const {authorize, getCredentials, clearSession, clearCredentials, user} = useAuth0()
 
   const getUserCredentials = async () => {
     const result = await getCredentials()
@@ -45,7 +45,7 @@ const useAuthentication = () => {
     }
   }
 
-  return {getUserCredentials, logoutUser, authorizeUser}
+  return {getUserCredentials, logoutUser, authorizeUser, user, getCredentials}
 }
 
 export default useAuthentication

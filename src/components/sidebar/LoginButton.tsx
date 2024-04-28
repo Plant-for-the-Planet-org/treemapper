@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import CustomButton from '../common/CustomButton'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateLoadingUser, updateUserDetails } from 'src/store/slice/userStateSlice'
@@ -7,33 +7,50 @@ import { updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import { getUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
+import Snackbar from 'react-native-snackbar'
 
 const LoginButton = () => {
   const { loading } = useSelector(
     (state: RootState) => state.userState)
-  const { authorizeUser } = useAuthentication()
+  const { authorizeUser, user, getUserCredentials} = useAuthentication()
   const dispatch = useDispatch()
+
+
+  useEffect(() => {
+    if (user) {
+      getDetials()
+    }
+  }, [user])
+
+  const getDetials = async () => {
+    const credentials = await getUserCredentials()
+    dispatch(
+      updateUserToken({
+        idToken: credentials.idToken,
+        accessToken: credentials.accessToken,
+        expiringAt: credentials.expiresAt,
+      }),
+    )
+    const userDetails = await getUserDetails()
+    if (userDetails) {
+      loginAndUpdateDetails(userDetails)
+    } else {
+      dispatch(updateLoadingUser(false))
+    }
+  }
+
 
   const hadleLogin = async () => {
     try {
       dispatch(updateLoadingUser(true))
       const result = await authorizeUser()
-      if (result.success) {
-        setTimeout(async () => {
-          dispatch(
-            updateUserToken({
-              idToken: result.credentials.idToken,
-              accessToken: result.credentials.accessToken,
-              expiringAt: result.credentials.expiresAt,
-            }),
-          )
-          const userDetails = await getUserDetails()
-          if (userDetails) {
-            loginAndUpdateDetails(userDetails)
-          }
-        }, 2000);
-      }else{
+      if (!result.success) {
         dispatch(updateLoadingUser(false))
+        Snackbar.show({
+          text: "User Details not fetched please try again !",
+          duration: Snackbar.LENGTH_SHORT,
+          backgroundColor: '#e74c3c',
+        });
       }
     } catch (err) {
       dispatch(updateLoadingUser(false))
