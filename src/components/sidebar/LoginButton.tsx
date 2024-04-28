@@ -11,7 +11,6 @@ import { RootState } from 'src/store'
 const LoginButton = () => {
   const { loading } = useSelector(
     (state: RootState) => state.userState)
-
   const { authorizeUser } = useAuthentication()
   const dispatch = useDispatch()
 
@@ -19,7 +18,7 @@ const LoginButton = () => {
     try {
       dispatch(updateLoadingUser(true))
       const result = await authorizeUser()
-      if (result) {
+      if (result.success) {
         setTimeout(async () => {
           dispatch(
             updateUserToken({
@@ -33,10 +32,11 @@ const LoginButton = () => {
             loginAndUpdateDetails(userDetails)
           }
         }, 2000);
+      }else{
+        dispatch(updateLoadingUser(false))
       }
     } catch (err) {
       dispatch(updateLoadingUser(false))
-
     }
   }
 

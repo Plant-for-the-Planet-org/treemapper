@@ -9,6 +9,9 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import SpeciesSyncError from './SpeciesSyncError'
 
 interface Props {
   isManageSecies: boolean
@@ -17,13 +20,15 @@ interface Props {
 const ManageSpeciesHeader = (props: Props) => {
   const { isManageSecies } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
+
   const openSearchModal = () => {
     navigation.navigate('SpeciesSearch', { manageSpecies: isManageSecies })
   }
   return (
     <View style={styles.container}>
       <Header label="Manage Species" />
-      <View style={styles.wrapper}>
+      {!isSpeciesDownloaded ? <SpeciesSyncError /> : <View style={styles.wrapper}>
         <Text style={styles.labelNote}>
           {i18next.t('label.explore_and_manage_species')}
         </Text>
@@ -40,7 +45,7 @@ const ManageSpeciesHeader = (props: Props) => {
             {i18next.t('label.select_species_search_species')}
           </Text>
         </TouchableOpacity>
-      </View>
+      </View>}
       <View
         style={{
           paddingLeft: 16,

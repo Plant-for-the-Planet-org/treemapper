@@ -5,7 +5,8 @@ const initialState: AppInitialState = {
   isLogedIn: false,
   accessToken: '',
   idToken: '',
-  expiringAt: 0
+  expiringAt: 0,
+  speciesSync:false
 }
 
 const appStateSlice = createSlice({
@@ -26,11 +27,13 @@ const appStateSlice = createSlice({
       state.accessToken = action.payload.accessToken
       state.expiringAt = action.payload.expiringAt
       state.idToken = action.payload.idToken
-
+    },
+    updateSpeciesSyncStatus(state, action: PayloadAction<boolean>) {
+      state.speciesSync = action.payload
     },
   },
 })
 
-export const {updateUserLogin, updateUserToken} = appStateSlice.actions
+export const {updateUserLogin, updateUserToken, updateSpeciesSyncStatus} = appStateSlice.actions
 
 export default appStateSlice.reducer

@@ -18,13 +18,18 @@ import OnboardingNotes from 'src/components/onboarding/OnboardingNotes'
 import i18next from 'src/locales/index'
 import {getLocalSpeciesSync, updateLocalSpeciesSync} from 'src/utils/helpers/asyncStorageHelper'
 import {isWithin90Days} from 'src/utils/helpers/timeHelper'
+import { useNetInfo } from '@react-native-community/netinfo';
+import Snackbar from 'react-native-snackbar';
+import { useDispatch } from 'react-redux'
+import { updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
 
 const SyncSpecies = () => {
   const {downloadFile, finalURL, currentState} = useDownloadFile()
   const {writeBulkSpecies} = useManageScientificSpecies()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
-
+  const { isConnected } = useNetInfo();
+  const dispatch = useDispatch()
   useEffect(() => {
     isSpeciesUpdateRequried()
   }, [])
@@ -36,6 +41,22 @@ const SyncSpecies = () => {
   }, [finalURL])
 
   const isSpeciesUpdateRequried = async () => {
+    if (!isConnected) {
+      Snackbar.show({
+        text: i18next.t('label.no_internet_connection'),
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#e74c3c',
+      });
+      setTimeout(() => {
+        if(route.params && route.params.inApp){
+          navigation.replace('Home')
+        }else{
+          dispatch(updateSpeciesSyncStatus(false))
+          navigation.replace('Home')
+        }
+      }, 2000);
+      return;
+    }
     const localSyncTimeStamp = await getLocalSpeciesSync()
     if (localSyncTimeStamp) {
       if(route.params && route.params.inApp){
@@ -62,6 +83,7 @@ const SyncSpecies = () => {
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
+      dispatch(updateSpeciesSyncStatus(true))
       if(route.params && route.params.inApp){
         navigation.popToTop()
       }else{

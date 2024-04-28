@@ -7,6 +7,7 @@ export interface AppInitialState {
   accessToken: string
   idToken: string
   expiringAt: number
+  speciesSync: boolean
 }
 
 export interface MapBoundSlice {
