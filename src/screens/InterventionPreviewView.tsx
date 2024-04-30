@@ -24,12 +24,12 @@ import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import InterventionFormData from 'src/components/previewIntervention/InterventionFormData'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
+import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -120,15 +120,15 @@ const InterventionPreviewView = () => {
             hasSampleTress={InterventionData.has_sample_trees}
           />
         )}
-        <InterventionFormData formData={InterventionData.form_data} />
+         <InterventionAdditionalData data={InterventionData.additional_data} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton
-          label={"Save"}
-          pressHandler={navigateToNext}
-          containerStyle={styles.btnContainer}
-        />}
+        label={"Save"}
+        pressHandler={navigateToNext}
+        containerStyle={styles.btnContainer}
+      />}
     </SafeAreaView>
   )
 }
@@ -145,8 +145,8 @@ const styles = StyleSheet.create({
     height: scaleSize(70),
     flexDirection: 'row',
     alignItems: 'center',
-    position:'absolute',
-    bottom:0
+    position: 'absolute',
+    bottom: 0
   },
   footer: {
     width: '100%',
