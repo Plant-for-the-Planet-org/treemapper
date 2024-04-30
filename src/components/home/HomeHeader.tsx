@@ -1,17 +1,20 @@
-import {Platform, StyleSheet, View} from 'react-native'
-import React, {useEffect} from 'react'
+import { Platform, StyleSheet, View } from 'react-native'
+import React, { useEffect } from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
 import HomeMapIcon from 'assets/images/svg/HomeMapIcon.svg'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useDispatch, useSelector} from 'react-redux'
-import {RootState} from 'src/store'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import useProjectMangement from 'src/hooks/realm/useProjectMangement'
-import {getAllProjects} from 'src/api/api.fetch'
+import { getAllProjects, getServerIntervention } from 'src/api/api.fetch'
 import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
+import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventorytoIntervention'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { updateLastServerIntervetion, updateServerIntervetion } from 'src/store/slice/appStateSlice'
 
 interface Props {
   toogleFilterModal: () => void
@@ -19,12 +22,14 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
-  const {addAllProjects} = useProjectMangement()
-  const {toogleFilterModal, toogleProjectModal} = props
-
+  const { addAllProjects } = useProjectMangement()
+  const { toogleFilterModal, toogleProjectModal } = props
+  const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
-  const {projectAdded} = useSelector(
+  const { lastServerInterventionpage, serverInterventionAdded } = useSelector((state: RootState) => state.appState)
+
+  const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
 
@@ -40,13 +45,43 @@ const HomeHeader = (props: Props) => {
     }
   }, [userType, projectAdded])
 
+
+  useEffect(() => {
+    if (userType && !serverInterventionAdded) {
+      addServerIntervention()
+    }
+  }, [userType, lastServerInterventionpage])
+
+  const addServerIntervention = async () => {
+    try {
+      const result = await getServerIntervention(lastServerInterventionpage)
+      const interventions = []
+      if (result && result.items) {
+        if (!result._links.next || result._links.next === result._links.self) {
+          dispatch(updateServerIntervetion(true))
+          return;
+        }
+        for (let index = 0; index < result.count; index++) {
+          const element = convertInevtoryToIntervention(result.items[index]);
+          interventions.push(element)
+          await addNewIntervention(element)
+        }
+        const nextPage = getExtendedPageParam(result._links.next)
+        dispatch(updateLastServerIntervetion(nextPage))
+      }
+    } catch (err) {
+      console.log("Error Occured", err)
+    }
+  } 
+
+
   const handleProjects = async () => {
     const response = await getAllProjects()
     if (response) {
       const result = await addAllProjects(response)
-      if(result){
+      if (result) {
         dispatch(updateProjectState(true))
-      }else{
+      } else {
         dispatch(updateProjectError(true))
       }
     }
@@ -82,7 +117,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    top: Platform.OS==='android'?25:40,
+    top: Platform.OS === 'android' ? 25 : 40,
   },
   iconWrapper: {
     width: 40,

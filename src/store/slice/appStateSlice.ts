@@ -1,12 +1,14 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {AppInitialState} from 'src/types/interface/slice.interface'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { AppInitialState } from 'src/types/interface/slice.interface'
 
 const initialState: AppInitialState = {
   isLogedIn: false,
   accessToken: '',
   idToken: '',
   expiringAt: 0,
-  speciesSync:false
+  speciesSync: false,
+  serverInterventionAdded: false,
+  lastServerInterventionpage: 'treemapper/plantLocations?limit=4&_scope=extended'
 }
 
 const appStateSlice = createSlice({
@@ -31,9 +33,15 @@ const appStateSlice = createSlice({
     updateSpeciesSyncStatus(state, action: PayloadAction<boolean>) {
       state.speciesSync = action.payload
     },
+    updateServerIntervetion(state, action: PayloadAction<boolean>) {
+      state.serverInterventionAdded = action.payload
+    },
+    updateLastServerIntervetion(state, action: PayloadAction<string>) {
+      state.lastServerInterventionpage = action.payload
+    },
   },
 })
 
-export const {updateUserLogin, updateUserToken, updateSpeciesSyncStatus} = appStateSlice.actions
+export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion } = appStateSlice.actions
 
 export default appStateSlice.reducer

@@ -3,6 +3,7 @@ import {
   RegisterFormSliceInitalState,
   SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
+import { FormElement } from 'src/types/interface/form.interface'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const { intervention_date, title, project_name, site_name } = data
 
@@ -26,6 +27,7 @@ export const convertFormDataToIntervention = (
     data.coordinates,
     data.form_id,
   )
+  const additional_data = convertAdditionalData(data)
   const finalData: InterventionData = {
     intervention_id: data.form_id,
     intervention_key: data.key,
@@ -48,7 +50,7 @@ export const convertFormDataToIntervention = (
     site_id: data.site_id,
     intervention_type: data.key,
     form_data: JSON.stringify(data.form_data),
-    additional_data: '',
+    additional_data: additional_data,
     meta_data: '',
   }
   return finalData
@@ -98,6 +100,33 @@ export const makeInterventionGeoJson = (
         type: '',
       }
   }
+}
+
+const convertInterventionFormData = (d: FormElement[]) => {
+  const data = {}
+  d.forEach(el => {
+    data[el.key] = {
+      value: el.value,
+      label: el.label
+    }
+  })
+  return data;
+}
+
+const convertAdditionalData = (d: RegisterFormSliceInitalState) => {
+  const form_data = convertInterventionFormData(d.form_data)
+  // let deviceLocation = {
+  //   label: "Device Location",
+  //   value: ""
+  // };
+
+  // if (lat && long) {
+  //   deviceLocation.value = `${long.toFixed(6)},${lat.toFixed(6)}`
+  // }
+
+  return JSON.stringify({
+    ...form_data
+  })
 }
 
 export const extractSpecies = (

@@ -33,7 +33,7 @@ const MapMarkers = (props: Props) => {
       <Maplibre.MarkerView
         coordinate={[el.longitude, el.latitude]}
         anchor={
-          { x: 0.5, y: 0.6 }
+          { x: 0.55, y: 0.4 }
         }
         id={String(i)}
         key={i}>

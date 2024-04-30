@@ -1,5 +1,5 @@
-import {getUrlApi} from './api.url';
-import {fetchGetCall} from './customFetch';
+import { getUrlApi } from './api.url';
+import { fetchGetCall } from './customFetch';
 
 // export const uploadPostData = async (params: ContentData) => {
 //   const result = await fetchPostCall(postUrlApi.uploadPostData, params);
@@ -22,7 +22,7 @@ export const getAllProjects = async () => {
 };
 
 
-export const getAreaName=async(coords:number[],)=>{
+export const getAreaName = async (coords: number[],) => {
   const uri = `${getUrlApi.getAreaName}/${coords[0]},${coords[1]}.json?types=place&access_token=${process.env.EXPO_PUBLIC_MAPBOX_TOKEN}`
   try {
     const response = await fetch(`${uri}`, {
@@ -37,3 +37,8 @@ export const getAreaName=async(coords:number[],)=>{
     return false
   }
 }
+
+export const getServerIntervention = async (uri: string) => {
+  const result = await fetchGetCall(uri);
+  return result;
+};

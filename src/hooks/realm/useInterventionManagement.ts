@@ -19,7 +19,7 @@ const useInterventionManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during bulk write:', error)
+      console.error('Error during write:', error)
       return Promise.reject(false)
     }
   }

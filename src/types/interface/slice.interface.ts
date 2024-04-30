@@ -8,6 +8,8 @@ export interface AppInitialState {
   idToken: string
   expiringAt: number
   speciesSync: boolean
+  serverInterventionAdded: boolean,
+  lastServerInterventionpage: string
 }
 
 export interface MapBoundSlice {

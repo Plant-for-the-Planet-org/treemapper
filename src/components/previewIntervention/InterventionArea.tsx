@@ -19,6 +19,9 @@ const InterventionArea = (props: Props) => {
     data.intervention_id,
   )
 
+    // console.log(JSON.stringify(geoJSON, null, 2))
+
+
   const FeatureCollectionGeoJSON = {
     type: 'FeatureCollection',
     features: [geoJSON],

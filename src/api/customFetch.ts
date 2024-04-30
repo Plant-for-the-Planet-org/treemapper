@@ -1,4 +1,6 @@
 import store from 'src/store/index'
+import 'react-native-get-random-values'
+import { v4 as uuidv4 } from 'uuid'
 
 const catchError = {
   success: false,
@@ -6,6 +8,13 @@ const catchError = {
     en: 'Something went wrong.',
   },
   respCode: '',
+}
+
+const defaultHeaders = {
+  "x-accept-versions": "1.0.3",
+  "x-session-id": uuidv4(),
+  "Content-Type": "application/json",
+  "User-Agent": "treemapper/android/1.0.11"
 }
 
 const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
@@ -41,6 +50,7 @@ export const fetchGetCall = async (uri: string) => {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
+        ...defaultHeaders,
       },
     })
     const responseJson = await response.json()
