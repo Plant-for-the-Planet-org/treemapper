@@ -17,8 +17,9 @@ const Descitption: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true
-  }
+    required: true,
+    validation: "^.{10,1000}$"
+}
     
   
   const fencingForm: MainForm = {

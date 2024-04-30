@@ -3,22 +3,23 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 
 const Description: FormElement = {
-    index: 0,
-    key: 'description',
-    label: 'Description',
-    default: '',
-    type: 'TEXTAREA',
-    placeholder: 'Description',
-    unit: '',
-    visibility: 'public',
-    condition: null,
-    data_type: 'string',
-    keyboard_type: 'default',
-    sub_form: undefined,
-    editable: true,
-    value: '',
-    required: false
-  }
+  index: 0,
+  key: 'description',
+  label: 'Description',
+  default: '',
+  type: 'TEXTAREA',
+  placeholder: 'Description',
+  unit: '',
+  visibility: 'public',
+  condition: null,
+  data_type: 'string',
+  keyboard_type: 'default',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: false,
+  validation: "^.{10,1000}$"
+}
   
 
   

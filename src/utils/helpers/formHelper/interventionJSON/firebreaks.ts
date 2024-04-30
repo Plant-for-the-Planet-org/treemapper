@@ -3,22 +3,23 @@ import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
 
 
 const WidthOfStrip: FormElement = {
-    index: 0,
-    key: 'width-of-strip',
-    label: 'Width of strip',
-    default: '',
-    type: 'INPUT',
-    placeholder: 'Width of strip',
-    unit: 'm',
-    visibility: 'public',
-    condition: null,
-    data_type: 'number',
-    keyboard_type: 'number-pad',
-    sub_form: undefined,
-    editable: true,
-    value: '',
-    required: true
-  }
+  index: 0,
+  key: 'width-of-strip',
+  label: 'Width of strip',
+  default: '',
+  type: 'INPUT',
+  placeholder: 'Width of strip',
+  unit: 'm',
+  visibility: 'public',
+  condition: null,
+  data_type: 'number',
+  keyboard_type: 'number-pad',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: true,
+  validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+}
   const MinWidth: FormElement = {
     index: 0,
     key: 'min-width-of-strip',
@@ -34,7 +35,8 @@ const WidthOfStrip: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true
+    required: true,
+    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   
   const MaxWidth: FormElement = {
@@ -52,7 +54,8 @@ const WidthOfStrip: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true
+    required: true,
+    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   
   const firebreaksForm: MainForm = {

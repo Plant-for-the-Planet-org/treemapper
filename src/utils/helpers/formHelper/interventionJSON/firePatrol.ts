@@ -17,7 +17,8 @@ const NumberOfPeople: FormElement = {
   sub_form: undefined,
   editable: true,
   value: '',
-  required: true
+  required: true,
+  validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }
   
   const WorkingHours: FormElement = {
@@ -35,7 +36,8 @@ const NumberOfPeople: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true
+    required: true,
+    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   
   

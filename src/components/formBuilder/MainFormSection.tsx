@@ -12,6 +12,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch } from 'react-redux'
 import { updateFormDataValue } from 'src/store/slice/registerFormSlice'
 import FormTextAreaElement from './FormTextAreaElement'
+import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
   formData: MainForm
@@ -24,6 +25,7 @@ const MainFormSection = (props: Props) => {
   const [formValues, setFormValues] = useState<{ [key: string]: any } | null>(
     null,
   )
+  const toast = useToast();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   useEffect(() => {
@@ -58,6 +60,16 @@ const MainFormSection = (props: Props) => {
   const submitHandler = () => {
     const finalData: FormElement[] = [];
     for (const [key] of Object.entries(formValues)) {
+      const regex = new RegExp(formValues[key].validation);
+      if (!regex.test(formValues[key].value)) {
+        toast.show(`Please provide valid ${formValues[key].label}`, {
+          type: "normal",
+          placement: "bottom",
+          duration: 2000,
+          animationType: "slide-in",
+        })
+        return
+      }
       finalData.push({ ...formValues[key] })
     }
     dispatch(updateFormDataValue(finalData))

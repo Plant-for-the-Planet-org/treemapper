@@ -1,5 +1,5 @@
-import {KeyboardType} from 'react-native'
-import {DATA_VISIBLITY, FORM_TYPE} from '../type/app.type'
+import { KeyboardType } from 'react-native'
+import { DATA_VISIBLITY, FORM_TYPE } from '../type/app.type'
 import { DropdownData } from './app.interface'
 
 
@@ -15,13 +15,14 @@ export interface FormElement {
   placeholder: string
   unit: string
   visibility: DATA_VISIBLITY
-  condition: {[key: string]: boolean} | null
+  condition: { [key: string]: boolean } | null
   data_type: 'number' | 'string' | 'boolean'
   keyboard_type: KeyboardType
   sub_form: FormElement | null
   editable: boolean
   required: boolean
-  dropDownData?:DropdownData[]
+  validation: string
+  dropDownData?: DropdownData[]
 }
 
 export interface MainForm {
