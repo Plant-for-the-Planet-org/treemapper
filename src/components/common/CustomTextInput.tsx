@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     flexDirection: 'row',
-    backgroundColor: Colors.WHITE,
   },
   inputWrapper: {
     borderRadius: 10,
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.BACKDROP_COLOR,
   },
   unitLabel: {
     color: Colors.GRAY_TEXT,

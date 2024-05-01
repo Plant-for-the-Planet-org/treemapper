@@ -1,20 +1,24 @@
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import SingleTreeImage from 'assets/images/svg/SingleTreeIcon.svg'
-import { Typography } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Skeleton } from 'moti/skeleton'
-
+import ProfileEditIcon from 'assets/images/svg/ProfileEdit.svg'
+import openWebView from 'src/utils/helpers/appHelper/openWebView'
 
 
 const SidebarHeader = () => {
-  const { image, displayName, loading } = useSelector(
+  const { image, displayName, loading, email } = useSelector(
     (state: RootState) => state.userState,
   )
   const avatar = `https://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/profile/avatar/${image}`
+  const editHandler = () => {
+    openWebView(`https://${process.env.EXPO_PUBLIC_WEBAPP_URL}/login`);
 
+  }
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
@@ -32,7 +36,15 @@ const SidebarHeader = () => {
             {displayName ? `${displayName}` : 'Guest User'}
           </Text>
         </Skeleton>
+        {email && <Skeleton show={loading} colorMode="light" radius={12}>
+          <Text style={styles.emailLabel}>
+            {email}
+          </Text>
+        </Skeleton>}
       </View>
+      <TouchableOpacity style={styles.editMe} onPress={editHandler}>
+        <ProfileEditIcon />
+      </TouchableOpacity>
     </View>
   )
 }
@@ -57,6 +69,11 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleFont(20),
   },
+  emailLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: scaleFont(14),
+    color: Colors.TEXT_COLOR
+  },
   imageWrapper: {
     width: '100%',
     height: '100%',
@@ -67,5 +84,15 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingHorizontal: 10,
     width: '70%'
+  },
+  editMe: {
+    width: 45,
+    height: 45,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    right: 10,
+    backgroundColor: Colors.NEW_PRIMARY + '1A'
   }
 })

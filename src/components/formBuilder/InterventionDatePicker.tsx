@@ -30,7 +30,10 @@ const InterventionDatePicker = (props: Props) => {
         <Text style={style.placeHolder}>{placeHolder}</Text>
         <Text style={style.label}>{timestampToBasicDate(value)}</Text>
       </TouchableOpacity>
-      {showPicker && <DateTimePicker value={new Date(value)} onChange={onDateSelect}/>}
+      {showPicker && <View style={style.dateStyle}>
+      <DateTimePicker value={new Date(value)} onChange={onDateSelect} display='spinner'/>
+
+      </View>}
     </View>
   )
 }
@@ -50,7 +53,7 @@ const style = StyleSheet.create({
     height: '100%',
     borderWidth: 1,
     borderColor: Colors.GRAY_TEXT,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.BACKDROP_COLOR,
     borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
@@ -58,7 +61,7 @@ const style = StyleSheet.create({
   placeHolder: {
     paddingHorizontal: 5,
     paddingVertical: 3,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.BACKDROP_COLOR,
     fontSize: scaleFont(14),
     color: Colors.TEXT_COLOR,
     position: 'absolute',
@@ -70,4 +73,14 @@ const style = StyleSheet.create({
     paddingLeft: 15,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
+  dateStyle:{
+    position:'absolute',
+    zIndex:1,
+    backgroundColor:Colors.WHITE,
+    height:300,
+    borderRadius:12,
+    width:'95%',
+    borderWidth:0.5,
+    borderColor:Colors.GRAY_LIGHT
+  }
 })

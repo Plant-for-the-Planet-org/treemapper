@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '90%',
     height: '95%',
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: 'black',
   },
   svgWrapper: {
     width: '90%',
     height: '95%',
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: Colors.BLACK,
     justifyContent:'center',
     alignItems:'center'

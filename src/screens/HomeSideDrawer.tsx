@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flex: 1,
-    backgroundColor: Colors.BACKDROP_COLOR
-
+    backgroundColor: Colors.BACKDROP_COLOR,
   }
 })

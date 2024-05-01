@@ -44,7 +44,7 @@ const DropdownComponent = (props: Props) => {
         iconStyle={styles.iconStyle}
         data={data}
         autoScroll
-        maxHeight={300}
+        maxHeight={250}
         minHeight={100}
         labelField="label"
         valueField="value"
@@ -54,6 +54,9 @@ const DropdownComponent = (props: Props) => {
         onBlur={() => setIsFocus(false)}
         onChange={handleSelect}
         renderRightIcon={() => <SelectIcon />}
+        fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
+        containerStyle={styles.listContainer}
+        itemTextStyle={styles.itemTextStyle}
       />
     </View>
   )
@@ -91,10 +94,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     paddingHorizontal: 3,
+    color:Colors.TEXT_COLOR
   },
   selectedTextStyle: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+  },
+  itemTextStyle:{
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color:Colors.TEXT_COLOR
   },
   iconStyle: {
     width: 20,
@@ -104,4 +113,12 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
   },
+  listContainer:{
+    borderRadius: 12,
+    elevation: 5, // This adds a shadow on Android
+    shadowColor: 'black', // This adds a shadow on iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  }
 })

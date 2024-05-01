@@ -31,10 +31,12 @@ const SyncSpecies = () => {
   const { isConnected } = useNetInfo();
   const dispatch = useDispatch()
   useEffect(() => {
-    if (isConnected === null) {
-      return
-    }
-    isSpeciesUpdateRequried()
+    setTimeout(() => {
+      if (isConnected === null) {
+        return
+      }
+      isSpeciesUpdateRequried()
+    }, 2000);
   }, [isConnected])
 
   useEffect(() => {

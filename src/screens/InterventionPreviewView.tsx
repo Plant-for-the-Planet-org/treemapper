@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -98,7 +98,13 @@ const InterventionPreviewView = () => {
 
 
   if (InterventionData.intervention_id.length === 0) {
-    return null
+    return <View style={styles.activityIndicatorView}>
+      <ActivityIndicator
+        size="large"
+        color={Colors.NEW_PRIMARY}
+      />
+    </View>
+
   }
 
   return (
@@ -120,7 +126,7 @@ const InterventionPreviewView = () => {
             hasSampleTress={InterventionData.has_sample_trees}
           />
         )}
-         <InterventionAdditionalData data={InterventionData.additional_data} />
+        <InterventionAdditionalData data={InterventionData.additional_data} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />
       </ScrollView>
@@ -146,10 +152,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0
+    bottom: 20
   },
   footer: {
     width: '100%',
     height: 100
-  }
+  },
+  activityIndicatorView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
 })

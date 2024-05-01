@@ -34,7 +34,7 @@ const PolygonMarkerMap = (props: Props) => {
     id: 'A',
     index: 0,
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const [lineError, setLineErorr] = useState(false)
   const currentUserLocation = useSelector(
@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '70%',
     backgroundColor: Colors.WHITE,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: Colors.PRIMARY_DARK,
   },
   opaqueWrapper: {
@@ -238,17 +238,15 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '70%',
     backgroundColor: Colors.PRIMARY_DARK,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   highlightLabel: {
-    fontSize: scaleFont(14),
-    fontWeight: '400',
+    fontSize: scaleFont(16),
     color: Colors.PRIMARY_DARK,
     fontFamily: Typography.FONT_FAMILY_BOLD
   },
   normalLable: {
-    fontSize: scaleFont(14),
-    fontWeight: '400',
+    fontSize: scaleFont(16),
     color: Colors.WHITE,
     textAlign: 'center',
     fontFamily: Typography.FONT_FAMILY_BOLD

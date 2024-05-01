@@ -60,11 +60,16 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '90%',
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: Colors.GRAY_BACKDROP + '1A',
     paddingVertical: 20,
     borderWidth: 0.5,
     borderColor: Colors.GRAY_TEXT,
+    elevation: 5, // This adds a shadow on Android
+    shadowColor: Colors.GRAY_TEXT,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   cardWrapper: {
     width: '100%',

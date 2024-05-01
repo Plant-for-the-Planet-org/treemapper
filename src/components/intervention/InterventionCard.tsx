@@ -28,7 +28,7 @@ const InterventionCard = (props: Props) => {
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
         <InterventionIconSwitch icon={item.intervention_type} />
-        {!item.is_complete && (
+        {item.is_complete && (
           <View style={styles.incompleteTagWrapper}>
             <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
           </View>
@@ -51,7 +51,7 @@ const InterventionCard = (props: Props) => {
           </View>
         </View>
         <View style={styles.editIconWrapper}>
-          <EditInterventionIcon height={25} width={25} />
+          <EditInterventionIcon height={30} width={30} />
         </View>
       </View>
     </TouchableOpacity>
@@ -74,6 +74,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     backgroundColor: Colors.WHITE,
+    elevation: 5, // This adds a shadow on Android
+    shadowColor: Colors.GRAY_TEXT,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   incompleteTagWrapper: {
     justifyContent: 'center',
@@ -97,7 +102,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    paddingBottom: 10,
+    paddingBottom: '5%',
   },
   sectionWrapper: {
     flex: 1,

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '90%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 8,
     overflow: 'hidden',
     borderWidth:0.5,
     borderColor:Colors.GRAY_TEXT

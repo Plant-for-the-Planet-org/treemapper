@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useState } from 'react'
 import DisplayMap from 'src/components/map/DisplayMap'
 import HomeHeader from 'src/components/home/HomeHeader'
@@ -9,9 +9,7 @@ import CarouselModal from 'src/components/carousel/CarouselModal'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CarouselHeader from 'src/components/carousel/CarouselHeader'
-import {
-  SafeAreaView,
-} from 'react-native-safe-area-context';
+
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 const HomeMapView = () => {
 
@@ -31,7 +29,7 @@ const HomeMapView = () => {
 
 
   return (
-    <SafeAreaView style={[styles.contaner]}>
+    <View style={[styles.contaner]}>
       {showCarousel ? (
         <CarouselHeader />
       ) : (
@@ -52,7 +50,7 @@ const HomeMapView = () => {
       />
       {showCarousel && <CarouselModal />}
       <LocationPermissionModal/>
-    </SafeAreaView>
+    </View>
   )
 }
 

@@ -1,7 +1,8 @@
-import { StyleSheet, Switch, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
+import CustomSwitch from 'src/components/common/Switch'
 interface Props {
   description: string
   selectHandler: (v: boolean) => void
@@ -25,11 +26,11 @@ const PlaceHolderSwitch = (props: Props) => {
           },
         ]}>
         <Text style={styles.inputLabel}>{description}</Text>
-        <Switch
+        <CustomSwitch
           value={value}
           onValueChange={changeHandler}
           disabled={false}
-          style={styles.switchWrapper}
+          styles={styles.switchWrapper}
         />
       </View>
     </View>
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
-    marginBottom:15
+    marginBottom: 15
 
   },
   inputWrapper: {
@@ -64,7 +65,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   switchWrapper: {
-    width: 50,
-    height: 30,
+    marginLeft:'20%'
   }
 })

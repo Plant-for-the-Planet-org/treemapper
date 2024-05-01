@@ -34,14 +34,14 @@ const DataExplorerView = () => {
         </Text>
         <Text style={styles.section}>Available for free at pp.eco/explore</Text>
         <Text style={styles.section}>Best on desktop.</Text>
-        <CustomButton
+      </View>
+      <CustomButton
         label="Explore Now"
         containerStyle={styles.btnContainer}
         pressHandler={openLink}
         loading={false}
         leftIcon={<ExternalLinkIcon width={25} height={25}/>}
       />
-      </View>
     </SafeAreaView>
   )
 }
@@ -69,12 +69,13 @@ const styles = StyleSheet.create({
     fontSize: SCALE_14,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginBottom:10
   },
   btnContainer: {
     width: '100%',
     height: scaleSize(70),
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
   },
   
 })

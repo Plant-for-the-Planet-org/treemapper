@@ -39,7 +39,7 @@ const InterventionHeaderList = (props: Props) => {
           style={[
             styles.label,
             { color: selectedStyle.color },
-          ]}>{`${item.label} (${item.count})`}</Text>
+          ]}>{item.key==='all'?`${item.label}  ${item.count}`:`${item.count}  ${item.label}`}</Text>
       </TouchableOpacity>
     )
   }
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: scaleFont(15),
     paddingHorizontal: 20,
-    paddingVertical: 7,
+    paddingVertical: 10,
     borderRadius: 20,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
+    fontFamily: Typography.FONT_FAMILY_BOLD
   },
   labelWrapper: {
-    borderColor: Colors.GRAY_BORDER,
+    borderColor: Colors.GRAY_LIGHT,
     marginHorizontal: 5,
     borderRadius: 20,
     borderWidth: 0.5,

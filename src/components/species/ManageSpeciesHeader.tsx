@@ -80,12 +80,14 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    letterSpacing:0.5,
   },
   speciesNote: {
     textAlign: 'center',
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    letterSpacing:0.5,
   },
   searchNote: {
     marginTop: 4,
@@ -93,6 +95,7 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    letterSpacing:0.5,
   },
   searchBar: {
     flexDirection: 'row',
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   listTitle: {
     paddingTop: scaleSize(20),
     paddingBottom: scaleSize(20),
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.PLANET_BLACK,
   },

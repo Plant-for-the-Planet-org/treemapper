@@ -78,14 +78,14 @@ const styles = StyleSheet.create({
         marginVertical: 10
     },
     wrapper: {
-        width: '85%',
+        width: '90%',
         height: '100%',
-        borderRadius: 12,
-        backgroundColor: Colors.BACKDROP_COLOR,
+        borderRadius: 8,
+        backgroundColor: Colors.GRAY_BACKDROP + '1A',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 0.5,
-        borderColor: Colors.GRAY_LIGHT
+        borderColor: Colors.GRAY_TEXT,
     },
     textStyle: {
         fontSize: scaleFont(18),

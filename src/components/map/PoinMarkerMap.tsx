@@ -36,7 +36,7 @@ const PointMarkerMap = (props: Props) => {
   const { species_required, is_multi_species, has_sample_trees, tree_details } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
   const [outOfBoundry, setOutOfBoundry] = useState(false)

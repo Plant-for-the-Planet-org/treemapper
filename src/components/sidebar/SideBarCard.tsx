@@ -10,7 +10,7 @@ import {updateUserLogin} from 'src/store/slice/appStateSlice'
 import {resetUserDetails} from 'src/store/slice/userStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
-import {Typography} from 'src/utils/constants'
+import {Colors, Typography} from 'src/utils/constants'
 
 interface Props {
   item: SideDrawerItem
@@ -67,11 +67,11 @@ const styles = StyleSheet.create({
     height: scaleSize(60),
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical:5
   },
   wrapper: {
     width: '90%',
-    height: '100%',
+    height: '90%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -97,7 +97,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: scaleFont(14),
+    fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color:Colors.TEXT_COLOR,
+    marginLeft:10
   },
 })

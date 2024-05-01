@@ -12,8 +12,6 @@ import { RealmProvider } from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger'
 import 'react-native-gesture-handler'
 import 'react-native-get-random-values'
-import { StatusBar } from 'expo-status-bar'
-import { Colors } from 'src/utils/constants'
 import { ToastProvider } from 'react-native-toast-notifications'
 
 
@@ -22,7 +20,6 @@ MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar backgroundColor={Colors.WHITE} />
       <Auth0Provider
         domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>

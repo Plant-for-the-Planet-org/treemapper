@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   header: {
-    marginLeft: '10%',
+    marginLeft: '5%',
     marginVertical: 10,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleSize(18),

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     width: '80%',
     height: '70%',
     borderRadius: 30,
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
     flexDirection: 'row',
   },
@@ -91,6 +91,5 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   iconWrapper: {
-    marginRight: 7,
   },
 })

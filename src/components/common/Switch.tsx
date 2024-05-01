@@ -1,4 +1,5 @@
 import React from 'react'
+import { ViewStyle } from 'react-native'
 import {Switch as RNSwitch} from 'react-native-switch'
 
 const toggleWidth = 31
@@ -11,10 +12,11 @@ interface Props {
   value: boolean
   onValueChange: () => void
   disabled: boolean
+  styles?: ViewStyle
 }
 
 const Switch = (props: Props) => {
-  const {value, onValueChange, disabled} = props
+  const {value, onValueChange, disabled, styles} = props
   return (
     <RNSwitch
       value={value}
@@ -22,7 +24,7 @@ const Switch = (props: Props) => {
       disabled={disabled}
       activeText={'On'}
       inActiveText={'Off'}
-      containerStyle={{marginHorizontal:10}}
+      containerStyle={{marginHorizontal:10,...styles}}
       barHeight={12}
       circleSize={circleSize}
       switchLeftPx={multiplierFix}
