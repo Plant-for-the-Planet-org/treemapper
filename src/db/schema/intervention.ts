@@ -25,5 +25,7 @@ export const Intervention: ObjectSchema = {
     form_data: {type: 'string', default: ''},
     additional_data: {type: 'string', default: ''},
     meta_data: {type: 'string', default: ''},
+    status: {type: 'string', default: 'NOT_SYNCED'},
+    hid: {type: 'string', default: ''},
   },
 }

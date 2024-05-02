@@ -137,9 +137,23 @@ const useInterventionManagement = () => {
     }
   };
 
+  
+  const deleteAllSyncedIntervention = async (): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
+        realm.delete(unSyncedObjects);
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
 
-  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies }
+
+  return { addNewIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention }
 }
 
 export default useInterventionManagement

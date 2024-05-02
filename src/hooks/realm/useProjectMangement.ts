@@ -49,7 +49,21 @@ const useProjectMangement = () => {
     }
   }
 
-  return {addAllProjects}
+  
+  const deleteAllProjects = async (): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const unSyncedObjects = realm.objects(RealmSchema.Projects);
+        realm.delete(unSyncedObjects);
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  return {addAllProjects, deleteAllProjects}
 }
 
 export default useProjectMangement

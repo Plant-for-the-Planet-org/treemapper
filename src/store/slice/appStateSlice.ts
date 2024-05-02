@@ -39,9 +39,12 @@ const appStateSlice = createSlice({
     updateLastServerIntervetion(state, action: PayloadAction<string>) {
       state.lastServerInterventionpage = action.payload
     },
+    logoutAppUser() {
+      return { ...initialState, speciesSync: true }
+    },
   },
 })
 
-export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion } = appStateSlice.actions
+export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion, logoutAppUser } = appStateSlice.actions
 
 export default appStateSlice.reducer

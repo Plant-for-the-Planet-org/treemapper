@@ -52,6 +52,8 @@ export const convertFormDataToIntervention = (
     form_data: JSON.stringify(data.form_data),
     additional_data: additional_data,
     meta_data: '',
+    status: 'NOT_SYNCED',
+    hid: ''
   }
   return finalData
 }

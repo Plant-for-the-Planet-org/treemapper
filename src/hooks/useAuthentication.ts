@@ -1,7 +1,11 @@
-import {Credentials, useAuth0} from 'react-native-auth0'
+import { Credentials, useAuth0 } from 'react-native-auth0'
+import useInterventionManagement from './realm/useInterventionManagement'
+import useProjectMangement from './realm/useProjectMangement'
 
 const useAuthentication = () => {
-  const {authorize, getCredentials, clearSession, clearCredentials, user} = useAuth0()
+  const { authorize, getCredentials, clearSession, clearCredentials, user } = useAuth0()
+  const { deleteAllSyncedIntervention } = useInterventionManagement()
+  const { deleteAllProjects } = useProjectMangement()
 
   const getUserCredentials = async () => {
     const result = await getCredentials()
@@ -12,7 +16,9 @@ const useAuthentication = () => {
     return new Promise((resolve, reject) => {
       clearSession()
         .then(() => clearCredentials())
-        .then(() => {
+        .then(async () => {
+          await deleteAllSyncedIntervention()
+          await deleteAllProjects()
           resolve(true)
         })
         .catch(error => {
@@ -27,7 +33,7 @@ const useAuthentication = () => {
     success: boolean
   }> => {
     try {
-      const authCreds = await authorize({audience: 'urn:plant-for-the-planet'})
+      const authCreds = await authorize({ audience: 'urn:plant-for-the-planet' })
 
       if (!authCreds) {
         throw 'No token found'
@@ -45,7 +51,7 @@ const useAuthentication = () => {
     }
   }
 
-  return {getUserCredentials, logoutUser, authorizeUser, user, getCredentials}
+  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials }
 }
 
 export default useAuthentication

@@ -1,4 +1,4 @@
-import { INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
+import { INTERVENTION_STATUS, INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -218,4 +218,6 @@ export interface InterventionData {
   additional_data: string
   meta_data: string
   last_updated_at?: number
+  status: INTERVENTION_STATUS,
+  hid: string
 }

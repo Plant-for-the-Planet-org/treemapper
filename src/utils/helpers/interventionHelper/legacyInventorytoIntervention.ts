@@ -159,7 +159,9 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         intervention_type: extraData.key,
         form_data: "",
         additional_data: addtionData,
-        meta_data: metaData
+        meta_data: metaData,
+        status: 'SYNCED',
+        hid: data.hid || ''
     }
     return finalData
 }

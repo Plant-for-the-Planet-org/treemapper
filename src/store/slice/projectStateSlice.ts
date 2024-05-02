@@ -1,5 +1,5 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {ProjectStateSlice} from 'src/types/interface/slice.interface'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { ProjectStateSlice } from 'src/types/interface/slice.interface'
 
 const initialState: ProjectStateSlice = {
   projectAdded: false,
@@ -26,7 +26,7 @@ const projectStateSlice = createSlice({
     },
     updateCurrentProject(
       state,
-      action: PayloadAction<{name: string; id: string}>,
+      action: PayloadAction<{ name: string; id: string }>,
     ) {
       state.currentProject = {
         projectName: action.payload.name,
@@ -35,17 +35,20 @@ const projectStateSlice = createSlice({
     },
     updateProjectSite(
       state,
-      action: PayloadAction<{name: string; id: string}>,
+      action: PayloadAction<{ name: string; id: string }>,
     ) {
       state.projectSite = {
         siteName: action.payload.name,
         siteId: action.payload.id,
       }
     },
+    resetProjectState() {
+      return { ...initialState }
+    }
   },
 })
 
-export const {updateProjectError, updateProjectState, updateProjectSite, updateCurrentProject} =
+export const { updateProjectError, updateProjectState, updateProjectSite, updateCurrentProject, resetProjectState } =
   projectStateSlice.actions
 
 export default projectStateSlice.reducer

@@ -12,3 +12,4 @@ export type MAP_BOUNDS  =  "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIE
 export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer'
 
 
+export type INTERVENTION_STATUS = 'SYNCED' | 'NOT_SYNCED'

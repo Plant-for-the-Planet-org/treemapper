@@ -1,24 +1,25 @@
-import {Pressable, StyleSheet, Text, View} from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
-import {SideDrawerItem} from 'src/types/interface/app.interface'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useDispatch} from 'react-redux'
-import {updateUserLogin} from 'src/store/slice/appStateSlice'
-import {resetUserDetails} from 'src/store/slice/userStateSlice'
+import { SideDrawerItem } from 'src/types/interface/app.interface'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useDispatch } from 'react-redux'
+import { logoutAppUser, updateUserLogin } from 'src/store/slice/appStateSlice'
+import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
-import {Colors, Typography} from 'src/utils/constants'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
+import { resetProjectState } from 'src/store/slice/projectStateSlice'
 
 interface Props {
   item: SideDrawerItem
 }
 
 const SideBarCard = (props: Props) => {
-  const {logoutUser} = useAuthentication()
-  const {label, screen, icon, visible, key} = props.item
+  const { logoutUser } = useAuthentication()
+  const { label, screen, icon, visible, key } = props.item
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
@@ -28,16 +29,18 @@ const SideBarCard = (props: Props) => {
       handleLogout()
       return
     }
-    if(key === 'manage_species'){
-      params = {manageSpecies:true}
+    if (key === 'manage_species') {
+      params = { manageSpecies: true }
     }
-    navigation.replace(screen,params)
+    navigation.replace(screen, params)
   }
 
   const handleLogout = async () => {
     await logoutUser()
     dispatch(updateUserLogin(false))
     dispatch(resetUserDetails())
+    dispatch(logoutAppUser())
+    dispatch(resetProjectState())
   }
 
   if (!visible) {
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
     height: scaleSize(60),
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical:5
+    marginVertical: 5
   },
   wrapper: {
     width: '90%',
@@ -99,7 +102,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    color:Colors.TEXT_COLOR,
-    marginLeft:10
+    color: Colors.TEXT_COLOR,
+    marginLeft: 10
   },
 })
