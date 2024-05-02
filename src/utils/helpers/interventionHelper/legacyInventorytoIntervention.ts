@@ -74,7 +74,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         device_longitude: d.deviceLocation.coordinates[0],
         location_accuracy: "",
         image_url: "",
-        cdn_image_url:d.coordinates[0].image,
+        cdn_image_url:d.coordinates[0].image || "",
         specie_name: d.scientificName || '',
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
