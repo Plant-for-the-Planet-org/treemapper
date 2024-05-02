@@ -37,7 +37,6 @@ const interventionSlice = createSlice({
       return { ...action.payload }
     },
     updateLastUpdatedAt(state) {
-      console.log("Updareed")
       state.last_updated_at = Date.now()
     },
     updateTreesSpecies(state, action: PayloadAction<{ treeId: string, data: IScientificSpecies }>) {

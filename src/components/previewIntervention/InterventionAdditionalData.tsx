@@ -30,7 +30,6 @@ const InterventionAdditionalData = (props: Props) => {
     const finalData = []
     let i = 0
     for (const prop in additiionalData) {
-      console.log(`${prop}: ${additiionalData[prop]}`);
       i++
       finalData.push(
         <View style={styles.cardWrapper} key={i}>

@@ -193,7 +193,7 @@ const ReviewTreeDetails = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={headerLabel} />
-                    <IterventionCoverImage image={treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} />
+                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {

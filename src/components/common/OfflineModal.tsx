@@ -6,7 +6,6 @@ import { useNetInfo } from '@react-native-community/netinfo';
 const OfflineModal = () => {
     const [offlineModal, setOfflineModal] = useState(false);
     const netInfo = useNetInfo();
-    console.log("Adcjkl", netInfo)
     useEffect(() => {
         if (!netInfo.isConnected) {
             setOfflineModal(true)

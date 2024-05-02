@@ -67,14 +67,14 @@ const singleTreeDetails = (d: any): SampleTree => {
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
-        intervention_id: d.parent,
+        intervention_id: d.parent || d.id,
         count: 1,
         latitude: d.geometry.coordinates[1],
         longitude: d.geometry.coordinates[0],
         device_longitude: d.deviceLocation.coordinates[0],
         location_accuracy: "",
         image_url: "",
-        cdn_image_url: "",
+        cdn_image_url:d.coordinates[0].image,
         specie_name: d.scientificName || '',
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
@@ -129,10 +129,12 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
     const extraData = interventionTitlteSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
-    if (extraData.hasSampleTrees) {
+    if (extraData.key!=='single-tree-registration') {
         data.samplePlantLocations.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
         });
+    }else{
+        sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : ''
     const addtionData = getAdditionalData(data)

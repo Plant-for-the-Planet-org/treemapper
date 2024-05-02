@@ -18,10 +18,11 @@ interface Props {
   tag: 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
   isRegistered?: boolean
   treeId?: string
+  isCDN?:boolean
 }
 
 const IterventionCoverImage = (props: Props) => {
-  const { image, tag, interventionID, treeId } = props
+  const { image, tag, interventionID, treeId, isCDN } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
   const { updateInterventionCoverImage, updateSampleTreeImage } = useInterventionManagement()
@@ -53,12 +54,13 @@ const IterventionCoverImage = (props: Props) => {
       screen: tag,
     })
   }
+  const uri  = isCDN?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}`:image
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
         <PenIcon width={30} height={30} />
       </TouchableOpacity>
-      {image.length !== 0 ? <Image source={{ uri: image }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} >
+      {image.length !== 0 ? <Image source={{ uri: uri }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} >
         <Text style={styles.label}>Default Image {'\n'} For Intervention</Text></View>}
     </View>
   )

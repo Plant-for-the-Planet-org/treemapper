@@ -42,9 +42,9 @@ const SidebarHeader = () => {
           </Text>
         </Skeleton>}
       </View>
-      <TouchableOpacity style={styles.editMe} onPress={editHandler}>
+      {email && <TouchableOpacity style={styles.editMe} onPress={editHandler}>
         <ProfileEditIcon />
-      </TouchableOpacity>
+      </TouchableOpacity>}
     </View>
   )
 }

@@ -59,14 +59,14 @@ const SampleTreePreviewList = (props: Props) => {
               {timestampToBasicDate(details.plantation_date)}
             </Text>
           </View>
-          <View style={styles.metaWrapper}>
+          {details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Species</Text>
             <Text style={styles.speciesName}>{details.specie_name}</Text>
-          </View>
-          <View style={styles.metaWrapper}>
+          </View>}
+          {details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Local common name</Text>
             <Text style={styles.valueLable}>{details.specie_name}</Text>
-          </View>
+          </View>}
           <View style={styles.dimensionWrapper}>
             <View style={styles.iconWrapper}>
               <Text style={styles.iconTitle}>Height</Text>
