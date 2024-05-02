@@ -4,14 +4,13 @@ import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import InterventionIconSwitch from './InterventionIconSwitch'
 import { Colors, Typography } from 'src/utils/constants'
 import EditInterventionIcon from 'assets/images/svg/EditInterventionIcon.svg'
-import SyncIcon from 'assets/images/svg/SyncIcon.svg'
+import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import InterventionCardHeader from './InterventionCardHeader'
 import InterventionMetaInfo from './InterventionMetaInfo'
 
-const newDate = new Date().getTime()
 
 interface Props {
   item: InterventionData
@@ -28,16 +27,16 @@ const InterventionCard = (props: Props) => {
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
         <InterventionIconSwitch icon={item.intervention_type} />
-        {item.is_complete && (
+        {!item.is_complete? (
           <View style={styles.incompleteTagWrapper}>
             <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
           </View>
-        )}
+        ) : null}
         <View style={styles.sectionWrapper}>
           <InterventionCardHeader item={item} />
           <View style={styles.metaWrapper}>
             <View style={styles.syncIconWrapper}>
-              {newDate ? (
+              {item.status !== "SYNCED" ? (
                 <UnSyncIcon width={15} height={15} />
               ) : (
                 <SyncIcon width={15} height={15} />

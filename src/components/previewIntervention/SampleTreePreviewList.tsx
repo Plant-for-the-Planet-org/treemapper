@@ -19,10 +19,11 @@ interface Props {
   sampleTress: SampleTree[]
   interventionId: string
   hasSampleTress: boolean
+  isSynced: boolean
 }
 
 const SampleTreePreviewList = (props: Props) => {
-  const { sampleTress, interventionId, hasSampleTress } = props
+  const { sampleTress, interventionId, hasSampleTress, isSynced } = props
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
@@ -32,7 +33,7 @@ const SampleTreePreviewList = (props: Props) => {
   }
 
   const editTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id })
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced:isSynced  })
   }
 
 
@@ -47,11 +48,11 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <PenIcon width={30} height={30} />
             </TouchableOpacity>
-            {hasSampleTress && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {hasSampleTress && !isSynced? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               deleteTreeDetails(details.tree_id)
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity>}
+            </TouchableOpacity>: null}
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>

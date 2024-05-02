@@ -65,6 +65,7 @@ type TotalTreesView = {
 type ReviewTreeDetailsView = {
   detailsCompleted: boolean
   interventionID?: string
+  synced?: boolean
 }
 
 type SearchSpeciesView = {

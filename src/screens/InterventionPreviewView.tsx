@@ -107,10 +107,17 @@ const InterventionPreviewView = () => {
 
   }
 
+  const renderRightContainer = () => {
+    if (InterventionData.status === 'SYNCED') {
+      return null
+    }
+    return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <Header label="Review" rightComponet={<InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />} />
+        <Header label="Review" rightComponet={renderRightContainer()} />
         <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} />
         <InterventionBasicInfo
           title={InterventionData.intervention_title}
@@ -123,8 +130,7 @@ const InterventionPreviewView = () => {
           <SampleTreePreviewList
             sampleTress={InterventionData.sample_trees}
             interventionId={InterventionData.intervention_id}
-            hasSampleTress={InterventionData.has_sample_trees}
-          />
+            hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
         <InterventionAdditionalData data={InterventionData.additional_data} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />

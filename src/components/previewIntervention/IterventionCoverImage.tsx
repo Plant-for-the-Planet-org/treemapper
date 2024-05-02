@@ -57,9 +57,9 @@ const IterventionCoverImage = (props: Props) => {
   const uri  = isCDN?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}`:image
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+      {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
         <PenIcon width={30} height={30} />
-      </TouchableOpacity>
+      </TouchableOpacity>}
       {image.length !== 0 ? <Image source={{ uri: uri }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} >
         <Text style={styles.label}>Default Image {'\n'} For Intervention</Text></View>}
     </View>

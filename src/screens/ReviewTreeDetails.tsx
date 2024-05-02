@@ -50,6 +50,8 @@ const ReviewTreeDetails = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
     const detailsCompleted = route.params && route.params.detailsCompleted
     const editTree = route.params && route.params.interventionID
+    const synced = route.params && route.params.synced
+
     const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
     const realm = useRealm()
@@ -184,8 +186,7 @@ const ReviewTreeDetails = () => {
     if (!treeDetails) {
         return null
     }
-
-    const headerLabel = editTree ? "Edit Tree Details" : `Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
+    const headerLabel = editTree ? "Tree Details" : `Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
     const showEdit = editTree || treeDetails.tree_id
     return (
         <SafeAreaView style={styles.container}>
@@ -193,7 +194,7 @@ const ReviewTreeDetails = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={headerLabel} />
-                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
+                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false}  />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
@@ -202,7 +203,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
-                            {editTree && <PenIcon style={styles.editIconWrapper} />}
+                            {editTree && !synced? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -214,7 +215,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_height}
                             </Text>
-                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && !synced? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -226,7 +227,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_diameter}
                             </Text>
-                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && !synced? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -237,7 +238,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {timestampToBasicDate(treeDetails.plantation_date)}
                             </Text>
-                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && !synced? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -248,7 +249,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.valueLable}>
                                 {treeDetails.tag_id || 'Not Tagged'}
                             </Text>
-                            {showEdit && <PenIcon style={styles.editIconWrapper} />}
+                            {showEdit && !synced? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
