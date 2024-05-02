@@ -136,9 +136,10 @@ const AddOptionModal = (props: Props) => {
             height,
             width,
             position: 'absolute',
-            zIndex:10
+            zIndex:10,
+            left:-width+100,
+            top:-height+100
           }}
-          activeOpacity={1}
         />
       )}
       <Animated.View
