@@ -8,7 +8,7 @@ interface FinalObject {
   }
 }
 
-export const groupIntervention = (data: InterventionData[]) => {
+export const groupIntervention = (data: any[] | InterventionData[]) => {
   const finalObject: FinalObject = {}
   finalObject['All'] = {
     count: data.length,

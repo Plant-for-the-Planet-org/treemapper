@@ -1,32 +1,76 @@
 import { StyleSheet, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import FreeUpSaceButton from 'src/components/intervention/FreeUpSaceButton'
 import InterventionList from 'src/components/intervention/InterventionList'
-import { useQuery } from '@realm/react'
+import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 
 const InterventionView = () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-expect-error
-  const interventionData: InterventionData[] = useQuery<InterventionData[]>(
-    RealmSchema.Intervention,
-    data => {
-      return data
-    },
-  )
+  const [selectedLabel, setSlectedLabel] = useState('all')
+  const [allIntervention, setInterventionData] = useState<InterventionData[] | any[]>([])
+  const { intervention_updated } = useSelector((state: RootState) => state.appState)
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [loading, setLoading] = useState(true)
+  const realm = useRealm()
+
+
+  useEffect(() => {
+      getReleatedIntervention()    
+  }, [currentPage,selectedLabel])
+
+  const getReleatedIntervention = () => {
+    const query = selectedLabel === 'incomplete' ? 'is_complete=="false"' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
+    const start = currentPage * 20;
+    const end = start + 20;
+    const objects = realm
+      .objects(RealmSchema.Intervention)
+      .filtered(query)
+      .slice(start, end);
+    setInterventionData([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if(!loading){
+      refreshHandler()
+    }
+  }, [intervention_updated])
+
+
+  const handlePageIncrement = () => {
+    setCurrentPage(currentPage + 1)
+  }
+
+  const handleLable = (s: string) => {
+    setInterventionData([])
+    setSlectedLabel(s)
+    setCurrentPage(0)
+  }
+
+  const refreshHandler = () => {
+    setLoading(true)
+    setInterventionData([])
+    setCurrentPage(0);
+  }
+
+
+
   return (
     <SafeAreaView style={styles.cotnainer}>
       <Header
         label=""
         showBackIcon={false}
-        rightComponet={<FreeUpSaceButton />}
+        rightComponet={allIntervention.length ? <FreeUpSaceButton /> : null}
       />
       <View style={styles.section}>
-        <InterventionList interventionData={interventionData} />
+        <InterventionList interventionData={allIntervention} setSlectedLabel={handleLable} selectedLabel={selectedLabel} handlePageIncrement={handlePageIncrement} refreshHandler={refreshHandler} loading={loading} />
       </View>
     </SafeAreaView>
   )

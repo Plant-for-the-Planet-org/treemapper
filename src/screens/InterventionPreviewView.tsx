@@ -30,6 +30,7 @@ import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
+import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -53,6 +54,7 @@ const InterventionPreviewView = () => {
       setInterventoinId(finalData.intervention_id)
       dispatch(resetRegisterationForm())
       dispatch(resetSampleTreeform())
+      dispatch(updateNewIntervention())
     } else {
       setInterventoinId(route.params.intervention)
     }
@@ -76,6 +78,7 @@ const InterventionPreviewView = () => {
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
     dispatch(resetSampleTreeform())
+    dispatch(updateNewIntervention())
     const { geoJSON } = makeInterventionGeoJson(
       InterventionData.location_type,
       JSON.parse(InterventionData.location.coordinates),
@@ -92,6 +95,7 @@ const InterventionPreviewView = () => {
   }
 
   const resetData = () => {
+    dispatch(updateNewIntervention())
     navigation.popToTop()
   }
 

@@ -10,6 +10,7 @@ export interface AppInitialState {
   speciesSync: boolean
   serverInterventionAdded: boolean,
   lastServerInterventionpage: string
+  intervention_updated: number
 }
 
 export interface MapBoundSlice {
@@ -198,7 +199,7 @@ export interface InterventionLocation {
 
 export interface InterventionData {
   intervention_id: string
-  intervention_key: string
+  intervention_key: INTERVENTION_TYPE
   intervention_title: string
   intervention_date: number
   project_id: string

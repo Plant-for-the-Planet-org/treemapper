@@ -1,5 +1,5 @@
 import { RefreshControl, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { FlashList } from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -8,29 +8,23 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { groupInterventionList } from 'src/utils/helpers/interventionHelper/groupInterventions'
 import { Typography } from 'src/utils/constants'
 
 interface Props {
   interventionData: InterventionData[] | any[]
+  selectedLabel: string
+  setSlectedLabel: (s: string) => void
+  handlePageIncrement: () => void
+  loading: boolean
+  refreshHandler: () => void
 }
 
 const InterventionList = (props: Props) => {
-  const { interventionData } = props
-  const [selectedList, setSelectedList] = useState<InterventionData[]>([])
-  const [selectedLabel, setSlectedLabel] = useState('all')
-  const [loading, setLoading] = useState(false)
+  const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
 
-  useEffect(() => {
-    getAllInterventions()
-  }, [selectedLabel,interventionData ])
 
-  const getAllInterventions = () => {
-    setLoading(true)
-    const finalData = groupInterventionList(interventionData, selectedLabel)
-    setSelectedList(JSON.parse(JSON.stringify(finalData)))
-    setLoading(false)
-  }
+
+
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const handleNavigation = (item: InterventionData) => {
@@ -41,13 +35,14 @@ const InterventionList = (props: Props) => {
     return (
       <View style={styles.emptyBox}>
         <Text style={styles.emptyLable}>Start adding intervention</Text>
+        <Text style={styles.emptyLable}>Some placeholder to show when there is no intervention</Text>
       </View>
     )
   }
 
   return (
     <FlashList
-      data={selectedList}
+      data={interventionData}
       renderItem={({ item }) => (
         <InterventionCard
           item={item}
@@ -59,17 +54,18 @@ const InterventionList = (props: Props) => {
       refreshControl={
         <RefreshControl
           refreshing={loading}
-          onRefresh={getAllInterventions}
+          onRefresh={refreshHandler}
         />}
       ListFooterComponent={<View style={styles.footerWrapper} />}
       ListEmptyComponent={() => (emptyInterventoin())}
       ListHeaderComponent={
         <InterventionHeaderSelector
-          data={interventionData}
           selectedLabel={selectedLabel}
           setSlectedLabel={setSlectedLabel}
         />
       }
+      onEndReachedThreshold={0.1}
+      onEndReached={handlePageIncrement}
     />
   )
 }
@@ -88,6 +84,9 @@ const styles = StyleSheet.create({
   },
   emptyLable: {
     fontSize: 18,
-    fontFamily: Typography.FONT_FAMILY_BOLD
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    textAlign: 'center',
+    marginHorizontal: 50,
+    marginVertical: 20
   }
 })

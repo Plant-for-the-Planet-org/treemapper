@@ -5,22 +5,38 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text } from 'react-native'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
-import { InterventionData } from 'src/types/interface/slice.interface'
 import { groupIntervention } from 'src/utils/helpers/interventionHelper/groupInterventions'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 
 interface Props {
-  data: InterventionData[]
   selectedLabel: string
   setSlectedLabel: (t: string) => void
 }
 
 const InterventionHeaderList = (props: Props) => {
-  const { data, selectedLabel, setSlectedLabel } = props
-  const FinalData = groupIntervention(data)
+  const { selectedLabel, setSlectedLabel } = props
+  const [headerData, setHeaderData] = useState([])
+  const { lastServerInterventionpage, intervention_updated } = useSelector((state: RootState) => state.appState)
+
+
+  const realm = useRealm()
+  useEffect(() => {
+    const objects = realm
+      .objects(RealmSchema.Intervention)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
+    const FinalData = groupIntervention(objects)
+    setHeaderData(FinalData)
+  }, [lastServerInterventionpage, intervention_updated])
+
+
   const headerChip = (item: any) => {
     if (item.count === 0) {
       return null
@@ -39,14 +55,14 @@ const InterventionHeaderList = (props: Props) => {
           style={[
             styles.label,
             { color: selectedStyle.color },
-          ]}>{item.key==='all'?`${item.label}  ${item.count}`:`${item.count}  ${item.label}`}</Text>
+          ]}>{item.key === 'all' ? `${item.label}  ${item.count}` : `${item.count}  ${item.label}`}</Text>
       </TouchableOpacity>
     )
   }
   return (
     <View>
       <FlatList
-        data={FinalData}
+        data={headerData}
         renderItem={({ item }) => headerChip(item)}
         horizontal
         contentContainerStyle={styles.container}
