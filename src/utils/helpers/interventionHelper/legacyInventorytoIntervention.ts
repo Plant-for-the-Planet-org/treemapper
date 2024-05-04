@@ -44,7 +44,8 @@ const interventionTitlteSwitch = (t: string): {
 const getGeometry = (g: any) => {
     return {
         type: g.type,
-        coordinates: g.type === 'Point' ? JSON.stringify([g.coordinates]) : JSON.stringify(g.coordinates[0])
+        coordinates: g.type === 'Point' ? JSON.stringify([g.coordinates]) : JSON.stringify(g.coordinates[0]),
+        geoSpatail: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
     }
 }
 
@@ -74,7 +75,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         device_longitude: d.deviceLocation.coordinates[0],
         location_accuracy: "",
         image_url: "",
-        cdn_image_url:d.coordinates[0].image || "",
+        cdn_image_url: d.coordinates[0].image || "",
         specie_name: d.scientificName || '',
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
@@ -129,11 +130,11 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
     const extraData = interventionTitlteSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
-    if (extraData.key!=='single-tree-registration') {
+    if (extraData.key !== 'single-tree-registration') {
         data.samplePlantLocations.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
         });
-    }else{
+    } else {
         sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : ''
@@ -161,7 +162,11 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         additional_data: addtionData,
         meta_data: metaData,
         status: 'SYNCED',
-        hid: data.hid || ''
+        hid: data.hid || '',
+        coords: {
+            type: 'Point',
+            coordinates: geometryData.geoSpatail
+        }
     }
     return finalData
 }

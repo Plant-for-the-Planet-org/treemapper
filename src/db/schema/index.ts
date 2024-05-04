@@ -18,6 +18,7 @@ import {InterventionSpecies} from './interventionSpecies'
 import {User} from './user'
 import {Intervention} from './intervention' 
 import {YesNo} from './yesOrNo'
+import { GeoSpatial } from './geoSpatial'
 
 export default [
   Dropdown,
@@ -39,5 +40,6 @@ export default [
   InterventionSpecies,
   User,
   YesNo,
-  Intervention
+  Intervention,
+  GeoSpatial
 ]

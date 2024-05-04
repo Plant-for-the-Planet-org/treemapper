@@ -18,5 +18,6 @@ export enum RealmSchema {
   Element = 'Element',
   Form = 'Form',
   Metadata = 'Metadata',
-  InterventionSpecies = 'InterventionSpecies'
+  InterventionSpecies = 'InterventionSpecies',
+  GeoSpatial = 'GeoSpatial'
 }

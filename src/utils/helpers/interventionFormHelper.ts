@@ -53,7 +53,11 @@ export const convertFormDataToIntervention = (
     additional_data: additional_data,
     meta_data: '',
     status: 'NOT_SYNCED',
-    hid: ''
+    hid: '',
+    coords: {
+      type: 'Point',
+      coordinates: data.coordinates[0]
+    }
   }
   return finalData
 }

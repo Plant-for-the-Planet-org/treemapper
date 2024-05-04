@@ -220,5 +220,9 @@ export interface InterventionData {
   meta_data: string
   last_updated_at?: number
   status: INTERVENTION_STATUS,
-  hid: string
+  hid: string,
+  coords: {
+    type: 'Point',
+    coordinates: number[]
+  }
 }
