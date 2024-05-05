@@ -26,7 +26,6 @@ const PolygonShapeSource = (props: Props) => {
       shape={geoJSON}
       onPress={(e) => {
         if (e && e.features && e.features[0]) {
-          console.log(e.features[0].properties.id)
           onShapeSourcePress(e.features[0].properties.id || '')
         }
       }}>

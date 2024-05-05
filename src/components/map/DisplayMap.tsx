@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 import { useDispatch, useSelector } from 'react-redux'
@@ -27,7 +27,10 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 const DisplayMap = () => {
   const realm = useRealm()
   const { requestLocationPermission } = useLocationPermission()
-
+  const [geoJSON, setGeoJSON] = useState({
+    type: 'FeatureCollection',
+    features:  [],
+  })
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -48,26 +51,36 @@ const DisplayMap = () => {
 
   // console.log(JSON.stringify(interventionData, null, 2))
 
-  const feature = interventionData.map((el: InterventionData) => {
-    const result = makeInterventionGeoJson(
-      el.location.type,
-      JSON.parse(el.location.coordinates),
-      el.intervention_id,
-      el.intervention_key
-    )
-    return result.geoJSON
-  })
+  useEffect(() => {
+    if (interventionData && interventionData.length) {
+      handleGeoJSONData(interventionData)
+    }
+  }, [interventionData])
 
-  const geoJSON = {
-    type: 'FeatureCollection',
-    features: feature.length ? [...feature] : [],
-  }
+
+
+
 
   useEffect(() => {
     requestLocationPermission()
   }, [])
 
 
+  const handleGeoJSONData = (d: InterventionData[] | any) => {
+    const feature = d.map((el: InterventionData) => {
+      const result = makeInterventionGeoJson(
+        el.location.type,
+        JSON.parse(el.location.coordinates),
+        el.intervention_id,
+        el.intervention_key
+      )
+      return result.geoJSON
+    })
+    setGeoJSON({
+      type: 'FeatureCollection',
+      features: feature.length ? [...feature] : [],
+    })
+  }
 
 
   useEffect(() => {
@@ -120,6 +133,16 @@ const DisplayMap = () => {
   const handleMarkerPress = (i: number) => {
     dispatch(updateActiveIndex(i))
   }
+
+  const renderIcons = useCallback(
+    () => {
+      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }} id={'iconset'}>
+        <React.Fragment />
+      </MapLibreGL.Images>
+    },
+    [],
+  )
+  
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -130,9 +153,7 @@ const DisplayMap = () => {
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
-      <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }} id={'iconset'}>
-        <React.Fragment />
-      </MapLibreGL.Images>
+      {renderIcons()}
       <PolygonShapeSource geoJSON={geoJSON}
         onShapeSourcePress={setSelectedGeoJson} />
       <SiteMapSource />
