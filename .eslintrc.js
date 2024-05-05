@@ -17,7 +17,8 @@ module.exports = {
     rules: {
       'react/no-unescaped-entities': 0,
       'react-native/no-inline-styles': 0,
-      "@typescript-eslint/no-explicit-any": ["off"]
+      "@typescript-eslint/no-explicit-any": ["off"],
+      "@typescript-eslint/no-var-requires": "off"
     },
     ignorePatterns: [
       '**/__mocks__/*.ts',

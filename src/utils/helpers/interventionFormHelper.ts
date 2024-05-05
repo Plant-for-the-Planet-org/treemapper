@@ -66,6 +66,7 @@ export const makeInterventionGeoJson = (
   type: string,
   coordinates: Array<number[]>,
   id: string,
+  key?: string
 ) => {
   const coord: Array<number[]> = coordinates
   switch (type) {
@@ -75,6 +76,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
+            key: key || '',
           },
           geometry: {
             type: 'Point',
@@ -90,6 +92,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
+            key: key || '',
           },
           geometry: {
             type: 'Polygon',

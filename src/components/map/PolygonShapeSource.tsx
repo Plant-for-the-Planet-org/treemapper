@@ -3,6 +3,7 @@ import React from 'react'
 import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 
+
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
   lineOpacity: 0.5,
@@ -10,6 +11,7 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineColor: Colors.PRIMARY
 }
 const fillStyle = { fillOpacity: 0.3, fillColor: Colors.PRIMARY }
+const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 
 interface Props {
   geoJSON: any
@@ -31,11 +33,29 @@ const PolygonShapeSource = (props: Props) => {
       <MapLibreGL.FillLayer
         id={'polyFill'}
         style={fillStyle}
-      />
+        filter={['all', ['>=', ['zoom'], 14], ['==', ['geometry-type'], 'Polygon']]}
+        />
       <MapLibreGL.LineLayer
         id={'polyline'}
         style={polyline}
+        filter={['all', ['>=', ['zoom'], 14], ['==', ['geometry-type'], 'Polygon']]}
+        />
+      <MapLibreGL.SymbolLayer id={'iconset'} style={{
+        iconImage: [
+          'match',
+          ['get', 'key'],
+          'single-tree-registration',
+          'single-tree-registration',
+          'multi-tree-registration',
+          'multi-tree-registration',
+          'fire-patrol',
+          'fire-patrol',
+          'single-tree-registration',
+        ]
+      }}
+        filter={['<', ['zoom'], 14]}
       />
+      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} filter={["==", ["geometry-type"], "Point"]}/>
     </MapLibreGL.ShapeSource>
   )
 }

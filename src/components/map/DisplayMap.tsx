@@ -16,6 +16,11 @@ import bbox from '@turf/bbox'
 import SiteMapSource from './SiteMapSource'
 import PolygonShapeSource from './PolygonShapeSource'
 
+
+const MultiTreePin = require('assets/images/icons/MultTreePin.png');
+const SingleTreePin = require('assets/images/icons/SingleTreePin.png');
+const RemovalPin = require('assets/images/icons/RemovalPin.png');
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
@@ -48,6 +53,7 @@ const DisplayMap = () => {
       el.location.type,
       JSON.parse(el.location.coordinates),
       el.intervention_id,
+      el.intervention_key
     )
     return result.geoJSON
   })
@@ -61,7 +67,7 @@ const DisplayMap = () => {
     requestLocationPermission()
   }, [])
 
-  
+
 
 
   useEffect(() => {
@@ -114,7 +120,6 @@ const DisplayMap = () => {
   const handleMarkerPress = (i: number) => {
     dispatch(updateActiveIndex(i))
   }
-
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -125,6 +130,9 @@ const DisplayMap = () => {
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
+      <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }} id={'iconset'}>
+        <React.Fragment />
+      </MapLibreGL.Images>
       <PolygonShapeSource geoJSON={geoJSON}
         onShapeSourcePress={setSelectedGeoJson} />
       <SiteMapSource />

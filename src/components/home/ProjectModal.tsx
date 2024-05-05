@@ -116,8 +116,7 @@ const ProjectModal = (props: Props) => {
         id: '',
       }),
     )
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
+    const allProjects = realm.objects(RealmSchema.Projects)
     setProjectSites(allProjects[data.index].sites)
   }
 
