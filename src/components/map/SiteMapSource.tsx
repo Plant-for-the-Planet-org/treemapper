@@ -17,11 +17,15 @@ const polyline: StyleProp<LineLayerStyle> = {
 const SiteMapSource = () => {
   const [geoJSON, setGeoJSON] = useState<any[]>([])
   const realm = useRealm()
-  const { currentProject, projectSite } = useSelector(
+  const { currentProject, projectSite, projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
 
   useEffect(() => {
+    if(!projectAdded){
+      setGeoJSON([])
+      return;
+    }
     if(currentProject && currentProject.projectId===''){
       return
     }
@@ -31,7 +35,7 @@ const SiteMapSource = () => {
     )
     extractSiteCoordinates(ProjectData)
 
-  }, [projectSite,currentProject])
+  }, [projectSite,currentProject, projectAdded])
 
   const extractSiteCoordinates = (data: ProjectInterface) => {
     try {
