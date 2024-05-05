@@ -5,7 +5,7 @@ import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import CustomDropDownPicker from '../common/CustomDropDown'
-import { useQuery } from '@realm/react'
+import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { Entypo } from '@expo/vector-icons'
 import bbox from '@turf/bbox'
@@ -36,12 +36,10 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
-  const { currentProject, projectSite } = useSelector(
+  const realm = useRealm()
+  const { currentProject, projectSite, projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
-  const allProjects = useQuery(RealmSchema.Projects, data => {
-    return data
-  })
 
   const dispatch = useDispatch()
 
@@ -72,10 +70,14 @@ const ProjectModal = (props: Props) => {
   }
 
   useEffect(() => {
+    const allProjects = realm.objects(RealmSchema.Projects)
     if (allProjects && projectData.length === 0) {
-      projectDataDropDown(allProjects)
+      projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
+    } else {
+      projectDataDropDown([])
+
     }
-  }, [allProjects])
+  }, [projectAdded])
 
   const handlSiteSelection = (id: string, item: any) => {
     dispatch(
@@ -123,6 +125,7 @@ const ProjectModal = (props: Props) => {
     <Modal
       style={styles.container}
       isVisible={isVisible}
+      backdropColor='transparent'
       onBackdropPress={toogleModal}>
       <View style={styles.sectionWrapper}>
         <View style={styles.contnetWrapper}>

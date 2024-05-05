@@ -8,13 +8,13 @@ import { useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { InterventionData } from 'src/types/interface/slice.interface'
-import MapShapeSource from './MapShapeSource'
 import MapMarkers from './MapMarkers'
 import { updateActiveIndex, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import bbox from '@turf/bbox'
 import SiteMapSource from './SiteMapSource'
+import PolygonShapeSource from './PolygonShapeSource'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -61,6 +61,7 @@ const DisplayMap = () => {
     requestLocationPermission()
   }, [])
 
+  
 
 
   useEffect(() => {
@@ -79,7 +80,7 @@ const DisplayMap = () => {
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
-      zoomLevel: 16,
+      zoomLevel: 20,
       animationDuration: 1000,
     })
   }
@@ -124,10 +125,8 @@ const DisplayMap = () => {
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
-      <MapShapeSource
-        geoJSON={geoJSON.features}
-        onShapeSourcePress={setSelectedGeoJson}
-      />
+      <PolygonShapeSource geoJSON={geoJSON}
+        onShapeSourcePress={setSelectedGeoJson} />
       <SiteMapSource />
       {selectedIntervention && (
         <MapMarkers

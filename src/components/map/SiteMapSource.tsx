@@ -31,7 +31,7 @@ const SiteMapSource = () => {
     )
     extractSiteCoordinates(ProjectData)
 
-  }, [projectSite])
+  }, [projectSite,currentProject])
 
   const extractSiteCoordinates = (data: ProjectInterface) => {
     try {
@@ -81,15 +81,15 @@ const SiteMapSource = () => {
     return null
   }
   return (
-    <>
-      {geoJSON.map((feature, i) => {
-        return (
-          <MapLibreGL.ShapeSource key={i} id={String(i)} shape={feature}>
-            <MapLibreGL.LineLayer id={'polyline' + i} style={polyline} />
-          </MapLibreGL.ShapeSource>
-        )
-      })}
-    </>
+    <MapLibreGL.ShapeSource id={'projectSites'} shape={{
+      type: 'FeatureCollection',
+      features: geoJSON.length ? [...geoJSON] : [],
+    }}>
+    <MapLibreGL.LineLayer
+      id={'projectSitesPolyline'}
+      style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
+    />
+  </MapLibreGL.ShapeSource>
   )
 }
 
