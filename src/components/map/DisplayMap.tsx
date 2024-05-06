@@ -136,7 +136,7 @@ const DisplayMap = () => {
 
   const renderIcons = useCallback(
     () => {
-      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }} id={'iconset'}>
+      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }}>
         <React.Fragment />
       </MapLibreGL.Images>
     },
