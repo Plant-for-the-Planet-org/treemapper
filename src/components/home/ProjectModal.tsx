@@ -1,6 +1,5 @@
-import { FlatList, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import Modal from 'react-native-modal'
+import {  StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
@@ -17,6 +16,7 @@ import {
 } from 'src/store/slice/projectStateSlice'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
+import { BottomSheetModal, BottomSheetView, useBottomSheetModal,BottomSheetFlatList  } from '@gorhom/bottom-sheet'
 
 interface Props {
   isVisible: boolean
@@ -24,6 +24,12 @@ interface Props {
 }
 
 const ProjectModal = (props: Props) => {
+  // ref
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const {dismiss}  = useBottomSheetModal()
+  // variables
+  const snapPoints = useMemo(() => ['70%'], []);
+
   const { isVisible, toogleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSies, setProjectSites] = useState<any>([])
@@ -95,6 +101,7 @@ const ProjectModal = (props: Props) => {
         key: 'DISPLAY_MAP',
       }),
     )
+    dismiss()
     toogleModal()
   }
 
@@ -120,72 +127,92 @@ const ProjectModal = (props: Props) => {
     setProjectSites(allProjects[data.index].sites)
   }
 
-  return (
-    <Modal
-      style={styles.container}
-      isVisible={isVisible}
-      backdropColor='transparent'
-      onBackdropPress={toogleModal}>
-      <View style={styles.sectionWrapper}>
-        <View style={styles.contnetWrapper}>
-          <View style={styles.header}>
-            <ZoomSiteIcon style={styles.iconWrapper} />
-            <Text style={styles.headerLable}>Zoom To Site</Text>
-            <View style={styles.divider} />
-            <TouchableOpacity style={styles.iconWrapper} onPress={toogleModal} >
-              <CloseIcon />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.projectLabel}>Select Project</Text>
-          <CustomDropDownPicker
-            label={'Project'}
-            data={projectData}
-            onSelect={handleProjectSelction}
-            selectedValue={selectedProject}
-          />
+  useEffect(() => {
+    if(isVisible){
+      handlePresentModalPress()
+    }
+  }, [isVisible])
 
-          <Text style={styles.projectLabel}>Select Site</Text>
-          <View style={styles.siteContainer}>
-            <FlatList
-              data={projectSies}
-              renderItem={({ item, index }) => {
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.siteCard,
-                      {
-                        borderBottomWidth:
-                          index < projectSies.length - 1 ? 1 : 0,
-                      },
-                    ]}
-                    key={index}
-                    onPress={() => {
-                      handlSiteSelection(item.id, item)
-                    }}>
-                    <Text style={styles.siteCardLabel}>{item.name}</Text>
-                    <View style={styles.divider} />
-                    {projectSite.siteId === item.id && (
-                      <Entypo size={16} name="check" color={Colors.PRIMARY} />
-                    )}
-                  </TouchableOpacity>
-                )
-              }}
-              style={styles.siteWrapper}
-              ListEmptyComponent={() => {
-                return (
-                  <View style={styles.siteCard}>
-                    <Text style={styles.siteCardLabel}>
-                      No Sites found for this project
-                    </Text>
-                    <View style={styles.divider} />
-                  </View>
-                )
-              }}
+  // callbacks
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const closeModal = ()=>{
+    toogleModal()
+    dismiss();
+  }
+
+  return (
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      index={0}
+      detached
+      enableContentPanningGesture={false}
+      snapPoints={snapPoints}
+    >
+      <BottomSheetView style={styles.container} >
+
+        <View style={styles.sectionWrapper}>
+          <View style={styles.contnetWrapper}>
+            <View style={styles.header}>
+              <ZoomSiteIcon style={styles.iconWrapper} />
+              <Text style={styles.headerLable}>Zoom To Site</Text>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
+                <CloseIcon />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.projectLabel}>Select Project</Text>
+            <CustomDropDownPicker
+              label={'Project'}
+              data={projectData}
+              onSelect={handleProjectSelction}
+              selectedValue={selectedProject}
             />
+
+            <Text style={styles.projectLabel}>Select Site</Text>
+            <View style={styles.siteContainer}>
+              <BottomSheetFlatList
+                data={projectSies}
+                renderItem={({ item, index }:{item:any, index: number}) => {
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.siteCard,
+                        {
+                          borderBottomWidth:
+                            index < projectSies.length - 1 ? 1 : 0,
+                        },
+                      ]}
+                      key={index}
+                      onPress={() => {
+                        handlSiteSelection(item.id, item)
+                      }}>
+                      <Text style={styles.siteCardLabel}>{item.name}</Text>
+                      <View style={styles.divider} />
+                      {projectSite.siteId === item.id && (
+                        <Entypo size={16} name="check" color={Colors.PRIMARY} />
+                      )}
+                    </TouchableOpacity>
+                  )
+                }}
+                style={styles.siteWrapper}
+                ListEmptyComponent={() => {
+                  return (
+                    <View style={styles.siteCard}>
+                      <Text style={styles.siteCardLabel}>
+                        No Sites found for this project
+                      </Text>
+                      <View style={styles.divider} />
+                    </View>
+                  )
+                }}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </BottomSheetView>
+    </BottomSheetModal>
   )
 }
 
@@ -198,13 +225,10 @@ const styles = StyleSheet.create({
   },
   sectionWrapper: {
     width: '100%',
-    position: 'absolute',
-    bottom: 0,
     backgroundColor: Colors.WHITE,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
-    height: '60%',
   },
   contnetWrapper: {
     width: '95%',
@@ -249,15 +273,16 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
     marginLeft: '5%',
+    height:'50%'
   },
   siteWrapper: {
+    height:'100%',
     width: '90%',
     backgroundColor: Colors.GRAY_LIGHTEST + '1A',
     borderRadius: 10,
-    maxHeight: 200,
     paddingVertical: 5,
   },
-  siteCard: {
+  siteCard: { 
     width: '90%',
     height: 50,
     flexDirection: 'row',

@@ -10,10 +10,11 @@ import MapLibreGL from '@maplibre/maplibre-react-native'
 import { Auth0Provider } from 'react-native-auth0'
 import { RealmProvider } from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger'
-import 'react-native-gesture-handler'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-get-random-values'
 import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 
 MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
@@ -21,18 +22,22 @@ MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar translucent/>
+      <StatusBar translucent />
       <Auth0Provider
         domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>
         <RealmProvider>
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-              <ToastProvider>
-                <NavigationContainer>
-                  <RootNavigator />
-                </NavigationContainer>
-              </ToastProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <BottomSheetModalProvider>
+                  <ToastProvider>
+                    <NavigationContainer>
+                      <RootNavigator />
+                    </NavigationContainer>
+                  </ToastProvider>
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
             </PersistGate>
           </Provider>
         </RealmProvider>
