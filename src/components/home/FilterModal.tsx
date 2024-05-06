@@ -1,29 +1,55 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
-import Modal from 'react-native-modal'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import Switch from '../common/Switch'
 import { Colors } from 'src/utils/constants'
+import { BottomSheetModal, BottomSheetView, useBottomSheetModal  } from '@gorhom/bottom-sheet'
+
 interface Props {
   isVisible: boolean
   toogleModal: () => void
 }
 
 const FilterModal = (props: Props) => {
+    // ref
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const {dismiss}  = useBottomSheetModal()
+    // variables
+    const snapPoints = useMemo(() => ['40%'], []);
   const { isVisible, toogleModal } = props
+
+  useEffect(() => {
+    if(isVisible){
+      handlePresentModalPress()
+    }
+  }, [isVisible])
+
+  // callbacks
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const closeModal = ()=>{
+    toogleModal()
+    dismiss();
+  }
+
   return (
-    <Modal
-      style={styles.container}
-      isVisible={isVisible}
-      onBackdropPress={toogleModal}>
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      index={0}
+      detached
+      enableContentPanningGesture={false}
+      snapPoints={snapPoints}
+    >
+      <BottomSheetView style={styles.container} >
       <View style={styles.sectionWrapper}>
         <View style={styles.contnetWrapper}>
           <View style={styles.header}>
             <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
             <Text style={styles.headerLable}>Filters</Text>
             <View style={styles.divider} />
-            <TouchableOpacity style={styles.iconWrapper} onPress={toogleModal}>
+            <TouchableOpacity style={styles.iconWrapper} onPress={closeModal}>
               <CloseIcon />
             </TouchableOpacity>
           </View>
@@ -45,8 +71,8 @@ const FilterModal = (props: Props) => {
           <View />
         </View>
       </View>
-    </Modal>
-  )
+      </BottomSheetView>
+    </BottomSheetModal>  )
 }
 
 export default FilterModal
