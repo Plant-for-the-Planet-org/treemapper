@@ -9,12 +9,15 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import MapMarkers from './MapMarkers'
-import { updateActiveIndex, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
+import { updateActiveIndex, updateActiveInterventionIndex, updateAdjacentIntervention, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import bbox from '@turf/bbox'
 import SiteMapSource from './SiteMapSource'
 import PolygonShapeSource from './PolygonShapeSource'
+import { GeoBox } from 'realm'
+import ClusterdShapSource from './ClusterdShapSource'
+import SingleInterventionSource from './SingleInterventionSource'
 
 
 const MultiTreePin = require('assets/images/icons/MultTreePin.png');
@@ -31,16 +34,21 @@ const DisplayMap = () => {
     type: 'FeatureCollection',
     features: [],
   })
+  const [overlayGeoJSON, setOverlayGeoJSON] = useState({
+    type: 'FeatureCollection',
+    features: [],
+  })
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { selectedIntervention, activeIndex } = useSelector(
+  const { selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
+  const mapRef = useRef<MapLibreGL.MapView>(null)
 
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
@@ -122,6 +130,13 @@ const DisplayMap = () => {
     }
   }
 
+
+  useEffect(() => {
+    if (showOverlay) {
+      handleActiveInterventionChange()
+    }
+  }, [showOverlay, activeInterventionIndex])
+
   const setSelectedGeoJson = (id: string) => {
     const intervention = realm.objectForPrimaryKey<InterventionData>(
       RealmSchema.Intervention,
@@ -129,9 +144,88 @@ const DisplayMap = () => {
     )
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
+    getBoundsAndSetIntervention(bounds, intervention)
     dispatch(updateMapBounds({ bodunds: bounds, key: 'DISPLAY_MAP' }))
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }
+
+  const setActiveIntervetnion = (id: string) => {
+    const index = adjacentIntervention.findIndex(el => el.intervention_id === id)
+    dispatch(updateActiveInterventionIndex(index))
+  }
+
+  const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
+    try {
+      const boxBounds: GeoBox = {
+        bottomLeft: [bound[0], bound[1]],
+        topRight: [bound[2], bound[3]],
+      };
+      const data = realm.objects<InterventionData>(RealmSchema.Intervention).filtered('coords geoWithin $0', boxBounds);
+      const feature = []
+      const updatedData = JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
+      currentIntervention.active = true;
+      updatedData.unshift(JSON.parse(JSON.stringify(currentIntervention)))
+      updatedData.forEach((el: InterventionData) => {
+        if (el.location_type === 'Polygon') {
+          const result = makeInterventionGeoJson(
+            el.location.type,
+            JSON.parse(el.location.coordinates),
+            el.intervention_id,
+            {
+              active: el.active
+            }
+          )
+          feature.push(result.geoJSON)
+        }
+      })
+      setOverlayGeoJSON({
+        type: 'FeatureCollection',
+        features: [...feature],
+      })
+      dispatch(updateAdjacentIntervention(updatedData))
+    } catch (err) {
+      console.log("errorr rerr", err)
+    }
+  }
+
+  const handleActiveInterventionChange = () => {
+    const intervention = adjacentIntervention[activeInterventionIndex];
+    if (intervention && !intervention.location_type || !intervention) {
+      return
+    }
+    const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
+    const bounds = bbox(geoJSON)
+    dispatch(updateMapBounds({ bodunds: bounds, key: 'DISPLAY_MAP' }))
+    dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
+    const feature = []
+    const updatedData = adjacentIntervention.map(el => {
+      const updateActive = { ...el }
+      if (el.intervention_id === intervention.intervention_id) {
+        updateActive.active = true
+      } else {
+        updateActive.active = false
+      }
+      return updateActive;
+    })
+    updatedData.forEach((el: InterventionData) => {
+      if (el.location_type === 'Polygon') {
+        const result = makeInterventionGeoJson(
+          el.location.type,
+          JSON.parse(el.location.coordinates),
+          el.intervention_id,
+          {
+            active: el.active
+          }
+        )
+        feature.push(result.geoJSON)
+      }
+    })
+    setOverlayGeoJSON({
+      type: 'FeatureCollection',
+      features: [...feature],
+    })
+  }
+
 
   const handleMarkerPress = (i: number) => {
     dispatch(updateActiveIndex(i))
@@ -145,25 +239,31 @@ const DisplayMap = () => {
     },
     [],
   )
-
   return (
     <MapLibreGL.MapView
       style={styles.map}
       logoEnabled={false}
       compassViewPosition={3}
       attributionEnabled={false}
+      ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
       {renderIcons()}
-      <PolygonShapeSource geoJSON={geoJSON}
-        onShapeSourcePress={setSelectedGeoJson} />
+      {!showOverlay && selectedIntervention.length===0 ? <PolygonShapeSource geoJSON={geoJSON}
+        onShapeSourcePress={setSelectedGeoJson} /> :
+        showOverlay?
+        <ClusterdShapSource geoJSON={overlayGeoJSON}
+          onShapeSourcePress={setActiveIntervetnion} />:null}
       <SiteMapSource />
       {selectedIntervention && (
         <MapMarkers
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} />
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
       )}
+      {selectedIntervention && !showOverlay?(
+        <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)}/>
+      ):null}
     </MapLibreGL.MapView>
   )
 }

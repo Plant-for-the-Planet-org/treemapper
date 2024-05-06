@@ -1,7 +1,7 @@
 import React from 'react'
 import Maplibre from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
-import {SampleTree } from 'src/types/interface/slice.interface'
+import { SampleTree } from 'src/types/interface/slice.interface'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 
@@ -10,11 +10,12 @@ interface Props {
   hasSampleTree: boolean
   showActive?: boolean
   activeIndex?: number
-  onMarkerPress?: (index:number)=>void
+  onMarkerPress?: (index: number) => void
+  overLay?: boolean
 }
 
 const MapMarkers = (props: Props) => {
-  const { sampleTreeData, hasSampleTree, showActive, activeIndex, onMarkerPress } = props
+  const { sampleTreeData, hasSampleTree, showActive, activeIndex, onMarkerPress, overLay } = props
   if (!hasSampleTree) {
     return null
   }
@@ -22,8 +23,8 @@ const MapMarkers = (props: Props) => {
     return String.fromCharCode(i + 65)
   }
 
-  const handleMarkerPress=(index: number)=>{
-    if(onMarkerPress){
+  const handleMarkerPress = (index: number) => {
+    if (onMarkerPress) {
       onMarkerPress(index)
     }
   }
@@ -37,14 +38,16 @@ const MapMarkers = (props: Props) => {
         }
         id={String(i)}
         key={i}>
-        <TouchableOpacity style={styles.container} onPress={()=>{
+        {overLay ? <View style={styles.container}>
+          <View style={styles.markerContainer} />
+        </View> : <TouchableOpacity style={styles.container} onPress={() => {
           handleMarkerPress(i)
         }}>
           <View style={styles.mapPinContainer}>
-            <MapPin fill={showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.NEW_PRIMARY }/>
+            <MapPin fill={showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.NEW_PRIMARY} />
           </View>
           <Text style={[styles.labelText, { color: showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.DARK_TEXT_COLOR }]}>{alphabet(i)}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </Maplibre.MarkerView>
     ))
   }
@@ -65,6 +68,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '17%',
     top: '-0.1%',
+  },
+  markerContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    height: 15,
+    opacity:0.8,
+    width: 15
   },
   labelText: {
     position: 'absolute',

@@ -1,26 +1,32 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { clearCarouselData } from 'src/store/slice/displayMapSlice'
+import { clearCarouselData, updateShowOverlay } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import BackIcon from 'assets/images/svg/SimpleBack.svg'
 
+
+
 const CarouselHeader = () => {
   const dispatch = useDispatch()
   const [data, setData] = useState<InterventionData>(null)
-  const interventionData = useSelector(
-    (state: RootState) => state.displayMapState.selectedIntervention,
+  const { selectedIntervention, showOverlay } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
 
   useEffect(() => {
-    setData(JSON.parse(interventionData))
-  }, [interventionData])
+    setData(JSON.parse(selectedIntervention))
+  }, [selectedIntervention])
 
   const onPress = () => {
-    dispatch(clearCarouselData())
+    if(selectedIntervention && !showOverlay){
+      dispatch(updateShowOverlay(true))
+    }else{
+      dispatch(clearCarouselData())
+    }
   }
 
 
@@ -32,12 +38,13 @@ const CarouselHeader = () => {
       <TouchableOpacity onPress={onPress} style={styles.backIconWrapper}>
         <BackIcon width={20} height={20} />
       </TouchableOpacity>
-      <View style={styles.sectionWrapper}>
-        <Text style={styles.title}>{data.intervention_title}</Text>
-        {data.has_sample_trees && <Text style={styles.sectionLabel}>
-          {data.sample_trees.length} Sample Trees
-        </Text>}
-      </View>
+      {showOverlay ? null
+        : <View style={styles.sectionWrapper}>
+          <Text style={styles.title}>{data.intervention_title}</Text>
+          {data.has_sample_trees && <Text style={styles.sectionLabel}>
+            {data.sample_trees.length} Sample Trees
+          </Text>}
+        </View>}
     </View>
   )
 }
@@ -46,9 +53,10 @@ export default CarouselHeader
 
 const styles = StyleSheet.create({
   container: {
-    width: 200,
-    height: 100,
+    maxWidth: 200,
     position: 'absolute',
+    paddingVertical: 10,
+    paddingRight: 10,
     top: 50,
     left: 20,
     zIndex: 10,
@@ -60,7 +68,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    paddingRight:10
+    paddingRight: 10
   },
   sectionLabel: {
     fontSize: scaleFont(12),

@@ -3,18 +3,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import Carousel from 'react-native-reanimated-carousel'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { InterventionData } from 'src/types/interface/slice.interface'
+import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import CarouselItem from './CarouselItem'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { clearCarouselData, updateActiveIndex } from 'src/store/slice/displayMapSlice'
+import { clearCarouselData, updateActiveIndex, updateActiveInterventionIndex, updateShowOverlay } from 'src/store/slice/displayMapSlice'
+import CarouselIInterventiontem from './CarouselIInterventiontem'
 
 const { width } = Dimensions.get('window') // Get screen width
 
 const CarouselModal = () => {
   const [carouselData, setCarouselData] = useState<InterventionData>(null)
-  const { showCarousel, selectedIntervention, activeIndex } = useSelector(
+  const { showCarousel, selectedIntervention, activeIndex, showOverlay, adjacentIntervention, activeInterventionIndex } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const dispatch = useDispatch()
@@ -35,22 +36,55 @@ const CarouselModal = () => {
     navigation.navigate('InterventionPreview', { id: 'preview', intervention: id })
   }
 
-  const updateIndex = (i: number) => {
-    dispatch(updateActiveIndex(i))
+  const showInterventionDetails = () => {
+    dispatch(updateShowOverlay(false))
   }
+
+  const updateIndex = (i: number) => {
+    if (!showOverlay) {
+      dispatch(updateActiveIndex(i))
+    } else {
+      dispatch(updateActiveInterventionIndex(i))
+    }
+  }
+
 
   useEffect(() => {
     if (carouselRef && carouselRef.current !== null) {
-      carouselRef.current.scrollTo({ index: activeIndex , animated: true})
+      carouselRef.current.scrollTo({ index: activeIndex, animated: true })
     }
   }, [activeIndex])
 
+  
+  useEffect(() => {
+    if (carouselRef && carouselRef.current !== null) {
+      carouselRef.current.scrollTo({ index: activeInterventionIndex, animated: true })
+    }
+  }, [activeInterventionIndex])
 
+
+  const renderCaroulselItem = (item: any) => {
+    if (showOverlay) {
+      return <CarouselIInterventiontem data={item} onPress={showInterventionDetails} />
+    } else {
+      return <CarouselItem data={item} onPress={handleNavigation} />
+    }
+  }
+
+  const getData = (): InterventionData[] | SampleTree[] => {
+    if (showOverlay) {
+      return adjacentIntervention
+    }
+    if (carouselData && carouselData.sample_trees) {
+      return carouselData.sample_trees
+    }
+    return []
+  }
 
   return (
     <View style={styles.container}>
       <Carousel
-        data={carouselData ? carouselData.sample_trees : []}
+        data={getData()}
         width={width}
         height={150}
         ref={carouselRef}
@@ -63,7 +97,7 @@ const CarouselModal = () => {
           parallaxScrollingScale: 0.9,
           parallaxScrollingOffset: 60,
         }}
-        renderItem={({ item }) => <CarouselItem data={item} onPress={handleNavigation} />}
+        renderItem={({ item }) => (renderCaroulselItem(item))}
       />
     </View>
   )

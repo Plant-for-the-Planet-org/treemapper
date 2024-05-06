@@ -22,6 +22,9 @@ export interface DisplayMapSlice {
   selectedIntervention: string
   showCarousel: boolean
   activeIndex: number
+  adjacentIntervention: InterventionData[],
+  showOverlay: boolean
+  activeInterventionIndex: number
 }
 
 export interface ProjectStateSlice {
@@ -226,4 +229,5 @@ export interface InterventionData {
     coordinates: number[]
   },
   entire_site: boolean
+  active?:boolean
 }
