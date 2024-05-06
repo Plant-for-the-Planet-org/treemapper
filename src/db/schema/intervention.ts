@@ -27,6 +27,7 @@ export const Intervention: ObjectSchema = {
     meta_data: { type: 'string', default: '' },
     status: { type: 'string', default: 'NOT_SYNCED' },
     hid: { type: 'string', default: '' },
-    coords: `${RealmSchema.GeoSpatial}`
+    coords: `${RealmSchema.GeoSpatial}`,
+    entire_site: { type: 'bool', default: false },
   },
 }

@@ -29,7 +29,7 @@ const DisplayMap = () => {
   const { requestLocationPermission } = useLocationPermission()
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
-    features:  [],
+    features: [],
   })
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -72,7 +72,10 @@ const DisplayMap = () => {
         el.location.type,
         JSON.parse(el.location.coordinates),
         el.intervention_id,
-        el.intervention_key
+        {
+          key: el.intervention_key,
+          site: el.entire_site
+        }
       )
       return result.geoJSON
     })
@@ -142,7 +145,7 @@ const DisplayMap = () => {
     },
     [],
   )
-  
+
   return (
     <MapLibreGL.MapView
       style={styles.map}

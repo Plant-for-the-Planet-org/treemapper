@@ -32,14 +32,14 @@ const PolygonShapeSource = (props: Props) => {
       <MapLibreGL.FillLayer
         id={'polyFill'}
         style={fillStyle}
-        filter={['all', ['>=', ['zoom'], 14], ['==', ['geometry-type'], 'Polygon']]}
+        filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
         />
       <MapLibreGL.LineLayer
         id={'polyline'}
         style={polyline}
-        filter={['all', ['>=', ['zoom'], 14], ['==', ['geometry-type'], 'Polygon']]}
+        filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
         />
-      <MapLibreGL.SymbolLayer id={'iconset'} style={{
+         <MapLibreGL.SymbolLayer id={'iconset'} style={{
         iconImage: [
           'match',
           ['get', 'key'],
@@ -52,7 +52,7 @@ const PolygonShapeSource = (props: Props) => {
           'single-tree-registration',
         ]
       }}
-        filter={['<', ['zoom'], 14]}
+      filter={['all', ['<=', ['zoom'], 12], ['==', ['get', 'site'], true]]}
       />
       <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} filter={["==", ["geometry-type"], "Point"]}/>
     </MapLibreGL.ShapeSource>

@@ -166,7 +166,8 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         coords: {
             type: 'Point',
             coordinates: geometryData.geoSpatail
-        }
+        },
+        entire_site: false
     }
     return finalData
 }

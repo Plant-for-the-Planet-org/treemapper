@@ -224,5 +224,6 @@ export interface InterventionData {
   coords: {
     type: 'Point',
     coordinates: number[]
-  }
+  },
+  entire_site: boolean
 }

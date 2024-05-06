@@ -57,7 +57,8 @@ export const convertFormDataToIntervention = (
     coords: {
       type: 'Point',
       coordinates: data.coordinates[0]
-    }
+    },
+    entire_site: data.entire_site_selected
   }
   return finalData
 }
@@ -66,7 +67,7 @@ export const makeInterventionGeoJson = (
   type: string,
   coordinates: Array<number[]>,
   id: string,
-  key?: string
+  extra?: any
 ) => {
   const coord: Array<number[]> = coordinates
   switch (type) {
@@ -76,7 +77,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            key: key || '',
+           ...extra?extra:{}
           },
           geometry: {
             type: 'Point',
@@ -92,7 +93,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            key: key || '',
+            ...extra?extra:{}
           },
           geometry: {
             type: 'Polygon',
