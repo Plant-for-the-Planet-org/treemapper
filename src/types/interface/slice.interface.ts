@@ -1,4 +1,4 @@
-import { INTERVENTION_STATUS, INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -26,7 +26,8 @@ export interface DisplayMapSlice {
   adjacentIntervention: InterventionData[],
   showOverlay: boolean
   activeInterventionIndex: number
-  interventionFilter: string
+  interventionFilter: INTERVENTION_FILTER
+  selectedFilters: INTERVENTION_TYPE[]
 }
 
 export interface ProjectStateSlice {

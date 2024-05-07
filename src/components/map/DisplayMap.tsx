@@ -18,6 +18,7 @@ import PolygonShapeSource from './PolygonShapeSource'
 import { GeoBox } from 'realm'
 import ClusterdShapSource from './ClusterdShapSource'
 import SingleInterventionSource from './SingleInterventionSource'
+import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 
 
 const MultiTreePin = require('assets/images/icons/MultTreePin.png');
@@ -42,14 +43,13 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex } = useSelector(
+  const { selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
-
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
     data => {
@@ -60,10 +60,14 @@ const DisplayMap = () => {
   // console.log(JSON.stringify(interventionData, null, 2))
 
   useEffect(() => {
+    if (interventionFilter === 'none') {
+      handleGeoJSONData([])
+      return
+    }
     if (interventionData && interventionData.length) {
       handleGeoJSONData(interventionData)
     }
-  }, [interventionData])
+  }, [interventionData, interventionFilter, selectedFilters])
 
 
 
@@ -75,7 +79,9 @@ const DisplayMap = () => {
 
 
   const handleGeoJSONData = (d: InterventionData[] | any) => {
-    const feature = d.map((el: InterventionData) => {
+    const dateFilter = filterToTime(interventionFilter)
+    const filterData = d.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
+    const feature = filterData.map((el: InterventionData) => {
       const result = makeInterventionGeoJson(
         el.location.type,
         JSON.parse(el.location.coordinates),
@@ -156,7 +162,7 @@ const DisplayMap = () => {
 
   const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
     try {
-      const query = currentIntervention.entire_site?"coords geoWithin $0 && entire_site == true":"coords geoWithin $0"
+      const query = currentIntervention.entire_site ? "coords geoWithin $0 && entire_site == true" : "coords geoWithin $0"
       const boxBounds: GeoBox = {
         bottomLeft: [bound[0], bound[1]],
         topRight: [bound[2], bound[3]],
@@ -217,7 +223,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active,
-            key:el.intervention_key
+            key: el.intervention_key
           }
         )
         feature.push(result.geoJSON)
@@ -254,19 +260,19 @@ const DisplayMap = () => {
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
       {renderIcons()}
-      {!showOverlay && selectedIntervention.length===0 ? <PolygonShapeSource geoJSON={geoJSON}
+      {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={geoJSON}
         onShapeSourcePress={setSelectedGeoJson} /> :
-        showOverlay?
-        <ClusterdShapSource geoJSON={overlayGeoJSON}
-          onShapeSourcePress={setActiveIntervetnion} />:null}
+        showOverlay ?
+          <ClusterdShapSource geoJSON={overlayGeoJSON}
+            onShapeSourcePress={setActiveIntervetnion} /> : null}
       <SiteMapSource />
       {selectedIntervention && (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
       )}
-      {selectedIntervention && !showOverlay?(
-        <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)}/>
-      ):null}
+      {selectedIntervention && !showOverlay ? (
+        <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)} />
+      ) : null}
     </MapLibreGL.MapView>
   )
 }

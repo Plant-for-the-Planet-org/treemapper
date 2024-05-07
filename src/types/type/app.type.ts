@@ -13,3 +13,5 @@ export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_project
 
 
 export type INTERVENTION_STATUS = 'SYNCED' | 'NOT_SYNCED'
+
+export type INTERVENTION_FILTER = 'always' | 'year' | 'months' | 'days' | 'none'

@@ -1,4 +1,4 @@
-import {  StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -16,7 +16,7 @@ import {
 } from 'src/store/slice/projectStateSlice'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal,BottomSheetFlatList  } from '@gorhom/bottom-sheet'
+import { BottomSheetModal, BottomSheetView, useBottomSheetModal, BottomSheetFlatList } from '@gorhom/bottom-sheet'
 
 interface Props {
   isVisible: boolean
@@ -26,7 +26,7 @@ interface Props {
 const ProjectModal = (props: Props) => {
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const {dismiss}  = useBottomSheetModal()
+  const { dismiss } = useBottomSheetModal()
   // variables
   const snapPoints = useMemo(() => ['70%'], []);
 
@@ -128,7 +128,7 @@ const ProjectModal = (props: Props) => {
   }
 
   useEffect(() => {
-    if(isVisible){
+    if (isVisible) {
       handlePresentModalPress()
     }
   }, [isVisible])
@@ -137,7 +137,7 @@ const ProjectModal = (props: Props) => {
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
-  const closeModal = ()=>{
+  const closeModal = () => {
     toogleModal()
     dismiss();
   }
@@ -149,6 +149,9 @@ const ProjectModal = (props: Props) => {
       detached
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
+      backdropComponent={({ style }) => (
+        <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
+        )}
     >
       <BottomSheetView style={styles.container} >
 
@@ -174,7 +177,7 @@ const ProjectModal = (props: Props) => {
             <View style={styles.siteContainer}>
               <BottomSheetFlatList
                 data={projectSies}
-                renderItem={({ item, index }:{item:any, index: number}) => {
+                renderItem={({ item, index }: { item: any, index: number }) => {
                   return (
                     <TouchableOpacity
                       style={[
@@ -273,16 +276,16 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
     marginLeft: '5%',
-    height:'50%'
+    height: '50%'
   },
   siteWrapper: {
-    height:'100%',
+    height: '100%',
     width: '90%',
     backgroundColor: Colors.GRAY_LIGHTEST + '1A',
     borderRadius: 10,
     paddingVertical: 5,
   },
-  siteCard: { 
+  siteCard: {
     width: '90%',
     height: 50,
     flexDirection: 'row',

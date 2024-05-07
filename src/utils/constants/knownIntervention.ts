@@ -31,3 +31,6 @@ export const AllIntervention: Array<{
   {label: 'Maintenance', value: 'maintenance', index: 0},
   {label: 'Other Intervention', value: 'other-intervention', index: 0},
 ]
+
+
+export const AllIntervenionType  = AllIntervention.map(el=>el.value)
