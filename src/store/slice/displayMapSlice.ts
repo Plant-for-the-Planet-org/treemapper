@@ -7,7 +7,8 @@ const initialState: DisplayMapSlice = {
   activeIndex: 0,
   adjacentIntervention: [],
   showOverlay: false,
-  activeInterventionIndex: 0
+  activeInterventionIndex: 0,
+  interventionFilter:''
   
 }
 
@@ -40,9 +41,12 @@ const displayMapSlice = createSlice({
     updateShowOverlay(state, action: PayloadAction<boolean>) {
       state.showOverlay = action.payload
     },
+    updateInterventionFilter(state, action: PayloadAction<string>) {
+      state.interventionFilter = action.payload
+    },
   },
 })
 
-export const { updateSelectedIntervention, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay } = displayMapSlice.actions
+export const { updateSelectedIntervention, updateInterventionFilter,clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay } = displayMapSlice.actions
 
 export default displayMapSlice.reducer

@@ -77,6 +77,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         image_url: "",
         cdn_image_url: d.coordinates[0].image || "",
         specie_name: d.scientificName || '',
+        local_name: d.scientificName || '',
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
         tag_id: d.tag || '',

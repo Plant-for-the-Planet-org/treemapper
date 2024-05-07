@@ -11,7 +11,7 @@ export interface AppInitialState {
   serverInterventionAdded: boolean,
   lastServerInterventionpage: string
   intervention_updated: number
-  userSpecies: boolean
+  userSpecies: boolean,
 }
 
 export interface MapBoundSlice {
@@ -26,6 +26,7 @@ export interface DisplayMapSlice {
   adjacentIntervention: InterventionData[],
   showOverlay: boolean
   activeInterventionIndex: number
+  interventionFilter: string
 }
 
 export interface ProjectStateSlice {
@@ -109,6 +110,7 @@ export interface SampleTree {
   image_url: string
   cdn_image_url: string
   specie_name: string
+  local_name: string
   specie_diameter: number
   specie_height: number
   tag_id: string

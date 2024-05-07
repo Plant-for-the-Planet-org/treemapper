@@ -41,3 +41,23 @@ export const GRAY_DARK = '#D3D3D3'
 export const GRAY_LIGHTEST = '#707070'
 export const GRAY_BACKDROP = '#E0E0E0'
 export const GRAY_BORDER = '#9e9e9e'
+
+
+//Intervention colors
+export const VIBRANT_YELLOW = '#FFF44F';
+export const BRIGHT_ORANGE = '#FF8C42';
+export const VIVID_RED = '#EE4035';
+export const FUCHSIA_PINK = '#EE3E80';
+export const ELECTRIC_PURPLE = '#9C27B0';
+export const ROYAL_BLUE = '#2E3192';
+export const TURQUOISE_BLUE = '#2EC4B6';
+export const EMERALD_GREEN = '#47B39C';
+export const LIME_GREEN = '#B2E672';
+export const SUNSHINE_YELLOW = '#FFF176';
+export const TANGERINE_ORANGE = '#FF9C6E';
+export const RUBY_RED = '#E53A40';
+export const MAGENTA_PINK = '#FF4785';
+export const AMETHYST_PURPLE = '#9C51B6';
+export const SAPPHIRE_BLUE = '#4452C8';
+export const AQUAMARINE_BLUE = '#3CDBC0';
+export const JADE_GREEN = '#39B89B';

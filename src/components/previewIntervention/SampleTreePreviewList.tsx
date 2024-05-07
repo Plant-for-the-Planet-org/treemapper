@@ -66,7 +66,7 @@ const SampleTreePreviewList = (props: Props) => {
           </View>}
           {details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Local common name</Text>
-            <Text style={styles.valueLable}>{details.specie_name}</Text>
+            <Text style={styles.valueLable}>{details.local_name}</Text>
           </View>}
           <View style={styles.dimensionWrapper}>
             <View style={styles.iconWrapper}>

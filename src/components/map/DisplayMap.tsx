@@ -175,7 +175,8 @@ const DisplayMap = () => {
             JSON.parse(el.location.coordinates),
             el.intervention_id,
             {
-              active: el.active
+              active: el.active,
+              key: el.intervention_key
             }
           )
           feature.push(result.geoJSON)
@@ -217,7 +218,8 @@ const DisplayMap = () => {
           JSON.parse(el.location.coordinates),
           el.intervention_id,
           {
-            active: el.active
+            active: el.active,
+            key:el.intervention_key
           }
         )
         feature.push(result.geoJSON)

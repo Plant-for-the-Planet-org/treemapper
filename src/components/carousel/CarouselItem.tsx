@@ -4,7 +4,8 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
-import { SCALE_36 } from 'src/utils/constants/spacing'
+import { SCALE_36, SCALE_56 } from 'src/utils/constants/spacing'
+import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 
 interface Props {
   data: any
@@ -13,7 +14,7 @@ interface Props {
 
 const CarouselItem = (props: Props) => {
   const { data, onPress } = props
-  if(data && data.specie_name){
+  if(data && data.tree_type){
     const uri  = data.cdn_image_url?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}`: data.image_url
     const hasImage = uri.length>0
     return <TouchableOpacity style={styles.container} onPress={()=>{
@@ -35,21 +36,21 @@ const CarouselItem = (props: Props) => {
       </View>
     </TouchableOpacity>
   }else{
+    const hasImage =  data.cover_image_url.length>0
     return <TouchableOpacity style={styles.container} onPress={()=>{
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-        <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
+      {hasImage?<Image style={styles.imageContainer} source={{uri: data.cover_image_url}}/>:          <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+}
       </View>
       <View style={styles.sectionWrapper}>
         <Text style={styles.sectionLabel}>Intervention</Text>
         <Text style={styles.itLabel} ellipsizeMode="tail">
           {data.intervention_title}
         </Text>
-        <Text style={styles.sectionLabel}>Intevetion Date</Text>
-        <Text style={styles.vauleLabel}>
-          {timestampToBasicDate(data.intervention_date)}
-        </Text>
+        <Text style={styles.sampleLabel}>Show More Details</Text>
+        
       </View>
     </TouchableOpacity>
   }
@@ -114,5 +115,10 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_LIGHT,
     marginBottom:5
+  },
+  sampleLabel: {
+    fontSize: scaleFont(14),
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.NEW_PRIMARY,
   }
 })

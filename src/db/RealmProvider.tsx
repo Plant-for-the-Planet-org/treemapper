@@ -3,7 +3,7 @@ import {RealmProvider as Provider} from '@realm/react'
 import schema from './schema'
 import {runRealmMigrations} from './migrations'
 
-const schemaVersion = 1
+const schemaVersion = 2
 
 export function RealmProvider({children}: {children: React.ReactNode}) {
   return (

@@ -6,11 +6,10 @@ import { Colors } from 'src/utils/constants'
 
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineOpacity: 0.5,
+  lineOpacity: 1,
   lineJoin: 'bevel',
-  lineColor: Colors.PRIMARY
 }
-const fillStyle = { fillOpacity: 0.3, fillColor: Colors.PRIMARY }
+const fillStyle = { fillOpacity: 0.5}
 const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 
 interface Props {
@@ -31,12 +30,56 @@ const PolygonShapeSource = (props: Props) => {
       }}>
       <MapLibreGL.FillLayer
         id={'polyFill'}
-        style={fillStyle}
+        style={{...fillStyle,
+          fillColor: [
+            'match',
+            ['get', 'key'],
+            'single-tree-registration', Colors.VIBRANT_YELLOW,
+  'multi-tree-registration', Colors.PRIMARY,
+  'removal-invasive-species', Colors.VIVID_RED,
+  'fire-suppression', Colors.BRIGHT_ORANGE,
+  'fire-patrol', Colors.ELECTRIC_PURPLE,
+  'fencing', Colors.ROYAL_BLUE,
+  'marking-regenerant', Colors.TURQUOISE_BLUE,
+  'liberating-regenerant', Colors.EMERALD_GREEN,
+  'grass-suppression', Colors.LIME_GREEN,
+  'firebreaks', Colors.SUNSHINE_YELLOW,
+  'assisting-seed-rain', Colors.TANGERINE_ORANGE,
+  'soil-improvement', Colors.RUBY_RED,
+  'stop-tree-harvesting', Colors.MAGENTA_PINK,
+  'direct-seeding',Colors.SAPPHIRE_BLUE,
+  'enrichement-planting', Colors.SAPPHIRE_BLUE,
+  'other-intervention', Colors.AQUAMARINE_BLUE,
+  'maintenance', Colors.JADE_GREEN,
+            Colors.VIBRANT_YELLOW
+          ]
+        }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
         />
       <MapLibreGL.LineLayer
         id={'polyline'}
-        style={polyline}
+        style={{...polyline,lineColor: [
+          'match',
+          ['get', 'key'],
+          'single-tree-registration', Colors.VIBRANT_YELLOW,
+'multi-tree-registration', Colors.PRIMARY,
+'removal-invasive-species', Colors.VIVID_RED,
+'fire-suppression', Colors.BRIGHT_ORANGE,
+'fire-patrol', Colors.ELECTRIC_PURPLE,
+'fencing', Colors.ROYAL_BLUE,
+'marking-regenerant', Colors.TURQUOISE_BLUE,
+'liberating-regenerant', Colors.EMERALD_GREEN,
+'grass-suppression', Colors.LIME_GREEN,
+'firebreaks', Colors.SUNSHINE_YELLOW,
+'assisting-seed-rain', Colors.TANGERINE_ORANGE,
+'soil-improvement', Colors.RUBY_RED,
+'stop-tree-harvesting', Colors.MAGENTA_PINK,
+'direct-seeding',Colors.SAPPHIRE_BLUE,
+'enrichement-planting', Colors.SAPPHIRE_BLUE,
+'other-intervention', Colors.AQUAMARINE_BLUE,
+'maintenance', Colors.JADE_GREEN,
+          Colors.VIBRANT_YELLOW
+        ]}}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
         />
          <MapLibreGL.SymbolLayer id={'iconset'} style={{

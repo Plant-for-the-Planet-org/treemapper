@@ -79,10 +79,10 @@ const AddMeasurment = () => {
       species_guid: species_details.guid,
       intervention_id: formFlowData.form_id,
       count: treeCount,
-      latitude:SampleTreeData.coordinates[0][1],
+      latitude: SampleTreeData.coordinates[0][1],
       longitude: SampleTreeData.coordinates[0][0],
-      device_latitude: lat?lat: 0,
-      device_longitude: long?long: 0,
+      device_latitude: lat ? lat : 0,
+      device_longitude: long ? long : 0,
       location_accuracy: String(accuracy),
       image_url: SampleTreeData.image_url,
       cdn_image_url: '',
@@ -97,6 +97,7 @@ const AddMeasurment = () => {
       additional_details: '',
       app_meta_data: '',
       hid: '',
+      local_name: species_details.aliases || species_details.scientific_name
     }
     dispatch(updateTree_details(treeDetails))
     navigation.replace('ReviewTreeDetails', { detailsCompleted: true })
