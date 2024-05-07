@@ -18,7 +18,7 @@ const Description: FormElement = {
   editable: true,
   value: '',
   required: false,
-  validation: "^.{10,1000}$"
+  validation:  ".+"
 }
   
 

@@ -109,7 +109,9 @@ const useInterventionManagement = () => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        realm.delete(intervention);
+        if(intervention){
+          realm.delete(intervention);
+        }
       });
       return Promise.resolve(true);
     } catch (error) {

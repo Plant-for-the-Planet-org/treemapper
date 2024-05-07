@@ -18,7 +18,7 @@ const Descitption: FormElement = {
     editable: true,
     value: '',
     required: true,
-    validation: "^.{10,1000}$"
+    validation: ".+"
 }
     
   

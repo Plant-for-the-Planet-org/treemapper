@@ -156,14 +156,12 @@ const DisplayMap = () => {
 
   const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
     try {
-      if(currentIntervention.entire_site){
-        return
-      }
+      const query = currentIntervention.entire_site?"coords geoWithin $0 && entire_site == true":"coords geoWithin $0"
       const boxBounds: GeoBox = {
         bottomLeft: [bound[0], bound[1]],
         topRight: [bound[2], bound[3]],
       };
-      const data = realm.objects<InterventionData>(RealmSchema.Intervention).filtered('coords geoWithin $0', boxBounds);
+      const data = realm.objects<InterventionData>(RealmSchema.Intervention).filtered(query, boxBounds);
       const feature = []
       const updatedData = JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
       currentIntervention.active = true;
