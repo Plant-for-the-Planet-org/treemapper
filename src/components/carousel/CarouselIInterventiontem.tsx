@@ -14,8 +14,30 @@ interface Props {
 
 const CarouselIInterventiontem = (props: Props) => {
   const { data, onPress } = props
-  return (
-    <TouchableOpacity style={styles.container} onPress={() => {
+  if(data.sample_trees.length>0){
+    return (
+      <TouchableOpacity style={styles.container} onPress={() => {
+        onPress(data.intervention_id)
+      }}>
+        <View style={styles.imageWrapper}>
+          <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+        </View>
+        <View style={styles.sectionWrapper}>
+          <Text style={styles.sectionLabel}>Intervention</Text>
+          <Text style={styles.speciesName} ellipsizeMode="tail">
+            {data.intervention_title}
+          </Text>
+          <Text style={styles.sectionLabel}>Intervention Date</Text>
+          <Text style={styles.vauleLabel}>
+            {timestampToBasicDate(data.intervention_date)}
+          </Text>
+          {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show Tree Details</Text>
+          }
+        </View>
+      </TouchableOpacity>
+    )
+  }else{
+    return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
@@ -30,11 +52,11 @@ const CarouselIInterventiontem = (props: Props) => {
         <Text style={styles.vauleLabel}>
           {timestampToBasicDate(data.intervention_date)}
         </Text>
-        {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show Tree Details</Text>
+        {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show More Details</Text>
         }
       </View>
     </TouchableOpacity>
-  )
+  }
 }
 
 export default CarouselIInterventiontem

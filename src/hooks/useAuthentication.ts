@@ -1,11 +1,13 @@
 import { Credentials, useAuth0 } from 'react-native-auth0'
 import useInterventionManagement from './realm/useInterventionManagement'
 import useProjectMangement from './realm/useProjectMangement'
+import useManageScientificSpecies from './realm/useManageScientificSpecies'
 
 const useAuthentication = () => {
   const { authorize, getCredentials, clearSession, clearCredentials, user } = useAuth0()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
   const { deleteAllProjects } = useProjectMangement()
+  const {deleteAllUserSpecies} = useManageScientificSpecies()
 
   const getUserCredentials = async () => {
     const result = await getCredentials()
@@ -19,6 +21,7 @@ const useAuthentication = () => {
         .then(async () => {
           await deleteAllSyncedIntervention()
           await deleteAllProjects()
+          await deleteAllUserSpecies()
           resolve(true)
         })
         .catch(error => {

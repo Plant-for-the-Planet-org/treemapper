@@ -75,9 +75,14 @@ const CarouselModal = () => {
     if (showOverlay) {
       return adjacentIntervention
     }
-    if (carouselData && carouselData.sample_trees) {
+    if (carouselData && carouselData.sample_trees.length>0) {
       return carouselData.sample_trees
     }
+
+    if (carouselData && carouselData.sample_trees.length===0) {
+      return [carouselData]
+    }
+
     return []
   }
 
@@ -107,7 +112,7 @@ export default CarouselModal
 
 const styles = StyleSheet.create({
   container: {
-    height: 125,
+    height: 150,
     position: 'absolute',
     bottom: 150,
     zIndex: 9

@@ -3,6 +3,15 @@ import {RealmSchema} from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import {SERVER_SCIENTIFIC_SPECIES} from 'src/types/interface/realm.interface'
 
+interface ServerSpeciesSync{
+    "aliases": string
+    "description":null | string
+    "id":string
+    "image":null|string
+    "scientificName":string
+    "scientificSpecies":string
+}
+
 const useManageScientificSpecies = () => {
   const realm = useRealm()
   const writeBulkSpecies = async (
@@ -57,7 +66,51 @@ const useManageScientificSpecies = () => {
     }
   }
 
-  return {writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails}
+
+  const addUserSpecies = async (item: ServerSpeciesSync[]) => {
+    try {
+      realm.write(() => {
+        item.forEach(specie=>{          
+          const data = {
+            guid: specie.id,
+            scientific_name:specie.scientificName || '',
+            is_user_species: true,
+            is_uploaded: true,
+            aliases: specie.aliases || '',
+            image: specie.image || '',
+            description: specie.description || '',
+            is_updated: true,
+          }
+          realm.create(
+            RealmSchema.ScientificSpecies,
+            data,
+            Realm.UpdateMode.All,
+          )
+        })
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during bulk write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const deleteAllUserSpecies = async () => {
+    try {
+      const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('is_user_species == true');
+      realm.write(() => {
+        favoriteData.forEach(specie=>{          
+          specie.is_user_species = false
+        })
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during bulk write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  return {writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies}
 }
 
 export default useManageScientificSpecies

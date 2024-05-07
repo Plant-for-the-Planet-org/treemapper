@@ -11,6 +11,7 @@ export interface AppInitialState {
   serverInterventionAdded: boolean,
   lastServerInterventionpage: string
   intervention_updated: number
+  userSpecies: boolean
 }
 
 export interface MapBoundSlice {

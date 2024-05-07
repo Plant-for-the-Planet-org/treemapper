@@ -219,6 +219,7 @@ const InterventionFormView = () => {
     }
 
     if (finalData.location_type === 'Point') {
+      
       navigation.replace('PointMarker')
     } else {
       navigation.replace('PolygonMarker')

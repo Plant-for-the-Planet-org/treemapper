@@ -42,3 +42,9 @@ export const getServerIntervention = async (uri: string) => {
   const result = await fetchGetCall(uri);
   return result;
 };
+
+export const getUserSpecies = async () => {
+  const uri = `${getUrlApi.userSpecies}`;
+  const result = await fetchGetCall(uri);
+  return result;
+};

@@ -9,12 +9,13 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import useProjectMangement from 'src/hooks/realm/useProjectMangement'
-import { getAllProjects, getServerIntervention } from 'src/api/api.fetch'
+import { getAllProjects, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
 import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventorytoIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastServerIntervetion, updateServerIntervetion } from 'src/store/slice/appStateSlice'
+import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
+import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 
 interface Props {
   toogleFilterModal: () => void
@@ -23,11 +24,12 @@ interface Props {
 
 const HomeHeader = (props: Props) => {
   const { addAllProjects } = useProjectMangement()
+  const {addUserSpecies} = useManageScientificSpecies()
   const { toogleFilterModal, toogleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
-  const { lastServerInterventionpage, serverInterventionAdded } = useSelector((state: RootState) => state.appState)
+  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
 
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
@@ -47,6 +49,29 @@ const HomeHeader = (props: Props) => {
 
 
   useEffect(() => {
+    if(!userSpecies && isLogedIn){
+      setTimeout(() => {
+        syncUserSpecies()
+      }, 3000);
+    }
+  }, [isLogedIn])
+
+  const syncUserSpecies=async()=>{
+    try {
+      const result = await getUserSpecies()
+      if(result && result.length>0){
+        const resposne = await addUserSpecies(result)
+        if(resposne){
+          dispatch(updateUserSpeciesadded(true))
+        }
+      }
+    } catch (error) {
+      console.log("error",error)
+    }
+  }
+  
+
+  useEffect(() => {
     if (userType && !serverInterventionAdded) {
       addServerIntervention()
     }
@@ -62,6 +87,9 @@ const HomeHeader = (props: Props) => {
           return;
         }
         for (let index = 0; index < result.count; index++) {
+          if(result.items[index] && result.items[index].id==='loc_8HnYd9gTXBt108EUALRiEhnp'){
+            continue;
+          }
           const element = convertInevtoryToIntervention(result.items[index]);
           interventions.push(element)
           await addNewIntervention(element)

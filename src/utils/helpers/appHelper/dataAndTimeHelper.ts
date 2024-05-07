@@ -2,7 +2,7 @@ import moment from "moment";
 
 
 export const timestampToBasicDate = (timestamp: number) => {
-  return moment(timestamp).format('DD MMMM YYYY');
+  return moment(timestamp).format('DD MMM YYYY');
 }
 
 

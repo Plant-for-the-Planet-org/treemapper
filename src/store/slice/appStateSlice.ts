@@ -8,8 +8,9 @@ const initialState: AppInitialState = {
   expiringAt: 0,
   speciesSync: false,
   serverInterventionAdded: false,
-  lastServerInterventionpage: 'treemapper/plantLocations?limit=4&_scope=extended',
-  intervention_updated: 0
+  lastServerInterventionpage: 'treemapper/plantLocations?limit=10&_scope=extended',
+  intervention_updated: 0,
+  userSpecies:false
 }
 
 const appStateSlice = createSlice({
@@ -43,12 +44,15 @@ const appStateSlice = createSlice({
     updateNewIntervention(state) {
       state.intervention_updated = Date.now()
     },
+    updateUserSpeciesadded(state,action: PayloadAction<boolean>){
+      state.userSpecies = action.payload
+    },
     logoutAppUser() {
       return { ...initialState, speciesSync: true }
     },
   },
 })
 
-export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion, logoutAppUser, updateNewIntervention } = appStateSlice.actions
+export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion, logoutAppUser, updateUserSpeciesadded,updateNewIntervention } = appStateSlice.actions
 
 export default appStateSlice.reducer

@@ -124,7 +124,7 @@ const DisplayMap = () => {
       cameraRef.current.fitBounds(
         [bounds[0], bounds[1]],
         [bounds[2], bounds[3]],
-        30,
+        50,
         1000,
       )
     }
@@ -156,6 +156,9 @@ const DisplayMap = () => {
 
   const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
     try {
+      if(currentIntervention.entire_site){
+        return
+      }
       const boxBounds: GeoBox = {
         bottomLeft: [bound[0], bound[1]],
         topRight: [bound[2], bound[3]],

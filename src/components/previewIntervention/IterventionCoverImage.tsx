@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
+import BinIcon from 'assets/images/svg/BinIcon.svg'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -54,14 +56,38 @@ const IterventionCoverImage = (props: Props) => {
       screen: tag,
     })
   }
+
+  const clearImage = () => {
+    if (tag === 'EDIT_INTERVENTION') {
+      updateInterventionCoverImage('', interventionID)
+      dispatch(updateLastUpdatedAt())
+    } else {
+      updateSampleTreeImage(interventionID, treeId, '')
+      dispatch(updateLastUpdatedAt())
+    }
+  }
+
+
   const uri  = isCDN?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}`:image
   return (
     <View style={styles.container}>
+      {uri.length>0 && <View style={styles.wrapper}>
       {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
         <PenIcon width={30} height={30} />
       </TouchableOpacity>}
-      {image.length !== 0 ? <Image source={{ uri: uri }} style={styles.imageWrapper} /> : <View style={styles.svgWrapper} >
-        <Text style={styles.label}>Default Image {'\n'} For Intervention</Text></View>}
+      {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
+        <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
+      </TouchableOpacity>}
+      <Image source={{ uri: uri }} style={styles.imageWrapper} />
+      </View>}
+      {uri.length===0 && <View style={styles.emprtyConainter}>
+      {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+        <PenIcon width={30} height={30} />
+      </TouchableOpacity>}
+      <View style={styles.emptyWrapper}>
+        <Text style={styles.emptyLabel}>Add Cover Image</Text>
+      </View>
+      </View>}
     </View>
   )
 }
@@ -70,6 +96,11 @@ export default IterventionCoverImage
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wrapper:{
     width: '100%',
     height: scaleSize(250),
     justifyContent: 'center',
@@ -82,13 +113,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'black',
   },
-  svgWrapper: {
-    width: '90%',
-    height: '95%',
-    borderRadius: 10,
-    backgroundColor: Colors.BLACK,
-    justifyContent:'center',
-    alignItems:'center'
+  emprtyConainter:{
+    width: '100%',
+    height: scaleSize(60),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  emptyWrapper: {
+    backgroundColor: Colors.GRAY_BACKDROP + '1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: Colors.GRAY_TEXT,
+    height:50,
+    width:'90%',
+    borderRadius:8
+  },
+  emptyLabel:{
+    fontSize:16,
+    fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
+    color:Colors.TEXT_COLOR
   },
   editIconWrapper: {
     width: 30, height: 30,
@@ -97,7 +142,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: Colors.GRAY_LIGHT,
     position: 'absolute',
-    top: '6%',
+    top: 20,
+    right: '8%',
+    zIndex: 1
+  },
+  editBinWrapper: {
+    width: 30, height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: Colors.GRAY_LIGHT,
+    position: 'absolute',
+    top: 60,
     right: '8%',
     zIndex: 1
   },

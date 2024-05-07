@@ -22,7 +22,7 @@ const CarouselHeader = () => {
   }, [selectedIntervention])
 
   const onPress = () => {
-    if(selectedIntervention && !showOverlay){
+    if(selectedIntervention && !showOverlay && !JSON.parse(selectedIntervention).entire_site && JSON.parse(selectedIntervention).sample_trees.length>1){
       dispatch(updateShowOverlay(true))
     }else{
       dispatch(clearCarouselData())
