@@ -9,6 +9,7 @@ import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
 import { View } from 'react-native';
 import { Colors } from 'src/utils/constants';
 import { FONT_FAMILY_BOLD } from 'src/utils/constants/typography';
+import ExportIcon from 'assets/images/svg/ExportJsonIcon.svg'
 
 interface Props {
     details: any;
@@ -59,6 +60,9 @@ export const ExportGeoJSONButton = (props: Props) => {
     return (
         <View style={styles.btnContainer}>
             <TouchableOpacity style={styles.wrapper} onPress={onPressExportJSON}>
+                <View style={styles.iconWrapper}>
+                    <ExportIcon />
+                </View>
                 <Text style={styles.textStyle}>Export GeoJson</Text>
             </TouchableOpacity>
         </View>
@@ -81,15 +85,24 @@ const styles = StyleSheet.create({
         width: '90%',
         height: '100%',
         borderRadius: 8,
-        backgroundColor: Colors.GRAY_BACKDROP + '1A',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 0.5,
-        borderColor: Colors.GRAY_TEXT,
+        backgroundColor: Colors.WHITE,
+        borderWidth:0.5,
+        borderColor:'#f2ebdd',
+        shadowColor: Colors.GRAY_TEXT,
+        shadowOffset: {width: 2, height: 2},
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation:2
     },
     textStyle: {
         fontSize: scaleFont(18),
         fontFamily: FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
+    },
+    iconWrapper:{
+        position:"absolute",
+        left:10
     }
 })

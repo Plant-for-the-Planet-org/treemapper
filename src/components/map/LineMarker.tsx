@@ -27,7 +27,7 @@ const LineMarker = (props: Props) => {
           },
         ],
       }}>
-      <Maplibre.LineLayer id={'polyline'} style={styles.lineStyle} />
+      <Maplibre.LineLayer id={'polylwine'} style={styles.lineStyle} />
     </Maplibre.ShapeSource>
   )
 }

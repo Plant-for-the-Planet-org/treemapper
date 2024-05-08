@@ -61,7 +61,7 @@ const ClusterdShapSource = (props: Props) => {
         }}
       />
       <MapLibreGL.LineLayer
-        id={'polyliwne'}
+        id={'polylwne'}
         style={{ ...polyline, lineColor: FillColor }}
       />
     </MapLibreGL.ShapeSource>

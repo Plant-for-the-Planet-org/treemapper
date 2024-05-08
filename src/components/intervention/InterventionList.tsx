@@ -22,10 +22,6 @@ interface Props {
 const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
 
-
-
-
-
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const handleNavigation = (item: InterventionData) => {
     navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id })

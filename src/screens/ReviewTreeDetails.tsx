@@ -169,6 +169,7 @@ const ReviewTreeDetails = () => {
     }
 
     const onDateSelect = async (_event, date: Date) => {
+        console.log("ASck",date)
         const finalDetails = { ...treeDetails }
         setDatePicker(false)
         finalDetails.plantation_date = convertDateToTimestamp(date)
@@ -190,7 +191,7 @@ const ReviewTreeDetails = () => {
     const showEdit = editTree || treeDetails.tree_id
     return (
         <SafeAreaView style={styles.container}>
-            {showDatePicker && <DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} />}
+            {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner'/></View>}
             <ScrollView>
                 <View style={styles.container}>
                     <Header label={headerLabel} />
@@ -295,7 +296,13 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         marginBottom: 10,
         marginLeft: 20,
-
+    },
+    datePickerContainer:{
+        position:"absolute",
+        zIndex:1,
+        backgroundColor:'#fff',
+        width:"100%",
+        bottom:0
     },
     metaSectionWrapper: {
         width: '100%',

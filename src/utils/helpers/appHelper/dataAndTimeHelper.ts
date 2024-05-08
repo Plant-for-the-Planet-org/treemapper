@@ -23,3 +23,7 @@ export const filterToTime = (i: INTERVENTION_FILTER) => {
   }
   return 0
 }
+
+export const convertDateToTimestamp=(d:Date)=>{
+  return new Date(d).getTime()
+}

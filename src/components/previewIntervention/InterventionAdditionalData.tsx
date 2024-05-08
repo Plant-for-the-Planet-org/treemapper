@@ -65,10 +65,15 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '90%',
     borderRadius: 12,
-    backgroundColor: Colors.GRAY_BACKDROP + '1A',
     paddingVertical: 20,
-    borderWidth: 0.5,
-    borderColor: Colors.GRAY_TEXT,
+    backgroundColor: Colors.WHITE,
+    borderWidth:0.5,
+    borderColor:'#f2ebdd',
+    shadowColor: Colors.GRAY_TEXT,
+    shadowOffset: {width: 2, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation:2
   },
   cardWrapper: {
     width: '100%',

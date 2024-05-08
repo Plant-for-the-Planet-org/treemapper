@@ -15,7 +15,7 @@ interface Props {
   onShapeSourcePress: (id: string) => void
 }
 
-const FillColor:any = [
+const FillColor: any = [
   'match',
   ['get', 'key'],
   'single-tree-registration', Colors.SINGLE_TREE,
@@ -64,24 +64,24 @@ const PolygonShapeSource = (props: Props) => {
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      {/* <MapLibreGL.SymbolLayer id={'iconset'} style={{
+      <MapLibreGL.SymbolLayer id={'iconset'} style={{
+        iconAllowOverlap:true,
         iconImage: [
           'match',
           ['get', 'key'],
           'single-tree-registration',
           'single-tree-registration',
-          'multi-tree-registration',
-          'multi-tree-registration',
+          'soil-improvement',
+          'soil-improvement',
           'fire-patrol',
           'fire-patrol',
           'single-tree-registration',
         ]
       }}
-        filter={['all', ['<=', ['zoom'], 12], ['==', ['get', 'site'], true]]}
-      /> */}
-      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{circleOpacity: 0.8 ,circleColor: FillColor}} filter={["==", ["geometry-type"], "Point"]} />
+        filter={['==', ['get', 'site'], true]}
+      />
+      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
     </MapLibreGL.ShapeSource>
   )
 }
-
 export default PolygonShapeSource

@@ -19,6 +19,7 @@ import { GeoBox } from 'realm'
 import ClusterdShapSource from './ClusterdShapSource'
 import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { getRandomPointInPolygon } from 'src/utils/helpers/genratePointInPolygon'
 
 
 const MultiTreePin = require('assets/images/icons/MultTreePin.png');
@@ -91,6 +92,11 @@ const DisplayMap = () => {
           site: el.entire_site
         }
       )
+      if (el.entire_site) {
+        const newCoords = getRandomPointInPolygon(JSON.parse(el.location.coordinates))
+        result.geoJSON.geometry.type = "Point"
+        result.geoJSON.geometry.coordinates = newCoords
+      }
       return result.geoJSON
     })
     setGeoJSON({
@@ -179,7 +185,7 @@ const DisplayMap = () => {
             JSON.parse(el.location.coordinates),
             el.intervention_id,
             {
-              active: el.active,
+              active: el.active ? 'true' : 'false',
               key: el.intervention_key
             }
           )
@@ -222,7 +228,7 @@ const DisplayMap = () => {
           JSON.parse(el.location.coordinates),
           el.intervention_id,
           {
-            active: el.active,
+            active: el.active ? 'true' : 'false',
             key: el.intervention_key
           }
         )
@@ -242,7 +248,7 @@ const DisplayMap = () => {
 
   const renderIcons = useCallback(
     () => {
-      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'multi-tree-registration': MultiTreePin, 'fire-patrol': RemovalPin }}>
+      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'soil-improvement': MultiTreePin, 'fire-patrol': RemovalPin }}>
         <React.Fragment />
       </MapLibreGL.Images>
     },

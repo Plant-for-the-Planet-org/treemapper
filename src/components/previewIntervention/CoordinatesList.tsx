@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   card: {
     width: '75%',
     height: '100%',
-    backgroundColor: Colors.GRAY_BACKDROP + '1A',
+    backgroundColor: Colors.GRAY_BACKDROP,
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -109,13 +109,13 @@ const styles = StyleSheet.create({
   coordinatesLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(12),
-    color: Colors.TEXT_LIGHT,
+    color: Colors.TEXT_COLOR,
     letterSpacing: 0.2,
   },
   copyIconWrapper: {
     width: '18%',
     height: scaleSize(70),
-    backgroundColor: Colors.GRAY_BACKDROP + '1A',
+    backgroundColor: Colors.GRAY_BACKDROP,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
