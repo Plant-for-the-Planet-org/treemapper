@@ -7,15 +7,35 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineOpacity: 0.5,
+  lineOpacity: 0.8,
   lineJoin: 'bevel',
-  lineColor: Colors.PRIMARY
 }
-const activeFillStyle = { fillOpacity: 0.8, fillColor: Colors.PRIMARY }
 
 interface Props {
   intervetnion: InterventionData
 }
+const FillColor:any = [
+  'match',
+  ['get', 'key'],
+  'single-tree-registration', Colors.SINGLE_TREE,
+  'multi-tree-registration', Colors.MULTI_TREE,
+  'removal-invasive-species', Colors.INVASIVE_SPECIES,
+  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-patrol', Colors.FIRE_PATROL,
+  'fencing', Colors.FENCING,
+  'marking-regenerant', Colors.MARKING_REGENERANT,
+  'liberating-regenerant', Colors.LIBERATING_REGENERANT,
+  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'firebreaks', Colors.FIREBREAKS,
+  'assisting-seed-rain', Colors.SEED_RAIN,
+  'soil-improvement', Colors.SOIL_IMPROVEMENT,
+  'stop-tree-harvesting', Colors.STOP_HARVESTING,
+  'direct-seeding', Colors.DIRECT_SEEDING,
+  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'other-intervention', Colors.OTHER_INTERVENTION,
+  'maintenance', Colors.MAINTAINEANCE,
+  Colors.SINGLE_TREE
+]
 
 const SingleInterventionSource = (props: Props) => {
   const {intervetnion} = props
@@ -47,15 +67,15 @@ const SingleInterventionSource = (props: Props) => {
   }
   return (
     <MapLibreGL.ShapeSource
-      id={'polygon'}
+      id={'polyagon'}
       shape={geoJSON}>
       <MapLibreGL.FillLayer
-        id={'activePolyFill'} // Unique ID for active FillLayer
-        style={activeFillStyle}
+        id={'activePoalyFill'} // Unique ID for active FillLayer
+        style={{fillOpacity: 0.5, fillColor: FillColor}}
       />
       <MapLibreGL.LineLayer
-        id={'polyline'}
-        style={polyline}
+        id={'polylinse'}
+        style={{ ...polyline,lineColor: FillColor}}
       />
     </MapLibreGL.ShapeSource>
   )

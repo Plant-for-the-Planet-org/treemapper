@@ -9,13 +9,34 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineOpacity: 1,
   lineJoin: 'bevel',
 }
-const fillStyle = { fillOpacity: 0.5}
-const circleStyle = { circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8 };
 
 interface Props {
   geoJSON: any
   onShapeSourcePress: (id: string) => void
 }
+
+const FillColor:any = [
+  'match',
+  ['get', 'key'],
+  'single-tree-registration', Colors.SINGLE_TREE,
+  'multi-tree-registration', Colors.MULTI_TREE,
+  'removal-invasive-species', Colors.INVASIVE_SPECIES,
+  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-patrol', Colors.FIRE_PATROL,
+  'fencing', Colors.FENCING,
+  'marking-regenerant', Colors.MARKING_REGENERANT,
+  'liberating-regenerant', Colors.LIBERATING_REGENERANT,
+  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'firebreaks', Colors.FIREBREAKS,
+  'assisting-seed-rain', Colors.SEED_RAIN,
+  'soil-improvement', Colors.SOIL_IMPROVEMENT,
+  'stop-tree-harvesting', Colors.STOP_HARVESTING,
+  'direct-seeding', Colors.DIRECT_SEEDING,
+  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'other-intervention', Colors.OTHER_INTERVENTION,
+  'maintenance', Colors.MAINTAINEANCE,
+  Colors.SINGLE_TREE
+]
 
 const PolygonShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
@@ -30,59 +51,20 @@ const PolygonShapeSource = (props: Props) => {
       }}>
       <MapLibreGL.FillLayer
         id={'polyFill'}
-        style={{...fillStyle,
-          fillColor: [
-            'match',
-            ['get', 'key'],
-            'single-tree-registration', Colors.VIBRANT_YELLOW,
-  'multi-tree-registration', Colors.PRIMARY,
-  'removal-invasive-species', Colors.VIVID_RED,
-  'fire-suppression', Colors.BRIGHT_ORANGE,
-  'fire-patrol', Colors.ELECTRIC_PURPLE,
-  'fencing', Colors.ROYAL_BLUE,
-  'marking-regenerant', Colors.TURQUOISE_BLUE,
-  'liberating-regenerant', Colors.EMERALD_GREEN,
-  'grass-suppression', Colors.LIME_GREEN,
-  'firebreaks', Colors.SUNSHINE_YELLOW,
-  'assisting-seed-rain', Colors.TANGERINE_ORANGE,
-  'soil-improvement', Colors.RUBY_RED,
-  'stop-tree-harvesting', Colors.MAGENTA_PINK,
-  'direct-seeding',Colors.SAPPHIRE_BLUE,
-  'enrichement-planting', Colors.SAPPHIRE_BLUE,
-  'other-intervention', Colors.AQUAMARINE_BLUE,
-  'maintenance', Colors.JADE_GREEN,
-            Colors.VIBRANT_YELLOW
-          ]
+        style={{
+          fillOpacity: 0.5,
+          fillColor: FillColor
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
-        />
+      />
       <MapLibreGL.LineLayer
         id={'polyline'}
-        style={{...polyline,lineColor: [
-          'match',
-          ['get', 'key'],
-          'single-tree-registration', Colors.VIBRANT_YELLOW,
-'multi-tree-registration', Colors.PRIMARY,
-'removal-invasive-species', Colors.VIVID_RED,
-'fire-suppression', Colors.BRIGHT_ORANGE,
-'fire-patrol', Colors.ELECTRIC_PURPLE,
-'fencing', Colors.ROYAL_BLUE,
-'marking-regenerant', Colors.TURQUOISE_BLUE,
-'liberating-regenerant', Colors.EMERALD_GREEN,
-'grass-suppression', Colors.LIME_GREEN,
-'firebreaks', Colors.SUNSHINE_YELLOW,
-'assisting-seed-rain', Colors.TANGERINE_ORANGE,
-'soil-improvement', Colors.RUBY_RED,
-'stop-tree-harvesting', Colors.MAGENTA_PINK,
-'direct-seeding',Colors.SAPPHIRE_BLUE,
-'enrichement-planting', Colors.SAPPHIRE_BLUE,
-'other-intervention', Colors.AQUAMARINE_BLUE,
-'maintenance', Colors.JADE_GREEN,
-          Colors.VIBRANT_YELLOW
-        ]}}
+        style={{
+          ...polyline, lineColor: FillColor
+        }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
-        />
-         <MapLibreGL.SymbolLayer id={'iconset'} style={{
+      />
+      {/* <MapLibreGL.SymbolLayer id={'iconset'} style={{
         iconImage: [
           'match',
           ['get', 'key'],
@@ -95,9 +77,9 @@ const PolygonShapeSource = (props: Props) => {
           'single-tree-registration',
         ]
       }}
-      filter={['all', ['<=', ['zoom'], 12], ['==', ['get', 'site'], true]]}
-      />
-      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={circleStyle} filter={["==", ["geometry-type"], "Point"]}/>
+        filter={['all', ['<=', ['zoom'], 12], ['==', ['get', 'site'], true]]}
+      /> */}
+      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{circleOpacity: 0.8 ,circleColor: FillColor}} filter={["==", ["geometry-type"], "Point"]} />
     </MapLibreGL.ShapeSource>
   )
 }

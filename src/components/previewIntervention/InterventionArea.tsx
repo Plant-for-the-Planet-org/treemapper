@@ -1,25 +1,26 @@
-import {StyleSheet, Text, View} from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import {InterventionData} from 'src/types/interface/slice.interface'
-import {makeInterventionGeoJson} from 'src/utils/helpers/interventionFormHelper'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import PreviewMap from '../map/PreviewMap'
-import {Colors} from 'react-native/Libraries/NewAppScreen'
-import {Typography} from 'src/utils/constants'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { Colors } from 'react-native/Libraries/NewAppScreen'
+import { Typography } from 'src/utils/constants'
+import { scaleSize } from 'src/utils/constants/mixins'
 import CoordinatesList from './CoordinatesList'
 interface Props {
   data: InterventionData
 }
 
 const InterventionArea = (props: Props) => {
-  const {data} = props
-  const {geoJSON, type} = makeInterventionGeoJson(
+  const { data } = props
+  const { geoJSON, type } = makeInterventionGeoJson(
     data.location.type,
     JSON.parse(data.location.coordinates),
     data.intervention_id,
+    { key: data.intervention_key }
   )
 
-    // console.log(JSON.stringify(geoJSON, null, 2))
+  // console.log(JSON.stringify(geoJSON, null, 2))
 
 
   const FeatureCollectionGeoJSON = {
@@ -36,7 +37,7 @@ const InterventionArea = (props: Props) => {
         sampleTrees={data.sample_trees}
         has_sample_trees={data.has_sample_trees}
       />
-      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type}/>
+      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} />
     </View>
   )
 }

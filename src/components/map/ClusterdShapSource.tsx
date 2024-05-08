@@ -3,14 +3,35 @@ import React from 'react'
 import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 
+
+const FillColor: any = [
+  'match',
+  ['get', 'key'],
+  'single-tree-registration', Colors.SINGLE_TREE,
+  'multi-tree-registration', Colors.MULTI_TREE,
+  'removal-invasive-species', Colors.INVASIVE_SPECIES,
+  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-patrol', Colors.FIRE_PATROL,
+  'fencing', Colors.FENCING,
+  'marking-regenerant', Colors.MARKING_REGENERANT,
+  'liberating-regenerant', Colors.LIBERATING_REGENERANT,
+  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'firebreaks', Colors.FIREBREAKS,
+  'assisting-seed-rain', Colors.SEED_RAIN,
+  'soil-improvement', Colors.SOIL_IMPROVEMENT,
+  'stop-tree-harvesting', Colors.STOP_HARVESTING,
+  'direct-seeding', Colors.DIRECT_SEEDING,
+  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'other-intervention', Colors.OTHER_INTERVENTION,
+  'maintenance', Colors.MAINTAINEANCE,
+  Colors.SINGLE_TREE
+]
+
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
-  lineOpacity: 0.5,
+  lineOpacity: 0.8,
   lineJoin: 'bevel',
-  lineColor: Colors.PRIMARY
 }
-const activeFillStyle = { fillOpacity: 0.8, fillColor: Colors.PRIMARY }
-const dullStyle = { fillOpacity: 0.8, fillColor: Colors.NEW_PRIMARY+'1A' }
 
 interface Props {
   geoJSON: any
@@ -30,17 +51,18 @@ const ClusterdShapSource = (props: Props) => {
       }}>
       <MapLibreGL.FillLayer
         id={'inactivePolyFill'} // Unique ID for inactive FillLayer
-        filter={['==', ['get', 'active'], false]}
-        style={dullStyle}
-      />
-      <MapLibreGL.FillLayer
-        id={'activePolyFill'} // Unique ID for active FillLayer
-        filter={['==', ['get', 'active'], true]}
-        style={activeFillStyle}
+        style={{
+          fillOpacity: [
+            'match',
+            ['get', 'active'],
+            'true', 0.5,
+            0.2],
+          fillColor: FillColor
+        }}
       />
       <MapLibreGL.LineLayer
-        id={'polyline'}
-        style={polyline}
+        id={'polyliwne'}
+        style={{ ...polyline, lineColor: FillColor }}
       />
     </MapLibreGL.ShapeSource>
   )

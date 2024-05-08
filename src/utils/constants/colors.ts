@@ -61,3 +61,23 @@ export const AMETHYST_PURPLE = '#9C51B6';
 export const SAPPHIRE_BLUE = '#4452C8';
 export const AQUAMARINE_BLUE = '#3CDBC0';
 export const JADE_GREEN = '#39B89B';
+
+
+//Intervention
+export const SINGLE_TREE = '#007A49';
+export const MULTI_TREE = '#68B030';
+export const INVASIVE_SPECIES = '#EB5757';
+export const FIRE_SUPRESSION = '#F2C94C';
+export const FIRE_PATROL = '#F2994A';
+export const FENCING = '#48AADD';
+export const MARKING_REGENERANT = '#27AE60';
+export const LIBERATING_REGENERANT = '#56CCF2';
+export const GRASS_SUPRESSION = '#219653';
+export const FIREBREAKS = '#E86F56';
+export const SEED_RAIN = '#2F80ED';
+export const SOIL_IMPROVEMENT = '#6D4230';
+export const STOP_HARVESTING = '#4F4F4F';
+export const DIRECT_SEEDING = '#6FCF97';
+export const ENRICHMENT_PLANTING = '#EB67CE';
+export const MAINTAINEANCE = '#6C63FF';
+export const OTHER_INTERVENTION = '#9B51E0';

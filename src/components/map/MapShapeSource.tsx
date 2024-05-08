@@ -8,13 +8,36 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineOpacity: 0.5,
   lineJoin: 'bevel',
 }
-const fillStyle = {fillOpacity: 0.3}
+const fillStyle = {fillOpacity: 0.1}
 // const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
 const bigCircleStyle = {
   circleColor: Colors.NEW_PRIMARY,
   circleOpacity: 0.5,
   circleRadius: 12,
 }
+
+const FillColor:any = [
+  'match',
+  ['get', 'key'],
+  'single-tree-registration', Colors.SINGLE_TREE,
+  'multi-tree-registration', Colors.MULTI_TREE,
+  'removal-invasive-species', Colors.INVASIVE_SPECIES,
+  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-patrol', Colors.FIRE_PATROL,
+  'fencing', Colors.FENCING,
+  'marking-regenerant', Colors.MARKING_REGENERANT,
+  'liberating-regenerant', Colors.LIBERATING_REGENERANT,
+  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'firebreaks', Colors.FIREBREAKS,
+  'assisting-seed-rain', Colors.SEED_RAIN,
+  'soil-improvement', Colors.SOIL_IMPROVEMENT,
+  'stop-tree-harvesting', Colors.STOP_HARVESTING,
+  'direct-seeding', Colors.DIRECT_SEEDING,
+  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'other-intervention', Colors.OTHER_INTERVENTION,
+  'maintenance', Colors.MAINTAINEANCE,
+  Colors.SINGLE_TREE
+]
 
 interface Props {
   geoJSON: any
@@ -57,17 +80,17 @@ const MapShapeSource = (props: Props) => {
                   pressHandle(feature)
                 }}>
                 <MapLibreGL.FillLayer
-                  id={'polyFill' + feature.properties.id}
+                  id={'polwFill' + feature.properties.id}
                   style={{
                     ...fillStyle,
-                    fillColor: showError ? Colors.LIGHT_RED : Colors.PRIMARY,
+                    fillColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
                 <MapLibreGL.LineLayer
-                  id={'polyline' + feature.properties.id}
+                  id={'polwyline' + feature.properties.id}
                   style={{
                     ...polyline,
-                    lineColor: showError ? Colors.LIGHT_RED : Colors.NEW_PRIMARY,
+                    lineColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
               </MapLibreGL.ShapeSource>

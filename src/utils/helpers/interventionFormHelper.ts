@@ -4,6 +4,7 @@ import {
   SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
+import { Colors } from '../constants'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const { intervention_date, title, project_name, site_name } = data
 
@@ -77,7 +78,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-           ...extra?extra:{}
+            ...extra ? extra : {}
           },
           geometry: {
             type: 'Point',
@@ -93,7 +94,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            ...extra?extra:{}
+            ...extra ? extra : {}
           },
           geometry: {
             type: 'Polygon',
@@ -160,3 +161,45 @@ export const extractTreeCount = (
 }
 
 
+
+
+export const getInterventionColor = (key) => {
+  switch (key) {
+    case 'single-tree-registration':
+      return Colors.SINGLE_TREE;
+    case 'multi-tree-registration':
+      return Colors.MULTI_TREE;
+    case 'removal-invasive-species':
+      return Colors.INVASIVE_SPECIES;
+    case 'fire-suppression':
+      return Colors.FIRE_SUPRESSION;
+    case 'fire-patrol':
+      return Colors.FIRE_PATROL;
+    case 'fencing':
+      return Colors.FENCING;
+    case 'marking-regenerant':
+      return Colors.MARKING_REGENERANT;
+    case 'liberating-regenerant':
+      return Colors.LIBERATING_REGENERANT;
+    case 'grass-suppression':
+      return Colors.GRASS_SUPRESSION;
+    case 'firebreaks':
+      return Colors.FIREBREAKS;
+    case 'assisting-seed-rain':
+      return Colors.SEED_RAIN;
+    case 'soil-improvement':
+      return Colors.SOIL_IMPROVEMENT;
+    case 'stop-tree-harvesting':
+      return Colors.STOP_HARVESTING;
+    case 'direct-seeding':
+      return Colors.DIRECT_SEEDING;
+    case 'enrichement-planting':
+      return Colors.ENRICHMENT_PLANTING;
+    case 'other-intervention':
+      return Colors.OTHER_INTERVENTION;
+    case 'maintenance':
+      return Colors.MAINTAINEANCE;
+    default:
+      return Colors.SINGLE_TREE;
+  }
+}

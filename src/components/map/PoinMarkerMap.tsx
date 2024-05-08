@@ -33,7 +33,7 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { species_required, is_multi_species, has_sample_trees, tree_details } = props.formData
+  const { species_required, is_multi_species, has_sample_trees, tree_details, key } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -82,7 +82,7 @@ const PointMarkerMap = (props: Props) => {
 
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4())
+    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: key })
     setGeoJSON(data.geoJSON)
   }
 
