@@ -1,21 +1,18 @@
-import i18next from 'i18next'
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import {
-  Image,
   KeyboardAvoidingView,
   Modal,
-  Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native'
-import MCIcon from '@expo/vector-icons/MaterialCommunityIcons'
-import {Colors, CommonStyles, Typography} from 'src/utils/constants'
-import MultipleTreeIcon from 'assets/images/svg/MultiTreeIcon.svg'
+import { Colors, Typography } from 'src/utils/constants'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { InputOutline } from 'react-native-input-outline'
+import { scaleFont } from 'src/utils/constants/mixins'
+import SpeciesIcon from 'assets/images/svg/SpeciesIcon.svg'
 
 interface TreeCountModalProps {
   showTreeCountModal: boolean
@@ -49,71 +46,49 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
       <View style={styles.modalBackground}>
-        <View style={styles.inputModal}>
-          <Ionicons
-            name={'close'}
-            size={30}
-            color={Colors.TEXT_COLOR}
-            onPress={() => {
-              setShowTreeCountModal(null)
-            }}
-          />
-          {activeSpecie?.image ? (
-            <Image
-              source={{uri: `${activeSpecie?.image}`}}
-              style={styles.image}
-            />
-          ) : activeSpecie?.image ? (
-            <Image
-              source={{uri: `${activeSpecie?.image}`}}
-              style={styles.image}
-            />
-          ) : (
-            <View style={styles.iconContainer}>
-              <MultipleTreeIcon width={150} height={120} />
-            </View>
-          )}
-          <View style={styles.textCon}>
-            <Text style={styles.speciesText}>
-              {i18next.t('label.select_species_tree_count_modal_header')}
-            </Text>
-            {activeSpecie && (
-              <Text style={styles.speciesName}>
-                {activeSpecie.aliases.length
-                  ? activeSpecie.aliases
-                  : activeSpecie.scientific_name}
-              </Text>
-            )}
-            <Text style={styles.speciesText}>
-              {i18next.t('label.select_species_tree_count_modal_sub_header_2')}
-            </Text>
-          </View>
-        </View>
       </View>
       <KeyboardAvoidingView
-        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-        style={styles.bgWhite}>
-        <View style={CommonStyles.bottomInputContainer}>
-          <Text style={CommonStyles.bottomInputLabel}>
-            {i18next.t('label.select_species_modal_label')}
-          </Text>
-          <TextInput
-            ref={inputRef}
-            value={treeCount}
-            style={CommonStyles.bottomInputText}
-            placeholderTextColor={Colors.TEXT_COLOR}
-            onChangeText={text => setTreeCount(text.replace(/[^0-9]/g, ''))}
-            keyboardType={'number-pad'}
-            onEndEditing={handlePressNext}
-          />
-          <MCIcon
-            onPress={handlePressNext}
-            name={'arrow-right'}
-            size={30}
-            color={Colors.PRIMARY}
-          />
+        behavior={'position'} style={styles.keyboarview}>
+        <View style={styles.bottomInputContainer}>
+          <View style={styles.wrapper}>
+            <View style={styles.headerWrapper}>
+              <SpeciesIcon />
+              <Text style={styles.headerLabel}>Total Tress</Text>
+              <View style={styles.divider} />
+              <Ionicons
+                name={'close'}
+                size={30}
+                color={Colors.TEXT_COLOR}
+                onPress={() => {
+                  setShowTreeCountModal(null)
+                }}
+              />
+            </View>
+            {activeSpecie && <Text style={styles.note}>How many  {activeSpecie.aliases.length
+                  ? activeSpecie.aliases
+                  : activeSpecie.scientific_name} did you plant ?</Text>}
+            <View style={styles.inputWrapper}>
+              <View style={styles.input}>
+                <InputOutline
+                  style={styles.inputHolder}
+                  value={''}
+                  ref={inputRef}
+                  placeholder={'Tree Count'}
+                  activeColor={Colors.NEW_PRIMARY}
+                  inactiveColor={Colors.GRAY_TEXT}
+                  placeholderTextColor={Colors.GRAY_TEXT}
+                  fontSize={scaleFont(16)}
+                  onChangeText={() => { }}
+                  keyboardType='number-pad'
+                  fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
+                />
+              </View>
+              <TouchableOpacity style={styles.button} onPress={handlePressNext}>
+                <Text style={styles.btnLabel}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-        <SafeAreaView />
       </KeyboardAvoidingView>
     </Modal>
   )
@@ -128,46 +103,84 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
-  inputModal: {
-    backgroundColor: Colors.WHITE,
-    marginVertical: 30,
-    marginHorizontal: 20,
+  keyboarview: {
+    backgroundColor: "green",
+    margin: 0,
+    padding: 0
+  },
+  wrapper: {
+    width: '100%',
+    paddingTop: 10,
+    backgroundColor: 'white',
+    paddingBottom: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20
+  },
+  bottomInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopWidth: 0.5,
+    borderColor: Colors.TEXT_COLOR,
+    width: '100%',
     borderRadius: 20,
-    padding: 20,
-    width: '80%',
+    position: 'absolute',
+    bottom: 0
   },
-  bgWhite: {
-    backgroundColor: Colors.WHITE,
+  headerWrapper: {
+    width: '100%',
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingHorizontal: 20,
   },
-  speciesText: {
-    marginTop: 16,
-    marginHorizontal: 20,
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
+  headerLabel: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
-    textAlign: 'center',
+    fontSize: scaleFont(20),
+    marginLeft: 20
   },
-  speciesName: {
-    marginTop: 16,
-    marginHorizontal: 20,
-    fontFamily: Typography.FONT_FAMILY_ITALIC_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
-    textAlign: 'center',
+  divider: {
+    flex: 1
   },
-  textCon: {
-    marginBottom: 8,
+  note: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.TEXT_COLOR,
+    fontSize: scaleFont(18),
+    marginLeft: 15
   },
-  image: {
-    alignSelf: 'center',
-    marginVertical: 20,
-    width: 150,
-    height: 100,
-    borderRadius: 5,
+  inputWrapper: {
+    width: '100%',
+    height: 55,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20
   },
-  iconContainer: {
-    alignSelf: 'center',
-    marginTop: 10,
-    borderBottomWidth: 2,
-    borderColor: '#d3d3d350',
+  input: {
+    width: '60%',
+    height: '100%',
+    marginHorizontal: 10
+  },
+  button: {
+    width: "30%",
+    height: '100%',
+    backgroundColor: Colors.NEW_PRIMARY,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  inputHolder: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    width: '90%',
+    height: '100%',
+    marginHorizontal: '5%',
+  },
+  btnLabel: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.WHITE,
+    fontSize: scaleFont(16),
   },
 })
