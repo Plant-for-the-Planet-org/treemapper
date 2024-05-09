@@ -29,6 +29,7 @@ export type RootStackParamList = {
   OfflineMapSelection: undefined
   ReviewTreeDetails: ReviewTreeDetailsView
   ActivityLog: undefined
+  MetaDataElement:MetaDataElementView
 }
 
 type SpeciesInfoView = {
@@ -71,4 +72,8 @@ type ReviewTreeDetailsView = {
 
 type SearchSpeciesView = {
   manageSpecies: boolean
+}
+
+type MetaDataElementView = {
+  edit: boolean
 }

@@ -32,6 +32,7 @@ const RootNavigator = () => {
       <Stack.Screen name="OfflineMapSelection" component={Screens.OfflineMapSelection} />
       <Stack.Screen name='ReviewTreeDetails' component={Screens.ReviewTreeDetails} />
       <Stack.Screen name='ActivityLog' component={Screens.ActivityLogs} />
+      <Stack.Screen name='MetaDataElement' component={Screens.MetaDataElement} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
+import AdditionalDataFormNote from './AdditionalDataFormNote'
 
 const AdditionalDataForm = () => {
   return (
     <View style={styles.container}>
-      <Text>AdditionalDataForm</Text>
+      <AdditionalDataFormNote/>
     </View>
   )
 }

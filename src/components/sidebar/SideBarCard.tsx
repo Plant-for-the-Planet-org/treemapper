@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
     height: scaleSize(60),
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 5
   },
   wrapper: {
     width: '90%',

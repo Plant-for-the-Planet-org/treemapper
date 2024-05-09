@@ -39,7 +39,7 @@ const SideBarList = (props: Props) => {
       label: 'Additional Data',
       screen: 'AdditionalData',
       icon: <AdditionalDataIcon />,
-      visible: false,
+      visible: true,
       key: 'additional_data'
     },
     {

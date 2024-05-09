@@ -1,31 +1,36 @@
 import * as React from 'react'
-import {View, useWindowDimensions} from 'react-native'
-import {TabView, SceneMap} from 'react-native-tab-view'
+import { useWindowDimensions } from 'react-native'
+import { TabView, SceneMap } from 'react-native-tab-view'
+import { useState } from 'react'
+import AdditionalFormTabBar from './AdditionalFormTabBar'
+import i18next from 'src/locales/index'
+import AdditionalDataForm from './AdditionalDataForm'
+import MetaDataForm from './MetaDataForm'
 
-const FirstRoute = () => <View style={{flex: 1}} />
-
-const SecondRoute = () => <View style={{flex: 1}} />
 
 const renderScene = SceneMap({
-  addtional: FirstRoute,
-  meta: SecondRoute,
+  form: AdditionalDataForm,
+  metadata: MetaDataForm,
 })
 
 const AdditionalTabView = () => {
   const layout = useWindowDimensions()
 
-  const [index, setIndex] = React.useState(0)
-  const [routes] = React.useState([
-    {key: 'addtional', title: 'Additional Data'},
-    {key: 'meta', title: 'Meta Data'},
-  ])
+  const [routeIndex, setRouteIndex] = useState(0)
+  const [tabRoutes] = useState([
+    { key: 'form', title: i18next.t('label.additional_data_form') },
+    { key: 'metadata', title: i18next.t('label.additional_data_metadata') },
+  ]);
 
   return (
     <TabView
-      navigationState={{index, routes}}
-      renderScene={renderScene}
-      onIndexChange={setIndex}
-      initialLayout={{width: layout.width}}
+    navigationState={{ index: routeIndex, routes: tabRoutes }}
+    renderScene={renderScene}
+      onIndexChange={setRouteIndex}
+      initialLayout={{ width: layout.width }}
+      renderTabBar={props => (
+        <AdditionalFormTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
+      )}
     />
   )
 }

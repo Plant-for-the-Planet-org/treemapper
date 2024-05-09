@@ -59,6 +59,7 @@
     "react-native-gesture-handler": "~2.12.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-input-outline": "^1.5.2",
+    "react-native-material-menu": "^2.0.0",
     "react-native-modal": "^13.0.1",
     "react-native-pager-view": "6.2.0",
     "react-native-reanimated": "~3.3.0",
