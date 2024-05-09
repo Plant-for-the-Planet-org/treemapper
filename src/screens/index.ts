@@ -20,6 +20,7 @@ import AdditionalDataView from './AdditionalDataView'
 import OfflineMapSelectionView from './OfflineMapSelectionView'
 import OfflineMapView from './OfflineMapView'
 import ReviewTreeDetails from './ReviewTreeDetails'
+import ActivityLogsView from './ActivityLogsView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -43,5 +44,6 @@ export default {
   AdditionalData: AdditionalDataView,
   OfflineMap: OfflineMapView,
   OfflineMapSelection: OfflineMapSelectionView,
-  ReviewTreeDetails:ReviewTreeDetails
+  ReviewTreeDetails:ReviewTreeDetails,
+  ActivityLogs:ActivityLogsView
 }

@@ -38,12 +38,12 @@ export default Header
 
 const styles = StyleSheet.create({
   container: {
-    height: scaleSize(60),
+    height: scaleSize(70),
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    zIndex:1
+    zIndex:1,
   },
   backIcon: {
     width: 20,

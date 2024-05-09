@@ -28,6 +28,7 @@ export type RootStackParamList = {
   OfflineMap: undefined
   OfflineMapSelection: undefined
   ReviewTreeDetails: ReviewTreeDetailsView
+  ActivityLog: undefined
 }
 
 type SpeciesInfoView = {

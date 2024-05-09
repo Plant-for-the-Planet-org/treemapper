@@ -31,7 +31,7 @@ const RootNavigator = () => {
       <Stack.Screen name="OfflineMap" component={Screens.OfflineMap} />
       <Stack.Screen name="OfflineMapSelection" component={Screens.OfflineMapSelection} />
       <Stack.Screen name='ReviewTreeDetails' component={Screens.ReviewTreeDetails} />
-
+      <Stack.Screen name='ActivityLog' component={Screens.ActivityLogs} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

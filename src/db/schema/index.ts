@@ -1,6 +1,6 @@
 import {Dropdown} from './ dropDown'
 import {DropDownOption} from './ dropDownOption'
-import {ActivityLog} from './activityLog'
+import {ActivityLogs} from './activityLogs'
 import {AdditionalDetail} from './additionalDetail'
 import {Coordinates} from './coordinates'
 import {Element} from './element'
@@ -23,7 +23,7 @@ import { GeoSpatial } from './geoSpatial'
 export default [
   Dropdown,
   DropDownOption,
-  ActivityLog,
+  ActivityLogs,
   AdditionalDetail,
   Coordinates,
   Element,

@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, MAP_BOUNDS } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -235,3 +235,12 @@ export interface InterventionData {
   entire_site: boolean
   active?:boolean
 }
+
+export interface LogDetails {
+    logType: LOG_TYPES,
+    message: string,
+    referenceId?: string,
+    logLevel: LOG_LEVELS,
+    statusCode: string,
+    logStack?: string
+  }

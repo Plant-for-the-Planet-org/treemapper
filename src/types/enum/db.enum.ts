@@ -7,7 +7,7 @@ export enum RealmSchema {
   Inventory = 'Inventory',
   Intervention = 'Intervention',
   User = 'User',
-  ActivityLog = 'ActivityLog',
+  ActivityLogs = 'ActivityLogs',
   ScientificSpecies = 'ScientificSpecies',
   ProjectSite = 'ProjectSite',
   Projects = 'Projects',

@@ -2,7 +2,6 @@ import {StyleSheet, View, FlatList} from 'react-native'
 import React from 'react'
 import SideBarCard from './SideBarCard'
 import {SideDrawerItem} from 'src/types/interface/app.interface'
-
 import ManageSpeciesIcon from 'assets/images/svg/ManageSpeciesIcon.svg'
 import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
 import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
@@ -56,6 +55,13 @@ const SideBarList = (props: Props) => {
       icon: <DataExpolrerIcon />,
       visible: true,
       key: 'data_explorer'
+    },
+    {
+      label: 'Activity Log',
+      screen: 'ActivityLog',
+      icon: <DataExpolrerIcon />,
+      visible: true,
+      key: 'activity_log'
     },
     {
       label: 'Logout',
