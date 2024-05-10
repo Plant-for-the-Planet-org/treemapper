@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     zIndex: 1,
-    backgroundColor:Colors.WHITE
+    backgroundColor:Colors.WHITE,
   },
   tabItemContainer: {
     position: 'relative',

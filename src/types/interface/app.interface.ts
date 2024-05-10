@@ -55,3 +55,12 @@ export interface DropdownData {
   index?: number
   extra?: any
 }
+
+
+export interface Metadata{
+  id: string
+  key: string
+  value: string
+  order: number
+  accessType: 'public' | 'private',
+}

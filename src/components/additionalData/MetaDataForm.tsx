@@ -1,5 +1,5 @@
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import MetaDataFormNote from './MetaDataFormNote'
 import MetaDataElement from './MetaDataElement'
 import { Colors, Typography } from 'src/utils/constants'
@@ -7,19 +7,44 @@ import { Text } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { Metadata } from 'src/types/interface/app.interface'
 
 
 const MetaDataForm = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const [metaData, setMetaData] = useState<Metadata[] | any>([])
+
+  const allMetaData = useQuery<Metadata>(
+    RealmSchema.Metadata,
+    data => {
+      return data
+    },
+  )
+
+  useEffect(() => {
+    setMetaData(allMetaData)
+  }, [allMetaData])
+  
+
 
   const openMediaElementView = () => {
-    navigation.navigate("MetaDataElement")
+    navigation.navigate("MetaDataElement",{order:allMetaData.length+1})
+  }
+
+  const editDetails=(d: Metadata)=>{
+    navigation.navigate("MetaDataElement",{order:d.order,edit:true,id:d.id})
+
   }
 
 
 
   const renderFooter = () => {
-    return (
+    if(metaData.length===0){
+      return null
+    }
+  return (
       <View style={styles.footerWrapper}>
         <TouchableOpacity style={styles.footerButton} onPress={openMediaElementView}>
           <Text style={styles.footerLabel}>Add Field</Text>
@@ -29,8 +54,7 @@ const MetaDataForm = () => {
   }
   return (
     <View style={styles.container}>
-      {/* <MetaDataFormNote/> */}
-      <FlatList data={[1, 2, 3, 4]} renderItem={() => (<MetaDataElement />)} ListFooterComponent={renderFooter()} ListEmptyComponent={MetaDataFormNote} />
+      <FlatList data={metaData} renderItem={({item}) => (<MetaDataElement data={item} handleSelection={editDetails}/>)} ListFooterComponent={renderFooter()} ListEmptyComponent={MetaDataFormNote} />
     </View>
   )
 }

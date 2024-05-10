@@ -22,6 +22,8 @@ import OfflineMapView from './OfflineMapView'
 import ReviewTreeDetails from './ReviewTreeDetails'
 import ActivityLogsView from './ActivityLogsView'
 import MetaDataElementView from './MetaDataElementView'
+import AdditionDataElementView from './AdditionDataElement'
+import SelectElement from './SelectElementView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -47,5 +49,7 @@ export default {
   OfflineMapSelection: OfflineMapSelectionView,
   ReviewTreeDetails: ReviewTreeDetails,
   ActivityLogs: ActivityLogsView,
-  MetaDataElement: MetaDataElementView
+  MetaDataElement: MetaDataElementView,
+  AdditionDataElement: AdditionDataElementView,
+  SelectElement:SelectElement
 }

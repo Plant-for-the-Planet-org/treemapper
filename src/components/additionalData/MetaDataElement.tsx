@@ -1,19 +1,27 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { Colors, Typography } from 'src/utils/constants'
+import { Metadata } from 'src/types/interface/app.interface'
+
+interface Props{
+  data: Metadata
+  handleSelection: (e:Metadata)=>void
+}
 
 
-
-
-const MetaDataElement = () => {
+const MetaDataElement = (props:Props) => {
+  const {data, handleSelection} = props
+  const editDetails = ()=>{
+    handleSelection(data)
+  }
   return (
     <View style={styles.cotnainer}>
-      <View style={styles.wrapper}>
+      <TouchableOpacity style={styles.wrapper} onPress={editDetails}>
         <View style={styles.sectionWrapper}>
-          <Text style={styles.keyLabel}>Hello wored</Text>
-          <Text style={styles.keyValue}>Hello wored</Text>
+          <Text style={styles.keyLabel}>{data.key}</Text>
+          <Text style={styles.keyValue}>{data.value}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   )
 }
