@@ -6,6 +6,7 @@ import { DropdownData } from './app.interface'
 
 
 export interface FormElement {
+  element_id?: string;
   index: number
   key: string
   value: string
@@ -15,14 +16,16 @@ export interface FormElement {
   placeholder: string
   unit: string
   visibility: DATA_VISIBLITY
-  condition: { [key: string]: boolean } | null
+  condition?: { [key: string]: boolean } | null
   data_type: 'number' | 'string' | 'boolean'
   keyboard_type: KeyboardType
-  sub_form: FormElement | null
+  sub_form?: FormElement | null
   editable: boolean
   required: boolean
   validation: string
-  dropDownData?: DropdownData[]
+  dropDownData?: DropdownData[],
+  intervention?: string[];
+
 }
 
 export interface MainForm {
@@ -30,3 +33,4 @@ export interface MainForm {
   key: string
   elements: FormElement[]
 }
+

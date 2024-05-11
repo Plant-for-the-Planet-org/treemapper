@@ -1,4 +1,4 @@
-import { AFTER_CAPTURE, INTERVENTION_TYPE } from './app.type'
+import { AFTER_CAPTURE, FORM_TYPE, INTERVENTION_TYPE } from './app.type'
 
 export type BottomTabParamList = {
   Map: undefined
@@ -31,7 +31,7 @@ export type RootStackParamList = {
   ActivityLog: undefined
   MetaDataElement: MetaDataElementView
   AdditionDataElement: AdditionDataElementView
-  SelectElement: undefined
+  SelectElement: SelectElementView
 }
 
 type SpeciesInfoView = {
@@ -83,5 +83,14 @@ type MetaDataElementView = {
 }
 
 type AdditionDataElementView = {
-  edit?: boolean
+  edit?: boolean,
+  element: FORM_TYPE,
+  element_id?: string
+  form_id: string
+  element_order: number
+}
+
+type SelectElementView = {
+  form_id: string
+  element_order: number
 }

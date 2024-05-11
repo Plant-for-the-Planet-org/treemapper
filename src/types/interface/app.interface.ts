@@ -1,5 +1,6 @@
 import { SIDE_DRAWER_ELEMENTS } from "../type/app.type"
 import { RootStackParamList } from "../type/navigation.type"
+import { FormElement } from "./form.interface"
 
 export interface Coordinates {
   lat: number
@@ -63,4 +64,13 @@ export interface Metadata{
   value: string
   order: number
   accessType: 'public' | 'private',
+}
+
+
+export interface IAdditonalDetailsForm{
+  form_id: string,
+  order:  number,
+  elements: FormElement[],
+  title: string,
+  description: string,
 }

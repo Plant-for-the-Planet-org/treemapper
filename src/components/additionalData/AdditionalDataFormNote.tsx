@@ -4,13 +4,19 @@ import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
 import CustomButton from '../common/CustomButton'
 
-const AdditionalDataFormNote = () => {
+
+interface Props {
+  newForm:()=>void
+}
+
+const AdditionalDataFormNote = (props:Props) => {
+  const {newForm} = props
   return (
     <View style={styles.container}>
       <View style={[styles.formMessageContainer]}>
         <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
         <Text style={styles.desc}>{i18next.t('label.get_started_forms_description')}</Text>
-        <CustomButton label={i18next.t('label.create_form')} pressHandler={() => { }} containerStyle={styles.btnContainer} />
+        <CustomButton label={i18next.t('label.create_form')} pressHandler={newForm} containerStyle={styles.btnContainer} />
       </View>
     </View>
   )

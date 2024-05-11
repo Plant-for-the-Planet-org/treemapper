@@ -19,6 +19,8 @@ import {User} from './user'
 import {Intervention} from './intervention' 
 import {YesNo} from './yesOrNo'
 import { GeoSpatial } from './geoSpatial'
+import { FormElement } from './FormElements'
+import { AdditonalDetailsForm } from './additonalDetailsForm'
 
 export default [
   Dropdown,
@@ -41,5 +43,7 @@ export default [
   User,
   YesNo,
   Intervention,
-  GeoSpatial
+  GeoSpatial,
+  AdditonalDetailsForm,
+  FormElement
 ]
