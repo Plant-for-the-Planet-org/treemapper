@@ -10,6 +10,7 @@ import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import { v4 as uuid } from 'uuid'
+import { FormElement } from 'src/types/interface/form.interface'
 
 
 const AdditionalDataForm = () => {
@@ -37,13 +38,16 @@ const AdditionalDataForm = () => {
     navigation.navigate("SelectElement", { form_id: id, element_order: 0 })
   }
 
-  const elementHandler = (id: string, form_id: string) => {
-    console.log("DKlc", form_id, id)
+
+  const elementHandler = (data: FormElement, form_id: string) => {
+    navigation.navigate('AdditionDataElement', { element: data.type, form_id, element_order: data.index, edit: true, element_id: data.element_id })
   }
 
   return (
     <View style={styles.container}>
-      <FlatList data={allFormData} renderItem={({ item, index }) => (<AddDataElement data={item} pressHandler={elementHandler} pageNo={index} openHandler={openMediaElementView}/>)} ListEmptyComponent={<AdditionalDataFormNote newForm={createNewForm} />} />
+      <FlatList data={allFormData} 
+      keyExtractor={({ form_id }) => form_id}
+      renderItem={({ item, index }) => (<AddDataElement data={item} pressHandler={elementHandler} pageNo={index} openHandler={openMediaElementView} />)} ListEmptyComponent={<AdditionalDataFormNote newForm={createNewForm} />} />
     </View>
   )
 }

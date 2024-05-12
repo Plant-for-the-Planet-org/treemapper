@@ -20,7 +20,7 @@ import {Intervention} from './intervention'
 import {YesNo} from './yesOrNo'
 import { GeoSpatial } from './geoSpatial'
 import { FormElement } from './FormElements'
-import { AdditonalDetailsForm } from './additonalDetailsForm'
+import { AdditonalDetailsForm } from './AdditonalDetailsForm'
 
 export default [
   Dropdown,

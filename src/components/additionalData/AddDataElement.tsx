@@ -3,23 +3,25 @@ import React from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
+import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
+import BinIcon from 'assets/images/svg/BinIcon.svg'
 
 
 interface Props {
   data: IAdditonalDetailsForm
-  pressHandler: (id: string, form_id: string) => void
+  pressHandler: (data: FormElement, form_id: string) => void
   pageNo: number
   openHandler: (id: string) => void
 }
 
-const Element = (props: { elementDetails: FormElement }) => {
-  const { elementDetails } = props;
+const Element = (props: { elementDetails: FormElement, form_id: string, pressHandler: (data: FormElement, form_id: string) => void }) => {
+  const { elementDetails, pressHandler, form_id } = props;
   const renderBody = () => {
     switch (elementDetails.type) {
       case "INPUT":
         return (
           <Text style={styles.inputWrapper}>
-            Heell
+            {elementDetails.label}
           </Text>
         )
       case "YES_NO":
@@ -36,23 +38,27 @@ const Element = (props: { elementDetails: FormElement }) => {
     }
   }
 
+  const editSelection = () => {
+    pressHandler(elementDetails, form_id)
+  }
 
   return (
     <View style={styles.cotnainer}>
       <View style={styles.wrapper}>
-        <View style={styles.sectionWrapper}>
+        <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
           <Text style={styles.keyLabel}>Input Element</Text>
           <View style={styles.bodyWrapper}>
             {renderBody()}
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   )
 }
 
 const AddDataElement = (props: Props) => {
-  const { data, pageNo, openHandler } = props
+  const { data, pageNo, openHandler, pressHandler } = props
+  const { deleteForm } = useAdditionalForm()
   const handlePress = () => {
     openHandler(data.form_id)
   }
@@ -65,10 +71,22 @@ const AddDataElement = (props: Props) => {
       </View>
     )
   }
+
+  const deleteFormHandler = () => {
+    deleteForm(data.form_id)
+  }
+
   return (
     <View style={styles.cotnainer}>
-      <Text style={styles.headerLabel}>Page {pageNo + 1}</Text>
-      <FlatList data={data.elements} renderItem={({ item }) => (<Element elementDetails={item} />)} ListFooterComponent={renderFooter()} />
+      <View style={styles.headerTitleWrapper}>
+        <Text style={styles.headerLabel}>Page {pageNo + 1}</Text>
+        <TouchableOpacity style={styles.deleteWrapper} onPress={deleteFormHandler}>
+          <BinIcon width={15} height={15} fill={'tomato'} />
+        </TouchableOpacity>
+      </View>
+      <FlatList data={data.elements}
+        keyExtractor={({ element_id }) => element_id}
+        renderItem={({ item }) => (<Element elementDetails={item} pressHandler={pressHandler} form_id={data.form_id} />)} ListFooterComponent={renderFooter()} />
     </View>
   )
 }
@@ -80,7 +98,7 @@ export default AddDataElement
 const styles = StyleSheet.create({
   cotnainer: {
     width: '100%',
-    marginLeft:'2%'
+    marginLeft: '2%'
   },
   wrapper: {
     width: "90%",
@@ -152,4 +170,26 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR
   },
+  headerTitleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  deleteWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    // borderWidth: 1,
+    // borderColor: 'tomato',
+    // borderStyle: 'dashed',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 20
+  },
+  deletelabel: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: 'tomato',
+    marginHorizontal: 10,
+  }
 })

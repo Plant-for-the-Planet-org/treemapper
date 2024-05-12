@@ -72,7 +72,7 @@ const SelectElement = () => {
       createNewForm()
       return
     }
-    navigation.navigate('AdditionDataElement', { element: elementType, form_id, element_order })
+    navigation.replace('AdditionDataElement', { element: elementType, form_id, element_order })
   };
 
   const createNewForm = async () => {

@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { IAdditonalDetailsForm, Metadata } from 'src/types/interface/app.interface'
+import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 
 const useAdditionalForm = () => {
@@ -32,9 +32,6 @@ const useAdditionalForm = () => {
     try {
       realm.write(() => {
         const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
-        console.log("Kdcscd", elementDetails)
-        console.log("Kdcscd form_id", form_id)
-        console.log("LKdcj", formDetails)
         formDetails.elements = [...formDetails.elements, elementDetails]
       })
       return Promise.resolve(true)
@@ -44,14 +41,17 @@ const useAdditionalForm = () => {
     }
   }
 
-  const updateElementInForm = async (
-    elements: FormElement[],
+  const deleteElementInForm = async (
+    element_id: string,
     form_id: string
   ): Promise<boolean> => {
     try {
       realm.write(() => {
         const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
-        formDetails.elements = [...elements]
+        const filterData = formDetails.elements.filter(el => el.element_id !== element_id)
+        formDetails.elements = filterData
+        const myData = filterData.filter(el => el.element_id === element_id)
+        realm.delete(myData)
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -81,13 +81,37 @@ const useAdditionalForm = () => {
   }
 
 
+  const updateElementInForm = async (
+    element_id: string,
+    form_id: string,
+    data: any
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
+        const myData = formDetails.elements.filter(el => el.element_id === element_id);
+        console.log("ALSCJK",data)
+        myData[0].index = data.index
+        myData[0].key = data.key
+        myData[0].label = data.label
+        myData[0].visibility = data.visibility
+        myData[0].data_type = data.data_type
+        myData[0].keyboard_type = data.keyboard_type
+        myData[0].required = data.required
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
   const deleteForm = async (id: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<Metadata>(RealmSchema.AdditonalDetailsForm, id);
-        realm.delete(intervention);
+        const form = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, id);
+        realm.delete(form);
       });
       return Promise.resolve(true);
     } catch (error) {
@@ -98,7 +122,7 @@ const useAdditionalForm = () => {
 
 
 
-  return { addNewForm, addNewElementInForm, updateElementInForm, deleteForm, updateFormDetails }
+  return { addNewForm, addNewElementInForm, deleteElementInForm, deleteForm, updateFormDetails, updateElementInForm }
 }
 
 export default useAdditionalForm;

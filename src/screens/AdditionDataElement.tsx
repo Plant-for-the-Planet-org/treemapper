@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, Text, View } from 'react-native'
+import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
@@ -9,50 +9,85 @@ import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import DropDownFieldElement from 'src/components/additionalData/DropDownFieldElement'
-import { useRoute, RouteProp } from '@react-navigation/native'
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import { FormElement } from 'src/types/interface/form.interface'
-import { DropdownData } from 'src/types/interface/app.interface'
-import {v4 as uuid} from 'uuid'
+import { DropdownData, IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import { v4 as uuid } from 'uuid'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { useRealm } from '@realm/react'
+import { StackNavigationProp } from '@react-navigation/stack'
 
-type data_Type = 'number' | 'string' | 'boolean'
+
+const fieldType: Array<{
+  label: string
+  value: string
+  index: number
+}> = [{
+  label: 'Text',
+  value: 'string',
+  index: 0
+}, {
+  label: 'Number',
+  value: 'number',
+  index: 0
+}]
 
 const AdditionDataElement = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AdditionDataElement'>>()
   const elementType = route.params && route.params.element ? route.params.element : 'INPUT'
   const form_id = route.params && route.params.form_id ? route.params.form_id : ''
   const element_order = route.params && route.params.element_order ? route.params.element_order : 0
+  const element_id = route.params && route.params.element_id ? route.params.element_id : ''
+  const edit = route.params && route.params.edit ? route.params.edit : false
 
   const [inputKey, setInputKey] = useState('')
-  const [dataType, setDataType] = useState<data_Type>('string')
+  const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
   const [isPublic, setIsPublic] = useState(false)
   const [advanceMode, setAdvanceMode] = useState(false)
-  const [fieldKey] = useState(`INPUT-${Date.now()}`)
+  const [fieldKey, setFieldKey] = useState(`INPUT-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)
   const [showOptionModal, setShowDropDownOption] = useState(false)
+  const realm = useRealm()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+
+  useEffect(() => {
+    if (edit && element_id) {
+      preFillData()
+    }
+  }, [edit])
+
+
+  const preFillData = () => {
+    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    if (data) {
+      const elementDetails = data.elements.filter(el => el.element_id === element_id);
+      const myElement = elementDetails[0]
+      setInputKey(myElement.label)
+      setDataType(() => {
+        return {
+          label: myElement.data_type === 'number' ? 'Number' : "Text",
+          value: myElement.data_type === 'number' ? 'number' : "string",
+          index: 0
+        }
+      })
+      setIsPublic(myElement.visibility === 'public')
+      setIsRequired(myElement.required)
+      setFieldKey(myElement.key)
+    }
+  }
 
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   // variables
-  const { addNewElementInForm } = useAdditionalForm()
+  const { addNewElementInForm, deleteElementInForm, updateElementInForm } = useAdditionalForm()
   useEffect(() => {
     bottomSheetModalRef.current?.present();
   }, [])
 
-  const fieldType: Array<{
-    label: string
-    value: string
-    index: number
-  }> = [{
-    label: 'Text',
-    value: 'default',
-    index: 0
-  }, {
-    label: 'Number',
-    value: 'number',
-    index: 0
-  }]
+
 
   const renderHeaderRight = () => {
     return <View style={styles.switchHeaderContainer}>
@@ -68,7 +103,24 @@ const AdditionDataElement = () => {
   }
 
   const seletDataType = (el: DropdownData) => {
-    setDataType(el.value === 'number' ? 'number' : 'string')
+    setDataType(el)
+  }
+
+  const renderTitle = () => {
+    switch (elementType) {
+      case 'INPUT':
+        return "Input"
+      case 'DROPDOWN':
+        return "Dropdown"
+      case 'GAP':
+        return "Gap"
+      case 'HEADING':
+        return "Heading"
+      case 'YES_NO':
+        return "Yes/No"
+      default:
+        return "Input"
+    }
   }
 
   const addNewElement = async () => {
@@ -83,22 +135,52 @@ const AdditionDataElement = () => {
       placeholder: '',
       unit: '',
       visibility: isPublic ? 'public' : 'private',
-      data_type: dataType,
-      keyboard_type: dataType === 'number' ? 'numeric' : 'default',
+      data_type: dataType.value === 'string' ? 'string' : 'number',
+      keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
       validation: '',
-      intervention:[]
-      
+      intervention: []
+
     }
     await addNewElementInForm(details, form_id)
+    navigation.goBack()
+  }
+
+  const updateElement = async () => {
+    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    const allElements = [...JSON.parse(JSON.stringify(data.elements))]
+    const index = allElements.findIndex(el => el.element_id === element_id);
+    const myElement = allElements[index]
+    myElement.index = element_order
+    myElement.key = fieldKey
+    myElement.label = inputKey
+    myElement.visibility = isPublic ? "public" : 'private'
+    myElement.data_type = dataType.value === 'string' ? 'string' : 'number',
+      myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
+      myElement.required = isRequired
+    await updateElementInForm(element_id, form_id, myElement)
+    navigation.goBack()
+  }
+
+  const deleteHandler = async () => {
+    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    if (data) {
+      await deleteElementInForm(element_id, form_id)
+      navigation.goBack()
+    }
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} />
       <Header label='' rightComponet={renderHeaderRight()} />
-      <Text style={styles.header}>Add Input</Text>
+      <View style={styles.headerTitleWrapper}>
+        <Text style={styles.header}>Add {renderTitle()}</Text>
+        {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
+          <Text style={styles.deletelabel}>Delete</Text>
+        </TouchableOpacity>}
+      </View>
       <CustomTextInput
         label="Field name"
         onChangeHandler={setInputKey}
@@ -108,7 +190,7 @@ const AdditionDataElement = () => {
         label={'Field Type'}
         data={fieldType}
         onSelect={(el) => { seletDataType(el) }}
-        selectedValue={fieldType[0]}
+        selectedValue={dataType}
       />}
       {advanceMode && <CustomTextInput
         label="Field key"
@@ -133,21 +215,10 @@ const AdditionDataElement = () => {
         <View style={styles.btnWrapper}></View>
       </>}
       <CustomButton
-        label="Add Element"
+        label={edit ? "Update Element" : "Add Element"}
         containerStyle={styles.btnContainer}
-        pressHandler={addNewElement}
+        pressHandler={edit ? updateElement : addNewElement}
       />
-      {/* <BottomSheetModal
-        ref={bottomSheetModalRef}
-        index={0}
-        detached
-        enableContentPanningGesture={false}
-        snapPoints={snapPoints}
-        backdropComponent={({ style }) => (
-          <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
-        )}
-      ><View />
-      </BottomSheetModal> */}
     </SafeAreaView>
   )
 }
@@ -165,6 +236,11 @@ const styles = StyleSheet.create({
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 20,
     marginVertical: 10
+  },
+  headerTitleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   placeHolder: {
     fontSize: 22,
@@ -218,5 +294,21 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginVertical: 10
   },
-
+  deleteWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'tomato',
+    borderStyle: 'dashed',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 20
+  },
+  deletelabel: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: 'tomato',
+    marginHorizontal: 10,
+  }
 })
