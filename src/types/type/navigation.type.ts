@@ -32,6 +32,7 @@ export type RootStackParamList = {
   MetaDataElement: MetaDataElementView
   AdditionDataElement: AdditionDataElementView
   SelectElement: SelectElementView
+  LocalForm: undefined
 }
 
 type SpeciesInfoView = {

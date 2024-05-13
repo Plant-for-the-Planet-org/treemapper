@@ -17,7 +17,7 @@ const DynamiFormView = () => {
     <SafeAreaView style={styles.container}>
       <Header label={MainFormDetails[0].title} />
       <ScrollView contentContainerStyle={styles.container}>
-        <MainFormSection formData={MainFormDetails[0]} existingData={formFlowData.form_data}/>
+        <MainFormSection formData={MainFormDetails[0]}/>
       </ScrollView>
     </SafeAreaView>
   )

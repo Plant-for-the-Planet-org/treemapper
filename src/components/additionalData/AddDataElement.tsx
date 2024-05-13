@@ -5,6 +5,9 @@ import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
+import YeNoElement from './YeNoElement'
+import { Dropdown } from 'react-native-element-dropdown'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 
 interface Props {
@@ -16,24 +19,94 @@ interface Props {
 
 const Element = (props: { elementDetails: FormElement, form_id: string, pressHandler: (data: FormElement, form_id: string) => void }) => {
   const { elementDetails, pressHandler, form_id } = props;
+  const getDropDownData = (d: any) => {
+    return d.map((el, i) => {
+      return {
+        label: el.key,
+        value: el.value,
+        index: i
+      }
+    })
+  }
   const renderBody = () => {
     switch (elementDetails.type) {
       case "INPUT":
         return (
-          <Text style={styles.inputWrapper}>
-            {elementDetails.label}
-          </Text>
+          <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
+              <Text style={styles.keyLabel}>Input Element</Text>
+              <View style={styles.bodyWrapper}>
+                <Text style={styles.inputWrapper}>
+                  {elementDetails.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         )
       case "YES_NO":
         return (
-          <View style={styles.yesNoWrapper}>
-            <Text>Yes no</Text>
+          <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
+              <Text style={styles.keyLabel}>Yes/No Element</Text>
+              <View style={styles.bodyWrapper}>
+                <View style={styles.yesNoWrapper}>
+                  <Text style={styles.inputWrapper}>
+                    {elementDetails.label}
+                  </Text>
+                  <YeNoElement />
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         )
-
+      case "GAP":
+        return (
+          <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.gapWrapper} onPress={editSelection} >
+              <Text style={styles.keyLabel}>Gap Element</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      case "HEADING":
+        return (
+          <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
+              <Text style={styles.keyLabel}>Heading Element</Text>
+              <View style={styles.bodyWrapper}>
+                <Text style={styles.inputWrapper}>
+                  Title: {elementDetails.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )
+      case "DROPDOWN":
+        return (
+          <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
+              <Text style={styles.keyLabel}>DropDown Element</Text>
+                <Dropdown
+                  style={styles.dropdown}
+                  placeholderStyle={styles.placeholderStyle}
+                  placeholder={elementDetails.label}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  data={getDropDownData(JSON.parse(elementDetails.dropDownData))}
+                  autoScroll
+                  maxHeight={250}
+                  minHeight={100}
+                  labelField="label"
+                  valueField="value"
+                  onChange={() => { }}
+                  fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
+                  containerStyle={styles.listContainer}
+                  itemTextStyle={styles.itemTextStyle}
+                />
+            </TouchableOpacity>
+          </View>
+        )
       default:
         return (
-          <View ></View>
+          null
         )
     }
   }
@@ -44,14 +117,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
 
   return (
     <View style={styles.cotnainer}>
-      <View style={styles.wrapper}>
-        <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-          <Text style={styles.keyLabel}>Input Element</Text>
-          <View style={styles.bodyWrapper}>
-            {renderBody()}
-          </View>
-        </TouchableOpacity>
-      </View>
+      {renderBody()}
     </View>
   )
 }
@@ -111,6 +177,12 @@ const styles = StyleSheet.create({
     borderWidth: 0.8,
     borderColor: Colors.GRAY_LIGHT
   },
+  gapWrapper: {
+    paddingLeft: 10,
+    borderRadius: 8,
+    borderWidth: 0.8,
+    borderColor: Colors.GRAY_LIGHT
+  },
   keyLabel: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
@@ -118,7 +190,7 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   bodyWrapper: {
-    width: "90%",
+    width: "95%",
     backgroundColor: Colors.WHITE,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -129,17 +201,28 @@ const styles = StyleSheet.create({
     borderColor: Colors.TEXT_COLOR,
     borderStyle: 'dotted'
   },
+  dropdown: {
+    height: scaleSize(40),
+    borderColor: Colors.GRAY_BORDER,
+    borderWidth: 0.5,
+    borderRadius: 5,
+    width: '95%',
+    paddingHorizontal: 8,
+  },
   inputWrapper: {
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
-    marginLeft: 10
+    marginLeft: 10,
+    width: '70%'
   },
   yesNoWrapper: {
     width: '100%',
     height: '100%',
     alignItems: "center",
-    paddingLeft: 10
+    paddingLeft: 10,
+    justifyContent: 'space-between',
+    flexDirection: 'row'
   },
   headerLabel: {
     fontSize: 22,
@@ -191,5 +274,28 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    paddingHorizontal: 3,
+    color: Colors.TEXT_COLOR
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+  },
+  itemTextStyle: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR
+  },
+  listContainer: {
+    borderRadius: 12,
+    elevation: 5, // This adds a shadow on Android
+    shadowColor: 'black', // This adds a shadow on iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   }
 })

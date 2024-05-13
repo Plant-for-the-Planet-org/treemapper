@@ -90,14 +90,16 @@ const useAdditionalForm = () => {
       realm.write(() => {
         const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
         const myData = formDetails.elements.filter(el => el.element_id === element_id);
-        console.log("ALSCJK",data)
         myData[0].index = data.index
         myData[0].key = data.key
         myData[0].label = data.label
+        myData[0].placeholder = data.label
         myData[0].visibility = data.visibility
         myData[0].data_type = data.data_type
         myData[0].keyboard_type = data.keyboard_type
         myData[0].required = data.required
+        myData[0].dropDownData = data.dropDownData
+
       })
       return Promise.resolve(true)
     } catch (error) {

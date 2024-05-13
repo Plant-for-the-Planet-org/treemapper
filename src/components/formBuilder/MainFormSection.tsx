@@ -13,14 +13,20 @@ import { useDispatch } from 'react-redux'
 import { updateFormDataValue } from 'src/store/slice/registerFormSlice'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
+import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import GapElement from './GapElement'
+import HeadingElement from './HeadingElement'
+import YeNoFormElement from './YeNoFormElement'
+import DropDownFormElement from './DropDownElement'
 
 interface Props {
-  formData: MainForm
-  existingData: FormElement[]
+  formData: MainForm | IAdditonalDetailsForm
+  completeLocalForm?: (d: FormElement[]) => void
 }
 
 const MainFormSection = (props: Props) => {
-  const { formData } = props
+  const { formData, completeLocalForm } = props
+
   const [showForm, setShowForm] = useState(false)
   const [formValues, setFormValues] = useState<{ [key: string]: any } | null>(
     null,
@@ -45,9 +51,6 @@ const MainFormSection = (props: Props) => {
     setShowForm(true)
   }
 
-  // const addExistingData=()=>{
-
-  // }
 
   const updateFormValues = (key: string, value: string) => {
     setFormValues(prevState => {
@@ -71,6 +74,10 @@ const MainFormSection = (props: Props) => {
         return
       }
       finalData.push({ ...formValues[key] })
+    }
+    if (completeLocalForm) {
+      completeLocalForm(finalData)
+      return
     }
     dispatch(updateFormDataValue(finalData))
     navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
@@ -102,6 +109,35 @@ const MainFormSection = (props: Props) => {
         case 'SWITCH':
           return (
             <FormSwitchElement
+              data={element}
+              key={element.key}
+              formValues={formValues}
+              changeHandler={updateFormValues}
+            />
+          )
+        case 'YES_NO':
+          return (
+            <YeNoFormElement
+              data={element}
+              key={element.key}
+              formValues={formValues}
+              changeHandler={updateFormValues}
+            />
+          )
+        case 'GAP':
+          return (
+            <GapElement key={element.key} />
+          )
+        case 'HEADING':
+          return (
+            <HeadingElement
+              data={element}
+              key={element.key}
+            />
+          )
+        case 'DROPDOWN':
+          return (
+            <DropDownFormElement
               data={element}
               key={element.key}
               formValues={formValues}

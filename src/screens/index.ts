@@ -24,6 +24,7 @@ import ActivityLogsView from './ActivityLogsView'
 import MetaDataElementView from './MetaDataElementView'
 import AdditionDataElementView from './AdditionDataElement'
 import SelectElement from './SelectElementView'
+import LocalFormView from './LocalFormView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -51,5 +52,6 @@ export default {
   ActivityLogs: ActivityLogsView,
   MetaDataElement: MetaDataElementView,
   AdditionDataElement: AdditionDataElementView,
-  SelectElement:SelectElement
+  SelectElement:SelectElement,
+  LocalForm: LocalFormView
 }

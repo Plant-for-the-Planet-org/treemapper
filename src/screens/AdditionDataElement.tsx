@@ -18,6 +18,7 @@ import { v4 as uuid } from 'uuid'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { ScrollView } from 'react-native-gesture-handler'
 
 
 const fieldType: Array<{
@@ -46,11 +47,13 @@ const AdditionDataElement = () => {
   const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
   const [isPublic, setIsPublic] = useState(false)
   const [advanceMode, setAdvanceMode] = useState(false)
-  const [fieldKey, setFieldKey] = useState(`INPUT-${Date.now()}`)
+  const [fieldKey, setFieldKey] = useState(`${elementType}-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)
   const [showOptionModal, setShowDropDownOption] = useState(false)
   const realm = useRealm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const [dropDownElement, setDropDownElement] = useState<Array<{ key: string, value: string, id: string }>>([])
+  const [selectedDropDown, setSelectedDropdonw] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
 
 
   useEffect(() => {
@@ -76,6 +79,9 @@ const AdditionDataElement = () => {
       setIsPublic(myElement.visibility === 'public')
       setIsRequired(myElement.required)
       setFieldKey(myElement.key)
+      if (elementType === 'DROPDOWN') {
+        setDropDownElement(JSON.parse(myElement.dropDownData))
+      }
     }
   }
 
@@ -102,6 +108,34 @@ const AdditionDataElement = () => {
     setShowDropDownOption(!showOptionModal)
   }
 
+
+  const handleDropdownSelection = (d: { key: string, value: string, id: string }) => {
+    setDropDownElement([...dropDownElement, d])
+  }
+
+  const updateDropDownElement = (d: { key: string, value: string, id: string }) => {
+    const allElements = [...dropDownElement]
+    const index = allElements.findIndex(el => el.id === d.id);
+    allElements[index] = { ...d }
+    setDropDownElement(allElements)
+    setSelectedDropdonw({
+      key: '',
+      value: "",
+      id: ""
+    })
+  }
+
+
+  const deleteElement = (d: { key: string, value: string, id: string }) => {
+    const allElements = dropDownElement.filter(el => el.id !== d.id)
+    setDropDownElement(allElements)
+    setSelectedDropdonw({
+      key: '',
+      value: "",
+      id: ""
+    })
+    setShowDropDownOption(false)
+  }
   const seletDataType = (el: DropdownData) => {
     setDataType(el)
   }
@@ -128,11 +162,11 @@ const AdditionDataElement = () => {
       element_id: uuid(),
       index: element_order,
       key: fieldKey,
-      value: '',
+      value: elementType === 'YES_NO' ? 'false' : '',
       label: inputKey,
       default: '',
       type: elementType,
-      placeholder: '',
+      placeholder: inputKey,
       unit: '',
       visibility: isPublic ? 'public' : 'private',
       data_type: dataType.value === 'string' ? 'string' : 'number',
@@ -140,7 +174,8 @@ const AdditionDataElement = () => {
       editable: false,
       required: isRequired,
       validation: '',
-      intervention: []
+      intervention: [],
+      dropDownData: JSON.stringify(dropDownElement)
 
     }
     await addNewElementInForm(details, form_id)
@@ -159,6 +194,7 @@ const AdditionDataElement = () => {
     myElement.data_type = dataType.value === 'string' ? 'string' : 'number',
       myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
       myElement.required = isRequired
+    myElement.dropDownData = JSON.stringify(dropDownElement)
     await updateElementInForm(element_id, form_id, myElement)
     navigation.goBack()
   }
@@ -171,49 +207,71 @@ const AdditionDataElement = () => {
     }
   }
 
+  const handleOptionEdit = (d: { key: string, value: string, id: string }) => {
+    setSelectedDropdonw(d)
+    setShowDropDownOption(true)
+  }
+
+  const renderOptionDD = () => {
+    return dropDownElement.map(el => {
+      return <TouchableOpacity key={el.id} style={styles.dwrapper} onPress={() => {
+        handleOptionEdit(el)
+      }}>
+        <View style={styles.dsectionWrapper}>
+          <Text style={styles.dkeyLabel}>{el.key}</Text>
+          <Text style={styles.dkeyValue}>{el.value}</Text>
+        </View>
+      </TouchableOpacity>
+    })
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} />
-      <Header label='' rightComponet={renderHeaderRight()} />
-      <View style={styles.headerTitleWrapper}>
-        <Text style={styles.header}>Add {renderTitle()}</Text>
-        {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
-          <Text style={styles.deletelabel}>Delete</Text>
-        </TouchableOpacity>}
-      </View>
-      <CustomTextInput
-        label="Field name"
-        onChangeHandler={setInputKey}
-        value={inputKey}
-      />
-      {elementType === 'INPUT' && <CustomDropDown
-        label={'Field Type'}
-        data={fieldType}
-        onSelect={(el) => { seletDataType(el) }}
-        selectedValue={dataType}
-      />}
-      {advanceMode && <CustomTextInput
-        label="Field key"
-        onChangeHandler={setInputKey}
-        value={fieldKey}
-      />}
-      <View style={styles.switchContainer}>
-        <Text style={styles.switchText}>This is required</Text>
-        <Switch value={isRequired} onValueChange={() => {
-          setIsRequired(!isRequired)
-        }} disabled={false} />
-      </View>
-      <View style={styles.switchContainer}>
-        <Text style={styles.switchText}>Make this data public</Text>
-        <Switch value={isPublic} onValueChange={() => {
-          setIsPublic(!isPublic)
-        }} disabled={false} />
-      </View>
-      {elementType === 'DROPDOWN' && <>
-        <Text style={styles.dropDownOption}>Dropdown options</Text>
-        <Text style={styles.addDropDown} onPress={toogleOptionModal}>Add Dropdown Options</Text>
-        <View style={styles.btnWrapper}></View>
-      </>}
+      <ScrollView>
+        <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
+        <Header label='' rightComponet={renderHeaderRight()} />
+        <View style={styles.headerTitleWrapper}>
+          <Text style={styles.header}>Add {renderTitle()}</Text>
+          {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
+            <Text style={styles.deletelabel}>Delete</Text>
+          </TouchableOpacity>}
+        </View>
+        {elementType !== 'GAP' && <CustomTextInput
+          label="Field name"
+          onChangeHandler={setInputKey}
+          value={inputKey}
+        />}
+        {elementType === 'INPUT' && <CustomDropDown
+          label={'Field Type'}
+          data={fieldType}
+          onSelect={(el) => { seletDataType(el) }}
+          selectedValue={dataType}
+        />}
+        {advanceMode && <CustomTextInput
+          label="Field key"
+          onChangeHandler={setInputKey}
+          value={fieldKey}
+        />}
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchText}>This is required</Text>
+          <Switch value={isRequired} onValueChange={() => {
+            setIsRequired(!isRequired)
+          }} disabled={false} />
+        </View>
+        {elementType !== 'GAP' && <View style={styles.switchContainer}>
+          <Text style={styles.switchText}>Make this data public</Text>
+          <Switch value={isPublic} onValueChange={() => {
+            setIsPublic(!isPublic)
+          }} disabled={false} />
+        </View>}
+        {elementType === 'DROPDOWN' && <>
+          <Text style={styles.dropDownOption}>Dropdown options</Text>
+          {renderOptionDD()}
+          <Text style={styles.addDropDown} onPress={toogleOptionModal}>Add Dropdown Options</Text>
+          <View style={styles.btnWrapper}></View>
+          <View style={styles.footer} />
+        </>}
+      </ScrollView>
       <CustomButton
         label={edit ? "Update Element" : "Add Element"}
         containerStyle={styles.btnContainer}
@@ -280,6 +338,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end'
   },
+  footer: {
+    width: '100%',
+    height: 100
+  },
   dropDownOption: {
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
@@ -310,5 +372,32 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
-  }
+  },
+  dwrapper: {
+    width: "90%",
+    paddingVertical: 10,
+    marginLeft: '5%'
+  },
+  dsectionWrapper: {
+    backgroundColor: Colors.NEW_PRIMARY + '1A',
+    paddingBottom: 20,
+    paddingLeft: 10,
+    borderRadius: 8
+  },
+  dkeyLabel: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    marginVertical: 10
+  },
+  dkeyValue: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    width: "90%",
+    backgroundColor: Colors.WHITE,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 10
+  },
 })
