@@ -102,7 +102,7 @@ const PolygonMarkerMap = (props: Props) => {
     if (species_required) {
       navigation.replace('ManageSpecies', { manageSpecies: false })
     } else if (has_dynamic_form) {
-      navigation.replace('DynamicForm')
+      navigation.replace('LocalForm')
     } else {
       navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
 

@@ -48,7 +48,7 @@ const ManageSpeciesHome = (props: Props) => {
         if (formData.tree_details_required) {
           navigation.replace('ReviewTreeDetails')
         } else {
-          navigation.navigate('DynamicForm')
+          navigation.replace('LocalForm')
         }
       }
     } else {

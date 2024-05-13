@@ -210,8 +210,7 @@ const InterventionFormView = () => {
       if (finalData.species_required) {
         navigation.replace('ManageSpecies', { manageSpecies: false })
       } else if (finalData.form_details.length > 0) {
-        navigation.replace('DynamicForm')
-
+        navigation.replace('LocalForm')
       } else {
         navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
       }

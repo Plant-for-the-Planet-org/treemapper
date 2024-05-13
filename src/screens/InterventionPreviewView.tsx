@@ -6,7 +6,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { scaleSize } from 'src/utils/constants/mixins'
 import Header from 'src/components/common/Header'
-import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
+// import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
 import { useDispatch, useSelector } from 'react-redux'
@@ -31,6 +31,7 @@ import InterventionDeleteContainer from 'src/components/previewIntervention/Inte
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -48,8 +49,13 @@ const InterventionPreviewView = () => {
 
   useEffect(() => {
     if (route.params.id === 'review') {
+      let metaData = []
+      const hasMetaData = realm.objects(RealmSchema.Metadata)
+      if (hasMetaData && hasMetaData.length) {
+        metaData = [...JSON.parse(JSON.stringify(hasMetaData))]
+      }
       const finalData: InterventionData =
-        convertFormDataToIntervention(formFlowData)
+        convertFormDataToIntervention(formFlowData, metaData)
       addNewIntervention(finalData)
       setInterventoinId(finalData.intervention_id)
       dispatch(resetRegisterationForm())
@@ -122,7 +128,7 @@ const InterventionPreviewView = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <Header label="Review" rightComponet={renderRightContainer()} />
-        <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} />
+        {/* <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} /> */}
         <InterventionBasicInfo
           title={InterventionData.intervention_title}
           intervention_date={InterventionData.intervention_date}
@@ -136,6 +142,7 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
+        {InterventionData.meta_data.length > 0 && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={InterventionData.additional_data} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />

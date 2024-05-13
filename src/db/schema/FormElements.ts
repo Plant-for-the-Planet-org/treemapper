@@ -22,5 +22,6 @@ export const FormElement: ObjectSchema = {
     condition:{ type: 'string', default: '' },
     data_type:'string',
     intervention: 'string[]',
+    value:{ type: 'string', default: '' },
   },
 };

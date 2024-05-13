@@ -21,11 +21,12 @@ import DropDownFormElement from './DropDownElement'
 
 interface Props {
   formData: MainForm | IAdditonalDetailsForm
-  completeLocalForm?: (d: FormElement[]) => void
+  completeLocalForm?: (d: FormElement[], page: string) => void
+  page?: string
 }
 
 const MainFormSection = (props: Props) => {
-  const { formData, completeLocalForm } = props
+  const { formData, completeLocalForm, page } = props
 
   const [showForm, setShowForm] = useState(false)
   const [formValues, setFormValues] = useState<{ [key: string]: any } | null>(
@@ -76,7 +77,7 @@ const MainFormSection = (props: Props) => {
       finalData.push({ ...formValues[key] })
     }
     if (completeLocalForm) {
-      completeLocalForm(finalData)
+      completeLocalForm(finalData,page)
       return
     }
     dispatch(updateFormDataValue(finalData))

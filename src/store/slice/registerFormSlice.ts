@@ -61,6 +61,9 @@ const registerFormSlice = createSlice({
     updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
       state.form_data = action.payload
     },
+    updateAdditionalData(state, action: PayloadAction<string>) {
+      state.additional_data = action.payload
+    },
     updateFormProject(
       state,
       action: PayloadAction<{ name: string; id: string }>,
@@ -113,7 +116,8 @@ export const {
   updateFormDataValue,
   updateSampleTreeImage,
   resetRegisterationForm,
-  updateSampleTreeReviewTree
+  updateSampleTreeReviewTree,
+  updateAdditionalData
 } = registerFormSlice.actions
 
 export default registerFormSlice.reducer

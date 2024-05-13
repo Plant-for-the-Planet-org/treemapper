@@ -8,12 +8,11 @@ interface Props {
   data: string
 }
 
-const InterventionAdditionalData = (props: Props) => {
+const InterventionMetaData = (props: Props) => {
 
   const [additiionalData, setAdditiionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
 
   const { data } = props
-
   useEffect(() => {
     if (data.length) {
       const parsedData = JSON.parse(data);
@@ -28,12 +27,7 @@ const InterventionAdditionalData = (props: Props) => {
   }
 
   const renderValue = (d: { value: string, label: string, type?: FORM_TYPE }) => {
-    switch (d.type) {
-      case "DROPDOWN":
-        return JSON.parse(d.value).value
-      default:
-        return d.value
-    }
+    return d.value
   }
 
   const renderData = () => {
@@ -41,29 +35,14 @@ const InterventionAdditionalData = (props: Props) => {
     let i = 0
     for (const prop in additiionalData) {
       i++
-      if (additiionalData[prop].type === 'GAP') {
-        finalData.push(
-          <View style={styles.cardWrapper} key={i}>
-            <View style={styles.cardBotttomWrapper} />
-          </View>
-        )
-      } else if (additiionalData[prop].type === 'HEADING') {
-        finalData.push(
-          <View style={styles.cardWrapper} key={i}>
-            <Text style={styles.headerLabel}> {additiionalData[prop].label}</Text>
-          </View>
-        )
-      } else {
-        finalData.push(
-          <View style={styles.cardWrapper} key={i}>
-            <Text style={styles.cardTitle}> {additiionalData[prop].label}</Text>
-            <Text style={styles.cardLabel}>
-              {renderValue(additiionalData[prop])}
-            </Text>
-          </View>
-        )
-      }
-
+      finalData.push(
+        <View style={styles.cardWrapper} key={i}>
+          <Text style={styles.cardTitle}> {additiionalData[prop].label}</Text>
+          <Text style={styles.cardLabel}>
+            {renderValue(additiionalData[prop])}
+          </Text>
+        </View>
+      )
     }
     return finalData
   }
@@ -71,14 +50,14 @@ const InterventionAdditionalData = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <Text style={styles.title}>Additional Data</Text>
+        <Text style={styles.title}>Meta Data</Text>
         {renderData()}
       </View>
     </View>
   )
 }
 
-export default InterventionAdditionalData
+export default InterventionMetaData
 
 const styles = StyleSheet.create({
   container: {
@@ -91,14 +70,14 @@ const styles = StyleSheet.create({
     width: '90%',
     borderRadius: 12,
     paddingVertical: 20,
-    backgroundColor: Colors.WHITE,
-    borderWidth: 0.5,
-    borderColor: '#f2ebdd',
-    shadowColor: Colors.GRAY_TEXT,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 2
+    // backgroundColor: Colors.WHITE,
+    // borderWidth: 0.5,
+    // borderColor: '#f2ebdd',
+    // shadowColor: Colors.GRAY_TEXT,
+    // shadowOffset: { width: 2, height: 2 },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 5,
+    // elevation: 2
   },
   cardWrapper: {
     width: '100%',
@@ -129,9 +108,9 @@ const styles = StyleSheet.create({
     fontSize: scaleSize(14),
     color: Colors.TEXT_COLOR,
   },
-  headerLabel:{
+  headerLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleSize(20),
-    color: Colors.TEXT_COLOR, 
+    color: Colors.TEXT_COLOR,
   }
 })

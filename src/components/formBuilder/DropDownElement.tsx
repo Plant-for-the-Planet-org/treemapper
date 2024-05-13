@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     wrapper: {
-        width: '90%',
+        width: '95%',
     },
     label: {
         fontSize: 22,

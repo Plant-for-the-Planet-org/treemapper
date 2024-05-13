@@ -5,6 +5,7 @@ import {
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { Colors } from '../constants'
+import { Metadata } from 'src/types/interface/app.interface'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const { intervention_date, title, project_name, site_name } = data
 
@@ -22,13 +23,19 @@ export const getPreviewData = (data: RegisterFormSliceInitalState) => {
 
 export const convertFormDataToIntervention = (
   data: RegisterFormSliceInitalState,
+  meta_data: Metadata[]
 ) => {
   const interventionLocation = makeInterventionGeoJson(
     data.location_type,
     data.coordinates,
     data.form_id,
   )
-  const additional_data = convertAdditionalData(data)
+  let additional_data = convertAdditionalData(data)
+  if (data.additional_data.length > 0) {
+    const exsitingData = additional_data.length > 0 ? JSON.parse(additional_data) : [];
+    additional_data = JSON.stringify({ ...exsitingData, ...JSON.parse(data.additional_data) })
+  }
+  const tranformedMetaData = convertMetaData(meta_data);
   const finalData: InterventionData = {
     intervention_id: data.form_id,
     intervention_key: data.key,
@@ -52,7 +59,7 @@ export const convertFormDataToIntervention = (
     intervention_type: data.key,
     form_data: JSON.stringify(data.form_data),
     additional_data: additional_data,
-    meta_data: '',
+    meta_data: tranformedMetaData,
     status: 'NOT_SYNCED',
     hid: '',
     coords: {
@@ -113,12 +120,13 @@ export const makeInterventionGeoJson = (
   }
 }
 
-const convertInterventionFormData = (d: FormElement[]) => {
+export const convertInterventionFormData = (d: FormElement[]) => {
   const data = {}
   d.forEach(el => {
     data[el.key] = {
       value: el.value,
-      label: el.label
+      label: el.label,
+      type: el.type
     }
   })
   return data;
@@ -139,6 +147,26 @@ const convertAdditionalData = (d: RegisterFormSliceInitalState) => {
     ...form_data
   })
 }
+
+
+const convertMetaData = (d: Metadata[]) => {
+  if (d.length == 0) {
+    return ''
+  }
+  const data = {}
+  d.forEach(el => {
+    data[el.key] = {
+      value: el.value,
+      label: el.key,
+    }
+  })
+  return JSON.stringify({
+    ...data
+  })
+}
+
+
+
 
 export const extractSpecies = (
   data: SampleTreeSlice,

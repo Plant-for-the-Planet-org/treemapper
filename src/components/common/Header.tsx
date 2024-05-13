@@ -12,13 +12,18 @@ interface Props {
   rightComponet?: React.ReactNode | null
   showBackIcon?: boolean
   note?: string
+  backFunc?: () => void
 }
 
 const Header = (props: Props) => {
-  const { rightComponet, label, showBackIcon = true, note } = props
+  const { rightComponet, label, showBackIcon = true, note, backFunc } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
-    navigation.goBack()
+    if (backFunc) {
+      backFunc()
+    } else {
+      navigation.goBack()
+    }
   }
   return (
     <View style={styles.container}>
@@ -43,7 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-    zIndex:1,
+    zIndex: 1,
   },
   backIcon: {
     width: 20,
@@ -70,11 +75,11 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
-  overlay:{
-    width:'100%',
-    height:50,
-    position:'absolute',
-    top:-50,
-    backgroundColor:Colors.WHITE
+  overlay: {
+    width: '100%',
+    height: 50,
+    position: 'absolute',
+    top: -50,
+    backgroundColor: Colors.WHITE
   }
 })

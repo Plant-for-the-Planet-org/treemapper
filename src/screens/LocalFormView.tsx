@@ -4,7 +4,8 @@ import {
   View,
   Text,
   FlatList,
-  Dimensions
+  Dimensions,
+  ActivityIndicator
 } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import Header from 'src/components/common/Header'
@@ -14,51 +15,109 @@ import { Colors, Typography } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
-// import { useSelector } from 'react-redux'
-// import { RootState } from 'src/store'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import { FormElement } from 'src/types/interface/form.interface'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
+import { convertInterventionFormData } from 'src/utils/helpers/interventionFormHelper'
+import { RootState } from 'src/store'
 
 const width = Dimensions.get('screen').width
 
 
 
 const LocalForm = () => {
+  const [loading, setLoading] = useState(true)
   const [formPages, setFormPages] = useState<IAdditonalDetailsForm[]>([])
-  // const formFlowData = useSelector((state: RootState) => state.formFlowState)
-  // const [data, setData] = useState<FormElement[]>()
+  const [currentPage, setCurrentPage] = useState(0)
+  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const [finalData, setFinalData] = useState<Array<{ page: string, elements: FormElement[] }>>([])
   const realm = useRealm()
   const flatlistRef = useRef<FlatList>(null)
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const dispatch = useDispatch()
   useEffect(() => {
     getDetails()
   }, [])
 
   const getDetails = () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
+    if(data.length===0){
+      if (formFlowData.form_details.length > 0) {
+        navigation.replace("DynamicForm")
+      } else {
+        navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+      }
+      return
+    }
     if (data) {
       setFormPages(JSON.parse(JSON.stringify(data)))
     }
+    setLoading(false)
   }
 
 
-  const handleCompletion = (d: FormElement[]) => {
-    flatlistRef.current.scrollToIndex({ index: 1 })
-    console.log("ASKLJc", d)
+
+
+
+  const handleCompletion = (data: FormElement[], id: string) => {
+    const filterData = finalData.filter(el => el.page !== id);
+    setFinalData([...filterData, { elements: data, page: id }])
+    if (formPages.length > currentPage + 1) {
+      flatlistRef.current.scrollToIndex({ index: currentPage + 1 });
+      setCurrentPage(currentPage + 1)
+    } else {
+      updateFinalData([...filterData, { elements: data, page: id }])
+    }
   }
+
+  const handleBack = () => {
+    if (currentPage < 1) {
+      navigation.goBack()
+    } else {
+      flatlistRef.current.scrollToIndex({ index: currentPage - 1 });
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const updateFinalData = (d: any) => {
+    const allData = []
+    d.forEach(el => {
+      el.elements.forEach(element => {
+        allData.push(element)
+      });
+    });
+    const convertedData = convertInterventionFormData(allData)
+    dispatch(updateAdditionalData(JSON.stringify(convertedData)))
+    if (formFlowData.form_details.length > 0) {
+      navigation.replace("DynamicForm")
+    } else {
+      navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+    }
+  }
+
 
   const renderPages = (data: IAdditonalDetailsForm, i: number) => {
     return (
       <View style={styles.pageWrapper}>
         <Text style={styles.pageLabel}>{data.title || `Page ${i + 1}`}</Text>
-        <MainFormSection formData={data} completeLocalForm={handleCompletion} />
+        <MainFormSection formData={data} completeLocalForm={handleCompletion} page={data.form_id} />
       </View>
     )
   }
 
+  if (loading) {
+    return <View style={styles.backdrop}>
+      <ActivityIndicator size={'large'} color={Colors.NEW_PRIMARY} />
+    </View>
+  }
 
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label={"Additional Form"} />
+      <Header label={"Additional Form"} backFunc={handleBack} />
       <ScrollView contentContainerStyle={styles.container}>
         <FlatList
           snapToAlignment='center'
@@ -92,5 +151,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 20
+  },
+  backdrop: {
+    width: '100%',
+    height: "100%",
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
   }
 })

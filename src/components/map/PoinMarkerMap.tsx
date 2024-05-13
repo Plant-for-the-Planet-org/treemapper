@@ -108,7 +108,7 @@ const PointMarkerMap = (props: Props) => {
         navigation.replace('ManageSpecies', { manageSpecies: false })
       }
     } else {
-      navigation.replace('DynamicForm')
+      navigation.replace('LocalForm')
     }
   }
 
