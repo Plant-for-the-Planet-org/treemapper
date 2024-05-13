@@ -95,7 +95,19 @@ const singleTreeDetails = (d: any): SampleTree => {
 
 const checkAndConvertMetaData = (m: any) => {
     if (m && m !== null) {
-        return JSON.stringify(m)
+        if(m.public && m.public.length>0){
+            const data = {}
+            m.public.forEach(el => {
+              data[el.key] = {
+                value: el.value,
+                label: el.key,
+              }
+            })
+            
+           return JSON.stringify({
+                ...{public:data}
+              })
+        }
     }
     return ''
 }
@@ -140,7 +152,6 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : ''
     const addtionData = getAdditionalData(data)
-
     const finalData: InterventionData = {
         intervention_id: data.id,
         intervention_key: extraData.key,

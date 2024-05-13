@@ -32,14 +32,15 @@ const InterventionMetaData = (props: Props) => {
 
   const renderData = () => {
     const finalData = []
+    const publicData = additiionalData.public;
     let i = 0
-    for (const prop in additiionalData) {
+    for (const prop in publicData) {
       i++
       finalData.push(
         <View style={styles.cardWrapper} key={i}>
-          <Text style={styles.cardTitle}> {additiionalData[prop].label}</Text>
+          <Text style={styles.cardTitle}> {publicData[prop].label}</Text>
           <Text style={styles.cardLabel}>
-            {renderValue(additiionalData[prop])}
+            {renderValue(publicData[prop])}
           </Text>
         </View>
       )

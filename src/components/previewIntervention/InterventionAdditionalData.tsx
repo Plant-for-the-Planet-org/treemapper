@@ -30,7 +30,7 @@ const InterventionAdditionalData = (props: Props) => {
   const renderValue = (d: { value: string, label: string, type?: FORM_TYPE }) => {
     switch (d.type) {
       case "DROPDOWN":
-        return JSON.parse(d.value).value
+        return d.value.length?JSON.parse(d.value).value:d.value
       default:
         return d.value
     }
@@ -63,7 +63,6 @@ const InterventionAdditionalData = (props: Props) => {
           </View>
         )
       }
-
     }
     return finalData
   }

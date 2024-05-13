@@ -161,7 +161,7 @@ const convertMetaData = (d: Metadata[]) => {
     }
   })
   return JSON.stringify({
-    ...data
+    ...{public:data}
   })
 }
 
