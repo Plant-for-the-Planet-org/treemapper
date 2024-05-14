@@ -8,11 +8,13 @@ import useAuthentication from 'src/hooks/useAuthentication'
 import { getUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
 import Snackbar from 'react-native-snackbar'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 
 const LoginButton = () => {
   const { loading } = useSelector(
     (state: RootState) => state.userState)
-  const { authorizeUser, user, getUserCredentials} = useAuthentication()
+  const { authorizeUser, user, getUserCredentials } = useAuthentication()
+  const { addNewLog } = useLogManagement()
   const dispatch = useDispatch()
 
 
@@ -51,9 +53,21 @@ const LoginButton = () => {
           duration: Snackbar.LENGTH_SHORT,
           backgroundColor: '#e74c3c',
         });
+        addNewLog({
+          logType: 'USER',
+          message: "Loged in successfully",
+          logLevel: 'info',
+          statusCode: '000',
+        })
       }
     } catch (err) {
       dispatch(updateLoadingUser(false))
+      addNewLog({
+        logType: 'USER',
+        message: "Log in failed",
+        logLevel: 'error',
+        statusCode: '000',
+      })
     }
   }
 

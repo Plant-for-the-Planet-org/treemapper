@@ -16,6 +16,7 @@ import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/h
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 
 interface Props {
   toogleFilterModal: () => void
@@ -30,7 +31,7 @@ const HomeHeader = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
   const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
-
+  const {addNewLog} = useLogManagement()
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
@@ -96,9 +97,28 @@ const HomeHeader = (props: Props) => {
         }
         const nextPage = getExtendedPageParam(result._links.next)
         dispatch(updateLastServerIntervetion(nextPage))
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Intervention Fetched successfully",
+          logLevel: 'info',
+          statusCode: '000',
+        })
+      }else{
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Intrevntion Fetched(Response error)",
+          logLevel: 'error',
+          statusCode: '000',
+        })
       }
     } catch (err) {
       console.log("Error Occured", err)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Error while fetching intervention",
+        logLevel: 'error',
+        statusCode: '000',
+      })
     }
   } 
 
@@ -109,9 +129,28 @@ const HomeHeader = (props: Props) => {
       const result = await addAllProjects(response)
       if (result) {
         dispatch(updateProjectState(true))
+        addNewLog({
+          logType: 'PROJECTS',
+          message: "Project Fetched",
+          logLevel: 'info',
+          statusCode: '000',
+        })
       } else {
         dispatch(updateProjectError(true))
+        addNewLog({
+          logType: 'PROJECTS',
+          message: "Error while syncing project",
+          logLevel: 'error',
+          statusCode: '000',
+        })
       }
+    }else{
+      addNewLog({
+        logType: 'PROJECTS',
+        message: "Project Fetching failed(response error)",
+        logLevel: 'error',
+        statusCode: '400',
+      })
     }
   }
 

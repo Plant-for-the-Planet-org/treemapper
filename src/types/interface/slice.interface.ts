@@ -243,4 +243,6 @@ export interface LogDetails {
     logLevel: LOG_LEVELS,
     statusCode: string,
     logStack?: string
+    timestamp?: number
+    id?:string
   }

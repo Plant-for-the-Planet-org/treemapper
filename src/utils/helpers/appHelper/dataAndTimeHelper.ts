@@ -11,7 +11,7 @@ export const timestampToBasicDate = (timestamp: number) => {
 export const filterToTime = (i: INTERVENTION_FILTER) => {
   const currentDate = new Date();
   if (i === 'months' || i === 'days' || i === 'year') {
-    const sub = i ==='months'?6:i==='days'?1:12
+    const sub = i === 'months' ? 6 : i === 'days' ? 1 : 12
     const oneMonthAgo = new Date(currentDate);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - sub);
     const timestampOneMonthAgo = oneMonthAgo.getTime();
@@ -24,6 +24,10 @@ export const filterToTime = (i: INTERVENTION_FILTER) => {
   return 0
 }
 
-export const convertDateToTimestamp=(d:Date)=>{
+export const convertDateToTimestamp = (d: Date) => {
   return new Date(d).getTime()
+}
+
+export const activityLogTime=(timestamp: number)=>{
+  return moment(timestamp).format('DD MMM, hh:mm A');
 }

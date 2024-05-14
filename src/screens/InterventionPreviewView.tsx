@@ -32,6 +32,7 @@ import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -39,6 +40,7 @@ const InterventionPreviewView = () => {
   const [interventionId, setInterventoinId] = useState('')
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
+  const {addNewLog} = useLogManagement()
   const InterventionData = useSelector(
     (state: RootState) => state.interventionState,
   )
@@ -83,6 +85,12 @@ const InterventionPreviewView = () => {
 
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
+    addNewLog({
+      logType: 'INTERVENTION',
+      message: "New Intervention registered",
+      logLevel: 'info',
+      statusCode: '000',
+    })
     dispatch(resetSampleTreeform())
     dispatch(updateNewIntervention())
     const { geoJSON } = makeInterventionGeoJson(

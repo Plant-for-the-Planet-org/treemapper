@@ -22,6 +22,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import Snackbar from 'react-native-snackbar';
 import { useDispatch } from 'react-redux'
 import { updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 
 const SyncSpecies = () => {
   const { downloadFile, finalURL, currentState } = useDownloadFile()
@@ -29,6 +30,7 @@ const SyncSpecies = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
   const { isConnected } = useNetInfo();
+  const {addNewLog} =useLogManagement()
   const dispatch = useDispatch()
   useEffect(() => {
     setTimeout(() => {
@@ -47,6 +49,12 @@ const SyncSpecies = () => {
 
   const isSpeciesUpdateRequried = async () => {
     if (!isConnected) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Species data sync stoped due to network",
+        logLevel: 'warn',
+        statusCode: '000',
+      })
       Snackbar.show({
         text: i18next.t('label.no_internet_connection'),
         duration: Snackbar.LENGTH_SHORT,
@@ -66,6 +74,12 @@ const SyncSpecies = () => {
     if (localSyncTimeStamp) {
       if (route.params && route.params.inApp) {
         downloadFile()
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Species data downloaded",
+          logLevel: 'info',
+          statusCode: '000',
+        })
         return
       }
       const skipSpeciesSync = isWithin90Days(Number(localSyncTimeStamp))
@@ -73,13 +87,31 @@ const SyncSpecies = () => {
         navigation.replace('Home')
       } else {
         downloadFile()
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Species data downloaded",
+          logLevel: 'info',
+          statusCode: '000',
+        })
       }
     } else {
       downloadFile()
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Species data downloaded",
+        logLevel: 'info',
+        statusCode: '000',
+      })
     }
   }
 
   const readAndWriteSpecies = async (finalURL: string) => {
+    addNewLog({
+      logType: 'DATA_SYNC',
+      message: "Species read and write started",
+      logLevel: 'info',
+      statusCode: '000',
+    })
     try {
       const speciesContent = await FileSystem.readAsStringAsync(
         finalURL + '/scientific_species.json',
@@ -88,6 +120,12 @@ const SyncSpecies = () => {
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Species data sync successfully",
+        logLevel: 'info',
+        statusCode: '000',
+      })
       dispatch(updateSpeciesSyncStatus(true))
       if (route.params && route.params.inApp) {
         navigation.popToTop()
@@ -95,7 +133,12 @@ const SyncSpecies = () => {
         navigation.replace('Home')
       }
     } catch (error) {
-      console.log('error', error)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Error occured while syncing species data",
+        logLevel: 'info',
+        statusCode: '000',
+      })
     }
   }
 

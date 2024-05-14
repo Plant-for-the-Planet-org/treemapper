@@ -4,11 +4,12 @@ import { TabView, SceneMap } from 'react-native-tab-view'
 import { useState } from 'react'
 import AdditionalFormTabBar from './ActivityLogsTabBar'
 import AllLogs from './AllLogs'
+import ErrorLogs from './ErrorLogs'
 
 
 const renderScene = SceneMap({
   all: AllLogs,
-  errors: AllLogs,
+  errors: ErrorLogs,
 })
 
 const AdditionalTabView = () => {

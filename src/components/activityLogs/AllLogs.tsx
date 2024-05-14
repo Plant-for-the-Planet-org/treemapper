@@ -31,15 +31,21 @@ const AllLogs = () => {
         const objects = realm
             .objects(RealmSchema.ActivityLogs)
             .filtered("logType != 'error'")
+            .sorted('timestamp', true)
             .slice(start, end);
-        console.log("JKH", objects)
         setLogs([...logs, ...JSON.parse(JSON.stringify(objects))])
         setLoading(false)
     }
 
     return (
         <View style={styles.container}>
-            <FlatList data={[1, 2, 3, 4, 5]} renderItem={() => (<LogCard />)} refreshControl={
+            <FlatList data={logs} renderItem={({item}) => (<LogCard data={item}/>)}
+            onEndReached={()=>{
+                setCurrentPage(currentPage+1);
+            }}
+            keyExtractor={({id})=>id}
+            onEndReachedThreshold={0.5}
+            refreshControl={
                 <RefreshControl
                     refreshing={loading}
                     onRefresh={refreshHandler}
