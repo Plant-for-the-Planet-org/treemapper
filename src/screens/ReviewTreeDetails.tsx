@@ -169,7 +169,6 @@ const ReviewTreeDetails = () => {
     }
 
     const onDateSelect = async (_event, date: Date) => {
-        console.log("ASck",date)
         const finalDetails = { ...treeDetails }
         setDatePicker(false)
         finalDetails.plantation_date = convertDateToTimestamp(date)
@@ -199,6 +198,9 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                            if(!editTree && synced){
+                                return
+                            }
                             openEdit('sepcies', String(treeDetails.specie_height), 'number-pad')
                         }}>
                             <Text style={styles.speciesName}>
@@ -210,6 +212,9 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Height</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                               if(!showEdit && synced){
+                                return
+                               }
                             openEdit('height', String(treeDetails.specie_height), 'number-pad')
                         }}>
                             <HeightIcon width={20} height={20} style={styles.iconwrapper} />
@@ -222,6 +227,9 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Width</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                              if(!showEdit && synced){
+                                return
+                               }
                             openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
                         }}>
                             <WidthIcon width={20} height={20} style={styles.iconwrapper} />
@@ -234,6 +242,9 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Plantation Date</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                             if(!showEdit && synced){
+                                return
+                               }
                             openEdit('date', String(treeDetails.specie_height), 'number-pad')
                         }}>
                             <Text style={styles.valueLable}>
@@ -245,6 +256,9 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Tree Tag</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                             if(!showEdit && synced){
+                                return
+                               }
                             openEdit('treetag', String(treeDetails.tag_id), 'default')
                         }}>
                             <Text style={styles.valueLable}>

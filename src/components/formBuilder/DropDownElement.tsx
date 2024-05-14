@@ -30,7 +30,7 @@ const DropDownFormElement = (props: Props) => {
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
-                <DropdownComponent label={data.label} data={tranformData} onSelect={handleSelection} selectedValue={formValues[data.key].value ? JSON.parse(formValues[data.key].value) : tranformData[0]} />
+                <DropdownComponent label={data.label} data={tranformData} onSelect={handleSelection} selectedValue={formValues[data.key].value ? JSON.parse(formValues[data.key].value) : { label: '', value: '', index: 0 }} />
             </View>
         </View>
     )
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     wrapper: {
-        width: '95%',
+        width: '98%',
     },
     label: {
         fontSize: 22,

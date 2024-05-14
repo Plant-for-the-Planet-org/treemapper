@@ -59,7 +59,7 @@ const SideBarList = (props: Props) => {
     {
       label: 'Activity Log',
       screen: 'ActivityLog',
-      icon: <DataExpolrerIcon />,
+      icon: <ManageProjectIcon />,
       visible: true,
       key: 'activity_log'
     },

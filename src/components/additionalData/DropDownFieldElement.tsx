@@ -37,11 +37,11 @@ const DropDownFieldElement = (props: Props) => {
 
     const handlePress = () => {
         if (inputKey === '') {
-            toast.show("Please add valid key")
+            toast.show("Please add valid key",{placement:'top'})
             return;
         }
         if (inputValue === '') {
-            toast.show("Please add valid value")
+            toast.show("Please add valid value",{placement:'top'})
             return;
         }
 

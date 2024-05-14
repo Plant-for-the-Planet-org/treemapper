@@ -66,7 +66,7 @@ const MainFormSection = (props: Props) => {
     for (const [key] of Object.entries(formValues)) {
       const regex = new RegExp(formValues[key].validation);
       if (!regex.test(formValues[key].value)) {
-        toast.show(`Please provide valid ${formValues[key].label}`, {
+        toast.show(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`, {
           type: "normal",
           placement: "bottom",
           duration: 2000,
@@ -77,7 +77,7 @@ const MainFormSection = (props: Props) => {
       finalData.push({ ...formValues[key] })
     }
     if (completeLocalForm) {
-      completeLocalForm(finalData,page)
+      completeLocalForm(finalData, page)
       return
     }
     dispatch(updateFormDataValue(finalData))

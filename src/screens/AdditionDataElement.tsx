@@ -19,6 +19,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ScrollView } from 'react-native-gesture-handler'
+import { useToast } from 'react-native-toast-notifications'
 
 
 const fieldType: Array<{
@@ -47,7 +48,7 @@ const AdditionDataElement = () => {
   const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
   const [isPublic, setIsPublic] = useState(false)
   const [advanceMode, setAdvanceMode] = useState(false)
-  const [fieldKey, setFieldKey] = useState(`${elementType}-${Date.now()}`)
+  const [fieldKey, setFieldKey] = useState(`Element-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)
   const [showOptionModal, setShowDropDownOption] = useState(false)
   const realm = useRealm()
@@ -55,6 +56,8 @@ const AdditionDataElement = () => {
   const [dropDownElement, setDropDownElement] = useState<Array<{ key: string, value: string, id: string }>>([])
   const [selectedDropDown, setSelectedDropdonw] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
 
+
+  const toast = useToast()
 
   useEffect(() => {
     if (edit && element_id) {
@@ -158,6 +161,9 @@ const AdditionDataElement = () => {
   }
 
   const addNewElement = async () => {
+    if(!validationInput()){
+      return;
+    }
     const details: FormElement = {
       element_id: uuid(),
       index: element_order,
@@ -173,7 +179,7 @@ const AdditionDataElement = () => {
       keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
-      validation: '',
+      validation: ".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
 
@@ -183,6 +189,9 @@ const AdditionDataElement = () => {
   }
 
   const updateElement = async () => {
+    if(!validationInput()){
+      return;
+    }
     const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
     const allElements = [...JSON.parse(JSON.stringify(data.elements))]
     const index = allElements.findIndex(el => el.element_id === element_id);
@@ -197,6 +206,22 @@ const AdditionDataElement = () => {
     myElement.dropDownData = JSON.stringify(dropDownElement)
     await updateElementInForm(element_id, form_id, myElement)
     navigation.goBack()
+  }
+
+  const validationInput=()=>{
+    if(inputKey.length===0 && elementType!=='GAP'){
+      toast.show("Field name is required")
+      return false
+    }
+    if(fieldKey.length===0){
+      toast.show("Advance field  is required")
+      return false
+    }
+    if(elementType==='DROPDOWN' && dropDownElement.length<2){
+      toast.show("Please add at least 2 options")
+      return false
+    }
+    return true
   }
 
   const deleteHandler = async () => {
@@ -249,7 +274,7 @@ const AdditionDataElement = () => {
         />}
         {advanceMode && <CustomTextInput
           label="Field key"
-          onChangeHandler={setInputKey}
+          onChangeHandler={setFieldKey}
           value={fieldKey}
         />}
         <View style={styles.switchContainer}>
@@ -320,6 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: '100%',
+    marginRight:10
   },
   switchText: {
     color: Colors.TEXT_COLOR,

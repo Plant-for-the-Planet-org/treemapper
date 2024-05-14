@@ -38,7 +38,7 @@ import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interfac
     editable: true,
     value: '',
     required: true,
-    dropDownData: [],
+    dropDownData: '',
     validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"    
   }
   
@@ -58,7 +58,7 @@ import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interfac
     editable: true,
     value: '',
     required: true,
-    dropDownData: [],
+    dropDownData: '',
     validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   

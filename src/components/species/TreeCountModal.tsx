@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     fontSize: scaleFont(18),
-    marginLeft: 15
+    marginLeft: 15,
+    paddingRight:10
   },
   inputWrapper: {
     width: '100%',
