@@ -25,6 +25,7 @@ import MetaDataElementView from './MetaDataElementView'
 import AdditionDataElementView from './AdditionDataElement'
 import SelectElement from './SelectElementView'
 import LocalFormView from './LocalFormView'
+import ImportForm from './ImportFormView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -53,5 +54,6 @@ export default {
   MetaDataElement: MetaDataElementView,
   AdditionDataElement: AdditionDataElementView,
   SelectElement:SelectElement,
-  LocalForm: LocalFormView
+  LocalForm: LocalFormView,
+  ImportForm:ImportForm
 }

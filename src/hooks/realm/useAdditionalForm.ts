@@ -80,6 +80,25 @@ const useAdditionalForm = () => {
     }
   }
 
+  const bulkFormAddition = async (
+    data: IAdditonalDetailsForm[]
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        data.forEach(el => {
+          realm.create(
+            RealmSchema.AdditonalDetailsForm,
+            el,
+            Realm.UpdateMode.All,
+          )
+        })
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
   const updateElementInForm = async (
     element_id: string,
@@ -122,9 +141,22 @@ const useAdditionalForm = () => {
     }
   };
 
+  const deleteAllAdditionalData = async (
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const data = realm.objects(RealmSchema.AdditonalDetailsForm);
+        realm.delete(data)
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
-  return { addNewForm, addNewElementInForm, deleteElementInForm, deleteForm, updateFormDetails, updateElementInForm }
+  return { addNewForm, addNewElementInForm, deleteElementInForm, deleteForm, updateFormDetails, updateElementInForm, bulkFormAddition, deleteAllAdditionalData }
 }
 
 export default useAdditionalForm;

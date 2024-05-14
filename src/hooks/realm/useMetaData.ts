@@ -22,14 +22,14 @@ const useMetaData = () => {
       return Promise.reject(false)
     }
   }
-  const updateMetaData = async ( data: Metadata): Promise<boolean> => {
+  const updateMetaData = async (data: Metadata): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<Metadata>(RealmSchema.Metadata, data.id);
-        intervention.key =data.key
-        intervention.value =data.value
-        intervention.accessType =data.accessType
-        intervention.order =data.order
+        intervention.key = data.key
+        intervention.value = data.value
+        intervention.accessType = data.accessType
+        intervention.order = data.order
 
       });
       return Promise.resolve(true);
@@ -51,9 +51,43 @@ const useMetaData = () => {
     }
   };
 
+  const bulkMetaDataAdditoin = async (
+    data: Metadata[]
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        data.forEach(el => {
+          realm.create(
+            RealmSchema.Metadata,
+            el,
+            Realm.UpdateMode.All,
+          )
+        })
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const deleteAllMetaData = async (
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const data = realm.objects(RealmSchema.Metadata);
+        realm.delete(data)
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
-  return { addNewMetadata, updateMetaData, deleteMetaData}
+
+  return { addNewMetadata, updateMetaData, deleteMetaData, bulkMetaDataAdditoin, deleteAllMetaData }
 }
 
 export default useMetaData;
