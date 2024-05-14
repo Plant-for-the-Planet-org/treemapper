@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
+    marginLeft:5,
     color: Colors.TEXT_COLOR,
   },
   headerLabel:{

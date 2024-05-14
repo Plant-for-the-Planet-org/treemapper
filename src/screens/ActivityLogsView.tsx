@@ -26,7 +26,7 @@ const ActivityLogsView = () => {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(logs)),
             message: "All user logs for TreeMapper app",
             title: "Activity Logs",
-            filename: `TreeMapper GeoJSON`,
+            filename: `TreeMapper_Activitylogs.json`,
             saveToFiles: true,
         };
         Share.open(options)

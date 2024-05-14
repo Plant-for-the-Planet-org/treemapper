@@ -20,6 +20,7 @@ import { useRealm } from '@realm/react'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useToast } from 'react-native-toast-notifications'
+import { FORM_TYPE } from 'src/types/type/app.type'
 
 
 const fieldType: Array<{
@@ -164,6 +165,7 @@ const AdditionDataElement = () => {
     if(!validationInput()){
       return;
     }
+    const noValidatoinRequired:FORM_TYPE[] = ['HEADING','GAP','PAGE']
     const details: FormElement = {
       element_id: uuid(),
       index: element_order,
@@ -179,7 +181,7 @@ const AdditionDataElement = () => {
       keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
-      validation: ".+",
+      validation: noValidatoinRequired.includes(elementType)?'':".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
 

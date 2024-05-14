@@ -64,17 +64,32 @@ const MainFormSection = (props: Props) => {
   const submitHandler = () => {
     const finalData: FormElement[] = [];
     for (const [key] of Object.entries(formValues)) {
-      const regex = new RegExp(formValues[key].validation);
-      if (!regex.test(formValues[key].value)) {
-        toast.show(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`, {
+      if (formValues[key].value.length > 0 && formValues[key].validation.length>0) {
+        const regex = new RegExp(formValues[key].validation);
+        if (!regex.test(formValues[key].value)) {
+          toast.show(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`, {
+            type: "normal",
+            placement: "bottom",
+            duration: 2000,
+            animationType: "slide-in",
+          })
+          return
+        }
+      }
+
+      if(formValues[key].required && formValues[key].value.length===0){
+        toast.show(`${formValues[key].label} cannot be empty`, {
           type: "normal",
           placement: "bottom",
           duration: 2000,
           animationType: "slide-in",
         })
-        return
       }
-      finalData.push({ ...formValues[key] })
+
+      if(formValues[key].value.length!==0){
+        finalData.push({ ...formValues[key] })
+      }
+
     }
     if (completeLocalForm) {
       completeLocalForm(finalData, page)
