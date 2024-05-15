@@ -54,7 +54,7 @@ const InterventionFormView = () => {
   const [projectSies, setProjectSites] = useState<any>([])
   const [locationName, setLocationName] = useState('')
   const [furtherInfo, setFurtherInfo] = useState('')
-  const [allIntervention] = useState([...AllIntervention])
+  const [allIntervention] = useState([...AllIntervention.filter(el => el.value !== 'single-tree-registration' && el.value !== 'multi-tree-registration')])
   const [interventionType, setInterventionType] = useState<DropdownData>({
     label: '',
     value: '',
@@ -218,7 +218,7 @@ const InterventionFormView = () => {
     }
 
     if (finalData.location_type === 'Point') {
-      
+
       navigation.replace('PointMarker')
     } else {
       navigation.replace('PolygonMarker')

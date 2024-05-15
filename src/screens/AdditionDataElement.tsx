@@ -102,7 +102,9 @@ const AdditionDataElement = () => {
   const renderHeaderRight = () => {
     return <View style={styles.switchHeaderContainer}>
       <Text style={styles.switchText}>Advance Mode</Text>
-      <Switch value={advanceMode} onValueChange={() => {
+      <Switch value={advanceMode} 
+                  trackColor={{true:Colors.NEW_PRIMARY}}
+      onValueChange={() => {
         setAdvanceMode(!advanceMode)
       }} disabled={false} />
     </View>
@@ -162,10 +164,10 @@ const AdditionDataElement = () => {
   }
 
   const addNewElement = async () => {
-    if(!validationInput()){
+    if (!validationInput()) {
       return;
     }
-    const noValidatoinRequired:FORM_TYPE[] = ['HEADING','GAP','PAGE']
+    const noValidatoinRequired: FORM_TYPE[] = ['HEADING', 'GAP', 'PAGE']
     const details: FormElement = {
       element_id: uuid(),
       index: element_order,
@@ -181,7 +183,7 @@ const AdditionDataElement = () => {
       keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
-      validation: noValidatoinRequired.includes(elementType)?'':".+",
+      validation: noValidatoinRequired.includes(elementType) ? '' : ".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
 
@@ -191,7 +193,7 @@ const AdditionDataElement = () => {
   }
 
   const updateElement = async () => {
-    if(!validationInput()){
+    if (!validationInput()) {
       return;
     }
     const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
@@ -210,16 +212,16 @@ const AdditionDataElement = () => {
     navigation.goBack()
   }
 
-  const validationInput=()=>{
-    if(inputKey.length===0 && elementType!=='GAP'){
+  const validationInput = () => {
+    if (inputKey.length === 0 && elementType !== 'GAP') {
       toast.show("Field name is required")
       return false
     }
-    if(fieldKey.length===0){
+    if (fieldKey.length === 0) {
       toast.show("Advance field  is required")
       return false
     }
-    if(elementType==='DROPDOWN' && dropDownElement.length<2){
+    if (elementType === 'DROPDOWN' && dropDownElement.length < 2) {
       toast.show("Please add at least 2 options")
       return false
     }
@@ -283,13 +285,18 @@ const AdditionDataElement = () => {
           <Text style={styles.switchText}>This is required</Text>
           <Switch value={isRequired} onValueChange={() => {
             setIsRequired(!isRequired)
-          }} disabled={false} />
+          }} disabled={false} 
+          trackColor={{true:Colors.NEW_PRIMARY}}
+          />
         </View>
         {elementType !== 'GAP' && <View style={styles.switchContainer}>
           <Text style={styles.switchText}>Make this data public</Text>
           <Switch value={isPublic} onValueChange={() => {
             setIsPublic(!isPublic)
-          }} disabled={false} />
+
+          }}
+            trackColor={{true:Colors.NEW_PRIMARY}}
+          disabled={false} />
         </View>}
         {elementType === 'DROPDOWN' && <>
           <Text style={styles.dropDownOption}>Dropdown options</Text>
@@ -347,7 +354,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: '100%',
-    marginRight:10
+    marginRight: 10
   },
   switchText: {
     color: Colors.TEXT_COLOR,

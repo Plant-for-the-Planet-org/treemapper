@@ -28,7 +28,7 @@ export default function AdditionalFormTabBar({
               <Text
                 style={[
                   styles.tabTitle,
-                  navigationState.index === index ? { color: Colors.PRIMARY } : {},
+                  navigationState.index === index ? { color: Colors.NEW_PRIMARY } : {},
                 ]}>
                 {route.title}
               </Text>
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     height: 5,
     width: 60,
     borderRadius: 10,
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.NEW_PRIMARY,
     position: 'absolute',
     bottom: 0,
   },
