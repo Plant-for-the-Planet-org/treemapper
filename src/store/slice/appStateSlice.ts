@@ -5,6 +5,7 @@ const initialState: AppInitialState = {
   isLogedIn: false,
   accessToken: '',
   idToken: '',
+  refreshToken:'',
   expiringAt: 0,
   speciesSync: false,
   serverInterventionAdded: false,
@@ -26,11 +27,13 @@ const appStateSlice = createSlice({
         idToken: string
         accessToken: string
         expiringAt: number
+        refreshToken: string
       }>,
     ) {
       state.accessToken = action.payload.accessToken
       state.expiringAt = action.payload.expiringAt
       state.idToken = action.payload.idToken
+      state.refreshToken = action.payload.refreshToken
     },
     updateSpeciesSyncStatus(state, action: PayloadAction<boolean>) {
       state.speciesSync = action.payload

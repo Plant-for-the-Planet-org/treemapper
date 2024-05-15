@@ -31,6 +31,7 @@ const LoginButton = () => {
         idToken: credentials.idToken,
         accessToken: credentials.accessToken,
         expiringAt: credentials.expiresAt,
+        refreshToken: credentials.refreshToken
       }),
     )
     const userDetails = await getUserDetails()
@@ -76,7 +77,6 @@ const LoginButton = () => {
     dispatch(updateUserDetails(finalDetails))
     dispatch(updateUserLogin(true))
     dispatch(updateLoadingUser(false))
-
   }
 
   return (

@@ -1,13 +1,16 @@
-import { Credentials, useAuth0 } from 'react-native-auth0'
+import Auth0, { Credentials, useAuth0 } from 'react-native-auth0'
 import useInterventionManagement from './realm/useInterventionManagement'
 import useProjectMangement from './realm/useProjectMangement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
+
+const auth0 = new Auth0({ domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN, clientId: process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0 });
+
 
 const useAuthentication = () => {
   const { authorize, getCredentials, clearSession, clearCredentials, user } = useAuth0()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
   const { deleteAllProjects } = useProjectMangement()
-  const {deleteAllUserSpecies} = useManageScientificSpecies()
+  const { deleteAllUserSpecies } = useManageScientificSpecies()
 
   const getUserCredentials = async () => {
     const result = await getCredentials()
@@ -36,8 +39,11 @@ const useAuthentication = () => {
     success: boolean
   }> => {
     try {
-      const authCreds = await authorize({ audience: 'urn:plant-for-the-planet' })
-
+      const authCreds = await authorize({
+        scope: 'openid email profile offline_access',
+        audience: 'urn:plant-for-the-planet',
+      })
+      console.log("authCreds", authCreds)
       if (!authCreds) {
         throw 'No token found'
       }
@@ -54,7 +60,16 @@ const useAuthentication = () => {
     }
   }
 
-  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials }
+
+  const refreshUserToken = async (refreshToken: string) => {
+    const result = await auth0.auth.refreshToken({ refreshToken })
+    return result
+  }
+
+
+
+
+  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken}
 }
 
 export default useAuthentication

@@ -12,6 +12,7 @@ export interface AppInitialState {
   lastServerInterventionpage: string
   intervention_updated: number
   userSpecies: boolean,
+  refreshToken: string
 }
 
 export interface MapBoundSlice {
@@ -233,16 +234,16 @@ export interface InterventionData {
     coordinates: number[]
   },
   entire_site: boolean
-  active?:boolean
+  active?: boolean
 }
 
 export interface LogDetails {
-    logType: LOG_TYPES,
-    message: string,
-    referenceId?: string,
-    logLevel: LOG_LEVELS,
-    statusCode: string,
-    logStack?: string
-    timestamp?: number
-    id?:string
-  }
+  logType: LOG_TYPES,
+  message: string,
+  referenceId?: string,
+  logLevel: LOG_LEVELS,
+  statusCode: string,
+  logStack?: string
+  timestamp?: number
+  id?: string
+}

@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import InfoModal from 'src/components/common/InfoModal'
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
+import UserlocationMarker from 'src/components/map/UserlocationMarker'
 
 const PointMarkerView = () => {
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
@@ -21,6 +22,7 @@ const PointMarkerView = () => {
       />
       <PointMarkerMap formData={formFlowData} />
       <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />
+      <UserlocationMarker stopAutoFocus/>
       <LocationPermissionModal required />
     </SafeAreaView>
   )

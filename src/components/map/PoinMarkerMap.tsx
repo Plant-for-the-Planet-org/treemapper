@@ -57,7 +57,7 @@ const PointMarkerMap = (props: Props) => {
         handleCameraViewChange()
       }
     }, 500)
-  }, [MapBounds])
+  }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds

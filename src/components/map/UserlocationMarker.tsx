@@ -7,14 +7,19 @@ import useLocationPermission from 'src/hooks/useLocationPermission'
 const windowWidth = Dimensions.get('screen').width
 const width = windowWidth / 4
 
-const UserlocationMarker = () => {
-  const {userCurrentLocation, permissionStatus} = useLocationPermission()
+interface Props {
+  stopAutoFocus?: boolean
+}
+
+const UserlocationMarker = (props: Props) => {
+  const { stopAutoFocus } = props
+  const { userCurrentLocation, permissionStatus } = useLocationPermission()
   useEffect(() => {
-    if(permissionStatus==='granted'){
+    if (permissionStatus === 'granted' && !stopAutoFocus) {
       userCurrentLocation()
     }
-  }, [permissionStatus])
-  
+  }, [permissionStatus, stopAutoFocus])
+
 
   return (
     <TouchableOpacity style={styles.container} onPress={userCurrentLocation}>
@@ -29,7 +34,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1,
-    right: width /3.5,
+    right: width / 3.5,
     bottom: scaleSize(140),
     width: 55,
     height: 55,

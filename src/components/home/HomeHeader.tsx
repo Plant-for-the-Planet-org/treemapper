@@ -14,9 +14,10 @@ import { updateProjectError, updateProjectState } from 'src/store/slice/projectS
 import { scaleSize } from 'src/utils/constants/mixins'
 import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventorytoIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
+import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
+import useAuthentication from 'src/hooks/useAuthentication'
 
 interface Props {
   toogleFilterModal: () => void
@@ -25,13 +26,14 @@ interface Props {
 
 const HomeHeader = (props: Props) => {
   const { addAllProjects } = useProjectMangement()
-  const {addUserSpecies} = useManageScientificSpecies()
+  const { addUserSpecies } = useManageScientificSpecies()
   const { toogleFilterModal, toogleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
-  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
-  const {addNewLog} = useLogManagement()
+  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLogedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
+  const { refreshUserToken } = useAuthentication()
+  const { addNewLog } = useLogManagement()
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
@@ -46,37 +48,77 @@ const HomeHeader = (props: Props) => {
     if (userType === 'tpo' && !projectAdded) {
       handleProjects()
     }
-  }, [userType, projectAdded])
+  }, [userType, projectAdded, expiringAt])
 
 
   useEffect(() => {
-    if(!userSpecies && isLogedIn){
+    if (!userSpecies && isLogedIn) {
       setTimeout(() => {
         syncUserSpecies()
       }, 3000);
     }
-  }, [isLogedIn])
+  }, [isLogedIn, expiringAt])
 
-  const syncUserSpecies=async()=>{
+  const syncUserSpecies = async () => {
     try {
       const result = await getUserSpecies()
-      if(result && result.length>0){
+      if (result && result.length > 0) {
         const resposne = await addUserSpecies(result)
-        if(resposne){
+        if (resposne) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
     } catch (error) {
-      console.log("error",error)
+      console.log("error", error)
     }
   }
-  
+
+  useEffect(() => {
+    const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
+    if (isExpired) {
+      refreshUser()
+    }
+  }, [expiringAt])
+
+
+  const refreshUser = async () => {
+    try {
+      const credentials = await refreshUserToken(refreshToken)
+      if (credentials) {
+        dispatch(
+          updateUserToken({
+            idToken: credentials.idToken,
+            accessToken: credentials.accessToken,
+            expiringAt: credentials.expiresAt,
+            refreshToken: credentials.refreshToken
+          })
+        )
+      }
+    } catch (error) {
+      console.log("error", error)
+    }
+  }
+
+
+  function hasTimestampExpiredOrCloseToExpiry(timestamp) {
+    // Convert timestamp to milliseconds
+    timestamp *= 1000;
+
+    // Get the current time in milliseconds since the Unix epoch
+    const currentTime = Date.now();
+
+    // Calculate the time 5 hours (in milliseconds)
+    const fiveHoursInMilliseconds = 5 * 60 * 60 * 1000;
+
+    // Check if the provided timestamp is within 5 hours of expiring or has already expired
+    return (timestamp - currentTime) <= fiveHoursInMilliseconds;
+  }
 
   useEffect(() => {
     if (userType && !serverInterventionAdded) {
       addServerIntervention()
     }
-  }, [userType, lastServerInterventionpage])
+  }, [userType, lastServerInterventionpage, expiringAt])
 
   const addServerIntervention = async () => {
     try {
@@ -88,7 +130,7 @@ const HomeHeader = (props: Props) => {
           return;
         }
         for (let index = 0; index < result.count; index++) {
-          if(result.items[index] && result.items[index].id==='loc_8HnYd9gTXBt108EUALRiEhnp'){
+          if (result.items[index] && result.items[index].id === 'loc_8HnYd9gTXBt108EUALRiEhnp') {
             continue;
           }
           const element = convertInevtoryToIntervention(result.items[index]);
@@ -103,7 +145,7 @@ const HomeHeader = (props: Props) => {
           logLevel: 'info',
           statusCode: '000',
         })
-      }else{
+      } else {
         addNewLog({
           logType: 'DATA_SYNC',
           message: "Intrevntion Fetched(Response error)",
@@ -120,7 +162,7 @@ const HomeHeader = (props: Props) => {
         statusCode: '000',
       })
     }
-  } 
+  }
 
 
   const handleProjects = async () => {
@@ -144,7 +186,7 @@ const HomeHeader = (props: Props) => {
           statusCode: '000',
         })
       }
-    }else{
+    } else {
       addNewLog({
         logType: 'PROJECTS',
         message: "Project Fetching failed(response error)",
