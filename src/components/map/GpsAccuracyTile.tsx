@@ -19,9 +19,9 @@ const GpsAccuracyTile = (props: Props) => {
     (async () => {
       const watcher = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.BestForNavigation,
-          timeInterval: 5000, // Time between each update in milliseconds (5000 = 5 seconds)
-          distanceInterval: 1, // Minimum distance between updates in meters
+          accuracy: Location.Accuracy.Highest,
+          timeInterval: 1000,
+          distanceInterval: 0, // Minimum distance between updates in meters
         },
         callBackForlocation
       )

@@ -75,7 +75,7 @@ const HomeHeader = (props: Props) => {
 
   useEffect(() => {
     const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
-    if (isExpired) {
+    if (expiringAt && isExpired) {
       refreshUser()
     }
   }, [expiringAt])
