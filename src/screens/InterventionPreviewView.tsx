@@ -14,6 +14,7 @@ import { RootState } from 'src/store'
 import {
   handleIncompleteIntervention,
   makeInterventionGeoJson,
+  metaDataTranformer,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { Colors } from 'src/utils/constants'
@@ -32,13 +33,14 @@ import InterventionAdditionalData from 'src/components/previewIntervention/Inter
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
+import { Metadata } from 'src/types/interface/app.interface'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const [interventionId, setInterventoinId] = useState('')
   const [loading, setLoading] = useState(true)
-
+  const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const { addNewLog } = useLogManagement()
@@ -47,23 +49,46 @@ const InterventionPreviewView = () => {
   )
 
 
-  const { saveIntervention } = useInterventionManagement()
+  const { saveIntervention, updateInterventionMetaData } = useInterventionManagement()
   const dispatch = useDispatch()
 
   useEffect(() => {
     if (route.params.id === 'review') {
-      // let metaData = []
-      // const hasMetaData = realm.objects(RealmSchema.Metadata)
-      // if (hasMetaData && hasMetaData.length) {
-      //   metaData = [...JSON.parse(JSON.stringify(hasMetaData))]
-      // }
       setInterventoinId(formFlowData.form_id)
-
       dispatch(updateNewIntervention())
+      setupMetaData()
     } else {
       setInterventoinId(route.params.intervention)
     }
   }, [])
+
+
+  const setupMetaData = async () => {
+    const localMetada = realm.objects<Metadata>(RealmSchema.Metadata)
+    const updatedMetadata = {
+      private: {},
+      public: {},
+      app: {}
+    };
+    if (localMetada && localMetada.length) {
+      localMetada.forEach(el => {
+        if (el.accessType === 'private') {
+          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
+        }
+        if (el.accessType === 'public') {
+          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: el.value }
+        }
+      })
+    }
+    updatedMetadata.app = {
+      deviceLocation: {
+        "coordinates": DeviceLocation,
+        "type": "Point"
+      },
+    }
+    const finalMeta = metaDataTranformer(JSON.parse(formFlowData.meta_data), updatedMetadata)
+    await updateInterventionMetaData(formFlowData.form_id, finalMeta)
+  }
 
   useEffect(() => {
     if (interventionId) {
@@ -132,7 +157,6 @@ const InterventionPreviewView = () => {
         color={Colors.NEW_PRIMARY}
       />
     </View>
-
   }
 
   const renderRightContainer = () => {
@@ -160,7 +184,7 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
-        {InterventionData.meta_data.length > 0 && <InterventionMetaData data={InterventionData.meta_data} />}
+        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={InterventionData.additional_data} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />

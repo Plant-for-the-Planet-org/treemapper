@@ -244,7 +244,7 @@ export const handleIncompleteIntervention = (data: InterventionData): { screen: 
     tree_details_required: getRegsiterationFlow.tree_details_required,
     tree_details: data.sample_trees,
     form_details: getRegsiterationFlow.form_details,
-    meta_data:  JSON.parse(data.meta_data),
+    meta_data: JSON.parse(data.meta_data),
     additional_data: JSON.parse(data.additional_data),
     form_data: JSON.parse(data.form_data),
     plantedSpecies: data.planted_species
@@ -304,3 +304,26 @@ export const handleIncompleteIntervention = (data: InterventionData): { screen: 
   return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' }, formData }
 
 }
+
+
+export const metaDataTranformer = (exsitingData: any, data: { public: any, private: any, app: any }) => {
+  const finalData = { ...exsitingData }
+  if (exsitingData['public']) {
+    finalData['public'] = { ...exsitingData['public'], ...data.public }
+  } else {
+    finalData['public'] = { ...data.public }
+  }
+
+  if (exsitingData['private']) {
+    finalData['private'] = { ...exsitingData['private'], ...data.private }
+  } else {
+    finalData['private'] = { ...data.private }
+  }
+
+  if (exsitingData['app']) {
+    finalData['app'] = { ...exsitingData['app'], ...data.app }
+  } else {
+    finalData['app'] = { ...data.app }
+  }
+  return JSON.stringify(finalData)
+} 

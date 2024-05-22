@@ -37,9 +37,10 @@ import { AllIntervention } from 'src/utils/constants/knownIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import { makeInterventionGeoJson, metaDataTranformer } from 'src/utils/helpers/interventionFormHelper'
 import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -95,6 +96,14 @@ const InterventionFormView = () => {
     InterventionJSON.form_id = uuidv4()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
+    const existingMetaData = JSON.parse(InterventionJSON.meta_data);
+    const appMeta = getDeviceDetails()
+    const finalMetaData = metaDataTranformer(existingMetaData, {
+      public: {},
+      private: {},
+      app: appMeta
+    })
+    InterventionJSON.meta_data = finalMetaData
     if (defaultProject) {
       InterventionJSON.project_name = currentProject.projectName
       InterventionJSON.project_id = currentProject.projectId
@@ -209,10 +218,17 @@ const InterventionFormView = () => {
       finalData.coordinates = siteCoordinatesSelect()
     }
     const metaData = {
-      location_name: locationName,
-      further_info: furtherInfo,
+      "Location Name": locationName,
+      "Info": furtherInfo,
     }
-    finalData.meta_data = JSON.stringify(metaData)
+    const existingMetaData = JSON.parse(finalData.meta_data);
+    const appMeta = getDeviceDetails()
+    const finalMetaData = metaDataTranformer(existingMetaData, {
+      public: metaData,
+      private: {},
+      app: appMeta
+    })
+    finalData.meta_data = finalMetaData
     dispatch(initiateForm({ ...finalData }))
     await initializeIntervention(finalData)
     dispatch(updateNewIntervention())
@@ -255,6 +271,8 @@ const InterventionFormView = () => {
   const handleEntireSiteArea = (b: boolean) => {
     dispatch(updateEntireSiteIntervention(b))
   }
+
+
 
   if (loading) {
     return (

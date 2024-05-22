@@ -84,7 +84,7 @@ const fireSupressionForm: MainForm = {
 
 export const FireSupresionTeam: RegisterFormSliceInitalState = {
   form_id: '',
-  key:'fire-suppression',
+  key: 'fire-suppression',
   title: 'Fire Suppression Team',
   intervention_date: 0,
   skip_intervention_form: false,
@@ -111,7 +111,8 @@ export const FireSupresionTeam: RegisterFormSliceInitalState = {
   tree_details_required: false,
   tree_details: [],
   form_details: [fireSupressionForm],
-  meta_data: '',
+  meta_data: '{}',
   additional_data: '',
-  form_data: []
+  form_data: [],
+  plantedSpecies: []
 }

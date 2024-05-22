@@ -25,19 +25,19 @@ export const ExportGeoJSONButton = (props: Props) => {
             features = [...interventionFeature]
         } else {
             const treeFeature = convertTreeDetailsToGeoJSON(details);
-            features.push({...treeFeature})
+            features.push({ ...treeFeature })
         }
 
-        const geoJSON ={
+        const geoJSON = {
             "type": "FeatureCollection",
             "features": [...features]
-          }
+        }
 
         const options = {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
             message: i18next.t('label.inventory_overview_export_json_message'),
             title: i18next.t('label.inventory_overview_export_json_title'),
-            filename: `TreeMapper GeoJSON`,
+            filename: type === 'intervention' ? `Intervention(${details.intervention_id})-GeoJSON.json` : `Tree(${details.tree_id})-GeoJSON.json`,
             saveToFiles: true,
         };
         Share.open(options)
@@ -88,21 +88,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.WHITE,
-        borderWidth:0.5,
-        borderColor:'#f2ebdd',
+        borderWidth: 0.5,
+        borderColor: '#f2ebdd',
         shadowColor: Colors.GRAY_TEXT,
-        shadowOffset: {width: 2, height: 2},
+        shadowOffset: { width: 2, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 5,
-        elevation:2
+        elevation: 2
     },
     textStyle: {
         fontSize: scaleFont(18),
         fontFamily: FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
     },
-    iconWrapper:{
-        position:"absolute",
-        left:10
+    iconWrapper: {
+        position: "absolute",
+        left: 10
     }
 })

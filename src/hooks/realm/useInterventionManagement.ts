@@ -289,9 +289,21 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateInterventionMetaData = async (intervnetionID: string, metaData: any,): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        intervention.meta_data = metaData
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
 
-  return { addNewIntervention, updateInterventionLastScreen, updateDynamicFormDetails, updateAdditionalDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
+  return { addNewIntervention, updateInterventionMetaData, updateInterventionLastScreen, updateDynamicFormDetails, updateAdditionalDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
 }
 
 export default useInterventionManagement

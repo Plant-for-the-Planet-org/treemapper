@@ -32,7 +32,7 @@ export const initialState: RegisterFormSliceInitalState = {
   user_type: 'tpo',
   project_name: '',
   site_name: '',
-  meta_data: '',
+  meta_data: '{}',
   form_data: [],
   additional_data: '',
   can_be_entire_site: false,

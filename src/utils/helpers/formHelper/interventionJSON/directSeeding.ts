@@ -26,11 +26,12 @@ export const DirectSeeding: RegisterFormSliceInitalState = {
     has_sample_trees: false,
     tree_details: [],
     form_details: [],
-    meta_data: '',
+    meta_data: '{}',
     form_data: [],
     additional_data: '',
     can_be_entire_site: true,
     entire_site_selected: false,
     key: 'direct-seeding',
-    should_register_location: false
+    should_register_location: false,
+    plantedSpecies: []
 }

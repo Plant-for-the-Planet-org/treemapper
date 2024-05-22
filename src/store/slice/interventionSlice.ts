@@ -4,7 +4,7 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 
 const initialState: InterventionData = {
   intervention_id: '',
-  intervention_key: '',
+  intervention_key: 'single-tree-registration',
   intervention_title: '',
   intervention_date: 0,
   project_id: '',
@@ -24,9 +24,18 @@ const initialState: InterventionData = {
   site_id: '',
   form_data: '',
   additional_data: '',
-  meta_data: '',
+  meta_data: '{}',
   intervention_type: 'single-tree-registration',
-  last_updated_at: 0
+  last_updated_at: 0,
+  status: 'SYNCED',
+  hid: '',
+  coords: {
+    type: 'Point',
+    coordinates: []
+  },
+  entire_site: false,
+  lastScreen: '',
+  planted_species: []
 }
 
 const interventionSlice = createSlice({

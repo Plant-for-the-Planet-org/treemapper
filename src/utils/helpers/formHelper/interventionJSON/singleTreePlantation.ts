@@ -28,7 +28,7 @@ export const SingleTeePlantation: RegisterFormSliceInitalState = {
   has_sample_trees: false,
   tree_details: [],
   form_details: [],
-  meta_data: '',
+  meta_data: '{}',
   form_data: [],
   additional_data: '',
   can_be_entire_site: false,

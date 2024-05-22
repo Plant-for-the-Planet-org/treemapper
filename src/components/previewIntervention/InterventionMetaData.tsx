@@ -26,9 +26,6 @@ const InterventionMetaData = (props: Props) => {
     return null
   }
 
-  const renderValue = (d: { value: string, label: string, type?: FORM_TYPE }) => {
-    return d.value
-  }
 
   const renderData = () => {
     const finalData = []
@@ -38,9 +35,9 @@ const InterventionMetaData = (props: Props) => {
       i++
       finalData.push(
         <View style={styles.cardWrapper} key={i}>
-          <Text style={styles.cardTitle}> {publicData[prop].label}</Text>
+          <Text style={styles.cardTitle}> {prop}</Text>
           <Text style={styles.cardLabel}>
-            {renderValue(publicData[prop])}
+            {publicData[prop]}
           </Text>
         </View>
       )

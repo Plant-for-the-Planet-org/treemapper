@@ -7,8 +7,7 @@ export const Metadata: ObjectSchema = {
   properties: {
     id: 'string',
     key: 'string',
-    value: 'string',
-    
+    value: 'string',  
     order: 'int',
     accessType: { type: 'string', default: 'private' },
   },
