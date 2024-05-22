@@ -39,6 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
+import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -107,6 +108,7 @@ const InterventionFormView = () => {
     }
     dispatch(initiateForm({ ...InterventionJSON }))
     await initializeIntervention(InterventionJSON)
+    dispatch(updateNewIntervention())
     if (skip && InterventionJSON.skip_intervention_form) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker')
@@ -213,6 +215,7 @@ const InterventionFormView = () => {
     finalData.meta_data = JSON.stringify(metaData)
     dispatch(initiateForm({ ...finalData }))
     await initializeIntervention(finalData)
+    dispatch(updateNewIntervention())
     if (finalData.entire_site_selected) {
       const { coordinates, } = makeInterventionGeoJson(finalData.location_type, siteCoordinatesSelect(), finalData.form_id, '')
       await updateInterventionLocation(finalData.form_id, { type: 'Polygon', coordinates: coordinates }, true)
