@@ -12,11 +12,10 @@ import InterventionArea from 'src/components/previewIntervention/InterventionAre
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import {
-  convertFormDataToIntervention,
+  handleIncompleteIntervention,
   makeInterventionGeoJson,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 import { Colors } from 'src/utils/constants'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 import bbox from '@turf/bbox'
@@ -26,7 +25,7 @@ import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
+import { initiateForm } from 'src/store/slice/registerFormSlice'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
@@ -38,30 +37,28 @@ const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const [interventionId, setInterventoinId] = useState('')
+  const [loading, setLoading] = useState(true)
+
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
-  const {addNewLog} = useLogManagement()
+  const { addNewLog } = useLogManagement()
   const InterventionData = useSelector(
     (state: RootState) => state.interventionState,
   )
 
 
-  const { addNewIntervention, saveIntervention } = useInterventionManagement()
+  const { saveIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
   useEffect(() => {
     if (route.params.id === 'review') {
-      let metaData = []
-      const hasMetaData = realm.objects(RealmSchema.Metadata)
-      if (hasMetaData && hasMetaData.length) {
-        metaData = [...JSON.parse(JSON.stringify(hasMetaData))]
-      }
-      const finalData: InterventionData =
-        convertFormDataToIntervention(formFlowData, metaData)
-      addNewIntervention(finalData)
-      setInterventoinId(finalData.intervention_id)
-      dispatch(resetRegisterationForm())
-      dispatch(resetSampleTreeform())
+      // let metaData = []
+      // const hasMetaData = realm.objects(RealmSchema.Metadata)
+      // if (hasMetaData && hasMetaData.length) {
+      //   metaData = [...JSON.parse(JSON.stringify(hasMetaData))]
+      // }
+      setInterventoinId(formFlowData.form_id)
+
       dispatch(updateNewIntervention())
     } else {
       setInterventoinId(route.params.intervention)
@@ -74,14 +71,28 @@ const InterventionPreviewView = () => {
     }
   }, [InterventionData.last_updated_at, interventionId])
 
-  const getAndSetIntervention = () => {
+  const getAndSetIntervention = async () => {
     const selectedIntervention = realm.objectForPrimaryKey(
       RealmSchema.Intervention,
       interventionId,
     )
     const finalData = JSON.parse(JSON.stringify(selectedIntervention))
+    if (route.params.id === 'preview') {
+      setupIncompleteForm(finalData)
+    }
     dispatch(updateInerventionData(finalData))
+    setLoading(false)
   }
+
+
+  const setupIncompleteForm = async (data: InterventionData) => {
+    const getFormDetails = handleIncompleteIntervention(data)
+    if (getFormDetails.screen !== 'InterventionPreview') {
+      dispatch(initiateForm(getFormDetails.formData))
+      navigation.replace(getFormDetails.screen, { ...getFormDetails.params })
+    }
+  }
+
 
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
@@ -91,7 +102,6 @@ const InterventionPreviewView = () => {
       logLevel: 'info',
       statusCode: '000',
     })
-    dispatch(resetSampleTreeform())
     dispatch(updateNewIntervention())
     const { geoJSON } = makeInterventionGeoJson(
       InterventionData.location_type,
@@ -115,7 +125,7 @@ const InterventionPreviewView = () => {
 
 
 
-  if (InterventionData.intervention_id.length === 0) {
+  if (InterventionData.intervention_id.length === 0 || loading) {
     return <View style={styles.activityIndicatorView}>
       <ActivityIndicator
         size="large"
@@ -143,7 +153,7 @@ const InterventionPreviewView = () => {
           project_name={InterventionData.project_name}
           site_name={InterventionData.site_name}
         />
-        <InterventionArea data={InterventionData} />
+        {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         {InterventionData.sample_trees.length > 0 && (
           <SampleTreePreviewList
             sampleTress={InterventionData.sample_trees}

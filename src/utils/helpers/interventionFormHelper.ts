@@ -1,11 +1,12 @@
 import {
   InterventionData,
   RegisterFormSliceInitalState,
-  SampleTreeSlice,
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { Colors } from '../constants'
 import { Metadata } from 'src/types/interface/app.interface'
+import { setUpIntervention } from './formHelper/selectIntervention'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   const { intervention_date, title, project_name, site_name } = data
 
@@ -66,7 +67,9 @@ export const convertFormDataToIntervention = (
       type: 'Point',
       coordinates: data.coordinates[0]
     },
-    entire_site: data.entire_site_selected
+    entire_site: data.entire_site_selected,
+    lastScreen: 'form',
+    planted_species: data.plantedSpecies
   }
   return finalData
 }
@@ -161,32 +164,10 @@ const convertMetaData = (d: Metadata[]) => {
     }
   })
   return JSON.stringify({
-    ...{public:data}
+    ...{ public: data }
   })
 }
 
-
-
-
-export const extractSpecies = (
-  data: SampleTreeSlice,
-) => {
-  const speciesDetails = data.species.filter(el => el.info.guid === data.current_species)
-  return { species_details: speciesDetails[0].info, treeCount: speciesDetails[0].count }
-}
-
-export const extractTreeCount = (
-  sampleTree: SampleTreeSlice | null,
-  current_species: string,
-) => {
-  if (sampleTree) {
-    const matchingItem = sampleTree.species.find(
-      item => item.info.guid === current_species,
-    )
-    return matchingItem.count
-  }
-  return 1
-}
 
 
 
@@ -230,4 +211,96 @@ export const getInterventionColor = (key) => {
     default:
       return Colors.SINGLE_TREE;
   }
+}
+
+export const handleIncompleteIntervention = (data: InterventionData): { screen: keyof RootStackParamList, params: any, formData: RegisterFormSliceInitalState } => {
+  const getRegsiterationFlow = setUpIntervention(data.intervention_key)
+  const formData: RegisterFormSliceInitalState = {
+    form_id: data.intervention_id,
+    key: data.intervention_key,
+    title: data.intervention_title,
+    intervention_date: data.intervention_date,
+    skip_intervention_form: getRegsiterationFlow.skip_intervention_form,
+    user_type: '',
+    project_id: data.project_id,
+    project_name: data.project_name,
+    site_id: data.site_id,
+    site_name: data.site_name,
+    can_be_entire_site: getRegsiterationFlow.can_be_entire_site,
+    entire_site_selected: data.entire_site,
+    should_register_location: getRegsiterationFlow.should_register_location,
+    location_type: getRegsiterationFlow.location_type,
+    location_title: getRegsiterationFlow.location_title,
+    coordinates: data.location.coordinates.length > 0 ? JSON.parse(data.location.coordinates) : [],
+    preview_blank_polygon: false,
+    cover_image_url: '',
+    species_required: getRegsiterationFlow.species_required,
+    is_multi_species: getRegsiterationFlow.is_multi_species,
+    species_count_required: getRegsiterationFlow.species_count_required,
+    species_modal_message: getRegsiterationFlow.species_modal_message,
+    species_modal_unit: getRegsiterationFlow.species_modal_unit,
+    species: data.species,
+    has_sample_trees: getRegsiterationFlow.has_sample_trees,
+    tree_details_required: getRegsiterationFlow.tree_details_required,
+    tree_details: data.sample_trees,
+    form_details: getRegsiterationFlow.form_details,
+    meta_data:  JSON.parse(data.meta_data),
+    additional_data: JSON.parse(data.additional_data),
+    form_data: JSON.parse(data.form_data),
+    plantedSpecies: data.planted_species
+  }
+
+  if (data.lastScreen === 'form') {
+    if (formData.location_type === 'Point') {
+      return { screen: 'PointMarker', params: {}, formData }
+    }
+    if (formData.location_type === 'Polygon') {
+      return { screen: 'PolygonMarker', params: {}, formData }
+    }
+  }
+
+
+  //location select
+  if (data.lastScreen === 'location') {
+    if (formData.species_required) {
+      return { screen: 'ManageSpecies', params: { manageSpecies: false }, formData }
+    }
+  }
+
+  //species select
+  if (data.lastScreen === 'species') {
+    if (formData.tree_details_required && !formData.is_multi_species) {
+      return { screen: 'ReviewTreeDetails', params: {}, formData }
+    }
+    if (formData.tree_details_required && formData.is_multi_species) {
+      return { screen: 'ManageSpecies', params: { manageSpecies: false }, formData }
+    }
+  }
+
+
+  if (data.lastScreen === 'totalTrees') {
+    return { screen: 'ReviewTreeDetails', params: { detailsCompleted: false }, formData }
+  }
+
+
+  //treeDetails select
+  if (data.lastScreen === 'treeDetails') {
+    return { screen: 'LocalForm', params: {}, formData }
+  }
+
+
+  //localForm select
+  if (data.lastScreen === 'localForm') {
+    return { screen: 'DynamicForm', params: {}, formData }
+  }
+
+  //Dynamiform select
+  if (data.lastScreen === 'dynamicForm') {
+    return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' }, formData }
+  }
+
+
+
+  return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' }, formData }
+
 }

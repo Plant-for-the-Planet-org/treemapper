@@ -33,4 +33,5 @@ export const SingleTeePlantation: RegisterFormSliceInitalState = {
   additional_data: '',
   can_be_entire_site: false,
   entire_site_selected: false,
+  plantedSpecies: []
 }

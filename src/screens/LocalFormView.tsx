@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
 import { convertInterventionFormData } from 'src/utils/helpers/interventionFormHelper'
 import { RootState } from 'src/store'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 const width = Dimensions.get('screen').width
 
@@ -36,20 +37,18 @@ const LocalForm = () => {
   const [finalData, setFinalData] = useState<Array<{ page: string, elements: FormElement[] }>>([])
   const realm = useRealm()
   const flatlistRef = useRef<FlatList>(null)
+  const { updateAdditionalDetailsIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   useEffect(() => {
     getDetails()
   }, [])
 
-  const getDetails = () => {
+  const getDetails = async () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
-    if(data.length===0){
-      if (formFlowData.form_details.length > 0) {
-        navigation.replace("DynamicForm")
-      } else {
-        navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
-      }
+    if (data.length === 0) {
+      await updateAdditionalDetailsIntervention(formFlowData.form_id, [])
+      navigation.replace("DynamicForm")
       return
     }
     if (data) {
@@ -62,9 +61,10 @@ const LocalForm = () => {
 
 
 
-  const handleCompletion = (data: FormElement[], id: string) => {
+  const handleCompletion = async (data: FormElement[], id: string) => {
     const filterData = finalData.filter(el => el.page !== id);
     setFinalData([...filterData, { elements: data, page: id }])
+    await updateAdditionalDetailsIntervention(formFlowData.form_id, data)
     if (formPages.length > currentPage + 1) {
       flatlistRef.current.scrollToIndex({ index: currentPage + 1 });
       setCurrentPage(currentPage + 1)
@@ -91,11 +91,7 @@ const LocalForm = () => {
     });
     const convertedData = convertInterventionFormData(allData)
     dispatch(updateAdditionalData(JSON.stringify(convertedData)))
-    if (formFlowData.form_details.length > 0) {
-      navigation.replace("DynamicForm")
-    } else {
-      navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
-    }
+    navigation.replace("DynamicForm")
   }
 
 

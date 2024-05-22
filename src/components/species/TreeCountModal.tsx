@@ -78,7 +78,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
                   inactiveColor={Colors.GRAY_TEXT}
                   placeholderTextColor={Colors.GRAY_TEXT}
                   fontSize={scaleFont(16)}
-                  onChangeText={() => { }}
+                  onChangeText={setTreeCount}
                   keyboardType='number-pad'
                   fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
                 />

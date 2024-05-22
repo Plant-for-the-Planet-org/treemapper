@@ -19,13 +19,13 @@ const InterventionMetaInfo = (props: Props) => {
     case 'assisting-seed-rain':
       return <Text style={styles.label}>8 Trees Planted</Text>
     case 'direct-seeding':
-      return <Text style={styles.label}>{item.species.length} Species</Text>
+      return <Text style={styles.label}>{item.planted_species.length} Species</Text>
     case 'multi-tree-registration':
-      return <Text style={styles.label}>{item.species.length} Species</Text>
+      return <Text style={styles.label}>{item.planted_species.length} Species</Text>
     case 'removal-invasive-species':
-      return <Text style={styles.label}>{item.species.length} Species</Text>
+      return <Text style={styles.label}>{item.planted_species.length} Species</Text>
     case 'enrichement-planting':
-      return <Text style={styles.label}>{item.species.length} Species</Text>
+      return <Text style={styles.label}>{item.planted_species.length} Species</Text>
     case 'stop-tree-harvesting':
       return null
     case 'soil-improvement':

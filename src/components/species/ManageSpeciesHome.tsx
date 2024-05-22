@@ -9,13 +9,14 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateFormSpecies } from 'src/store/slice/registerFormSlice'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
+import { PlantedSpecies, RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
 import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import { getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 const cardSize = scaleSize(60)
 
@@ -40,6 +41,7 @@ const ManageSpeciesHome = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
+  const { updateInterventionPlantedSpecies } = useInterventionManagement()
   const { userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
   const [loading, setLoading] = useState(false)
 
@@ -71,20 +73,28 @@ const ManageSpeciesHome = (props: Props) => {
 
 
 
-  const handleSpeciesPress = (item: IScientificSpecies) => {
+  const handleSpeciesPress = async (item: IScientificSpecies) => {
     if (interventionEdit) {
       showTreeModal(item);
       return;
     }
     if (!isManageSpecies) {
-      dispatch(updateFormSpecies(item.guid))
       if (formData.is_multi_species) {
         showTreeModal(item)
       } else {
+        const updatedSPecies: PlantedSpecies = {
+          guid: item.guid,
+          scientific_name: item.scientific_name,
+          aliases: item.aliases,
+          count: 1,
+          image: item.image
+        }
+        dispatch(updatePlantedSpecies([updatedSPecies]))
+        await updateInterventionPlantedSpecies(formData.form_id, updatedSPecies)
         if (formData.tree_details_required) {
-          navigation.replace('ReviewTreeDetails')
+          navigation.navigate('ReviewTreeDetails')
         } else {
-          navigation.replace('LocalForm')
+          navigation.navigate('LocalForm')
         }
       }
     } else {
@@ -103,8 +113,7 @@ const ManageSpeciesHome = (props: Props) => {
         index={index}
         onPressSpecies={handleSpeciesPress}
         actionName={''}
-        handleRemoveFavourite={handleRemoveFav}
-      />
+        handleRemoveFavourite={handleRemoveFav} isSelectSpecies={false} />
     )
   }
   return (

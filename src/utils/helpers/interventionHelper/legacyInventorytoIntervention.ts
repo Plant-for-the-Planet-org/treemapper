@@ -1,5 +1,5 @@
 import moment from "moment"
-import { InterventionData, SampleTree } from "src/types/interface/slice.interface"
+import { InterventionData, PlantedSpecies, SampleTree } from "src/types/interface/slice.interface"
 import { INTERVENTION_TYPE } from "src/types/type/app.type"
 
 
@@ -64,6 +64,29 @@ const speciesData = (s: any) => {
 }
 
 
+const setPlantedSpecies = (s: any) => {
+    if (s === null || !s) {
+        return []
+    }
+    const finalData: PlantedSpecies[] = [];
+    s.forEach(element => {
+        if (element) {
+            finalData.push({
+                guid: element.scientificSpecies ? element.scientificSpecies : '',
+                scientific_name: element.scientificName ? element.scientificName : 'Undefined',
+                aliases: element.otherSpecies ? element.otherSpecies : 'Undefined',
+                count: element.treeCount ? element.treeCount : 1,
+                image: ""
+            })
+        }
+    });
+
+    return finalData
+}
+
+
+
+
 const singleTreeDetails = (d: any): SampleTree => {
     const details: SampleTree = {
         tree_id: d.id,
@@ -95,18 +118,18 @@ const singleTreeDetails = (d: any): SampleTree => {
 
 const checkAndConvertMetaData = (m: any) => {
     if (m && m !== null) {
-        if(m.public && m.public.length>0){
+        if (m.public && m.public.length > 0) {
             const data = {}
             m.public.forEach(el => {
-              data[el.key] = {
-                value: el.value,
-                label: el.key,
-              }
+                data[el.key] = {
+                    value: el.value,
+                    label: el.key,
+                }
             })
-            
-           return JSON.stringify({
-                ...{public:data}
-              })
+
+            return JSON.stringify({
+                ...{ public: data }
+            })
         }
     }
     return ''
@@ -140,6 +163,8 @@ const getAdditionalData = (d: any) => {
 
 
 export const convertInevtoryToIntervention = (data: any): InterventionData => {
+
+
     const extraData = interventionTitlteSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
@@ -170,7 +195,7 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         is_complete: true,
         site_id: "",
         intervention_type: extraData.key,
-        form_data: "",
+        form_data: "[]",
         additional_data: addtionData,
         meta_data: metaData,
         status: 'SYNCED',
@@ -179,7 +204,9 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
             type: 'Point',
             coordinates: geometryData.geoSpatail
         },
-        entire_site: false
+        entire_site: false,
+        lastScreen: "",
+        planted_species: setPlantedSpecies(data.plantedSpecies || [])
     }
     return finalData
 }

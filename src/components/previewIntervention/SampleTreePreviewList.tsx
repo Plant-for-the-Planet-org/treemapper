@@ -33,7 +33,7 @@ const SampleTreePreviewList = (props: Props) => {
   }
 
   const editTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced:isSynced  })
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced })
   }
 
 
@@ -48,11 +48,11 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <PenIcon width={30} height={30} />
             </TouchableOpacity>
-            {hasSampleTress && !isSynced? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {hasSampleTress && !isSynced ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               deleteTreeDetails(details.tree_id)
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity>: null}
+            </TouchableOpacity> : null}
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     backgroundColor: Colors.WHITE,
-    borderWidth:0.5,
-    borderColor:'#f2ebdd',
+    borderWidth: 0.5,
+    borderColor: '#f2ebdd',
     shadowColor: Colors.GRAY_TEXT,
-    shadowOffset: {width: 2, height: 2},
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation:2,
+    elevation: 2,
     borderRadius: 8,
     paddingVertical: 10,
   },

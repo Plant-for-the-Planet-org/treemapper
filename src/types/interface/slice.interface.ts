@@ -1,5 +1,4 @@
 import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS } from '../type/app.type'
-import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -97,6 +96,7 @@ export interface RegisterFormSliceInitalState {
   meta_data: string
   additional_data: string
   form_data: FormElement[]
+  plantedSpecies: PlantedSpecies[]
 }
 
 export interface SampleTree {
@@ -125,6 +125,15 @@ export interface SampleTree {
   hid: string
 }
 
+export interface PlantedSpecies {
+  id?: string,
+  guid: string,
+  scientific_name: string,
+  aliases: string,
+  count: number,
+  image: string
+}
+
 export interface AdditionalDetail {
   key: string
   value: string
@@ -133,17 +142,13 @@ export interface AdditionalDetail {
 
 export interface SampleTreeSlice {
   form_id: string
-  species: Array<{
-    info: IScientificSpecies
-    count: number
-  }>
   sample_tree_count: number
   move_next_primary: string
   move_next_secondary: string
   boundry: Array<number[]>
   coordinates: Array<number[]>
   image_url: string
-  current_species: string
+  current_species: PlantedSpecies
 }
 
 // export interface UserInterface {
@@ -235,6 +240,8 @@ export interface InterventionData {
   },
   entire_site: boolean
   active?: boolean
+  lastScreen: string,
+  planted_species: PlantedSpecies[]
 }
 
 export interface LogDetails {

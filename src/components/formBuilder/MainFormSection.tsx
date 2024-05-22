@@ -6,7 +6,7 @@ import FormInfoElement from './FormInfoElement'
 import FormSwitchElement from './FormSwitchElement'
 import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from '../common/CustomButton'
-import { useNavigation } from '@react-navigation/native'
+import { CommonActions, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch } from 'react-redux'
@@ -18,21 +18,24 @@ import GapElement from './GapElement'
 import HeadingElement from './HeadingElement'
 import YeNoFormElement from './YeNoFormElement'
 import DropDownFormElement from './DropDownElement'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 interface Props {
   formData: MainForm | IAdditonalDetailsForm
   completeLocalForm?: (d: FormElement[], page: string) => void
   page?: string
+  interventionID: string
 }
 
 const MainFormSection = (props: Props) => {
-  const { formData, completeLocalForm, page } = props
+  const { formData, completeLocalForm, page, interventionID } = props
 
   const [showForm, setShowForm] = useState(false)
   const [formValues, setFormValues] = useState<{ [key: string]: any } | null>(
     null,
   )
   const toast = useToast();
+  const { updateInterventionLastScreen } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   useEffect(() => {
@@ -61,10 +64,10 @@ const MainFormSection = (props: Props) => {
     })
   }
 
-  const submitHandler = () => {
+  const submitHandler = async () => {
     const finalData: FormElement[] = [];
     for (const [key] of Object.entries(formValues)) {
-      if (formValues[key].value.length > 0 && formValues[key].validation.length>0) {
+      if (formValues[key].value.length > 0 && formValues[key].validation.length > 0) {
         const regex = new RegExp(formValues[key].validation);
         if (!regex.test(formValues[key].value)) {
           toast.show(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`, {
@@ -77,7 +80,7 @@ const MainFormSection = (props: Props) => {
         }
       }
 
-      if(formValues[key].required && formValues[key].value.length===0){
+      if (formValues[key].required && formValues[key].value.length === 0) {
         toast.show(`${formValues[key].label} cannot be empty`, {
           type: "normal",
           placement: "bottom",
@@ -86,7 +89,7 @@ const MainFormSection = (props: Props) => {
         })
       }
 
-      if(formValues[key].value.length!==0){
+      if (formValues[key].value.length !== 0) {
         finalData.push({ ...formValues[key] })
       }
 
@@ -95,8 +98,17 @@ const MainFormSection = (props: Props) => {
       completeLocalForm(finalData, page)
       return
     }
+    await updateInterventionLastScreen(interventionID, 'dynamicForm')
     dispatch(updateFormDataValue(finalData))
-    navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1, // index of the active route
+        routes: [
+          { name: 'Home' },
+          { name: 'InterventionPreview', params: { id: 'review', intervention: '' } },
+        ],
+      })
+    )
   }
 
   const renderElement = (formElements: FormElement[]) => {

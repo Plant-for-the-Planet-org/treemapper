@@ -18,6 +18,8 @@ import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
 import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -29,7 +31,7 @@ interface Props {
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const { species_required, has_dynamic_form } = props
+  const { species_required } = props
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
@@ -40,8 +42,11 @@ const PolygonMarkerMap = (props: Props) => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const form_id = useSelector(
+    (state: RootState) => state.formFlowState.form_id,
+  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const { updateInterventionLocation } = useInterventionManagement()
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
@@ -98,33 +103,32 @@ const PolygonMarkerMap = (props: Props) => {
       finalCoordinates.push(coordinates[0])
     }
     setCoordinates([...finalCoordinates, finalCoordinates[0]])
+    const data = makeInterventionGeoJson('Point', finalCoordinates, form_id)
+    await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     dispatch(updateFormCoordinates(finalCoordinates))
     if (species_required) {
-      navigation.replace('ManageSpecies', { manageSpecies: false })
-    } else if (has_dynamic_form) {
-      navigation.replace('LocalForm')
+      navigation.navigate('ManageSpecies', { manageSpecies: false })
     } else {
-      navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
-
+      navigation.navigate('LocalForm')
     }
   }
 
   const handleDrag = async () => {
     setLoading(false)
-      const centerCoordinates = await mapRef.current.getCenter()
-      if (coordinates.length !== 0) {
-        const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates)
-        console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
-        setLineErorr(!checkValidDistance)
-        if(!checkValidDistance){
-          toast.show("Point is too close to other mark", {
-            type: "normal",
-            placement: "bottom",
-            duration: 1000,
-            animationType: "slide-in",
-          })
-        }
+    const centerCoordinates = await mapRef.current.getCenter()
+    if (coordinates.length !== 0) {
+      const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates)
+      console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
+      setLineErorr(!checkValidDistance)
+      if (!checkValidDistance) {
+        toast.show("Point is too close to other mark", {
+          type: "normal",
+          placement: "bottom",
+          duration: 1000,
+          animationType: "slide-in",
+        })
       }
+    }
   }
 
   return (
@@ -140,7 +144,7 @@ const PolygonMarkerMap = (props: Props) => {
         ref={mapRef}
         logoEnabled={false}
         onRegionDidChange={handleDrag}
-        onRegionIsChanging={()=>{
+        onRegionIsChanging={() => {
           setLoading(true)
         }}
         attributionEnabled={false}

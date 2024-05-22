@@ -19,6 +19,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   initiateForm,
+  resetRegisterationForm,
   updateEntireSiteIntervention,
   updateFormProject,
   updateFormProjectSite,
@@ -35,6 +36,9 @@ import InterventionDatePicker from 'src/components/formBuilder/InterventionDateP
 import { AllIntervention } from 'src/utils/constants/knownIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -48,7 +52,7 @@ const InterventionFormView = () => {
   const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
   )
-
+  const { initializeIntervention, updateInterventionLocation } = useInterventionManagement()
   const [loading, setLoading] = useState(true)
   const [projectStateData, setProjectData] = useState<any>([])
   const [projectSies, setProjectSites] = useState<any>([])
@@ -65,6 +69,8 @@ const InterventionFormView = () => {
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
+    dispatch(resetRegisterationForm())
+    dispatch(resetSampleTreeform())
     setUpRegisterFlow()
   }, [])
 
@@ -79,7 +85,7 @@ const InterventionFormView = () => {
     }
   }
 
-  const disptachFormDetails = (
+  const disptachFormDetails = async (
     key: INTERVENTION_TYPE,
     skip: boolean,
     defaultProject: boolean,
@@ -100,6 +106,7 @@ const InterventionFormView = () => {
       InterventionJSON.site_id = InterventionFormData.site_id
     }
     dispatch(initiateForm({ ...InterventionJSON }))
+    await initializeIntervention(InterventionJSON)
     if (skip && InterventionJSON.skip_intervention_form) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker')
@@ -194,7 +201,7 @@ const InterventionFormView = () => {
     setInterventionType(item)
   }
 
-  const pressContinue = () => {
+  const pressContinue = async () => {
     const finalData = { ...InterventionFormData }
     if (InterventionFormData.entire_site_selected) {
       finalData.coordinates = siteCoordinatesSelect()
@@ -205,8 +212,10 @@ const InterventionFormView = () => {
     }
     finalData.meta_data = JSON.stringify(metaData)
     dispatch(initiateForm({ ...finalData }))
-
+    await initializeIntervention(finalData)
     if (finalData.entire_site_selected) {
+      const { coordinates, } = makeInterventionGeoJson(finalData.location_type, siteCoordinatesSelect(), finalData.form_id, '')
+      await updateInterventionLocation(finalData.form_id, { type: 'Polygon', coordinates: coordinates }, true)
       if (finalData.species_required) {
         navigation.replace('ManageSpecies', { manageSpecies: false })
       } else if (finalData.form_details.length > 0) {
@@ -218,7 +227,6 @@ const InterventionFormView = () => {
     }
 
     if (finalData.location_type === 'Point') {
-
       navigation.replace('PointMarker')
     } else {
       navigation.replace('PolygonMarker')

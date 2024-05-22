@@ -11,14 +11,14 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import TreeCountModal from 'src/components/species/TreeCountModal'
-import {
-  addSampleTreeSpecies,
-} from 'src/store/slice/sampleTreeSlice'
+
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateTreesSpecies } from 'src/store/slice/interventionSlice'
+import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
+import { PlantedSpecies } from 'src/types/interface/slice.interface'
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
@@ -32,10 +32,7 @@ const ManageSpeciesView = () => {
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const InterventionState = useSelector((state: RootState) => state.interventionState)
 
-
-  const { species } = useSelector(
-    (state: RootState) => state.sampleTree,
-  )
+  const { updateInterventionPlantedSpecies } = useInterventionManagement()
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -69,22 +66,20 @@ const ManageSpeciesView = () => {
       updateUserFavSpecies(delteSpeciedId, false)
     }, 300)
   }
-  const closeSpeciesModal = (count: string) => {
-    const speciesDetails: IScientificSpecies = {
+  const closeSpeciesModal = async (count: string) => {
+    const speciesDetails: PlantedSpecies = {
       guid: treeModalDetails.guid,
       scientific_name: treeModalDetails.scientific_name,
-      is_user_species: treeModalDetails.is_user_species,
       aliases: treeModalDetails.aliases,
-      image: treeModalDetails.image,
-    }
-    const filteredData = species.filter(
-      el => el.info.guid !== treeModalDetails.guid,
-    )
-    filteredData.push({
-      info: { ...speciesDetails },
       count: Number(count),
-    })
-    dispatch(addSampleTreeSpecies(filteredData))
+      image: treeModalDetails.image
+    }
+
+    const filteredData = formFlowData.plantedSpecies.filter(
+      el => el.guid !== speciesDetails.guid,
+    )
+    dispatch(updatePlantedSpecies([...filteredData, speciesDetails]))
+    await updateInterventionPlantedSpecies(formFlowData.form_id, speciesDetails)
     setTreeModalDetails(null)
     navigation.navigate('TotalTrees', { isSelectSpecies: false })
   }
@@ -98,21 +93,18 @@ const ManageSpeciesView = () => {
     if (formFlowData.species_count_required) {
       setTreeModalDetails(finalData)
     } else {
-      const speciesDetails: IScientificSpecies = {
+      const speciesDetails: PlantedSpecies = {
         guid: finalData.guid,
         scientific_name: finalData.scientific_name,
-        is_user_species: finalData.is_user_species,
         aliases: finalData.aliases,
-        image: finalData.image,
+        count: 1,
+        image: finalData.image
       }
-      const filteredData = species.filter(
-        el => el.info.guid !== finalData.guid,
+      const filteredData = formFlowData.plantedSpecies.filter(
+        el => el.guid !== finalData.guid,
       )
-      filteredData.push({
-        info: { ...speciesDetails },
-        count: 0,
-      })
-      dispatch(addSampleTreeSpecies(filteredData))
+
+      dispatch(updatePlantedSpecies([...filteredData, speciesDetails]))
       navigation.navigate('TotalTrees', { isSelectSpecies: false })
     }
   }

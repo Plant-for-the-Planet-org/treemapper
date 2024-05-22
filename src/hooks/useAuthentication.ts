@@ -43,7 +43,6 @@ const useAuthentication = () => {
         scope: 'openid email profile offline_access',
         audience: 'urn:plant-for-the-planet',
       })
-      console.log("authCreds", authCreds)
       if (!authCreds) {
         throw 'No token found'
       }

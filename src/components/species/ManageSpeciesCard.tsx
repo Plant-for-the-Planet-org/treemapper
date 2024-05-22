@@ -1,21 +1,23 @@
 import React from 'react'
 import i18next from 'src/locales/index'
-import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native'
-import {Typography, Colors} from 'src/utils/constants'
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
+import { Typography, Colors } from 'src/utils/constants'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
-import {SCALE_30} from 'src/utils/constants/spacing'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { SCALE_30 } from 'src/utils/constants/spacing'
+import { scaleSize } from 'src/utils/constants/mixins'
+import { PlantedSpecies } from 'src/types/interface/slice.interface'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface SpecieCardProps {
-  item: IScientificSpecies
+  item: PlantedSpecies | IScientificSpecies
   index: number
-  onPressSpecies: (item: IScientificSpecies) => void
+  onPressSpecies: (item: PlantedSpecies | IScientificSpecies) => void
   isSampleTreeSpecies?: boolean
   actionName: string
   handleRemoveFavourite?: any
+  isSelectSpecies: boolean
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -23,7 +25,8 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   index,
   onPressSpecies,
   handleRemoveFavourite,
-  actionName
+  actionName,
+  isSelectSpecies
 }) => {
   const handlePress = () => {
     onPressSpecies(item)
@@ -82,13 +85,13 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
+          {!isSelectSpecies && <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (
               <RemoveSpeciesIcon />
             )}
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </TouchableOpacity>
       </View>
     </View>

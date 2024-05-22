@@ -8,16 +8,13 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { updateBoundry, updateSingleTreeDetails } from 'src/store/slice/sampleTreeSlice'
 import { SampleTree, SampleTreeSlice } from 'src/types/interface/slice.interface'
-import { useRealm } from '@realm/react'
-import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import Header from 'src/components/common/Header'
 import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import { Typography, Colors } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import CustomButton from 'src/components/common/CustomButton'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
@@ -36,11 +33,8 @@ type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
 
 const ReviewTreeDetails = () => {
     const FormData = useSelector((state: RootState) => state.formFlowState)
-    const SampleTreeSliceData = useSelector((state: RootState) => state.sampleTree)
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
-    const totalSampleTress = SampleTreeSliceData.sample_tree_count
     const currentTreeIndex = FormData.tree_details.length
-    const allSampleTreeRegisterd = currentTreeIndex !== totalSampleTress
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [showDatePicker, setDatePicker] = useState(false)
     const { updateSampleTreeDetails } = useInterventionManagement()
@@ -54,13 +48,12 @@ const ReviewTreeDetails = () => {
 
     const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
-    const realm = useRealm()
 
     useEffect(() => {
         if (!editTree) {
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
-                    navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+                    navigation.replace('LocalForm')
                 } else if (FormData.form_details.length > 0) {
                     navigation.replace('LocalForm')
                 } else {
@@ -88,33 +81,32 @@ const ReviewTreeDetails = () => {
 
 
     const nextTreeButton = () => {
-        if (allSampleTreeRegisterd) {
-            navigation.navigate('PointMarker')
-        } else {
-            navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
-        }
+        navigation.navigate('LocalForm')
     }
+
+
+    const addAnotherTree = () => {
+        navigation.navigate('PointMarker')
+    }
+
+
+
+
+
 
 
     const setupTreeDetailsFlow = () => {
         if (!FormData.has_sample_trees) {
-            const speciesDetails = realm.objectForPrimaryKey<IScientificSpecies>(
-                RealmSchema.ScientificSpecies,
-                FormData.species[0],
-            )
+            const speciesDetails = FormData.plantedSpecies[0]
             const treeDetailsFlow: SampleTreeSlice = {
                 form_id: FormData.form_id,
-                species: [{
-                    info: { ...JSON.parse(JSON.stringify(speciesDetails)) },
-                    count: 1
-                }],
                 sample_tree_count: 1,
                 move_next_primary: '',
                 move_next_secondary: '',
                 boundry: [FormData.coordinates[0]],
                 coordinates: [FormData.coordinates[0]],
                 image_url: '',
-                current_species: FormData.species[0],
+                current_species: speciesDetails,
             }
             dispatch(updateSingleTreeDetails(treeDetailsFlow))
             const newID = String(new Date().getTime())
@@ -186,7 +178,7 @@ const ReviewTreeDetails = () => {
     if (!treeDetails) {
         return null
     }
-    const headerLabel = editTree ? "Tree Details" : `Review of Tree ${currentTreeIndex} of ${totalSampleTress}`
+    const headerLabel = editTree ? "Tree Details" : `Review Tree Details`
     const showEdit = editTree || treeDetails.tree_id
     return (
         <SafeAreaView style={styles.container}>
@@ -287,13 +279,22 @@ const ReviewTreeDetails = () => {
                 </View>
                 <ExportGeoJSONButton details={treeDetails} type='treedetails' />
                 <View style={styles.footer} />
-
             </ScrollView >
-            {!editTree && <CustomButton
-                label={!allSampleTreeRegisterd ? "Continue" : "Next Tree"}
-                containerStyle={styles.btnContainer}
-                pressHandler={nextTreeButton}
-            />}
+            {!editTree && <View style={styles.btnContainer}>
+                <CustomButton
+                    label="Add Sample Tree"
+                    containerStyle={styles.btnWrapper}
+                    pressHandler={addAnotherTree}
+                    wrapperStyle={styles.borderWrapper}
+                    labelStyle={styles.highlightLabel}
+                />
+                <CustomButton
+                    label="Continue"
+                    containerStyle={styles.btnWrapper}
+                    pressHandler={nextTreeButton}
+                    wrapperStyle={styles.noBorderWrapper}
+                />
+            </View>}
             <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={closeModal} isOpenModal={openEditModal.open} setIsOpenModal={closeModal} inputType={openEditModal.type} />
         </SafeAreaView >
     )
@@ -348,12 +349,6 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
         marginLeft: 10,
     },
-    btnContainer: {
-        width: '100%',
-        height: scaleSize(70),
-        position: 'absolute',
-        bottom: 20,
-    },
     iconwrapper: {
         marginLeft: 10
     },
@@ -364,5 +359,63 @@ const styles = StyleSheet.create({
     editIconWrapper: {
         marginLeft: 10,
         marginTop: 10
-    }
+    },
+    btnContainer: {
+        width: '100%',
+        height: scaleSize(70),
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 20,
+    },
+    btnWrapper: {
+        flex: 1,
+        width: '90%',
+    },
+    borderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.WHITE,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.PRIMARY_DARK,
+    },
+    noBorderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 12,
+    },
+    opaqueWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '70%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 10,
+    },
+    highlightLabel: {
+        fontSize: scaleFont(16),
+        fontWeight: '400',
+        color: Colors.PRIMARY_DARK,
+    },
+    normalLable: {
+        fontSize: scaleFont(14),
+        fontWeight: '400',
+        color: Colors.WHITE,
+        textAlign: 'center',
+    },
 })

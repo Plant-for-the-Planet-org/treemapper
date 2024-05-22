@@ -24,6 +24,7 @@ import {
   validateMarkerForSampleTree,
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -33,13 +34,14 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { species_required, is_multi_species, has_sample_trees, tree_details, key } = props.formData
+  const { species_required, is_multi_species, has_sample_trees, tree_details, key, form_id } = props.formData
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
   const [outOfBoundry, setOutOfBoundry] = useState(false)
+  const { updateInterventionLocation } = useInterventionManagement()
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -85,7 +87,6 @@ const PointMarkerMap = (props: Props) => {
     const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: key })
     setGeoJSON(data.geoJSON)
   }
-
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
@@ -99,16 +100,18 @@ const PointMarkerMap = (props: Props) => {
     if (has_sample_trees) {
       dispatch(updateSampleTreeCoordinates([centerCoordinates]))
     } else {
+      const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
+      await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
       dispatch(updateFormCoordinates([centerCoordinates]))
     }
     if (species_required) {
       if (is_multi_species) {
-        navigation.replace('TotalTrees', { isSelectSpecies: true })
+        navigation.navigate('TotalTrees', { isSelectSpecies: true })
       } else {
-        navigation.replace('ManageSpecies', { manageSpecies: false })
+        navigation.navigate('ManageSpecies', { manageSpecies: false })
       }
     } else {
-      navigation.replace('LocalForm')
+      navigation.navigate('LocalForm')
     }
   }
 

@@ -21,6 +21,7 @@ export const Intervention: ObjectSchema = {
     has_sample_trees: { type: 'bool', default: false },
     sample_trees: `${RealmSchema.SampleTree}[]`,
     is_complete: { type: 'bool', default: false },
+    planted_species: `${RealmSchema.InterventionPlantedSpecies}[]`,
     intervention_type: { type: 'string', default: 'UNKNOWN' },
     form_data: { type: 'string', default: '' },
     additional_data: { type: 'string', default: '' },
@@ -29,5 +30,6 @@ export const Intervention: ObjectSchema = {
     hid: { type: 'string', default: '' },
     coords: `${RealmSchema.GeoSpatial}`,
     entire_site: { type: 'bool', default: false },
+    lastScreen: { type: 'string', default: 'form' },
   },
 }

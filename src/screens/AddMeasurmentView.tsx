@@ -12,9 +12,6 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SampleTree } from 'src/types/interface/slice.interface'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  extractSpecies,
-} from 'src/utils/helpers/interventionFormHelper'
 import { updateTree_details } from 'src/store/slice/registerFormSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
@@ -23,6 +20,7 @@ import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { diameterValidation } from 'src/utils/constants/measurmentValidation'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 
 const AddMeasurment = () => {
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
@@ -31,14 +29,14 @@ const AddMeasurment = () => {
   const [width, setWidth] = useState('')
   const [tagEnable, setTagEnabled] = useState(false)
   const [tagId, setTagId] = useState('')
+  const { addSampleTrees } = useInterventionManagement()
 
   const dispatch = useDispatch()
   const [heightErrorMessage, setHeightErrorMessgae] = useState('')
   const [widthErrorMessage, setWidthErrorMessage] = useState('')
   const [tagIdErrorMessage, settagIdErrorMessage] = useState('')
   const formFlowData = useSelector((state: RootState) => state.formFlowState)
-
-  const { species_details, treeCount } = extractSpecies(SampleTreeData)
+  const id = uuidv4()
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -54,31 +52,31 @@ const AddMeasurment = () => {
       settagIdErrorMessage('Tag Id can not be empty')
       return
     }
-    const diameterError = diameterValidation(width,false)
-    if(diameterError){
+    const diameterError = diameterValidation(width, false)
+    if (diameterError) {
       setOptimalAlert(true)
-    }else{
+    } else {
       submitDetails();
     }
   }
 
 
-  const handleOptimalalert=(p:boolean)=>{
-    if(p){
+  const handleOptimalalert = (p: boolean) => {
+    if (p) {
       setOptimalAlert(false)
-    }else{
+    } else {
       submitDetails();
     }
   }
 
 
   const submitDetails = async () => {
-    const {lat,long, accuracy} = await getUserLocation()
+    const { lat, long, accuracy } = await getUserLocation()
     const treeDetails: SampleTree = {
-      tree_id: uuidv4(),
-      species_guid: species_details.guid,
+      tree_id: id,
+      species_guid: SampleTreeData.current_species.guid,
       intervention_id: formFlowData.form_id,
-      count: treeCount,
+      count: SampleTreeData.current_species.count,
       latitude: SampleTreeData.coordinates[0][1],
       longitude: SampleTreeData.coordinates[0][0],
       device_latitude: lat ? lat : 0,
@@ -86,7 +84,7 @@ const AddMeasurment = () => {
       location_accuracy: String(accuracy),
       image_url: SampleTreeData.image_url,
       cdn_image_url: '',
-      specie_name: species_details.scientific_name,
+      specie_name: SampleTreeData.current_species.scientific_name,
       specie_diameter: Number(width),
       specie_height: Number(height),
       tag_id: tagId,
@@ -97,10 +95,12 @@ const AddMeasurment = () => {
       additional_details: '',
       app_meta_data: '',
       hid: '',
-      local_name: species_details.aliases || species_details.scientific_name
+      local_name: SampleTreeData.current_species.aliases,
     }
-    dispatch(updateTree_details(treeDetails))
-    navigation.replace('ReviewTreeDetails', { detailsCompleted: true })
+    const filterdData = formFlowData.tree_details.filter(el => el.tree_id !== treeDetails.tree_id)
+    dispatch(updateTree_details([...filterdData, treeDetails]))
+    await addSampleTrees(formFlowData.form_id, treeDetails)
+    navigation.navigate('ReviewTreeDetails', { detailsCompleted: true })
   }
 
   return (
@@ -135,15 +135,15 @@ const AddMeasurment = () => {
         />
       </View>
       <AlertModal
-          showSecondaryButton
-          visible={showOptimalAlert}
-          onPressPrimaryBtn={handleOptimalalert}
-          onPressSecondaryBtn={handleOptimalalert}
-          heading={i18next.t('label.not_optimal_ratio')}
-          secondaryBtnText={i18next.t('label.continue')}
-          primaryBtnText={i18next.t('label.check_again')}
-          message={i18next.t('label.not_optimal_ratio_message')}
-        />
+        showSecondaryButton
+        visible={showOptimalAlert}
+        onPressPrimaryBtn={handleOptimalalert}
+        onPressSecondaryBtn={handleOptimalalert}
+        heading={i18next.t('label.not_optimal_ratio')}
+        secondaryBtnText={i18next.t('label.continue')}
+        primaryBtnText={i18next.t('label.check_again')}
+        message={i18next.t('label.not_optimal_ratio_message')}
+      />
     </SafeAreaView>
   )
 }

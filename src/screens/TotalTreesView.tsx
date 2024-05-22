@@ -12,71 +12,80 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import {
-  removeSpeciesFromFlow,
   updateCurrentSpecies,
 } from 'src/store/slice/sampleTreeSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { PlantedSpecies } from 'src/types/interface/slice.interface'
+import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 const TotalTreesView = () => {
-  const sampleTreeData = useSelector((state: RootState) => state.sampleTree)
-  const has_sample_trees = useSelector((state: RootState) => state.formFlowState.has_sample_trees)
+  const { has_sample_trees, plantedSpecies, form_id } = useSelector((state: RootState) => state.formFlowState)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
   const dispatch = useDispatch()
+  const { updateInterventionLastScreen } = useInterventionManagement()
+  const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
   const goBack = () => {
     navigation.goBack()
   }
 
-  const navigationToNext = () => {
-      navigation.replace('ReviewTreeDetails', { detailsCompleted: !has_sample_trees })
+  const navigationToNext = async () => {
+    await updateInterventionLastScreen(form_id, 'totalTrees')
+    navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees })
   }
 
-  const cardpress = (item: IScientificSpecies) => {
-    if (route.params.isSelectSpecies) {
-      dispatch(updateCurrentSpecies(item.guid))
+
+
+  const cardpress = (item: PlantedSpecies) => {
+    if (isSelectSpecies) {
+      dispatch(updateCurrentSpecies(item))
       const newID = String(new Date().getTime())
-      navigation.replace('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
+      navigation.navigate('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
       return
     }
   }
 
-  const removeHandler = (item: IScientificSpecies) => {
-    const filterdData = sampleTreeData.species.filter(
-      el => el.info.guid !== item.guid,
+  const removeHandler = (item: PlantedSpecies) => {
+    const filterdData = plantedSpecies.filter(
+      el => el.guid !== item.guid,
     )
-    dispatch(removeSpeciesFromFlow(filterdData))
+    dispatch(updatePlantedSpecies(filterdData))
   }
 
   const renderSpecieCard = (
-    item: { info: IScientificSpecies; count: number } | any,
+    item: IScientificSpecies | any,
     index: number,
   ) => {
     return (
       <SpecieCard
-        item={item.info}
+        item={item}
         index={index}
         onPressSpecies={cardpress}
         actionName={'remove'}
         handleRemoveFavourite={removeHandler}
+        isSelectSpecies={isSelectSpecies}
       />
     )
   }
+
 
   return (
     <SafeAreaView style={styles.container}>
       <Header label="Total Trees" />
       <View style={styles.wrapper}>
         <FlatList
-          data={sampleTreeData.species}
+          data={plantedSpecies}
           renderItem={({ item, index }) => renderSpecieCard(item, index)}
           ListHeaderComponent={() => (
             <Text style={styles.textLable}>
               List all trees planted at the site
             </Text>
           )}
+          keyExtractor={({ guid }) => guid}
           ListFooterComponent={() => <View style={styles.footerWrapper} />}
         />
-        {!route.params.isSelectSpecies && (
+        {!isSelectSpecies && (
           <View style={styles.btnContainer}>
             <CustomButton
               label="Add Species"
@@ -89,7 +98,7 @@ const TotalTreesView = () => {
               label="Continue"
               containerStyle={styles.btnWrapper}
               pressHandler={navigationToNext}
-              disable={sampleTreeData.species.length===0}
+              disable={plantedSpecies.length === 0}
             />
           </View>
         )}

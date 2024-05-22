@@ -14,17 +14,11 @@ const InterventionCardHeader = (props: Props) => {
   const { item } = props
 
   const totalTressCount = () => {
-    const data = {
-    }
-    item.sample_trees.forEach(element => {
-      data[element.species_guid] = element.count
-    })
     let finalCount = 0;
-    for (const key in data) {
-      finalCount += data[key]
-    }
+    item.planted_species.forEach(el => {
+      finalCount += el.count
+    })
     return finalCount
-
   }
 
   switch (item.intervention_type) {
@@ -58,8 +52,8 @@ const InterventionCardHeader = (props: Props) => {
       return <Text style={styles.label}>Stop Harvesting</Text>
     case 'maintenance':
       return <Text style={styles.label}>Maintenance</Text>
-      case 'other-intervention':
-        return <Text style={styles.label}>Other Intervention</Text>
+    case 'other-intervention':
+      return <Text style={styles.label}>Other Intervention</Text>
     case 'soil-improvement':
       return (
         <Text style={styles.label}>Soil improvement</Text>

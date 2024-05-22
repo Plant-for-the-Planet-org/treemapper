@@ -14,7 +14,7 @@ import {ProjectSite} from './projectSites'
 import {Projects} from './projects'
 import {SampleTree} from './sampleTree'
 import {ScientificSpecies} from './scientificSpecies'
-import {InterventionSpecies} from './interventionSpecies'
+import {InterventionPlantedSpecies} from './InterventionPlantedSpecies'
 import {User} from './user'
 import {Intervention} from './intervention' 
 import {YesNo} from './yesOrNo'
@@ -39,7 +39,7 @@ export default [
   ProjectSite,
   SampleTree,
   ScientificSpecies,
-  InterventionSpecies,
+  InterventionPlantedSpecies,
   User,
   YesNo,
   Intervention,

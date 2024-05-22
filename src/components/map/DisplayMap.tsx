@@ -54,7 +54,7 @@ const DisplayMap = () => {
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
     data => {
-      return data
+      return data.filtered('is_complete==true')
     },
   )
 

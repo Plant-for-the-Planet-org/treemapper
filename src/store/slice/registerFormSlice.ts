@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { FormElement } from 'src/types/interface/form.interface'
 import {
+  PlantedSpecies,
   RegisterFormSliceInitalState,
   SampleTree,
 } from 'src/types/interface/slice.interface'
@@ -36,7 +37,8 @@ export const initialState: RegisterFormSliceInitalState = {
   additional_data: '',
   can_be_entire_site: false,
   entire_site_selected: false,
-  should_register_location: true
+  should_register_location: true,
+  plantedSpecies: []
 }
 
 const registerFormSlice = createSlice({
@@ -55,8 +57,8 @@ const registerFormSlice = createSlice({
     updateFormSpecies(state, action: PayloadAction<string>) {
       state.species = [...state.species, action.payload]
     },
-    updateTree_details(state, action: PayloadAction<SampleTree>) {
-      state.tree_details = [...state.tree_details, action.payload]
+    updateTree_details(state, action: PayloadAction<SampleTree[]>) {
+      state.tree_details = action.payload
     },
     updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
       state.form_data = action.payload
@@ -85,20 +87,23 @@ const registerFormSlice = createSlice({
       state.entire_site_selected = action.payload
     },
     updateSampleTreeImage(state, action: PayloadAction<{ id: string, image: string }>) {
-      const updateTrees =  [...state.tree_details];
-      const index =  updateTrees.findIndex(el=>el.tree_id === action.payload.id);
+      const updateTrees = [...state.tree_details];
+      const index = updateTrees.findIndex(el => el.tree_id === action.payload.id);
       updateTrees[index].image_url = action.payload.image
       state.tree_details = [...updateTrees]
     },
     updateSampleTreeReviewTree(state, action: PayloadAction<SampleTree>) {
-      const updateTrees =  [...state.tree_details];
-      const index =  updateTrees.findIndex(el=>el.tree_id === action.payload.tree_id);
+      const updateTrees = [...state.tree_details];
+      const index = updateTrees.findIndex(el => el.tree_id === action.payload.tree_id);
       updateTrees[index] = action.payload
       state.tree_details = [...updateTrees]
     },
-    
-    resetRegisterationForm(){
-      return {...initialState}
+
+    updatePlantedSpecies(state, action: PayloadAction<PlantedSpecies[]>) {
+      state.plantedSpecies = action.payload
+    },
+    resetRegisterationForm() {
+      return { ...initialState }
     }
   },
 })
@@ -117,7 +122,8 @@ export const {
   updateSampleTreeImage,
   resetRegisterationForm,
   updateSampleTreeReviewTree,
-  updateAdditionalData
+  updateAdditionalData,
+  updatePlantedSpecies
 } = registerFormSlice.actions
 
 export default registerFormSlice.reducer
