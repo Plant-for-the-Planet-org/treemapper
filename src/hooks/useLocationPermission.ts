@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { updaeBlockerModal, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 
 const useLocationPermission = () => {
-  const [status, requestPermission] = Location.useForegroundPermissions();
+  const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
   const [permissionStatus, setPermissionStatus] = useState('undetermined')
   const dispatch = useDispatch()
 
@@ -24,7 +24,7 @@ const useLocationPermission = () => {
 
   const userCurrentLocation = async () => {
     if(permissionStatus!=='granted'){
-      requestPermission();
+      requestForegroundPermissionsAsync();
       return;
     }
     const Data= await Location.getCurrentPositionAsync()
@@ -35,7 +35,7 @@ const useLocationPermission = () => {
   }
 
   const requestLocationPermission = async () => {
-    await requestPermission()
+    await requestForegroundPermissionsAsync()
   }
 
 

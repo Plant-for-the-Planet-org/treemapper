@@ -326,9 +326,9 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     title: {
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontFamily: Typography.FONT_FAMILY_BOLD,
         fontSize: scaleSize(14),
-        color: Colors.TEXT_LIGHT,
+        color: Colors.TEXT_COLOR,
     },
     header: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
@@ -341,16 +341,14 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: scaleSize(16),
         color: Colors.TEXT_COLOR,
-        marginLeft: 10,
     },
     speciesName: {
         fontFamily: Typography.FONT_FAMILY_ITALIC,
         fontSize: scaleSize(16),
         color: Colors.TEXT_COLOR,
-        marginLeft: 10,
     },
     iconwrapper: {
-        marginLeft: 10
+        marginRight:10
     },
     footer: {
         width: '100%',

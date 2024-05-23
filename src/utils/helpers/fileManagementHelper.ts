@@ -2,7 +2,6 @@ import RNFS from 'react-native-fs';
 import { InterventionData } from 'src/types/interface/slice.interface';
 import { zip } from 'react-native-zip-archive';
 import Share from 'react-native-share';
-import { Alert } from 'react-native';
 
 const mainFolder = "TreeMapper"
 export const basePath = `${RNFS.DocumentDirectoryPath}/${mainFolder}`
@@ -97,7 +96,6 @@ const zipAndShareFolder = async () => {
         // Clean up the zip file if needed
         // await RNFS.unlink(zipFilePath);
     } catch (error) {
-        console.error('Error zipping and sharing folder:', error);
-        Alert.alert('Error', 'There was an error zipping and sharing the folder.');
+        console.log('Error zipping and sharing folder:', error);
     }
 };

@@ -1,57 +1,68 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Colors, Typography } from 'src/utils/constants'
-import * as Location from 'expo-location'
-import { Text } from 'react-native'
-import GPSICON from 'assets/images/svg/GPSIcon.svg'
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Colors, Typography } from 'src/utils/constants';
+import * as Location from 'expo-location';
+import { Text } from 'react-native';
+import GPSICON from 'assets/images/svg/GPSIcon.svg';
 
 interface Props {
-  showModalInfo: (b: boolean) => void
+  showModalInfo: (b: boolean) => void;
 }
 
 const GpsAccuracyTile = (props: Props) => {
   const { showModalInfo } = props;
-  const [accuracy, setAccuracy] = useState(0)
+  const [accuracy, setAccuracy] = useState(0);
+
   const showModal = () => {
-    showModalInfo(true)
-  }
+    showModalInfo(true);
+  };
+
   useEffect(() => {
-    (async () => {
-      const watcher = await Location.watchPositionAsync(
+    let watcher;
+
+    const requestPermissionsAndWatchPosition = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+
+      watcher = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.Highest,
-          timeInterval: 1000,
-          distanceInterval: 0, // Minimum distance between updates in meters
         },
         callBackForlocation
-      )
+      );
+    };
 
-      return () => {
-        watcher.remove() // Clean up the watcher when component unmounts
+    requestPermissionsAndWatchPosition();
+
+    return () => {
+      if (watcher) {
+        watcher.remove(); // Clean up the watcher when component unmounts
       }
-    })()
-  }, [])
+    };
+  }, []);
 
   const callBackForlocation = (location: Location.LocationObject) => {
     if (location && location.coords && location.coords.accuracy) {
-      setAccuracy(location.coords.accuracy)
+      setAccuracy(location.coords.accuracy);
     }
-  }
+  };
 
   const activeStyle = {
     bgColor:
       accuracy < 10
         ? Colors.NEW_PRIMARY + '1A'
         : accuracy < 30
-          ? Colors.LIGHT_AMBER + '1A'
-          : Colors.LIGHT_RED + '1A',
+        ? Colors.LIGHT_AMBER + '1A'
+        : Colors.LIGHT_RED + '1A',
     iconColor:
       accuracy < 10
         ? Colors.NEW_PRIMARY
         : accuracy < 30
-          ? Colors.LIGHT_AMBER
-          : Colors.LIGHT_RED,
-  }
+        ? Colors.LIGHT_AMBER
+        : Colors.LIGHT_RED,
+  };
 
   return (
     <View style={styles.container}>
@@ -62,10 +73,10 @@ const GpsAccuracyTile = (props: Props) => {
         </Text>
       </TouchableOpacity>
     </View>
-  )
-}
+  );
+};
 
-export default GpsAccuracyTile
+export default GpsAccuracyTile;
 
 const styles = StyleSheet.create({
   container: {
@@ -90,6 +101,5 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
-  iconWrapper: {
-  },
-})
+  iconWrapper: {},
+});
