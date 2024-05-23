@@ -8,11 +8,11 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { Typography } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import { useDispatch } from 'react-redux'
 import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
 import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
-
+import EmptyIntervention from 'assets/images/svg/EmptyIntervention.svg'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
@@ -35,8 +35,9 @@ const InterventionList = (props: Props) => {
   const emptyInterventoin = () => {
     return (
       <View style={styles.emptyBox}>
-        <Text style={styles.emptyLable}>Start adding intervention</Text>
-        <Text style={styles.emptyLable}>Some placeholder to show when there is no intervention</Text>
+        <EmptyIntervention />
+        <Text style={styles.emptyHeaderLable}>No Interventions to Show Yet</Text>
+        <Text style={styles.emptyLable}>Start mapping your tree interventions to {'\n'} keep track of your progress.</Text>
       </View>
     )
   }
@@ -81,13 +82,22 @@ const styles = StyleSheet.create({
   emptyBox: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    width:'100%',
+    marginTop:80
   },
-  emptyLable: {
+  emptyHeaderLable: {
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     textAlign: 'center',
     marginHorizontal: 50,
-    marginVertical: 20
+    marginVertical: 20,
+    color: Colors.DARK_TEXT_COLOR
+  },
+  emptyLable: {
+    fontSize: 14,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    textAlign: 'center',
+    color: Colors.TEXT_COLOR
   }
 })
