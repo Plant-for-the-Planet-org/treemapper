@@ -3,6 +3,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { InterventionData, PlantedSpecies, RegisterFormSliceInitalState, SampleTree } from 'src/types/interface/slice.interface'
+import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -159,6 +160,7 @@ const useInterventionManagement = () => {
   const initializeIntervention = async (
     interventoin: RegisterFormSliceInitalState,
   ): Promise<boolean> => {
+    await createNewInterventionFolder(interventoin.form_id)
     const data: InterventionData = {
       intervention_id: interventoin.form_id,
       intervention_key: interventoin.key,

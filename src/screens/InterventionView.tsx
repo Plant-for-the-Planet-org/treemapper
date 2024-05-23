@@ -1,7 +1,5 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import Header from 'src/components/common/Header'
-import FreeUpSaceButton from 'src/components/intervention/FreeUpSaceButton'
 import InterventionList from 'src/components/intervention/InterventionList'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -10,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import InterventionHeader from 'src/components/intervention/InterventionHeader'
 
 const InterventionView = () => {
   const [selectedLabel, setSlectedLabel] = useState('all')
@@ -22,8 +21,8 @@ const InterventionView = () => {
 
 
   useEffect(() => {
-      getReleatedIntervention()    
-  }, [currentPage,selectedLabel])
+    getReleatedIntervention()
+  }, [currentPage, selectedLabel])
 
   const getReleatedIntervention = () => {
     const query = selectedLabel === 'incomplete' ? 'is_complete==false' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
@@ -38,7 +37,7 @@ const InterventionView = () => {
   }
 
   useEffect(() => {
-    if(!loading){
+    if (!loading) {
       refreshHandler()
     }
   }, [intervention_updated])
@@ -64,11 +63,7 @@ const InterventionView = () => {
 
   return (
     <SafeAreaView style={styles.cotnainer}>
-      <Header
-        label=""
-        showBackIcon={false}
-        rightComponet={allIntervention.length ? <FreeUpSaceButton /> : null}
-      />
+      <InterventionHeader />
       <View style={styles.section}>
         <InterventionList interventionData={allIntervention} setSlectedLabel={handleLable} selectedLabel={selectedLabel} handlePageIncrement={handlePageIncrement} refreshHandler={refreshHandler} loading={loading} />
       </View>

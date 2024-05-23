@@ -8,11 +8,12 @@ import { Colors } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
 import { AFTER_CAPTURE } from 'src/types/type/app.type'
 import { copyImageAndGetData } from 'src/utils/helpers/fileSystemHelper'
 import { updateSampleImageUrl } from 'src/store/slice/sampleTreeSlice'
+import { RootState } from 'src/store'
 
 interface Props {
   imageData: CameraCapturedPicture
@@ -23,12 +24,12 @@ interface Props {
 
 const ImagePreview = (props: Props) => {
   const { imageData, id, screen, retakePicture } = props
-
+  const interventionID = useSelector((state: RootState) => state.formFlowState.form_id)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
   const navigateToNext = async () => {
-    const finalURL = await copyImageAndGetData(imageData.uri)
+    const finalURL = await copyImageAndGetData(imageData.uri, interventionID)
     dispatch(
       updateImageDetails({
         id: id,
@@ -45,7 +46,6 @@ const ImagePreview = (props: Props) => {
       navigation.navigate('AddMeasurment')
       return
     }
-
   }
 
   return (

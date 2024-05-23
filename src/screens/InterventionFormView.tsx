@@ -41,6 +41,7 @@ import { makeInterventionGeoJson, metaDataTranformer } from 'src/utils/helpers/i
 import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
+import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -76,7 +77,8 @@ const InterventionFormView = () => {
     setUpRegisterFlow()
   }, [])
 
-  const setUpRegisterFlow = () => {
+  const setUpRegisterFlow = async () => {
+    await createBasePath()
     if (paramId) {
       disptachFormDetails(paramId, true, true)
     } else {
