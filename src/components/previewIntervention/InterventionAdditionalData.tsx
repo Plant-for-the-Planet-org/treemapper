@@ -1,18 +1,24 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { FormElement } from 'src/types/interface/form.interface'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
 
 interface Props {
   data: FormElement[]
+  id: string
 }
 
 const InterventionAdditionalData = (props: Props) => {
 
   const [additiionalData, setAdditiionalData] = useState<FormElement[]>([])
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const { data } = props
+  const { data, id } = props
 
   useEffect(() => {
     if (data.length > 0) {
@@ -63,9 +69,16 @@ const InterventionAdditionalData = (props: Props) => {
     return finalData
   }
 
+  const editData = () => {
+    navigation.navigate('EditAdditionData',{'interventionID':id})
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
+        <TouchableOpacity onPress={editData} style={styles.editWrapper}>
+          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR}  onPress={editData}/>
+        </TouchableOpacity>
         <Text style={styles.title}>Additional Data</Text>
         {renderData()}
       </View>
@@ -129,5 +142,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleSize(20),
     color: Colors.TEXT_COLOR,
+  },
+  editWrapper: {
+    position: 'absolute',
+    right: 0,
+    top: 10,
+    width: 50,
+    height: 50
   }
 })

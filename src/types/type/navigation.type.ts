@@ -34,6 +34,7 @@ export type RootStackParamList = {
   SelectElement: SelectElementView
   LocalForm: undefined
   ImportForm: undefined
+  EditAdditionData: EditAdditionDataView
 }
 
 type SpeciesInfoView = {
@@ -95,4 +96,8 @@ type AdditionDataElementView = {
 type SelectElementView = {
   form_id: string
   element_order: number
+}
+
+type EditAdditionDataView = {
+  interventionID: string
 }

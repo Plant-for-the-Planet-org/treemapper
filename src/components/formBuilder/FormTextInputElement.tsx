@@ -1,18 +1,18 @@
-import {StyleSheet, View} from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
-import {FormElement} from 'src/types/interface/form.interface'
-import {InputOutline} from 'react-native-input-outline'
-import {Text} from 'react-native'
-import {Colors, Typography} from 'src/utils/constants'
+import { FormElement } from 'src/types/interface/form.interface'
+import { InputOutline } from 'react-native-input-outline'
+import { Text } from 'react-native'
+import { Colors, Typography } from 'src/utils/constants'
 
 interface Props {
   data: FormElement
-  formValues: {[key: string]: any}
+  formValues: { [key: string]: any }
   changeHandler: (key: string, value: string) => void
 }
 
 const FormTextInputElement = (props: Props) => {
-  const {data, formValues, changeHandler} = props
+  const { data, formValues, changeHandler } = props
   const shouldRender = () => {
     let result = true
     if (data.condition !== null) {
@@ -25,7 +25,7 @@ const FormTextInputElement = (props: Props) => {
     return result
   }
 
-  const handleChange=(t:string)=>{
+  const handleChange = (t: string) => {
     changeHandler(
       data.key,
       t,

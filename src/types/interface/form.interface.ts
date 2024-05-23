@@ -24,6 +24,7 @@ export interface FormElement {
   validation?: string
   dropDownData?: string,
   intervention?: string[];
+  isFormData?: boolean
 }
 
 export interface MainForm {

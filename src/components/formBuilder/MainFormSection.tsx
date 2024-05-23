@@ -21,14 +21,15 @@ import DropDownFormElement from './DropDownElement'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
 interface Props {
-  formData: MainForm | IAdditonalDetailsForm
+  formData: MainForm | IAdditonalDetailsForm | any
   completeLocalForm?: (d: FormElement[], page: string) => void
   page?: string
   interventionID: string
+  isEditForm?: (d: FormElement[]) => void
 }
 
 const MainFormSection = (props: Props) => {
-  const { formData, completeLocalForm, page, interventionID } = props
+  const { formData, completeLocalForm, page, interventionID, isEditForm } = props
 
   const [showForm, setShowForm] = useState(false)
   const [formValues, setFormValues] = useState<{ [key: string]: any } | null>(
@@ -40,7 +41,7 @@ const MainFormSection = (props: Props) => {
   const dispatch = useDispatch()
   useEffect(() => {
     setFormKeyValues()
-  }, [])
+  }, [formData])
 
 
 
@@ -52,6 +53,9 @@ const MainFormSection = (props: Props) => {
       }
     })
     setFormValues(finalObj)
+    if (Object.keys(finalObj).length === 0) {
+      return null
+    }
     setShowForm(true)
   }
 
@@ -97,6 +101,10 @@ const MainFormSection = (props: Props) => {
     }
     if (completeLocalForm) {
       completeLocalForm(finalData, page)
+      return
+    }
+    if (isEditForm) {
+      isEditForm(finalData)
       return
     }
     await updateInterventionLastScreen(interventionID, 'dynamicForm')
