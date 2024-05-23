@@ -217,9 +217,13 @@ const InterventionFormView = () => {
     if (InterventionFormData.entire_site_selected) {
       finalData.coordinates = siteCoordinatesSelect()
     }
-    const metaData = {
-      "Location Name": locationName,
-      "Info": furtherInfo,
+
+    const metaData = {}
+    if (locationName && locationName.length > 0) {
+      metaData["Location Name"] = locationName
+    }
+    if (furtherInfo && furtherInfo.length > 0) {
+      metaData["Info"] = furtherInfo
     }
     const existingMetaData = JSON.parse(finalData.meta_data);
     const appMeta = getDeviceDetails()
