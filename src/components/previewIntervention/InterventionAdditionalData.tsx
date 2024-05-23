@@ -27,9 +27,9 @@ const InterventionAdditionalData = (props: Props) => {
   const renderValue = (d: FormElement) => {
     switch (d.type) {
       case "DROPDOWN":
-        return d.value.length?JSON.parse(d.value).value:d.value
+        return d.value.length ? JSON.parse(d.value).value : d.value + d.unit
       default:
-        return d.value
+        return d.value + " " + d.unit
     }
   }
 
