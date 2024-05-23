@@ -123,28 +123,28 @@ const checkAndConvertMetaData = (m: any) => {
     return '{}'
 }
 
-const getAdditionalData = (d: any) => {
-    const deviceLocation = {
-        label: "Device Location",
-        value: ""
-    };
-    const hid = {
-        label: "HID",
-        value: ""
-    }
-    if (d && d.deviceLocation && d.deviceLocation.coordinates) {
-        if (d.deviceLocation.coordinates[0] && d.deviceLocation.coordinates[1]) {
-            deviceLocation.value = `${d.deviceLocation.coordinates[0].toFixed(6)},${d.deviceLocation.coordinates[1].toFixed(6)}`
-        }
-    }
-    if (d && d.hid) {
-        hid.value = d.hid
-    }
-    return JSON.stringify({
-        deviceLocation,
-        hid
-    })
-}
+// const getAdditionalData = (d: any) => {
+//     const deviceLocation = {
+//         label: "Device Location",
+//         value: ""
+//     };
+//     const hid = {
+//         label: "HID",
+//         value: ""
+//     }
+//     if (d && d.deviceLocation && d.deviceLocation.coordinates) {
+//         if (d.deviceLocation.coordinates[0] && d.deviceLocation.coordinates[1]) {
+//             deviceLocation.value = `${d.deviceLocation.coordinates[0].toFixed(6)},${d.deviceLocation.coordinates[1].toFixed(6)}`
+//         }
+//     }
+//     if (d && d.hid) {
+//         hid.value = d.hid
+//     }
+//     return JSON.stringify({
+//         deviceLocation,
+//         hid
+//     })
+// }
 
 
 
@@ -164,7 +164,6 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
-    const addtionData = getAdditionalData(data)
     const finalData: InterventionData = {
         intervention_id: data.id,
         intervention_key: extraData.key,
@@ -183,8 +182,8 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         is_complete: true,
         site_id: "",
         intervention_type: extraData.key,
-        form_data: "[]",
-        additional_data: addtionData,
+        form_data: [],
+        additional_data: [],
         meta_data: metaData,
         status: 'SYNCED',
         hid: data.hid || '',

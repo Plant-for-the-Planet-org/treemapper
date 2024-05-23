@@ -180,8 +180,8 @@ const useInterventionManagement = () => {
       is_complete: false,
       site_id: '',
       intervention_type: interventoin.key,
-      form_data: '[]',
-      additional_data: '[]',
+      form_data: [],
+      additional_data: [],
       meta_data: '{}',
       status: 'NOT_SYNCED',
       hid: '',
@@ -238,16 +238,11 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateAdditionalDetailsIntervention = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
+  const updateLocalFormDetailsIntervention = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        const exsitingData = JSON.parse(intervention.form_data);
-        let finalData = [...addData]
-        if (exsitingData && exsitingData.length > 0) {
-          finalData = [...addData, ...exsitingData]
-        }
-        intervention.form_data = JSON.stringify(finalData)
+        intervention.form_data = addData
         intervention.lastScreen = 'localForm'
       });
       return Promise.resolve(true);
@@ -257,16 +252,13 @@ const useInterventionManagement = () => {
     }
   };
 
+
+
   const updateDynamicFormDetails = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        const exsitingData = JSON.parse(intervention.additional_data);
-        let finalData = [...addData]
-        if (exsitingData && exsitingData.length > 0) {
-          finalData = [...addData, ...exsitingData]
-        }
-        intervention.additional_data = JSON.stringify(finalData)
+        intervention.additional_data = addData
         intervention.lastScreen = 'dynamicForm'
       });
       return Promise.resolve(true);
@@ -303,7 +295,7 @@ const useInterventionManagement = () => {
   };
 
 
-  return { addNewIntervention, updateInterventionMetaData, updateInterventionLastScreen, updateDynamicFormDetails, updateAdditionalDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
+  return { addNewIntervention, updateInterventionMetaData, updateInterventionLastScreen, updateDynamicFormDetails, updateLocalFormDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
 }
 
 export default useInterventionManagement

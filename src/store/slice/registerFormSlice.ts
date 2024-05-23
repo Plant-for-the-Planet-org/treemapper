@@ -34,7 +34,7 @@ export const initialState: RegisterFormSliceInitalState = {
   site_name: '',
   meta_data: '{}',
   form_data: [],
-  additional_data: '',
+  additional_data: [],
   can_be_entire_site: false,
   entire_site_selected: false,
   should_register_location: true,
@@ -63,7 +63,7 @@ const registerFormSlice = createSlice({
     updateFormDataValue(state, action: PayloadAction<FormElement[]>) {
       state.form_data = action.payload
     },
-    updateAdditionalData(state, action: PayloadAction<string>) {
+    updateAdditionalData(state, action: PayloadAction<FormElement[]>) {
       state.additional_data = action.payload
     },
     updateFormProject(

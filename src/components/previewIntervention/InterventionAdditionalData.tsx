@@ -2,24 +2,21 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { FORM_TYPE } from 'src/types/type/app.type'
+import { FormElement } from 'src/types/interface/form.interface'
 
 interface Props {
-  data: string
+  data: FormElement[]
 }
 
 const InterventionAdditionalData = (props: Props) => {
 
-  const [additiionalData, setAdditiionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
+  const [additiionalData, setAdditiionalData] = useState<FormElement[]>([])
 
   const { data } = props
 
   useEffect(() => {
-    if (data.length) {
-      const parsedData = JSON.parse(data);
-      if (parsedData.length !== 0) {
-        setAdditiionalData(parsedData)
-      }
+    if (data.length > 0) {
+      setAdditiionalData(data)
     }
   }, [data])
 
@@ -27,7 +24,7 @@ const InterventionAdditionalData = (props: Props) => {
     return null
   }
 
-  const renderValue = (d: { value: string, label: string, type?: FORM_TYPE }) => {
+  const renderValue = (d: FormElement) => {
     switch (d.type) {
       case "DROPDOWN":
         return d.value.length?JSON.parse(d.value).value:d.value
@@ -38,32 +35,31 @@ const InterventionAdditionalData = (props: Props) => {
 
   const renderData = () => {
     const finalData = []
-    let i = 0
-    for (const prop in additiionalData) {
-      i++
-      if (additiionalData[prop].type === 'GAP') {
+    additiionalData.forEach(el => {
+      if (el.type === 'GAP') {
         finalData.push(
-          <View style={styles.cardWrapper} key={i}>
+          <View style={styles.cardWrapper} key={el.key}>
             <View style={styles.cardBotttomWrapper} />
           </View>
         )
-      } else if (additiionalData[prop].type === 'HEADING') {
+      } else if (el.type === 'HEADING') {
         finalData.push(
-          <View style={styles.cardWrapper} key={i}>
-            <Text style={styles.headerLabel}> {additiionalData[prop].label}</Text>
+          <View style={styles.cardWrapper} key={el.key}>
+            <Text style={styles.headerLabel}> {el.label}</Text>
           </View>
         )
       } else {
         finalData.push(
-          <View style={styles.cardWrapper} key={i}>
-            <Text style={styles.cardTitle}> {additiionalData[prop].label}</Text>
+          <View style={styles.cardWrapper} key={el.key}>
+            <Text style={styles.cardTitle}> {el.label}</Text>
             <Text style={styles.cardLabel}>
-              {renderValue(additiionalData[prop])}
+              {renderValue(el)}
             </Text>
           </View>
         )
       }
-    }
+    })
+
     return finalData
   }
 
@@ -126,12 +122,12 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
-    marginLeft:5,
+    marginLeft: 5,
     color: Colors.TEXT_COLOR,
   },
-  headerLabel:{
+  headerLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: scaleSize(20),
-    color: Colors.TEXT_COLOR, 
+    color: Colors.TEXT_COLOR,
   }
 })

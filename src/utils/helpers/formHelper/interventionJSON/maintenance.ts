@@ -91,7 +91,7 @@ export const Maintenance: RegisterFormSliceInitalState = {
   form_details: [maintenanceForm],
   meta_data: '{}',
   form_data: [],
-  additional_data: '',
+  additional_data: [],
   can_be_entire_site: true,
   entire_site_selected: false,
   key: 'maintenance',

@@ -185,7 +185,7 @@ const InterventionPreviewView = () => {
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
-        <InterventionAdditionalData data={InterventionData.additional_data} />
+        <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />
       </ScrollView>

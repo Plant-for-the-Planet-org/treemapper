@@ -112,7 +112,7 @@ export const FireSupresionTeam: RegisterFormSliceInitalState = {
   tree_details: [],
   form_details: [fireSupressionForm],
   meta_data: '{}',
-  additional_data: '',
+  additional_data: [],
   form_data: [],
   plantedSpecies: []
 }

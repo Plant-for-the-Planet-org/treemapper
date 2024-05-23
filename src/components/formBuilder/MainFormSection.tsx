@@ -10,7 +10,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch } from 'react-redux'
-import { updateFormDataValue } from 'src/store/slice/registerFormSlice'
+import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
 import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
@@ -19,7 +19,7 @@ import HeadingElement from './HeadingElement'
 import YeNoFormElement from './YeNoFormElement'
 import DropDownFormElement from './DropDownElement'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-
+import { v4 as uuid } from 'uuid'
 interface Props {
   formData: MainForm | IAdditonalDetailsForm
   completeLocalForm?: (d: FormElement[], page: string) => void
@@ -35,7 +35,7 @@ const MainFormSection = (props: Props) => {
     null,
   )
   const toast = useToast();
-  const { updateInterventionLastScreen } = useInterventionManagement()
+  const { updateInterventionLastScreen, updateDynamicFormDetails } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   useEffect(() => {
@@ -87,10 +87,11 @@ const MainFormSection = (props: Props) => {
           duration: 2000,
           animationType: "slide-in",
         })
+        return
       }
 
       if (formValues[key].value.length !== 0) {
-        finalData.push({ ...formValues[key] })
+        finalData.push({ ...formValues[key], element_id: uuid(), intervention: [] })
       }
 
     }
@@ -99,7 +100,8 @@ const MainFormSection = (props: Props) => {
       return
     }
     await updateInterventionLastScreen(interventionID, 'dynamicForm')
-    dispatch(updateFormDataValue(finalData))
+    dispatch(updateAdditionalData(finalData))
+    await updateDynamicFormDetails(interventionID, finalData)
     navigation.dispatch(
       CommonActions.reset({
         index: 1, // index of the active route

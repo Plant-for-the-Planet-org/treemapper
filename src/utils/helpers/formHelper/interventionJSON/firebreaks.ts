@@ -93,7 +93,7 @@ export const FireBreaks: RegisterFormSliceInitalState = {
   form_details: [firebreaksForm],
   meta_data: '{}',
   form_data: [],
-  additional_data: '',
+  additional_data: [],
   can_be_entire_site: false,
   entire_site_selected: false,
   key: 'firebreaks',

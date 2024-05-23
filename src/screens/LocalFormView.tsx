@@ -21,9 +21,9 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { FormElement } from 'src/types/interface/form.interface'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
-import { convertInterventionFormData } from 'src/utils/helpers/interventionFormHelper'
 import { RootState } from 'src/store'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { v4 as uuid } from 'uuid'
 
 const width = Dimensions.get('screen').width
 
@@ -37,7 +37,7 @@ const LocalForm = () => {
   const [finalData, setFinalData] = useState<Array<{ page: string, elements: FormElement[] }>>([])
   const realm = useRealm()
   const flatlistRef = useRef<FlatList>(null)
-  const { updateAdditionalDetailsIntervention } = useInterventionManagement()
+  const { updateLocalFormDetailsIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   useEffect(() => {
@@ -47,7 +47,7 @@ const LocalForm = () => {
   const getDetails = async () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
     if (data.length === 0) {
-      await updateAdditionalDetailsIntervention(formFlowData.form_id, [])
+      await updateLocalFormDetailsIntervention(formFlowData.form_id, [])
       navigation.replace("DynamicForm")
       return
     }
@@ -64,7 +64,6 @@ const LocalForm = () => {
   const handleCompletion = async (data: FormElement[], id: string) => {
     const filterData = finalData.filter(el => el.page !== id);
     setFinalData([...filterData, { elements: data, page: id }])
-    await updateAdditionalDetailsIntervention(formFlowData.form_id, data)
     if (formPages.length > currentPage + 1) {
       flatlistRef.current.scrollToIndex({ index: currentPage + 1 });
       setCurrentPage(currentPage + 1)
@@ -82,15 +81,18 @@ const LocalForm = () => {
     }
   }
 
-  const updateFinalData = (d: any) => {
+  const updateFinalData = async (d: any) => {
     const allData = []
     d.forEach(el => {
       el.elements.forEach(element => {
         allData.push(element)
       });
     });
-    const convertedData = convertInterventionFormData(allData)
-    dispatch(updateAdditionalData(JSON.stringify(convertedData)))
+    const updatedData = allData.map(el => {
+      return ({ ...el, element_id: uuid() })
+    })
+    dispatch(updateAdditionalData(updatedData))
+    await updateLocalFormDetailsIntervention(formFlowData.form_id, updatedData)
     navigation.replace("DynamicForm")
   }
 
@@ -99,7 +101,7 @@ const LocalForm = () => {
     return (
       <View style={styles.pageWrapper}>
         <Text style={styles.pageLabel}>{data.title || `Page ${i + 1}`}</Text>
-        <MainFormSection formData={data} completeLocalForm={handleCompletion} page={data.form_id} />
+        <MainFormSection formData={data} completeLocalForm={handleCompletion} page={data.form_id} interventionID={formFlowData.form_id} />
       </View>
     )
   }

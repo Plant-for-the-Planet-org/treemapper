@@ -18,7 +18,10 @@ const NumberOfPeople: FormElement = {
   editable: true,
   value: '',
   required: true,
-  validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+  validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$",
+  element_id: '',
+  dropDownData: '',
+  intervention: []
 }
   
   const WorkingHours: FormElement = {
@@ -37,7 +40,10 @@ const NumberOfPeople: FormElement = {
     editable: true,
     value: '',
     required: true,
-    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+    validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$",
+    element_id: '',
+    dropDownData: '',
+    intervention: []
   }
   
   
@@ -79,7 +85,7 @@ export const FirePatrol: RegisterFormSliceInitalState = {
   tree_details: [],
   form_details: [firePatrolForm],
   meta_data: '{}',
-  additional_data: '',
+  additional_data: [],
   form_data: [],
   plantedSpecies: []
 }

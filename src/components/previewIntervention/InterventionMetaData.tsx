@@ -16,6 +16,9 @@ const InterventionMetaData = (props: Props) => {
   useEffect(() => {
     if (data.length) {
       const parsedData = JSON.parse(data);
+      if (parsedData && parsedData['public'] && Object.keys(parsedData['public']).length === 0) {
+        return
+      }
       if (parsedData.length !== 0) {
         setAdditiionalData(parsedData)
       }

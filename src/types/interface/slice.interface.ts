@@ -94,7 +94,7 @@ export interface RegisterFormSliceInitalState {
   tree_details: SampleTree[]
   form_details: MainForm[]
   meta_data: string
-  additional_data: string
+  additional_data: FormElement[]
   form_data: FormElement[]
   plantedSpecies: PlantedSpecies[]
 }
@@ -228,8 +228,8 @@ export interface InterventionData {
   is_complete: boolean
   site_id: string
   intervention_type: INTERVENTION_TYPE
-  form_data: string
-  additional_data: string
+  form_data: FormElement[]
+  additional_data: FormElement[]
   meta_data: string
   last_updated_at?: number
   status: INTERVENTION_STATUS,
