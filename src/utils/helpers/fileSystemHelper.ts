@@ -3,16 +3,16 @@ import { basePath } from './fileManagementHelper';
 import * as ImageManipulator from 'expo-image-manipulator';
 import RNFS from 'react-native-fs';
 
-export const copyImageAndGetData = async (imagePath: string, interventionId: string): Promise<string> => {
+export const copyImageAndGetData = async (imagePath: string, interventionId: string, isSpecies: boolean): Promise<string> => {
   return new Promise((resolve, reject) => {
     // Calling an async function inside the Promise executor
-    handleImageCopy(imagePath, interventionId)
+    handleImageCopy(imagePath, interventionId, isSpecies)
       .then(resolve)
       .catch(() => reject(''));
   });
 };
 
-async function handleImageCopy(imagePath: string, interventionId: string): Promise<string> {
+async function handleImageCopy(imagePath: string, interventionId: string, isSpecies: boolean): Promise<string> {
   try {
     // splits and stores the image path directories
     const splittedPath = imagePath.split('/');
@@ -26,7 +26,7 @@ async function handleImageCopy(imagePath: string, interventionId: string): Promi
     fileName = fileName.split('.')[0];
 
     // stores the destination path in which image should be stored
-    const outputPath = `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
+    const outputPath = isSpecies ? `${FileSystem.documentDirectory}/${fileName}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
     // stores the path from which the image should be copied
     const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`;
     const compFile = await compressImage(inputPath, 0.7)

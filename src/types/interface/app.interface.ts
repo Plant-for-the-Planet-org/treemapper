@@ -10,10 +10,11 @@ export interface Coordinates {
 
 export interface SideDrawerItem {
   label: string
-  screen: keyof RootStackParamList
+  screen: keyof RootStackParamList | any
   icon: React.ReactNode
   visible: boolean
   key:  SIDE_DRAWER_ELEMENTS
+  disable?: boolean
 }
 
 export interface IScientificSpecies {

@@ -27,7 +27,7 @@ const Header = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon /></TouchableOpacity>}
+      {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack}/></TouchableOpacity>}
       <View style={styles.HeaderWrapper}>
         <Text style={styles.title}>{label}</Text>
         {note && <Text style={styles.note}>{note}</Text>}

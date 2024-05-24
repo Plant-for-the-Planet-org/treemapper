@@ -89,6 +89,11 @@ const AdditionDataElement = () => {
     }
   }
 
+  const handleInputName = (t: string) => {
+    setInputKey(t)
+    setFieldKey(`${convertToSlug(t)}-${Date.now().toString().slice(0, 5)}`)
+  }
+
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   // variables
@@ -102,13 +107,18 @@ const AdditionDataElement = () => {
   const renderHeaderRight = () => {
     return <View style={styles.switchHeaderContainer}>
       <Text style={styles.switchText}>Advance Mode</Text>
-      <Switch value={advanceMode} 
-                  trackColor={{true:Colors.NEW_PRIMARY}}
-      onValueChange={() => {
-        setAdvanceMode(!advanceMode)
-      }} disabled={false} />
+      <Switch value={advanceMode}
+        trackColor={{ true: Colors.NEW_PRIMARY }}
+        onValueChange={() => {
+          setAdvanceMode(!advanceMode)
+        }} disabled={false} />
     </View>
   }
+
+  function convertToSlug(text) {
+    return text.toLowerCase().replace(/\s+/g, '-');
+  }
+
 
   const toogleOptionModal = () => {
     setShowDropDownOption(!showOptionModal)
@@ -267,7 +277,7 @@ const AdditionDataElement = () => {
         </View>
         {elementType !== 'GAP' && <CustomTextInput
           label="Field name"
-          onChangeHandler={setInputKey}
+          onChangeHandler={handleInputName}
           value={inputKey}
         />}
         {elementType === 'INPUT' && <CustomDropDown
@@ -285,8 +295,8 @@ const AdditionDataElement = () => {
           <Text style={styles.switchText}>This is required</Text>
           <Switch value={isRequired} onValueChange={() => {
             setIsRequired(!isRequired)
-          }} disabled={false} 
-          trackColor={{true:Colors.NEW_PRIMARY}}
+          }} disabled={false}
+            trackColor={{ true: Colors.NEW_PRIMARY }}
           />
         </View>
         {elementType !== 'GAP' && <View style={styles.switchContainer}>
@@ -295,8 +305,8 @@ const AdditionDataElement = () => {
             setIsPublic(!isPublic)
 
           }}
-            trackColor={{true:Colors.NEW_PRIMARY}}
-          disabled={false} />
+            trackColor={{ true: Colors.NEW_PRIMARY }}
+            disabled={false} />
         </View>}
         {elementType === 'DROPDOWN' && <>
           <Text style={styles.dropDownOption}>Dropdown options</Text>

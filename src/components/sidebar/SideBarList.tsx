@@ -47,7 +47,8 @@ const SideBarList = (props: Props) => {
       screen: 'OfflineMap',
       icon: <OfflineMapIcon />,
       visible: true,
-      key: 'offline_map'
+      key: 'offline_map',
+      disable: true
     },
     {
       label: 'Data Explorer',

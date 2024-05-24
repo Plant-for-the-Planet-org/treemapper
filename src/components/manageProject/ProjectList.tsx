@@ -9,12 +9,12 @@ import {
   View,
 } from 'react-native'
 import PlantProjectBackfrop from 'assets/images/svg/PlantProjectIcon.svg'
-import {Colors, Typography} from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import LargeButton from 'src/components/common/LargeButton'
-import {useQuery} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 import { handleFilter } from 'src/utils/constants/CountryDataFilter'
 
 interface ProjectListProps {
@@ -31,7 +31,6 @@ export default function ProjectList({
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
-
   return (
     <FlatList
       data={allProjects}
@@ -56,7 +55,7 @@ export default function ProjectList({
                 `${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_WEBAPP_URL}/manage-projects/add-project`,
               )
             }
-            style={{marginTop: 20}}
+            style={{ marginTop: 20 }}
             heading={i18next.t('label.add_new_project')}
             subHeading={i18next.t('label.add_new_project_desc')}
             testID={'add_new_project_button'}
@@ -64,7 +63,7 @@ export default function ProjectList({
           />
         )
       }}
-      renderItem={({item}: {item: any}) => {
+      renderItem={({ item }: { item: any }) => {
         if (isSelectable) {
           return (
             <TouchableProjectItem
@@ -98,7 +97,7 @@ const ProjectItem = ({
     <View
       style={[
         styles.listItemContainer,
-        isProjectSelected ? {borderColor: Colors.PRIMARY} : {},
+        isProjectSelected ? { borderColor: Colors.PRIMARY } : {},
       ]}>
       {item.image && process.env.EXPO_PUBLIC_CDN_URL ? (
         <Image
@@ -108,14 +107,14 @@ const ProjectItem = ({
           style={styles.image}
         />
       ) : (
-        <View style={[styles.image, {paddingBottom: 10}]}>
+        <View style={[styles.image, { paddingBottom: 10 }]}>
           <PlantProjectBackfrop />
         </View>
       )}
       <Text
         style={[
           styles.projectText,
-          isProjectSelected ? {color: Colors.PRIMARY} : {},
+          isProjectSelected ? { color: Colors.PRIMARY } : {},
         ]}>
         {item.name}
       </Text>
@@ -123,7 +122,7 @@ const ProjectItem = ({
         <Text
           style={[
             styles.projectText,
-            {fontFamily: Typography.FONT_FAMILY_REGULAR},
+            { fontFamily: Typography.FONT_FAMILY_REGULAR },
           ]}>
           {country ? country : item.country}
         </Text>
@@ -171,6 +170,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    paddingHorizontal:10
+    paddingHorizontal: 10
   },
 })

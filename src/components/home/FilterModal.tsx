@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import Switch from '../common/Switch'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import { BottomSheetModal, BottomSheetView, useBottomSheetModal, TouchableOpacity } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateInterventionFilter } from 'src/store/slice/displayMapSlice'
@@ -84,12 +84,12 @@ const FilterModal = (props: Props) => {
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
-        <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}/>
+        <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
       )}
-      style={{paddingTop:20}}
+      style={{ paddingTop: 20 }}
     >
       <InterventionTimeModal isVisible={showTimeModal} toogleModal={toogleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
-      <InterventionFilterModal isVisible={showTypeModal} toogleModal={toogleTypeModal}/>
+      <InterventionFilterModal isVisible={showTypeModal} toogleModal={toogleTypeModal} />
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>
@@ -114,7 +114,7 @@ const FilterModal = (props: Props) => {
             <TouchableOpacity style={styles.card} onPress={toogleTypeModal}>
               <Text style={styles.cardLable}>Filter Interventions</Text>
               <View style={styles.divider} />
-              <Image source={FunnelIcon} style={styles.closeWrapper}/>
+              <Image source={FunnelIcon} style={styles.closeWrapper} />
             </TouchableOpacity>
             <View style={styles.card}>
               <Text style={styles.cardLable}>Only Interverntion that need {'\n'} remeasurment</Text>
@@ -166,21 +166,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   iconWrapper: {
-    marginHorizontal:10
+    marginHorizontal: 10
   },
-  closeWrapper:{
-    width:30,
-    height:30,
-    marginRight:8,
-    tintColor:Colors.TEXT_COLOR
+  closeWrapper: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+    tintColor: Colors.TEXT_COLOR
   },
   headerLable: {
     fontSize: 20,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.TEXT_COLOR
   },
   cardLable: {
     fontSize: 16,
     marginHorizontal: 10,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_COLOR,
+    letterSpacing:1
   },
+  
   divider: {
     flex: 1,
   },

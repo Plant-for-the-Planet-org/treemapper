@@ -64,6 +64,7 @@ const SpecieInfoImageSection = (props: Props) => {
               uri: image,
             }}
             style={styles.imageView}
+            resizeMode="cover" 
           />
           <View style={styles.imageControls}>
             <TouchableOpacity onPress={takePicture}>
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    height: scaleSize(280),
     borderRadius: 50,
+    aspectRatio: 1
   },
   imageView: {
     borderRadius: 12,
@@ -112,6 +113,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: Colors.TEXT_COLOR,
+    aspectRatio: 1
   },
   imageControls: {
     position: 'absolute',

@@ -29,7 +29,7 @@ const ImagePreview = (props: Props) => {
   const dispatch = useDispatch()
 
   const navigateToNext = async () => {
-    const finalURL = await copyImageAndGetData(imageData.uri, interventionID)
+    const finalURL = await copyImageAndGetData(imageData.uri, interventionID, screen === 'SPECIES_INFO')
     dispatch(
       updateImageDetails({
         id: id,

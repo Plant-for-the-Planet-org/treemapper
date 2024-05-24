@@ -44,6 +44,7 @@ const CameraView = (props: Props) => {
             type={CameraType.back}
             style={styles.cameraWrapper}
             ref={cameraRef}
+            ratio="1:1"
           />
         )}
       </View>

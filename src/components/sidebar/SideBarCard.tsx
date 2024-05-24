@@ -19,11 +19,14 @@ interface Props {
 
 const SideBarCard = (props: Props) => {
   const { logoutUser } = useAuthentication()
-  const { label, screen, icon, visible, key } = props.item
+  const { label, screen, icon, visible, key, disable } = props.item
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
   const handleNavigaiton = () => {
+    if(disable){
+      return
+    }
     let params = {}
     if (key === 'logout') {
       handleLogout()
@@ -32,7 +35,7 @@ const SideBarCard = (props: Props) => {
     if (key === 'manage_species') {
       params = { manageSpecies: true }
     }
-    navigation.replace(screen, params)
+    navigation.navigate(screen, params)
   }
 
   const handleLogout = async () => {
@@ -49,7 +52,7 @@ const SideBarCard = (props: Props) => {
 
   return (
     <Pressable style={styles.container} onPress={handleNavigaiton}>
-      <View style={styles.wrapper}>
+      <View style={[styles.wrapper,{ opacity: disable ? 0.5 : 1, backgroundColor:disable?Colors.BACKDROP_COLOR:'white' }]}>
         <View style={styles.iconWrapper}>{icon}</View>
         <View style={styles.labelWrapper}>
           <Text style={styles.label}>{label}</Text>

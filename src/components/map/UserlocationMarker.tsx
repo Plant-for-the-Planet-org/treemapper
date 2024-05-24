@@ -23,7 +23,7 @@ const UserlocationMarker = (props: Props) => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={userCurrentLocation}>
-      <UserLocationIcon />
+      <UserLocationIcon width={40} height={40}/>
     </TouchableOpacity>
   )
 }

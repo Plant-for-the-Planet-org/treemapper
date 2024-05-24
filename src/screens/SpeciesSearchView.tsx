@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
@@ -23,6 +23,7 @@ const SpeciesSearchView = () => {
     navigation.goBack()
   }
 
+
   const handleFavSpecies = async (
     item: IScientificSpecies,
     status: boolean,
@@ -46,7 +47,10 @@ const SpeciesSearchView = () => {
   }
 
   const handleSpeciesSyncPress = async () => {
-    navigation.navigate('SyncSpecies', { inApp: true })
+    setShowSpeciesSyncAlert(false)
+    setTimeout(() => {
+      navigation.navigate('SyncSpecies', { inApp: true })
+    }, 300);
   }
 
   return (
@@ -67,6 +71,7 @@ const SpeciesSearchView = () => {
             setSpciesList={setSpciesList}
           />
         }
+        keyboardDismissMode='interactive'
         ListEmptyComponent={<EmptySpeciesSearchList />}
       />
       <AlertModal

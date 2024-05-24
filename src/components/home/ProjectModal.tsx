@@ -76,7 +76,7 @@ const ProjectModal = (props: Props) => {
   }
 
   useEffect(() => {
-    const allProjects = realm.objects(RealmSchema.Projects)
+    const allProjects = realm.objects(RealmSchema.Projects).filtered('treeCost != null')
     if (allProjects && projectData.length === 0) {
       projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
     } else {
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
     marginLeft: '5%',
-    height: '50%'
+    minHeight: '50%',
   },
   siteWrapper: {
     height: '100%',
@@ -287,11 +287,11 @@ const styles = StyleSheet.create({
   },
   siteCard: {
     width: '90%',
-    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomColor: Colors.GRAY_BACKDROP,
     marginLeft: 10,
+    paddingVertical:14
   },
   siteCardLabel: {
     fontSize: Typography.FONT_SIZE_16,

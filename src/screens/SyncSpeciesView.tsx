@@ -128,7 +128,7 @@ const SyncSpecies = () => {
       })
       dispatch(updateSpeciesSyncStatus(true))
       if (route.params && route.params.inApp) {
-        navigation.popToTop()
+        navigation.goBack()
       } else {
         navigation.replace('Home')
       }

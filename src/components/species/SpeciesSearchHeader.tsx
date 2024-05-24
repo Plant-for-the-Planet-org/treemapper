@@ -1,40 +1,47 @@
-import {StyleSheet, TextInput, TouchableOpacity, View} from 'react-native'
-import React, {useEffect, useState} from 'react'
-import {Ionicons} from '@expo/vector-icons'
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
 import i18next from 'src/locales/index'
-import {Typography, Colors} from 'src/utils/constants'
+import { Typography, Colors } from 'src/utils/constants'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
-import {useRealm} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
   backPress: () => void
-  toogleSyncModal: (b:boolean) => void
+  toogleSyncModal: (b: boolean) => void
   setSpciesList: (d: IScientificSpecies[]) => void
 }
 
 const SpeciesSearchHeader = (props: Props) => {
   const [searchText, setSearchText] = useState('')
   const realm = useRealm()
-  const {backPress, toogleSyncModal, setSpciesList} = props
+  const { backPress, toogleSyncModal, setSpciesList } = props
+
+  const inputRef = useRef<TextInput>(null)
 
   const handleSearchChange = (text: string) => {
     setSearchText(text)
   }
 
   useEffect(() => {
-    if (searchText.length > 2) {
+    if (searchText.length >= 1) {
       querySearchResult()
     }
   }, [searchText])
+
+  useEffect(() => {
+    inputRef.current.focus()
+  }, [])
+
 
   const querySearchResult = () => {
     const specieArray: IScientificSpecies[] = Array.from(
       realm
         .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
-        .filtered('scientific_name CONTAINS[c] $0', searchText),
+        .filtered('scientific_name CONTAINS $0', searchText),
     )
     setSpciesList(specieArray)
   }
@@ -42,7 +49,7 @@ const SpeciesSearchHeader = (props: Props) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backArrowCon} onPress={backPress}>
-        <BackIcon />
+        <BackIcon onPress={backPress} />
       </TouchableOpacity>
       <View style={styles.searchBarMain}>
         <View
@@ -57,6 +64,7 @@ const SpeciesSearchHeader = (props: Props) => {
             style={styles.searchIconMain}
           />
           <TextInput
+            ref={inputRef}
             style={styles.searchText}
             placeholder={i18next.t('label.select_species_search_species')}
             onChangeText={handleSearchChange}
@@ -77,7 +85,7 @@ const SpeciesSearchHeader = (props: Props) => {
           )}
         </View>
       </View>
-      <TouchableOpacity onPress={()=>{toogleSyncModal(true)}}>
+      <TouchableOpacity onPress={() => { toogleSyncModal(true) }}>
         <SyncIcon width={20} height={20} />
       </TouchableOpacity>
     </View>
@@ -92,13 +100,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom:10,
-    marginTop:20
+    paddingBottom: 10,
+    marginTop: 20
   },
   backArrowCon: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    width: 20,
+    height: 20,
   },
   searchBar: {
     flexDirection: 'row',
