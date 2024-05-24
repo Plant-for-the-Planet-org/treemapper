@@ -93,6 +93,9 @@ const ProjectItem = ({
   if (country) {
     country = country[0].countryName
   }
+  if (item.purpose !== 'trees' && item.purpose !== 'conservation') {
+    return null
+  }
   return (
     <View
       style={[
@@ -127,6 +130,9 @@ const ProjectItem = ({
           {country ? country : item.country}
         </Text>
       )}
+      <View style={[styles.chipWrapper, {  borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
+        <Text style={[styles.chipLabel, { color: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>{item.purpose.toUpperCase()}</Text>
+      </View>
     </View>
   )
 }
@@ -172,4 +178,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     paddingHorizontal: 10
   },
+  chipWrapper: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    position: 'absolute',
+    borderWidth: 1,
+    borderColor: Colors.TEXT_COLOR,
+    bottom: 15,
+    right: 15,
+    borderRadius: 20
+  },
+  chipLabel: {
+    color: Colors.NEW_PRIMARY,
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    letterSpacing:0.5
+  }
 })

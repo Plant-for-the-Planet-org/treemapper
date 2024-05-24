@@ -1,5 +1,5 @@
-import {useRealm, Realm} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
+import { useRealm, Realm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 
 const useProjectMangement = () => {
   const realm = useRealm()
@@ -8,7 +8,7 @@ const useProjectMangement = () => {
     try {
       realm.write(() => {
         projectData.forEach((project: any) => {
-          const {properties} = project
+          const { properties } = project
           const sites = []
           const projectData: any = {
             allowDonations: properties.allowDonations,
@@ -23,6 +23,7 @@ const useProjectMangement = () => {
             treeCost: properties.treeCost,
             sites: [],
             geometry: JSON.stringify(project.geometry),
+            purpose: properties.purpose,
           }
 
           for (const site of properties.sites) {
@@ -49,7 +50,7 @@ const useProjectMangement = () => {
     }
   }
 
-  
+
   const deleteAllProjects = async (): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -63,7 +64,7 @@ const useProjectMangement = () => {
     }
   };
 
-  return {addAllProjects, deleteAllProjects}
+  return { addAllProjects, deleteAllProjects }
 }
 
 export default useProjectMangement

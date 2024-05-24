@@ -76,7 +76,7 @@ const ProjectModal = (props: Props) => {
   }
 
   useEffect(() => {
-    const allProjects = realm.objects(RealmSchema.Projects).filtered('treeCost != null')
+    const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
     if (allProjects && projectData.length === 0) {
       projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
     } else {

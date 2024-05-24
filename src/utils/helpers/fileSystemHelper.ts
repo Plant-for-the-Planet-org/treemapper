@@ -47,7 +47,6 @@ async function compressImage(uri: string, compressValue: number): Promise<string
         format: ImageManipulator.SaveFormat.JPEG, // You can use JPEG or PNG format
       }
     );
-    console.log('Compressed image URI:', manipulatedImage.uri);
     return manipulatedImage.uri;
   } catch (error) {
     console.error('Error compressing image:', error);

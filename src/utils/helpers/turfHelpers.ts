@@ -59,7 +59,6 @@ const checkIsSampleMarkerValid = (
       [sampleTree.latitude, sampleTree.longitude],
       'centimeters',
     )
-    console.log('distanceInCentimeters', distanceInCentimeters)
     // if the current marker position is less than 300cm to already present sample tree nearby,
     // then makes the current marker position as invalid
     if (distanceInCentimeters < 30) {

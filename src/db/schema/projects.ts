@@ -17,5 +17,6 @@ export const Projects: ObjectSchema = {
     treeCost: 'double?',
     sites: `${RealmSchema.ProjectSite}[]`,
     geometry: 'string',
+    purpose: 'string'
   },
 };

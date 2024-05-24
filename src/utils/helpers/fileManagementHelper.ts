@@ -16,7 +16,6 @@ export const createNewInterventionFolder = async (id: string) => {
         if (!folderExists) {
             // Create the folder
             await RNFS.mkdir(folderPath);
-            console.log('Folder created at:', folderPath);
         } else {
             console.log('Folder already exists at:', folderPath);
         }
@@ -28,8 +27,6 @@ export const createNewInterventionFolder = async (id: string) => {
 const exportRealmData = async (data: InterventionData) => {
     try {
         await createNewInterventionFolder(data.intervention_id)
-        console.log("Data writing folder creaetd")
-
     } catch (error) {
         console.log("error", error)
     }
@@ -40,15 +37,13 @@ export const interData = async (data: InterventionData) => {
         const folderPath = `${basePath}/${data.intervention_id}/intervention.json`;
         const jsonData = JSON.stringify(data);
         await RNFS.writeFile(folderPath, jsonData, 'utf8');
-        console.log("Data writing folder creaetd")
-
     } catch (error) {
-        console.log("Skjdc", error)
+        console.log("Error", error)
     }
 }
 
 export const createBasePath = async () => {
-    try { await createNewInterventionFolder(basePath); } catch (err) { console.log("Sdlkcj", err) }
+    try { await createNewInterventionFolder(basePath); } catch (err) { console.log("Error", err) }
 }
 
 
