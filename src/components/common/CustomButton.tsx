@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import React from 'react'
-import {scaleFont} from 'src/utils/constants/mixins'
-import {Colors, Typography} from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
+import { Colors, Typography } from 'src/utils/constants'
 import FadeBackground from './FadeBackground'
 
 interface Props {
@@ -38,6 +38,10 @@ const CustomButton = (props: Props) => {
   } = props
 
   const handlePress = () => {
+    if (disable) {
+      return
+    }
+
     if (!loading) {
       pressHandler()
     }
@@ -45,19 +49,19 @@ const CustomButton = (props: Props) => {
 
   return (
     <TouchableOpacity
-      style={[styles.container, {...containerStyle}]}
+      style={[styles.container, { ...containerStyle }]}
       onPress={handlePress}>
       {!hideFadein && <FadeBackground />}
       <View
         style={[
           styles.wrapper,
-          {backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY},
-          {...wrapperStyle},
+          { backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY },
+          { ...wrapperStyle },
         ]}>
         {loading ? (
           <ActivityIndicator color={Colors.WHITE} size="small" />
         ) : (
-          <Text style={[styles.lableStyle, {...labelStyle}]}>{label}</Text>
+          <Text style={[styles.lableStyle, { ...labelStyle }]}>{label}</Text>
         )}
         {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
       </View>

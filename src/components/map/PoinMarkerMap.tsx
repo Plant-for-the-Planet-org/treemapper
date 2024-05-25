@@ -25,6 +25,7 @@ import {
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { useToast } from 'react-native-toast-notifications'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -48,7 +49,7 @@ const PointMarkerMap = (props: Props) => {
 
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const toast = useToast()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
@@ -151,6 +152,14 @@ const PointMarkerMap = (props: Props) => {
       const centerCoordinates = await mapRef.current.getCenter()
       const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
       const validSampleTree = handleMarkerValidation(centerCoordinates)
+      if (!validSampleTree) {
+        toast.show("Point is very close to already registerd sample tree.", {
+          type: "normal",
+          placement: "bottom",
+          duration: 2000,
+          animationType: "slide-in",
+        })
+      }
       if (!validSampleTree || !validMarker) {
         setOutOfBoundry(true)
       } else {

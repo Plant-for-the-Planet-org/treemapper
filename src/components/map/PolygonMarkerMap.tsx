@@ -16,7 +16,7 @@ import {
 } from 'src/store/slice/registerFormSlice'
 import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
-import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
+import distanceCalculator from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -87,15 +87,56 @@ const PolygonMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    setCoordinates([...coordinates, centerCoordinates])
-    setCurrentCoordinate(prevState => ({
-      id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
-      index: prevState.index++,
-    }))
-    if (coordinates.length >= 2) {
-      setPolygonComplete(true)
+    if (centerCoordinates.length !== 0) {
+      const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
+      setLineErorr(!checkValidDistance)
+      if (!checkValidDistance) {
+        return
+      }
+      setCoordinates([...coordinates, centerCoordinates])
+      setCurrentCoordinate(prevState => ({
+        id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
+        index: prevState.index++,
+      }))
+      if (coordinates.length >= 2) {
+        setPolygonComplete(true)
+      }
     }
   }
+
+
+  const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
+    let isValidMarkers = true;
+
+    for (const oneMarker of coords) {
+      const distanceInMeters = distanceCalculator(
+        [centerCoordinates[1], centerCoordinates[0]],
+        [oneMarker[1], oneMarker[0]],
+        'meters',
+      );
+      // if the current marker position is less than one meter to already present markers nearby,
+      // then makes the current marker position invalid
+      if (distanceInMeters < 1) {
+        toast.show("Marker is close to previous point.", {
+          type: "normal",
+          placement: "bottom",
+          duration: 2000,
+          animationType: "slide-in",
+        })
+        isValidMarkers = false;
+      }
+      if (distanceInMeters > 100) {
+        toast.show("Marker is too far from previous point.", {
+          type: "normal",
+          placement: "bottom",
+          duration: 2000,
+          animationType: "slide-in",
+        })
+        isValidMarkers = false;
+      }
+    }
+    return isValidMarkers;
+  };
 
   const makeComplete = async () => {
     const finalCoordinates = [...coordinates, coordinates[0]];
@@ -113,23 +154,13 @@ const PolygonMarkerMap = (props: Props) => {
     }
   }
 
-  const handleDrag = async () => {
+  const onRegionDidChange = async () => {
     setLoading(false)
-    const centerCoordinates = await mapRef.current.getCenter()
-    if (coordinates.length !== 0) {
-      const checkValidDistance = await checkIsValidPolygonMarker(centerCoordinates, coordinates)
-      console.log("Show Validaition Erro(Maintain proper distance from previous point)", checkValidDistance)
-      setLineErorr(!checkValidDistance)
-      if (!checkValidDistance) {
-        toast.show("Point is too close to other mark", {
-          type: "normal",
-          placement: "bottom",
-          duration: 1000,
-          animationType: "slide-in",
-        })
-      }
-    }
+    setLineErorr(false)
   }
+
+
+
 
   return (
     <View style={styles.container}>
@@ -143,7 +174,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onRegionDidChange={handleDrag}
+        onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
         }}

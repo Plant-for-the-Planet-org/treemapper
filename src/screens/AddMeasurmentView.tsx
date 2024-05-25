@@ -135,6 +135,7 @@ const AddMeasurment = () => {
     if (p) {
       setOptimalAlert(false)
     } else {
+      setOptimalAlert(false)
       submitDetails();
     }
   }
