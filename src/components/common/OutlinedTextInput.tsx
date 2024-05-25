@@ -10,10 +10,11 @@ interface Props {
   keyboardType: KeyboardTypeOptions
   trailingtext: string
   errMsg: string
+  autoFocus?: boolean
 }
 
 const OutlinedTextInput = (props: Props) => {
-  const { placeholder, changeHandler, keyboardType, trailingtext, errMsg } = props
+  const { placeholder, changeHandler, keyboardType, trailingtext, errMsg, autoFocus } = props
 
   return (
     <View style={styles.container}>
@@ -29,6 +30,7 @@ const OutlinedTextInput = (props: Props) => {
         onChangeText={changeHandler}
         fontSize={18}
         error={errMsg.length ? errMsg : undefined}
+        autoFocus={autoFocus || false}
         trailingIcon={() => (
           <Text style={styles.unitLabel}>{trailingtext}</Text>
         )}
