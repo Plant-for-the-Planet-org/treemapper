@@ -1,12 +1,13 @@
-import {StyleSheet, View} from 'react-native'
-import React, { useRef} from 'react'
-import MapLibreGL, {Camera} from '@maplibre/maplibre-react-native'
-import {SampleTree} from 'src/types/interface/slice.interface'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { useRef } from 'react'
+import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
+import { SampleTree } from 'src/types/interface/slice.interface'
 // import MapMarkers from './MapMarkers'
 import MapShapeSource from './MapShapeSource'
 import bbox from '@turf/bbox'
 import { Colors } from 'src/utils/constants'
 import MapMarkers from './MapMarkers'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('../../../assets/mapStyle/mapStyleOutput.json')
@@ -15,10 +16,11 @@ interface Props {
   geoJSON: any
   has_sample_trees: boolean
   sampleTrees: SampleTree[]
+  openPolygon: () => void
 }
 
 const PreviewMap = (props: Props) => {
-  const {geoJSON, has_sample_trees, sampleTrees} = props
+  const { geoJSON, has_sample_trees, sampleTrees, openPolygon } = props
   const cameraRef = useRef<Camera>(null)
 
 
@@ -50,9 +52,13 @@ const PreviewMap = (props: Props) => {
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees}/>}
+          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} />}
         </MapLibreGL.MapView>
+        <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
+          <PenIcon width={30} height={30} />
+        </TouchableOpacity>
       </View>
+
     </View>
   )
 }
@@ -71,10 +77,22 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 8,
     overflow: 'hidden',
-    borderWidth:0.5,
-    borderColor:Colors.GRAY_TEXT
+    borderWidth: 0.5,
+    borderColor: Colors.GRAY_TEXT
   },
   map: {
     flex: 1,
+  },
+  deleteWrapperIcon: {
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.GRAY_BACKDROP,
+    marginLeft: 10,
+    borderRadius: 8,
+    position:'absolute',
+    top:10,
+    right:10
   },
 })

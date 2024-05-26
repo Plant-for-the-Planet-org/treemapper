@@ -27,6 +27,7 @@ import SelectElement from './SelectElementView'
 import LocalFormView from './LocalFormView'
 import ImportForm from './ImportFormView'
 import EditAdditionData from './EditAdditionDataView'
+import EditPolygonView from './EditPolygonView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -57,5 +58,6 @@ export default {
   SelectElement: SelectElement,
   LocalForm: LocalFormView,
   ImportForm: ImportForm,
-  EditAdditionData: EditAdditionData
+  EditAdditionData: EditAdditionData,
+  EditPolygon: EditPolygonView
 }

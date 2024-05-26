@@ -38,6 +38,7 @@ const RootNavigator = () => {
       <Stack.Screen name='LocalForm' component={Screens.LocalForm} />
       <Stack.Screen name='ImportForm' component={Screens.ImportForm} />
       <Stack.Screen name='EditAdditionData' component={Screens.EditAdditionData}/>
+      <Stack.Screen name='EditPolygon' component={Screens.EditPolygon}/>
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

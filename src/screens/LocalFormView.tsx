@@ -46,19 +46,24 @@ const LocalForm = () => {
 
   const getDetails = async () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
-    if (data.length === 0) {
+    if (!checkForNonEmptyForm(data)) {
       await updateLocalFormDetailsIntervention(formFlowData.form_id, [])
       navigation.replace("DynamicForm")
       return
     }
-    if (data) {
-      setFormPages(JSON.parse(JSON.stringify(data)))
-    }
+    setFormPages(JSON.parse(JSON.stringify(data)))
     setLoading(false)
   }
 
 
-
+  const checkForNonEmptyForm = (data: any) => {
+    data.forEach(el => {
+      if (el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH') {
+        return true
+      }
+    })
+    return false
+  }
 
 
   const handleCompletion = async (data: FormElement[], id: string) => {

@@ -7,6 +7,9 @@ import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import CoordinatesList from './CoordinatesList'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 interface Props {
   data: InterventionData
 }
@@ -20,12 +23,16 @@ const InterventionArea = (props: Props) => {
     { key: data.intervention_key }
   )
 
-  // console.log(JSON.stringify(geoJSON, null, 2))
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
 
   const FeatureCollectionGeoJSON = {
     type: 'FeatureCollection',
     features: [geoJSON],
+  }
+
+  const openEdit = () => {
+    navigation.navigate('EditPolygon')
   }
 
 
@@ -36,6 +43,7 @@ const InterventionArea = (props: Props) => {
         geoJSON={FeatureCollectionGeoJSON}
         sampleTrees={data.sample_trees}
         has_sample_trees={data.has_sample_trees}
+        openPolygon={openEdit}
       />
       <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} />
     </View>
