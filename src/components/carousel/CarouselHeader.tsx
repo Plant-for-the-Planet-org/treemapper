@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     paddingVertical: 10,
     paddingRight: 10,
-    top: 50,
+    top: 70,
     left: 20,
     zIndex: 10,
     backgroundColor: Colors.WHITE,

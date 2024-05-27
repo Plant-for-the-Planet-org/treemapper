@@ -54,6 +54,7 @@ type IntermediateFormView = {
 type InterventionPreviewView = {
   id: 'preview' | 'review'
   intervention: string
+  sampleTree?: string
 }
 
 

@@ -45,7 +45,6 @@ const ReviewTreeDetails = () => {
     const detailsCompleted = route.params && route.params.detailsCompleted
     const editTree = route.params && route.params.interventionID
     const synced = route.params && route.params.synced
-
     const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
 
@@ -348,7 +347,7 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
     },
     iconwrapper: {
-        marginRight:10
+        marginRight: 10
     },
     footer: {
         width: '100%',

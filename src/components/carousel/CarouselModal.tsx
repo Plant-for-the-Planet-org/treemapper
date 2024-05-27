@@ -31,9 +31,13 @@ const CarouselModal = () => {
     }
   }, [showCarousel, selectedIntervention])
 
-  const handleNavigation = (id: string) => {
+  const handleNavigation = (id: string, tree_id?: string) => {
     dispatch(clearCarouselData())
-    navigation.navigate('InterventionPreview', { id: 'preview', intervention: id })
+    if (tree_id) {
+      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id, sampleTree: tree_id })
+    } else {
+      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id })
+    }
   }
 
   const showInterventionDetails = () => {
@@ -55,7 +59,7 @@ const CarouselModal = () => {
     }
   }, [activeIndex])
 
-  
+
   useEffect(() => {
     if (carouselRef && carouselRef.current !== null) {
       carouselRef.current.scrollTo({ index: activeInterventionIndex, animated: true })
@@ -75,11 +79,11 @@ const CarouselModal = () => {
     if (showOverlay) {
       return adjacentIntervention
     }
-    if (carouselData && carouselData.sample_trees.length>0) {
+    if (carouselData && carouselData.sample_trees.length > 0) {
       return carouselData.sample_trees
     }
 
-    if (carouselData && carouselData.sample_trees.length===0) {
+    if (carouselData && carouselData.sample_trees.length === 0) {
       return [carouselData]
     }
 

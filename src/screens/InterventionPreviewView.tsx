@@ -107,6 +107,9 @@ const InterventionPreviewView = () => {
     }
     dispatch(updateInerventionData(finalData))
     setLoading(false)
+    if (route.params && route.params.sampleTree) {
+      navigation.replace("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: selectedIntervention.status !=='NOT_SYNCED' })
+    }
   }
 
 
@@ -185,7 +188,7 @@ const InterventionPreviewView = () => {
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
-        <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id}/>
+        <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         <View style={styles.footer} />
       </ScrollView>

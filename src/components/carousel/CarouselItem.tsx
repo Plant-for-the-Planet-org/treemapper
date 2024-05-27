@@ -9,7 +9,7 @@ import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 
 interface Props {
   data: any
-  onPress: ((id: string)=>void)
+  onPress: ((id: string, tree_id?: string)=>void)
 }
 
 const CarouselItem = (props: Props) => {
@@ -18,7 +18,7 @@ const CarouselItem = (props: Props) => {
     const uri  = data.cdn_image_url?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}`: data.image_url
     const hasImage = uri.length>0
     return <TouchableOpacity style={styles.container} onPress={()=>{
-      onPress(data.intervention_id)
+      onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
         {hasImage?<Image style={styles.imageContainer} source={{uri:uri}}/>:        <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
