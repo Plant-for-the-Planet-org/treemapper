@@ -210,13 +210,15 @@ const useInterventionManagement = () => {
     }
   }
 
-  const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean): Promise<boolean> => {
+  const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?:boolean): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         intervention.location = location
         intervention.entire_site = isEntireSite
-        intervention.lastScreen = 'location'
+        if(!onlyUpadteLocation){
+          intervention.lastScreen = 'location'
+        }
       });
       return Promise.resolve(true);
     } catch (error) {

@@ -108,11 +108,18 @@ const PolygonMarkerMap = () => {
     };
 
     const saveUpdate = async () => {
+        if (Interverntion.location_type === 'Point') {
+            const Data = makeInterventionGeoJson('Point', coordinates, '')
+            await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
+            dispatch(updateLastUpdatedAt())
+            navigation.goBack()
+            return
+        }
         const finalCoordinates = [...coordinates, coordinates[0]];
         const Data = makeInterventionGeoJson('Polygon', finalCoordinates, '')
         const allPointsWithinPolygon = await checkForWithinPolygon(Data.geoJSON);
         if (allPointsWithinPolygon) {
-            await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false)
+            await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
             dispatch(updateLastUpdatedAt())
             navigation.goBack()
         } else {
@@ -193,7 +200,7 @@ const PolygonMarkerMap = () => {
                 styleURL={JSON.stringify(MapStyle)}>
                 <MapLibreGL.Camera ref={cameraRef} />
                 <LineMarker coordinates={coordinates} />
-                <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} />
+                <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
                 {Interverntion.has_sample_trees && <MapMarkers
                     hasSampleTree={Interverntion.has_sample_trees}
                     overLay

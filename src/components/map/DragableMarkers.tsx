@@ -7,6 +7,7 @@ import { Colors, Typography } from 'src/utils/constants'
 interface Props {
   coordinates: Array<number[]>
   onDragEnd: (index: number, coords: any) => void
+  isSinglePoint: boolean
 }
 
 const DragableMarkers = (props: Props) => {
@@ -18,12 +19,25 @@ const DragableMarkers = (props: Props) => {
       return String.fromCharCode(i + 65)
     }
 
+
     return props.coordinates.map((d, i) => {
-      if (props.coordinates.length-1 === i) {
+      if (props.isSinglePoint) {
+        return <Maplibre.MarkerView coordinate={d} id={String(i)} key={i} draggable onDragEnd={(e) => {
+          props.onDragEnd(i, e.geometry.coordinates)
+        }}>
+          <View style={styles.container}>
+            <View style={styles.mapPinContainer}>
+              <MapPin fill={Colors.NEW_PRIMARY} />
+            </View>
+            <Text style={styles.labelText}>{alphabet(i)}</Text>
+          </View>
+        </Maplibre.MarkerView>
+      }
+      if (props.coordinates.length - 1 === i) {
         return null
       }
-// @ts-expect-error: Property 'foo' does not exist on type 'Bar'.
-return <Maplibre.MarkerView coordinate={d} id={String(i)} key={i} draggable onDragEnd={(e) => {
+      // @ts-expect-error: Property 'foo' does not exist on type 'Bar'.
+      return <Maplibre.MarkerView coordinate={d} id={String(i)} key={i} draggable onDragEnd={(e) => {
         props.onDragEnd(i, e.geometry.coordinates)
       }}>
         <View style={styles.container}>
