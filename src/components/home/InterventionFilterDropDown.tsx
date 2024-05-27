@@ -37,8 +37,8 @@ const InterventionFilterModal = (props: Props) => {
 
 
 
-  const renderSection = (el) => {
-    return (<TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: el.index === 3 ? 0 : 0.5 }]} key={el.value} onPress={() => {
+  const renderSection = (el, index) => {
+    return (<TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: index < AllIntervention.length-1 ? 1 : 0 }]} key={el.value} onPress={() => {
       handleSelection(el.value)
     }}>
       <Text style={styles.tileLabel}>{el.label}</Text>
@@ -57,7 +57,7 @@ const InterventionFilterModal = (props: Props) => {
       <View style={styles.sectionWrapper}>
         <FlatList
           showsVerticalScrollIndicator={false}
-          data={AllIntervention} renderItem={({ item }) => renderSection(item)} />
+          data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)} />
       </View>
     </Modal>
   )
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     paddingVertical: 20,
-    height: '70%'
+    height: '60%'
   },
   tileWrapper: {
     width: "100%",
-    height: 50,
+    height: 60,
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: Colors.GRAY_LIGHT,

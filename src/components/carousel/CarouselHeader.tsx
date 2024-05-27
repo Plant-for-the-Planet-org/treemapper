@@ -53,7 +53,7 @@ export default CarouselHeader
 
 const styles = StyleSheet.create({
   container: {
-    maxWidth: 200,
+    maxWidth: 220,
     position: 'absolute',
     paddingVertical: 10,
     paddingRight: 10,
@@ -84,5 +84,6 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     flex: 1,
     marginLeft: 20,
+    paddingVertical:20
   },
 })

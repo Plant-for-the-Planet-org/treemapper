@@ -117,7 +117,7 @@ const FilterModal = (props: Props) => {
               <Image source={FunnelIcon} style={styles.closeWrapper} />
             </TouchableOpacity>
             <View style={styles.card}>
-              <Text style={styles.cardLable}>Only Interverntion that need {'\n'} remeasurment</Text>
+              <Text style={styles.cardLable}>Only Interverntion that{'\n'}need remeasurment</Text>
               <View style={styles.divider} />
               <Switch value={false} onValueChange={() => { }} disabled={false} />
             </View>
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50
   },
   card: {
-    height: 50,
+    height: 55,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,14 +177,18 @@ const styles = StyleSheet.create({
   headerLable: {
     fontSize: 20,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    color: Colors.TEXT_COLOR
+    color: Colors.TEXT_COLOR,
+    paddingLeft:10
   },
   cardLable: {
     fontSize: 16,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
-    letterSpacing:1
+    letterSpacing:1,
+    paddingLeft:10,
+    textAlign:'left'
+
   },
   
   divider: {

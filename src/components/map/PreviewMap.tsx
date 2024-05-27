@@ -17,10 +17,12 @@ interface Props {
   has_sample_trees: boolean
   sampleTrees: SampleTree[]
   openPolygon: () => void
+  showEdit: boolean
+  isEntireSite: boolean
 }
 
 const PreviewMap = (props: Props) => {
-  const { geoJSON, has_sample_trees, sampleTrees, openPolygon } = props
+  const { geoJSON, has_sample_trees, sampleTrees, openPolygon, showEdit, isEntireSite } = props
   const cameraRef = useRef<Camera>(null)
 
 
@@ -54,9 +56,9 @@ const PreviewMap = (props: Props) => {
           />
           {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} />}
         </MapLibreGL.MapView>
-        <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
+        {showEdit && isEntireSite?<TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
-        </TouchableOpacity>
+        </TouchableOpacity>: null}
       </View>
 
     </View>
@@ -91,8 +93,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.GRAY_BACKDROP,
     marginLeft: 10,
     borderRadius: 8,
-    position:'absolute',
-    top:10,
-    right:10
+    position: 'absolute',
+    top: 10,
+    right: 10
   },
 })

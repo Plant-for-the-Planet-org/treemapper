@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: scaleFont(14),
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.TEXT_LIGHT,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.DARK_TEXT_COLOR,
   },
   vauleLabel: {
     fontSize: scaleFont(14),

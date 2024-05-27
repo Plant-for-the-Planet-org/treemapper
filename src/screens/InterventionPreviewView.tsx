@@ -105,10 +105,10 @@ const InterventionPreviewView = () => {
     if (route.params.id === 'preview') {
       setupIncompleteForm(finalData)
     }
-    dispatch(updateInerventionData(finalData))
+  dispatch(updateInerventionData(finalData))
     setLoading(false)
     if (route.params && route.params.sampleTree) {
-      navigation.replace("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: selectedIntervention.status !=='NOT_SYNCED' })
+      navigation.replace("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true })
     }
   }
 

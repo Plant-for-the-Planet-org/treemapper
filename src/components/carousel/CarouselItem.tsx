@@ -9,40 +9,40 @@ import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 
 interface Props {
   data: any
-  onPress: ((id: string, tree_id?: string)=>void)
+  onPress: ((id: string, tree_id?: string) => void)
 }
 
 const CarouselItem = (props: Props) => {
   const { data, onPress } = props
-  if(data && data.tree_type){
-    const uri  = data.cdn_image_url?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}`: data.image_url
-    const hasImage = uri.length>0
-    return <TouchableOpacity style={styles.container} onPress={()=>{
+  if (data && data.tree_type) {
+    const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : data.image_url
+    const hasImage = uri.length > 0
+    return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage?<Image style={styles.imageContainer} source={{uri:uri}}/>:        <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
-}
+        {hasImage ? <Image style={styles.imageContainer} source={{ uri: uri }} /> : <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
+        }
       </View>
       <View style={styles.sectionWrapper}>
         <Text style={styles.sectionLabel}>Species Name</Text>
         <Text style={styles.speciesName} ellipsizeMode="tail">
           {data.specie_name}
         </Text>
-        <Text style={styles.sectionLabel}>Intevetion Date</Text>
+        <Text style={styles.sectionLabel}>Intervention Date</Text>
         <Text style={styles.vauleLabel}>
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
     </TouchableOpacity>
-  }else{
-    const hasImage =  data.cover_image_url.length>0
-    return <TouchableOpacity style={styles.container} onPress={()=>{
+  } else {
+    const hasImage = data.cover_image_url.length > 0
+    return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-      {hasImage?<Image style={styles.imageContainer} source={{uri: data.cover_image_url}}/>:          <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
-}
+        {hasImage ? <Image style={styles.imageContainer} source={{ uri: data.cover_image_url }} /> : <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+        }
       </View>
       <View style={styles.sectionWrapper}>
         <Text style={styles.sectionLabel}>Intervention</Text>
@@ -50,7 +50,7 @@ const CarouselItem = (props: Props) => {
           {data.intervention_title}
         </Text>
         <Text style={styles.sampleLabel}>Show More Details</Text>
-        
+
       </View>
     </TouchableOpacity>
   }
@@ -76,11 +76,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageContainer:{
-    width:'98%',
-    height:'98%',
+  imageContainer: {
+    width: '98%',
+    height: '98%',
     borderRadius: 20,
-    borderWidth:2,
+    borderWidth: 2,
     borderColor: Colors.NEW_PRIMARY + '1A',
   },
   imageUrl: {
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: scaleFont(14),
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.TEXT_LIGHT,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.DARK_TEXT_COLOR,
   },
   vauleLabel: {
     fontSize: scaleFont(14),
@@ -110,11 +110,11 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     marginBottom: 10,
   },
-  itLabel:{
+  itLabel: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_LIGHT,
-    marginBottom:5
+    marginBottom: 5
   },
   sampleLabel: {
     fontSize: scaleFont(14),

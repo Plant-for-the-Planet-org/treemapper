@@ -64,19 +64,19 @@ const PolygonShapeSource = (props: Props) => {
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      <MapLibreGL.SymbolLayer id={'iconset'} style={{
-        iconAllowOverlap:true,
-        iconImage: [
-          'match',
-          ['get', 'key'],
-          'single-tree-registration',
-          'single-tree-registration',
-          'soil-improvement',
-          'soil-improvement',
-          'fire-patrol',
-          'fire-patrol',
-          'single-tree-registration',
-        ]
+      <MapLibreGL.CircleLayer id={'entireSite'} style={{
+        circleOpacity: 0.9, circleColor: FillColor, circleRadius: [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          1, 5,   // At zoom level 1, radius is 1
+          4, 5,   // At zoom level 4, radius is 5
+          8, 10,  // At zoom level 8, radius is 10
+          12, 10, // At zoom level 12, radius is 20
+          20, 20,
+          22, 25  // Use the same radius as zoom level 12 for higher zoom levels
+        ],
+        circleTranslate: [-10, -10]
       }}
         filter={['==', ['get', 'site'], true]}
       />
