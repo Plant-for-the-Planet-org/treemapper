@@ -56,7 +56,7 @@ const PreviewMap = (props: Props) => {
           />
           {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} />}
         </MapLibreGL.MapView>
-        {showEdit && isEntireSite?<TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
+        {showEdit && !isEntireSite?<TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>: null}
       </View>

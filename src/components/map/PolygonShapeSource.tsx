@@ -78,7 +78,7 @@ const PolygonShapeSource = (props: Props) => {
         ],
         circleTranslate: [-10, -10]
       }}
-        filter={['==', ['get', 'site'], true]}
+        filter={['all', ['==', ['get', 'site'], true], ['>=', ['zoom'], 12]]}
       />
       <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
     </MapLibreGL.ShapeSource>
