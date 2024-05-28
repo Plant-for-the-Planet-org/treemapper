@@ -1,10 +1,10 @@
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal, TouchableOpacity } from '@gorhom/bottom-sheet'
+import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateInterventionFilter } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
@@ -28,7 +28,7 @@ const FilterModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
   // variables
-  const snapPoints = useMemo(() => ['45%'], []);
+  const snapPoints = useMemo(() => ['48%', '85%'], []);
   const { isVisible, toogleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -76,6 +76,11 @@ const FilterModal = (props: Props) => {
   }
 
 
+  const handleOpenModal = () => {
+    bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
+    toogleTypeModal()
+  }
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -89,7 +94,6 @@ const FilterModal = (props: Props) => {
       style={{ paddingTop: 20 }}
     >
       <InterventionTimeModal isVisible={showTimeModal} toogleModal={toogleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
-      <InterventionFilterModal isVisible={showTypeModal} toogleModal={toogleTypeModal} />
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>
@@ -111,11 +115,12 @@ const FilterModal = (props: Props) => {
               <View style={styles.divider} />
               <Switch value={interventionFilter !== 'none'} onValueChange={toogleIntervention} disabled={false} />
             </View>
-            <TouchableOpacity style={styles.card} onPress={toogleTypeModal}>
+            <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
               <Text style={styles.cardLable}>Filter Interventions</Text>
               <View style={styles.divider} />
               <Image source={FunnelIcon} style={styles.closeWrapper} />
             </TouchableOpacity>
+            {showTypeModal && <InterventionFilterModal />}
             <View style={styles.card}>
               <Text style={styles.cardLable}>Only Interverntion that{'\n'}need remeasurment</Text>
               <View style={styles.divider} />
@@ -137,7 +142,6 @@ const styles = StyleSheet.create({
   },
   sectionWrapper: {
     width: '100%',
-    position: 'absolute',
     bottom: 0,
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
@@ -178,19 +182,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
-    paddingLeft:10
+    paddingLeft: 10
   },
   cardLable: {
     fontSize: 16,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
-    letterSpacing:1,
-    paddingLeft:10,
-    textAlign:'left'
+    letterSpacing: 1,
+    paddingLeft: 10,
+    textAlign: 'left'
 
   },
-  
   divider: {
     flex: 1,
   },

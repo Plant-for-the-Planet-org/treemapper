@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
 import React from 'react'
-import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type';
 import { AllIntervention } from 'src/utils/constants/knownIntervention';
@@ -10,16 +9,8 @@ import { RootState } from 'src/store';
 import { updateSelectedFilters } from 'src/store/slice/displayMapSlice';
 
 
-interface Props {
-  isVisible: boolean
-  toogleModal: () => void
-}
 
-const InterventionFilterModal = (props: Props) => {
-  const { isVisible, toogleModal } = props
-  const handleClose = () => {
-    toogleModal()
-  }
+const InterventionFilterModal = () => {
   const dispatch = useDispatch()
   const { selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
@@ -38,7 +29,7 @@ const InterventionFilterModal = (props: Props) => {
 
 
   const renderSection = (el, index) => {
-    return (<TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: index < AllIntervention.length-1 ? 1 : 0 }]} key={el.value} onPress={() => {
+    return (<TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: index < AllIntervention.length - 1 ? 1 : 0 }]} key={el.value} onPress={() => {
       handleSelection(el.value)
     }}>
       <Text style={styles.tileLabel}>{el.label}</Text>
@@ -50,16 +41,11 @@ const InterventionFilterModal = (props: Props) => {
     </TouchableOpacity>)
   }
   return (
-    <Modal
-      style={styles.container}
-      isVisible={isVisible}
-      onBackdropPress={handleClose}>
-      <View style={styles.sectionWrapper}>
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)} />
-      </View>
-    </Modal>
+    <View style={styles.container}>
+      <FlatList
+        showsVerticalScrollIndicator={false}
+        data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)} />
+    </View>
   )
 }
 
@@ -67,33 +53,30 @@ export default InterventionFilterModal
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    margin: 0,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  sectionWrapper: {
-    width: '90%',
-    position: 'absolute',
-    backgroundColor: Colors.WHITE,
-    borderRadius: 20,
-    alignItems: 'center',
-    paddingVertical: 20,
-    height: '60%'
+    maxHeight: 300,
+    width:'100%',
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor: Colors.LIGHT_PRIMARY,
+    borderRadius:10,
+    marginBottom:10,
+    top:-1
   },
   tileWrapper: {
-    width: "100%",
+    width: "98%",
     height: 60,
     alignItems: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: Colors.GRAY_LIGHT,
+    borderBottomColor: Colors.WHITE,
     flexDirection: 'row',
+    marginLeft:'1%',
+    justifyContent:'space-evenly',
   },
   tileLabel: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
-    paddingRight: 30
+    paddingLeft:20
   },
   divider: {
     flex: 1
