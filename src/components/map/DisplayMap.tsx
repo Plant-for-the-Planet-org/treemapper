@@ -82,7 +82,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = (d: InterventionData[] | any) => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = d.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
-    const feature = filterData.map((el: InterventionData) => {
+    const feature = filterData.map((el: InterventionData, index: number) => {
       const result = makeInterventionGeoJson(
         el.location.type,
         JSON.parse(el.location.coordinates),
@@ -93,7 +93,7 @@ const DisplayMap = () => {
         }
       )
       if (el.entire_site) {
-        const newCoords = getRandomPointInPolygon(JSON.parse(el.location.coordinates))
+        const newCoords = getRandomPointInPolygon(JSON.parse(el.location.coordinates), index)
         result.geoJSON.geometry.type = "Point"
         result.geoJSON.geometry.coordinates = newCoords
       }
