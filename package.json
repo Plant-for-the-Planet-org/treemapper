@@ -80,6 +80,7 @@
     "react-redux": "^9.1.0",
     "realm": "^12.6.2",
     "redux-persist": "^6.0.0",
+    "seedrandom": "^3.0.5",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
