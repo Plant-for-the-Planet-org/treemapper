@@ -2,7 +2,6 @@ import { RefreshControl, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { FlashList } from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
-import { scaleSize } from 'src/utils/constants/mixins'
 import InterventionHeaderSelector from 'src/components/intervention/InterventionHeaderList'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { useNavigation } from '@react-navigation/native'
@@ -52,7 +51,7 @@ const InterventionList = (props: Props) => {
           openIntervention={handleNavigation}
         />
       )}
-      estimatedItemSize={scaleSize(100)}
+      estimatedItemSize={100}
       refreshControl={
         <RefreshControl
           refreshing={loading}
@@ -66,7 +65,8 @@ const InterventionList = (props: Props) => {
           setSlectedLabel={setSlectedLabel}
         />
       }
-      onEndReachedThreshold={0.1}
+      onEndReachedThreshold={0.3}
+      // keyExtractor={({ intervention_id }) => intervention_id}
       onEndReached={handlePageIncrement}
     />
   )
@@ -76,15 +76,15 @@ export default InterventionList
 
 const styles = StyleSheet.create({
   footerWrapper: {
-    height: scaleSize(140),
+    height: 140,
     width: '100%',
   },
   emptyBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width:'100%',
-    marginTop:80
+    width: '100%',
+    marginTop: 80
   },
   emptyHeaderLable: {
     fontSize: 18,

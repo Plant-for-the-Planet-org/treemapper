@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
+import { scaleFont } from 'src/utils/constants/mixins'
 import InterventionIconSwitch from './InterventionIconSwitch'
 import { Colors, Typography } from 'src/utils/constants'
 import EditInterventionIcon from 'assets/images/svg/EditInterventionIcon.svg'
@@ -62,7 +62,7 @@ export default InterventionCard
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: scaleSize(100),
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
