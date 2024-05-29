@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,11 +20,8 @@ import ClusterdShapSource from './ClusterdShapSource'
 import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { getRandomPointInPolygon } from 'src/utils/helpers/genratePointInPolygon'
+import MapMarkersOverlay from './MapMarkersOverlay'
 
-
-const MultiTreePin = require('assets/images/icons/MultTreePin.png');
-const SingleTreePin = require('assets/images/icons/SingleTreePin.png');
-const RemovalPin = require('assets/images/icons/RemovalPin.png');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -246,14 +243,7 @@ const DisplayMap = () => {
     dispatch(updateActiveIndex(i))
   }
 
-  const renderIcons = useCallback(
-    () => {
-      return <MapLibreGL.Images images={{ 'single-tree-registration': SingleTreePin, 'soil-improvement': MultiTreePin, 'fire-patrol': RemovalPin }}>
-        <React.Fragment />
-      </MapLibreGL.Images>
-    },
-    [],
-  )
+
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -265,17 +255,20 @@ const DisplayMap = () => {
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation minDisplacement={5} />
-      {renderIcons()}
       {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={geoJSON}
         onShapeSourcePress={setSelectedGeoJson} /> :
         showOverlay ?
           <ClusterdShapSource geoJSON={overlayGeoJSON}
             onShapeSourcePress={setActiveIntervetnion} /> : null}
       <SiteMapSource />
-      {selectedIntervention && (
+      {selectedIntervention && !showOverlay ? (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
-      )}
+      ) : null}
+      {selectedIntervention && showOverlay ? (
+        <MapMarkersOverlay
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
+      ) : null}
       {selectedIntervention && !showOverlay ? (
         <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)} />
       ) : null}

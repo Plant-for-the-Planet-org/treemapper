@@ -1,9 +1,8 @@
 import React from 'react'
 import Maplibre from '@maplibre/maplibre-react-native'
-import MapPin from 'assets/images/svg/MapPin.svg'
 import { SampleTree } from 'src/types/interface/slice.interface'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { Colors, Typography } from 'src/utils/constants'
+import { View, StyleSheet } from 'react-native'
+import { Typography } from 'src/utils/constants'
 
 interface Props {
   sampleTreeData: SampleTree[]
@@ -14,19 +13,10 @@ interface Props {
   overLay?: boolean
 }
 
-const MapMarkers = (props: Props) => {
-  const { sampleTreeData, hasSampleTree, showActive, activeIndex, onMarkerPress } = props
+const MapMarkersOverlay = (props: Props) => {
+  const { sampleTreeData, hasSampleTree } = props
   if (!hasSampleTree) {
     return null
-  }
-  const alphabet = (i: number) => {
-    return String.fromCharCode(i + 65)
-  }
-
-  const handleMarkerPress = (index: number) => {
-    if (onMarkerPress) {
-      onMarkerPress(index)
-    }
   }
 
   const renderMarkers = () => {
@@ -38,21 +28,16 @@ const MapMarkers = (props: Props) => {
         }
         id={String(i)}
         key={i}>
-        <TouchableOpacity style={styles.container} onPress={() => {
-          handleMarkerPress(i)
-        }}>
-          <View style={styles.mapPinContainer}>
-            <MapPin fill={showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.NEW_PRIMARY} />
-          </View>
-          <Text style={[styles.labelText, { color: showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.DARK_TEXT_COLOR }]}>{alphabet(i)}</Text>
-        </TouchableOpacity>
+        <View style={styles.container}>
+          <View style={styles.markerContainer} />
+        </View>
       </Maplibre.MarkerView>
     ))
   }
   return renderMarkers()
 }
 
-export default MapMarkers
+export default MapMarkersOverlay
 
 const styles = StyleSheet.create({
   container: {
