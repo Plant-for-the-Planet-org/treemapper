@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
     height: '100%',
     marginHorizontal: '5%',
     backgroundColor: Colors.BACKDROP_COLOR,
-    paddingVertical:20
   },
   unitLabel: {
     color: Colors.GRAY_TEXT,
