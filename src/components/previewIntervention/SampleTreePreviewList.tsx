@@ -77,9 +77,11 @@ const SampleTreePreviewList = (props: Props) => {
               </View>
             </View>
             <View style={styles.iconWrapper}>
-              <Text style={styles.iconTitle}>Width</Text>
+              <Text style={styles.iconTitle}>Diameter(DBH)</Text>
               <View style={styles.iconMetaWrapper}>
-                <WidthIcon width={20} height={20} />
+                <View style={styles.iconHolder}>
+                  <WidthIcon width={20} height={20} />
+                </View>
                 <Text style={styles.iconLabel}>{details.specie_diameter}</Text>
               </View>
             </View>
@@ -182,7 +184,7 @@ const styles = StyleSheet.create({
   },
   iconTitle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: scaleSize(13),
     color: Colors.TEXT_LIGHT,
     marginLeft: 20,
     marginBottom: 5,
@@ -210,4 +212,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     borderRadius: 8,
   },
+  iconHolder: {
+    marginTop:10
+  }
 })

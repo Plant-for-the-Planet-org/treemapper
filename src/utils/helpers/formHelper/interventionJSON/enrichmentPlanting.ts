@@ -29,7 +29,7 @@ export const EnrichmentPlannting: RegisterFormSliceInitalState = {
     meta_data: '{}',
     form_data: [],
     additional_data: [],
-    can_be_entire_site: false,
+    can_be_entire_site: true,
     entire_site_selected: false,
     key: 'enrichement-planting',
     should_register_location: false,

@@ -45,6 +45,7 @@ const InterventionHeaderList = (props: Props) => {
     const selectedStyle: TextStyle = {
       color: isSelected ? Colors.WHITE : Colors.TEXT_COLOR,
       backgroundColor: isSelected ? Colors.NEW_PRIMARY : Colors.WHITE,
+      fontFamily: isSelected ? Typography.FONT_FAMILY_BOLD : Typography.FONT_FAMILY_REGULAR
     }
     const handlePress = () => {
       setSlectedLabel(item.key)
@@ -54,7 +55,7 @@ const InterventionHeaderList = (props: Props) => {
         <Text
           style={[
             styles.label,
-            { color: selectedStyle.color },
+            { color: selectedStyle.color, fontFamily: selectedStyle.fontFamily },
           ]}>{item.key === 'all' ? `${item.label}  ${item.count}` : `${item.count}  ${item.label}`}</Text>
       </TouchableOpacity>
     )
@@ -85,7 +86,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    fontFamily: Typography.FONT_FAMILY_BOLD
   },
   labelWrapper: {
     borderColor: Colors.GRAY_LIGHT,

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, ViewStyle } from 'react-native'
 import React from 'react'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SCALE_40, SCALE_50 } from 'src/utils/constants/spacing'
@@ -25,50 +25,51 @@ import OtherInterventionPin from 'assets/images/intervention/OtherInterventionPi
 
 interface Props {
   icon: INTERVENTION_TYPE
-  dimension?: number
+  dimension?: boolean
 
 }
 
 const InterventionIconSwitch = (props: Props) => {
   const { icon, dimension } = props
-  const scale = dimension || SCALE_40
+  const scale = dimension ? '100%': SCALE_40
+  const imageWrapper: ViewStyle = { ...styles.iconWrapper, width: '100%', height: '100%' }
   switch (icon) {
     case 'single-tree-registration':
-      return <SinglTreePin style={styles.iconWrapper} width={scale} height={scale} />
+      return <SinglTreePin style={imageWrapper} width={scale} height={scale} />
     case 'multi-tree-registration':
-      return <MultiTreePin style={styles.iconWrapper} width={scale} height={scale} />
+      return <MultiTreePin style={imageWrapper} width={scale} height={scale} />
     case 'removal-invasive-species':
-      return <InvasiveSpeciesPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <InvasiveSpeciesPin style={imageWrapper} width={scale} height={scale} />
     case 'fire-suppression':
-      return <FireSupressionPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <FireSupressionPin style={imageWrapper} width={scale} height={scale} />
     case 'fire-patrol':
-      return <FirePatrolPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <FirePatrolPin style={imageWrapper} width={scale} height={scale} />
     case 'fencing':
-      return <FencingPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <FencingPin style={imageWrapper} width={scale} height={scale} />
     case 'marking-regenerant':
-      return <MarkingRegenerantPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <MarkingRegenerantPin style={imageWrapper} width={scale} height={scale} />
     case 'liberating-regenerant':
-      return <LiberatingRegenerantPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <LiberatingRegenerantPin style={imageWrapper} width={scale} height={scale} />
     case 'grass-suppression':
-      return <GrassSupressionPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <GrassSupressionPin style={imageWrapper} width={scale} height={scale} />
     case 'firebreaks':
-      return <FireBreakPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <FireBreakPin style={imageWrapper} width={scale} height={scale} />
     case 'assisting-seed-rain':
-      return <SeedRainPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <SeedRainPin style={imageWrapper} width={scale} height={scale} />
     case 'soil-improvement':
-      return <SoilImprovementPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <SoilImprovementPin style={imageWrapper} width={scale} height={scale} />
     case 'stop-tree-harvesting':
-      return <StopHarvestingPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <StopHarvestingPin style={imageWrapper} width={scale} height={scale} />
     case 'direct-seeding':
-      return <DirectSeedingPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <DirectSeedingPin style={imageWrapper} width={scale} height={scale} />
     case 'enrichement-planting':
-      return <EnrichementPlantingPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <EnrichementPlantingPin style={imageWrapper} width={scale} height={scale} />
     case 'maintenance':
-      return <MaintenancePin style={styles.iconWrapper} width={scale} height={scale} />
+      return <MaintenancePin style={imageWrapper} width={scale} height={scale} />
     case 'other-intervention':
-      return <OtherInterventionPin style={styles.iconWrapper} width={scale} height={scale} />
+      return <OtherInterventionPin style={imageWrapper} width={scale} height={scale} />
     default:
-      return <SinglTreePin style={styles.iconWrapper} width={scale} height={scale} />
+      return <SinglTreePin style={imageWrapper} width={scale} height={scale} />
   }
 }
 

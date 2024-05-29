@@ -2,8 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
-import UndoIcon from 'assets/images/svg/UndoIcon.svg'
-import { SCALE_12 } from 'src/utils/constants/spacing'
+import Icon from '@expo/vector-icons/FontAwesome5';
 
 interface Props {
   lat: number
@@ -13,14 +12,18 @@ interface Props {
 }
 
 const DispalyCurrentPolygonMarker = (props: Props) => {
-  const { id ,undo} = props
+  const { id, undo } = props
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Corner {id}</Text>
       <Text style={styles.note}>Please select the {id === 'A' ? 'first' : 'next'} corner</Text>
       {id !== 'A' && <TouchableOpacity style={styles.undoButton} onPress={undo}>
-        <Text style={styles.undoLable}>Previous</Text>
-        <UndoIcon width={SCALE_12} height={SCALE_12} fill={Colors.TEXT_LIGHT} />
+      <Text style={styles.undoLable}>Undo</Text>
+        <Icon
+          name="undo-alt"
+          size={16}
+          color={Colors.GRAY_DARK}
+        />
       </TouchableOpacity>}
     </View>
   )
@@ -34,7 +37,7 @@ const styles = StyleSheet.create({
     height: scaleSize(50),
     backgroundColor: Colors.WHITE,
     paddingHorizontal: 20,
-    zIndex:1
+    zIndex: 1
   },
   label: {
     fontSize: scaleFont(18),

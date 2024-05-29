@@ -105,7 +105,7 @@ const InterventionPreviewView = () => {
     if (route.params.id === 'preview') {
       setupIncompleteForm(finalData)
     }
-  dispatch(updateInerventionData(finalData))
+    dispatch(updateInerventionData(finalData))
     setLoading(false)
     if (route.params && route.params.sampleTree) {
       navigation.replace("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true })
@@ -171,7 +171,7 @@ const InterventionPreviewView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.scrollWrapper}>
         <Header label="Review" rightComponet={renderRightContainer()} />
         {/* <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} /> */}
         <InterventionBasicInfo
@@ -225,4 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  scrollWrapper: {
+    backgroundColor: Colors.GRAY_LIGHT + '1A'
+  }
 })

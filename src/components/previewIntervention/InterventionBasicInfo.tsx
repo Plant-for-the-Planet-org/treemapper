@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop:20
   },
   wrapper: {
     width: '90%',

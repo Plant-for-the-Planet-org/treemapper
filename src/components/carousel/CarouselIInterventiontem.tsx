@@ -5,7 +5,6 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
-import { SCALE_56 } from 'src/utils/constants/spacing'
 
 interface Props {
   data: InterventionData
@@ -20,7 +19,7 @@ const CarouselIInterventiontem = (props: Props) => {
         onPress(data.intervention_id)
       }}>
         <View style={styles.imageWrapper}>
-          <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+          <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
         </View>
         <View style={styles.sectionWrapper}>
           <Text style={styles.sectionLabel}>Intervention</Text>
@@ -41,7 +40,7 @@ const CarouselIInterventiontem = (props: Props) => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-        <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+        <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
       </View>
       <View style={styles.sectionWrapper}>
         <Text style={styles.sectionLabel}>Intervention</Text>
@@ -74,7 +73,6 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '35%',
     height: '80%',
-    backgroundColor: Colors.NEW_PRIMARY + '1A',
     marginLeft: 10,
     borderRadius: 20,
     justifyContent: 'center',

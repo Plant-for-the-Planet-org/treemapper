@@ -4,7 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
 import { Typography, Colors } from 'src/utils/constants'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
-import RemoveSpeciesIcon from 'assets/images/svg/RemoveSpeciesIcon.svg'
+import RemoveSpeciesIcon from 'assets/images/svg/BinIcon.svg'
 import { SCALE_30 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { PlantedSpecies } from 'src/types/interface/slice.interface'
@@ -89,7 +89,9 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (
-              <RemoveSpeciesIcon />
+              <View style={styles.biContainer}>
+                <RemoveSpeciesIcon width={20} height={20} fill="tomato" />
+              </View>
             )}
           </TouchableOpacity>}
         </TouchableOpacity>
@@ -151,4 +153,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  biContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.LIGHT_RED+'1A',
+    borderRadius:8
+  }
 })

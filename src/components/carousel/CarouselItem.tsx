@@ -4,7 +4,7 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
-import { SCALE_36, SCALE_56 } from 'src/utils/constants/spacing'
+import { SCALE_36 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 
 interface Props {
@@ -41,7 +41,7 @@ const CarouselItem = (props: Props) => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <Image style={styles.imageContainer} source={{ uri: data.cover_image_url }} /> : <InterventionIconSwitch icon={data.intervention_key} dimension={SCALE_56} />
+        {hasImage ? <Image style={styles.imageContainer} source={{ uri: data.cover_image_url }} /> : <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
         }
       </View>
       <View style={styles.sectionWrapper}>

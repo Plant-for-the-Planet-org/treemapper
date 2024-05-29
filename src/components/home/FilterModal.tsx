@@ -37,9 +37,7 @@ const FilterModal = (props: Props) => {
     }
   }, [isVisible])
 
-  useEffect(() => {
 
-  }, [])
 
 
   // callbacks

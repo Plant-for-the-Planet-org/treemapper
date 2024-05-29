@@ -19,12 +19,13 @@ const CustomTextInput = (props: Props) => {
         value={value}
         placeholder={label}
         activeColor={Colors.NEW_PRIMARY}
-        inactiveColor={Colors.GRAY_TEXT}
-        placeholderTextColor={Colors.GRAY_TEXT}
+        inactiveColor={Colors.TEXT_COLOR}
+        placeholderTextColor={Colors.TEXT_COLOR}
         fontSize={scaleFont(16)}
         onChangeText={onChangeHandler}
         backgroundColor={Colors.WHITE}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
+        paddingVertical={15}
       />
     </Pressable>
   )
@@ -41,12 +42,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   inputWrapper: {
-    borderRadius: 10,
+    borderRadius: 5,
     paddingHorizontal: 10,
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',
     backgroundColor: Colors.BACKDROP_COLOR,
+    paddingVertical:20
   },
   unitLabel: {
     color: Colors.GRAY_TEXT,

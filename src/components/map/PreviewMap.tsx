@@ -70,7 +70,7 @@ export default PreviewMap
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 220,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },

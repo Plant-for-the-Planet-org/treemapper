@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -16,7 +16,7 @@ import {
 } from 'src/store/slice/projectStateSlice'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal, BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 
 interface Props {
   isVisible: boolean
@@ -28,7 +28,7 @@ const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
   // variables
-  const snapPoints = useMemo(() => ['70%'], []);
+  const snapPoints = useMemo(() => ['60%'], []);
 
   const { isVisible, toogleModal } = props
   const [projectData, setProjectData] = useState<any>([])
@@ -175,7 +175,7 @@ const ProjectModal = (props: Props) => {
 
             <Text style={styles.projectLabel}>Select Site</Text>
             <View style={styles.siteContainer}>
-              <BottomSheetFlatList
+              <FlatList
                 data={projectSies}
                 renderItem={({ item, index }: { item: any, index: number }) => {
                   return (
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
     marginLeft: '5%',
-    minHeight: '50%',
+    maxHeight: '47.5%',
   },
   siteWrapper: {
     height: '100%',
@@ -295,5 +295,6 @@ const styles = StyleSheet.create({
   },
   siteCardLabel: {
     fontSize: Typography.FONT_SIZE_16,
+    fontFamily:Typography.FONT_FAMILY_REGULAR
   },
 })

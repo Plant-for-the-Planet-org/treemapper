@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   incompleteTagLable: {
     fontSize: scaleFont(8),
-    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   editIconWrapper: {
     height: '100%',

@@ -51,7 +51,8 @@ const styles = StyleSheet.create({
   },
   lable: {
     fontSize: scaleFont(12),
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    marginRight: 10
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    marginRight: 10,
+    color: Colors.TEXT_COLOR
   }
 })

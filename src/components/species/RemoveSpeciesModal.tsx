@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
   removeLable: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
+    color: Colors.NEW_PRIMARY,
     lineHeight: Typography.LINE_HEIGHT_24,
   },
   primaryButtonStyle: {
     marginLeft: 16,
-    color: Colors.ALERT,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
