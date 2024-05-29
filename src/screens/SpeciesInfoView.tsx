@@ -1,5 +1,5 @@
-import { StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native'
-import React from 'react'
+import { StyleSheet, ScrollView } from 'react-native'
+import React, { useEffect } from 'react'
 import Header from 'src/components/common/Header'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import SpecieInfoImageSection from 'src/components/species/SpecieInfoImageSection'
@@ -11,6 +11,7 @@ import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 
 const SpeciesInfoView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'SpeciesInfo'>>()
@@ -18,18 +19,25 @@ const SpeciesInfoView = () => {
     RealmSchema.ScientificSpecies,
     route.params.guid,
   )
+  useEffect(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  })
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-      >
+      <AvoidSoftInputView>
         <ScrollView>
           <Header label="" />
           <SpeciesInfoHeader item={specieData} />
           <SpecieInfoImageSection item={specieData} />
           <SpecieInfoDetailSection item={specieData} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </AvoidSoftInputView>
     </SafeAreaView>
   )
 }

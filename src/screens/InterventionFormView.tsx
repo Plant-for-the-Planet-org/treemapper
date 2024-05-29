@@ -1,7 +1,5 @@
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -25,6 +23,7 @@ import {
   updateFormProjectSite,
   updteInterventionDate,
 } from 'src/store/slice/registerFormSlice'
+import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { v4 as uuidv4 } from 'uuid'
@@ -76,6 +75,15 @@ const InterventionFormView = () => {
     dispatch(resetSampleTreeform())
     setUpRegisterFlow()
   }, [])
+
+  useEffect(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  })
 
   const setUpRegisterFlow = async () => {
     await createBasePath()
@@ -290,8 +298,8 @@ const InterventionFormView = () => {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+      <AvoidSoftInputView
+        avoidOffset={20}
         style={styles.container}>
         <ScrollView>
           <View style={styles.container}>
@@ -360,7 +368,7 @@ const InterventionFormView = () => {
           wrapperStyle={styles.btnWrapper}
           disable={interventionType.value === ''}
         />
-      </KeyboardAvoidingView>
+      </AvoidSoftInputView>
     </SafeAreaView>
   )
 }
@@ -381,6 +389,7 @@ const styles = StyleSheet.create({
     width: '98%',
     marginTop: 10,
     flex: 1,
+    paddingBottom:50
   },
   btnContainer: {
     width: '100%',

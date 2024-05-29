@@ -51,7 +51,6 @@ const SpecieInfoDetailSection = (props: Props) => {
         value={details}
         onChangeText={updateDescription}
         style={[styles.textArea]}
-        returnKeyType='done'
       />
     </View>
   )
