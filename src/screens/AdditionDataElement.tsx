@@ -47,7 +47,7 @@ const AdditionDataElement = () => {
 
   const [inputKey, setInputKey] = useState('')
   const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
-  const [isPublic, setIsPublic] = useState(false)
+  const [isPublic, setIsPublic] = useState(true)
   const [advanceMode, setAdvanceMode] = useState(false)
   const [fieldKey, setFieldKey] = useState(`Element-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)

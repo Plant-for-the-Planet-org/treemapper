@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -12,7 +12,6 @@ import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 
-const FunnelIcon = require('assets/images/icons/FunnelIcon.png')
 interface Props {
   isVisible: boolean
   toogleModal: () => void
@@ -116,7 +115,7 @@ const FilterModal = (props: Props) => {
             <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
               <Text style={styles.cardLable}>Filter Interventions</Text>
               <View style={styles.divider} />
-              <Image source={FunnelIcon} style={styles.closeWrapper} />
+              {/* <Image source={FunnelIcon} style={styles.closeWrapper} /> */}
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
             <View style={styles.card}>

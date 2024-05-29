@@ -56,15 +56,13 @@ const LocalForm = () => {
   }
 
 
-  const checkForNonEmptyForm = (data: any) => {
-    data.forEach(el => {
-      if (el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH') {
-        return true
-      }
-    })
-    return false
-  }
-
+  const checkForNonEmptyForm = (data) => {
+    return data.some(form => 
+      form.elements.some(el => 
+        el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH'
+      )
+    );
+  };
 
   const handleCompletion = async (data: FormElement[], id: string) => {
     const filterData = finalData.filter(el => el.page !== id);

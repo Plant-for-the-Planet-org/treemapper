@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1,
-    right: width / 3.5,
+    right: width / 3.7,
     bottom: scaleSize(140),
     width: 55,
     height: 55,

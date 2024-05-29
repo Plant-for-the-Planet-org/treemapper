@@ -53,7 +53,6 @@ interface IPermissionBlockAlertProps {
 export const PermissionBlockedAlert = ({
   isPermissionBlockedAlertShow,
   setIsPermissionBlockedAlertShow,
-  onPressPrimaryBtn,
   onPressSecondaryBtn,
   message = '',
 }: IPermissionBlockAlertProps) => {
@@ -67,11 +66,13 @@ export const PermissionBlockedAlert = ({
       secondaryBtnText={i18next.t('label.back')}
       onPressPrimaryBtn={() => {
         setIsPermissionBlockedAlertShow(false);
-        onPressPrimaryBtn();
         if (isAndroid) {
           Linking.openSettings();
         } else {
-          Linking.openURL('app-settings');
+          Linking.openURL('app-settings:')
+          .catch((err) => {
+            console.error('Failed to open settings:', err);
+          });
         }
       }}
       onPressSecondaryBtn={() => {

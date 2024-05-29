@@ -39,7 +39,7 @@ const InterventionCardHeader = (props: Props) => {
     case 'multi-tree-registration':
       return <Text style={styles.label}>{totalTressCount()} Trees Planted</Text>
     case 'enrichement-planting':
-      return <Text style={styles.label}>{totalTressCount()} Trees Planted (Enrichement)</Text>
+      return <Text style={styles.label}>{totalTressCount()} Trees Planted</Text>
     case 'single-tree-registration':
       return <Text style={styles.label}>Single Tree Planted</Text>
     case 'assisting-seed-rain':
