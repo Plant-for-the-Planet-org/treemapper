@@ -334,7 +334,8 @@ const styles = StyleSheet.create({
         fontSize: scaleSize(18),
         color: Colors.TEXT_COLOR,
         marginLeft: 20,
-        marginTop: 10
+        marginTop: 10,
+        marginBottom:10
     },
     valueLable: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,

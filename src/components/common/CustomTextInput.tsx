@@ -23,6 +23,7 @@ const CustomTextInput = (props: Props) => {
         placeholderTextColor={Colors.TEXT_COLOR}
         fontSize={scaleFont(16)}
         onChangeText={onChangeHandler}
+        fontColor={Colors.DARK_TEXT_COLOR}
         backgroundColor={Colors.WHITE}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         paddingVertical={15}
