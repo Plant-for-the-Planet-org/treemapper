@@ -86,8 +86,12 @@ const InterventionPreviewView = () => {
         "type": "Point"
       },
     }
-    const finalMeta = metaDataTranformer(JSON.parse(formFlowData.meta_data), updatedMetadata)
-    await updateInterventionMetaData(formFlowData.form_id, finalMeta)
+    const parsedMeta = JSON.parse(formFlowData.meta_data)
+    if (Object.keys(parsedMeta).length === 0) {
+      const finalMeta = metaDataTranformer(parsedMeta, updatedMetadata)
+      await updateInterventionMetaData(formFlowData.form_id, finalMeta)
+    }
+
   }
 
   useEffect(() => {

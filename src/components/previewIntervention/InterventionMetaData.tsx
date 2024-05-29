@@ -70,14 +70,14 @@ const styles = StyleSheet.create({
     width: '90%',
     borderRadius: 12,
     paddingVertical: 20,
-    // backgroundColor: Colors.WHITE,
-    // borderWidth: 0.5,
-    // borderColor: '#f2ebdd',
-    // shadowColor: Colors.GRAY_TEXT,
-    // shadowOffset: { width: 2, height: 2 },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 5,
-    // elevation: 2
+    backgroundColor: Colors.WHITE,
+    borderWidth: 0.5,
+    borderColor: '#f2ebdd',
+    shadowColor: Colors.GRAY_TEXT,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2
   },
   cardWrapper: {
     width: '100%',

@@ -11,6 +11,8 @@ import MainFormSection from 'src/components/formBuilder/MainFormSection'
 import { FormElement } from 'src/types/interface/form.interface'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { useDispatch } from 'react-redux'
+import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 
 
 
@@ -21,7 +23,7 @@ const EditAdditionData = () => {
     const realm = useRealm()
     const { updateEditAdditionalData } = useInterventionManagement()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+    const dispatch = useDispatch()
     useEffect(() => {
         setupForm()
     }, [])
@@ -37,6 +39,7 @@ const EditAdditionData = () => {
             }
         })
         await updateEditAdditionalData(InterventoinID, formData, additionalData)
+        dispatch(updateLastUpdatedAt())
         navigation.goBack()
     }
 
