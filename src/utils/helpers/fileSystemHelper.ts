@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { basePath } from './fileManagementHelper';
 import * as ImageManipulator from 'expo-image-manipulator';
 import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
 
 export const copyImageAndGetData = async (imagePath: string, interventionId: string, isSpecies: boolean): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -31,7 +32,7 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`;
     const compFile = await compressImage(inputPath, 0.7)
     await RNFS.copyFile(compFile, outputPath);
-    return outputPath;
+    return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;
   } catch (error) {
     throw new Error(error);
   }
