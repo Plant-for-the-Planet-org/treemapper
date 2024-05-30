@@ -167,7 +167,7 @@ const useInterventionManagement = () => {
       intervention_title: interventoin.title,
       intervention_date: interventoin.intervention_date,
       project_id: interventoin.project_id,
-      project_name: interventoin.site_name,
+      project_name: interventoin.project_name,
       site_name: interventoin.site_name,
       location_type: interventoin.location_type,
       location: {
