@@ -112,7 +112,7 @@ const InterventionPreviewView = () => {
     dispatch(updateInerventionData(finalData))
     setLoading(false)
     if (route.params && route.params.sampleTree) {
-      navigation.replace("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true })
+      navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true })
     }
   }
 
@@ -177,14 +177,11 @@ const InterventionPreviewView = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollWrapper}>
         <Header label="Review" rightComponet={renderRightContainer()} />
+        {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         {/* <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} /> */}
         <InterventionBasicInfo
-          title={InterventionData.intervention_title}
-          intervention_date={InterventionData.intervention_date}
-          project_name={InterventionData.project_name}
-          site_name={InterventionData.site_name}
+          data={InterventionData}
         />
-        {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         {InterventionData.sample_trees.length > 0 && (
           <SampleTreePreviewList
             sampleTress={InterventionData.sample_trees}

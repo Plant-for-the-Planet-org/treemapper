@@ -27,7 +27,7 @@ const InterventionCard = (props: Props) => {
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
         <InterventionIconSwitch icon={item.intervention_type} />
-        {!item.is_complete? (
+        {!item.is_complete ? (
           <View style={styles.incompleteTagWrapper}>
             <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
           </View>
@@ -49,9 +49,9 @@ const InterventionCard = (props: Props) => {
             </Text>
           </View>
         </View>
-        <View style={styles.editIconWrapper}>
+        {item.status === 'NOT_SYNCED' && <View style={styles.editIconWrapper}>
           <EditInterventionIcon height={30} width={30} />
-        </View>
+        </View>}
       </View>
     </TouchableOpacity>
   )
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    paddingLeft:10,
+    paddingLeft: 10,
   },
   incompleteTagWrapper: {
     justifyContent: 'center',

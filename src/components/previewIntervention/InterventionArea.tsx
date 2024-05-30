@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
@@ -6,7 +6,7 @@ import PreviewMap from '../map/PreviewMap'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
-import CoordinatesList from './CoordinatesList'
+// import CoordinatesList from './CoordinatesList'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -16,7 +16,7 @@ interface Props {
 
 const InterventionArea = (props: Props) => {
   const { data } = props
-  const { geoJSON, type } = makeInterventionGeoJson(
+  const { geoJSON } = makeInterventionGeoJson(
     data.location.type,
     JSON.parse(data.location.coordinates),
     data.intervention_id,
@@ -38,7 +38,7 @@ const InterventionArea = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Intervention Area</Text>
+      {/* <Text style={styles.header}>Intervention Area</Text> */}
       <PreviewMap
         geoJSON={FeatureCollectionGeoJSON}
         sampleTrees={data.sample_trees}
@@ -47,7 +47,7 @@ const InterventionArea = (props: Props) => {
         showEdit={data.status === 'NOT_SYNCED'}
         isEntireSite={data.entire_site}
       />
-      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} />
+      {/* <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} /> */}
     </View>
   )
 }

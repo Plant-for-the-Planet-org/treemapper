@@ -43,11 +43,11 @@ const SampleTreePreviewList = (props: Props) => {
       return (
         <View style={styles.wrapper} key={i}>
           <View style={styles.deleteWrapper}>
-            <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               editTreeDetails(details.tree_id)
             }}>
               <PenIcon width={30} height={30} />
-            </TouchableOpacity>
+            </TouchableOpacity>}
             {hasSampleTress && !isSynced ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               deleteTreeDetails(details.tree_id)
             }}>

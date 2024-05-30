@@ -1,14 +1,16 @@
-import {StyleSheet, Text, View} from 'react-native'
-import React, {useEffect, useRef, useState} from 'react'
+import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Camera,
   CameraCapturedPicture,
   CameraType,
   PermissionStatus,
 } from 'expo-camera'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
-import {Colors} from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
+import i18next from 'src/locales'
+
 
 interface Props {
   takePicture: (metaData: CameraCapturedPicture) => void
@@ -18,6 +20,7 @@ const CameraView = (props: Props) => {
   const [permission, requestPermission] = Camera.useCameraPermissions()
   const [loading, setLoading] = useState(false)
   const cameraRef = useRef<Camera>(null)
+
   useEffect(() => {
     requestPermission()
   }, [])
@@ -31,14 +34,26 @@ const CameraView = (props: Props) => {
       setLoading(false)
     }
   }
+  const onClickOpenSettings = async () => {
+    if (Platform.OS === 'android') {
+      Linking.openSettings();
+    } else {
+      Linking.openURL('app-settings:')
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         {permission && permission.status !== PermissionStatus.GRANTED ? (
-          <Text style={styles.centerText}>
-            Please provide camera permission
-          </Text>
+          <>
+            <Text style={styles.centerText}>
+              Please provide camera permission
+            </Text>
+            <Text style={styles.centerTextNote} onPress={onClickOpenSettings}>
+              {i18next.t('label.open_settings')}
+            </Text>
+          </>
         ) : (
           <Camera
             type={CameraType.back}
@@ -82,6 +97,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     textAlign: 'center',
     width: '100%',
+    marginTop: 100,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR
+  },
+  centerTextNote: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    width: '100%',
+    marginTop: 50,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR
   },
   cameraWrapper: {
     width: '100%',
