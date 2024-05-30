@@ -10,6 +10,7 @@ import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
 import DataExpolrerIcon from 'assets/images/svg/DataExplorerIcon.svg'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import i18next from 'src/locales'
 
 interface Props {
   isLogedIn: boolean
@@ -22,28 +23,28 @@ const SideBarList = (props: Props) => {
   )
   const data: SideDrawerItem[] = [
     {
-      label: 'Manage Species',
+      label: i18next.t('label.manage_species'),
       screen: 'ManageSpecies',
       icon: <ManageSpeciesIcon />,
       visible: true,
       key: 'manage_species'
     },
     {
-      label: 'Manage Projects',
+      label: i18next.t('label.manage_project'),
       screen: 'ManageProjects',
       icon: <ManageProjectIcon />,
       visible: UserType==='tpo',
       key: 'manage_projects'
     },
     {
-      label: 'Additional Data',
+      label: i18next.t('label.additional_data'),
       screen: 'AdditionalData',
       icon: <AdditionalDataIcon />,
       visible: true,
       key: 'additional_data'
     },
     {
-      label: 'Offline Maps',
+      label: i18next.t('label.offline_maps'),
       screen: 'OfflineMap',
       icon: <OfflineMapIcon />,
       visible: true,
@@ -51,21 +52,21 @@ const SideBarList = (props: Props) => {
       disable: true
     },
     {
-      label: 'Data Explorer',
+      label: i18next.t('label.data_explorer'),
       screen: 'DataExplorer',
       icon: <DataExpolrerIcon />,
       visible: true,
       key: 'data_explorer'
     },
     {
-      label: 'Activity Log',
+      label: i18next.t('label.activity_logs'),
       screen: 'ActivityLog',
       icon: <ManageProjectIcon />,
       visible: true,
       key: 'activity_log'
     },
     {
-      label: 'Logout',
+      label: i18next.t('label.logout'),
       screen: 'ManageSpecies',
       icon: <LogoutIcon />,
       visible: isLogedIn,

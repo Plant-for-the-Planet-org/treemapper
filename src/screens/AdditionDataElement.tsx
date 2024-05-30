@@ -21,6 +21,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useToast } from 'react-native-toast-notifications'
 import { FORM_TYPE } from 'src/types/type/app.type'
+import i18next from 'src/locales/index'
 
 
 const fieldType: Array<{
@@ -272,7 +273,7 @@ const AdditionDataElement = () => {
         <View style={styles.headerTitleWrapper}>
           <Text style={styles.header}>Add {renderTitle()}</Text>
           {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
-            <Text style={styles.deletelabel}>Delete</Text>
+            <Text style={styles.deletelabel}>{i18next.t('label.save_areas_delete')}</Text>
           </TouchableOpacity>}
         </View>
         {elementType !== 'GAP' && <CustomTextInput
@@ -292,7 +293,7 @@ const AdditionDataElement = () => {
           value={fieldKey}
         />}
         <View style={styles.switchContainer}>
-          <Text style={styles.switchText}>This is required</Text>
+          <Text style={styles.switchText}>{i18next.t('label.required_field')}</Text>
           <Switch value={isRequired} onValueChange={() => {
             setIsRequired(!isRequired)
           }} disabled={false}
@@ -300,7 +301,7 @@ const AdditionDataElement = () => {
           />
         </View>
         {elementType !== 'GAP' && <View style={styles.switchContainer}>
-          <Text style={styles.switchText}>Make this data public</Text>
+          <Text style={styles.switchText}>{i18next.t('label.make_this_public')}</Text>
           <Switch value={isPublic} onValueChange={() => {
             setIsPublic(!isPublic)
 
@@ -309,9 +310,9 @@ const AdditionDataElement = () => {
             disabled={false} />
         </View>}
         {elementType === 'DROPDOWN' && <>
-          <Text style={styles.dropDownOption}>Dropdown options</Text>
+          <Text style={styles.dropDownOption}>{i18next.t('label.dropdown_options')}</Text>
           {renderOptionDD()}
-          <Text style={styles.addDropDown} onPress={toogleOptionModal}>Add Dropdown Options</Text>
+          <Text style={styles.addDropDown} onPress={toogleOptionModal}>{i18next.t('label.add_dropdown_option')}</Text>
           <View style={styles.btnWrapper}></View>
           <View style={styles.footer} />
         </>}

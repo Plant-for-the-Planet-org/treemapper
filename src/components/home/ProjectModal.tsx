@@ -17,6 +17,7 @@ import {
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import i18next from 'src/locales/index'
 
 interface Props {
   isVisible: boolean
@@ -151,7 +152,7 @@ const ProjectModal = (props: Props) => {
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
         <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
-        )}
+      )}
     >
       <BottomSheetView style={styles.container} >
 
@@ -159,13 +160,13 @@ const ProjectModal = (props: Props) => {
           <View style={styles.contnetWrapper}>
             <View style={styles.header}>
               <ZoomSiteIcon style={styles.iconWrapper} />
-              <Text style={styles.headerLable}>Zoom To Site</Text>
+              <Text style={styles.headerLable}>{i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
                 <CloseIcon />
               </TouchableOpacity>
             </View>
-            <Text style={styles.projectLabel}>Select Project</Text>
+            <Text style={styles.projectLabel}>{i18next.t('label.select_project')}</Text>
             <CustomDropDownPicker
               label={'Project'}
               data={projectData}
@@ -173,7 +174,7 @@ const ProjectModal = (props: Props) => {
               selectedValue={selectedProject}
             />
 
-            <Text style={styles.projectLabel}>Select Site</Text>
+            <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
             <View style={styles.siteContainer}>
               <FlatList
                 data={projectSies}
@@ -204,7 +205,7 @@ const ProjectModal = (props: Props) => {
                   return (
                     <View style={styles.siteCard}>
                       <Text style={styles.siteCardLabel}>
-                        No Sites found for this project
+                      {i18next.t('label.no_site_found')}
                       </Text>
                       <View style={styles.divider} />
                     </View>
@@ -291,10 +292,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomColor: Colors.GRAY_BACKDROP,
     marginLeft: 10,
-    paddingVertical:14
+    paddingVertical: 14
   },
   siteCardLabel: {
     fontSize: Typography.FONT_SIZE_16,
-    fontFamily:Typography.FONT_FAMILY_REGULAR
+    fontFamily: Typography.FONT_FAMILY_REGULAR
   },
 })

@@ -18,7 +18,7 @@ import SampleTrees from './user/sampleTrees.json';
 import SpeciesSyncError from './user/speciesSyncError.json';
 import AdditionalData from './user/additionalData.json';
 import Projects from './user/projects.json';
-
+import Intervention from './user/intervention.json'
 export default {
   ...WelcomeScreen,
   ...SignUp,
@@ -40,4 +40,5 @@ export default {
   ...SpeciesSyncError,
   ...AdditionalData,
   ...Projects,
+  ...Intervention,
 };

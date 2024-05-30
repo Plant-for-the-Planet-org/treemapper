@@ -9,6 +9,7 @@ import ImagePreview from 'src/components/takePicture/ImagePreview'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import i18next from 'src/locales/index'
 
 const TakePicture = () => {
   const [imageMetaData, setImageMetaData] = useState<CameraCapturedPicture>({
@@ -30,7 +31,7 @@ const TakePicture = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        label="Take Picture"
+        label={i18next.t('label.take_picture')}
         note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}
       />
       {imageMetaData.uri ? (

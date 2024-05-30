@@ -1,4 +1,6 @@
 import {InterventionData} from 'src/types/interface/slice.interface'
+import i18next from 'src/locales/index'
+
 
 interface FinalObject {
   [key: string]: {
@@ -10,19 +12,19 @@ interface FinalObject {
 
 export const groupIntervention = (data: any[] | InterventionData[]) => {
   const finalObject: FinalObject = {}
-  finalObject['All'] = {
+  finalObject[i18next.t('label.all')] = {
     count: data.length,
     id: 'all',
   }
-  finalObject['Incomplete'] = {
+  finalObject[i18next.t('label.incomplete')] = {
     count: 0,
     id: 'incomplete',
   }
   for (let index = 0; index < data.length; index++) {
     if (!data[index].is_complete) {
-      finalObject['Incomplete'] = {
-        count: (finalObject['Incomplete'].count += 1),
-        ...finalObject['Incomplete'],
+      finalObject[i18next.t('label.incomplete')] = {
+        count: (finalObject[i18next.t('label.incomplete')].count += 1),
+        ...finalObject[i18next.t('label.incomplete')],
       }
     }
     if (finalObject[data[index].intervention_title]) {

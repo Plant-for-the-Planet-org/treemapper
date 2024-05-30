@@ -1,4 +1,5 @@
 import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import i18next from 'src/locales/index'
 
 
 export const SingleTeePlantation: RegisterFormSliceInitalState = {
@@ -14,7 +15,7 @@ export const SingleTeePlantation: RegisterFormSliceInitalState = {
   project_name: '',
   should_register_location: false,
   location_type: 'Point',
-  location_title: 'Tree Location',
+  location_title: i18next.t('label.tree_location'),
   coordinates: [],
   preview_blank_polygon: false,
   cover_image_url: '',

@@ -11,6 +11,7 @@ import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
+import i18next from 'src/locales/index'
 
 interface Props {
   isVisible: boolean
@@ -96,30 +97,30 @@ const FilterModal = (props: Props) => {
           <View style={styles.contnetWrapper}>
             <View style={styles.header}>
               <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
-              <Text style={styles.headerLable}>Filters</Text>
+              <Text style={styles.headerLable}>{i18next.t('label.filter')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
                 <CloseIcon />
               </TouchableOpacity>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardLable}>Monitoring Plots</Text>
+              <Text style={styles.cardLable}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
               <Switch value={false} onValueChange={() => { }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
-              <Text style={styles.cardLable}>Interventions</Text>
+              <Text style={styles.cardLable}>{i18next.t('label.intervention')}</Text>
               <View style={styles.divider} />
               <Switch value={interventionFilter !== 'none'} onValueChange={toogleIntervention} disabled={false} />
             </View>
             <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
-              <Text style={styles.cardLable}>Filter Interventions</Text>
+              <Text style={styles.cardLable}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
               {/* <Image source={FunnelIcon} style={styles.closeWrapper} /> */}
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
             <View style={styles.card}>
-              <Text style={styles.cardLable}>Only Interverntion that{'\n'}need remeasurment</Text>
+              <Text style={styles.cardLable}>{i18next.t('label.only_remeasurment')}</Text>
               <View style={styles.divider} />
               <Switch value={false} onValueChange={() => { }} disabled={false} />
             </View>

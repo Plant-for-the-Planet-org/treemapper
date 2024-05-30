@@ -55,7 +55,7 @@ const AddOptionModal = (props: Props) => {
   const addOptions = [
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
-      title: 'Monitoring Plot',
+      title: i18next.t('label.monitoring_plot'),
       coming_soon: true,
       onPress: () => {
         // navigation.navigate('InterventionForm')
@@ -65,7 +65,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
-      title: 'Project Site',
+      title: i18next.t('label.project_sites'),
       coming_soon: true,
       onPress: () => {
         // navigation.navigate('InterventionForm', {id: 'UNKOWN'})
@@ -75,7 +75,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
-      title: 'Intervention',
+      title: i18next.t('label.intervention'),
       coming_soon: false,
       onPress: () => {
         navigation.navigate('InterventionForm')
@@ -85,7 +85,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
-      title: 'label.tree_registration_type_1',
+      title: i18next.t('label.single_tree'),
       coming_soon: false,
       onPress: () => {
         navigation.navigate('InterventionForm', {
@@ -97,7 +97,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <MultipleTreeIcon width={SCALE_24} height={SCALE_24} />,
-      title: 'label.tree_registration_type_2',
+      title: i18next.t('label.multiple_trees'),
       coming_soon: false,
       onPress: () => {
         navigation.navigate('InterventionForm', {id: 'multi-tree-registration'})
@@ -119,7 +119,7 @@ const AddOptionModal = (props: Props) => {
           <View>
             <Text style={styles.text}>{i18next.t(option.title)}</Text>
             {option.coming_soon && (
-              <Text style={styles.coming_soon}>Coming Soon</Text>
+              <Text style={styles.coming_soon}>{i18next.t('label.coming_soon')}</Text>
             )}
           </View>
         </View>

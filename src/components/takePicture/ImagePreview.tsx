@@ -14,6 +14,7 @@ import { AFTER_CAPTURE } from 'src/types/type/app.type'
 import { copyImageAndGetData } from 'src/utils/helpers/fileSystemHelper'
 import { updateSampleImageUrl } from 'src/store/slice/sampleTreeSlice'
 import { RootState } from 'src/store'
+import i18next from 'src/locales'
 
 interface Props {
   imageData: CameraCapturedPicture
@@ -59,14 +60,14 @@ const ImagePreview = (props: Props) => {
       </View>
       <View style={styles.btnContainer}>
         <CustomButton
-          label="Retake"
+          label={i18next.t('label.retake')}
           containerStyle={styles.btnWrapper}
           pressHandler={retakePicture}
           wrapperStyle={styles.borderWrapper}
           labelStyle={styles.highlightLabel}
         />
         <CustomButton
-          label="Continue"
+          label={i18next.t('label.continue')}
           containerStyle={styles.btnWrapper}
           pressHandler={navigateToNext}
           wrapperStyle={styles.noBorderWrapper}

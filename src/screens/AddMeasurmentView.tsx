@@ -231,7 +231,7 @@ const AddMeasurment = () => {
           keyboardType={'default'}
           trailingtext={''}
           switchEnable={tagEnable}
-          description={'This tree has been tagged for identificaiton'}
+          description={i18next.t('label.tree_tag_note')}
           switchHandler={setTagEnabled}
           errMsg={tagIdErrorMessage}
         />

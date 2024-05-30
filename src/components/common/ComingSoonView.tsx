@@ -5,6 +5,7 @@ import SingleTree from 'assets/images/svg/roundTree.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import i18next from 'src/locales/index'
 
 const ComingSoon = () => {
   return (
@@ -12,8 +13,7 @@ const ComingSoon = () => {
       style={styles.container}>
       <SingleTree width={"100%"} height={'20%'} />
       <Text style={styles.sectionLabel}>
-        We're working hard to bring you exciting new features. Stay tuned for
-        updates !
+      {i18next.t('label.comping_soon_plot')}
       </Text>
     </SafeAreaView>
   )
