@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import {
-  KeyboardAvoidingView,
   Modal,
   StyleSheet,
   Text,
@@ -47,49 +46,46 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
     <Modal visible={showTreeCountModal} transparent={true}>
       <View style={styles.modalBackground}>
       </View>
-      <KeyboardAvoidingView
-        behavior={'position'} style={styles.keyboarview}>
-        <View style={styles.bottomInputContainer}>
-          <View style={styles.wrapper}>
-            <View style={styles.headerWrapper}>
-              <SpeciesIcon />
-              <Text style={styles.headerLabel}>Total Tress</Text>
-              <View style={styles.divider} />
-              <Ionicons
-                name={'close'}
-                size={30}
-                color={Colors.TEXT_COLOR}
-                onPress={() => {
-                  setShowTreeCountModal(null)
-                }}
+      <View style={styles.bottomInputContainer}>
+        <View style={styles.wrapper}>
+          <View style={styles.headerWrapper}>
+            <SpeciesIcon />
+            <Text style={styles.headerLabel}>Total Tress</Text>
+            <View style={styles.divider} />
+            <Ionicons
+              name={'close'}
+              size={30}
+              color={Colors.TEXT_COLOR}
+              onPress={() => {
+                setShowTreeCountModal(null)
+              }}
+            />
+          </View>
+          {activeSpecie && <Text style={styles.note}>How many  {activeSpecie.aliases.length
+            ? activeSpecie.aliases
+            : activeSpecie.scientific_name} did you plant ?</Text>}
+          <View style={styles.inputWrapper}>
+            <View style={styles.input}>
+              <InputOutline
+                style={styles.inputHolder}
+                value={''}
+                ref={inputRef}
+                placeholder={'Tree Count'}
+                activeColor={Colors.NEW_PRIMARY}
+                inactiveColor={Colors.GRAY_TEXT}
+                placeholderTextColor={Colors.GRAY_TEXT}
+                fontSize={scaleFont(16)}
+                onChangeText={setTreeCount}
+                keyboardType='number-pad'
+                fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
               />
             </View>
-            {activeSpecie && <Text style={styles.note}>How many  {activeSpecie.aliases.length
-                  ? activeSpecie.aliases
-                  : activeSpecie.scientific_name} did you plant ?</Text>}
-            <View style={styles.inputWrapper}>
-              <View style={styles.input}>
-                <InputOutline
-                  style={styles.inputHolder}
-                  value={''}
-                  ref={inputRef}
-                  placeholder={'Tree Count'}
-                  activeColor={Colors.NEW_PRIMARY}
-                  inactiveColor={Colors.GRAY_TEXT}
-                  placeholderTextColor={Colors.GRAY_TEXT}
-                  fontSize={scaleFont(16)}
-                  onChangeText={setTreeCount}
-                  keyboardType='number-pad'
-                  fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
-                />
-              </View>
-              <TouchableOpacity style={styles.button} onPress={handlePressNext}>
-                <Text style={styles.btnLabel}>Continue</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.button} onPress={handlePressNext}>
+              <Text style={styles.btnLabel}>Continue</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }
@@ -99,12 +95,9 @@ export default TreeCountModal
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
   keyboarview: {
-    backgroundColor: "green",
     margin: 0,
     padding: 0
   },
@@ -124,8 +117,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.TEXT_COLOR,
     width: '100%',
     borderRadius: 20,
-    position: 'absolute',
-    bottom: 0
+    bottom: 0,
+    position: 'absolute'
+
   },
   headerWrapper: {
     width: '100%',
@@ -149,7 +143,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     fontSize: scaleFont(18),
     marginLeft: 15,
-    paddingRight:10
+    paddingRight: 10
   },
   inputWrapper: {
     width: '100%',
