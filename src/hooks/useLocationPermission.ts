@@ -30,7 +30,7 @@ const useLocationPermission = () => {
     const Data= await Location.getCurrentPositionAsync()
     if (Data.coords && Data.coords.longitude && Data.coords.latitude) {
       const coorinatesData = JSON.parse(JSON.stringify(Data)) 
-      dispatch(updateUserLocation([coorinatesData.coords.longitude, coorinatesData.coords.latitude]))
+      dispatch(updateUserLocation([coorinatesData.coords.longitude.toFixed(6), coorinatesData.coords.latitude.toFixed(6)]))
     }
   }
 
