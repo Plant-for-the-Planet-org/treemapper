@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.GRAY_DARK + '1A',
     borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   plantedAlias: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,

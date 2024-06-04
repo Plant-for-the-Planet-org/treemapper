@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     flex: 1,
     marginLeft: 20,
-    paddingVertical:20
+    paddingVertical:10
   },
 })
