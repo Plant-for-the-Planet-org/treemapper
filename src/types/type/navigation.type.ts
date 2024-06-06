@@ -38,6 +38,7 @@ export type RootStackParamList = {
   EditPolygon: undefined
   CreatePlot: undefined
   CreatePlotDetail: undefined
+  CreatePlotMap: undefined
 }
 
 type SpeciesInfoView = {

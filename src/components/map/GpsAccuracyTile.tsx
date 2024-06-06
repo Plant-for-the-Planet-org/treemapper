@@ -81,7 +81,7 @@ export default GpsAccuracyTile;
 const styles = StyleSheet.create({
   container: {
     width: '40%',
-    height: '100%',
+    height: '90%',
     justifyContent: 'center',
     alignItems: 'center',
   },

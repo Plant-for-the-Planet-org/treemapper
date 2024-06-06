@@ -7,6 +7,9 @@ import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 const CreatePlotDetailsView = () => {
     const [plotName, setPlotName] = useState('');
@@ -14,6 +17,10 @@ const CreatePlotDetailsView = () => {
     const [plotWidth, setPlotWidth] = useState('');
     const [plotGroup, setPlotGroup] = useState('');
     console.log(plotGroup, plotLength, plotWidth, plotName)
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const handleNav = () => {
+        navigation.navigate('CreatePlotMap')
+    }
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Create Plot' rightComponet={<InfoIcon style={styles.infoWrapper} />} />
@@ -52,7 +59,7 @@ const CreatePlotDetailsView = () => {
             <CustomButton
                 label="Create"
                 containerStyle={styles.btnContainer}
-                pressHandler={() => { }}
+                pressHandler={handleNav}
             />
         </SafeAreaView>
     )

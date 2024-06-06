@@ -30,6 +30,7 @@ import EditAdditionData from './EditAdditionDataView'
 import EditPolygonView from './EditPolygonView'
 import CreatePlotView from './CreatePlotView'
 import CreatePlotDetailsView from './CreatePlotDetailsView'
+import CreatePlotMapView from './CreatePlotMapView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -63,5 +64,6 @@ export default {
   EditAdditionData: EditAdditionData,
   EditPolygon: EditPolygonView,
   CreatePlot: CreatePlotView,
-  CreatePlotDetail: CreatePlotDetailsView
+  CreatePlotDetail: CreatePlotDetailsView,
+  CreatePlotMap: CreatePlotMapView
 }
