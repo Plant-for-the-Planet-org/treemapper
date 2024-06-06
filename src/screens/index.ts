@@ -29,6 +29,7 @@ import ImportForm from './ImportFormView'
 import EditAdditionData from './EditAdditionDataView'
 import EditPolygonView from './EditPolygonView'
 import CreatePlotView from './CreatePlotView'
+import CreatePlotDetailsView from './CreatePlotDetailsView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -61,5 +62,6 @@ export default {
   ImportForm: ImportForm,
   EditAdditionData: EditAdditionData,
   EditPolygon: EditPolygonView,
-  CreatePlot: CreatePlotView
+  CreatePlot: CreatePlotView,
+  CreatePlotDetail: CreatePlotDetailsView
 }

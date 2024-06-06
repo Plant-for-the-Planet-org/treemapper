@@ -37,6 +37,7 @@ export type RootStackParamList = {
   EditAdditionData: EditAdditionDataView
   EditPolygon: undefined
   CreatePlot: undefined
+  CreatePlotDetail: undefined
 }
 
 type SpeciesInfoView = {

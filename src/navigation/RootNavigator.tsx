@@ -40,6 +40,7 @@ const RootNavigator = () => {
       <Stack.Screen name='EditAdditionData' component={Screens.EditAdditionData}/>
       <Stack.Screen name='EditPolygon' component={Screens.EditPolygon}/>
       <Stack.Screen name='CreatePlot' component={Screens.CreatePlot}/>
+      <Stack.Screen name='CreatePlotDetail' component={Screens.CreatePlotDetail}/>
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

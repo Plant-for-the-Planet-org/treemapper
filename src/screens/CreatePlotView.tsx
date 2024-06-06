@@ -7,15 +7,21 @@ import CreatePlotCard from 'src/components/monitoringPlot/CreatePlotCard'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useNavigation } from '@react-navigation/native'
 
 const CreatePlotView = () => {
     const [plotType, setPlotType] = useState('intervention');
     const [plotShape, setPlotShape] = useState('rectangular');
     const [plotComplexity, setPlotComplexity] = useState('standard');
-
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const handleNav = () => {
+        navigation.navigate('CreatePlotDetail')
+    }
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Create Plot' rightComponet={<InfoIcon style={styles.infoWrapper}/>} />
+            <Header label='Create Plot' rightComponet={<InfoIcon style={styles.infoWrapper} />} />
             <View style={styles.wrapper}>
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
                     key: 'standard',
@@ -48,7 +54,7 @@ const CreatePlotView = () => {
                 <CustomButton
                     label="Continue"
                     containerStyle={styles.btnContainer}
-                    pressHandler={() => { }}
+                    pressHandler={handleNav}
                 />
             </View>
         </SafeAreaView>
@@ -72,7 +78,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
     },
-    infoWrapper:{
-        marginRight:'5%'
+    infoWrapper: {
+        marginRight: '5%'
     }
 })

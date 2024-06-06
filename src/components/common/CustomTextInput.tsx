@@ -19,7 +19,7 @@ const CustomTextInput = (props: Props) => {
         value={value}
         placeholder={label}
         activeColor={Colors.NEW_PRIMARY}
-        inactiveColor={Colors.TEXT_COLOR}
+        inactiveColor={Colors.DARK_TEXT_COLOR}
         placeholderTextColor={Colors.TEXT_COLOR}
         fontSize={scaleFont(16)}
         onChangeText={onChangeHandler}
