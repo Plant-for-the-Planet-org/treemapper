@@ -11,15 +11,15 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import {StackNavigationProp} from '@react-navigation/stack'
-import React, {useMemo} from 'react'
+import { StackNavigationProp } from '@react-navigation/stack'
+import React, { useMemo } from 'react'
 import i18next from 'src/locales'
 import * as Colors from 'src/utils/constants/colors'
 import * as Typography from 'src/utils/constants/typography'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
-import {useNavigation} from '@react-navigation/native'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {SCALE_24} from 'src/utils/constants/spacing'
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
+import { useNavigation } from '@react-navigation/native'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { SCALE_24 } from 'src/utils/constants/spacing'
 
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
@@ -27,7 +27,7 @@ import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 
-const {width, height} = Dimensions.get('screen')
+const { width, height } = Dimensions.get('screen')
 
 interface Props {
   visible: boolean
@@ -36,7 +36,7 @@ interface Props {
 
 const AddOptionModal = (props: Props) => {
   const heightValue = useDerivedValue(() => {
-    return withTiming(props.visible ? 0 : 600, {duration: 500})
+    return withTiming(props.visible ? 0 : 600, { duration: 500 })
   }, [props.visible])
 
   const opacity = useDerivedValue(() => {
@@ -46,7 +46,7 @@ const AddOptionModal = (props: Props) => {
   }, [props.visible])
 
   const animatedStyles = useAnimatedStyle(() => ({
-    transform: [{translateY: heightValue.value}],
+    transform: [{ translateY: heightValue.value }],
     opacity: opacity.value,
   }))
 
@@ -56,12 +56,12 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: true,
+      coming_soon: false,
       onPress: () => {
-        // navigation.navigate('InterventionForm')
+        navigation.navigate('CreatePlot')
         props.setVisible(false)
       },
-      disabled: true,
+      disabled: false,
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
@@ -100,7 +100,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.multiple_trees'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {id: 'multi-tree-registration'})
+        navigation.navigate('InterventionForm', { id: 'multi-tree-registration' })
         props.setVisible(false)
       },
       disabled: false,
@@ -136,9 +136,9 @@ const AddOptionModal = (props: Props) => {
             height,
             width,
             position: 'absolute',
-            zIndex:10,
-            left:-width+100,
-            top:-height+100
+            zIndex: 10,
+            left: -width + 100,
+            top: -height + 100
           }}
         />
       )}
@@ -160,7 +160,7 @@ const AddOptionModal = (props: Props) => {
           },
           animatedStyles,
         ]}>
-        <Animated.View style={{zIndex: 10}}>{calcComponents}</Animated.View>
+        <Animated.View style={{ zIndex: 10 }}>{calcComponents}</Animated.View>
       </Animated.View>
     </>
   )
