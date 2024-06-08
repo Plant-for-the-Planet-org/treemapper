@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import useLocationPermission from 'src/hooks/useLocationPermission'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
@@ -28,7 +27,6 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
   const realm = useRealm()
-  const { requestLocationPermission } = useLocationPermission()
   const [geoJSON, setGeoJSON] = useState({
     type: 'FeatureCollection',
     features: [],
@@ -68,12 +66,6 @@ const DisplayMap = () => {
   }, [interventionData, interventionFilter, selectedFilters])
 
 
-
-
-
-  useEffect(() => {
-    requestLocationPermission()
-  }, [])
 
 
   const handleGeoJSONData = (d: InterventionData[] | any) => {

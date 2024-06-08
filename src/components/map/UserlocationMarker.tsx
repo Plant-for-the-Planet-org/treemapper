@@ -13,17 +13,19 @@ interface Props {
 
 const UserlocationMarker = (props: Props) => {
   const { stopAutoFocus } = props
-  const { userCurrentLocation, permissionStatus } = useLocationPermission()
+  const { userCurrentLocation } = useLocationPermission()
+
+
   useEffect(() => {
-    if (permissionStatus === 'granted' && !stopAutoFocus) {
+    if (!stopAutoFocus) {
       userCurrentLocation()
     }
-  }, [permissionStatus, stopAutoFocus])
+  }, [stopAutoFocus])
 
 
   return (
     <TouchableOpacity style={styles.container} onPress={userCurrentLocation}>
-      <UserLocationIcon width={40} height={40}/>
+      <UserLocationIcon width={40} height={40} />
     </TouchableOpacity>
   )
 }

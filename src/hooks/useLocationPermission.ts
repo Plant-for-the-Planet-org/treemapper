@@ -1,45 +1,66 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
 import { updaeBlockerModal, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 
 const useLocationPermission = () => {
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
-  const [permissionStatus, setPermissionStatus] = useState('undetermined')
   const dispatch = useDispatch()
 
   useEffect(() => {
-    if (status && status.granted) {
-      setPermissionStatus('granted')
+    if (status && status.status !== Location.PermissionStatus.GRANTED) {
+      dispatch(updaeBlockerModal(true))
+    }
+
+    if (status && status.status === Location.PermissionStatus.GRANTED) {
       dispatch(updaeBlockerModal(false))
       userCurrentLocation()
-    }
-    if (status && status.status === Location.PermissionStatus.DENIED) {
-      setPermissionStatus('denied')
-      dispatch(updaeBlockerModal(true))
     }
 
   }, [status])
 
 
+  useEffect(() => {
+    requestLocationPermission()
+  }, [])
+
+
   const userCurrentLocation = async () => {
-    if(permissionStatus!=='granted'){
-      requestForegroundPermissionsAsync();
+    if (status && status.status === Location.PermissionStatus.GRANTED) {
+      getLastKnowLocation()
+      const userLocationDetails = await Location.getCurrentPositionAsync({
+        accuracy: Location.LocationAccuracy.Highest
+      })
+      if (userLocationDetails.coords && userLocationDetails.coords.longitude && userLocationDetails.coords.latitude) {
+        dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
+      }
+    } else {
+      await requestLocationPermission();
       return;
     }
-    const Data= await Location.getCurrentPositionAsync()
-    if (Data.coords && Data.coords.longitude && Data.coords.latitude) {
-      const coorinatesData = JSON.parse(JSON.stringify(Data)) 
-      dispatch(updateUserLocation([coorinatesData.coords.longitude.toFixed(6), coorinatesData.coords.latitude.toFixed(6)]))
+  }
+
+  const getLastKnowLocation = async () => {
+    try {
+      const lastLocation = await Location.getLastKnownPositionAsync()
+      if (lastLocation && lastLocation.coords) {
+        dispatch(updateUserLocation([lastLocation.coords.longitude, lastLocation.coords.latitude]))
+      }
+    } catch (error) {
+      console.log("Error", error);
+      //TODO error log
     }
   }
+
+
 
   const requestLocationPermission = async () => {
     await requestForegroundPermissionsAsync()
+    await Location.enableNetworkProviderAsync()
   }
 
 
-  return { requestLocationPermission, permissionStatus , userCurrentLocation}
+  return { userCurrentLocation }
 }
 
 export default useLocationPermission
