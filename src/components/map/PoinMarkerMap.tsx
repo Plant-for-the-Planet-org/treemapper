@@ -20,7 +20,6 @@ import * as Location from 'expo-location';
 import AlertModal from '../common/AlertModal'
 import {
   isPointInPolygon,
-  // isPointInPolygon,
   validateMarkerForSampleTree,
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
@@ -55,11 +54,9 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      if (cameraRef && cameraRef.current) {
-        handleCameraViewChange()
-      }
-    }, 500)
+    if (cameraRef && cameraRef.current) {
+      handleCameraViewChange()
+    }
   }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
@@ -76,7 +73,17 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
+  const handleCamera = () => {
+    cameraRef.current.setCamera({
+      centerCoordinate: [...currentUserLocation],
+      zoomLevel: 20,
+      animationDuration: 1000,
+    })
+  }
+
+
   useEffect(() => {
+    //This condition will only be true if the flow was already registerd with polygon
     if (has_sample_trees) {
       getMarkerJSON()
     }
@@ -87,13 +94,6 @@ const PointMarkerMap = (props: Props) => {
   const getMarkerJSON = () => {
     const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: key })
     setGeoJSON(data.geoJSON)
-  }
-  const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
-      animationDuration: 1000,
-    })
   }
 
   const onSelectLocation = async () => {

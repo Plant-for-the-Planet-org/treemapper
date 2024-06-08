@@ -49,7 +49,6 @@ const ManageSpeciesHeader = (props: Props) => {
       <View
         style={{
           paddingLeft: 16,
-          backgroundColor: '#E0E0E026',
         }}>
         <Text
           style={[

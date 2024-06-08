@@ -68,6 +68,7 @@ const CameraView = (props: Props) => {
         containerStyle={styles.btnContainer}
         pressHandler={captureImage}
         loading={loading}
+        hideFadein
       />
     </View>
   )

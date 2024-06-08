@@ -65,12 +65,14 @@ const ImagePreview = (props: Props) => {
           pressHandler={retakePicture}
           wrapperStyle={styles.borderWrapper}
           labelStyle={styles.highlightLabel}
+          hideFadein
         />
         <CustomButton
           label={i18next.t('label.continue')}
           containerStyle={styles.btnWrapper}
           pressHandler={navigateToNext}
           wrapperStyle={styles.noBorderWrapper}
+          hideFadein
         />
       </View>
     </View>

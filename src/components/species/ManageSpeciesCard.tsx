@@ -37,16 +37,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
         styles.container,
         {
           padding: 18,
-          backgroundColor: 'rgba(224, 224, 224, 0.15)',
           paddingVertical: 6,
         },
       ]}>
       <View
-        style={{
-          backgroundColor: 'white',
-          borderRadius: 12,
-          elevation: 5,
-        }}>
+        style={styles.cardWrapper}>
         <TouchableOpacity
           key={index}
           style={styles.mySpecies}
@@ -122,13 +117,21 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     alignItems: 'center',
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#E1E0E061',
     justifyContent: 'space-between',
   },
   imageCon: {
     paddingRight: 18,
     paddingLeft: 8,
+  },
+  cardWrapper:{
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    borderColor: '#f2ebdd',
+    shadowColor: Colors.GRAY_TEXT,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2,
   },
   image: {
     height: 74,
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.LIGHT_RED+'1A',
-    borderRadius:8
+    backgroundColor: Colors.LIGHT_RED + '1A',
+    borderRadius: 8
   }
 })
