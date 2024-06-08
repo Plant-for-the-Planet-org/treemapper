@@ -184,6 +184,7 @@ const PointMarkerMap = (props: Props) => {
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
+          minDisplacement={1}
         />
         {geoJSON && (
           <MapShapeSource

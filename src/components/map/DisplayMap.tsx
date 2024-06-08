@@ -246,7 +246,9 @@ const DisplayMap = () => {
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={JSON.stringify(MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
-      <MapLibreGL.UserLocation minDisplacement={5} />
+      <MapLibreGL.UserLocation showsUserHeadingIndicator
+        androidRenderMode="gps"
+        minDisplacement={1} />
       {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={geoJSON}
         onShapeSourcePress={setSelectedGeoJson} /> :
         showOverlay ?

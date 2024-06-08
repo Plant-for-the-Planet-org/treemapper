@@ -79,7 +79,9 @@ const SyncSpecies = () => {
       }
       const skipSpeciesSync = isWithin90Days(Number(localSyncTimeStamp))
       if (skipSpeciesSync) {
-        navigation.replace('Home')
+        setTimeout(() => {
+          navigation.replace('Home')
+        }, 1000);
       } else {
         addNewLog({
           logType: 'DATA_SYNC',

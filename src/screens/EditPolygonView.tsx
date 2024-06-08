@@ -199,6 +199,11 @@ const PolygonMarkerMap = () => {
                 attributionEnabled={false}
                 styleURL={JSON.stringify(MapStyle)}>
                 <MapLibreGL.Camera ref={cameraRef} />
+                <MapLibreGL.UserLocation
+                    showsUserHeadingIndicator
+                    androidRenderMode="gps"
+                    minDisplacement={1}
+                />
                 <LineMarker coordinates={coordinates} />
                 <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
                 {Interverntion.has_sample_trees && <MapMarkers
