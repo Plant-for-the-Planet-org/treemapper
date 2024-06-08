@@ -1,18 +1,20 @@
-import {useRealm, Realm} from '@realm/react'
-import {RealmSchema} from 'src/types/enum/db.enum'
+import { useRealm, Realm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import {SERVER_SCIENTIFIC_SPECIES} from 'src/types/interface/realm.interface'
+import { SERVER_SCIENTIFIC_SPECIES } from 'src/types/interface/realm.interface'
+import useLogManagement from './useLogManagement'
 
-interface ServerSpeciesSync{
-    "aliases": string
-    "description":null | string
-    "id":string
-    "image":null|string
-    "scientificName":string
-    "scientificSpecies":string
+interface ServerSpeciesSync {
+  "aliases": string
+  "description": null | string
+  "id": string
+  "image": null | string
+  "scientificName": string
+  "scientificSpecies": string
 }
 
 const useManageScientificSpecies = () => {
+  const { addNewLog } = useLogManagement()
   const realm = useRealm()
   const writeBulkSpecies = async (
     speciesData: SERVER_SCIENTIFIC_SPECIES[],
@@ -29,7 +31,13 @@ const useManageScientificSpecies = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during bulk write:', error)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "DB error occured while syncing species data.",
+        logLevel: 'error',
+        statusCode: '000',
+        logStack: JSON.stringify(error)
+      })
       return Promise.reject(false)
     }
   }
@@ -70,10 +78,10 @@ const useManageScientificSpecies = () => {
   const addUserSpecies = async (item: ServerSpeciesSync[]) => {
     try {
       realm.write(() => {
-        item.forEach(specie=>{          
+        item.forEach(specie => {
           const data = {
             guid: specie.id,
-            scientific_name:specie.scientificName || '',
+            scientific_name: specie.scientificName || '',
             is_user_species: true,
             is_uploaded: true,
             aliases: specie.aliases || '',
@@ -99,7 +107,7 @@ const useManageScientificSpecies = () => {
     try {
       const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('is_user_species == true');
       realm.write(() => {
-        favoriteData.forEach(specie=>{          
+        favoriteData.forEach(specie => {
           specie.is_user_species = false
         })
       })
@@ -110,7 +118,7 @@ const useManageScientificSpecies = () => {
     }
   }
 
-  return {writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies}
+  return { writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
 }
 
 export default useManageScientificSpecies

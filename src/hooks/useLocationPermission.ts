@@ -2,14 +2,22 @@ import { useEffect } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
 import { updaeBlockerModal, updateUserLocation } from 'src/store/slice/gpsStateSlice';
+import useLogManagement from './realm/useLogManagement';
 
 const useLocationPermission = () => {
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
   const dispatch = useDispatch()
+  const { addNewLog } = useLogManagement()
 
   useEffect(() => {
     if (status && status.status !== Location.PermissionStatus.GRANTED) {
       dispatch(updaeBlockerModal(true))
+      addNewLog({
+        logType: 'LOCATION',
+        message: "Location Permission Deined",
+        logLevel: 'warn',
+        statusCode: '',
+      })
     }
 
     if (status && status.status === Location.PermissionStatus.GRANTED) {
@@ -36,7 +44,6 @@ const useLocationPermission = () => {
       }
     } else {
       await requestLocationPermission();
-      return;
     }
   }
 
@@ -47,8 +54,12 @@ const useLocationPermission = () => {
         dispatch(updateUserLocation([lastLocation.coords.longitude, lastLocation.coords.latitude]))
       }
     } catch (error) {
-      console.log("Error", error);
-      //TODO error log
+      addNewLog({
+        logType: 'LOCATION',
+        message: JSON.stringify(error),
+        logLevel: 'error',
+        statusCode: ''
+      })
     }
   }
 

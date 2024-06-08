@@ -6,9 +6,9 @@ import { v4 as uuid } from 'uuid';
 const useLogManagement = () => {
   const realm = useRealm()
 
-  const addNewLog = async (
+  const addNewLog = (
     logDetails: LogDetails
-  ): Promise<boolean> => {
+  ) => {
     try {
       realm.write(() => {
         realm.create(
@@ -17,28 +17,21 @@ const useLogManagement = () => {
           Realm.UpdateMode.All,
         )
       })
-      return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
     }
   }
 
-
-  const deleteAllLogs = async (): Promise<boolean> => {
+  const deleteAllLogs = () => {
     try {
       realm.write(() => {
         const unSyncedObjects = realm.objects(RealmSchema.ActivityLogs);
         realm.delete(unSyncedObjects);
       });
-      return Promise.resolve(true);
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
     }
   };
-
-
 
   return { addNewLog, deleteAllLogs }
 }

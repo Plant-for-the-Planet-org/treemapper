@@ -12,7 +12,6 @@ interface Props {
 const GpsAccuracyTile = (props: Props) => {
   const { showModalInfo } = props;
   const [accuracy, setAccuracy] = useState(0);
-
   const showModal = () => {
     showModalInfo(true);
   };
