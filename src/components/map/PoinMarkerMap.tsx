@@ -16,7 +16,6 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
 import i18next from 'i18next'
-import * as Location from 'expo-location';
 import AlertModal from '../common/AlertModal'
 import {
   isPointInPolygon,
@@ -25,6 +24,7 @@ import {
 import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
+import getUserLocation from 'src/utils/helpers/getUserLocation'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -40,6 +40,7 @@ const PointMarkerMap = (props: Props) => {
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
+
   const [outOfBoundry, setOutOfBoundry] = useState(false)
   const { updateInterventionLocation } = useInterventionManagement()
   const currentUserLocation = useSelector(
@@ -125,8 +126,8 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const checkForAccuracy = async () => {
-    const { coords } = await Location.getCurrentPositionAsync()
-    if (coords && coords.accuracy && coords.accuracy >= 30) {
+    const { accuracy } = getUserLocation()
+    if (accuracy >= 30) {
       setAlertModal(true)
     } else {
       onSelectLocation()

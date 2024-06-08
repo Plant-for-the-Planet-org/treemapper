@@ -45,8 +45,8 @@ export interface ProjectStateSlice {
 
 export interface GpsSliceInitalState {
   user_location: number[],
-  showBlockerModal: boolean
-
+  showBlockerModal: boolean,
+  accuracy: number
 }
 
 export interface TakePictureInitialState {
