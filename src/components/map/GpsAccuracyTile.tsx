@@ -18,50 +18,34 @@ const GpsAccuracyTile = (props: Props) => {
   };
 
   useEffect(() => {
-    let watcher;
-
-    const requestPermissionsAndWatchPosition = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        return;
+    Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Highest,
+        distanceInterval: 1,
+        mayShowUserSettingsDialog: true,
+        timeInterval: 1000
+      },
+      (location) => {
+        if (location && location.coords && location.coords.accuracy) {
+          setAccuracy(location.coords.accuracy);
+        }
       }
-
-      watcher = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Highest,
-        },
-        callBackForlocation
-      );
-    };
-
-    requestPermissionsAndWatchPosition();
-
-    return () => {
-      if (watcher) {
-        watcher.remove(); // Clean up the watcher when component unmounts
-      }
-    };
+    );
   }, []);
-
-  const callBackForlocation = (location: Location.LocationObject) => {
-    if (location && location.coords && location.coords.accuracy) {
-      setAccuracy(location.coords.accuracy);
-    }
-  };
 
   const activeStyle = {
     bgColor:
       accuracy < 10
         ? Colors.NEW_PRIMARY + '1A'
         : accuracy < 30
-        ? Colors.LIGHT_AMBER + '1A'
-        : Colors.LIGHT_RED + '1A',
+          ? Colors.LIGHT_AMBER + '1A'
+          : Colors.LIGHT_RED + '1A',
     iconColor:
       accuracy < 10
         ? Colors.NEW_PRIMARY
         : accuracy < 30
-        ? Colors.LIGHT_AMBER
-        : Colors.LIGHT_RED,
+          ? Colors.LIGHT_AMBER
+          : Colors.LIGHT_RED,
   };
 
   return (
