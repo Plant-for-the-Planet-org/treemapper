@@ -45,6 +45,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 20,
-    backgroundColor:Colors.GRAY_TEXT
   },
 })

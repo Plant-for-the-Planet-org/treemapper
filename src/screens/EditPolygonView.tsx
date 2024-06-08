@@ -36,7 +36,7 @@ const PolygonMarkerMap = () => {
         index: number
     }>>([])
     // const [_currentStep, setSteps] = useState(0)
-    console.log("L:", history)
+    console.log("history", history)
     const { updateInterventionLocation } = useInterventionManagement()
     const dispatch = useDispatch()
     const cameraRef = useRef<Camera>(null)
