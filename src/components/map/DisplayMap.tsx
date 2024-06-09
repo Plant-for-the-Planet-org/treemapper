@@ -60,9 +60,7 @@ const DisplayMap = () => {
       handleGeoJSONData([])
       return
     }
-    if (interventionData && interventionData.length) {
-      handleGeoJSONData(interventionData)
-    }
+    handleGeoJSONData(interventionData)
   }, [interventionData, interventionFilter, selectedFilters])
 
 

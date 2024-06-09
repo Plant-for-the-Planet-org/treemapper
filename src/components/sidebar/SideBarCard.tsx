@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch } from 'react-redux'
-import { logoutAppUser, updateUserLogin } from 'src/store/slice/appStateSlice'
+import { logoutAppUser, updateNewIntervention, updateUserLogin } from 'src/store/slice/appStateSlice'
 import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
@@ -24,7 +24,7 @@ const SideBarCard = (props: Props) => {
   const dispatch = useDispatch()
 
   const handleNavigaiton = () => {
-    if(disable){
+    if (disable) {
       return
     }
     let params = {}
@@ -40,10 +40,11 @@ const SideBarCard = (props: Props) => {
 
   const handleLogout = async () => {
     await logoutUser()
+    dispatch(resetProjectState())
     dispatch(updateUserLogin(false))
     dispatch(resetUserDetails())
     dispatch(logoutAppUser())
-    dispatch(resetProjectState())
+    dispatch(updateNewIntervention())
   }
 
   if (!visible) {
@@ -52,7 +53,7 @@ const SideBarCard = (props: Props) => {
 
   return (
     <Pressable style={styles.container} onPress={handleNavigaiton}>
-      <View style={[styles.wrapper,{ opacity: disable ? 0.5 : 1, backgroundColor:disable?Colors.BACKDROP_COLOR:'white' }]}>
+      <View style={[styles.wrapper, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
         <View style={styles.iconWrapper}>{icon}</View>
         <View style={styles.labelWrapper}>
           <Text style={styles.label}>{label}</Text>
