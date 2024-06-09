@@ -15,16 +15,12 @@ export const initialUserState: UserInterface = {
   name: '',
   slug: '',
   type: '',
-  loading: false
 }
 
 const userStateSlice = createSlice({
   name: 'userStateSlice',
   initialState: initialUserState,
   reducers: {
-    updateLoadingUser(state, action: PayloadAction<boolean>){
-      state.loading = action.payload
-    },
     updateUserDetails(_state, action: PayloadAction<UserInterface>) {
       return {...action.payload}
     },
@@ -34,6 +30,6 @@ const userStateSlice = createSlice({
   },
 })
 
-export const {updateUserDetails, resetUserDetails, updateLoadingUser} = userStateSlice.actions
+export const {updateUserDetails, resetUserDetails} = userStateSlice.actions
 
 export default userStateSlice.reducer

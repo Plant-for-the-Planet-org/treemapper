@@ -2,17 +2,18 @@ import { StyleSheet, View } from 'react-native'
 import React, { useEffect } from 'react'
 import CustomButton from '../common/CustomButton'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateLoadingUser, updateUserDetails } from 'src/store/slice/userStateSlice'
+import {updateUserDetails } from 'src/store/slice/userStateSlice'
 import { updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import { getUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
 import Snackbar from 'react-native-snackbar'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
+import { updateWebAuthLoading } from 'src/store/slice/tempStateSlice'
 
 const LoginButton = () => {
-  const { loading } = useSelector(
-    (state: RootState) => state.userState)
+  const webAuthLoading = useSelector(
+    (state: RootState) => state.tempState.webAuthLoading)
   const { authorizeUser, user, getUserCredentials } = useAuthentication()
   const { addNewLog } = useLogManagement()
   const dispatch = useDispatch()
@@ -38,17 +39,17 @@ const LoginButton = () => {
     if (userDetails) {
       loginAndUpdateDetails(userDetails)
     } else {
-      dispatch(updateLoadingUser(false))
+      dispatch(updateWebAuthLoading(false))
     }
   }
 
 
   const hadleLogin = async () => {
     try {
-      dispatch(updateLoadingUser(true))
+      dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
       if (!result.success) {
-        dispatch(updateLoadingUser(false))
+        dispatch(updateWebAuthLoading(false))
         Snackbar.show({
           text: "User Details not fetched please try again !",
           duration: Snackbar.LENGTH_SHORT,
@@ -62,7 +63,7 @@ const LoginButton = () => {
         })
       }
     } catch (err) {
-      dispatch(updateLoadingUser(false))
+      dispatch(updateWebAuthLoading(false))
       addNewLog({
         logType: 'USER',
         message: "Log in failed",
@@ -76,7 +77,7 @@ const LoginButton = () => {
     const finalDetails = { ...data }
     dispatch(updateUserDetails(finalDetails))
     dispatch(updateUserLogin(true))
-    dispatch(updateLoadingUser(false))
+    dispatch(updateWebAuthLoading(false))
   }
 
   return (
@@ -85,7 +86,7 @@ const LoginButton = () => {
         label={'Login/Signup'}
         pressHandler={hadleLogin}
         containerStyle={styles.wrapper}
-        disable={loading}
+        disable={webAuthLoading}
         hideFadein
       />
     </View>

@@ -11,8 +11,13 @@ export interface AppInitialState {
   lastServerInterventionpage: string
   intervention_updated: number
   userSpecies: boolean,
-  refreshToken: string
+  refreshToken: string,
 }
+
+export interface TempStateSlice {
+  webAuthLoading: boolean
+}
+
 
 export interface MapBoundSlice {
   bounds: number[]
@@ -202,7 +207,6 @@ export interface UserInterface {
   name: null | string
   slug: string
   type: string
-  loading?: boolean
 }
 
 export interface InterventionLocation {
