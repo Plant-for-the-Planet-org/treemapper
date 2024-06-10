@@ -1,4 +1,4 @@
-import {InterventionData} from 'src/types/interface/slice.interface'
+import { InterventionData } from 'src/types/interface/slice.interface'
 import i18next from 'src/locales/index'
 
 
@@ -20,11 +20,23 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
     count: 0,
     id: 'incomplete',
   }
+
+  finalObject['Unsynced'] = {
+    count: 0,
+    id: 'unsync',
+  }
+
   for (let index = 0; index < data.length; index++) {
     if (!data[index].is_complete) {
       finalObject[i18next.t('label.incomplete')] = {
         count: (finalObject[i18next.t('label.incomplete')].count += 1),
         ...finalObject[i18next.t('label.incomplete')],
+      }
+    }
+    if (data[index].status === 'NOT_SYNCED' && data[index].is_complete) {
+      finalObject['Unsynced'] = {
+        count: (finalObject['Unsynced'].count += 1),
+        ...finalObject['Unsynced'],
       }
     }
     if (finalObject[data[index].intervention_title]) {
@@ -54,6 +66,10 @@ export const groupInterventionList = (
 ) => {
   if (type === 'incomplete') {
     return data.filter(el => el.is_complete === false)
+  }
+
+  if (type === 'unsync') {
+    return data.filter(el => el.status === 'NOT_SYNCED')
   }
 
   if (type === 'all') {
