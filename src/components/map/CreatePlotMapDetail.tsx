@@ -3,6 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
+
 const styles = StyleSheet.create({
   page: {
     flex: 1,
@@ -22,8 +25,7 @@ const CreatePlotMapDetail = () => {
       <MapLibreGL.MapView
         style={styles.map}
         logoEnabled={false}
-        styleURL="https://demotiles.maplibre.org/style.json"
-      >
+        styleURL={JSON.stringify(MapStyle)}>
         <Text></Text>
       </MapLibreGL.MapView>
     </View>

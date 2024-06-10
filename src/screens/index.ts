@@ -31,6 +31,7 @@ import EditPolygonView from './EditPolygonView'
 import CreatePlotView from './CreatePlotView'
 import CreatePlotDetailsView from './CreatePlotDetailsView'
 import CreatePlotMapView from './CreatePlotMapView'
+import PlotDetailsView from './PlotDetailsView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -65,5 +66,6 @@ export default {
   EditPolygon: EditPolygonView,
   CreatePlot: CreatePlotView,
   CreatePlotDetail: CreatePlotDetailsView,
-  CreatePlotMap: CreatePlotMapView
+  CreatePlotMap: CreatePlotMapView,
+  PlotDetails: PlotDetailsView
 }

@@ -100,7 +100,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.multiple_trees'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', { id: 'multi-tree-registration' })
+        navigation.navigate('PlotDetails')
         props.setVisible(false)
       },
       disabled: false,
