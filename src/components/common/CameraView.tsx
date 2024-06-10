@@ -18,7 +18,7 @@ interface Props {
 
 const CameraView = (props: Props) => {
   const [permission, requestPermission] = Camera.useCameraPermissions()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const cameraRef = useRef<Camera>(null)
 
   useEffect(() => {
@@ -59,9 +59,6 @@ const CameraView = (props: Props) => {
             type={CameraType.back}
             style={styles.cameraWrapper}
             ref={cameraRef}
-            onCameraReady={() => {
-              setLoading(false)
-            }}
             ratio="1:1"
           />
         )}
