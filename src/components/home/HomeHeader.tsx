@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import React, { useEffect } from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
@@ -11,13 +11,14 @@ import { RootState } from 'src/store'
 import useProjectMangement from 'src/hooks/realm/useProjectMangement'
 import { getAllProjects, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
 import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventorytoIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
+import SyncIntervention from '../intervention/SyncIntervention'
+import { Colors } from 'src/utils/constants'
 
 interface Props {
   toogleFilterModal: () => void
@@ -198,18 +199,25 @@ const HomeHeader = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <HamburgerIcon onPress={openHomeDrawer} style={styles.iconWrapper} />
+      <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
+        <HamburgerIcon onPress={openHomeDrawer} width={22} height={22} />
+      </Pressable>
+      <SyncIntervention isLogedIn={isLogedIn} />
       <View style={styles.sectionWrapper} />
       {userType && userType === 'tpo' ? (
         <>
-          <HomeMapIcon
-            onPress={toogleProjectModal}
-            style={styles.iconWrapper}
-          />
-          <FilterMapIcon
-            onPress={toogleFilterModal}
-            style={styles.iconWrapper}
-          />
+          <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleProjectModal}>
+            <HomeMapIcon
+              onPress={toogleProjectModal}
+              width={22} height={22}
+            />
+          </Pressable>
+          <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleFilterModal}>
+            <FilterMapIcon
+              onPress={toogleFilterModal}
+              width={22} height={22}
+            />
+          </Pressable>
         </>
       ) : null}
     </View>
@@ -221,19 +229,30 @@ export default HomeHeader
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    height: scaleSize(70),
+    height: 50,
     width: '100%',
     zIndex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    top: Platform.OS === 'android' ? 25 : 40,
+    top: 80,
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
+    width: 45,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.NEW_PRIMARY,
   },
   sectionWrapper: {
     flex: 1,
   },
-  endWrapper: {},
+  hamburger: {
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    marginRight: 10
+  },
+  commonIcon: {
+    borderRadius: 10,
+    marginRight: 10
+  }
 })

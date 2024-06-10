@@ -16,16 +16,15 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
 import i18next from 'i18next'
-import * as Location from 'expo-location';
 import AlertModal from '../common/AlertModal'
 import {
   isPointInPolygon,
-  // isPointInPolygon,
   validateMarkerForSampleTree,
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
+import getUserLocation from 'src/utils/helpers/getUserLocation'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -41,6 +40,7 @@ const PointMarkerMap = (props: Props) => {
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
+
   const [outOfBoundry, setOutOfBoundry] = useState(false)
   const { updateInterventionLocation } = useInterventionManagement()
   const currentUserLocation = useSelector(
@@ -55,11 +55,9 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      if (cameraRef && cameraRef.current) {
-        handleCameraViewChange()
-      }
-    }, 500)
+    if (cameraRef && cameraRef.current) {
+      handleCameraViewChange()
+    }
   }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
@@ -76,7 +74,17 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
+  const handleCamera = () => {
+    cameraRef.current.setCamera({
+      centerCoordinate: [...currentUserLocation],
+      zoomLevel: 20,
+      animationDuration: 1000,
+    })
+  }
+
+
   useEffect(() => {
+    //This condition will only be true if the flow was already registerd with polygon
     if (has_sample_trees) {
       getMarkerJSON()
     }
@@ -87,13 +95,6 @@ const PointMarkerMap = (props: Props) => {
   const getMarkerJSON = () => {
     const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: key })
     setGeoJSON(data.geoJSON)
-  }
-  const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
-      animationDuration: 1000,
-    })
   }
 
   const onSelectLocation = async () => {
@@ -125,8 +126,8 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const checkForAccuracy = async () => {
-    const { coords } = await Location.getCurrentPositionAsync()
-    if (coords && coords.accuracy && coords.accuracy >= 30) {
+    const { accuracy } = getUserLocation()
+    if (accuracy >= 30) {
       setAlertModal(true)
     } else {
       onSelectLocation()
@@ -184,6 +185,7 @@ const PointMarkerMap = (props: Props) => {
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
+          minDisplacement={1}
         />
         {geoJSON && (
           <MapShapeSource

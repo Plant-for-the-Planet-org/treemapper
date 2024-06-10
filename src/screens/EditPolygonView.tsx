@@ -36,7 +36,7 @@ const PolygonMarkerMap = () => {
         index: number
     }>>([])
     // const [_currentStep, setSteps] = useState(0)
-    console.log("L:", history)
+    console.log("history", history)
     const { updateInterventionLocation } = useInterventionManagement()
     const dispatch = useDispatch()
     const cameraRef = useRef<Camera>(null)
@@ -199,6 +199,11 @@ const PolygonMarkerMap = () => {
                 attributionEnabled={false}
                 styleURL={JSON.stringify(MapStyle)}>
                 <MapLibreGL.Camera ref={cameraRef} />
+                <MapLibreGL.UserLocation
+                    showsUserHeadingIndicator
+                    androidRenderMode="gps"
+                    minDisplacement={1}
+                />
                 <LineMarker coordinates={coordinates} />
                 <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
                 {Interverntion.has_sample_trees && <MapMarkers

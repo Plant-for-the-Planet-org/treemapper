@@ -27,18 +27,19 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 const SyncSpecies = () => {
   const { downloadFile, finalURL, currentState } = useDownloadFile()
   const { writeBulkSpecies } = useManageScientificSpecies()
+  const { addNewLog } = useLogManagement()
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
   const { isConnected } = useNetInfo();
-  const {addNewLog} =useLogManagement()
+
   const dispatch = useDispatch()
+
   useEffect(() => {
-    setTimeout(() => {
-      if (isConnected === null) {
-        return
-      }
-      isSpeciesUpdateRequried()
-    }, 2000);
+    if (isConnected === null) {
+      return
+    }
+    isSpeciesUpdateRequried()
   }, [isConnected])
 
   useEffect(() => {
@@ -67,51 +68,35 @@ const SyncSpecies = () => {
           dispatch(updateSpeciesSyncStatus(false))
           navigation.replace('Home')
         }
-      }, 2000);
+      }, 1000);
       return;
     }
     const localSyncTimeStamp = await getLocalSpeciesSync()
     if (localSyncTimeStamp) {
       if (route.params && route.params.inApp) {
         downloadFile()
-        addNewLog({
-          logType: 'DATA_SYNC',
-          message: "Species data downloaded",
-          logLevel: 'info',
-          statusCode: '000',
-        })
         return
       }
       const skipSpeciesSync = isWithin90Days(Number(localSyncTimeStamp))
       if (skipSpeciesSync) {
-        navigation.replace('Home')
+        setTimeout(() => {
+          navigation.replace('Home')
+        }, 1000);
       } else {
-        downloadFile()
         addNewLog({
           logType: 'DATA_SYNC',
-          message: "Species data downloaded",
+          message: "Species data need's to sync. Syncing started",
           logLevel: 'info',
           statusCode: '000',
         })
+        downloadFile()
       }
     } else {
       downloadFile()
-      addNewLog({
-        logType: 'DATA_SYNC',
-        message: "Species data downloaded",
-        logLevel: 'info',
-        statusCode: '000',
-      })
     }
   }
 
   const readAndWriteSpecies = async (finalURL: string) => {
-    addNewLog({
-      logType: 'DATA_SYNC',
-      message: "Species read and write started",
-      logLevel: 'info',
-      statusCode: '000',
-    })
     try {
       const speciesContent = await FileSystem.readAsStringAsync(
         finalURL + '/scientific_species.json',
@@ -120,13 +105,13 @@ const SyncSpecies = () => {
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
+      dispatch(updateSpeciesSyncStatus(true))
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Species data sync successfully",
+        message: "Species data synced successfully",
         logLevel: 'info',
         statusCode: '000',
       })
-      dispatch(updateSpeciesSyncStatus(true))
       if (route.params && route.params.inApp) {
         navigation.goBack()
       } else {

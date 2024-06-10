@@ -1,5 +1,5 @@
 import { Alert, StyleSheet, View } from 'react-native'
-import React, {useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -60,13 +60,13 @@ const OfflineMapDisplay = () => {
       const writeData = {
         name: mapID,
         areaName: areaName,
-        size:status.completedTileSize,
+        size: status.completedTileSize,
       }
       const result = createNewOfflineMap(writeData)
       if (result) {
         alert(i18next.t('label.download_map_complete'));
         navigation.goBack()
-      }else{
+      } else {
         alert(i18next.t('label.download_map_area_failed'));
       }
     }
@@ -92,7 +92,7 @@ const OfflineMapDisplay = () => {
           maxZoom: 20,
           bounds: bounds,
         },
-        (o,s)=>{progressListener(o,s,areaName,offlineMapId)},
+        (o, s) => { progressListener(o, s, areaName, offlineMapId) },
         errorListener,
       );
     } catch (err) {
@@ -115,6 +115,11 @@ const OfflineMapDisplay = () => {
             compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
             styleURL={JSON.stringify(MapStyle)}>
             <MapLibreGL.Camera ref={cameraRef} />
+            <MapLibreGL.UserLocation
+              showsUserHeadingIndicator
+              androidRenderMode="gps"
+              minDisplacement={1}
+            />
           </MapLibreGL.MapView>
         </View>
         <CustomButton

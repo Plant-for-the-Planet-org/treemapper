@@ -2,8 +2,7 @@ import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import EmptyManageSpecies from 'assets/images/svg/EmptyManageSpecies.svg'
 import i18next from 'src/locales/index'
-import { Colors } from 'react-native/Libraries/NewAppScreen'
-import { Typography } from 'src/utils/constants'
+import { Typography, Colors } from 'src/utils/constants'
 
 const EmptyManageSpeciesList = () => {
   return (

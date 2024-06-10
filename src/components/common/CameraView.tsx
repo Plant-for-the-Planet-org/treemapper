@@ -27,7 +27,7 @@ const CameraView = (props: Props) => {
 
   const captureImage = async () => {
     setLoading(true)
-    const data = await cameraRef.current.takePictureAsync()
+    const data = await cameraRef.current.takePictureAsync({skipProcessing:true})
     if (data) {
       props.takePicture(data)
     } else {
@@ -68,6 +68,8 @@ const CameraView = (props: Props) => {
         containerStyle={styles.btnContainer}
         pressHandler={captureImage}
         loading={loading}
+        disable={loading}
+        hideFadein
       />
     </View>
   )

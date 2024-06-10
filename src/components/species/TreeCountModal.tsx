@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Modal,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
+import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
@@ -27,7 +30,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   onPressTreeCountNextBtn,
 }) => {
   const [treeCount, setTreeCount] = useState('')
-  const inputRef = React.useRef(null)
+  const inputRef = React.useRef<TextInput>(null)
 
   useEffect(() => {
     setTreeCount('')
@@ -39,14 +42,17 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   }, [showTreeCountModal])
 
   const handlePressNext = () => {
+    inputRef?.current?.blur()
     onPressTreeCountNextBtn(treeCount)
   }
 
   return (
-    <Modal visible={showTreeCountModal} transparent={true}>
-      <View style={styles.modalBackground}>
-      </View>
-      <View style={styles.bottomInputContainer}>
+    <Modal style={styles.container}
+      isVisible={showTreeCountModal}
+      onBackdropPress={() => { }}>
+      <KeyboardAvoidingView style={styles.sectionWrapper}
+        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.wrapper}>
           <View style={styles.headerWrapper}>
             <SpeciesIcon />
@@ -85,7 +91,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
@@ -93,33 +99,22 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
 export default TreeCountModal
 
 const styles = StyleSheet.create({
-  modalBackground: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  keyboarview: {
     margin: 0,
-    padding: 0
+    padding: 0,
+  },
+  sectionWrapper: {
+    flex: 1,
+    justifyContent: 'flex-end'
   },
   wrapper: {
-    width: '100%',
     paddingTop: 10,
     backgroundColor: 'white',
     paddingBottom: 20,
     borderTopLeftRadius: 20,
-    borderTopRightRadius: 20
-  },
-  bottomInputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTopWidth: 0.5,
-    borderColor: Colors.TEXT_COLOR,
-    width: '100%',
-    borderRadius: 20,
-    bottom: 0,
-    position: 'absolute'
-
+    borderTopRightRadius: 20,
+    bottom: 0
   },
   headerWrapper: {
     width: '100%',
@@ -149,8 +144,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 55,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 20
   },
   input: {

@@ -16,6 +16,6 @@ export type INTERVENTION_STATUS = 'SYNCED' | 'NOT_SYNCED'
 
 export type INTERVENTION_FILTER = 'always' | 'year' | 'months' | 'days' | 'none'
 
-export type LOG_TYPES = "INTERVENTION" | "MAPS" | "MANAGE_SPECIES" | "DATA_SYNC" | "USER" | "PROJECTS" | "OTHER" | "ADDITIONAL_DATA"
+export type LOG_TYPES = "INTERVENTION" | "MAPS" | "MANAGE_SPECIES" | "DATA_SYNC" | "USER" | "PROJECTS" | "OTHER" | "ADDITIONAL_DATA" | "LOCATION"
 
 export type LOG_LEVELS = 'info' | 'warn' | 'error';

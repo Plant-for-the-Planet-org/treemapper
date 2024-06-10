@@ -1,12 +1,11 @@
-import * as Location from 'expo-location'
+import store from "src/store"
 
-const getUserLocation = async () => {
-  const Data= await Location.getCurrentPositionAsync()
-  if (Data.coords) {
-    return {lat: Data.coords.latitude, long: Data.coords.longitude, accuracy: Data.coords.accuracy}
-  } else {
-    return {lat: 0, long: 0, accuracy:0}
-  }
+
+
+
+const getUserLocation = () => {
+  const { user_location, accuracy } = store.getState().gpsState
+  return { lat: user_location[0], long: user_location[1], accuracy }
 }
 
 export default getUserLocation

@@ -11,8 +11,11 @@ import openWebView from 'src/utils/helpers/appHelper/openWebView'
 
 
 const SidebarHeader = () => {
-  const { image, displayName, loading, email } = useSelector(
+  const { image, displayName, email } = useSelector(
     (state: RootState) => state.userState,
+  )
+  const webAuthLoading = useSelector(
+    (state: RootState) => state.tempState.webAuthLoading,
   )
   const avatar = `https://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/profile/avatar/${image}`
   const editHandler = () => {
@@ -22,7 +25,7 @@ const SidebarHeader = () => {
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
-        <Skeleton show={loading} colorMode="light" radius={12}>
+        <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           {image ? (
             <Image source={{ uri: avatar }} style={styles.imageWrapper} />
           ) : (
@@ -31,12 +34,12 @@ const SidebarHeader = () => {
         </Skeleton>
       </View>
       <View style={styles.loaderView}>
-        <Skeleton show={loading} colorMode="light" radius={12}>
+        <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           <Text style={styles.userName}>
             {displayName ? `${displayName}` : 'Guest User'}
           </Text>
         </Skeleton>
-        {email && <Skeleton show={loading} colorMode="light" radius={12}>
+        {email && <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           <Text style={styles.emailLabel}>
             {email}
           </Text>

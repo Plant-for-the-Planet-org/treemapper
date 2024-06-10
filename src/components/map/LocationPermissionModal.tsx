@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react'
-import useLocationPermission from 'src/hooks/useLocationPermission'
+import React from 'react'
 import { PermissionBlockedAlert } from '../common/LocationPermissionAlerts'
 import { useDispatch, useSelector } from 'react-redux'
 import { updaeBlockerModal } from 'src/store/slice/gpsStateSlice'
@@ -15,15 +14,10 @@ interface Props {
 
 const LocationPermissionModal = (props: Props) => {
     const { required } = props
-    const { permissionStatus } = useLocationPermission()
     const showAlerModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
     const dispatch = useDispatch()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    useEffect(() => {
-        if (permissionStatus === 'denied') {
-            dispatch(updaeBlockerModal(true))
-        }
-    }, [permissionStatus])
+
     if (!showAlerModal) {
         return null
     }

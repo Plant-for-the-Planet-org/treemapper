@@ -181,6 +181,11 @@ const PolygonMarkerMap = (props: Props) => {
         attributionEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
+        <MapLibreGL.UserLocation
+          showsUserHeadingIndicator
+          androidRenderMode="gps"
+          minDisplacement={1}
+        />
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>

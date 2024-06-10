@@ -210,13 +210,13 @@ const useInterventionManagement = () => {
     }
   }
 
-  const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?:boolean): Promise<boolean> => {
+  const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         intervention.location = location
         intervention.entire_site = isEntireSite
-        if(!onlyUpadteLocation){
+        if (!onlyUpadteLocation) {
           intervention.lastScreen = 'location'
         }
       });
@@ -312,9 +312,24 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateInterventionStatus = async (intervnetionID: string, hid: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        intervention.status = 'SYNCED'
+        intervention.hid = hid
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
 
-  return { addNewIntervention, updateEditAdditionalData, updateInterventionMetaData, updateInterventionLastScreen, updateDynamicFormDetails, updateLocalFormDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
+
+
+  return { updateInterventionStatus, addNewIntervention, updateEditAdditionalData, updateInterventionMetaData, updateInterventionLastScreen, updateDynamicFormDetails, updateLocalFormDetailsIntervention, initializeIntervention, addSampleTrees, updateInterventionCoverImage, deleteSampleTreeIntervention, saveIntervention, updateSampleTreeImage, deleteIntervention, updateSampleTreeDetails, updateSampleTreeSpecies, deleteAllSyncedIntervention, updateInterventionLocation, updateInterventionPlantedSpecies }
 }
 
 export default useInterventionManagement

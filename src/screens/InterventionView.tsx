@@ -25,7 +25,7 @@ const InterventionView = () => {
   }, [currentPage, selectedLabel])
 
   const getReleatedIntervention = () => {
-    const query = selectedLabel === 'incomplete' ? 'is_complete==false' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
+    const query = selectedLabel === 'unsync' ? 'status == "NOT_SYNCED" AND is_complete == true' : selectedLabel === 'incomplete' ? 'is_complete==false' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
     const start = currentPage * 20;
     const end = start + 20;
     const objects = realm

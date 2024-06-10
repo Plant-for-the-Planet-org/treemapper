@@ -1,10 +1,9 @@
-import { ActivityIndicator, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import ActivityLogsTab from 'src/components/activityLogs/ActivityLogsTab'
 import { Colors } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
-import { View } from 'moti'
 import Share from 'react-native-share';
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { toBase64 } from 'src/utils/constants/base64'
