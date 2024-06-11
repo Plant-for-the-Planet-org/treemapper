@@ -67,6 +67,7 @@ export default DropdownComponent
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    width:'100%'
   },
   dropdown: {
     height: scaleSize(55),

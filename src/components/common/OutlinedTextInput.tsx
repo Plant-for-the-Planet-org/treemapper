@@ -30,7 +30,7 @@ const OutlinedTextInput = (props: Props) => {
         inactiveColor={Colors.GRAY_BORDER}
         placeholderTextColor={Colors.GRAY_BORDER}
         onChangeText={changeHandler}
-        fontSize={scaleFont(20)}
+        fontSize={scaleFont(16)}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}
